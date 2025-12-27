@@ -1,0 +1,9 @@
+{
+  "common": {
+    "languageSwitcher": {
+      "label": "Language",
+      "english": "English",
+      "hebrew": "Hebrew"
+    }
+  }
+}

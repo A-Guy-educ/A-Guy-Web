@@ -6,6 +6,7 @@ import { CMSLink } from '@/components/Link'
 import Link from 'next/link'
 import { SearchIcon } from 'lucide-react'
 import type { Header as HeaderType } from '@/payload-types'
+import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 
 interface MobileMenuProps {
   isOpen: boolean
@@ -112,7 +113,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, data, u
           )}
 
           {/* Search */}
-          <div className="px-6 py-4">
+          <div className="px-6 py-4 border-b border-border">
             <Link
               href="/search"
               onClick={onClose}
@@ -121,6 +122,14 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, data, u
               <SearchIcon className="w-5 h-5 text-primary" />
               <span className="text-base">Search</span>
             </Link>
+          </div>
+
+          {/* Language Switcher */}
+          <div className="px-6 py-4">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+              Language
+            </h3>
+            <LanguageSwitcher />
           </div>
         </nav>
       </div>

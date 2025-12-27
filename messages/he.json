@@ -1,0 +1,9 @@
+{
+  "common": {
+    "languageSwitcher": {
+      "label": "שפה",
+      "english": "אנגלית",
+      "hebrew": "עברית"
+    }
+  }
+}

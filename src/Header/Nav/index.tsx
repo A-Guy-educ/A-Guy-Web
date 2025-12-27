@@ -7,6 +7,7 @@ import type { Header as HeaderType } from '@/payload-types'
 import { CMSLink } from '@/components/Link'
 import Link from 'next/link'
 import { SearchIcon } from 'lucide-react'
+import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 
 interface HeaderNavProps {
   data: HeaderType
@@ -64,6 +65,12 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({ data, userName }) => {
       >
         <SearchIcon className="w-5 text-foreground" />
       </Link>
+
+      {/* Separator before language switcher */}
+      <div className="h-6 w-px bg-border" />
+
+      {/* Language Switcher */}
+      <LanguageSwitcher />
     </nav>
   )
 }
