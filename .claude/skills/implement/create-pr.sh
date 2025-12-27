@@ -1,0 +1,69 @@
+#!/bin/bash
+# Helper script to create PR with the Engineering Task Execution Contract template
+# Usage: ./create-pr.sh "PR Title" "What/Why description" "Scope of changes" "Test results"
+
+set -e
+
+# Check if gh is installed
+if ! command -v gh &> /dev/null; then
+    echo "GitHub CLI (gh) is not installed. Installing..."
+    brew install gh
+fi
+
+# Check authentication
+if ! gh auth status &> /dev/null; then
+    echo "Please authenticate with GitHub:"
+    gh auth login
+fi
+
+# Get current branch
+BRANCH=$(git branch --show-current)
+
+# Get arguments
+PR_TITLE="${1:-feat: update}"
+WHAT_WHY="${2:-[Brief description of what changed and why]}"
+SCOPE="${3:-[List affected files/modules/features]}"
+TEST_RESULTS="${4:-[Test results]}"
+
+# Push branch
+echo "Pushing branch: $BRANCH"
+git push -u origin "$BRANCH"
+
+# Create PR
+echo "Creating pull request..."
+gh pr create --title "$PR_TITLE" --body "$(cat <<EOF
+## What / Why
+
+$WHAT_WHY
+
+## Scope of Changes
+
+$SCOPE
+
+## How It Was Tested
+
+$TEST_RESULTS
+
+## Definition of Done Checklist
+
+- [ ] All quality gates pass (typecheck, lint, format, tests)
+- [ ] Zod validation at all modified/added API boundaries
+- [ ] Pino logs with requestId correlation for server-side changes
+- [ ] Sentry captures relevant errors
+- [ ] Tests added/updated for logic changes or bug fixes
+- [ ] No new dependencies without approval
+- [ ] CI checks green
+
+## Screenshots / GIF (if UI changed)
+
+N/A
+
+## Risks / Rollback Notes
+
+[Any deployment risks or rollback instructions]
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+EOF
+)"
+
+echo "✅ Pull request created successfully!"
