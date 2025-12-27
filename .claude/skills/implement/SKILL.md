@@ -109,16 +109,40 @@ chore: update dependencies to latest versions
 
 ### 6. Pull Request
 
-**PR title**: Use Conventional Commit format
+**Automated PR creation workflow:**
 
-```
-feat: add user avatar upload feature
-fix: resolve authentication timeout issue
-```
+1. **Ensure GitHub CLI is installed and authenticated:**
 
-**PR description must include:**
+   ```bash
+   # Check/install gh CLI
+   which gh || brew install gh
 
-```markdown
+   # Authenticate (first time only)
+   gh auth status || gh auth login
+   ```
+
+2. **Push branch and create PR:**
+
+   **Option A: Use the helper script** (recommended):
+
+   ```bash
+   .claude/skills/implement/create-pr.sh \
+     "feat: your feature description" \
+     "What changed and why" \
+     "List of affected files" \
+     "✓ pnpm -s tsc --noEmit - PASSED\n✓ pnpm -s lint - PASSED\n✓ pnpm -s test - PASSED"
+   ```
+
+   **Option B: Manual gh command:**
+
+   ```bash
+   # Push branch
+   git push -u origin <branch-name>
+
+   # Create PR
+   gh pr create --title "<conventional-commit-title>" --body "$(cat <<'EOF'
+   ```
+
 ## What / Why
 
 [Brief description of what changed and why]
@@ -129,7 +153,11 @@ fix: resolve authentication timeout issue
 
 ## How It Was Tested
 
-[Exact commands run, e.g., pnpm -s tsc --noEmit, pnpm -s test, etc.]
+[Exact commands run with results]
+✓ pnpm -s tsc --noEmit - PASSED
+✓ pnpm -s lint - PASSED
+✓ pnpm -s format - PASSED
+✓ pnpm -s test - PASSED
 
 ## Definition of Done Checklist
 
@@ -148,14 +176,27 @@ fix: resolve authentication timeout issue
 ## Risks / Rollback Notes
 
 [Any deployment risks or rollback instructions]
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+EOF
+)"
+
 ```
 
-For the complete PR template, see [PR_TEMPLATE.md](PR_TEMPLATE.md).
+**PR title format** (Conventional Commit style):
+
+```
+
+feat: add user avatar upload feature
+fix: resolve authentication timeout issue
+chore: update dependencies
+
+```
+
+For the complete PR template reference, see [PR_TEMPLATE.md](PR_TEMPLATE.md).
 
 ### 7. CI/CD Verification
 
-- Push your branch
-- Create the pull request
 - **Ensure GitHub Actions checks are green**
 - **If CI fails**:
   1. Diagnose the failure
@@ -186,18 +227,22 @@ When you complete the task, provide:
 
 1. **Branch name**: `feat/feature-name`
 2. **List of commits**:
-   ```
-   abc1234 feat: add feature X
-   def5678 test: add tests for feature X
-   ```
+```
+
+abc1234 feat: add feature X
+def5678 test: add tests for feature X
+
+```
 3. **PR link** (or PR title + full body if link not available)
 4. **Test commands executed + results**:
-   ```
-   ✓ pnpm -s tsc --noEmit - PASSED
-   ✓ pnpm -s lint - PASSED
-   ✓ pnpm -s format - PASSED
-   ✓ pnpm -s test - PASSED (15 tests)
-   ```
+```
+
+✓ pnpm -s tsc --noEmit - PASSED
+✓ pnpm -s lint - PASSED
+✓ pnpm -s format - PASSED
+✓ pnpm -s test - PASSED (15 tests)
+
+````
 5. **CI status summary**: All checks passed / What failed and how you fixed it
 
 ## Common Patterns
@@ -211,35 +256,35 @@ import { z } from 'zod'
 import { logger } from '@/lib/logger'
 
 const requestSchema = z.object({
-  field: z.string().min(1),
+field: z.string().min(1),
 })
 
 export async function POST(req: NextRequest) {
-  const requestId = crypto.randomUUID()
+const requestId = crypto.randomUUID()
 
-  try {
-    const body = await req.json()
-    const validated = requestSchema.parse(body)
+try {
+ const body = await req.json()
+ const validated = requestSchema.parse(body)
 
-    logger.info({ requestId, action: 'example_action' }, 'Processing request')
+ logger.info({ requestId, action: 'example_action' }, 'Processing request')
 
-    // ... your logic here
+ // ... your logic here
 
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    logger.error({ requestId, error }, 'Request failed')
+ return NextResponse.json({ success: true })
+} catch (error) {
+ logger.error({ requestId, error }, 'Request failed')
 
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
-        { status: 400 },
-      )
-    }
+ if (error instanceof z.ZodError) {
+   return NextResponse.json(
+     { error: 'Validation failed', details: error.errors },
+     { status: 400 },
+   )
+ }
 
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  }
+ return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
 }
-```
+}
+````
 
 ### Adding a Server Action
 
