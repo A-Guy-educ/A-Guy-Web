@@ -25,7 +25,6 @@
 - shadcn/ui (component base)
 - Radix UI Primitives (accessible primitives)
 - lucide-react (icons)
-- next-themes (theme switching)
 
 ### UX Utilities
 

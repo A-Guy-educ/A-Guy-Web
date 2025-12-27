@@ -23,9 +23,9 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    /* Primary: deep dark blue */
-    --primary: 219 83% 14%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary: light blue in light mode */
+    --primary: 220 40% 97%;
+    --primary-foreground: 222.2 84% 4.9%;
 
     /* Secondary: soft purple tint */
     --secondary: 251 91% 95%;
@@ -101,6 +101,41 @@
   }
   body {
     @apply bg-background text-foreground min-h-[100vh] flex flex-col;
+  }
+}
+
+@layer utilities {
+  /* Smooth scrolling for anchor links */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Backdrop blur support */
+  @supports (backdrop-filter: blur(10px)) {
+    .backdrop-blur-lg {
+      backdrop-filter: blur(16px);
+    }
+  }
+
+  /* Smooth transitions for theme changes */
+  * {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
+
+  /* Prevent transition on page load */
+  .no-transition {
+    transition: none !important;
   }
 }
 

@@ -1,4 +1,5 @@
 import { withPayload } from '@payloadcms/next/withPayload'
+import { withSentryConfig } from '@sentry/nextjs'
 
 import redirects from './redirects.js'
 
@@ -33,4 +34,22 @@ const nextConfig = {
   redirects,
 }
 
-export default withPayload(nextConfig, { devBundleServerPackages: false })
+const configWithPayload = withPayload(nextConfig, { devBundleServerPackages: false })
+
+export default withSentryConfig(configWithPayload, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+  tunnelRoute: '/monitoring',
+  hideSourceMaps: true,
+  webpack: {
+    treeshake: {
+      removeDebugLogging: true,
+    },
+    reactComponentAnnotation: {
+      enabled: true,
+    },
+    automaticVercelMonitors: true,
+  },
+})

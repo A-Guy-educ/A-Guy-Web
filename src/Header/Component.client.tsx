@@ -8,6 +8,7 @@ import type { Header } from '@/payload-types'
 
 import { Logo } from '@/components/Logo/Logo'
 import { HeaderNav } from './Nav'
+import { MobileMenu, MobileMenuButton } from './MobileMenu'
 
 interface HeaderClientProps {
   data: Header
@@ -16,6 +17,8 @@ interface HeaderClientProps {
 export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
   /* Storing the value in a useState to avoid hydration errors */
   const [theme, setTheme] = useState<string | null>(null)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
   const { headerTheme, setHeaderTheme } = useHeaderTheme()
   const pathname = usePathname()
 
@@ -29,14 +32,59 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [headerTheme])
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false)
+  }, [pathname])
+
+  // Handle scroll for sticky header
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10)
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // Example user name - in a real app, you'd get this from auth context
+  const userName = undefined // Replace with actual user data: useAuth()?.user?.name
+
   return (
-    <header className="container relative z-20" {...(theme ? { 'data-theme': theme } : {})}>
-      <div className="py-8 flex justify-between">
-        <Link href="/">
-          <Logo loading="eager" priority="high" className="invert dark:invert-0" />
-        </Link>
-        <HeaderNav data={data} />
-      </div>
-    </header>
+    <>
+      <header
+        className={`sticky top-0 z-40 w-full transition-all duration-300 ${
+          isScrolled
+            ? 'bg-background/95 backdrop-blur-lg border-b border-border shadow-sm'
+            : 'bg-background/60 backdrop-blur-md'
+        }`}
+        {...(theme ? { 'data-theme': theme } : {})}
+      >
+        <div className="container">
+          <div className="py-4 md:py-6 flex items-center justify-between text-foreground">
+            {/* Logo */}
+            <Link href="/" className="flex-shrink-0">
+              <Logo loading="eager" priority="high" className="invert dark:invert-0" />
+            </Link>
+
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center">
+              <HeaderNav data={data} userName={userName} />
+            </div>
+
+            {/* Mobile Menu Button */}
+            <MobileMenuButton onClick={() => setIsMobileMenuOpen(true)} />
+          </div>
+        </div>
+      </header>
+
+      {/* Mobile Menu */}
+      <MobileMenu
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        data={data}
+        userName={userName}
+      />
+    </>
   )
 }
