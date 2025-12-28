@@ -623,6 +623,11 @@ export interface Lesson {
    */
   isActive: boolean;
   /**
+   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   */
+  generateSlug?: boolean | null;
+  slug: string;
+  /**
    * Defines how this lesson is delivered. Keep `pdf` for now.
    */
   contentType: 'pdf' | 'none';
@@ -1097,6 +1102,8 @@ export interface LessonsSelect<T extends boolean = true> {
   order?: T;
   status?: T;
   isActive?: T;
+  generateSlug?: T;
+  slug?: T;
   contentType?: T;
   pdfUrl?: T;
   updatedAt?: T;
