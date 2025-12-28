@@ -70,6 +70,7 @@ export interface Config {
     pages: Page;
     categories: Category;
     courses: Course;
+    lessons: Lesson;
     users: User;
     redirects: Redirect;
     forms: Form;
@@ -86,6 +87,7 @@ export interface Config {
     pages: PagesSelect<false> | PagesSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     courses: CoursesSelect<false> | CoursesSelect<true>;
+    lessons: LessonsSelect<false> | LessonsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
@@ -592,6 +594,39 @@ export interface Form {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "lessons".
+ */
+export interface Lesson {
+  id: string;
+  /**
+   * The course this lesson belongs to
+   */
+  course: string | Course;
+  /**
+   * Lesson title
+   */
+  title: string;
+  /**
+   * Detailed description of the lesson
+   */
+  description?: string | null;
+  /**
+   * Sort order within the course
+   */
+  order: number;
+  /**
+   * Publication status of the lesson
+   */
+  status: 'draft' | 'published' | 'archived';
+  /**
+   * Whether this lesson is currently active
+   */
+  isActive: boolean;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
@@ -810,6 +845,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'courses';
         value: string | Course;
+      } | null)
+    | ({
+        relationTo: 'lessons';
+        value: string | Lesson;
       } | null)
     | ({
         relationTo: 'users';
@@ -1036,6 +1075,20 @@ export interface CoursesSelect<T extends boolean = true> {
         title?: T;
         description?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "lessons_select".
+ */
+export interface LessonsSelect<T extends boolean = true> {
+  course?: T;
+  title?: T;
+  description?: T;
+  order?: T;
+  status?: T;
+  isActive?: T;
   updatedAt?: T;
   createdAt?: T;
 }
