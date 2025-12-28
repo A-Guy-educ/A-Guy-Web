@@ -1,23 +1,38 @@
 'use client'
 
+import { useMemo } from 'react'
+
 interface PDFEmbedProps {
   pdfUrl: string
   title: string
+  page?: number
 }
 
-export function PDFEmbed({ pdfUrl, title }: PDFEmbedProps) {
+export function PDFEmbed({ pdfUrl, title, page = 1 }: PDFEmbedProps) {
   const handleError = (e: React.SyntheticEvent<HTMLIFrameElement>) => {
     const target = e.currentTarget
     target.style.display = 'none'
   }
 
+  // Configure PDF.js viewer to show single page mode
+  const configuredPdfUrl = useMemo(() => {
+    // Check if pdfUrl already has hash parameters
+    if (pdfUrl.includes('#')) {
+      return pdfUrl
+    }
+
+    // Add hash parameters for single page mode
+    const params = `page=${page}&pagemode=none&scrollbar=0&toolbar=0&navpanes=0&view=FitH`
+    return `${pdfUrl}#${params}`
+  }, [pdfUrl, page])
+
   return (
     <div className="border rounded-lg overflow-hidden bg-gray-50">
       <iframe
-        src={pdfUrl}
+        src={configuredPdfUrl}
         title={`PDF: ${title}`}
         className="w-full"
-        style={{ height: '841px', marginTop: '-41px' }}
+        style={{ height: '841px' }}
         loading="lazy"
         onError={handleError}
       />
