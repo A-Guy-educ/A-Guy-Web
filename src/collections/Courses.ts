@@ -4,6 +4,12 @@ import { anyone } from '../access/anyone'
 import { authenticated } from '../access/authenticated'
 import { slugField } from 'payload'
 
+const formatSlug = (val: string): string =>
+  val
+    .replace(/ /g, '-')
+    .replace(/[^\w-]+/g, '')
+    .toLowerCase()
+
 export const Courses: CollectionConfig = {
   slug: 'courses',
   access: {
@@ -11,6 +17,16 @@ export const Courses: CollectionConfig = {
     delete: authenticated,
     read: anyone,
     update: authenticated,
+  },
+  hooks: {
+    beforeValidate: [
+      ({ data }) => {
+        if (data?.title && !data?.slug) {
+          data.slug = formatSlug(data.title)
+        }
+        return data
+      },
+    ],
   },
   admin: {
     useAsTitle: 'title',
