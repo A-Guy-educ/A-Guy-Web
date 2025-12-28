@@ -71,6 +71,8 @@ export interface Config {
     posts: Post;
     media: Media;
     categories: Category;
+    grades: Grade;
+    'pricing-plans': PricingPlan;
     users: User;
     redirects: Redirect;
     forms: Form;
@@ -93,6 +95,8 @@ export interface Config {
     posts: PostsSelect<false> | PostsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    grades: GradesSelect<false> | GradesSelect<true>;
+    'pricing-plans': PricingPlansSelect<false> | PricingPlansSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
@@ -781,6 +785,80 @@ export interface Form {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "grades".
+ */
+export interface Grade {
+  id: string;
+  /**
+   * Grade identifier (e.g., "ח" or "8")
+   */
+  gradeLabel: string;
+  /**
+   * Display title (e.g., "Grade 8 Math Course")
+   */
+  title: string;
+  /**
+   * Detailed description of the grade course
+   */
+  description?: string | null;
+  /**
+   * Sort order for UI display
+   */
+  order: number;
+  /**
+   * Publication status of the grade
+   */
+  status: 'draft' | 'published' | 'archived';
+  /**
+   * Whether this grade is currently active
+   */
+  isActive: boolean;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pricing-plans".
+ */
+export interface PricingPlan {
+  id: string;
+  /**
+   * The grade this pricing plan applies to
+   */
+  grade: string | Grade;
+  /**
+   * Payment provider for this plan
+   */
+  provider: 'paypal' | 'stripe' | 'manual';
+  /**
+   * Provider-specific plan ID (required for PayPal and Stripe)
+   */
+  providerPlanId?: string | null;
+  /**
+   * Type of billing
+   */
+  billingType: 'one_time' | 'subscription';
+  /**
+   * Billing interval (required for subscription billing)
+   */
+  interval?: ('month' | 'year') | null;
+  /**
+   * Price amount
+   */
+  price: number;
+  /**
+   * Currency code
+   */
+  currency: 'ILS' | 'USD' | 'EUR';
+  /**
+   * Whether this pricing plan is currently active
+   */
+  isActive?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -984,6 +1062,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'categories';
         value: string | Category;
+      } | null)
+    | ({
+        relationTo: 'grades';
+        value: string | Grade;
+      } | null)
+    | ({
+        relationTo: 'pricing-plans';
+        value: string | PricingPlan;
       } | null)
     | ({
         relationTo: 'users';
@@ -1328,6 +1414,36 @@ export interface CategoriesSelect<T extends boolean = true> {
         label?: T;
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "grades_select".
+ */
+export interface GradesSelect<T extends boolean = true> {
+  gradeLabel?: T;
+  title?: T;
+  description?: T;
+  order?: T;
+  status?: T;
+  isActive?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pricing-plans_select".
+ */
+export interface PricingPlansSelect<T extends boolean = true> {
+  grade?: T;
+  provider?: T;
+  providerPlanId?: T;
+  billingType?: T;
+  interval?: T;
+  price?: T;
+  currency?: T;
+  isActive?: T;
   updatedAt?: T;
   createdAt?: T;
 }
