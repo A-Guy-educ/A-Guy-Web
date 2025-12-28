@@ -3,8 +3,8 @@ import type { CollectionConfig } from 'payload'
 import { anyone } from '../access/anyone'
 import { authenticated } from '../access/authenticated'
 
-export const Grades: CollectionConfig = {
-  slug: 'grades',
+export const Lessons: CollectionConfig = {
+  slug: 'lessons',
   access: {
     create: authenticated,
     delete: authenticated,
@@ -13,16 +13,16 @@ export const Grades: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['gradeLabel', 'title', 'order', 'status', 'isActive', 'updatedAt'],
+    defaultColumns: ['lessonLabel', 'title', 'order', 'status', 'isActive', 'updatedAt'],
   },
   fields: [
     {
-      name: 'gradeLabel',
+      name: 'lessonLabel',
       type: 'text',
       required: true,
       index: true,
       admin: {
-        description: 'Grade identifier (e.g., "ח" or "8")',
+        description: 'Lesson identifier (e.g., "ח" or "8")',
       },
     },
     {
@@ -31,14 +31,14 @@ export const Grades: CollectionConfig = {
       required: true,
       index: true,
       admin: {
-        description: 'Display title (e.g., "Grade 8 Math Course")',
+        description: 'Display title (e.g., "Lesson 8 Math Course")',
       },
     },
     {
       name: 'description',
       type: 'textarea',
       admin: {
-        description: 'Detailed description of the grade course',
+        description: 'Detailed description of the lesson course',
       },
     },
     {
@@ -71,7 +71,7 @@ export const Grades: CollectionConfig = {
         },
       ],
       admin: {
-        description: 'Publication status of the grade',
+        description: 'Publication status of the lesson',
       },
     },
     {
@@ -80,7 +80,7 @@ export const Grades: CollectionConfig = {
       required: true,
       defaultValue: true,
       admin: {
-        description: 'Whether this grade is currently active',
+        description: 'Whether this lesson is currently active',
       },
     },
   ],

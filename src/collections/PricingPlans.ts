@@ -13,7 +13,7 @@ export const PricingPlans: CollectionConfig = {
   },
   admin: {
     defaultColumns: [
-      'grade',
+      'lesson',
       'provider',
       'billingType',
       'interval',
@@ -25,13 +25,13 @@ export const PricingPlans: CollectionConfig = {
   },
   fields: [
     {
-      name: 'grade',
+      name: 'lesson',
       type: 'relationship',
-      relationTo: 'grades',
+      relationTo: 'lessons',
       required: true,
       index: true,
       admin: {
-        description: 'The grade this pricing plan applies to',
+        description: 'The lesson this pricing plan applies to',
       },
     },
     {

@@ -71,7 +71,7 @@ export interface Config {
     posts: Post;
     media: Media;
     categories: Category;
-    grades: Grade;
+    lessons: Lesson;
     'pricing-plans': PricingPlan;
     users: User;
     redirects: Redirect;
@@ -95,7 +95,7 @@ export interface Config {
     posts: PostsSelect<false> | PostsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
-    grades: GradesSelect<false> | GradesSelect<true>;
+    lessons: LessonsSelect<false> | LessonsSelect<true>;
     'pricing-plans': PricingPlansSelect<false> | PricingPlansSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
@@ -785,20 +785,20 @@ export interface Form {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "grades".
+ * via the `definition` "lessons".
  */
-export interface Grade {
+export interface Lesson {
   id: string;
   /**
-   * Grade identifier (e.g., "ח" or "8")
+   * Lesson identifier (e.g., "ח" or "8")
    */
-  gradeLabel: string;
+  lessonLabel: string;
   /**
-   * Display title (e.g., "Grade 8 Math Course")
+   * Display title (e.g., "Lesson 8 Math Course")
    */
   title: string;
   /**
-   * Detailed description of the grade course
+   * Detailed description of the lesson course
    */
   description?: string | null;
   /**
@@ -806,11 +806,11 @@ export interface Grade {
    */
   order: number;
   /**
-   * Publication status of the grade
+   * Publication status of the lesson
    */
   status: 'draft' | 'published' | 'archived';
   /**
-   * Whether this grade is currently active
+   * Whether this lesson is currently active
    */
   isActive: boolean;
   updatedAt: string;
@@ -823,9 +823,9 @@ export interface Grade {
 export interface PricingPlan {
   id: string;
   /**
-   * The grade this pricing plan applies to
+   * The lesson this pricing plan applies to
    */
-  grade: string | Grade;
+  lesson: string | Lesson;
   /**
    * Payment provider for this plan
    */
@@ -1064,8 +1064,8 @@ export interface PayloadLockedDocument {
         value: string | Category;
       } | null)
     | ({
-        relationTo: 'grades';
-        value: string | Grade;
+        relationTo: 'lessons';
+        value: string | Lesson;
       } | null)
     | ({
         relationTo: 'pricing-plans';
@@ -1419,10 +1419,10 @@ export interface CategoriesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "grades_select".
+ * via the `definition` "lessons_select".
  */
-export interface GradesSelect<T extends boolean = true> {
-  gradeLabel?: T;
+export interface LessonsSelect<T extends boolean = true> {
+  lessonLabel?: T;
   title?: T;
   description?: T;
   order?: T;
@@ -1436,7 +1436,7 @@ export interface GradesSelect<T extends boolean = true> {
  * via the `definition` "pricing-plans_select".
  */
 export interface PricingPlansSelect<T extends boolean = true> {
-  grade?: T;
+  lesson?: T;
   provider?: T;
   providerPlanId?: T;
   billingType?: T;

@@ -5,7 +5,7 @@ import { buildConfig, PayloadRequest } from 'payload'
 import { fileURLToPath } from 'url'
 
 import { Categories } from './collections/Categories'
-import { Grades } from './collections/Grades'
+import { Lessons } from './collections/Lessons'
 import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { Posts } from './collections/Posts'
@@ -62,7 +62,7 @@ export default buildConfig({
   db: mongooseAdapter({
     url: process.env.DATABASE_URL || '',
   }),
-  collections: [Pages, Posts, Media, Categories, Grades, PricingPlans, Users],
+  collections: [Pages, Posts, Media, Categories, Lessons, PricingPlans, Users],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
   plugins,
