@@ -2,7 +2,6 @@ import type { CollectionConfig } from 'payload'
 
 import { anyone } from '../access/anyone'
 import { authenticated } from '../access/authenticated'
-import { slugField } from 'payload'
 
 const formatSlug = (val: string): string =>
   val
@@ -109,10 +108,17 @@ export const Courses: CollectionConfig = {
         position: 'sidebar',
       },
     },
-    slugField({
+    {
+      name: 'slug',
+      type: 'text',
       required: false,
-      useAsSlug: 'title',
-    }),
+      index: true,
+      unique: true,
+      admin: {
+        position: 'sidebar',
+        description: 'URL-friendly identifier (auto-generated from title if empty)',
+      },
+    },
     {
       name: 'meta',
       type: 'group',

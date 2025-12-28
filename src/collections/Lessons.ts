@@ -2,7 +2,6 @@ import type { CollectionConfig } from 'payload'
 
 import { anyone } from '../access/anyone'
 import { authenticated } from '../access/authenticated'
-import { slugField } from 'payload'
 
 const formatSlug = (val: string): string =>
   val
@@ -105,19 +104,19 @@ export const Lessons: CollectionConfig = {
       name: 'contentType',
       type: 'select',
       required: true,
-      defaultValue: 'pdf',
+      defaultValue: 'none',
       options: [
-        {
-          label: 'PDF',
-          value: 'pdf',
-        },
         {
           label: 'None',
           value: 'none',
         },
+        {
+          label: 'PDF',
+          value: 'pdf',
+        },
       ],
       admin: {
-        description: 'Defines how this lesson is delivered. Keep `pdf` for now.',
+        description: 'Defines how this lesson is delivered.',
       },
     },
     {
@@ -146,9 +145,16 @@ export const Lessons: CollectionConfig = {
         return true
       },
     },
-    slugField({
+    {
+      name: 'slug',
+      type: 'text',
       required: false,
-      useAsSlug: 'title',
-    }),
+      index: true,
+      unique: true,
+      admin: {
+        position: 'sidebar',
+        description: 'URL-friendly identifier (auto-generated from title if empty)',
+      },
+    },
   ],
 }
