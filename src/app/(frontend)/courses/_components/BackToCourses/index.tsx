@@ -2,14 +2,15 @@
 
 import Link from 'next/link'
 import { useTranslations } from '@/providers/I18n'
+import { Button } from '@/components/ui/button'
 
 export function BackToCourses() {
   const t = useTranslations('courses')
   return (
     <nav className="mb-6">
-      <Link href="/courses" className="text-blue-600 hover:underline">
-        ← {t('backToCourses')}
-      </Link>
+      <Button variant="link" asChild className="pl-0">
+        <Link href="/courses">← {t('backToCourses')}</Link>
+      </Button>
     </nav>
   )
 }

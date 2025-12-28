@@ -1,6 +1,7 @@
 'use client'
 
 import { useTranslations } from '@/providers/I18n'
+import { Card, CardContent } from '@/components/ui/card'
 
 type EmptyStateType = 'noCourses' | 'noChapters' | 'noLessons' | 'noPDF'
 
@@ -11,14 +12,20 @@ interface EmptyStateProps {
 export function EmptyState({ type }: EmptyStateProps) {
   const t = useTranslations('courses')
   const message = t(type)
-  const className =
-    type === 'noPDF'
-      ? 'bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center'
-      : 'text-gray-500'
+
+  if (type === 'noPDF') {
+    return (
+      <Card className="border-amber-200 bg-amber-50">
+        <CardContent className="p-6 text-center">
+          <p className="text-foreground">{message}</p>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
-    <div className={className}>
-      <p className={type === 'noPDF' ? 'text-gray-700' : ''}>{message}</p>
+    <div className="text-muted-foreground">
+      <p>{message}</p>
     </div>
   )
 }

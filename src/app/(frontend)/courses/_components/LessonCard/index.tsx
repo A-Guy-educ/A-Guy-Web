@@ -3,6 +3,9 @@
 import Link from 'next/link'
 import type { Lesson } from '@/payload-types'
 import { useTranslations } from '@/providers/I18n'
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 interface LessonCardProps {
   lesson: Lesson
@@ -26,29 +29,26 @@ export function LessonCard({ lesson, courseSlug, chapterSlug }: LessonCardProps)
   }
 
   return (
-    <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-sm font-semibold text-gray-500">
-              {t('lesson')} {lesson.order}
-            </span>
-            {lesson.contentType === 'pdf' && (
-              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                {t('pdfBadge')}
-              </span>
-            )}
-          </div>
-          <h3 className="text-xl font-semibold mb-2">{lesson.title}</h3>
-          {lesson.description && <p className="text-gray-600 mb-3">{lesson.description}</p>}
+    <Card className="hover:shadow-md transition-shadow">
+      <CardHeader>
+        <div className="flex items-center gap-3 mb-2">
+          <span className="text-sm font-semibold text-muted-foreground">
+            {t('lesson')} {lesson.order}
+          </span>
+          {lesson.contentType === 'pdf' && <Badge variant="secondary">{t('pdfBadge')}</Badge>}
         </div>
-      </div>
-      <Link
-        href={`/courses/${courseSlug}/chapters/${effectiveChapterSlug}/lessons/${lesson.slug}`}
-        className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-      >
-        {t('viewLesson')}
-      </Link>
-    </div>
+        <CardTitle className="text-xl">{lesson.title}</CardTitle>
+        {lesson.description && <CardDescription>{lesson.description}</CardDescription>}
+      </CardHeader>
+      <CardFooter>
+        <Button asChild>
+          <Link
+            href={`/courses/${courseSlug}/chapters/${effectiveChapterSlug}/lessons/${lesson.slug}`}
+          >
+            {t('viewLesson')}
+          </Link>
+        </Button>
+      </CardFooter>
+    </Card>
   )
 }

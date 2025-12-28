@@ -1,6 +1,7 @@
 'use client'
 
 import { useTranslations } from '@/providers/I18n'
+import { Badge } from '@/components/ui/badge'
 
 interface LessonHeaderProps {
   order: number
@@ -15,17 +16,13 @@ export function LessonHeader({ order, title, description, contentType }: LessonH
   return (
     <header className="mb-8">
       <div className="mb-2 flex items-center gap-3">
-        <span className="text-sm font-semibold text-gray-500">
+        <span className="text-sm font-semibold text-muted-foreground">
           {t('lesson')} {order}
         </span>
-        {contentType === 'pdf' && (
-          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-            {t('pdfBadge')}
-          </span>
-        )}
+        {contentType === 'pdf' && <Badge variant="secondary">{t('pdfBadge')}</Badge>}
       </div>
       <h1 className="text-4xl font-bold mb-4">{title}</h1>
-      {description && <p className="text-xl text-gray-700">{description}</p>}
+      {description && <p className="text-xl text-muted-foreground">{description}</p>}
     </header>
   )
 }

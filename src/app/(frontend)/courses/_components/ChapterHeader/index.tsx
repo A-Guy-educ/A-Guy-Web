@@ -15,13 +15,13 @@ export function ChapterHeader({ chapterLabel, title, description }: ChapterHeade
     <div className="mb-8">
       <div className="flex items-center gap-3 mb-2">
         {chapterLabel && (
-          <span className="text-sm font-semibold text-gray-500">
+          <span className="text-sm font-semibold text-muted-foreground">
             {t('chapter')} {chapterLabel}
           </span>
         )}
       </div>
       <h1 className="text-4xl font-bold mb-4">{title}</h1>
-      {description && <p className="text-xl text-gray-600">{description}</p>}
+      {description && <p className="text-xl text-muted-foreground">{description}</p>}
     </div>
   )
 }
