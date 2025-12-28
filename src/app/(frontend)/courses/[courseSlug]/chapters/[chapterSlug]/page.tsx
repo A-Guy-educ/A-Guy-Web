@@ -2,7 +2,9 @@ import { notFound } from 'next/navigation'
 import { queryCourseBySlug } from '@/lib/queries/courses'
 import { queryChapterBySlug } from '@/lib/queries/chapters'
 import { queryLessonsByChapter } from '@/lib/queries/lessons'
-import { Breadcrumb } from '../../../_components/Breadcrumb'
+import { ChapterPageBreadcrumb } from '../../../_components/ChapterPageBreadcrumb'
+import { ChapterHeader } from '../../../_components/ChapterHeader'
+import { LessonsSectionTitle } from '../../../_components/LessonsSectionTitle'
 import { LessonCard } from '../../../_components/LessonCard'
 import { EmptyState } from '../../../_components/EmptyState'
 
@@ -34,30 +36,22 @@ export default async function ChapterPage({ params }: ChapterPageProps) {
 
   const lessons = await queryLessonsByChapter({ chapterId: chapter.id })
 
-  const breadcrumbItems = [
-    { label: 'Courses', href: '/courses' },
-    { label: course.title, href: `/courses/${courseSlug}` },
-    { label: chapter.title },
-  ]
-
   return (
     <div className="container mx-auto px-4 py-8">
-      <Breadcrumb items={breadcrumbItems} />
+      <ChapterPageBreadcrumb
+        courseTitle={course.title}
+        courseSlug={courseSlug}
+        chapterTitle={chapter.title}
+      />
 
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          {chapter.chapterLabel && (
-            <span className="text-sm font-semibold text-gray-500">
-              Chapter {chapter.chapterLabel}
-            </span>
-          )}
-        </div>
-        <h1 className="text-4xl font-bold mb-4">{chapter.title}</h1>
-        {chapter.description && <p className="text-xl text-gray-600">{chapter.description}</p>}
-      </div>
+      <ChapterHeader
+        chapterLabel={chapter.chapterLabel}
+        title={chapter.title}
+        description={chapter.description}
+      />
 
       <section>
-        <h2 className="text-2xl font-bold mb-4">Lessons</h2>
+        <LessonsSectionTitle />
 
         {lessons.length === 0 ? (
           <EmptyState type="noLessons" />

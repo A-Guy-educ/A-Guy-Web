@@ -5,6 +5,7 @@ import { CourseHeader } from '../_components/CourseHeader'
 import { ChapterCard } from '../_components/ChapterCard'
 import { EmptyState } from '../_components/EmptyState'
 import { BackToCourses } from '../_components/BackToCourses'
+import { ChaptersSectionTitle } from '../_components/ChaptersSectionTitle'
 
 interface CoursePageProps {
   params: Promise<{
@@ -33,7 +34,7 @@ export default async function CoursePage({ params }: CoursePageProps) {
       />
 
       <section>
-        <h2 className="text-2xl font-bold mb-4">Chapters</h2>
+        <ChaptersSectionTitle />
 
         {chapters.length === 0 ? (
           <EmptyState type="noChapters" />
