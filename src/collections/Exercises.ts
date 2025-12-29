@@ -1,7 +1,9 @@
 import type { CollectionConfig } from 'payload'
+import { ValidationError } from 'payload'
 import { anyone } from '../access/anyone'
 import { authenticated } from '../access/authenticated'
 import { ExerciseContentSchema, AnswerSpecSchema } from '../contracts'
+import { throwPayloadValidationError } from '../utilities/zodToPayloadError'
 
 /**
  * Exercises Collection - Stage 1
@@ -109,18 +111,15 @@ export const Exercises: CollectionConfig = {
       validate: (value) => {
         const result = ExerciseContentSchema.safeParse(value)
         if (!result.success) {
-          const errors = result.error.issues
-            .map((issue) => {
-              const path = issue.path.length > 0 ? `${issue.path.join('.')}: ` : ''
-              return `${path}${issue.message}`
-            })
-            .join('\n')
-          return errors || 'Invalid content structure'
+          throwPayloadValidationError(result.error, 'contentJson')
         }
         return true
       },
       admin: {
         description: 'Exercise content blocks (stem + optional sections)',
+        components: {
+          Field: '@/components/admin/ExerciseEditor#ContentJsonField',
+        },
       },
     },
     {
@@ -132,25 +131,29 @@ export const Exercises: CollectionConfig = {
         // Validate structure with Zod
         const result = AnswerSpecSchema.safeParse(value)
         if (!result.success) {
-          const errors = result.error.issues
-            .map((issue) => {
-              const path = issue.path.length > 0 ? `${issue.path.join('.')}: ` : ''
-              return `${path}${issue.message}`
-            })
-            .join('\n')
-          return errors || 'Invalid answer specification'
+          throwPayloadValidationError(result.error, 'answerSpecJson')
         }
 
         // Check questionType consistency
         const questionType = (data as any)?.questionType
         if (questionType && result.data.questionType !== questionType) {
-          return `Question type mismatch: this field has questionType="${result.data.questionType}" but the Question Type field is set to "${questionType}". These must match.`
+          throw new ValidationError({
+            errors: [
+              {
+                path: 'answerSpecJson.questionType',
+                message: `Question type mismatch: this field has questionType="${result.data.questionType}" but the Question Type field is set to "${questionType}". These must match.`,
+              },
+            ],
+          })
         }
 
         return true
       },
       admin: {
         description: 'Answer specification - must match the selected Question Type above',
+        components: {
+          Field: '@/components/admin/ExerciseEditor#AnswerSpecJsonField',
+        },
       },
     },
   ],
