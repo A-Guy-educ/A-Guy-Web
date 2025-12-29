@@ -101,6 +101,11 @@ const config = {
         success: 'hsl(var(--success))',
         error: 'hsl(var(--error))',
         warning: 'hsl(var(--warning))',
+        header: {
+          DEFAULT: 'hsl(var(--header-bg))',
+          foreground: 'hsl(var(--header-fg))',
+        },
+        footer: 'hsl(var(--footer-bg))',
       },
       fontFamily: {
         mono: ['var(--font-geist-mono)'],

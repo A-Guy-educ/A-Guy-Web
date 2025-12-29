@@ -19,8 +19,8 @@
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
 
-    /* Card: subtle gray background for contrast */
-    --card: 220 14% 96%;
+    /* Card: visible gray for footer/cards - 6% darker than white */
+    --card: 220 14% 94%;
     --card-foreground: 222.2 84% 4.9%;
 
     --popover: 0 0% 100%;
@@ -30,11 +30,11 @@
     --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary: light surface with good contrast */
-    --secondary: 220 14% 93%;
+    /* Secondary: lighter gray for header - distinct from cards */
+    --secondary: 220 14% 97%;
     --secondary-foreground: 222.2 84% 4.9%;
 
-    --muted: 220 14% 96%;
+    --muted: 220 14% 95%;
     --muted-foreground: 220 8.9% 46.1%;
 
     /* Accent: vivid purple */
@@ -44,8 +44,8 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Border: visible medium gray */
-    --border: 220 13% 88%;
+    /* Border: dark gray for clear visibility */
+    --border: 220 13% 75%;
     --input: 220 13% 91%;
 
     /* Focus ring follows accent */
@@ -56,6 +56,11 @@
     --success: 142 71% 45%;
     --warning: 38 92% 50%;
     --error: 0 72% 51%;
+
+    /* Semantic colors - components use these */
+    --header-bg: var(--secondary);
+    --header-fg: var(--secondary-foreground);
+    --footer-bg: var(--card);
   }
 
   [data-theme='dark'] {
@@ -98,6 +103,11 @@
     --success: 142 71% 45%;
     --warning: 38 92% 50%;
     --error: 0 72% 51%;
+
+    /* Semantic colors - components use these */
+    --header-bg: var(--card);
+    --header-fg: var(--card-foreground);
+    --footer-bg: var(--card);
   }
 }
 
