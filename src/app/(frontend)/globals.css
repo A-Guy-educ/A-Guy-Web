@@ -13,13 +13,14 @@
     font-weight: unset;
   }
 
-  :root {
-    /* Light background with subtle warmth */
+  :root,
+  [data-theme='light'] {
+    /* Light background - pure white */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
 
-    /* Card: light with subtle contrast */
-    --card: 0 0% 98%;
+    /* Card: subtle gray background for contrast */
+    --card: 220 14% 96%;
     --card-foreground: 222.2 84% 4.9%;
 
     --popover: 0 0% 100%;
@@ -30,7 +31,7 @@
     --primary-foreground: 0 0% 100%;
 
     /* Secondary: light surface with good contrast */
-    --secondary: 220 14% 96%;
+    --secondary: 220 14% 93%;
     --secondary-foreground: 222.2 84% 4.9%;
 
     --muted: 220 14% 96%;
@@ -43,8 +44,8 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Border: visible gray */
-    --border: 220 13% 91%;
+    /* Border: visible medium gray */
+    --border: 220 13% 88%;
     --input: 220 13% 91%;
 
     /* Focus ring follows accent */
