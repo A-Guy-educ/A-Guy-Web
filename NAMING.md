@@ -57,7 +57,7 @@ Use suffixes to indicate file type/purpose:
 
 | Suffix           | Purpose                      | Example                |
 | ---------------- | ---------------------------- | ---------------------- |
-| `_actions.ts`    | Server actions               | `signup_actions.ts`    |
+| `_createX.ts`    | Server action (specific)     | `signup_createUser.ts` |
 | `_handlers.ts`   | Event/error handlers         | `signup_handlers.ts`   |
 | `_utils.ts`      | Utility functions            | `auth_utils.ts`        |
 | `_schemas.ts`    | Zod schemas & types          | `signup_schemas.ts`    |
@@ -66,21 +66,22 @@ Use suffixes to indicate file type/purpose:
 | `_page.tsx`      | Next.js page                 | `signup_page.tsx`      |
 | `Component.tsx`  | React component (PascalCase) | `SignupForm.tsx`       |
 
+**Note:** Action files should describe the SPECIFIC action (e.g., `_createUser`, `_updateProfile`, `_deleteItem`) rather than generic `_actions`.
+
 ### 4. Folder Organization
 
 #### Option A: Flat with Prefixes (Preferred for small features)
 
 ```
 signup/
-├── signup_actions.ts
-├── signup_handlers.ts
-├── signup_rateLimit.ts
-├── signup_turnstile.ts
-├── signup_validation.ts
-├── signup_schemas.ts
-├── signup_page.tsx
-├── SignupForm.tsx
-└── SignupFormFields.tsx
+├── signup_createUser.ts      # Specific action: creates user
+├── signup_handlers.ts         # Error/success handlers
+├── signup_rateLimit.ts        # Rate limiting logic
+├── signup_turnstile.ts        # CAPTCHA verification
+├── signup_validation.ts       # Client validation
+├── signup_schemas.ts          # Zod schemas
+├── SignupForm.tsx             # Main component
+└── SignupFormFields.tsx       # Sub-component
 ```
 
 #### Option B: Nested Folders (For large features with many files)
