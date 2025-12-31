@@ -14,9 +14,10 @@ const baseClass = 'block-renderer'
 interface BlockRendererProps {
   block: ExerciseBlock
   mode?: PreviewMode
+  availableAssets?: Record<string, string>
 }
 
-export function BlockRenderer({ block, mode = 'student' }: BlockRendererProps) {
+export function BlockRenderer({ block, mode = 'student', availableAssets }: BlockRendererProps) {
   switch (block.type) {
     case 'rich_text':
       return <RichTextRenderer block={block} />
@@ -25,10 +26,10 @@ export function BlockRenderer({ block, mode = 'student' }: BlockRendererProps) {
       return <TableRenderer block={block} />
 
     case 'figure':
-      return <FigureRenderer block={block} />
+      return <FigureRenderer block={block} availableAssets={availableAssets} />
 
     case 'section':
-      return <SectionRenderer block={block} mode={mode} />
+      return <SectionRenderer block={block} mode={mode} availableAssets={availableAssets} />
 
     case 'axis_system':
       return <AxisRenderer block={block} />

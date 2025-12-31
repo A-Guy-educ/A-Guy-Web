@@ -94,7 +94,7 @@ export type LeafBlock = z.infer<typeof LeafBlockSchema>
 // --- Container Blocks (Recursive with Depth Limit) ---
 
 // Level 3 (Deepest): Can only contain Leaves. No Sections.
-const BlockV1Level3Schema = LeafBlockSchema
+const ExerciseBlockLevel3Schema = LeafBlockSchema
 
 // Level 2: Can contain Sections (which contain Level 3) OR Leaves
 const SectionBlockLevel3Schema = z
@@ -103,11 +103,11 @@ const SectionBlockLevel3Schema = z
     type: z.literal('section'),
     label: z.string().optional(),
     title: z.string().optional(),
-    blocks: z.array(BlockV1Level3Schema),
+    blocks: z.array(ExerciseBlockLevel3Schema),
   })
   .strict()
 
-const BlockV1Level2Schema = z.union([LeafBlockSchema, SectionBlockLevel3Schema])
+const ExerciseBlockLevel2Schema = z.union([LeafBlockSchema, SectionBlockLevel3Schema])
 
 // Level 1 (Top): Can contain Sections (which contain Level 2) OR Leaves
 const SectionBlockLevel2Schema = z
@@ -116,17 +116,19 @@ const SectionBlockLevel2Schema = z
     type: z.literal('section'),
     label: z.string().optional(),
     title: z.string().optional(),
-    blocks: z.array(BlockV1Level2Schema),
+    blocks: z.array(ExerciseBlockLevel2Schema),
   })
   .strict()
 
 // Root Block Type
-export const BlockV1Schema = z.union([LeafBlockSchema, SectionBlockLevel2Schema])
+export const ExerciseBlockSchema = z.union([LeafBlockSchema, SectionBlockLevel2Schema])
 
-export type BlockV1 = z.infer<typeof BlockV1Schema>
+export type ExerciseBlock = z.infer<typeof ExerciseBlockSchema>
+
 // Export specific levels if needed for recursive rendering components
-export type BlockV1Level2 = z.infer<typeof BlockV1Level2Schema>
-export type BlockV1Level3 = z.infer<typeof BlockV1Level3Schema>
+// (Internal use mainly, but good to have available)
+export type ExerciseBlockLevel2 = z.infer<typeof ExerciseBlockLevel2Schema>
+export type ExerciseBlockLevel3 = z.infer<typeof ExerciseBlockLevel3Schema>
 
 // Export specific block types for convenience
 export type RichTextBlock = z.infer<typeof RichTextBlockSchema>
@@ -135,8 +137,3 @@ export type TableBlock = z.infer<typeof TableBlockSchema>
 export type AxisSystemBlock = z.infer<typeof AxisSystemBlockSchema>
 export type GeometryBlock = z.infer<typeof GeometryBlockSchema>
 export type SectionBlock = z.infer<typeof SectionBlockLevel2Schema>
-
-// For compatibility with parts of the app expecting "ExerciseBlock" (alias to V1)
-// We export this precisely ONCE here.
-export const ExerciseBlockSchema = BlockV1Schema
-export type ExerciseBlock = BlockV1

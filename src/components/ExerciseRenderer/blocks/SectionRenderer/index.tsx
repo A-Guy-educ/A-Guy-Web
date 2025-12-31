@@ -6,9 +6,14 @@ import type { PreviewMode } from '../../types'
 interface SectionRendererProps {
   block: SectionBlock
   mode?: PreviewMode
+  availableAssets?: Record<string, string>
 }
 
-export const SectionRenderer: React.FC<SectionRendererProps> = ({ block, mode }) => {
+export const SectionRenderer: React.FC<SectionRendererProps> = ({
+  block,
+  mode,
+  availableAssets,
+}) => {
   return (
     <section className="my-4 border-l-2 border-gray-200 pl-4 ml-2">
       {(block.label || block.title) && (
@@ -19,7 +24,12 @@ export const SectionRenderer: React.FC<SectionRendererProps> = ({ block, mode })
       )}
       <div className="section-content space-y-4">
         {block.blocks.map((childBlock) => (
-          <BlockRenderer key={childBlock.id} block={childBlock} mode={mode} />
+          <BlockRenderer
+            key={childBlock.id}
+            block={childBlock}
+            mode={mode}
+            availableAssets={availableAssets}
+          />
         ))}
       </div>
     </section>

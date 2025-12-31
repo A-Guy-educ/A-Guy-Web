@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { BlockV1Schema } from './blocks'
+import { ExerciseBlockSchema } from './blocks'
 import { ExerciseContentSchema } from './content'
 
 // Helper to create a simple leaf block
@@ -17,7 +17,7 @@ const createSection = (id: string, blocks: any[]) => ({
   blocks,
 })
 
-describe('Exercise Content v1', () => {
+describe('Exercise Content', () => {
   it('validates a simple stem with leaf blocks', () => {
     const data = {
       contentSchemaVersion: 1,
@@ -48,35 +48,6 @@ describe('Exercise Content v1', () => {
 
   it('validates max nested sections (Depth 3)', () => {
     // Stem -> Section -> Section -> Section -> Leaf
-    // Note: Our schema definition says:
-    // BlockV1 (Level 1) can contain Section (Level 2)
-    // Section (Level 2) can contain Section (Level 3)
-    // Section (Level 3) can ONLY contain Leaves
-
-    // So:
-    // Stem is "Level 0" (Array of Level 1)
-    // 1. Section (Level 1 block)
-    // 2. Contains Section (Level 2 block)
-    // 3. Contains Section (Level 3 block, but wait...)
-
-    // Let's re-read the schema logic:
-    // BlockV1 (Root) = Leaf | Section(blocks: BlockV1Level2)
-    // BlockV1Level2  = Leaf | Section(blocks: BlockV1Level3)
-    // BlockV1Level3  = Leaf (Only)
-
-    // So structure:
-    // Stem [ Section(Level1) ]
-    //   -> blocks: [ Section(Level2) ]
-    //      -> blocks: [ Leaf ]
-
-    // Attempting to put a Section inside Level 2 (making it Level 3) should FAIL if Level 3 only supports Leaves.
-    // Wait, let's verify if my schema allows Section at Level 3.
-    // Schema: BlockV1Level3Schema = LeafBlockSchema.
-    // So Section inside Section inside Section is NOT allowed on the 3rd nesting.
-
-    // Valid Depth 2 Section Nesting:
-    // Content -> Section(1) -> Section(2) -> Leaf.  (This uses BlockV1 -> Section -> BlockV1Level2 -> Section -> BlockV1Level3 -> Leaf)
-
     const validData = {
       contentSchemaVersion: 1,
       stem: [createSection('level1', [createSection('level2', [createLeaf('leaf')])])],
