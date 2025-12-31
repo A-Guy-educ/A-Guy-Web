@@ -9,7 +9,6 @@ export const SignupSchema = z.object({
   // If filled, submission is rejected in actions.ts before validation.
   // Named 'website' (believable) so bots think it's legitimate.
   website: z.string().optional(),
-  'cf-turnstile-response': z.string().optional(),
 })
 
 export interface SignupResult {

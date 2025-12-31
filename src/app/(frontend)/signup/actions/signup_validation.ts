@@ -1,6 +1,5 @@
 export function validateSignupForm(
   formData: FormData,
-  turnstileToken: string,
   t: (key: string) => string,
 ): Record<string, string> {
   const email = formData.get('email') as string
@@ -24,10 +23,6 @@ export function validateSignupForm(
 
   if (password !== confirmPassword) {
     errors.confirmPassword = t('errors.passwordMismatch')
-  }
-
-  if (!turnstileToken) {
-    errors.general = 'Please complete the CAPTCHA verification'
   }
 
   return errors

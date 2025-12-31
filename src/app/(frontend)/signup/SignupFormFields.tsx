@@ -1,7 +1,6 @@
 import React from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Turnstile } from '@marsidev/react-turnstile'
 
 // ANTI-SPAM: Honeypot field styles (hidden from users, visible to bots)
 const HONEYPOT_STYLES: React.CSSProperties = {
@@ -15,19 +14,9 @@ interface SignupFormFieldsProps {
   t: (key: string) => string
   isLoading: boolean
   errors: Record<string, string>
-  onTurnstileSuccess: (token: string) => void
-  onTurnstileError: (error: unknown) => void
-  onTurnstileExpire: () => void
 }
 
-export function SignupFormFields({
-  t,
-  isLoading,
-  errors,
-  onTurnstileSuccess,
-  onTurnstileError,
-  onTurnstileExpire,
-}: SignupFormFieldsProps) {
+export function SignupFormFields({ t, isLoading, errors }: SignupFormFieldsProps) {
   return (
     <>
       {/* Honeypot field - invisible to users, catches bots */}
@@ -94,16 +83,6 @@ export function SignupFormFields({
           className={errors.confirmPassword ? 'border-red-500' : ''}
         />
         {errors.confirmPassword && <p className="text-sm text-red-500">{errors.confirmPassword}</p>}
-      </div>
-
-      {/* Cloudflare Turnstile */}
-      <div className="flex justify-center">
-        <Turnstile
-          siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'}
-          onSuccess={onTurnstileSuccess}
-          onError={onTurnstileError}
-          onExpire={onTurnstileExpire}
-        />
       </div>
 
       {/* Generic error banner */}

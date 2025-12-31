@@ -4,7 +4,6 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { cookies } from 'next/headers'
 import { checkRateLimit } from './signup_rateLimit'
-import { verifyTurnstileToken } from './signup_turnstile'
 import {
   handleDuplicateEmailError,
   handlePayloadError,
@@ -21,7 +20,6 @@ export async function signupAction(formData: FormData): Promise<SignupResult> {
       password: formData.get('password'),
       confirmPassword: formData.get('confirmPassword'),
       website: formData.get('website'),
-      'cf-turnstile-response': formData.get('cf-turnstile-response'),
     }
 
     // 2. Honeypot check (anti-spam layer 1)
@@ -64,19 +62,7 @@ export async function signupAction(formData: FormData): Promise<SignupResult> {
       }
     }
 
-    // 6. Verify Turnstile token (anti-spam layer 3)
-    const turnstileToken = parsed.data['cf-turnstile-response']
-    const isTurnstileValid = await verifyTurnstileToken(turnstileToken)
-
-    if (!isTurnstileValid) {
-      return {
-        success: false,
-        message: 'CAPTCHA verification failed. Please try again.',
-        errors: { general: 'CAPTCHA verification failed' },
-      }
-    }
-
-    // 7. Create user via Payload
+    // 6. Create user via Payload
     const payload = await getPayload({ config })
 
     try {
@@ -90,7 +76,7 @@ export async function signupAction(formData: FormData): Promise<SignupResult> {
         },
       })
 
-      // 8. Auto-login: Set auth cookies
+      // 7. Auto-login: Set auth cookies
       const cookieStore = await cookies()
       const token = await payload.login({
         collection: 'users',

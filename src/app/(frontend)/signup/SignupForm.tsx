@@ -16,7 +16,6 @@ export function SignupForm() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [turnstileToken, setTurnstileToken] = useState<string>('')
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -26,16 +25,13 @@ export function SignupForm() {
     const formData = new FormData(event.currentTarget)
 
     // Client-side validation
-    const clientErrors = validateSignupForm(formData, turnstileToken, t)
+    const clientErrors = validateSignupForm(formData, t)
 
     if (Object.keys(clientErrors).length > 0) {
       setErrors(clientErrors)
       setIsLoading(false)
       return
     }
-
-    // Add Turnstile token to form data
-    formData.set('cf-turnstile-response', turnstileToken)
 
     try {
       const result = await signupAction(formData)
@@ -58,22 +54,6 @@ export function SignupForm() {
     }
   }
 
-  function handleTurnstileSuccess(token: string) {
-    console.log('Turnstile success:', token ? 'Token received' : 'No token')
-    setTurnstileToken(token)
-  }
-
-  function handleTurnstileError(error: unknown) {
-    console.error('Turnstile error:', error)
-    setTurnstileToken('')
-    setErrors({ ...errors, general: 'CAPTCHA verification failed. Please try again.' })
-  }
-
-  function handleTurnstileExpire() {
-    console.log('Turnstile expired')
-    setTurnstileToken('')
-  }
-
   return (
     <Card>
       <CardHeader>
@@ -83,16 +63,9 @@ export function SignupForm() {
       </CardHeader>
       <CardContent>
         <form onSubmit={onSubmit} className="space-y-4">
-          <SignupFormFields
-            t={t}
-            isLoading={isLoading}
-            errors={errors}
-            onTurnstileSuccess={handleTurnstileSuccess}
-            onTurnstileError={handleTurnstileError}
-            onTurnstileExpire={handleTurnstileExpire}
-          />
+          <SignupFormFields t={t} isLoading={isLoading} errors={errors} />
 
-          <Button type="submit" className="w-full" disabled={isLoading || !turnstileToken}>
+          <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? t('creatingAccount') : t('createAccount')}
           </Button>
         </form>
