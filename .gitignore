@@ -25,4 +25,6 @@ tsconfig.tsbuildinfo
 
 # Local AI development documentation
 CLAUDE_INTERNAL.md
+NAMING.md
+STRICTNESS.md
 tasks/
