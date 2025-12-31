@@ -1,18 +1,23 @@
 import type { CollectionConfig } from 'payload'
 
 import { authenticated } from '../../access/authenticated'
+import { adminOnly } from '../../access/adminOnly'
+import { adminOrSelf } from '../../access/adminOrSelf'
+import { ensureRoleOnSignup } from './hooks/ensureRoleOnSignup'
+import { preventLastAdminDemotion } from './hooks/preventLastAdminDemotion'
+import { auditRoleChange } from './hooks/auditRoleChange'
 
 export const Users: CollectionConfig = {
   slug: 'users',
   access: {
-    admin: authenticated,
+    admin: adminOnly, // Only admins can access the admin panel
     create: authenticated,
-    delete: authenticated,
-    read: authenticated,
-    update: authenticated,
+    delete: adminOnly, // Only admins can delete users
+    read: adminOrSelf, // Admins can read all, users can read their own
+    update: adminOrSelf, // Admins can update all, users can update their own
   },
   admin: {
-    defaultColumns: ['name', 'email'],
+    defaultColumns: ['name', 'email', 'role'],
     useAsTitle: 'name',
   },
   auth: {
@@ -26,6 +31,34 @@ export const Users: CollectionConfig = {
       name: 'name',
       type: 'text',
     },
+    {
+      name: 'role',
+      type: 'select',
+      options: [
+        { label: 'Student', value: 'student' },
+        { label: 'Admin', value: 'admin' },
+      ],
+      defaultValue: 'student',
+      required: true,
+      saveToJWT: true, // Include in JWT for fast access checks
+      access: {
+        // Only admins can update the role field
+        update: ({ req: { user } }) => user?.role === 'admin',
+      },
+      hooks: {
+        // Enforce role='student' on signup (ignore client input)
+        beforeChange: [ensureRoleOnSignup],
+      },
+      admin: {
+        position: 'sidebar',
+      },
+    },
   ],
+  hooks: {
+    // Prevent demoting the last admin
+    beforeChange: [preventLastAdminDemotion],
+    // Audit trail for role changes
+    afterChange: [auditRoleChange],
+  },
   timestamps: true,
 }
