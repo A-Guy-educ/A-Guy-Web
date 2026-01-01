@@ -14,11 +14,7 @@ import { MetaTitleComponent as MetaTitleComponent_a8a977ebc872c5d5ea7ee689724c08
 import { MetaDescriptionComponent as MetaDescriptionComponent_a8a977ebc872c5d5ea7ee689724c0860 } from '@payloadcms/plugin-seo/client'
 import { PreviewComponent as PreviewComponent_a8a977ebc872c5d5ea7ee689724c0860 } from '@payloadcms/plugin-seo/client'
 import { SlugField as SlugField_3817bf644402e67bfe6577f60ef982de } from '@payloadcms/ui'
-import { ExerciseSectionedLayout as ExerciseSectionedLayout_a93f94fac92f4a76e5633a4a29440bd9 } from '@/components/admin/ExerciseEditor'
-import { ContentJsonField as ContentJsonField_a93f94fac92f4a76e5633a4a29440bd9 } from '@/components/admin/ExerciseEditor'
-import { AnswerSpecJsonField as AnswerSpecJsonField_a93f94fac92f4a76e5633a4a29440bd9 } from '@/components/admin/ExerciseEditor'
-import { ExercisePreview as ExercisePreview_a93f94fac92f4a76e5633a4a29440bd9 } from '@/components/admin/ExerciseEditor'
-import { AdvancedPlaceholder as AdvancedPlaceholder_a93f94fac92f4a76e5633a4a29440bd9 } from '@/components/admin/ExerciseEditor'
+import { ExerciseContentEditor as ExerciseContentEditor_dd6734503be1853790185b69e3b235e6 } from '@/components/admin/ExerciseContentEditor'
 import { FolderTableCell as FolderTableCell_ab83ff7e88da8d3530831f296ec4756a } from '@payloadcms/ui/rsc'
 import { FolderField as FolderField_ab83ff7e88da8d3530831f296ec4756a } from '@payloadcms/ui/rsc'
 import { HorizontalRuleFeatureClient as HorizontalRuleFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
@@ -50,11 +46,7 @@ export const importMap = {
   "@payloadcms/plugin-seo/client#MetaDescriptionComponent": MetaDescriptionComponent_a8a977ebc872c5d5ea7ee689724c0860,
   "@payloadcms/plugin-seo/client#PreviewComponent": PreviewComponent_a8a977ebc872c5d5ea7ee689724c0860,
   "@payloadcms/ui#SlugField": SlugField_3817bf644402e67bfe6577f60ef982de,
-  "@/components/admin/ExerciseEditor#ExerciseSectionedLayout": ExerciseSectionedLayout_a93f94fac92f4a76e5633a4a29440bd9,
-  "@/components/admin/ExerciseEditor#ContentJsonField": ContentJsonField_a93f94fac92f4a76e5633a4a29440bd9,
-  "@/components/admin/ExerciseEditor#AnswerSpecJsonField": AnswerSpecJsonField_a93f94fac92f4a76e5633a4a29440bd9,
-  "@/components/admin/ExerciseEditor#ExercisePreview": ExercisePreview_a93f94fac92f4a76e5633a4a29440bd9,
-  "@/components/admin/ExerciseEditor#AdvancedPlaceholder": AdvancedPlaceholder_a93f94fac92f4a76e5633a4a29440bd9,
+  "@/components/admin/ExerciseContentEditor#ExerciseContentEditor": ExerciseContentEditor_dd6734503be1853790185b69e3b235e6,
   "@payloadcms/ui/rsc#FolderTableCell": FolderTableCell_ab83ff7e88da8d3530831f296ec4756a,
   "@payloadcms/ui/rsc#FolderField": FolderField_ab83ff7e88da8d3530831f296ec4756a,
   "@payloadcms/richtext-lexical/client#HorizontalRuleFeatureClient": HorizontalRuleFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
