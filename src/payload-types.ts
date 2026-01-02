@@ -718,7 +718,7 @@ export interface Exercise {
    */
   questionType: 'mcq' | 'true_false' | 'free_response';
   /**
-   * Exercise content blocks (stem)
+   * Exercise content blocks (stem). Supports hierarchical containers and rich text blocks with Markdown and LaTeX math.
    */
   contentJson:
     | {

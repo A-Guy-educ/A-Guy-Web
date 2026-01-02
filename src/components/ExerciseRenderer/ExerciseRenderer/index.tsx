@@ -82,7 +82,7 @@ export function ExerciseRenderer({
             content.stem.map((block) => (
               <BlockRenderer
                 key={block.id}
-                block={block}
+                block={block as any}
                 mode={mode}
                 availableAssets={availableAssets}
               />

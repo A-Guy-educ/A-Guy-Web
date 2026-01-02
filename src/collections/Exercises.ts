@@ -6,20 +6,28 @@ import { ExerciseContentSchema, AnswerSpecSchema } from '../contracts'
 import { throwPayloadValidationError } from '../utilities/zodToPayloadError'
 
 /**
- * Exercises Collection - Block V1
+ * Exercises Collection - Block V2 (with V1 backward compatibility)
  *
  * Field-level validation + default templates for better Admin UX
+ * Supports hierarchical blocks (containers + nested blocks)
  */
 
-// Default template - simplified single-level structure
+// Default template - hierarchical structure with container
 const DEFAULT_CONTENT_JSON = {
-  contentSchemaVersion: 1,
+  contentSchemaVersion: 2,
   stem: [
     {
-      id: 'default-block-1',
-      type: 'rich_text',
-      format: 'md-math-v1',
-      value: '# Write your question here\n\nExample: Solve for $x$: $2x+3=11$',
+      id: 'container-1',
+      type: 'container',
+      title: 'Section 1',
+      children: [
+        {
+          id: 'block-1',
+          type: 'rich_text',
+          format: 'md-math-v1',
+          value: '# Write your question here\n\nExample: Solve for $x$: $2x+3=11$',
+        },
+      ],
     },
   ],
 }
@@ -137,8 +145,13 @@ export const Exercises: CollectionConfig = {
           required: true,
           defaultValue: DEFAULT_CONTENT_JSON,
           validate: (value: unknown) => {
-            // Allow intermediate states during editing (empty blocks, incomplete structure)
-            // Only validate structure, not content completeness
+            // Try v2 schema first (hierarchical blocks)
+            const v2Result = ExerciseContentSchema.safeParse(value)
+            if (v2Result.success) {
+              return true
+            }
+
+            // Fallback to v1 validation for backward compatibility
             if (!value || typeof value !== 'object' || value === null) {
               return 'Invalid content structure'
             }
@@ -146,43 +159,46 @@ export const Exercises: CollectionConfig = {
             const content = value as Record<string, unknown>
 
             // Check basic structure
-            if (content.contentSchemaVersion !== 1) {
-              return 'Invalid content schema version'
+            if (content.contentSchemaVersion !== 1 && content.contentSchemaVersion !== 2) {
+              return 'Invalid content schema version (must be 1 or 2)'
             }
 
             if (!Array.isArray(content.stem)) {
               return 'Stem must be an array'
             }
 
-            // Allow empty blocks during editing - only validate structure
-            for (let i = 0; i < content.stem.length; i++) {
-              const block = content.stem[i]
-              if (!block || typeof block !== 'object' || block === null) {
-                return `Block ${i} must be an object`
-              }
+            // For v1: validate flat rich_text blocks
+            if (content.contentSchemaVersion === 1) {
+              for (let i = 0; i < content.stem.length; i++) {
+                const block = content.stem[i]
+                if (!block || typeof block !== 'object' || block === null) {
+                  return `Block ${i} must be an object`
+                }
 
-              const blockObj = block as Record<string, unknown>
-              if (blockObj.type !== 'rich_text') {
-                return `Block ${i} must be of type 'rich_text'`
-              }
-              if (blockObj.format !== 'md-math-v1') {
-                return `Block ${i} must have format 'md-math-v1'`
-              }
-              // Allow empty value during editing - validation will catch it on submit
-              if (typeof blockObj.value !== 'string') {
-                return `Block ${i} value must be a string`
-              }
-              if (!blockObj.id || typeof blockObj.id !== 'string') {
-                return `Block ${i} must have a valid id`
+                const blockObj = block as Record<string, unknown>
+                if (blockObj.type !== 'rich_text') {
+                  return `Block ${i} must be of type 'rich_text'`
+                }
+                if (blockObj.format !== 'md-math-v1') {
+                  return `Block ${i} must have format 'md-math-v1'`
+                }
+                // Allow empty value during editing - validation will catch it on submit
+                if (typeof blockObj.value !== 'string') {
+                  return `Block ${i} value must be a string`
+                }
+                if (!blockObj.id || typeof blockObj.id !== 'string') {
+                  return `Block ${i} must have a valid id`
+                }
               }
             }
 
             return true
           },
           admin: {
-            description: 'Exercise content blocks (stem)',
+            description:
+              'Exercise content blocks (stem). Supports hierarchical containers and rich text blocks with Markdown and LaTeX math.',
             components: {
-              Field: '@/components/admin/ExerciseContentEditor#ExerciseContentEditor', // Custom V1 Editor
+              Field: '@/components/admin/ExerciseContentEditor#ExerciseContentEditor', // Custom V2 Editor
             },
           },
         },
