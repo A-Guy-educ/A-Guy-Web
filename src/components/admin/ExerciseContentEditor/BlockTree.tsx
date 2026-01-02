@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { Type, Folder } from 'lucide-react'
 import type {
   Block,
   ContainerBlock as ContainerBlockType,
@@ -8,7 +9,6 @@ import type {
 } from '@/contracts/exercise/content'
 import { ContainerBlock } from './ContainerBlock'
 import { BlockCard } from './BlockCard'
-import { findBlockPath, getBlockParent } from './utils'
 
 interface BlockTreeProps {
   blocks: Block[]
@@ -135,8 +135,7 @@ const BlockTreeNode: React.FC<BlockTreeNodeProps> = ({
 
     return (
       <div
-        className={`block-card-wrapper ${isSelected ? 'block--selected' : ''}`}
-        style={{ paddingLeft: `${level * 24}px` }}
+        className={`block-card-wrapper block-card-wrapper--level-${level} ${isSelected ? 'block--selected' : ''}`}
         onClick={() => onSelect(block.id)}
       >
         <BlockCard
@@ -166,24 +165,48 @@ export const BlockTree: React.FC<BlockTreeProps> = ({
 }) => {
   return (
     <div className="block-tree">
-      {blocks.map((block, index) => (
-        <BlockTreeNode
-          key={block.id}
-          block={block}
-          level={0}
-          path={[block.id]}
-          selectedBlockId={selectedBlockId}
-          collapsedBlockIds={collapsedBlockIds}
-          onSelect={onSelect}
-          onToggleCollapse={onToggleCollapse}
-          onAddBlock={onAddBlock}
-          onDeleteBlock={onDeleteBlock}
-          onUpdateBlock={onUpdateBlock}
-          onMoveBlock={onMoveBlock}
-          siblings={blocks}
-          index={index}
-        />
-      ))}
+      {blocks.length === 0 ? (
+        <div className="block-tree__empty">
+          <p>No blocks yet. Add your first block below.</p>
+        </div>
+      ) : (
+        blocks.map((block, index) => (
+          <BlockTreeNode
+            key={block.id}
+            block={block}
+            level={0}
+            path={[block.id]}
+            selectedBlockId={selectedBlockId}
+            collapsedBlockIds={collapsedBlockIds}
+            onSelect={onSelect}
+            onToggleCollapse={onToggleCollapse}
+            onAddBlock={onAddBlock}
+            onDeleteBlock={onDeleteBlock}
+            onUpdateBlock={onUpdateBlock}
+            onMoveBlock={onMoveBlock}
+            siblings={blocks}
+            index={index}
+          />
+        ))
+      )}
+      <div className="block-tree__add-root">
+        <button
+          className="block-tree__add-button block-tree__add-button--text"
+          onClick={() => onAddBlock(null, 'rich_text', 'below')}
+          title="Add Rich Text Block"
+        >
+          <Type size={16} />
+          <span>Add Rich Text</span>
+        </button>
+        <button
+          className="block-tree__add-button block-tree__add-button--container"
+          onClick={() => onAddBlock(null, 'container', 'below')}
+          title="Add Container"
+        >
+          <Folder size={16} />
+          <span>Add Container</span>
+        </button>
+      </div>
     </div>
   )
 }

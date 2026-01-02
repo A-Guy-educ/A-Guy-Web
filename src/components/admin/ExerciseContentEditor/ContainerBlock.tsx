@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Folder, ChevronDown, ChevronRight, Plus, Trash2, ArrowUp, ArrowDown } from 'lucide-react'
+import { Folder, ChevronDown, ChevronRight, Trash2, ArrowUp, ArrowDown, Type } from 'lucide-react'
 import type { ContainerBlock as ContainerBlockType } from '@/contracts/exercise/content'
 
 interface ContainerBlockProps {
@@ -38,7 +38,7 @@ export const ContainerBlock: React.FC<ContainerBlockProps> = ({
   canMoveUp,
   canMoveDown,
   children,
-}) => {
+}: ContainerBlockProps) => {
   const [isEditingTitle, setIsEditingTitle] = React.useState(false)
   const [titleValue, setTitleValue] = React.useState(block.title || '')
 
@@ -62,8 +62,7 @@ export const ContainerBlock: React.FC<ContainerBlockProps> = ({
 
   return (
     <div
-      className={`container-block ${isSelected ? 'block--selected' : ''}`}
-      style={{ paddingLeft: `${level * 24}px` }}
+      className={`container-block container-block--level-${level} ${isSelected ? 'block--selected' : ''}`}
       onClick={(e) => {
         // Don't select if clicking on interactive elements
         if ((e.target as HTMLElement).closest('button, input')) return
@@ -110,52 +109,29 @@ export const ContainerBlock: React.FC<ContainerBlockProps> = ({
 
         <div className="container-block__actions">
           <div className="container-block__action-group">
+            <span className="container-block__action-label">Add inside:</span>
             <button
-              className="icon-button"
+              className="icon-button icon-button--text"
               onClick={(e) => {
                 e.stopPropagation()
                 onAddChild(block.id, 'rich_text')
               }}
               title="Add Rich Text Inside"
             >
-              <Plus size={14} />
+              <Type size={14} />
+              <span>Text</span>
             </button>
             {!maxDepthReached && (
               <button
-                className="icon-button"
+                className="icon-button icon-button--container"
                 onClick={(e) => {
                   e.stopPropagation()
                   onAddChild(block.id, 'container')
                 }}
                 title="Add Container Inside"
               >
-                <Plus size={14} />
-                <Folder size={10} style={{ marginLeft: '2px' }} />
-              </button>
-            )}
-          </div>
-          <div className="container-block__action-group">
-            <button
-              className="icon-button"
-              onClick={(e) => {
-                e.stopPropagation()
-                onAddSibling(block.id, 'rich_text')
-              }}
-              title="Add Rich Text Below"
-            >
-              <Plus size={14} />
-            </button>
-            {!maxDepthReached && (
-              <button
-                className="icon-button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onAddSibling(block.id, 'container')
-                }}
-                title="Add Container Below"
-              >
-                <Plus size={14} />
-                <Folder size={10} style={{ marginLeft: '2px' }} />
+                <Folder size={14} />
+                <span>Container</span>
               </button>
             )}
           </div>
@@ -204,6 +180,34 @@ export const ContainerBlock: React.FC<ContainerBlockProps> = ({
           <div className="container-block__children">{children}</div>
         </div>
       )}
+
+      <div className="container-block__add-below">
+        <span className="container-block__action-label">Add below:</span>
+        <button
+          className="icon-button icon-button--text"
+          onClick={(e) => {
+            e.stopPropagation()
+            onAddSibling(block.id, 'rich_text')
+          }}
+          title="Add Rich Text Below"
+        >
+          <Type size={14} />
+          <span>Text</span>
+        </button>
+        {!maxDepthReached && (
+          <button
+            className="icon-button icon-button--container"
+            onClick={(e) => {
+              e.stopPropagation()
+              onAddSibling(block.id, 'container')
+            }}
+            title="Add Container Below"
+          >
+            <Folder size={14} />
+            <span>Container</span>
+          </button>
+        )}
+      </div>
     </div>
   )
 }
