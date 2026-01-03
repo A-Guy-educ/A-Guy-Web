@@ -329,7 +329,6 @@ export const AnswerSpecJsonField: JSONFieldClientComponent = ({ path, field }) =
             style={{
               margin: '0.5rem 0 0 0',
               padding: '0.75rem',
-              backgroundColor: '#ffffff',
               borderRadius: '4px',
               overflow: 'auto',
               fontSize: '0.75rem',

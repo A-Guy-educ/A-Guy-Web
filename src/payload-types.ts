@@ -718,9 +718,9 @@ export interface Exercise {
    */
   questionType: 'mcq' | 'true_false' | 'free_response';
   /**
-   * Exercise content blocks (stem). Supports hierarchical containers and rich text blocks with Markdown and LaTeX math.
+   * Exercise content. MUST be: { blocks: RichTextBlock[] }
    */
-  contentJson:
+  content:
     | {
         [k: string]: unknown;
       }
@@ -1522,7 +1522,7 @@ export interface ExercisesSelect<T extends boolean = true> {
   order?: T;
   lesson?: T;
   questionType?: T;
-  contentJson?: T;
+  content?: T;
   answerSpecJson?: T;
   updatedAt?: T;
   createdAt?: T;

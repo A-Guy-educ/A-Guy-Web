@@ -1,6 +1,8 @@
 /**
  * Exercise Renderer
  * Main component that renders complete exercises with content blocks and answer UI
+ *
+ * Strict: Only supports content.blocks format
  */
 
 'use client'
@@ -15,25 +17,6 @@ import { ErrorBoundary } from '../ErrorBoundary'
 import './index.scss'
 
 const baseClass = 'exercise-renderer'
-
-/**
- * Extract blocks from content - handles both new and legacy structures
- * New structure: { content: { blocks: [] } }
- * Legacy structure: { stem: [], contentSchemaVersion: 2 }
- */
-function getContentBlocks(content: any): any[] {
-  // New structure: { content: { blocks: [] } }
-  if (content?.content?.blocks && Array.isArray(content.content.blocks)) {
-    return content.content.blocks
-  }
-
-  // Legacy structure: { stem: [] }
-  if (content?.stem && Array.isArray(content.stem)) {
-    return content.stem
-  }
-
-  return []
-}
 
 export function ExerciseRenderer({
   content,
@@ -79,8 +62,20 @@ export function ExerciseRenderer({
     setHasChecked(true)
   }
 
-  // Extract blocks from content (handles both new and legacy structures)
-  const blocks = getContentBlocks(content)
+  // Validate content structure
+  if (!content?.blocks || !Array.isArray(content.blocks)) {
+    return (
+      <div className={cn(baseClass, className)}>
+        <div className={`${baseClass}__error`}>
+          <h3>Invalid Content Format</h3>
+          <p>Expected: {`{ blocks: [] }`}</p>
+          <p>Received: {JSON.stringify(content)}</p>
+        </div>
+      </div>
+    )
+  }
+
+  const blocks = content.blocks
 
   return (
     <div className={cn(baseClass, className)}>
@@ -93,10 +88,7 @@ export function ExerciseRenderer({
           {answerSpec.questionType === 'free_response' && (
             <div>Response Kind: {answerSpec.responseKind}</div>
           )}
-          <div>
-            Content Structure:{' '}
-            {(content as any)?.content ? 'New (content.blocks)' : 'Legacy (stem)'}
-          </div>
+          <div>Content Structure: Flat blocks (strict)</div>
           <div>Blocks Found: {blocks.length}</div>
         </div>
       )}
@@ -108,6 +100,7 @@ export function ExerciseRenderer({
             blocks.map((block) => (
               <BlockRenderer
                 key={block.id}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 block={block as any}
                 mode={mode}
                 availableAssets={availableAssets}

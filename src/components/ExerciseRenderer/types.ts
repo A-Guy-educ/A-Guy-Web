@@ -1,5 +1,7 @@
 /**
  * Type definitions for Exercise Renderer
+ *
+ * Strict: Only supports content.blocks format
  */
 
 export type PreviewMode = 'student' | 'debug'
@@ -15,13 +17,17 @@ export interface CheckResult {
 }
 
 /**
- * Content structure - supports both new and legacy formats
- * New: { content: { blocks: [] } }
- * Legacy: { stem: [], contentSchemaVersion: 1 | 2 }
+ * Content structure - STRICT
+ * ONLY valid: { blocks: RichTextBlock[] }
  */
-export type ExerciseContentData =
-  | import('@/contracts').ExerciseContent // Legacy format
-  | { content: { blocks: any[] } } // New format
+export interface ExerciseContentData {
+  blocks: Array<{
+    id: string
+    type: 'rich_text'
+    format: 'md-math-v1'
+    value: string
+  }>
+}
 
 export interface ExerciseRendererProps {
   content: ExerciseContentData

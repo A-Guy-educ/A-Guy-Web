@@ -55,9 +55,12 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
       <NotebookWorkspace
         content={
           <ExerciseRenderer
-            content={exercise.contentJson as ExerciseContent}
-            answerSpec={exercise.answerSpecJson as AnswerSpec}
-            questionType={exercise.questionType}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            content={(exercise as any).content as ExerciseContent}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            answerSpec={(exercise as any).answerSpecJson as AnswerSpec}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            questionType={(exercise as any).questionType}
             mode="student"
             showCheckAnswer
           />

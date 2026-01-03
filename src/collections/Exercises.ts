@@ -4,36 +4,22 @@ import { anyone } from '../access/anyone'
 import { authenticated } from '../access/authenticated'
 import { AnswerSpecSchema, ExerciseContentSchema } from '../contracts'
 import { throwPayloadValidationError } from '../utilities/zodToPayloadError'
-import { z } from 'zod'
-import { randomUUID } from 'node:crypto'
+import crypto from 'crypto'
 
 /**
- * Exercises Collection — Content vNext (simple)
+ * Exercises Collection — Strict content.blocks Structure
  *
- * ✅ New target structure:
- *   exercise.content = { blocks: [] }
+ * ONLY valid structure:
+ *   exercise.content = { blocks: RichTextBlock[] }
  *
- * ✅ Backward compatibility (read/validate legacy):
- *   - Accept legacy contentJson shapes that still validate with ExerciseContentSchema
- *     (e.g., { contentSchemaVersion, stem } and/or hierarchical container variants)
- *
- * NOTE:
- * - We intentionally rename the Payload field from `contentJson` to `content`.
- * - The Admin custom field component must read/write this new shape.
+ * NO backward compatibility. NO migration. Any legacy shape is INVALID.
  */
-
-// New minimal schema: { blocks: [] }
-const ContentVNextSchema = z
-  .object({
-    blocks: z.array(z.unknown()),
-  })
-  .strict()
 
 // Default content (function -> unique IDs per doc)
 const DEFAULT_CONTENT = () => ({
   blocks: [
     {
-      id: randomUUID(),
+      id: crypto.randomUUID(),
       type: 'rich_text',
       format: 'md-math-v1',
       value: '# Write your question here\n\nExample: Solve for $x$: $2x+3=11$',
@@ -57,12 +43,12 @@ const DEFAULT_ANSWER_MCQ = {
   correctOptionIds: ['o1'],
 }
 
-const DEFAULT_ANSWER_TRUE_FALSE = {
+const _DEFAULT_ANSWER_TRUE_FALSE = {
   questionType: 'true_false',
   correct: true,
 }
 
-const DEFAULT_ANSWER_FREE_RESPONSE = {
+const _DEFAULT_ANSWER_FREE_RESPONSE = {
   questionType: 'free_response',
   responseKind: 'numeric',
   acceptedAnswers: ['4'],
@@ -137,18 +123,16 @@ export const Exercises: CollectionConfig = {
           required: true,
           defaultValue: DEFAULT_CONTENT,
           validate: (value: unknown) => {
-            // 1) NEW structure: { blocks: [] }
-            const next = ContentVNextSchema.safeParse(value)
-            if (next.success) return true
+            const result = ExerciseContentSchema.safeParse(value)
 
-            // 2) Legacy support: accept old formats to avoid breaking existing DB
-            const legacy = ExerciseContentSchema.safeParse(value)
-            if (legacy.success) return true
+            if (!result.success) {
+              throwPayloadValidationError(result.error, 'content')
+            }
 
-            return 'Invalid content. Expected { blocks: [] } (or legacy format).'
+            return true
           },
           admin: {
-            description: 'Exercise content. Format: { blocks: [] }',
+            description: 'Exercise content. MUST be: { blocks: RichTextBlock[] }',
             components: {
               Field: '@/components/admin/ExerciseContentEditor#ExerciseContentEditor',
             },
@@ -174,6 +158,7 @@ export const Exercises: CollectionConfig = {
               throwPayloadValidationError(result.error, 'answerSpecJson')
             }
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const questionType = (data as any)?.questionType
             if (questionType && result.data.questionType !== questionType) {
               throw new ValidationError({

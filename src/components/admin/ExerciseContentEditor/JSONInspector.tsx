@@ -2,13 +2,13 @@
 
 import React from 'react'
 import { Copy, Edit, X, Check, RotateCcw, AlignLeft } from 'lucide-react'
-import type { Block } from '@/contracts/exercise/content'
-import { BlockSchema } from '@/contracts/exercise/content'
+import type { RichTextBlock } from '@/contracts'
+import { RichTextBlockSchema } from '@/contracts'
 
 interface JSONInspectorProps {
-  block: Block | null // Selected block
+  block: RichTextBlock | null // Selected block
   mode: 'read' | 'edit'
-  onApply?: (block: Block) => void // Called when Apply is clicked
+  onApply?: (block: RichTextBlock) => void // Called when Apply is clicked
   onClose?: () => void // For mobile toggle
 }
 
@@ -39,7 +39,9 @@ export const JSONInspector: React.FC<JSONInspectorProps> = ({ block, mode, onApp
     }
   }
 
-  const validateJSON = (jsonStr: string): { valid: boolean; error?: string; data?: Block } => {
+  const validateJSON = (
+    jsonStr: string,
+  ): { valid: boolean; error?: string; data?: RichTextBlock } => {
     // Try JSON.parse first
     let parsed: unknown
     try {
@@ -52,7 +54,7 @@ export const JSONInspector: React.FC<JSONInspectorProps> = ({ block, mode, onApp
     }
 
     // Try Zod schema validation
-    const result = BlockSchema.safeParse(parsed)
+    const result = RichTextBlockSchema.safeParse(parsed)
     if (!result.success) {
       const firstError = result.error.issues[0]
       const path = firstError.path.join('.')
