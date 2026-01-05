@@ -18,13 +18,9 @@ export function ConvertButton({ lessonId }: ConvertButtonProps) {
     setSuccess(false)
 
     try {
-      const response = await fetch('/api/ai/convert-lesson-image', {
+      const response = await fetch(`/api/lessons/${lessonId}/import-exercise`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         credentials: 'include',
-        body: JSON.stringify({ lessonId }),
       })
 
       const data = await response.json()
