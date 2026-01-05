@@ -7,7 +7,11 @@
 import { PayloadRequest } from 'payload'
 import { extractFromImage } from '@/lib/ai/services/data-extractor-service'
 import type { Media } from '@/payload-types'
-import { ExerciseBlockDefaults } from '@/collections/Exercises'
+import {
+  ExerciseBlockDefaults,
+  QuestionMcqBlockSchema,
+  QuestionFreeResponseBlockSchema,
+} from '@/collections/Exercises'
 
 export async function importExerciseFromLesson(req: PayloadRequest) {
   // 1) Auth - endpoints not authenticated by default
@@ -75,21 +79,20 @@ export async function importExerciseFromLesson(req: PayloadRequest) {
     return Response.json({ error: result.error || 'Failed to process image' }, { status: 500 })
   }
 
-  // 7) Create exercise using factory from Exercises.ts
+  // 7) Create exercise using factory from Exercises.ts, then validate with Zod
   if (result.data) {
     try {
       const hasOptions = result.data.options && result.data.options.length > 0
 
-      // Use factory, then populate with AI data
       let questionBlock
 
       if (hasOptions) {
         // Get MCQ template from factory
-        questionBlock = ExerciseBlockDefaults.question_mcq() as any
+        const draft = ExerciseBlockDefaults.question_mcq() as any
 
         // Populate with AI-extracted data
-        questionBlock.prompt.value = result.data.question
-        questionBlock.answer.options = result.data.options.map((opt: string, i: number) => ({
+        draft.prompt.value = result.data.question
+        draft.answer.options = result.data.options.map((opt: string, i: number) => ({
           id: `opt-${i + 1}`,
           content: {
             type: 'rich_text' as const,
@@ -98,36 +101,49 @@ export async function importExerciseFromLesson(req: PayloadRequest) {
             mediaIds: [],
           },
         }))
-        questionBlock.answer.correctOptionIds =
-          result.data.correctAnswer !== null && result.data.correctAnswer !== undefined
-            ? [`opt-${result.data.correctAnswer + 1}`]
-            : ['opt-1']
+
+        // Validate correctAnswer exists
+        if (typeof result.data.correctAnswer !== 'number') {
+          return Response.json(
+            { error: 'AI did not provide correctAnswer for MCQ' },
+            { status: 422 },
+          )
+        }
+
+        draft.answer.correctOptionIds = [`opt-${result.data.correctAnswer + 1}`]
 
         if (result.data.explanation) {
-          questionBlock.solution = {
+          draft.solution = {
             type: 'rich_text' as const,
             format: 'md-math-v1' as const,
             value: result.data.explanation,
             mediaIds: [],
           }
         }
+
+        // Validate with Zod schema (runtime validation)
+        questionBlock = QuestionMcqBlockSchema.parse(draft)
       } else {
         // Get free response template from factory
-        questionBlock = ExerciseBlockDefaults.question_free_response() as any
+        const draft = ExerciseBlockDefaults.question_free_response() as any
 
         // Populate with AI-extracted data
-        questionBlock.prompt.value = result.data.question
-        questionBlock.answer.responseKind = 'text'
-        questionBlock.answer.acceptedAnswers = [result.data.explanation || 'See solution']
+        draft.prompt.value = result.data.question
+        draft.answer.responseKind = 'text'
+        draft.answer.acceptedAnswers = [result.data.explanation || 'See solution']
+        draft.answer.tolerance = 0
 
         if (result.data.explanation) {
-          questionBlock.solution = {
+          draft.solution = {
             type: 'rich_text' as const,
             format: 'md-math-v1' as const,
             value: result.data.explanation,
             mediaIds: [],
           }
         }
+
+        // Validate with Zod schema (runtime validation)
+        questionBlock = QuestionFreeResponseBlockSchema.parse(draft)
       }
 
       const exerciseDoc = await req.payload.create({
