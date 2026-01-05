@@ -1,9 +1,11 @@
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
 import sharp from 'sharp'
 import path from 'path'
+import fs from 'fs'
 import { addDataAndFileToRequest, buildConfig, PayloadRequest } from 'payload'
 import { fileURLToPath } from 'url'
 import { extractFromImage } from '@/lib/ai/services/data-extractor-service'
+import type { Media as MediaType } from '@/payload-types'
 
 import { Categories } from './collections/Categories'
 import { Chapters } from './collections/Chapters'
@@ -156,6 +158,161 @@ export default buildConfig({
             { success: false, error: result.error || 'Failed to process image' },
             { status: 500 },
           )
+        }
+
+        return Response.json({
+          success: true,
+          data: result.data,
+          metadata: result.metadata,
+        })
+      },
+    },
+    {
+      path: '/lessons/:id/import-exercise',
+      method: 'post',
+      handler: async (req: PayloadRequest) => {
+        // 1) Auth - endpoints not authenticated by default
+        if (!req.user) {
+          return Response.json(
+            { success: false, error: 'Authentication required' },
+            { status: 401 },
+          )
+        }
+
+        // 2) Get lessonId from URL params
+        const lessonId = req.routeParams?.id
+
+        if (!lessonId || typeof lessonId !== 'string') {
+          return Response.json({ success: false, error: 'Lesson ID is required' }, { status: 400 })
+        }
+
+        // 3) Fetch lesson with contentFile
+        const lesson = await req.payload.findByID({
+          collection: 'lessons',
+          id: lessonId,
+          depth: 1,
+        })
+
+        if (!lesson) {
+          return Response.json({ success: false, error: 'Lesson not found' }, { status: 404 })
+        }
+
+        // 4) Check if contentFile exists
+        const contentFile = lesson.contentFile as MediaType | null | undefined
+        if (!contentFile || !contentFile.url) {
+          return Response.json(
+            { success: false, error: 'Lesson has no content file to convert' },
+            { status: 400 },
+          )
+        }
+
+        // 5) Read image from filesystem
+        let imageBuffer: Buffer
+        let mimeType: string
+
+        try {
+          const filename = contentFile.filename || path.basename(contentFile.url)
+          const filePath = path.join(process.cwd(), 'public', 'media', filename)
+          imageBuffer = fs.readFileSync(filePath)
+
+          const ext = path.extname(filename).toLowerCase()
+          const mimeTypes: Record<string, string> = {
+            '.png': 'image/png',
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.webp': 'image/webp',
+          }
+          mimeType = mimeTypes[ext] || 'image/jpeg'
+        } catch (readError) {
+          return Response.json(
+            { success: false, error: 'Failed to read lesson content file from disk' },
+            { status: 500 },
+          )
+        }
+
+        // 6) Extract data from image
+        const result = await extractFromImage({
+          imageBuffer,
+          mimeType,
+        })
+
+        if (!result.success) {
+          return Response.json(
+            { success: false, error: result.error || 'Failed to process image' },
+            { status: 500 },
+          )
+        }
+
+        // 7) Create exercise from extracted data
+        if (result.data) {
+          try {
+            const hasOptions = result.data.options && result.data.options.length > 0
+
+            let answerSpecJson
+            if (hasOptions) {
+              answerSpecJson = {
+                questionType: 'mcq',
+                multiSelect: false,
+                options: result.data.options.map((opt: string, i: number) => ({
+                  id: `opt-${i + 1}`,
+                  content: [
+                    {
+                      id: `opt-${i + 1}-text`,
+                      type: 'rich_text',
+                      format: 'md-math-v1',
+                      value: opt,
+                    },
+                  ],
+                })),
+                correctOptionIds:
+                  result.data.correctAnswer !== null && result.data.correctAnswer !== undefined
+                    ? [`opt-${result.data.correctAnswer + 1}`]
+                    : ['opt-1'],
+              }
+            } else {
+              answerSpecJson = {
+                questionType: 'free_response',
+                responseKind: 'text',
+                acceptedAnswers: [result.data.explanation || 'See solution'],
+              }
+            }
+
+            const exerciseDoc = await req.payload.create({
+              collection: 'exercises',
+              data: {
+                title: 'AI Generated Exercise',
+                order: 0,
+                lesson: lessonId,
+                content: {
+                  blocks: [
+                    {
+                      id: 'ai-generated-1',
+                      type: 'rich_text',
+                      format: 'md-math-v1',
+                      value: result.data.question,
+                      mediaIds: [],
+                    },
+                  ],
+                },
+                // @ts-expect-error - answerSpecJson is dynamic
+                answerSpecJson,
+              },
+            })
+
+            return Response.json({
+              success: true,
+              data: result.data,
+              metadata: result.metadata,
+              exerciseId: exerciseDoc.id,
+            })
+          } catch (createError) {
+            return Response.json({
+              success: true,
+              data: result.data,
+              metadata: result.metadata,
+              error: 'AI conversion succeeded but exercise creation failed',
+            })
+          }
         }
 
         return Response.json({
