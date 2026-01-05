@@ -120,5 +120,11 @@ export const Exercises: CollectionConfig = {
 }
 
 // Re-export types and utilities for backward compatibility
-export { ContentBlockSchema, ContentSchema, type ContentBlock } from './schemas'
+export {
+  ContentBlockSchema,
+  ContentSchema,
+  type ContentBlock,
+  QuestionMcqBlockSchema,
+  QuestionFreeResponseBlockSchema,
+} from './schemas'
 export { ExerciseBlockDefaults } from './defaults'
