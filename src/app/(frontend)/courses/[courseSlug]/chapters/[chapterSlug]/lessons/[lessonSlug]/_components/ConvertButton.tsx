@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import styles from './LessonContent.module.css'
 
 interface ConvertButtonProps {
@@ -8,14 +9,13 @@ interface ConvertButtonProps {
 }
 
 export function ConvertButton({ lessonId }: ConvertButtonProps) {
+  const router = useRouter()
   const [isConverting, setIsConverting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
 
   const handleConvert = async () => {
     setIsConverting(true)
     setError(null)
-    setSuccess(false)
 
     try {
       const response = await fetch(`/api/exercises/import?lessonId=${lessonId}`, {
@@ -29,14 +29,10 @@ export function ConvertButton({ lessonId }: ConvertButtonProps) {
         throw new Error(data.error || 'Failed to convert image')
       }
 
-      setSuccess(true)
-      // Reload the page to show the new exercise
-      setTimeout(() => {
-        window.location.reload()
-      }, 1500)
+      // Success! Refresh the page to show the new exercise
+      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
-    } finally {
       setIsConverting(false)
     }
   }
@@ -44,14 +40,10 @@ export function ConvertButton({ lessonId }: ConvertButtonProps) {
   return (
     <div className={styles.convertSection}>
       <button onClick={handleConvert} disabled={isConverting} className={styles.convertButton}>
-        {isConverting ? 'Converting...' : '🪄 Convert to Exercise (AI)'}
+        {isConverting ? '🔄 Converting...' : '🪄 Convert to Exercise (AI)'}
       </button>
 
       {error && <div className={styles.convertError}>{error}</div>}
-
-      {success && (
-        <div className={styles.convertSuccess}>✅ Exercise created! Refreshing page...</div>
-      )}
     </div>
   )
 }
