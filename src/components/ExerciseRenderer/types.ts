@@ -68,7 +68,8 @@ export interface FreeResponseAnswer {
 /**
  * Question block types
  */
-export interface QuestionSelectBlock {
+// True/False variant
+export interface QuestionSelectTrueFalseBlock {
   id: string
   type: 'question_select'
   variant: 'true_false'
@@ -84,6 +85,22 @@ export interface QuestionSelectBlock {
   fullSolution?: InlineRichText
 }
 
+// MCQ variant
+export interface QuestionSelectMcqBlock {
+  id: string
+  type: 'question_select'
+  variant: 'mcq'
+  selectionMode: 'single' | 'multiple'
+  prompt: InlineRichText
+  answer: McqAnswer
+  hint?: InlineRichText
+  solution?: InlineRichText
+  fullSolution?: InlineRichText
+}
+
+export type QuestionSelectBlock = QuestionSelectTrueFalseBlock | QuestionSelectMcqBlock
+
+// Deprecated: Keep for backward compatibility
 export interface QuestionMcqBlock {
   id: string
   type: 'question_mcq'

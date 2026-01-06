@@ -24,6 +24,14 @@ export const DEFAULT_CONTENT = () => ({
   ],
 })
 
+// Shared helper/solution content structure
+const DEFAULT_HINT_SOLUTION = () => ({
+  type: 'rich_text' as const,
+  format: 'md-math-v1' as const,
+  value: '',
+  mediaIds: [] as string[],
+})
+
 // True/False answer with optional correctOptionId (teacher must set this)
 const DEFAULT_TF_ANSWER = {
   correctOptionId: 'true', // Default to 'true' as correct answer
@@ -104,29 +112,16 @@ export const ExerciseBlockDefaults: Record<ContentBlock['type'], () => ContentBl
       },
     ] as const,
     answer: { ...DEFAULT_TF_ANSWER },
-    hint: {
-      type: 'rich_text' as const,
-      format: 'md-math-v1' as const,
-      value: '',
-      mediaIds: [] as string[],
-    },
-    solution: {
-      type: 'rich_text' as const,
-      format: 'md-math-v1' as const,
-      value: '',
-      mediaIds: [] as string[],
-    },
-    fullSolution: {
-      type: 'rich_text' as const,
-      format: 'md-math-v1' as const,
-      value: '',
-      mediaIds: [] as string[],
-    },
+    hint: DEFAULT_HINT_SOLUTION(),
+    solution: DEFAULT_HINT_SOLUTION(),
+    fullSolution: DEFAULT_HINT_SOLUTION(),
   }),
 
   question_mcq: () => ({
     id: generateId(),
-    type: 'question_mcq' as const,
+    type: 'question_select' as const,
+    variant: 'mcq' as const,
+    selectionMode: 'multiple' as const,
     prompt: {
       type: 'rich_text' as const,
       format: 'md-math-v1' as const,
@@ -134,31 +129,16 @@ export const ExerciseBlockDefaults: Record<ContentBlock['type'], () => ContentBl
       mediaIds: [] as string[],
     },
     answer: {
-      multiSelect: DEFAULT_MCQ_ANSWER.multiSelect,
+      multiSelect: true, // Enable multiple selection by default
       options: DEFAULT_MCQ_ANSWER.options.map((o) => ({
         id: o.id,
         content: { ...o.content },
       })),
       correctOptionIds: [...DEFAULT_MCQ_ANSWER.correctOptionIds],
     },
-    hint: {
-      type: 'rich_text' as const,
-      format: 'md-math-v1' as const,
-      value: '',
-      mediaIds: [] as string[],
-    },
-    solution: {
-      type: 'rich_text' as const,
-      format: 'md-math-v1' as const,
-      value: '',
-      mediaIds: [] as string[],
-    },
-    fullSolution: {
-      type: 'rich_text' as const,
-      format: 'md-math-v1' as const,
-      value: '',
-      mediaIds: [] as string[],
-    },
+    hint: DEFAULT_HINT_SOLUTION(),
+    solution: DEFAULT_HINT_SOLUTION(),
+    fullSolution: DEFAULT_HINT_SOLUTION(),
   }),
 
   question_free_response: () => ({
@@ -171,23 +151,8 @@ export const ExerciseBlockDefaults: Record<ContentBlock['type'], () => ContentBl
       mediaIds: [] as string[],
     },
     answer: { ...DEFAULT_FREE_RESPONSE_ANSWER },
-    hint: {
-      type: 'rich_text' as const,
-      format: 'md-math-v1' as const,
-      value: '',
-      mediaIds: [] as string[],
-    },
-    solution: {
-      type: 'rich_text' as const,
-      format: 'md-math-v1' as const,
-      value: '',
-      mediaIds: [] as string[],
-    },
-    fullSolution: {
-      type: 'rich_text' as const,
-      format: 'md-math-v1' as const,
-      value: '',
-      mediaIds: [] as string[],
-    },
+    hint: DEFAULT_HINT_SOLUTION(),
+    solution: DEFAULT_HINT_SOLUTION(),
+    fullSolution: DEFAULT_HINT_SOLUTION(),
   }),
 }

@@ -87,12 +87,14 @@ export const FreeResponseAnswerSchema = z
 // ---------------------------------
 // Zod: Question blocks
 // ---------------------------------
-export const QuestionSelectBlockSchema = z
+
+// True/False variant of question_select
+const QuestionSelectTrueFalseSchema = z
   .object({
     id: z.string().min(1),
     type: z.literal('question_select'),
-    variant: z.enum(['true_false']),
-    selectionMode: z.enum(['single']),
+    variant: z.literal('true_false'),
+    selectionMode: z.literal('single'),
     prompt: InlineRichTextSchema,
     options: z.tuple([
       z.object({
@@ -114,6 +116,29 @@ export const QuestionSelectBlockSchema = z
   })
   .strict()
 
+// MCQ variant of question_select
+const QuestionSelectMcqSchema = z
+  .object({
+    id: z.string().min(1),
+    type: z.literal('question_select'),
+    variant: z.literal('mcq'),
+    selectionMode: z.enum(['single', 'multiple']),
+    prompt: InlineRichTextSchema,
+    answer: McqAnswerSchema,
+
+    hint: InlineRichTextSchema.optional(),
+    solution: InlineRichTextSchema.optional(),
+    fullSolution: InlineRichTextSchema.optional(),
+  })
+  .strict()
+
+// Union of all question_select variants
+export const QuestionSelectBlockSchema = z.discriminatedUnion('variant', [
+  QuestionSelectTrueFalseSchema,
+  QuestionSelectMcqSchema,
+])
+
+// Keep QuestionMcqBlockSchema for backward compatibility (deprecated)
 export const QuestionMcqBlockSchema = z
   .object({
     id: z.string().min(1),
@@ -146,7 +171,7 @@ export const QuestionFreeResponseBlockSchema = z
 export const ContentBlockSchema = z.discriminatedUnion('type', [
   RichTextBlockSchema,
   QuestionSelectBlockSchema,
-  QuestionMcqBlockSchema,
+  QuestionMcqBlockSchema, // Deprecated: kept for backward compatibility with old data
   QuestionFreeResponseBlockSchema,
 ])
 
