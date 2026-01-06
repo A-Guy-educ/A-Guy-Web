@@ -93,8 +93,21 @@ export async function importExerciseFromLesson(req: PayloadRequest) {
     console.log('[Import] MIME type:', contentFile.mimeType)
     console.log('[Import] Starting fetch...')
 
-    // Fetch from the URL (works with Vercel Blob, S3, filesystem, etc.)
-    const imageResponse = await fetch(imageUrl)
+    // Fetch from the URL with authentication forwarding for relative URLs
+    // For absolute URLs (Vercel Blob, S3), no auth needed
+    const fetchOptions: RequestInit = {}
+    if (!isAbsolute) {
+      // Forward cookies for server-to-server requests to our own API
+      const cookieHeader = req.headers.get('cookie')
+      if (cookieHeader) {
+        fetchOptions.headers = {
+          cookie: cookieHeader,
+        }
+        console.log('[Import] Forwarding authentication cookies to image fetch')
+      }
+    }
+
+    const imageResponse = await fetch(imageUrl, fetchOptions)
 
     console.log('[Import] Fetch completed!')
     console.log('[Import] Response status:', imageResponse.status, imageResponse.statusText)
