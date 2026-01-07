@@ -35,6 +35,22 @@
     border-radius: 14px;
     font-size: 1rem;
     line-height: 1.6;
+    max-width: 85%;
+    align-self: flex-start;
+
+    &--user {
+      background: hsl(var(--primary));
+      color: hsl(var(--primary-foreground));
+      align-self: flex-end;
+      margin-left: auto;
+    }
+
+    &--loading {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      opacity: 0.8;
+    }
   }
 
   &__actions {
@@ -99,8 +115,17 @@
     font-weight: 800;
     color: hsl(var(--primary));
     text-transform: lowercase;
-    opacity: 0.6;
-    cursor: not-allowed;
+    cursor: pointer;
+    transition: opacity 0.2s;
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    &:not(:disabled):hover {
+      opacity: 0.8;
+    }
   }
 }
 
