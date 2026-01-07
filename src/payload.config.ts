@@ -20,6 +20,8 @@ import { Header } from './Header/config'
 import { plugins } from './plugins'
 import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
+import { importExerciseFromImage } from './endpoints/exercises/import-from-image'
+import { importExerciseFromLesson } from './endpoints/exercises/import-from-lesson'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -87,6 +89,20 @@ export default buildConfig({
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
+  endpoints: [
+    {
+      path: '/exercises/import',
+      method: 'post',
+      handler: (req: PayloadRequest) => {
+        // Route based on whether lessonId query param exists
+        const url = new URL(req.url || 'http://localhost')
+        if (url.searchParams.has('lessonId')) {
+          return importExerciseFromLesson(req)
+        }
+        return importExerciseFromImage(req)
+      },
+    },
+  ],
   jobs: {
     access: {
       run: ({ req }: { req: PayloadRequest }): boolean => {

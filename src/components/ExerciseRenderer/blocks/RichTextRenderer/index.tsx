@@ -8,23 +8,23 @@ import ReactMarkdown from 'react-markdown'
 import rehypeKatex from 'rehype-katex'
 import remarkMath from 'remark-math'
 import 'katex/dist/katex.min.css'
-import type { RichTextBlock } from '@/contracts'
 import './index.scss'
 
-const baseClass = 'rich-text-renderer'
-
 interface RichTextRendererProps {
-  block: RichTextBlock
+  block: {
+    type: 'rich_text'
+    format: 'md-math-v1'
+    value: string
+    mediaIds?: string[]
+  }
 }
 
 export function RichTextRenderer({ block }: RichTextRendererProps) {
   return (
-    <div className={baseClass}>
-      <div className={`${baseClass}__content`}>
-        <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
-          {block.value}
-        </ReactMarkdown>
-      </div>
+    <div className="rich-text-content">
+      <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+        {block.value}
+      </ReactMarkdown>
     </div>
   )
 }

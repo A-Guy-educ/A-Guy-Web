@@ -1,168 +1,180 @@
 /**
- * Exercise Renderer
- * Main component that renders complete exercises with content blocks and answer UI
- *
- * Strict: Only supports content.blocks format
+ * Exercise Renderer - Block-Based
+ * Renders exercises with mixed content and question blocks
+ * Each question block has its own answer UI
  */
 
 'use client'
 
 import React, { useState } from 'react'
 import { cn } from '@/utilities/ui'
-import type { ExerciseRendererProps, UserAnswer, CheckResult } from '../types'
-import { BlockRenderer } from '../blocks/BlockRenderer'
-import { AnswerRenderer } from '../answers/AnswerRenderer'
-import { checkAnswer } from '../utils/checkAnswer'
-import { ErrorBoundary } from '../ErrorBoundary'
+import { useTranslations } from '@/providers/I18n'
+import { Card } from '@/components/ui/card'
+import { XCircle } from 'lucide-react'
+import type {
+  ExerciseRendererProps,
+  QuestionBlock,
+  QuestionSelectTrueFalseBlock,
+  QuestionSelectMcqBlock,
+  QuestionFreeResponseBlock,
+  UserAnswer,
+  CheckResult,
+} from '../types'
+import { RichTextRenderer } from '../blocks/RichTextRenderer'
+import { TrueFalseQuestion } from '../questions/TrueFalseQuestion'
+import { McqQuestion } from '../questions/McqQuestion'
+import { FreeResponseQuestion } from '../questions/FreeResponseQuestion'
+import { QuestionCard } from '../components/QuestionCard'
+import { checkQuestionAnswer, getInitialAnswer } from '../utils/answerChecking'
 import './index.scss'
 
-const baseClass = 'exercise-renderer'
-
+/**
+ * Main Exercise Renderer Component
+ */
 export function ExerciseRenderer({
   content,
-  answerSpec,
-  questionType,
   mode = 'student',
   showCheckAnswer = true,
-  onAnswerChange,
-  initialAnswer,
   className = '',
-  availableAssets,
-}: ExerciseRendererProps & { availableAssets?: Record<string, string> }) {
-  // Initialize user answer based on question type
-  const getInitialAnswer = (): UserAnswer => {
-    if (initialAnswer) return initialAnswer
+}: ExerciseRendererProps) {
+  const t = useTranslations('courses')
 
-    switch (questionType) {
-      case 'mcq':
-        return { type: 'mcq', selectedIds: [] }
-      case 'true_false':
-        return { type: 'true_false', value: null }
-      case 'free_response':
-        return { type: 'free_response', value: '' }
-      default:
-        return { type: 'free_response', value: '' }
+  // Track answers and check results for each question block
+  const questionBlocks = content.blocks.filter(
+    (block) => block.type === 'question_select' || block.type === 'question_free_response',
+  ) as QuestionBlock[]
+
+  const [answers, setAnswers] = useState<Record<string, UserAnswer>>(() => {
+    const initial: Record<string, UserAnswer> = {}
+    questionBlocks.forEach((q) => {
+      initial[q.id] = getInitialAnswer(q)
+    })
+    return initial
+  })
+
+  const [checkResults, setCheckResults] = useState<Record<string, CheckResult>>({})
+  const [hasChecked, setHasChecked] = useState<Record<string, boolean>>({})
+
+  const handleAnswerChange = (questionId: string, answer: UserAnswer) => {
+    setAnswers((prev) => ({ ...prev, [questionId]: answer }))
+
+    // For true/false questions, check immediately on selection
+    const question = questionBlocks.find((q) => q.id === questionId)
+    if (
+      question?.type === 'question_select' &&
+      answer.type === 'true_false' &&
+      answer.value !== null
+    ) {
+      const result = checkQuestionAnswer(question, answer)
+      setCheckResults((prev) => ({ ...prev, [questionId]: result }))
+      setHasChecked((prev) => ({ ...prev, [questionId]: true }))
+    } else {
+      // For other question types, clear the check result
+      setCheckResults((prev) => {
+        const next = { ...prev }
+        delete next[questionId]
+        return next
+      })
+      setHasChecked((prev) => ({ ...prev, [questionId]: false }))
     }
   }
 
-  const [userAnswer, setUserAnswer] = useState<UserAnswer>(getInitialAnswer())
-  const [checkResult, setCheckResult] = useState<CheckResult | null>(null)
-  const [hasChecked, setHasChecked] = useState(false)
+  const handleCheckAnswer = (questionId: string) => {
+    const question = questionBlocks.find((q) => q.id === questionId)
+    if (!question) return
 
-  const handleAnswerChange = (newAnswer: UserAnswer) => {
-    setUserAnswer(newAnswer)
-    setCheckResult(null) // Clear result when answer changes
-    setHasChecked(false)
-    onAnswerChange?.(newAnswer)
-  }
-
-  const handleCheckAnswer = () => {
-    const result = checkAnswer(answerSpec, userAnswer)
-    setCheckResult(result)
-    setHasChecked(true)
+    const result = checkQuestionAnswer(question, answers[questionId])
+    setCheckResults((prev) => ({ ...prev, [questionId]: result }))
+    setHasChecked((prev) => ({ ...prev, [questionId]: true }))
   }
 
   // Validate content structure
   if (!content?.blocks || !Array.isArray(content.blocks)) {
     return (
-      <div className={cn(baseClass, className)}>
-        <div className={`${baseClass}__error`}>
-          <h3>Invalid Content Format</h3>
-          <p>Expected: {`{ blocks: [] }`}</p>
-          <p>Received: {JSON.stringify(content)}</p>
-        </div>
+      <div className={cn('exercise-renderer', className)}>
+        <Card className="exercise-renderer__error">
+          <div className="exercise-renderer__error-content">
+            <XCircle className="exercise-renderer__error-icon" />
+            <div>
+              <h3 className="exercise-renderer__error-title">Invalid Content Format</h3>
+              <p className="exercise-renderer__error-description">Expected: {`{ blocks: [] }`}</p>
+            </div>
+          </div>
+        </Card>
       </div>
     )
   }
 
-  const blocks = content.blocks
-
   return (
-    <div className={cn(baseClass, className)}>
-      {/* Debug Mode Info */}
-      {mode === 'debug' && (
-        <div className={`${baseClass}__debug-info`}>
-          <div className={`${baseClass}__debug-title`}>Debug Mode</div>
-          <div>Question Type: {questionType}</div>
-          <div>Answer Spec Type: {answerSpec.questionType}</div>
-          {answerSpec.questionType === 'free_response' && (
-            <div>Response Kind: {answerSpec.responseKind}</div>
-          )}
-          <div>Content Structure: Flat blocks (strict)</div>
-          <div>Blocks Found: {blocks.length}</div>
-        </div>
-      )}
+    <div className={cn('exercise-renderer', className)}>
+      <div className="exercise-renderer__blocks">
+        {content.blocks.map((block) => {
+          // Rich text block - just render content
+          if (block.type === 'rich_text') {
+            return (
+              <div key={block.id} className="exercise-renderer__rich-text">
+                <RichTextRenderer block={block} />
+              </div>
+            )
+          }
 
-      {/* Content Section */}
-      <div className={`${baseClass}__content`}>
-        <ErrorBoundary fallbackTitle="Error rendering exercise content">
-          {blocks.length > 0 ? (
-            blocks.map((block) => (
-              <BlockRenderer
-                key={block.id}
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                block={block as any}
-                mode={mode}
-                availableAssets={availableAssets}
-              />
-            ))
-          ) : (
-            <div className={`${baseClass}__empty`}>No content blocks</div>
-          )}
-        </ErrorBoundary>
-      </div>
+          // Question blocks - render with answer UI
+          const question = block as QuestionBlock
+          const answer = answers[question.id]
+          const checkResult = checkResults[question.id] || null
+          const checked = hasChecked[question.id] || false
+          const disabled = checked && checkResult?.isCorrect
 
-      {/* Answer Section */}
-      <div className={`${baseClass}__answer-section`}>
-        <h3 className={`${baseClass}__answer-title`}>Your Answer</h3>
+          // True/False questions don't show check button (immediate feedback)
+          const showCheckButton =
+            showCheckAnswer &&
+            !(question.type === 'question_select' && question.variant === 'true_false')
 
-        <AnswerRenderer
-          answerSpec={answerSpec}
-          value={userAnswer}
-          onChange={handleAnswerChange}
-          disabled={hasChecked && checkResult?.isCorrect}
-          mode={mode}
-        />
-
-        {/* Check Answer Button */}
-        {showCheckAnswer && (
-          <div className={`${baseClass}__check-button-wrapper`}>
-            <button
-              onClick={handleCheckAnswer}
-              disabled={hasChecked && checkResult?.isCorrect}
-              className={cn(
-                `${baseClass}__check-button`,
-                hasChecked && checkResult?.isCorrect && `${baseClass}__check-button--correct`,
-              )}
+          return (
+            <QuestionCard
+              key={question.id}
+              showCheckButton={showCheckButton}
+              onCheckAnswer={() => handleCheckAnswer(question.id)}
+              disabled={!!disabled}
+              checked={checked}
+              checkResult={checkResult}
+              checkAnswerText={t('checkAnswer')}
+              correctText={t('correct')}
+              incorrectText={t('incorrect')}
             >
-              {hasChecked && checkResult?.isCorrect ? '✓ Correct!' : 'Check Answer'}
-            </button>
-          </div>
-        )}
-
-        {/* Check Result Display */}
-        {hasChecked && checkResult && (
-          <div
-            className={cn(
-              `${baseClass}__result`,
-              checkResult.isCorrect
-                ? `${baseClass}__result--correct`
-                : `${baseClass}__result--incorrect`,
-            )}
-          >
-            <div className={`${baseClass}__result-header`}>
-              <span className={`${baseClass}__result-icon`}>
-                {checkResult.isCorrect ? '✓' : '✗'}
-              </span>
-              <span className={`${baseClass}__result-text`}>
-                {checkResult.isCorrect ? 'Correct!' : 'Incorrect'}
-              </span>
-            </div>
-            {checkResult.message && (
-              <div className={`${baseClass}__result-message`}>{checkResult.message}</div>
-            )}
-          </div>
-        )}
+              {/* Render appropriate question component based on type */}
+              {question.type === 'question_select' && question.variant === 'true_false' && (
+                <TrueFalseQuestion
+                  question={question as QuestionSelectTrueFalseBlock}
+                  answer={answer}
+                  onChange={(ans) => handleAnswerChange(question.id, ans)}
+                  disabled={!!disabled}
+                  checkResult={checkResult}
+                />
+              )}
+              {question.type === 'question_select' && question.variant === 'mcq' && (
+                <McqQuestion
+                  question={question as QuestionSelectMcqBlock}
+                  answer={answer}
+                  onChange={(ans) => handleAnswerChange(question.id, ans)}
+                  disabled={!!disabled}
+                  checkResult={checkResult}
+                  t={t}
+                />
+              )}
+              {question.type === 'question_free_response' && (
+                <FreeResponseQuestion
+                  question={question as QuestionFreeResponseBlock}
+                  answer={answer}
+                  onChange={(ans) => handleAnswerChange(question.id, ans)}
+                  disabled={!!disabled}
+                  checkResult={checkResult}
+                  t={t}
+                />
+              )}
+            </QuestionCard>
+          )
+        })}
       </div>
     </div>
   )
