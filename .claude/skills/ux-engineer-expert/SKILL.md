@@ -397,6 +397,37 @@ Reference the project's design system:
 
 ---
 
+## Refactoring Policy
+
+When modifying existing components:
+
+### ✅ DO Refactor (when touching the component):
+
+- Fix accessibility issues (missing ARIA, semantic HTML)
+- Update to use design system tokens (replace hardcoded colors/spacing)
+- Add missing variants using CVA pattern
+- Fix forwardRef if missing
+- Correct className ordering
+- Add TypeScript types if missing
+
+### ❌ DON'T Refactor (avoid scope creep):
+
+- Unrelated components in the same file
+- Components you're not modifying
+- Surrounding code that works correctly
+- "Nice to have" improvements beyond the task
+
+### 🤔 ASK First (significant changes):
+
+- Breaking component API changes
+- Major structural refactors
+- Moving components to new locations
+- Changing component composition patterns
+
+**Rule**: If you touch a component, bring it up to design system standards. Don't touch components outside your task scope.
+
+---
+
 ## Workflow
 
 1. **Plan API** - Props, variants, composition strategy
