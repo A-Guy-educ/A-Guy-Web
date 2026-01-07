@@ -12,7 +12,6 @@ import { Card } from '@/components/ui/card'
 import { CheckCircle2 } from 'lucide-react'
 import type { CheckResult } from '../../types'
 import { FeedbackDisplay } from '../FeedbackDisplay'
-import './index.scss'
 
 interface QuestionCardProps {
   children: React.ReactNode
@@ -39,19 +38,22 @@ export function QuestionCard({
 }: QuestionCardProps) {
   return (
     <Card
-      className={cn('question-card', checked && checkResult?.isCorrect && 'question-card--correct')}
+      className={cn(
+        'p-card-padding border-2 transition-all duration-normal',
+        checked && checkResult?.isCorrect && 'border-success/30 bg-success/5',
+      )}
     >
       {/* Question Content */}
       {children}
 
       {/* Check Answer Button */}
       {showCheckButton && (
-        <div className="question-card__actions">
+        <div className="mt-card-padding flex justify-end">
           <Button
             onClick={onCheckAnswer}
             disabled={disabled}
             size="lg"
-            className={cn('question-card__button', disabled && 'question-card__button--success')}
+            className={cn('font-semibold', disabled && 'bg-success hover:bg-success/90 text-white')}
           >
             {disabled ? (
               <>

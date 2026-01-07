@@ -26,7 +26,6 @@ import { McqQuestion } from '../questions/McqQuestion'
 import { FreeResponseQuestion } from '../questions/FreeResponseQuestion'
 import { QuestionCard } from '../components/QuestionCard'
 import { checkQuestionAnswer, getInitialAnswer } from '../utils/answerChecking'
-import './index.scss'
 
 /**
  * Main Exercise Renderer Component
@@ -91,13 +90,15 @@ export function ExerciseRenderer({
   // Validate content structure
   if (!content?.blocks || !Array.isArray(content.blocks)) {
     return (
-      <div className={cn('exercise-renderer', className)}>
-        <Card className="exercise-renderer__error">
-          <div className="exercise-renderer__error-content">
-            <XCircle className="exercise-renderer__error-icon" />
+      <div className={cn('w-full max-w-3xl mx-auto', className)}>
+        <Card className="p-6 border-destructive bg-destructive/5">
+          <div className="flex items-start gap-3">
+            <XCircle className="w-5 h-5 text-destructive mt-0.5 flex-shrink-0" />
             <div>
-              <h3 className="exercise-renderer__error-title">Invalid Content Format</h3>
-              <p className="exercise-renderer__error-description">Expected: {`{ blocks: [] }`}</p>
+              <h3 className="text-lg font-semibold text-destructive mb-1">
+                Invalid Content Format
+              </h3>
+              <p className="text-sm text-muted-foreground">Expected: {`{ blocks: [] }`}</p>
             </div>
           </div>
         </Card>
@@ -106,13 +107,16 @@ export function ExerciseRenderer({
   }
 
   return (
-    <div className={cn('exercise-renderer', className)}>
-      <div className="exercise-renderer__blocks">
+    <div className={cn('w-full max-w-3xl mx-auto', className)}>
+      <div className="flex flex-col gap-6">
         {content.blocks.map((block) => {
           // Rich text block - just render content
           if (block.type === 'rich_text') {
             return (
-              <div key={block.id} className="exercise-renderer__rich-text">
+              <div
+                key={block.id}
+                className="prose prose-slate dark:prose-invert max-w-none text-foreground leading-relaxed"
+              >
                 <RichTextRenderer block={block} />
               </div>
             )

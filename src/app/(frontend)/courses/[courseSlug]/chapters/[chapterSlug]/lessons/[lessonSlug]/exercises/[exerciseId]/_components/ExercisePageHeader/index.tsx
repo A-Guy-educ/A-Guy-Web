@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useTranslations } from '@/providers/I18n'
-import './index.scss'
 
 interface ExercisePageHeaderProps {
   title: string
@@ -35,8 +34,8 @@ export function ExercisePageHeader({
   const badge = getQuestionTypeBadge(questionType)
 
   return (
-    <div className="exercise-page-header">
-      <div className="exercise-page-header__back">
+    <div className="mb-8">
+      <div className="mb-6">
         <Button variant="outline" size="sm" asChild>
           <Link href={`/courses/${courseSlug}/chapters/${chapterSlug}/lessons/${lessonSlug}`}>
             ← {t('backToLesson')}
@@ -44,11 +43,13 @@ export function ExercisePageHeader({
         </Button>
       </div>
 
-      <div className="exercise-page-header__content">
-        <div className="exercise-page-header__meta">
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-2">
           <Badge variant={badge.variant}>{badge.label}</Badge>
         </div>
-        <h1 className="exercise-page-header__title">{title}</h1>
+        <h1 className="text-4xl md:text-3xl font-bold leading-tight text-foreground m-0">
+          {title}
+        </h1>
       </div>
     </div>
   )

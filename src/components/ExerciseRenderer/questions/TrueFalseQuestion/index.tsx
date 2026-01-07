@@ -15,7 +15,6 @@ import type {
   RichTextBlock,
 } from '../../types'
 import { RichTextRenderer } from '../../blocks/RichTextRenderer'
-import './index.scss'
 
 interface TrueFalseQuestionProps {
   question: QuestionSelectTrueFalseBlock
@@ -66,11 +65,11 @@ export function TrueFalseQuestion({
   }
 
   return (
-    <div className="true-false-question">
-      <div className="true-false-question__prompt">
+    <div className="flex flex-col gap-4">
+      <div className="text-base font-medium text-foreground leading-relaxed">
         <RichTextRenderer block={promptBlock} />
       </div>
-      <div className="true-false-question__options">
+      <div className="flex gap-3">
         {options.map((option) => {
           const isSelected = value === option.value
           const showFeedback = checkResult !== null
@@ -87,23 +86,28 @@ export function TrueFalseQuestion({
               onClick={() => onChange({ type: 'true_false', value: option.value })}
               disabled={disabled}
               className={cn(
-                'true-false-question__option',
-                isSelected && !showFeedback && 'true-false-question__option--selected',
+                'flex-1 relative overflow-hidden px-6 py-4 rounded-lg border-2 font-medium text-base transition-all duration-200',
+                'border-border bg-card',
+                'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+                !disabled && 'hover:border-primary hover:bg-primary/5 cursor-pointer',
+                isSelected &&
+                  !showFeedback &&
+                  'border-primary bg-primary/10 text-primary shadow-sm',
                 showFeedback &&
                   isSelected &&
                   checkResult.isCorrect &&
-                  'true-false-question__option--correct',
+                  'border-success bg-success/10 text-success shadow-sm',
                 showFeedback &&
                   isSelected &&
                   !checkResult.isCorrect &&
-                  'true-false-question__option--incorrect',
-                disabled && 'true-false-question__option--disabled',
+                  'border-destructive bg-destructive/10 text-destructive shadow-sm',
+                disabled && 'opacity-60 cursor-not-allowed',
               )}
             >
-              <div className="true-false-question__option-content">
+              <div className="flex items-center justify-center gap-2">
                 <RichTextRenderer block={labelBlock} />
                 {showFeedback && isSelected && (
-                  <span className="true-false-question__option-icon">
+                  <span className="text-xl font-bold">
                     {checkResult.isCorrect ? (
                       <CheckCircle2 className="w-5 h-5" />
                     ) : (
