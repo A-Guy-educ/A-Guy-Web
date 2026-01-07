@@ -33,7 +33,7 @@
     background: hsl(var(--muted));
     padding: 1rem 1.25rem;
     border-radius: 16px;
-    font-size: 0.95rem;
+    font-size: 1.05rem;
     line-height: 1.6;
     max-width: 80%;
     align-self: flex-start;
@@ -156,7 +156,7 @@
     border: 2px solid hsl(var(--border));
     border-radius: 24px;
     padding: 0.75rem 1.125rem;
-    font-size: 0.95rem;
+    font-size: 1rem;
     color: hsl(var(--foreground));
     transition: all 0.2s ease;
 
@@ -181,12 +181,11 @@
     background: hsl(var(--primary));
     color: hsl(var(--primary-foreground));
     border: none;
-    border-radius: 20px;
-    padding: 0.625rem 1.25rem;
-    font-weight: 600;
-    font-size: 0.875rem;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
+    border-radius: 50%;
+    padding: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
     transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 2px 4px hsl(var(--primary) / 0.2);

@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Lightbulb, CheckCircle, BookOpen, Loader2 } from 'lucide-react'
+import { Lightbulb, CheckCircle, BookOpen, Loader2, Send } from 'lucide-react'
 import { useTranslations } from '@/providers/I18n'
 import { useNotebookChat } from './useNotebookChat'
 import './index.scss'
@@ -19,7 +19,10 @@ export function NotebookChat() {
     handleSubmit,
     handleKeyDown,
     handleQuickAction,
-  } = useNotebookChat({ initialMessage: t('chatWelcome') })
+  } = useNotebookChat({
+    initialMessage: t('chatWelcome'),
+    authRequiredMessage: t('chatAuthRequired'),
+  })
 
   return (
     <div className="notebook-chat">
@@ -83,8 +86,9 @@ export function NotebookChat() {
           type="submit"
           className="notebook-chat__send"
           disabled={isLoading || !inputValue.trim()}
+          aria-label="Send message"
         >
-          {t('chatSend')}
+          <Send className="w-5 h-5" />
         </button>
       </form>
     </div>

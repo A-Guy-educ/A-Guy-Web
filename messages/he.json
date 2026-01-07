@@ -99,7 +99,7 @@
     "chatSolution": "פתרון",
     "chatFullSolution": "מלא",
     "chatInputPlaceholder": "שלח הודעה...",
-    "chatSend": "send",
+    "chatAuthRequired": "יש להתחבר כדי להשתמש בעוזר הבינה המלאכותית",
     "formulaSubtitle": "נוסחאות עזר",
     "notesSubtitle": "הערות אישיות",
     "notesPlaceholder": "הוסף הערות כאן..."

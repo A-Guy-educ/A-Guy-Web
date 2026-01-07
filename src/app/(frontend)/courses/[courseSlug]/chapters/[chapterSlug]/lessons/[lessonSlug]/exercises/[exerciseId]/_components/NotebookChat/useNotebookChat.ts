@@ -8,9 +8,10 @@ export interface ChatMessage {
 
 interface UseNotebookChatProps {
   initialMessage: string
+  authRequiredMessage: string
 }
 
-export function useNotebookChat({ initialMessage }: UseNotebookChatProps) {
+export function useNotebookChat({ initialMessage, authRequiredMessage }: UseNotebookChatProps) {
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -58,6 +59,9 @@ export function useNotebookChat({ initialMessage }: UseNotebookChatProps) {
       const data = await response.json()
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('AUTH_REQUIRED')
+        }
         throw new Error(data.error || 'Failed to get response')
       }
 
@@ -66,7 +70,11 @@ export function useNotebookChat({ initialMessage }: UseNotebookChatProps) {
         setMessages((prev) => [...prev, assistantMessage])
       }
     } catch (error) {
-      toast.error('Failed to send message. Please try again.')
+      if (error instanceof Error && error.message === 'AUTH_REQUIRED') {
+        toast.error(authRequiredMessage)
+      } else {
+        toast.error('Failed to send message. Please try again.')
+      }
       console.error('Chat error:', error)
     } finally {
       setIsLoading(false)
