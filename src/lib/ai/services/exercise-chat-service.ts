@@ -8,6 +8,10 @@ import { logger } from '@/utilities/logger/logger'
 import { ChatMessageRole } from '../chat-message-role'
 import promptContent from '../prompts/exercise-chat-agent-prompt.md'
 
+// Gemini API role constants (required by Gemini API, not our ChatMessageRole)
+const GEMINI_ROLE_USER = 'user' as const
+const GEMINI_ROLE_MODEL = 'model' as const
+
 export interface ChatMessage {
   role: ChatMessageRole
   content: string
@@ -51,11 +55,11 @@ export async function chatWithExerciseHelper(
     const chat = model.startChat({
       history: [
         {
-          role: 'user',
+          role: GEMINI_ROLE_USER,
           parts: [{ text: systemPrompt }],
         },
         {
-          role: 'model',
+          role: GEMINI_ROLE_MODEL,
           parts: [{ text: input.acknowledgment }],
         },
       ],
