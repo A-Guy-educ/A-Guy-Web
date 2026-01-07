@@ -715,7 +715,7 @@ describe('Data Extractor Service', () => {
 
 - **[Exercise Import Pipeline](../exercise-import/README.md)** - How image import works end-to-end
 - **[AGENTS.md](../../AGENTS.md)** - Payload CMS patterns for AI agents
-- **[Contracts Documentation](../../src/contracts/README.md)** - Data validation contracts
+- **[Contracts Documentation](../contracts/README.md)** - Data validation contracts
 
 ---
 

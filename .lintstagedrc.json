@@ -6,5 +6,6 @@
   "DESIGN_SYSTEM.md": ["pnpm run ai:generate-docs"],
   "docs/ai/quick-reference/CHEAT-SHEET.md": ["pnpm run ai:generate-docs"],
   "src/collections/**/*.ts": ["pnpm run ai:generate-patterns"],
-  "src/components/**/*.{ts,tsx}": ["pnpm run ai:generate-patterns"]
+  "src/components/**/*.{ts,tsx}": ["pnpm run ai:generate-patterns"],
+  "**/README.md": ["pnpm run ai:generate-readme-index", "pnpm run validate:readme-links"]
 }

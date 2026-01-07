@@ -602,7 +602,7 @@ console.log('Total:', result.metadata.processingTimeMs, 'ms')
 
 - **[AI Services Architecture](../ai-services/README.md)** - Gemini integration details
 - **[Exercises Collection](../exercises/README.md)** - Exercise data model
-- **[Contracts Documentation](../../src/contracts/README.md)** - Zod schemas
+- **[Contracts Documentation](../contracts/README.md)** - Zod schemas
 - **[AGENTS.md](../../AGENTS.md)** - Payload CMS patterns
 
 ---

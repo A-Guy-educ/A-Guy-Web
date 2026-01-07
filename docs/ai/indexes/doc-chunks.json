@@ -3928,6 +3928,270 @@
       "priority": 12
     },
     {
+      "id": "CHEAT-SHEET--ai-services-patterns",
+      "title": "🤖 AI Services Patterns",
+      "content": "",
+      "keywords": [
+        "services",
+        "patterns"
+      ],
+      "category": "quick-reference",
+      "sourceFile": "CHEAT-SHEET.md",
+      "startLine": 63,
+      "endLine": 65,
+      "priority": 13
+    },
+    {
+      "id": "CHEAT-SHEET-gemini-ai-integration",
+      "title": "Gemini AI Integration",
+      "content": "```typescript\nimport { getGeminiClient } from '@/lib/ai/gemini-ai-provider.server'\nimport { AI_MODELS } from '@/lib/ai/models'\n\n// ✅ Use singleton pattern\nconst client = getGeminiClient()\nconst config = AI_MODELS.IMAGE_TO_EXERCISE\nconst model = client.getGenerativeModel({\n  model: config.name,\n  generationConfig: { temperature: config.temperature }\n})\n\n// ❌ Don't create multiple clients\nconst client1 = new GoogleGenerativeAI(apiKey) // Wrong!\n```",
+      "keywords": [
+        "const",
+        "config",
+        "import",
+        "getgeminiclient",
+        "ai_models",
+        "client",
+        "model",
+        "temperature",
+        "gemini",
+        "integration"
+      ],
+      "category": "quick-reference",
+      "sourceFile": "CHEAT-SHEET.md",
+      "startLine": 65,
+      "endLine": 82,
+      "priority": 12
+    },
+    {
+      "id": "CHEAT-SHEET-image-optimization",
+      "title": "Image Optimization",
+      "content": "```typescript\nimport { optimizeImageForAI } from '@/lib/ai/services/image-optimizer-service'\n\n// ✅ Always optimize before AI processing\nconst optimized = await optimizeImageForAI(buffer, 2048)\nconst result = await extractFromImage({\n  imageBuffer: optimized.buffer,\n  mimeType\n})\n```",
+      "keywords": [
+        "optimizeimageforai",
+        "const",
+        "optimized",
+        "await",
+        "buffer",
+        "image",
+        "optimization",
+        "typescript",
+        "import",
+        "services"
+      ],
+      "category": "quick-reference",
+      "sourceFile": "CHEAT-SHEET.md",
+      "startLine": 82,
+      "endLine": 94,
+      "priority": 12
+    },
+    {
+      "id": "CHEAT-SHEET-structured-output-extraction",
+      "title": "Structured Output Extraction",
+      "content": "```typescript\nimport { extractFromImage } from '@/lib/ai/services/data-extractor-service'\n\nconst result = await extractFromImage({ imageBuffer, mimeType })\n\nif (result.success) {\n  // Use result.data (validated structure)\n  const { question, options, correctAnswer } = result.data\n} else {\n  // Handle result.error\n}\n```\n\n---",
+      "keywords": [
+        "result",
+        "extractfromimage",
+        "const",
+        "data",
+        "structured",
+        "output",
+        "extraction",
+        "typescript",
+        "import",
+        "services"
+      ],
+      "category": "quick-reference",
+      "sourceFile": "CHEAT-SHEET.md",
+      "startLine": 94,
+      "endLine": 110,
+      "priority": 12
+    },
+    {
+      "id": "CHEAT-SHEET--course-hierarchy-patterns",
+      "title": "🌳 Course Hierarchy Patterns",
+      "content": "",
+      "keywords": [
+        "course",
+        "hierarchy",
+        "patterns"
+      ],
+      "category": "quick-reference",
+      "sourceFile": "CHEAT-SHEET.md",
+      "startLine": 110,
+      "endLine": 112,
+      "priority": 13
+    },
+    {
+      "id": "CHEAT-SHEET-query-children-one-level-",
+      "title": "Query Children (One Level)",
+      "content": "```typescript\n// Get chapters for course\nconst chapters = await payload.find({\n  collection: 'chapters',\n  where: {\n    and: [\n      { course: { equals: courseId } },\n      { status: { equals: 'published' } },\n      { isActive: { equals: true } },\n    ],\n  },\n  sort: 'order',\n})\n```",
+      "keywords": [
+        "chapters",
+        "equals",
+        "course",
+        "query",
+        "children",
+        "level",
+        "typescript",
+        "const",
+        "await",
+        "payload"
+      ],
+      "category": "quick-reference",
+      "sourceFile": "CHEAT-SHEET.md",
+      "startLine": 112,
+      "endLine": 128,
+      "priority": 12
+    },
+    {
+      "id": "CHEAT-SHEET-batch-query-avoid-n-1-",
+      "title": "Batch Query (Avoid N+1)",
+      "content": "```typescript\n// ✅ CORRECT: Single query with IN operator\nconst chapterIds = chapters.map(c => c.id)\nconst lessons = await payload.find({\n  collection: 'lessons',\n  where: { chapter: { in: chapterIds } }, // Single query\n})\n\n// ❌ WRONG: Query in loop\nfor (const chapter of chapters) {\n  await payload.find({ where: { chapter: { equals: chapter.id } } }) // N+1!\n}\n```",
+      "keywords": [
+        "query",
+        "chapter",
+        "const",
+        "single",
+        "chapterids",
+        "chapters",
+        "lessons",
+        "await",
+        "payload",
+        "find"
+      ],
+      "category": "quick-reference",
+      "sourceFile": "CHEAT-SHEET.md",
+      "startLine": 128,
+      "endLine": 143,
+      "priority": 12
+    },
+    {
+      "id": "CHEAT-SHEET-deep-population-breadcrumbs-",
+      "title": "Deep Population (Breadcrumbs)",
+      "content": "```typescript\n// Get exercise with full hierarchy\nconst exercise = await payload.findByID({\n  collection: 'exercises',\n  id: exerciseId,\n  depth: 3, // Populates lesson → chapter → course\n})\n\n// Access: exercise.lesson.chapter.course.title\n```",
+      "keywords": [
+        "exercise",
+        "lesson",
+        "chapter",
+        "course",
+        "deep",
+        "population",
+        "breadcrumbs",
+        "typescript",
+        "full",
+        "hierarchy"
+      ],
+      "category": "quick-reference",
+      "sourceFile": "CHEAT-SHEET.md",
+      "startLine": 143,
+      "endLine": 155,
+      "priority": 12
+    },
+    {
+      "id": "CHEAT-SHEET-status-cascade-visibility-",
+      "title": "Status Cascade (Visibility)",
+      "content": "```typescript\n// Student view: only show published content\nconst lessons = await payload.find({\n  collection: 'lessons',\n  where: {\n    and: [\n      { chapter: { in: chapterIds } },\n      { status: { equals: 'published' } },\n      { isActive: { equals: true } },\n      { 'chapter.status': { equals: 'published' } }, // Parent filter\n    ],\n  },\n})\n```\n\n---",
+      "keywords": [
+        "status",
+        "published",
+        "equals",
+        "lessons",
+        "chapter",
+        "cascade",
+        "visibility",
+        "typescript",
+        "student",
+        "view"
+      ],
+      "category": "quick-reference",
+      "sourceFile": "CHEAT-SHEET.md",
+      "startLine": 155,
+      "endLine": 173,
+      "priority": 12
+    },
+    {
+      "id": "CHEAT-SHEET--block-rendering-patterns",
+      "title": "🧱 Block Rendering Patterns",
+      "content": "",
+      "keywords": [
+        "block",
+        "rendering",
+        "patterns"
+      ],
+      "category": "quick-reference",
+      "sourceFile": "CHEAT-SHEET.md",
+      "startLine": 173,
+      "endLine": 175,
+      "priority": 13
+    },
+    {
+      "id": "CHEAT-SHEET-add-new-block-type-5-steps-",
+      "title": "Add New Block Type (5 Steps)",
+      "content": "```typescript\n// 1. Define Zod schema\nconst CodeBlockSchema = z.object({\n  id: z.string().min(1),\n  type: z.literal('code'),\n  language: z.enum(['javascript', 'python']),\n  value: z.string().min(1),\n}).strict()\n\n// 2. Add to discriminated union\nexport const ContentBlockSchema = z.discriminatedUnion('type', [\n  RichTextBlockSchema,\n  CodeBlockSchema, // Add here\n])\n\n// 3. Create renderer component\nexport function CodeRenderer({ block }: { block: CodeBlock }) {\n  return <SyntaxHighlighter language={block.language}>{block.value}</SyntaxHighlighter>\n}\n\n// 4. Add to ExerciseRenderer switch\n{content.blocks.map((block) => {\n  if (block.type === 'code') return <CodeRenderer key={block.id} block={block} />\n  // ... other types\n})}\n\n// 5. Generate types: pnpm run generate:types\n```",
+      "keywords": [
+        "block",
+        "type",
+        "language",
+        "types",
+        "const",
+        "codeblockschema",
+        "string",
+        "code",
+        "value",
+        "export"
+      ],
+      "category": "quick-reference",
+      "sourceFile": "CHEAT-SHEET.md",
+      "startLine": 175,
+      "endLine": 205,
+      "priority": 12
+    },
+    {
+      "id": "CHEAT-SHEET-math-rendering-katex-",
+      "title": "Math Rendering (KaTeX)",
+      "content": "```typescript\nimport ReactMarkdown from 'react-markdown'\nimport rehypeKatex from 'rehype-katex'\nimport remarkMath from 'remark-math'\nimport 'katex/dist/katex.min.css' // Required!\n\n<ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>\n  {block.value}\n</ReactMarkdown>\n\n// Inline: $E = mc^2$\n// Display: $$x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$$\n```",
+      "keywords": [
+        "import",
+        "katex",
+        "reactmarkdown",
+        "rehypekatex",
+        "remarkmath",
+        "math",
+        "rendering",
+        "typescript",
+        "react-markdown",
+        "rehype-katex"
+      ],
+      "category": "quick-reference",
+      "sourceFile": "CHEAT-SHEET.md",
+      "startLine": 205,
+      "endLine": 220,
+      "priority": 12
+    },
+    {
+      "id": "CHEAT-SHEET-zod-validation-in-collections",
+      "title": "Zod Validation in Collections",
+      "content": "```typescript\nimport { ContentSchema } from '@/collections/Exercises/schemas'\n\n{\n  name: 'content',\n  type: 'json',\n  validate: (value: unknown) => {\n    const result = ContentSchema.safeParse(value)\n    return result.success || result.error.message\n  },\n}\n```\n\n---",
+      "keywords": [
+        "result",
+        "collections",
+        "contentschema",
+        "value",
+        "validation",
+        "typescript",
+        "import",
+        "exercises",
+        "schemas",
+        "name"
+      ],
+      "category": "quick-reference",
+      "sourceFile": "CHEAT-SHEET.md",
+      "startLine": 220,
+      "endLine": 236,
+      "priority": 12
+    },
+    {
       "id": "CHEAT-SHEET--security-checklist",
       "title": "🔒 Security Checklist",
       "content": "**Before Creating ANY Collection**:\n- [ ] Access control defined for all operations (read/create/update/delete)\n- [ ] Sensitive fields have `access: { read: isAdmin }` field-level control\n- [ ] Unique fields have `index: true`\n- [ ] User-owned data has `owner` relationship field\n- [ ] Published content has `publishedAt` field + `isPublished` access\n- [ ] No nested objects in fields (Payload limitation)\n- [ ] Relationships validated with `relationTo`\n\n**Before Creating ANY Endpoint**:\n- [ ] Authentication check (`req.user` validation)\n- [ ] Input validation with Zod schema\n- [ ] Authorization check (user can access resource)\n- [ ] Error handling with try/catch\n- [ ] Logging with Pino\n- [ ] Response validation\n\n---",
@@ -3945,8 +4209,8 @@
       ],
       "category": "quick-reference",
       "sourceFile": "CHEAT-SHEET.md",
-      "startLine": 63,
-      "endLine": 84,
+      "startLine": 236,
+      "endLine": 257,
       "priority": 13
     },
     {
@@ -3959,8 +4223,8 @@
       ],
       "category": "quick-reference",
       "sourceFile": "CHEAT-SHEET.md",
-      "startLine": 84,
-      "endLine": 86,
+      "startLine": 257,
+      "endLine": 259,
       "priority": 13
     },
     {
@@ -3981,8 +4245,8 @@
       ],
       "category": "quick-reference",
       "sourceFile": "CHEAT-SHEET.md",
-      "startLine": 86,
-      "endLine": 119,
+      "startLine": 259,
+      "endLine": 292,
       "priority": 12
     },
     {
@@ -4003,8 +4267,8 @@
       ],
       "category": "quick-reference",
       "sourceFile": "CHEAT-SHEET.md",
-      "startLine": 119,
-      "endLine": 136,
+      "startLine": 292,
+      "endLine": 309,
       "priority": 12
     },
     {
@@ -4017,8 +4281,8 @@
       ],
       "category": "quick-reference",
       "sourceFile": "CHEAT-SHEET.md",
-      "startLine": 136,
-      "endLine": 138,
+      "startLine": 309,
+      "endLine": 311,
       "priority": 13
     },
     {
@@ -4039,8 +4303,8 @@
       ],
       "category": "quick-reference",
       "sourceFile": "CHEAT-SHEET.md",
-      "startLine": 138,
-      "endLine": 188,
+      "startLine": 311,
+      "endLine": 361,
       "priority": 12
     },
     {
@@ -4053,8 +4317,8 @@
       ],
       "category": "quick-reference",
       "sourceFile": "CHEAT-SHEET.md",
-      "startLine": 188,
-      "endLine": 190,
+      "startLine": 361,
+      "endLine": 363,
       "priority": 13
     },
     {
@@ -4075,8 +4339,8 @@
       ],
       "category": "quick-reference",
       "sourceFile": "CHEAT-SHEET.md",
-      "startLine": 190,
-      "endLine": 219,
+      "startLine": 363,
+      "endLine": 392,
       "priority": 12
     },
     {
@@ -4091,8 +4355,8 @@
       ],
       "category": "quick-reference",
       "sourceFile": "CHEAT-SHEET.md",
-      "startLine": 219,
-      "endLine": 221,
+      "startLine": 392,
+      "endLine": 394,
       "priority": 13
     },
     {
@@ -4113,8 +4377,8 @@
       ],
       "category": "quick-reference",
       "sourceFile": "CHEAT-SHEET.md",
-      "startLine": 221,
-      "endLine": 237,
+      "startLine": 394,
+      "endLine": 410,
       "priority": 12
     },
     {
@@ -4135,8 +4399,8 @@
       ],
       "category": "quick-reference",
       "sourceFile": "CHEAT-SHEET.md",
-      "startLine": 237,
-      "endLine": 253,
+      "startLine": 410,
+      "endLine": 426,
       "priority": 12
     },
     {
@@ -4157,8 +4421,8 @@
       ],
       "category": "quick-reference",
       "sourceFile": "CHEAT-SHEET.md",
-      "startLine": 253,
-      "endLine": 269,
+      "startLine": 426,
+      "endLine": 442,
       "priority": 12
     },
     {
@@ -4171,8 +4435,8 @@
       ],
       "category": "quick-reference",
       "sourceFile": "CHEAT-SHEET.md",
-      "startLine": 269,
-      "endLine": 271,
+      "startLine": 442,
+      "endLine": 444,
       "priority": 13
     },
     {
@@ -4193,8 +4457,8 @@
       ],
       "category": "quick-reference",
       "sourceFile": "CHEAT-SHEET.md",
-      "startLine": 271,
-      "endLine": 281,
+      "startLine": 444,
+      "endLine": 454,
       "priority": 12
     },
     {
@@ -4215,8 +4479,8 @@
       ],
       "category": "quick-reference",
       "sourceFile": "CHEAT-SHEET.md",
-      "startLine": 281,
-      "endLine": 299,
+      "startLine": 454,
+      "endLine": 472,
       "priority": 12
     },
     {
@@ -4237,8 +4501,8 @@
       ],
       "category": "quick-reference",
       "sourceFile": "CHEAT-SHEET.md",
-      "startLine": 299,
-      "endLine": 308,
+      "startLine": 472,
+      "endLine": 481,
       "priority": 12
     },
     {
@@ -4259,8 +4523,8 @@
       ],
       "category": "quick-reference",
       "sourceFile": "CHEAT-SHEET.md",
-      "startLine": 308,
-      "endLine": 319,
+      "startLine": 481,
+      "endLine": 492,
       "priority": 12
     },
     {
@@ -4281,8 +4545,8 @@
       ],
       "category": "quick-reference",
       "sourceFile": "CHEAT-SHEET.md",
-      "startLine": 319,
-      "endLine": 345,
+      "startLine": 492,
+      "endLine": 518,
       "priority": 13
     },
     {
@@ -4296,8 +4560,8 @@
       ],
       "category": "quick-reference",
       "sourceFile": "CHEAT-SHEET.md",
-      "startLine": 345,
-      "endLine": 348,
+      "startLine": 518,
+      "endLine": 521,
       "priority": 13
     },
     {
@@ -4318,8 +4582,8 @@
       ],
       "category": "quick-reference",
       "sourceFile": "CHEAT-SHEET.md",
-      "startLine": 348,
-      "endLine": 353,
+      "startLine": 521,
+      "endLine": 526,
       "priority": 14
     },
     {
@@ -4336,8 +4600,8 @@
       ],
       "category": "quick-reference",
       "sourceFile": "CHEAT-SHEET.md",
-      "startLine": 353,
-      "endLine": 357,
+      "startLine": 526,
+      "endLine": 530,
       "priority": 14
     },
     {
@@ -4358,8 +4622,8 @@
       ],
       "category": "quick-reference",
       "sourceFile": "CHEAT-SHEET.md",
-      "startLine": 357,
-      "endLine": 364,
+      "startLine": 530,
+      "endLine": 537,
       "priority": 14
     },
     {
@@ -4375,8 +4639,8 @@
       ],
       "category": "quick-reference",
       "sourceFile": "CHEAT-SHEET.md",
-      "startLine": 364,
-      "endLine": 371,
+      "startLine": 537,
+      "endLine": 544,
       "priority": 14
     },
     {
@@ -4397,8 +4661,8 @@
       ],
       "category": "quick-reference",
       "sourceFile": "CHEAT-SHEET.md",
-      "startLine": 371,
-      "endLine": 396,
+      "startLine": 544,
+      "endLine": 569,
       "priority": 13
     },
     {
@@ -4419,36 +4683,36 @@
       ],
       "category": "quick-reference",
       "sourceFile": "CHEAT-SHEET.md",
-      "startLine": 396,
-      "endLine": 406,
+      "startLine": 569,
+      "endLine": 579,
       "priority": 13
     },
     {
       "id": "CHEAT-SHEET--performance-tips",
       "title": "⚡ Performance Tips",
-      "content": "1. **Use indexes on queried fields** - `{ name: 'slug', type: 'text', unique: true, index: true }`\n2. **Limit relationship depth** - Don't nest relationships > 3 levels deep\n3. **Use select fields** - Only fetch needed fields in queries\n4. **Paginate large collections** - Use `limit` and `page` parameters\n5. **Cache expensive operations** - Use React cache or Redis for repeated queries\n\n---\n\n**Token Count**: ~1,950 tokens (under 2KB target ✅)\n**Coverage**: 90% of common AI agent tasks\n**Load Time**: < 0.5 seconds\n\nFor detailed information, escalate to [AGENTS.md](../../../AGENTS.md) or [AI-OPTIMIZATION-PLAN.md](../../../AI-OPTIMIZATION-PLAN.md)",
+      "content": "1. **Use indexes on queried fields** - `{ name: 'slug', type: 'text', unique: true, index: true }`\n2. **Limit relationship depth** - Don't nest relationships > 3 levels deep\n3. **Use select fields** - Only fetch needed fields in queries\n4. **Paginate large collections** - Use `limit` and `page` parameters\n5. **Cache expensive operations** - Use React cache or Redis for repeated queries\n\n---\n\n**Token Count**: ~2,400 tokens (~3KB, +500 from Phase 1 patterns)\n**Coverage**: 95% of common AI agent tasks (includes AI Services, Hierarchy, Block Rendering)\n**Load Time**: < 0.5 seconds\n\n**New Sections (Phase 1)**:\n- 🤖 AI Services Patterns (Gemini, Image Optimization, Structured Output)\n- 🌳 Course Hierarchy Patterns (Query patterns, N+1 prevention, Status cascade)\n- 🧱 Block Rendering Patterns (5-step guide, Math rendering, Zod validation)\n\nFor detailed information, see:\n- **[AI Services](../../ai-services/README.md)** - Gemini integration details\n- **[Exercise Import](../../exercise-import/README.md)** - Image → exercise flow\n- **[Course Hierarchy](../../course-hierarchy/README.md)** - Query patterns\n- **[Block Rendering](../../block-rendering/README.md)** - Extension guide\n- **[Contracts](../../contracts/README.md)** - Zod schemas\n- **[AGENTS.md](../../../AGENTS.md)** - Complete Payload patterns\n- **[AI-OPTIMIZATION-PLAN.md](../../../AI-OPTIMIZATION-PLAN.md)** - Full optimization strategy",
       "keywords": [
+        "patterns",
+        "readme",
+        "rendering",
         "fields",
+        "services",
+        "hierarchy",
+        "block",
         "true",
         "limit",
-        "queries",
-        "cache",
-        "agents",
-        "ai-optimization-plan",
-        "performance",
-        "tips",
-        "indexes"
+        "queries"
       ],
       "category": "quick-reference",
       "sourceFile": "CHEAT-SHEET.md",
-      "startLine": 406,
-      "endLine": 421,
+      "startLine": 579,
+      "endLine": 606,
       "priority": 13
     }
   ],
   "metadata": {
-    "generatedAt": "2026-01-07T19:42:38.663Z",
-    "totalChunks": 217,
+    "generatedAt": "2026-01-07T20:57:38.405Z",
+    "totalChunks": 230,
     "sourceFiles": [
       "AGENTS.md",
       "DESIGN_SYSTEM.md",

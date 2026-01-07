@@ -284,7 +284,6 @@ if (!valid) {
 ### Core Documentation
 - **[QUICK-START.md](./QUICK-START.md)** - Quick start guide for AI agents and developers ⭐
 - **[IMPLEMENTATION-STATUS.md](./IMPLEMENTATION-STATUS.md)** - Complete implementation status ⭐
-- [AI-OPTIMIZATION-PLAN.md](../../AI-OPTIMIZATION-PLAN.md) - Full optimization strategy
 - [AGENTS.md](../../AGENTS.md) - Complete Payload CMS patterns
 - [DESIGN_SYSTEM.md](../../DESIGN_SYSTEM.md) - Tailwind CSS styling guide
 - [CLAUDE.md](../../CLAUDE.md) - Claude Code quick reference

@@ -663,7 +663,7 @@ When adding a new block type, ensure:
 ## 🔗 Related Documentation
 
 - **[Exercise Collection](../exercises/README.md)** - Exercise data model
-- **[Contracts Documentation](../../src/contracts/README.md)** - Validation schemas
+- **[Contracts Documentation](../contracts/README.md)** - Validation schemas
 - **[Component Guidelines](../../src/components/exercise/README.md)** - Component patterns
 - **[Design System](../../DESIGN_SYSTEM.md)** - Tailwind styling guide
 

@@ -430,8 +430,8 @@ Follow [MANUAL_VERIFICATION.md](./MANUAL_VERIFICATION.md) to test:
 
 ## Related Documentation
 
-- [📚 Contracts README](../../src/contracts/README.md) - Contract usage guide
-- [🔧 Contracts Implementation](../../src/contracts/IMPLEMENTATION.md) - Implementation details
+- [📚 Contracts README](../contracts/README.md) - Contract usage guide
+- [🔧 Contracts Implementation](../contracts/IMPLEMENTATION.md) - Implementation details
 - [📋 Manual Verification Guide](./MANUAL_VERIFICATION.md) - Step-by-step testing
 - [📁 Contract Examples](../../src/contracts/examples/) - JSON examples
 

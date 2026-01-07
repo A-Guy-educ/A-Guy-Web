@@ -28,3 +28,6 @@ CLAUDE_INTERNAL.md
 NAMING.md
 STRICTNESS.md
 tasks/
+
+# Generated AI documentation indices
+.ai-docs/
