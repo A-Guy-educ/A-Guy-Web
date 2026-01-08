@@ -1,8 +1,56 @@
 #!/bin/sh
-# Check for secrets before running lint-staged
-.husky/check-secrets
 
-# Block CSS/SCSS files
-.husky/check-no-css
+# Allow skipping hooks with SKIP_HOOKS=1
+. "$(dirname "$0")/skip-hooks.sh"
 
+# Validate branch naming convention
+branch=$(git rev-parse --abbrev-ref HEAD)
+
+# Allowed patterns: feat/, fix/, chore/, docs/, refactor/, test/, security/, main, dev
+if ! echo "$branch" | grep -qE '^(feat|fix|chore|docs|refactor|test|security)/[a-z0-9-]+$|^(main|dev)$'; then
+  echo ""
+  echo "❌ ERROR: Invalid branch name: '$branch'"
+  echo ""
+  echo "Branch names must follow one of these patterns:"
+  echo "  ✅ feat/<description>     - New features"
+  echo "  ✅ fix/<description>      - Bug fixes"
+  echo "  ✅ chore/<description>    - Maintenance tasks"
+  echo "  ✅ docs/<description>     - Documentation changes"
+  echo "  ✅ refactor/<description> - Code refactoring"
+  echo "  ✅ test/<description>     - Test additions/changes"
+  echo "  ✅ security/<description> - Security fixes"
+  echo "  ✅ main or dev            - Main branches"
+  echo ""
+  echo "Examples:"
+  echo "  git checkout -b feat/user-authentication"
+  echo "  git checkout -b fix/login-bug"
+  echo "  git checkout -b chore/update-dependencies"
+  echo ""
+  echo "To rename your branch:"
+  echo "  git branch -m <new-branch-name>"
+  echo ""
+  echo "To skip this check once:"
+  echo "  git commit --no-verify"
+  echo ""
+  exit 1
+fi
+
+# Run checks in parallel for faster execution
+{
+  .husky/check-secrets &
+  PID1=$!
+
+  .husky/check-no-css &
+  PID2=$!
+
+  # Wait for both to complete
+  wait $PID1 $PID2
+}
+
+# If any check failed, exit
+if [ $? -ne 0 ]; then
+  exit 1
+fi
+
+# Run lint-staged
 pnpm exec lint-staged

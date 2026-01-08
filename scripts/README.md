@@ -229,7 +229,101 @@ pnpm test:smart-loader
 - After updating smart loader logic
 - Debugging context issues
 
-### 3. Database Scripts
+### 3. Quality & Validation Scripts
+
+#### `check-branch.ts`
+
+**Purpose:** Validate branch naming conventions
+
+**Usage:**
+
+```bash
+pnpm check:branch
+```
+
+**What it does:**
+
+- Checks current Git branch name against naming patterns
+- Enforces consistent branch naming across the team
+- Reports violations with helpful examples
+
+**Valid patterns:**
+
+- `feat/<description>` - New features
+- `fix/<description>` - Bug fixes
+- `chore/<description>` - Maintenance tasks
+- `docs/<description>` - Documentation changes
+- `refactor/<description>` - Code refactoring
+- `test/<description>` - Test additions/changes
+- `security/<description>` - Security fixes
+- `main` or `dev` - Main branches
+
+**When to use:**
+
+- Automatically enforced in pre-commit hook
+- Manually when creating new branches
+- In CI/CD to validate PR branch names
+
+#### `pre-release-check.ts`
+
+**Purpose:** Comprehensive pre-release validation
+
+**Usage:**
+
+```bash
+pnpm check:release
+```
+
+**What it does:**
+
+- ✅ Ensures working directory is clean
+- ✅ Verifies on main branch
+- ✅ Checks sync with remote
+- ✅ Runs typecheck
+- ✅ Runs linting
+- ✅ Runs all tests
+- ✅ Validates build succeeds
+- ✅ Checks for TODO/FIXME in production code
+
+**When to use:**
+
+- Before creating a release
+- Before merging to main
+- As part of release workflow
+- When validating deployment readiness
+
+**Example output:**
+
+```
+🔍 Running pre-release checks...
+
+Checking: Clean working directory... ✅
+Checking: On main branch... ✅
+Checking: Up to date with remote... ✅
+Checking: Typecheck passes... ✅
+Checking: Linting passes... ✅
+Checking: All tests pass... ✅
+Checking: Build succeeds... ✅
+Checking: No TODO/FIXME in src/... ✅
+
+============================================================
+RESULTS:
+============================================================
+✅ Clean working directory
+✅ On main branch
+✅ Up to date with remote
+✅ Typecheck passes
+✅ Linting passes
+✅ All tests pass
+✅ Build succeeds
+✅ No TODO/FIXME in src/
+============================================================
+
+✅ All pre-release checks passed!
+You can now proceed with the release.
+```
+
+### 4. Database Scripts
 
 **Note:** Database operations are primarily handled via `docker-compose` commands. See [package.json](../package.json) for aliases.
 
