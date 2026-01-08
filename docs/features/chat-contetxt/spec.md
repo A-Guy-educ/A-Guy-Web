@@ -6,31 +6,31 @@ Upgrade the current “stored chat history” into a reliable **context + memory
 - **Compression** of older turns (running summary)
 - **Long-term memory** per **userId**, optionally scoped by **conversationId**, retrieved via **MongoDB Atlas $vectorSearch**
 - **Deterministic prompt composition** (same order, same budgets, predictable behavior)
-- **Payload remains the single source of truth** for messages
+- **Payload remains the single source of truth** for chat messages
 
 ## 2) Non-Goals
-- No agentic workflows orchestration (LangGraph) in this iteration
+- No agentic workflow orchestration (LangGraph) in this iteration
 - No UI redesign required (admin UI changes optional)
-- No automatic “memory of everything” (we explicitly avoid storing noise)
+- No “memory of everything” (we explicitly avoid storing noisy/ephemeral content)
 
 ## 3) Current State (as-is)
 You have:
 - `conversations` collection
-- `messages` stored as an **array** inside each conversation (maxRows=100)
+- `messages` stored as an **array** inside each conversation (`maxRows=100`)
 - `lastMessageAt` updated via hook
 
-Limitation:
+Limitations:
 - The model has no “memory” unless we **inject** context at inference time.
-- With `maxRows=100`, old context gets truncated unless we compress it.
+- With `maxRows=100`, older context gets truncated unless we compress it.
 
 ## 4) Target Architecture (to-be)
-We will implement three layers:
+We implement three layers:
 
 ### 4.1 Working Context (Short-Term)
-- Always include:
-  - System instructions
-  - Conversation running summary (if exists)
-  - Last N messages from the conversation (window)
+Always include:
+- System instructions (static)
+- Conversation running summary (if exists)
+- Last N messages from the conversation (window)
 
 ### 4.2 Running Summary (Compression)
 - A single rolling text summary stored on the conversation.
@@ -38,16 +38,17 @@ We will implement three layers:
 
 ### 4.3 Long-Term Memory (Selective Recall)
 - New collection: `memory_items`
-- Memory is stored per **userId** and optionally by **conversationId**.
-- For each user query, we retrieve top-k relevant memory items using **$vectorSearch**.
-- Retrieved memory is injected into the prompt before the recent message window.
+- Memory is stored per **userId** and optionally by **conversationId**
+- For each user query:
+  - retrieve Top-K relevant memory items using **$vectorSearch**
+  - inject retrieved memory into the prompt before the recent message window
 
 ## 5) Data Model Changes (Payload)
 
 ### 5.1 Conversations (extend existing)
 Add fields to `conversations`:
 
-1) `summary` (textarea / rich text plain)
+1) `summary` (textarea)
 - Purpose: compressed state of older messages
 - Default: empty string
 
@@ -55,298 +56,341 @@ Add fields to `conversations`:
 - Purpose: observability + debugging
 - Default: null
 
-3) `summaryUntil` (group)
-Choose ONE of these approaches (pick based on ease):
-- **Option A: index-based**
-  `summaryUntilMessageIndex` (number)
-  Meaning: summary includes messages[0..index]
-- **Option B: time-based**
-  `summaryUntilTimestamp` (date)
-  Meaning: summary includes all messages <= timestamp
+3) `summaryUntilTimestamp` (date)
+- Meaning: summary includes all messages with `timestamp <= summaryUntilTimestamp`
+- Default: null
 
-Recommendation: **Option B** (time-based) because your messages already have `timestamp`.
-
-4) `contextPolicyVersion` (text or number)
+4) `contextPolicyVersion` (text)
 - Purpose: future-proof prompt composition changes
 - Default: "v1"
 
 No breaking changes to the existing `messages[]` in this phase.
 
 ### 5.2 MemoryItems (new collection)
-Create `memory_items` collection:
+Create `memory_items` collection.
 
-Required fields:
-- `user` (relationship to `users`, required, indexed)
-- `conversation` (relationship to `conversations`, optional, indexed)
+#### Required fields
+- `userId` (text, required, indexed)
+  - Canonical scalar identifier used for filtering (NOT a relationship field)
+- `conversationId` (text, optional, indexed)
+  - Canonical scalar identifier for optional local scope filtering
 - `type` (select, required)
   - Allowed: `preference`, `decision`, `fact`, `open_loop`, `profile`, `constraint`, `other`
-- `text` (textarea, required, maxLength e.g. 2000)
+- `text` (textarea, required, maxLength: 2000)
 - `embedding` (json / array of numbers, required)
-  - Must be a flat numeric array: length = `numDimensions` of your embeddings model (1536)
-- `importance` (number)
-  - Recommended scale: 1–5
-- `status` (select)
+  - Must be a flat numeric array
+  - Must have exact length `numDimensions = 1536`
+- `importance` (number, required)
+  - Scale: 1–5
+- `status` (select, required)
   - `active`, `deprecated`
-- `source` (group)
-  - `sourceConversationId` (text) or relationship
-  - `sourceMessageTimestamp` (date)
-  - `sourceMessageRole` (select: user/model)
-- `updatedAt` (auto), `createdAt` (auto)
+- `source` (group, required)
+  - `sourceConversationId` (text, optional)
+  - `sourceMessageTimestamp` (date, required)
+  - `sourceMessageRole` (select: `user` | `model`, required)
+- `createdAt`, `updatedAt` (timestamps)
 
-Indexes:
-- `user` index
-- `conversation` index (optional)
-- (Optional) compound index user+conversation for faster filtering
+#### Optional fields (admin convenience)
+- `user` (relationship to `users`, optional)
+- `conversation` (relationship to `conversations`, optional)
 
-Access Control:
-- Same “owner or admin” rule style:
-  - Admin: full access
-  - User: read only their own memory items; create/update by server only (recommended)
+**Important:** runtime filtering and vector search MUST use `userId` / `conversationId` scalar fields.
+
+#### Indexes
+- Index on `userId`
+- Index on `conversationId` (optional but recommended)
+- (Optional) compound index on `(userId, conversationId, status)`
+
+#### Access Control
+- Admin: full access
+- User:
+  - read: only items where `userId == req.user.id`
+  - create/update/delete: server-only (no direct client writes)
 
 ## 6) Atlas Configuration (Automated via Deployment Script)
 
 ### 6.1 Principle
-Vector Search index MUST be provisioned automatically as part of deployment / environment setup (IaC mindset).
-No index creation is allowed during normal user request handling.
+Vector Search index MUST be provisioned automatically as part of deployment / environment setup.
+Index creation is NOT allowed during normal user request handling.
 
-### 6.2 Provisioning Strategy
-Use ONE of the following (pick one and stick to it):
-
+### 6.2 Provisioning Strategy (Pick One)
 **Option A (Recommended): Atlas Admin API**
-- A dedicated deployment script provisions the Vector Search index on the `memory_items` collection.
+- A dedicated CI/deployment script provisions the Vector Search index on `memory_items`.
 - Script is idempotent:
   - If index exists and matches expected definition → no-op
   - If missing → create
-  - If exists but differs → fail hard (require manual decision), to avoid accidental destructive changes.
+  - If exists but differs → fail hard (manual intervention required)
 
-**Option B: DB-side command tooling**
-- Use mongosh/driver capabilities to create search index if supported in your environment.
-- Same idempotency rules as above.
-
-Recommendation: Option A (Atlas Admin API) for consistent multi-env provisioning.
+**Option B: DB-side tooling**
+- Use mongosh/driver capabilities if supported.
+- Same idempotency requirements.
 
 ### 6.3 Required Secrets / Permissions (Deployment Only)
 Deployment environment MUST provide:
 - Atlas Project ID
-- Cluster name (if required by API)
 - Database name
 - Collection name: `memory_items`
 - Vector index name (e.g. `memory_items_embedding_v1`)
 - Atlas API credentials (API Key / Service Account)
-- Principle of least privilege:
-  - Only allow index management; do NOT reuse app runtime DB credentials.
+- Least privilege:
+  - credentials limited to index management
+  - never reuse runtime app DB credentials
 
 ### 6.4 Index Definition (Source of Truth)
-The application repository contains a versioned index definition file, e.g.:
+Repository contains a versioned definition file, e.g.:
 - `infra/atlas/vector-index.memory_items.v1.json`
 
-It includes:
+Definition MUST include:
 - `path`: `embedding`
-- `numDimensions`: 1536
+- `numDimensions`: **1536**
 - `similarity`: `cosine`
 - filterable fields:
-  - `user` (required)
-  - `conversation` (optional)
-  - `status` (recommended)
+  - `userId` (required)
+  - `conversationId` (optional)
+  - `status` (required; default filter is `active`)
 
 ### 6.5 Provisioning Flow (Idempotent)
-On deploy (CI/CD step) run:
+On deploy (CI step) run:
 1) Validate required env vars exist
-2) Fetch current search indexes on `memory_items`
+2) Fetch current search/vector indexes on `memory_items`
 3) If index missing:
-   - Create index with the exact definition
-   - Poll until index is READY (or until timeout)
+   - Create index with exact definition
+   - Poll until index is READY (max 10 minutes; poll every 20 seconds)
 4) If index exists:
-   - Compare “expected definition hash” vs “current definition hash”
+   - Compare expected definition hash vs current definition hash
    - If match → success
-   - If mismatch → FAIL with explicit diff instructions (manual intervention)
+   - If mismatch → FAIL with explicit diff instructions
 
-### 6.6 Failure Behavior
+### 6.6 Environment Guardrails
+- Provisioning MUST run only on `staging` and `production`
+- Preview/PR deployments MUST NOT attempt provisioning
+
+### 6.7 Failure Behavior
 - If provisioning fails → deployment fails
-- App should still be able to run with memory retrieval feature flag OFF, but:
-  - In production we require index provisioning success before enabling the feature flag.
+- App must be able to run with memory retrieval disabled (feature flag OFF)
+- Production rollout requires index READY before enabling retrieval
 
----
+### 6.8 Index Versioning
+- Any change to embeddings model or `numDimensions` requires a new index version (`..._v2`)
+- Rollout strategy:
+  1) create v2
+  2) dual-write embeddings to v1+v2 (temporary)
+  3) switch reads to v2
+  4) deprecate v1
 
 ## 7) Runtime Contracts
 
-## 7.1 Prompt Composition Contract (MUST be deterministic)
-For every model call:
+### 7.1 Feature Flags (Explicit)
+- `SUMMARY_MAINTENANCE_ENABLED`
+- `MEMORY_EXTRACTION_ENABLED`
+- `MEMORY_RETRIEVAL_ENABLED`
+
+Rollout order:
+1) Summary maintenance ON
+2) Memory extraction ON (writes)
+3) Memory retrieval ON (reads)
+
+### 7.2 Prompt Composition Contract (Deterministic)
+For every model call, prompt MUST be composed in this exact order:
 
 1) System message (static)
 2) Conversation summary (if non-empty)
 3) Retrieved memory items (Top-K)
-4) Recent messages window (last N messages)
-5) The new user message (the one being answered)
+4) Recent messages window (last N messages, INCLUDING the latest user message if it was persisted before call)
+5) (No duplicate insertion of the new user message)
 
-Order is non-negotiable. No ad-hoc insertions.
+No ad-hoc insertions. No reordering.
 
-### Default values (Policy v1)
+### Policy v1 Defaults
 - Recent window N: **20**
 - Memory Top-K: **8**
-- Vector candidates: **100–200** (tune later)
-- Summary update threshold: when messages length exceeds **40**
-- After summarization, keep last **20** messages in array
+- Vector candidates: **200**
+- Summary threshold: when `messages.length > 40`
+- Hard safety: must run summary maintenance before hitting `maxRows=100` (e.g. when `messages.length > 80`)
 
-## 7.2 “Single Source of Truth” rule
-- Payload `conversations.messages[]` is the source of truth for message history.
-- We do NOT store message history inside LangChain stores.
-- MemoryItems is separate and derived.
+### 7.3 Embedding Validation (Hard Guardrail)
+- If `embedding.length !== 1536` → reject write (do not store MemoryItem)
+
+### 7.4 Single Source of Truth
+- Payload `conversations.messages[]` remains canonical for the current window.
+- No message persistence in LangChain stores.
+- `memory_items` is derived and independent.
 
 ## 8) Core Flows
 
-### 8.1 Persist Turn Flow
-When a user sends a message:
-1) Append `{ role: 'user', content, timestamp }` into conversation.messages
+### 8.1 Persist Turn Flow (No duplication)
+When user sends a message:
+1) Append user message into `conversation.messages`
 2) Update `lastMessageAt`
-3) Call `buildContextAndRunModel()`
-4) Append model reply as `{ role: 'model', content, timestamp }`
+3) Call `buildContextAndRunModel()` using the conversation’s messages (which already include the new user message)
+4) Append model reply into `conversation.messages`
 5) Update `lastMessageAt`
+6) Run maintenance (summary/memory) according to flags and thresholds
 
 ### 8.2 buildContextAndRunModel()
 Inputs:
 - `conversationId`
 - `userId`
-- `newUserMessage`
 
 Steps:
-1) Load conversation (summary + messages)
-2) Compose query for memory retrieval (use newUserMessage + optionally last 1–2 user turns)
-3) Retrieve memory items via $vectorSearch:
-   - Filter by `userId` ALWAYS
-   - Optionally filter by `conversationId` if you want local memory preference
-4) Compose prompt (System → Summary → Memory → Recent → New msg)
+1) Load conversation (`summary`, `messages`)
+2) Build retrieval query text:
+   - Use the newest user message + optionally last 1–2 user turns
+3) If `MEMORY_RETRIEVAL_ENABLED`:
+   - Retrieve memory items via `$vectorSearch` (see Section 9)
+4) Compose prompt strictly per Section 7.2
 5) Call model
 6) Return model reply
 
 ### 8.3 Running Summary Maintenance
-Trigger conditions:
-- If `messages.length > 40` (threshold)
-- Or if conversation is close to maxRows=100
+Triggers (when `SUMMARY_MAINTENANCE_ENABLED`):
+- If `messages.length > 40` (normal threshold)
+- OR if `messages.length > 80` (safety threshold before maxRows=100)
 
 Process:
-1) Identify “older segment” to summarize:
-   - Everything except last 20 messages
-2) Generate a new summary by prompting the model:
-   - Input: existing `summary` + the old segment messages
+1) Select “older segment” to summarize:
+   - All messages except last 20
+2) Generate updated summary:
+   - Input: existing `summary` + older segment
    - Output: updated `summary` (concise, factual, includes decisions + open loops)
 3) Persist:
-   - Save updated `summary`
+   - Update `summary`
    - Update `summaryUpdatedAt`
-   - Update `summaryUntilTimestamp` to the last timestamp included in summarized segment
+   - Set `summaryUntilTimestamp` to last timestamp included in the summarized segment
 4) Trim:
-   - Replace `messages` array with only the last 20 messages
+   - Keep only last 20 messages in `conversation.messages`
 
 Outcome:
-- Conversation never “forgets” old context; it’s compressed into summary.
+- Conversation never “forgets”; old context is compressed into `summary`.
 
 ### 8.4 Memory Extraction (Create/Update MemoryItems)
-Trigger conditions:
+Triggers (when `MEMORY_EXTRACTION_ENABLED`):
 - After model reply (recommended)
-- Or when specific “stable” signals occur (preferences, decisions, constraints)
+- Or when stable signals detected (preferences, decisions, constraints)
 
 Extraction method:
-1) Provide the model with:
-   - The last X messages (small window)
+1) Provide the model:
+   - Last X messages (small window)
    - Current summary (optional)
-2) Ask it to output **candidate memory items**:
-   - Each item: { type, text, importance, scope: user|conversation, reason }
-3) Server applies filters:
-   - Reject low-value items (generic, ephemeral, redundant)
-   - Enforce max text length
+2) Ask it to output candidate memory items:
+   - { type, text, importance(1–5), scope(user|conversation), reason }
+3) Server filtering rules (must apply):
+   - Reject generic/ephemeral items
+   - Enforce maxLength
+   - Enforce allowed types only
 4) Compute embeddings for accepted items
-5) Upsert into `memory_items`:
-   - If very similar to an existing memory (by vector search or by normalization hash), update it
-   - Else insert new
-
-Dedup policy:
-- Prefer updating an existing memory item rather than creating duplicates.
+5) Dedup/Upsert policy:
+   - Run `$vectorSearch` with `{ userId, status: 'active' }` and limit 1
+   - If similarity >= threshold (configurable, e.g. 0.9) → update that existing item
+   - Else insert a new MemoryItem
+6) Set scope fields:
+   - Always set `userId`
+   - If scope is conversation → also set `conversationId`
+7) Persist `source` metadata
 
 ## 9) MongoDB Atlas Vector Retrieval (Implementation Rules)
-Query shape (conceptual):
-- Use aggregation pipeline with `$vectorSearch` as the FIRST stage.
-- Provide:
-  - `index`: name of the vector index
-  - `path`: "embedding"
-  - `queryVector`: embedding(queryText)
-  - `numCandidates`
-  - `limit` = Top-K (e.g., 8)
-  - `filter`: { user: userId, status: 'active', ...(optional conversation) }
 
-Hard requirement:
-- Filter by `userId` always to prevent cross-user leakage.
+### 9.1 Query Rules
+- Use aggregation pipeline with `$vectorSearch` as the FIRST stage.
+- Use:
+  - `index`: vector index name (e.g. `memory_items_embedding_v1`)
+  - `path`: `embedding`
+  - `queryVector`: embedding(queryText)
+  - `numCandidates`: 200
+  - `limit`: K (8)
+  - `filter`: must include `userId` and `status: 'active'`
+
+### 9.2 Retrieval Policy (Prefer-local)
+We will prefer local (conversation-scoped) memory when available:
+
+- Query A (local): Top 4 with filter:
+  - `{ userId, conversationId, status: 'active' }`
+- Query B (global): Top 4 with filter:
+  - `{ userId, status: 'active' }`
+
+Combine results:
+- Merge A then B, deduplicate by MemoryItem ID
+- Total max K = 8
+
+### 9.3 Fallback Behavior
+If vector retrieval fails (index not READY, errors, timeouts):
+- Continue without memory items (summary + recent window only)
+- Log retrieval failure event
 
 ## 10) Security & Guardrails
 
 ### 10.1 Tenant Isolation (Critical)
-- Every memory retrieval MUST filter by userId.
-- Every conversation access follows isOwner/admin.
+- Every memory retrieval MUST filter by `userId`.
+- Conversations access stays as-is (owner/admin rule).
 
 ### 10.2 Data Minimization
-- MemoryItems store only what helps product behavior.
-- Avoid storing sensitive personal data unless product needs it.
+- Store only information that improves tutoring behavior.
+- Avoid storing sensitive personal data unless required by product.
 
 ### 10.3 Memory Quality Controls
-- Types allowed only from a small enum.
-- Importance must be bounded (1–5).
-- Use `status=deprecated` rather than delete (auditability).
+- Only store allowed types
+- Bound importance to 1–5
+- Use `status=deprecated` rather than delete
 
 ## 11) Observability & Debugging
-Add optional logging per model call:
+Log (server-side) per model call:
 - conversationId, userId
-- prompt policy version
-- token budgets (estimated)
-- memory items selected (IDs only)
-- summary length, recent window size
-- model response latency
+- contextPolicyVersion
+- selected memory item IDs (and counts local/global)
+- summary length, message window size
+- retrieval latency + model latency
+- flags enabled
 
-Store a “context snapshot” optionally (for internal debugging only):
-- Keep it off by default, or sample 1% of calls.
+Optional:
+- Store sampled “context snapshots” for debugging (OFF by default)
 
 ## 12) Scaling Considerations
 
-### 12.1 Today (minimal)
+### 12.1 Now
 - Keep messages embedded in conversation with trimming + summary.
-- Memory in separate collection with vector search.
+- Store long-term memory in `memory_items` with vector search.
 
-### 12.2 Later (when needed)
-- Move messages to a separate `messages` collection for unlimited history + analytics.
-- Keep summary on conversation regardless (still useful).
-- Keep memory_items as is.
+### 12.2 Later
+- Move messages to dedicated `messages` collection for unlimited history + analytics.
+- Keep summary on conversation regardless.
+- Keep `memory_items` unchanged.
 
 ## 13) Acceptance Criteria
 
 ### Context Behavior
-- The model references facts from earlier in the conversation even after messages are trimmed (via summary).
-- The model recalls stable user preferences across conversations (via memory_items on userId).
+- Model can refer to earlier conversation facts after trimming (via summary).
+- Model can recall stable user preferences across conversations (via memory_items on userId).
 
 ### Isolation
-- No memory item from another user can ever appear in retrieved context (verified via tests).
+- Vector retrieval never returns memory items from another user.
 
-### Performance
-- Vector search retrieval returns within acceptable latency (define SLA target internally).
-- Summary updates happen only at threshold events (not every message).
+### Robustness
+- If vector retrieval fails, chat still works with summary + recent window.
 
 ### Data Integrity
-- Conversation.messages remains the canonical log of current window.
-- summaryUntilTimestamp correctly reflects what was summarized.
+- No duplicate user message insertion in prompt.
+- Embedding length validation enforced (1536).
 
-## 14) Rollout Plan
-1) Add new fields to conversations
-2) Create memory_items collection
-3) Create Atlas vector index on memory_items
-4) Deploy with memory retrieval disabled (feature flag)
-5) Enable summary maintenance
-6) Enable memory extraction + vector retrieval
-7) Monitor logs for:
-   - memory retrieval quality
-   - token usage
-   - latency
-   - leakage checks
+## 14) Rollout Plan (Flagged)
+1) Add conversation summary fields
+2) Add `memory_items` collection
+3) Add provisioning script + index definition (IaC)
+4) Deploy with all flags OFF
+5) Enable `SUMMARY_MAINTENANCE_ENABLED`
+6) Enable `MEMORY_EXTRACTION_ENABLED` (writes only)
+7) Verify memory_items growth + dedup
+8) Enable `MEMORY_RETRIEVAL_ENABLED` (reads)
+9) Monitor: latency, relevance, leakage checks
 
-## 15) Open Configuration Values (must be set once)
-- Embeddings model + its `numDimensions` (1536)
-- Vector index name
-- `N_recent=20`, `K_memory=8`, `threshold=40` (start values)
-- Similarity metric: cosine
+## 15) Open Configuration Values (Final)
+- Embeddings model (must output 1536 dims)
+- Vector index name: `memory_items_embedding_v1`
+- Similarity: cosine
+- Defaults:
+  - N_recent=20
+  - K_memory=8 (4 local + 4 global)
+  - numCandidates=200
+  - summaryThreshold=40
+  - safetyThreshold=80
+  - dedupSimilarityThreshold (start ~0.9; tune)
 
