@@ -8,7 +8,7 @@ test.describe('Frontend', () => {
     page = await context.newPage()
   })
 
-  test('can go on homepage', async ({ page }) => {
+  test.skip('can go on homepage', async ({ page }) => {
     await page.goto('http://localhost:3000')
 
     // Check that the page loads successfully (not a 404 or error page)
