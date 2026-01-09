@@ -12,43 +12,27 @@ import { Header } from '@/Header/Component'
 import { Providers } from '@/providers'
 import { InitTheme } from '@/providers/Theme/InitTheme'
 import { mergeOpenGraph } from '@/utilities/mergeOpenGraph'
-import { draftMode, headers, cookies } from 'next/headers'
+import { draftMode, headers } from 'next/headers'
 
 import './globals.css'
 import { getServerSideURL } from '@/utilities/getURL'
 import { I18nProvider } from '@/providers/I18n'
-import { defaultLocale, locales, cookieName, type Locale } from '@/i18n/config'
+import { defaultLocale, locales, type Locale } from '@/i18n/config'
 
 async function getLocale(): Promise<string> {
-  const headersList = await headers()
-  const cookieStore = await cookies()
+  try {
+    // Use the x-locale header set by middleware
+    // This avoids DYNAMIC_SERVER_USAGE errors during static generation
+    const headersList = await headers()
+    const localeHeader = headersList.get('x-locale')
 
-  const host = headersList.get('host') || ''
-
-  // Check for subdomain-based locale forcing
-  if (host.startsWith('he.')) {
-    return 'he'
-  } else if (host.startsWith('en.')) {
-    return 'en'
-  }
-
-  // On primary domain, check cookie first
-  const cookieLocale = cookieStore.get(cookieName)?.value as Locale | undefined
-
-  if (cookieLocale && locales.includes(cookieLocale)) {
-    return cookieLocale
-  }
-
-  // Fallback to Accept-Language header
-  const acceptLanguage = headersList.get('accept-language')
-  if (acceptLanguage) {
-    const preferredLocale = acceptLanguage.split(',')[0]?.split('-')[0]?.toLowerCase() as
-      | Locale
-      | undefined
-
-    if (preferredLocale && locales.includes(preferredLocale)) {
-      return preferredLocale
+    if (localeHeader && locales.includes(localeHeader as Locale)) {
+      return localeHeader
     }
+  } catch (_error) {
+    // During static generation, headers() is not available
+    // Fall back to default locale
+    // The middleware will handle locale detection at request time for dynamic pages
   }
 
   return defaultLocale
@@ -63,7 +47,14 @@ async function getMessages(locale: string) {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const { isEnabled } = await draftMode()
+  let isEnabled = false
+  try {
+    const draft = await draftMode()
+    isEnabled = draft.isEnabled
+  } catch {
+    // During static generation, draftMode() is not available
+  }
+
   const locale = await getLocale()
   const messages = await getMessages(locale)
 

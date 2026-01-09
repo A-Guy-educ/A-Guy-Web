@@ -25,7 +25,9 @@ export async function Header() {
       user = result.user as User | null
     }
   } catch (_error) {
-    // Silently fail - user not authenticated
+    // During static generation, cookies() is not available
+    // Silently fail - user will be null (not authenticated)
+    // This is expected behavior for statically generated pages
   }
 
   return <HeaderClient data={headerData} user={user} />
