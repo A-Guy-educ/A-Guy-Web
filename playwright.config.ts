@@ -58,7 +58,7 @@ export default defineConfig({
   webServer: {
     command: 'rm -rf .next && pnpm build && test -d .next && pnpm start',
     reuseExistingServer: !process.env.CI,
-    url: 'http://localhost:3000',
+    url: 'http://localhost:3000/api/health', // Use dedicated health endpoint (fast, no blocking operations)
     timeout: 300000, // 5 minutes for build + server start (MongoDB connection can be slow, static generation may take time)
     stdout: 'pipe',
     stderr: 'pipe',
