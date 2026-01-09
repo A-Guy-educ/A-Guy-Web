@@ -189,7 +189,8 @@ jobs:
       - name: Build application
         run: pnpm build
         env:
-          # Use secrets if available, otherwise use service container
+          # Require DATABASE_URL secret for Atlas, fallback to service container only if explicitly not set
+          # If you have MongoDB Atlas, set DATABASE_URL secret in GitHub repository settings
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'mongodb://localhost:27017/test' }}
           PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET || 'test-secret-for-ci' }}
           NEXT_PUBLIC_SERVER_URL: ${{ secrets.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000' }}
