@@ -1,28 +1,29 @@
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
-import sharp from 'sharp'
 import path from 'path'
 import { buildConfig, PayloadRequest } from 'payload'
+import sharp from 'sharp'
 import { fileURLToPath } from 'url'
 
+import { defaultLexical } from '@/fields/defaultLexical'
 import { Categories } from './collections/Categories'
 import { Chapters } from './collections/Chapters'
 import { Conversations } from './collections/Conversations'
 import { Courses } from './collections/Courses'
-import { Exercises } from './collections/Exercises'
 import { ExerciseAssets } from './collections/ExerciseAssets'
+import { Exercises } from './collections/Exercises'
 import { Lessons } from './collections/Lessons'
 import { Media } from './collections/Media'
+import { MemoryItems } from './collections/MemoryItems'
 import { Pages } from './collections/Pages'
 import { Posts } from './collections/Posts'
 import { PricingPlans } from './collections/PricingPlans'
 import { Users } from './collections/Users'
+import { importExerciseFromImage } from './endpoints/exercises/import-from-image'
+import { importExerciseFromLesson } from './endpoints/exercises/import-from-lesson'
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
 import { plugins } from './plugins'
-import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
-import { importExerciseFromImage } from './endpoints/exercises/import-from-image'
-import { importExerciseFromLesson } from './endpoints/exercises/import-from-lesson'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -73,6 +74,7 @@ export default buildConfig({
     Pages,
     Categories,
     Conversations,
+    MemoryItems,
     Courses,
     Chapters,
     Lessons,

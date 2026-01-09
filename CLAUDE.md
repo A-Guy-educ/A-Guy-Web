@@ -85,6 +85,19 @@ When adding translations, update both:
 
 ---
 
+## Vector Search Setup
+
+The project includes MongoDB Atlas Vector Search for AI-powered long-term memory:
+
+- **Setup Guide**: [docs/VECTOR-SEARCH-SETUP.md](docs/VECTOR-SEARCH-SETUP.md) - Complete setup instructions
+- **Quick Reference**: [docs/features/chat-context/VECTOR-INDEX-SETUP-QUICK.md](docs/features/chat-context/VECTOR-INDEX-SETUP-QUICK.md)
+- **Index Definition**: `infra/atlas/vector-index.memory_items.v1.json`
+- **Verify Setup**: `pnpm verify:vector-index`
+
+**Requirements**: MongoDB Atlas M10+ cluster, OpenAI API key
+
+---
+
 ## Available Skills
 
 Use these skills for complex workflows:

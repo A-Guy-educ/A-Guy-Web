@@ -38,6 +38,7 @@ export function useNotebookChat({
   ])
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -53,6 +54,32 @@ export function useNotebookChat({
     }, 50)
     return () => clearTimeout(timer)
   }, [])
+
+  // Load existing conversation history on mount
+  useEffect(() => {
+    async function loadConversationHistory() {
+      try {
+        const result = await apiService.getConversation(exerciseId)
+
+        if (result.success && result.exists && result.messages.length > 0) {
+          // Map API messages to chat messages
+          const loadedMessages: ChatMessage[] = result.messages.map((msg) => ({
+            role: msg.role === 'user' ? ChatMessageRole.User : ChatMessageRole.Model,
+            content: msg.content,
+          }))
+          setMessages(loadedMessages)
+        }
+        // If no conversation exists, keep the initial welcome message
+      } catch (error) {
+        // Fail silently - keep initial message
+        console.error('Failed to load conversation history:', error)
+      } finally {
+        setIsLoadingHistory(false)
+      }
+    }
+
+    loadConversationHistory()
+  }, [exerciseId, initialMessage])
 
   const sendMessage = async (message: string) => {
     if (!message.trim() || isLoading) return
@@ -114,6 +141,7 @@ export function useNotebookChat({
     messages,
     inputValue,
     isLoading,
+    isLoadingHistory,
     messagesContainerRef,
     messagesEndRef,
     inputRef,
