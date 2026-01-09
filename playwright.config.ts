@@ -43,8 +43,11 @@ export default defineConfig({
   ],
   webServer: {
     command: 'pnpm dev',
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
     url: 'http://localhost:3000',
+    timeout: 120000, // 2 minutes for server to start (MongoDB connection can be slow)
+    stdout: 'pipe',
+    stderr: 'pipe',
     env: {
       PAYLOAD_SECRET: process.env.PAYLOAD_SECRET || '',
       DATABASE_URL: process.env.DATABASE_URL || '',
