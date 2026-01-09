@@ -9,40 +9,18 @@ let originalDatabaseUrl: string | undefined
 describe('API', () => {
   beforeAll(
     async () => {
-      try {
-        // Start MongoDB test container and override DATABASE_URL
-        const mongoUri = await startMongoContainer()
-        originalDatabaseUrl = process.env.DATABASE_URL
-        process.env.DATABASE_URL = mongoUri
+      // Start MongoDB test container and override DATABASE_URL
+      const mongoUri = await startMongoContainer()
+      originalDatabaseUrl = process.env.DATABASE_URL
+      process.env.DATABASE_URL = mongoUri
 
-        // Wait for MongoDB to be ready with retries
-        let retries = 10
-        let lastError: Error | null = null
-        while (retries > 0) {
-          try {
-            // Import config AFTER setting DATABASE_URL so it uses the test database
-            const config = await import('@payload-config')
+      // Import config AFTER setting DATABASE_URL so it uses the test database
+      // The config reads process.env.DATABASE_URL at evaluation time
+      const config = await import('@payload-config')
 
-            // Initialize Payload with the test MongoDB
-            payload = await getPayload({ config: config.default })
-            break // Success!
-          } catch (error) {
-            lastError = error as Error
-            retries--
-            if (retries > 0) {
-              // Wait 2 seconds before retrying
-              await new Promise((resolve) => setTimeout(resolve, 2000))
-            }
-          }
-        }
-
-        if (!payload && lastError) {
-          throw lastError
-        }
-      } catch (error) {
-        console.error('Failed to initialize Payload:', error)
-        throw error
-      }
+      // Initialize Payload with the test MongoDB
+      // testcontainers waits for MongoDB to be ready before start() resolves
+      payload = await getPayload({ config: config.default })
     },
     120000, // 120 second timeout (MongoDB container startup + Payload init can be slow)
   )
