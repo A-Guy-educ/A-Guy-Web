@@ -4,7 +4,15 @@ import { defineConfig, devices } from '@playwright/test'
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
  */
-import 'dotenv/config'
+import { config } from 'dotenv'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const filename = fileURLToPath(import.meta.url)
+const dirname = path.dirname(filename)
+
+// Load test.env for E2E tests (contains test-specific environment variables)
+config({ path: path.resolve(dirname, 'test.env') })
 
 /**
  * See https://playwright.dev/docs/test-configuration.
