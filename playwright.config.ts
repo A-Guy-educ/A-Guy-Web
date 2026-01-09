@@ -45,5 +45,15 @@ export default defineConfig({
     command: 'pnpm dev',
     reuseExistingServer: true,
     url: 'http://localhost:3000',
+    env: {
+      PAYLOAD_SECRET: process.env.PAYLOAD_SECRET || '',
+      DATABASE_URL: process.env.DATABASE_URL || '',
+      NEXT_PUBLIC_SERVER_URL: process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000',
+      NODE_OPTIONS: process.env.NODE_OPTIONS || '',
+      SUMMARY_MAINTENANCE_ENABLED: process.env.SUMMARY_MAINTENANCE_ENABLED || 'true',
+      MEMORY_EXTRACTION_ENABLED: process.env.MEMORY_EXTRACTION_ENABLED || 'true',
+      MEMORY_RETRIEVAL_ENABLED: process.env.MEMORY_RETRIEVAL_ENABLED || 'true',
+      OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
+    },
   },
 })
