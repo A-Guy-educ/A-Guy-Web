@@ -2,6 +2,11 @@
  * Conversations Collection
  * Stores chat conversations between users and AI tutor for exercises
  *
+ * @fileType collection-config
+ * @domain chat
+ * @pattern user-owned
+ * @ai-summary Conversations collection with user ownership, message history, and context management
+ *
  * Security:
  * - Users can only access their own conversations
  * - Admin can manage all conversations

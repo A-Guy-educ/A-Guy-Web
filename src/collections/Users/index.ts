@@ -1,3 +1,12 @@
+/**
+ * Users Collection
+ *
+ * @fileType collection-config
+ * @domain auth
+ * @pattern rbac, user-owned
+ * @ai-summary Users collection with authentication, RBAC roles, and audit hooks
+ */
+
 import type { CollectionConfig } from 'payload'
 
 import { authenticated } from '../../access/authenticated'

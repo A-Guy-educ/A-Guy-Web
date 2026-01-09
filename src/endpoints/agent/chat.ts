@@ -2,6 +2,11 @@
  * POST /api/agent/chat
  * Chat with AI assistant with context awareness
  *
+ * @fileType endpoint
+ * @domain chat
+ * @pattern authenticated-endpoint, validated-endpoint
+ * @ai-summary Chat endpoint with context awareness, memory retrieval, and automatic maintenance
+ *
  * Access: Authenticated users only
  *
  * Features:

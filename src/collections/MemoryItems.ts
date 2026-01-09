@@ -3,6 +3,11 @@
  * Stores long-term memory items per user for AI chat context
  * Uses vector embeddings for semantic retrieval via MongoDB Atlas Vector Search
  *
+ * @fileType collection-config
+ * @domain chat
+ * @pattern user-owned, vector-search
+ * @ai-summary Memory items collection with vector embeddings for semantic retrieval and user isolation
+ *
  * Security (CRITICAL):
  * - Users can only read their own memory items
  * - Creation/Update/Delete restricted to admin (server-side only)
