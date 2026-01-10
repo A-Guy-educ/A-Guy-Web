@@ -24,7 +24,7 @@ interface LessonContentProps {
 
 export function LessonContent({
   contentFiles,
-  lessonTitle,
+  lessonTitle: _lessonTitle,
   exercises,
   courseSlug,
   chapterSlug,
