@@ -41,4 +41,3 @@ export const DocumentPreview: React.FC = () => {
     </div>
   )
 }
-

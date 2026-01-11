@@ -40,4 +40,3 @@ export const OtherMedia: React.FC<MediaProps> = (props) => {
 
   return null
 }
-

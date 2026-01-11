@@ -20,12 +20,7 @@ export const ImagePreview: React.FC = () => {
 
   return (
     <div className="p-4">
-      <img
-        src={url}
-        alt={alt || 'Preview'}
-        className="max-w-full h-auto rounded"
-      />
+      <img src={url} alt={alt || 'Preview'} className="max-w-full h-auto rounded" />
     </div>
   )
 }
-

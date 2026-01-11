@@ -44,4 +44,3 @@ export const MediaPreview: UIFieldClientComponent = () => {
       return <OtherPreview />
   }
 }
-

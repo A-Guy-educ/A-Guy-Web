@@ -21,13 +21,7 @@ export const MIME_ALLOWLISTS: Record<MediaType, string[]> = {
     'image/heif',
     'image/gif',
   ],
-  [MediaType.Video]: [
-    'video/mp4',
-    'video/webm',
-    'video/quicktime',
-    'video/x-msvideo',
-    'video/avi',
-  ],
+  [MediaType.Video]: ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo', 'video/avi'],
   [MediaType.Audio]: [
     'audio/mpeg',
     'audio/mp3',
@@ -64,4 +58,3 @@ export const SIZE_LIMITS: Record<MediaType, number> = {
   [MediaType.External]: 0, // No file
   [MediaType.Other]: 50 * 1024 * 1024, // 50MB fallback
 }
-

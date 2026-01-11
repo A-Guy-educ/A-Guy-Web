@@ -33,4 +33,3 @@ export const inferMediaTypeHook: FieldHook = ({ data, operation, value, req }) =
 
   return inferredType
 }
-

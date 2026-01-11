@@ -31,4 +31,3 @@ export const AudioMedia: React.FC<MediaProps> = (props) => {
 
   return null
 }
-

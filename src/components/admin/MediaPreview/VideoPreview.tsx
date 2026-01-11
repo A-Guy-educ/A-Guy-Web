@@ -24,12 +24,7 @@ export const VideoPreview: React.FC = () => {
         <source src={url} />
         Your browser does not support the video tag.
       </video>
-      {filename && (
-        <p className="mt-2 text-sm text-muted-foreground">
-          {filename}
-        </p>
-      )}
+      {filename && <p className="mt-2 text-sm text-muted-foreground">{filename}</p>}
     </div>
   )
 }
-

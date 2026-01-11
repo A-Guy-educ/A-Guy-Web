@@ -45,4 +45,3 @@ export const validateMediaUploadHook: CollectionBeforeValidateHook = async ({
 
   return data
 }
-

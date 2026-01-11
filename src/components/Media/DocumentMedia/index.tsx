@@ -40,4 +40,3 @@ export const DocumentMedia: React.FC<MediaProps> = (props) => {
 
   return null
 }
-

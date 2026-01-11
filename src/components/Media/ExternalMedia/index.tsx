@@ -29,4 +29,3 @@ export const ExternalMedia: React.FC<MediaProps> = (props) => {
 
   return null
 }
-

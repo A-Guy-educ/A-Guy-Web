@@ -40,4 +40,3 @@ export const ExternalPreview: React.FC = () => {
     </div>
   )
 }
-

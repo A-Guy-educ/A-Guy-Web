@@ -23,15 +23,10 @@ export const SVGMedia: React.FC<MediaProps> = (props) => {
 
     return (
       <div className={cn('svg-media', className)}>
-        <img
-          src={svgUrl}
-          alt={altText}
-          className={cn('max-w-full h-auto', imgClassName)}
-        />
+        <img src={svgUrl} alt={altText} className={cn('max-w-full h-auto', imgClassName)} />
       </div>
     )
   }
 
   return null
 }
-

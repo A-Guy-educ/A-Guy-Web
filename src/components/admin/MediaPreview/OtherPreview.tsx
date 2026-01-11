@@ -35,4 +35,3 @@ export const OtherPreview: React.FC = () => {
     </div>
   )
 }
-
