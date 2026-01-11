@@ -2,15 +2,6 @@
 
 import React, { useEffect, useRef, useState } from 'react'
 import { useFormFields } from '@payloadcms/ui'
-import * as pdfjsLib from 'pdfjs-dist'
-
-// Configure PDF.js worker - use local file from node_modules
-if (typeof window !== 'undefined') {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-    'pdfjs-dist/build/pdf.worker.min.mjs',
-    import.meta.url,
-  ).toString()
-}
 
 export const PDFPreview: React.FC = () => {
   const urlField = useFormFields(([fields]) => fields.url)
@@ -20,7 +11,7 @@ export const PDFPreview: React.FC = () => {
   const [totalPages, setTotalPages] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const pdfDocRef = useRef<pdfjsLib.PDFDocumentProxy | null>(null)
+  const pdfDocRef = useRef<any>(null)
 
   useEffect(() => {
     const loadPDF = async () => {
@@ -33,6 +24,12 @@ export const PDFPreview: React.FC = () => {
       try {
         setLoading(true)
         setError(null)
+
+        // Dynamically import pdfjs-dist only on client side
+        const pdfjsLib = await import('pdfjs-dist')
+
+        // Configure worker using legacy build which works better with Next.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
 
         const loadingTask = pdfjsLib.getDocument(url)
         const pdf = await loadingTask.promise
