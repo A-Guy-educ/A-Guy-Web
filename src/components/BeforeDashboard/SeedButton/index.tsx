@@ -3,8 +3,6 @@
 import React, { Fragment, useCallback, useState } from 'react'
 import { toast } from '@payloadcms/ui'
 
-import './index.scss'
-
 const SuccessMessage: React.FC = () => (
   <div>
     Database seeded! You can now{' '}
@@ -79,7 +77,10 @@ export const SeedButton: React.FC = () => {
 
   return (
     <Fragment>
-      <button className="seedButton" onClick={handleClick}>
+      <button
+        className="appearance-none bg-transparent border-none p-0 underline cursor-pointer hover:opacity-85 transition-opacity"
+        onClick={handleClick}
+      >
         Seed your database
       </button>
       {message}

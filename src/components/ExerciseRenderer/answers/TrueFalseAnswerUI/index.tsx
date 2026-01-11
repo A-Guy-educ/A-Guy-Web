@@ -8,9 +8,6 @@ import React from 'react'
 import { cn } from '@/utilities/ui'
 import type { TrueFalseAnswerSpec } from '@/contracts'
 import { RichTextRenderer } from '../../blocks/RichTextRenderer'
-import './index.scss'
-
-const baseClass = 'true-false-answer-ui'
 
 // Legacy UserAnswer type for the old sections-based true/false format
 type LegacyTrueFalseAnswer = {
@@ -59,29 +56,30 @@ export function TrueFalseAnswerUI({
         onClick={() => handleSectionChange(sectionId, boolValue)}
         disabled={disabled}
         className={cn(
-          `${baseClass}__option`,
-          isSelected && `${baseClass}__option--selected`,
-          showAsCorrect && `${baseClass}__option--correct`,
-          disabled && `${baseClass}__option--disabled`,
+          'px-6 py-2 border rounded-lg font-medium transition-all duration-normal',
+          'hover:bg-muted',
+          isSelected && 'bg-primary text-primary-foreground border-primary',
+          showAsCorrect && 'bg-success text-white border-success',
+          disabled && 'opacity-60 cursor-not-allowed',
         )}
       >
-        <span className={`${baseClass}__label`}>{label}</span>
-        {showAsCorrect && <span className={`${baseClass}__correct-icon`}>✓</span>}
+        <span>{label}</span>
+        {showAsCorrect && <span className="ml-2">✓</span>}
       </button>
     )
   }
 
   return (
-    <div className={baseClass}>
+    <div className="space-y-6">
       {spec.items.map((item) => (
-        <div key={item.id} className={`${baseClass}__section`}>
-          <div className={`${baseClass}__section-header`}>
-            <span className={`${baseClass}__section-label`}>{item.label}.</span>
+        <div key={item.id} className="space-y-3">
+          <div className="font-medium text-sm">
+            <span>{item.label}.</span>
           </div>
-          <div className={`${baseClass}__section-prompt`}>
+          <div className="text-base">
             <RichTextRenderer block={item.prompt} />
           </div>
-          <div className={`${baseClass}__options`}>
+          <div className="flex gap-3">
             {renderSectionOption(item.id, true, 'True')}
             {renderSectionOption(item.id, false, 'False')}
           </div>

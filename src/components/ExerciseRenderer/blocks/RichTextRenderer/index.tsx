@@ -8,7 +8,6 @@ import ReactMarkdown from 'react-markdown'
 import rehypeKatex from 'rehype-katex'
 import remarkMath from 'remark-math'
 import 'katex/dist/katex.min.css'
-import './index.scss'
 
 interface RichTextRendererProps {
   block: {
@@ -21,7 +20,7 @@ interface RichTextRendererProps {
 
 export function RichTextRenderer({ block }: RichTextRendererProps) {
   return (
-    <div className="rich-text-content">
+    <div className="rich-text-content leading-relaxed text-foreground">
       <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
         {block.value}
       </ReactMarkdown>

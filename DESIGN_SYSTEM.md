@@ -5,13 +5,19 @@ This document outlines the design system, UI components, and styling conventions
 ## Table of Contents
 
 - [Overview](#overview)
+- [Migration Philosophy](#migration-philosophy)
 - [Design Principles](#design-principles)
+- [Design Tokens](#design-tokens)
 - [Color System](#color-system)
 - [Typography](#typography)
 - [Spacing & Layout](#spacing--layout)
+- [Shadows & Elevation](#shadows--elevation)
+- [Z-Index Scale](#z-index-scale)
 - [Components](#components)
 - [Dark Mode](#dark-mode)
 - [Accessibility](#accessibility)
+- [Styling Guidelines](#styling-guidelines)
+- [Migration Checklist](#migration-checklist)
 - [Best Practices](#best-practices)
 
 ## Overview
@@ -20,10 +26,43 @@ The A-Guy design system is built on:
 
 - **Framework**: TailwindCSS with custom configuration
 - **Component Library**: shadcn/ui (built on Radix UI primitives)
+- **Design Tokens**: Semantic tokens in `tailwind.tokens.mjs`
 - **Icons**: lucide-react
 - **Fonts**: Geist Sans and Geist Mono
-- **Styling Approach**: CSS variables + utility classes
+- **Styling Approach**: 100% Tailwind CSS (no SCSS/CSS modules)
 - **Dark Mode**: Theme-aware with automatic transitions
+- **Documentation**: Storybook for visual component catalog
+
+## Migration Philosophy
+
+The project is migrating from a mixed styling approach (Tailwind + SCSS) to a unified design system:
+
+### Goals
+
+1. **100% Tailwind**: All styling done with Tailwind utilities and design tokens
+2. **Zero SCSS**: Eliminate all `.scss` files from frontend components
+3. **No Payload Imports**: Never use `@payloadcms/ui/scss` in frontend components
+4. **Consistent Patterns**: Unified approach across all components
+5. **Visual Documentation**: Comprehensive Storybook stories
+
+### Rules
+
+✅ **ALWAYS use:**
+
+- Tailwind utility classes
+- Design tokens from `tailwind.tokens.mjs`
+- CSS variables defined in `globals.css`
+- shadcn/ui components as primitives
+- Class Variance Authority (CVA) for component variants
+
+❌ **NEVER use:**
+
+- SCSS modules
+- CSS modules
+- `@import '~@payloadcms/ui/scss'` in frontend
+- Inline styles
+- Arbitrary values (except when design tokens don't cover the use case)
+- CSS-in-JS libraries
 
 ## Design Principles
 
@@ -55,6 +94,93 @@ All components follow a consistent design language using:
 - Composable variants using `class-variance-authority`
 - Clear naming conventions
 - Well-documented usage patterns
+- Comprehensive Storybook documentation
+
+## Design Tokens
+
+Design tokens are defined in [`tailwind.tokens.mjs`](./tailwind.tokens.mjs) and provide semantic, reusable values for spacing, typography, shadows, and more.
+
+### Spacing Tokens
+
+```tsx
+// Section spacing (vertical rhythm)
+<div className="py-section-md">   {/* 4rem / 64px */}
+<div className="py-section-lg">   {/* 6rem / 96px */}
+
+// Card padding
+<div className="p-card-padding">   {/* 1.5rem / 24px */}
+<div className="p-card-padding-lg"> {/* 2rem / 32px */}
+
+// Content gaps
+<div className="gap-content-gap">   {/* 1.5rem / 24px */}
+<div className="space-y-content-gap-lg"> {/* 2rem / 32px */}
+```
+
+### Typography Tokens
+
+```tsx
+// Display sizes (hero sections)
+<h1 className="text-display-2xl">Hero Heading</h1>
+<h1 className="text-display-xl">Large Heading</h1>
+
+// Heading sizes
+<h2 className="text-heading-xl">Section Heading</h2>
+<h3 className="text-heading-lg">Subsection</h3>
+
+// Body text
+<p className="text-body-md">Default body text</p>
+<p className="text-body-lg">Large body text</p>
+<p className="text-body-sm">Small body text</p>
+
+// Code
+<code className="text-code-md">Code snippet</code>
+```
+
+### Shadow Tokens
+
+```tsx
+// Elevation levels
+<div className="shadow-elevation-1"> {/* Subtle */}
+<div className="shadow-elevation-2"> {/* Light */}
+<div className="shadow-elevation-3"> {/* Medium */}
+<div className="shadow-elevation-4"> {/* Strong */}
+
+// Component shadows
+<div className="shadow-card">       {/* Card shadow */}
+<div className="shadow-card-hover"> {/* Card hover state */}
+<div className="shadow-modal">      {/* Modal shadow */}
+<div className="shadow-dropdown">   {/* Dropdown shadow */}
+```
+
+### Z-Index Tokens
+
+```tsx
+<div className="z-dropdown">        {/* 1000 */}
+<div className="z-sticky">          {/* 1100 */}
+<div className="z-fixed">           {/* 1200 */}
+<div className="z-modal-backdrop">  {/* 1300 */}
+<div className="z-modal">           {/* 1400 */}
+<div className="z-popover">         {/* 1500 */}
+<div className="z-tooltip">         {/* 1600 */}
+```
+
+### Transition Duration Tokens
+
+```tsx
+<div className="duration-fast">    {/* 100ms */}
+<div className="duration-normal">  {/* 200ms */}
+<div className="duration-slow">    {/* 300ms */}
+<div className="duration-slower">  {/* 500ms */}
+```
+
+### Opacity Tokens
+
+```tsx
+<div className="opacity-disabled"> {/* 0.5 */}
+<div className="opacity-hover">    {/* 0.8 */}
+<div className="opacity-muted">    {/* 0.6 */}
+<div className="opacity-subtle">   {/* 0.4 */}
+```
 
 ## Color System
 
@@ -190,8 +316,108 @@ Configured via CSS variable `--radius`:
 ```tsx
 <div className="rounded-sm"> {/* calc(var(--radius) - 4px) */}
 <div className="rounded-md"> {/* calc(var(--radius) - 2px) */}
-<div className="rounded-lg"> {/* var(--radius) = 0.2rem */}
-<div className="rounded"> {/* Default Tailwind rounded */}
+<div className="rounded-lg"> {/* var(--radius) = 0.75rem */}
+<div className="rounded-xl"> {/* calc(var(--radius) + 4px) */}
+<div className="rounded-2xl"> {/* calc(var(--radius) + 8px) */}
+```
+
+## Shadows & Elevation
+
+The shadow system provides consistent depth and elevation across components.
+
+### Using Shadow Tokens
+
+```tsx
+// Subtle elevation
+<div className="shadow-elevation-1">Barely lifted</div>
+
+// Card components
+<div className="shadow-card hover:shadow-card-hover transition-shadow">
+  Interactive card with hover effect
+</div>
+
+// Modals and overlays
+<div className="shadow-modal">Modal content</div>
+
+// Dropdowns
+<div className="shadow-dropdown">Dropdown menu</div>
+```
+
+### CSS Variables (for complex cases)
+
+For cases where you need to use CSS variables:
+
+```tsx
+// Light mode card shadow
+<div className="shadow-[var(--shadow-card)]">
+
+// Dark mode adapts automatically via CSS variables
+```
+
+### Custom Shadows
+
+Prefer design tokens, but if you need a custom shadow:
+
+```tsx
+// ✅ ACCEPTABLE: One-off custom shadow
+<div className="shadow-[0_4px_20px_0_rgb(0_0_0_/_0.1)]">
+
+// ❌ BAD: Reusing the same custom shadow multiple times
+// Instead, add to tailwind.tokens.mjs
+```
+
+## Z-Index Scale
+
+Consistent stacking order prevents z-index conflicts.
+
+### Using Z-Index Tokens
+
+```tsx
+// Dropdown menus
+<div className="z-dropdown">Menu</div>
+
+// Sticky headers
+<header className="sticky top-0 z-sticky">Header</header>
+
+// Fixed elements
+<aside className="fixed z-fixed">Sidebar</aside>
+
+// Modal backdrop
+<div className="fixed inset-0 z-modal-backdrop bg-black/50" />
+
+// Modal content
+<div className="fixed inset-0 z-modal">Modal</div>
+
+// Popovers
+<div className="z-popover">Popover</div>
+
+// Tooltips (highest)
+<div className="z-tooltip">Tooltip</div>
+```
+
+### Z-Index Hierarchy
+
+```
+Base Layer:      0
+Dropdown:        1000
+Sticky:          1100
+Fixed:           1200
+Modal Backdrop:  1300
+Modal:           1400
+Popover:         1500
+Tooltip:         1600
+Toast:           1700 (highest)
+```
+
+### Anti-Pattern
+
+```tsx
+// ❌ BAD: Arbitrary z-index values
+<div className="z-[9999]">
+<div className="z-[999999]">
+
+// ✅ GOOD: Use semantic tokens
+<div className="z-modal">
 ```
 
 ## Components
@@ -473,6 +699,205 @@ All color combinations meet WCAG AA standards:
 - Large text: minimum 3:1 contrast ratio
 - Interactive elements have clear hover/focus states
 
+## Styling Guidelines
+
+### When to Use Tailwind
+
+✅ **ALWAYS use Tailwind (100% goal):**
+
+- Layout (flex, grid, spacing)
+- Colors, typography, borders
+- Responsive design
+- State variants (hover, focus, active, disabled)
+- Animations (use Tailwind animate or create custom utilities)
+- SVG styling (use CSS variables + Tailwind classes or data attributes)
+
+### How to Handle Complex Cases
+
+#### Complex Animations
+
+```tsx
+// Option 1: Use Tailwind animate utilities
+<div className="animate-spin">Loading...</div>
+<div className="animate-pulse">Pulsing</div>
+
+// Option 2: Create custom animation in tailwind.config.mjs
+// Add to keyframes and animation sections
+```
+
+#### SVG Styling
+
+```tsx
+// Option 1: Tailwind classes for containers
+<svg className="w-24 h-24 text-primary">
+  <circle className="fill-current" />
+</svg>
+
+// Option 2: CSS variables for complex SVG
+// Define in globals.css:
+// --svg-stroke: hsl(var(--primary));
+// --svg-fill: hsl(var(--accent));
+```
+
+#### Third-Party Component Overrides
+
+```tsx
+// Use CSS variables + Tailwind
+<div className="[&_.external-class]:bg-primary [&_.external-class]:text-white">
+  <ExternalComponent />
+</div>
+```
+
+### Class Naming Pattern
+
+Follow this order for consistent, readable classes:
+
+```tsx
+<div
+  className={cn(
+    // 1. Layout
+    'flex items-center justify-between',
+
+    // 2. Spacing
+    'p-card-padding gap-content-gap',
+
+    // 3. Visual (background, border, etc)
+    'bg-card border border-border rounded-lg',
+
+    // 4. Typography
+    'text-body-md font-medium',
+
+    // 5. Design tokens (shadows, etc)
+    'shadow-card',
+
+    // 6. State variants
+    'hover:shadow-card-hover hover:bg-accent/5',
+    'focus-visible:ring-2 focus-visible:ring-ring',
+    'disabled:opacity-disabled',
+
+    // 7. Responsive
+    'md:flex-row md:p-card-padding-lg',
+
+    // 8. Conditional classes
+    isActive && 'bg-primary text-primary-foreground',
+
+    // 9. External className prop (last for override)
+    className,
+  )}
+/>
+```
+
+### Using Design Tokens
+
+```tsx
+// ✅ GOOD: Use design tokens
+<div className="py-section-md shadow-card z-modal text-heading-xl">
+
+// ❌ BAD: Arbitrary values
+<div className="py-[80px] shadow-[0_2px_4px_rgba(0,0,0,0.1)] z-[9999] text-[24px]">
+
+// ✅ ACCEPTABLE: Arbitrary when tokens don't cover it
+<div className="max-w-[42rem]"> {/* Specific content width */}
+```
+
+### Component Composition with cn()
+
+Use the `cn()` utility for merging classes:
+
+```tsx
+import { cn } from '@/utilities/ui'
+
+interface CardProps {
+  variant?: 'default' | 'elevated'
+  className?: string
+}
+
+export function Card({ variant = 'default', className }: CardProps) {
+  return (
+    <div
+      className={cn(
+        'p-card-padding rounded-lg border border-border',
+        variant === 'elevated' && 'shadow-elevation-3',
+        className,
+      )}
+    />
+  )
+}
+```
+
+### Using CVA for Variants
+
+For components with multiple variants, use Class Variance Authority:
+
+```tsx
+import { cva, type VariantProps } from 'class-variance-authority'
+import { cn } from '@/utilities/ui'
+
+const buttonVariants = cva(
+  // Base classes
+  'inline-flex items-center justify-center rounded-lg font-medium transition-colors',
+  {
+    variants: {
+      variant: {
+        default: 'bg-primary text-primary-foreground hover:bg-primary/90',
+        secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+        outline: 'border border-border bg-transparent hover:bg-accent',
+      },
+      size: {
+        sm: 'h-9 px-3 text-body-sm',
+        md: 'h-10 px-4 text-body-md',
+        lg: 'h-11 px-8 text-body-lg',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+      size: 'md',
+    },
+  },
+)
+
+interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {}
+
+export function Button({ variant, size, className, ...props }: ButtonProps) {
+  return <button className={cn(buttonVariants({ variant, size }), className)} {...props} />
+}
+```
+
+## Migration Checklist
+
+Use this checklist when migrating a component from SCSS to Tailwind:
+
+### Before Migration
+
+- [ ] Take screenshot of component (all states)
+- [ ] Document all variants and states
+- [ ] Identify complex styles that may need special handling
+- [ ] Check for Payload SCSS imports (must remove)
+- [ ] Review SCSS file for patterns to extract
+
+### During Migration
+
+- [ ] Start with layout (flex, grid, spacing)
+- [ ] Add spacing with design tokens
+- [ ] Add visual styles (colors, borders, shadows)
+- [ ] Add typography styles
+- [ ] Add state variants (hover, focus, active, disabled)
+- [ ] Add responsive breakpoints
+- [ ] Test all interactive states
+- [ ] Test dark mode
+
+### After Migration
+
+- [ ] Delete SCSS file
+- [ ] Update all imports
+- [ ] Test all variants and states
+- [ ] Compare screenshots (before/after)
+- [ ] Verify dark mode works
+- [ ] Check accessibility (keyboard nav, screen readers)
+- [ ] Update or create Storybook story
+- [ ] Code review
+
 ## Best Practices
 
 ### Component Composition
@@ -586,6 +1011,8 @@ Components will be automatically added to `src/components/ui/` with proper confi
 - ❌ Use inline styles
 - ❌ Bypass the design system tokens
 - ❌ Add global CSS without team approval
+- ❌ Import Payload SCSS in frontend components
+- ❌ Create new SCSS or CSS module files
 
 ## Utility Classes
 

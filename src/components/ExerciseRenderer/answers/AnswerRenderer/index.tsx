@@ -10,9 +10,6 @@ import type { PreviewMode } from '../../types'
 import { McqAnswerUI } from '../McqAnswerUI'
 import { TrueFalseAnswerUI } from '../TrueFalseAnswerUI'
 import { FreeResponseAnswerUI } from '../FreeResponseAnswerUI'
-import './index.scss'
-
-const baseClass = 'answer-renderer'
 
 // Legacy UserAnswer types for backward compatibility
 type LegacyUserAnswer =
@@ -72,8 +69,8 @@ export function AnswerRenderer({
 
     default:
       return (
-        <div className={`${baseClass} ${baseClass}--unknown`}>
-          <span className={`${baseClass}__icon`}>⚠️</span>
+        <div className="flex items-center gap-2 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded text-yellow-700 dark:text-yellow-300">
+          <span className="text-xl">⚠️</span>
           <span>Unknown answer type</span>
         </div>
       )

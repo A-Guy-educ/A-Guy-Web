@@ -9,7 +9,6 @@ import React from 'react'
 import { cn } from '@/utilities/ui'
 import { CheckCircle2, XCircle } from 'lucide-react'
 import type { CheckResult } from '../../types'
-import './index.scss'
 
 interface FeedbackDisplayProps {
   checkResult: CheckResult
@@ -21,21 +20,35 @@ export function FeedbackDisplay({ checkResult, correctText, incorrectText }: Fee
   return (
     <div
       className={cn(
-        'feedback-display',
-        checkResult.isCorrect ? 'feedback-display--correct' : 'feedback-display--incorrect',
+        'mt-card-padding p-4 rounded-lg border-2',
+        checkResult.isCorrect ? 'border-success bg-success/10' : 'border-error bg-error/10',
       )}
     >
-      <div className="feedback-display__content">
+      <div className="flex items-center gap-2">
         {checkResult.isCorrect ? (
-          <CheckCircle2 className="feedback-display__icon" />
+          <CheckCircle2 className="w-6 h-6 shrink-0 text-success" />
         ) : (
-          <XCircle className="feedback-display__icon" />
+          <XCircle className="w-6 h-6 shrink-0 text-error" />
         )}
-        <span className="feedback-display__text">
+        <span
+          className={cn(
+            'font-semibold text-lg',
+            checkResult.isCorrect ? 'text-success' : 'text-error',
+          )}
+        >
           {checkResult.isCorrect ? correctText : incorrectText}
         </span>
       </div>
-      {checkResult.message && <p className="feedback-display__message">{checkResult.message}</p>}
+      {checkResult.message && (
+        <p
+          className={cn(
+            'mt-2 text-sm',
+            checkResult.isCorrect ? 'text-success/80' : 'text-error/80',
+          )}
+        >
+          {checkResult.message}
+        </p>
+      )}
     </div>
   )
 }

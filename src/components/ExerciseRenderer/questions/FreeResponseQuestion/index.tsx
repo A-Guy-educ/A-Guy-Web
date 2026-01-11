@@ -9,7 +9,6 @@ import React from 'react'
 import { Input } from '@/components/ui/input'
 import type { QuestionFreeResponseBlock, UserAnswer, CheckResult, RichTextBlock } from '../../types'
 import { RichTextRenderer } from '../../blocks/RichTextRenderer'
-import './index.scss'
 
 interface FreeResponseQuestionProps {
   question: QuestionFreeResponseBlock
@@ -25,7 +24,7 @@ export function FreeResponseQuestion({
   answer,
   onChange,
   disabled,
-  checkResult,
+  checkResult: _checkResult,
   t,
 }: FreeResponseQuestionProps) {
   const value = answer.type === 'free_response' ? answer.value : ''
@@ -38,8 +37,8 @@ export function FreeResponseQuestion({
   }
 
   return (
-    <div className="free-response-question">
-      <div className="free-response-question__prompt">
+    <div className="flex flex-col gap-4">
+      <div className="text-base font-medium text-foreground leading-relaxed">
         <RichTextRenderer block={promptBlock} />
       </div>
       <Input
@@ -48,7 +47,7 @@ export function FreeResponseQuestion({
         onChange={(e) => onChange({ type: 'free_response', value: e.target.value })}
         disabled={disabled}
         placeholder={t('enterAnswer')}
-        className="free-response-question__input"
+        className="text-base p-6"
       />
     </div>
   )

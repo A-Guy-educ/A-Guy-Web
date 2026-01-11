@@ -6,9 +6,6 @@
 
 import React from 'react'
 import type { FreeResponseAnswerSpec } from '@/contracts'
-import './index.scss'
-
-const baseClass = 'free-response-answer-ui'
 
 // Legacy UserAnswer type
 type LegacyFreeResponseAnswer = { type: 'free_response'; value: string }
@@ -53,8 +50,8 @@ export function FreeResponseAnswerUI({
   const useTextarea = spec.responseKind === 'text'
 
   return (
-    <div className={baseClass}>
-      <div className={`${baseClass}__hint`}>
+    <div className="space-y-2">
+      <div className="text-sm text-muted-foreground">
         {spec.responseKind === 'numeric' && 'Enter a numeric value'}
         {spec.responseKind === 'algebraic' && 'Enter an algebraic expression'}
         {spec.responseKind === 'text' && 'Enter your text answer'}
@@ -66,7 +63,7 @@ export function FreeResponseAnswerUI({
           onChange={handleChange}
           disabled={disabled}
           placeholder={getPlaceholder()}
-          className={`${baseClass}__textarea`}
+          className="w-full p-3 border border-border rounded-lg bg-background text-foreground resize-y focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-60"
           rows={4}
         />
       ) : (
@@ -76,7 +73,7 @@ export function FreeResponseAnswerUI({
           onChange={handleChange}
           disabled={disabled}
           placeholder={getPlaceholder()}
-          className={`${baseClass}__input`}
+          className="w-full p-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-60"
         />
       )}
     </div>

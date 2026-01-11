@@ -7,7 +7,6 @@ import { ExerciseCard } from '@/app/(frontend)/courses/_components/ExerciseCard'
 import { EmptyState } from '@/app/(frontend)/courses/_components/EmptyState'
 import { useTranslations } from '@/providers/I18n'
 import type { Exercise, Media } from '@/payload-types'
-import styles from './LessonContent.module.css'
 import { ConvertButton } from './ConvertButton'
 
 type ViewMode = 'non-interactive' | 'interactive'
@@ -38,9 +37,8 @@ export function LessonContent({
   const hasContent = validFiles.length > 0
   const hasExercises = exercises.length > 0
 
-  // For admins: always show exercises option, default to interactive if no content
-  // For others: only show if has exercises
-  const showExercisesToggle = isAdmin || hasExercises
+  // Only show exercises toggle to admins
+  const showExercisesToggle = isAdmin
   const initialViewMode: ViewMode =
     !hasContent && showExercisesToggle ? 'interactive' : 'non-interactive'
   const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode)
@@ -54,14 +52,22 @@ export function LessonContent({
         onViewChange={setViewMode}
       />
 
-      <section className={styles.section}>
+      <section className="mb-8">
         {viewMode === 'non-interactive' ? (
           <>
             {hasContent ? (
-              <div className={styles.mediaFilesContainer}>
+              <div className="flex flex-col gap-0">
                 {validFiles.map((file, index) => (
-                  <div key={file.id} className={styles.mediaFileWrapper}>
-                    {index > 0 && <div className={styles.fileSeparator} />}
+                  <div key={file.id} className="w-full min-h-[841px] flex-shrink-0">
+                    {index > 0 && (
+                      <div
+                        className="h-0.5 my-8 flex-shrink-0"
+                        style={{
+                          background:
+                            'linear-gradient(to right, transparent, hsl(var(--border)) 20%, hsl(var(--border)) 80%, transparent)',
+                        }}
+                      />
+                    )}
                     <PDFViewer
                       pdfUrl={file.url!}
                       lessonTitle={`${lessonTitle}${validFiles.length > 1 ? ` - Part ${index + 1}` : ''}`}
@@ -75,13 +81,13 @@ export function LessonContent({
           </>
         ) : (
           <>
-            <div className={styles.exercisesContainer}>
-              <div className={styles.header}>
-                <h2 className={styles.title}>{t('exercisesTitle')}</h2>
-                <p className={styles.description}>{t('exercisesDescription')}</p>
+            <div className="flex flex-col gap-4">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold">{t('exercisesTitle')}</h2>
+                <p className="text-muted-foreground">{t('exercisesDescription')}</p>
               </div>
               {hasExercises ? (
-                <div className={styles.exercisesList}>
+                <div className="flex flex-col gap-3">
                   {exercises.map((exercise, index) => (
                     <ExerciseCard
                       key={exercise.id}
@@ -94,10 +100,10 @@ export function LessonContent({
                   ))}
                 </div>
               ) : (
-                <div className={styles.emptyState}>
-                  <p className={styles.emptyStateText}>No exercises yet for this lesson</p>
+                <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
+                  <p className="text-muted-foreground mb-4">No exercises yet for this lesson</p>
                   {isAdmin && hasContent && (
-                    <div className={styles.convertButtonWrapper}>
+                    <div className="mt-6">
                       <ConvertButton lessonId={lessonId} />
                     </div>
                   )}

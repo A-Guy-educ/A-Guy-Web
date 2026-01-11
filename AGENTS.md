@@ -727,7 +727,6 @@ export const Posts: CollectionConfig = {
 ### Performance Best Practices
 
 1. **Import correctly:**
-
    - Admin Panel: `import { Button } from '@payloadcms/ui'`
    - Frontend: `import { Button } from '@payloadcms/ui/elements/Button'`
 
@@ -742,7 +741,6 @@ export const Posts: CollectionConfig = {
    ```
 
 3. **Prefer Server Components** - Only use Client Components when you need:
-
    - State (useState, useReducer)
    - Effects (useEffect)
    - Event handlers (onClick, onChange)
@@ -755,7 +753,7 @@ export const Posts: CollectionConfig = {
 Components can be styled using SCSS files. Import a `.scss` file colocated with your component:
 
 ```tsx
-import './index.scss'  // Component-specific styles
+import './index.scss' // Component-specific styles
 
 export function MyComponent() {
   return <div className="my-component">Content</div>
@@ -782,6 +780,7 @@ export function MyComponent() {
 ```
 
 **Project Convention**: This project uses `index.scss` naming convention. Place styles alongside your component file:
+
 - Component: `src/components/MyComponent/index.tsx`
 - Styles: `src/components/MyComponent/index.scss`
 
@@ -1027,7 +1026,7 @@ export const myPlugin =
 
 1. Always pass `req` to nested operations in hooks
 2. Use context flags to prevent infinite hook loops
-3. Enable transactions for MongoDB (requires replica set) and Postgres
+3. Enable transactions for MongoDB (requires replica set)
 4. Use `beforeValidate` for data formatting
 5. Use `beforeChange` for business logic
 
@@ -1057,8 +1056,6 @@ export const myPlugin =
 6. **Draft Status**: `_status` field auto-injected when drafts enabled
 7. **Type Generation**: Types not updated until `generate:types` runs
 8. **MongoDB Transactions**: Require replica set configuration
-9. **SQLite Transactions**: Disabled by default, enable with `transactionOptions: {}`
-10. **Point Fields**: Not supported in SQLite
 
 ## Additional Context Files
 
@@ -1067,19 +1064,16 @@ For deeper exploration of specific topics, refer to the context files located in
 ### Available Context Files
 
 1. **`payload-overview.md`** - High-level architecture and core concepts
-
    - Payload structure and initialization
    - Configuration fundamentals
    - Database adapters overview
 
 2. **`security-critical.md`** - Critical security patterns (⚠️ IMPORTANT)
-
    - Local API access control
    - Transaction safety in hooks
    - Preventing infinite hook loops
 
 3. **`collections.md`** - Collection configurations
-
    - Basic collection patterns
    - Auth collections with RBAC
    - Upload collections
@@ -1087,7 +1081,6 @@ For deeper exploration of specific topics, refer to the context files located in
    - Globals
 
 4. **`fields.md`** - Field types and patterns
-
    - All field types with examples
    - Conditional fields
    - Virtual fields
@@ -1095,13 +1088,11 @@ For deeper exploration of specific topics, refer to the context files located in
    - Common field patterns
 
 5. **`field-type-guards.md`** - TypeScript field type utilities
-
    - Field type checking utilities
    - Safe type narrowing
    - Runtime field validation
 
 6. **`access-control.md`** - Permission patterns
-
    - Collection-level access
    - Field-level access
    - Row-level security
@@ -1109,48 +1100,41 @@ For deeper exploration of specific topics, refer to the context files located in
    - Multi-tenant access control
 
 7. **`access-control-advanced.md`** - Complex access patterns
-
    - Nested document access
    - Cross-collection permissions
    - Dynamic role hierarchies
    - Performance optimization
 
 8. **`hooks.md`** - Lifecycle hooks
-
    - Collection hooks
    - Field hooks
    - Hook context patterns
    - Common hook recipes
 
 9. **`queries.md`** - Database operations
-
    - Local API usage
    - Query operators
    - Complex queries with AND/OR
    - Performance optimization
 
 10. **`endpoints.md`** - Custom API endpoints
-
     - REST endpoint patterns
     - Authentication in endpoints
     - Error handling
     - Route parameters
 
 11. **`adapters.md`** - Database and storage adapters
-
-    - MongoDB, PostgreSQL, SQLite patterns
+    - MongoDB patterns
     - Storage adapter usage (S3, Azure, GCS, etc.)
     - Custom adapter development
 
 12. **`plugin-development.md`** - Creating plugins
-
     - Plugin architecture
     - Modifying configuration
     - Plugin hooks
     - Best practices
 
 13. **`components.md`** - Custom Components
-
     - Component types (Root, Collection, Global, Field)
     - Server vs Client Components
     - Component paths and definition
@@ -1158,6 +1142,36 @@ For deeper exploration of specific topics, refer to the context files located in
     - Using hooks
     - Performance best practices
     - Styling components
+
+## AI Agent Optimization
+
+This codebase includes tools to help AI agents work efficiently:
+
+- **SmartDocLoader**: Context-aware documentation loading that minimizes token usage
+- **DocSearch**: Fast keyword-based documentation search
+- **Pattern Index**: Pattern → files mapping for quick example discovery
+- **JSON Schemas**: Machine-readable validation contracts for code generation
+- **Centralized Types**: Common types exported from `src/types/index.ts` for easy discovery
+
+### Quick Start
+
+```typescript
+// Load context-aware documentation
+import { SmartDocLoader } from '@/lib/ai/smart-doc-loader'
+
+const docs = SmartDocLoader.forCollection('create')
+// Returns: ~380 tokens, quick reference tier
+
+// Search documentation
+import { getDocSearch } from '@/lib/ai/doc-search'
+const search = getDocSearch()
+const results = search.query('How do I create a published collection?')
+
+// Use centralized types
+import type { User, Course, CollectionConfig } from '@/types'
+```
+
+See [docs/ai/README.md](docs/ai/README.md) for full guide and [docs/ai/QUICK-START.md](docs/ai/QUICK-START.md) for quick reference.
 
 ## Resources
 

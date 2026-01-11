@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../../../tailwind.config.mjs";
 
 @layer base {
   h1,
@@ -52,6 +51,12 @@
     --ring: 271 91% 65%;
 
     --radius: 0.75rem;
+
+    /* Shadow system */
+    --shadow-card: 0 2px 8px 0 rgb(0 0 0 / 0.08);
+    --shadow-card-hover: 0 4px 12px 0 rgb(0 0 0 / 0.12);
+    --shadow-modal: 0 10px 25px -5px rgb(0 0 0 / 0.15);
+    --shadow-dropdown: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06);
 
     --success: 142 71% 45%;
     --warning: 38 92% 50%;
@@ -113,6 +118,12 @@
 
     /* Focus ring follows accent */
     --ring: 217 91% 60%;
+
+    /* Shadow system - darker shadows for dark mode */
+    --shadow-card: 0 4px 16px 0 rgb(0 0 0 / 0.3);
+    --shadow-card-hover: 0 8px 24px 0 rgb(0 0 0 / 0.4);
+    --shadow-modal: 0 20px 40px -10px rgb(0 0 0 / 0.5);
+    --shadow-dropdown: 0 8px 12px -2px rgb(0 0 0 / 0.3), 0 4px 8px -2px rgb(0 0 0 / 0.2);
 
     --success: 142 71% 45%;
     --warning: 38 92% 50%;
@@ -223,4 +234,118 @@ html {
 html[data-theme='dark'],
 html[data-theme='light'] {
   opacity: initial;
+}
+
+/* Rich Text Content Styles */
+.rich-text-content {
+  p {
+    @apply my-2 first:mt-0 last:mb-0;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply mt-6 mb-3 font-semibold text-foreground leading-tight first:mt-0;
+  }
+
+  h1 {
+    @apply text-3xl;
+  }
+  h2 {
+    @apply text-2xl;
+  }
+  h3 {
+    @apply text-xl;
+  }
+  h4 {
+    @apply text-lg;
+  }
+
+  ul,
+  ol {
+    @apply my-3 pl-6;
+
+    li {
+      @apply my-1;
+    }
+  }
+
+  strong {
+    @apply font-semibold text-foreground;
+  }
+
+  em {
+    @apply italic;
+  }
+
+  a {
+    @apply text-primary underline underline-offset-2 transition-colors hover:text-primary/80;
+  }
+
+  code {
+    @apply bg-muted text-foreground px-1.5 py-0.5 rounded text-sm font-mono;
+  }
+
+  pre {
+    @apply bg-muted p-4 rounded-lg overflow-x-auto my-4 border border-border;
+
+    code {
+      @apply bg-transparent p-0 text-sm;
+    }
+  }
+
+  blockquote {
+    @apply border-l-4 border-primary my-4 pl-4 text-muted-foreground italic;
+  }
+
+  hr {
+    @apply border-0 border-t border-border my-6;
+  }
+
+  img {
+    @apply max-w-full h-auto rounded-lg my-4;
+  }
+
+  table {
+    @apply w-full border-collapse my-4;
+
+    th,
+    td {
+      @apply p-2 border border-border text-left;
+    }
+
+    th {
+      @apply bg-muted font-semibold;
+    }
+  }
+
+  /* KaTeX math rendering */
+  .katex {
+    @apply text-foreground;
+    font-size: 1.1em;
+  }
+
+  .katex-display {
+    @apply my-5 overflow-x-auto overflow-y-hidden py-2;
+
+    /* Scrollbar styling for dark mode support */
+    &::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      @apply bg-muted rounded;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      @apply bg-border rounded hover:bg-muted-foreground/50;
+    }
+  }
+
+  .katex-inline {
+    @apply inline-block;
+  }
 }

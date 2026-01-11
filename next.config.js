@@ -30,12 +30,21 @@ const nextConfig = {
       },
     ],
   },
+  outputFileTracingExcludes: {
+    '*': ['**/node_modules/@swc/core*/**/*'],
+  },
   webpack: (webpackConfig) => {
     webpackConfig.resolve.extensionAlias = {
       '.cjs': ['.cts', '.cjs'],
       '.js': ['.ts', '.tsx', '.js', '.jsx'],
       '.mjs': ['.mts', '.mjs'],
     }
+
+    // Add loader for markdown files
+    webpackConfig.module.rules.push({
+      test: /\.md$/,
+      type: 'asset/source',
+    })
 
     return webpackConfig
   },

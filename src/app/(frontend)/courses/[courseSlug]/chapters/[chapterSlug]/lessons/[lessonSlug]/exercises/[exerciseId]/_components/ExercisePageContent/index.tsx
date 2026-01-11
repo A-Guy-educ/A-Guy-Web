@@ -2,7 +2,6 @@
 
 import { ExerciseRenderer } from '@/components/ExerciseRenderer'
 import type { ExerciseContentData } from '@/components/ExerciseRenderer/types'
-import './index.scss'
 
 interface ExercisePageContentProps {
   contentJson: unknown
@@ -10,7 +9,7 @@ interface ExercisePageContentProps {
 
 export function ExercisePageContent({ contentJson }: ExercisePageContentProps) {
   return (
-    <div className="exercise-page-content">
+    <div className="mt-8 p-8 md:p-6 sm:p-4 bg-card rounded-lg shadow-sm">
       <ExerciseRenderer
         content={contentJson as ExerciseContentData}
         mode="student"

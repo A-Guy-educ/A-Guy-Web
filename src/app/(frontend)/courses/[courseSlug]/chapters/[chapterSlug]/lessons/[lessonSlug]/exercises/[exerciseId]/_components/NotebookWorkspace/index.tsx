@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { MessageSquare, BookOpen, PenLine, X, Menu } from 'lucide-react'
 import { cn } from '@/utilities/ui'
 import { useTranslations } from '@/providers/I18n'
-import './index.scss'
 
 type SidebarTab = 'chat' | 'formulas' | 'notes'
 
@@ -47,103 +46,116 @@ export function NotebookWorkspace({
   }, [isSidebarOpen])
 
   return (
-    <div className="notebook-workspace">
-      <div className="notebook-workspace__body">
-        {/* Mobile backdrop */}
+    <div className="fixed inset-0 bg-background z-50 flex min-h-0 overflow-hidden">
+      {/* Mobile backdrop */}
+      <div
+        className={cn(
+          'fixed inset-0 bg-black/50 backdrop-blur-sm z-[55] transition-opacity duration-300 lg:hidden',
+          isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none',
+        )}
+        onClick={() => setIsSidebarOpen(false)}
+      />
+
+      {/* Mobile menu button */}
+      <button
+        className="fixed top-4 left-4 z-[60] w-11 h-11 rounded-lg bg-card border border-border text-foreground flex items-center justify-center shadow-lg transition-all hover:bg-muted lg:hidden"
+        onClick={() => setIsSidebarOpen(true)}
+        aria-label="Open notebook"
+      >
+        <Menu className="w-6 h-6" />
+      </button>
+
+      {/* Main content area */}
+      <main className="flex-1 overflow-y-auto p-8 flex justify-center items-start bg-background min-h-0 lg:mr-[360px]">
+        <div className="w-full max-w-[920px] max-h-full bg-card border border-border rounded-[10px] p-12 text-foreground shadow-[0_10px_30px_hsl(var(--border))] overflow-auto flex flex-col lg:p-8 md:max-w-full md:w-full md:min-w-0 md:rounded-none md:border-l-0 md:border-r-0 md:border-t-0 md:shadow-none sm:p-6">
+          {content}
+        </div>
+      </main>
+
+      {/* Sidebar */}
+      <aside
+        className={cn(
+          'w-[360px] bg-card border-l border-border flex flex-col min-h-0 overflow-hidden fixed top-0 right-0 h-screen z-50 transition-transform duration-300 md:w-80 lg:translate-x-0',
+          isSidebarOpen
+            ? 'translate-x-0 z-[60] shadow-[-4px_0_16px_hsl(var(--black)_/_0.1)]'
+            : 'translate-x-full lg:translate-x-0',
+        )}
+      >
+        <header className="flex-col p-6 pb-0 bg-card border-b border-border gap-4 flex-shrink-0 overflow-visible flex">
+          <div className="flex items-center justify-between">
+            <span className="bg-muted text-foreground px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wide">
+              {t('notebookTitle')}
+            </span>
+            <Link
+              href={lessonUrl}
+              className="flex items-center justify-center w-8 h-8 rounded-md bg-transparent text-muted-foreground transition-all hover:bg-muted hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              aria-label="Close notebook"
+            >
+              <X className="w-5 h-5" />
+            </Link>
+          </div>
+
+          <nav className="flex gap-0 border-t border-border">
+            <button
+              className={cn(
+                'flex items-center gap-2 py-1.5 px-0 bg-transparent border-none border-b-[3px] text-[0.95rem] font-semibold transition-all cursor-pointer',
+                activeTab === 'chat'
+                  ? 'text-primary border-primary'
+                  : 'text-muted-foreground border-transparent hover:text-foreground',
+              )}
+              type="button"
+              onClick={() => setActiveTab('chat')}
+            >
+              <MessageSquare className="w-4 h-4" />
+              <span>{t('chatTab')}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('formulas')}
+              className={cn(
+                'flex items-center gap-2 py-1.5 px-0 ml-6 bg-transparent border-none border-b-[3px] text-[0.95rem] font-semibold transition-all cursor-pointer',
+                activeTab === 'formulas'
+                  ? 'text-primary border-primary'
+                  : 'text-muted-foreground border-transparent hover:text-foreground',
+              )}
+            >
+              <BookOpen className="w-4 h-4" />
+              <span>{t('formulasTab')}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('notes')}
+              className={cn(
+                'flex items-center gap-2 py-1.5 px-0 ml-6 bg-transparent border-none border-b-[3px] text-[0.95rem] font-semibold transition-all cursor-pointer',
+                activeTab === 'notes'
+                  ? 'text-primary border-primary'
+                  : 'text-muted-foreground border-transparent hover:text-foreground',
+              )}
+            >
+              <PenLine className="w-4 h-4" />
+              <span>{t('notesTab')}</span>
+            </button>
+          </nav>
+        </header>
+
         <div
           className={cn(
-            'notebook-workspace__backdrop',
-            isSidebarOpen && 'notebook-workspace__backdrop--open',
+            'flex-1 min-h-0 flex flex-col overflow-hidden',
+            activeTab !== 'chat' && 'hidden',
           )}
-          onClick={() => setIsSidebarOpen(false)}
-        />
-
-        {/* Mobile menu button */}
-        <button
-          className="notebook-workspace__menu-button"
-          onClick={() => setIsSidebarOpen(true)}
-          aria-label="Open notebook"
         >
-          <Menu className="w-6 h-6" />
-        </button>
-
-        <aside
+          {chat}
+        </div>
+        <div
           className={cn(
-            'notebook-workspace__sidebar',
-            isSidebarOpen && 'notebook-workspace__sidebar--open',
+            'flex-1 min-h-0 overflow-y-auto bg-card pt-0 flex flex-col',
+            activeTab === 'chat' && 'hidden',
           )}
         >
-          <header className="notebook-workspace__header">
-            <div className="notebook-workspace__header-top">
-              <span className="notebook-workspace__badge">{t('notebookTitle')}</span>
-              <div className="notebook-workspace__header-actions">
-                <Link
-                  href={lessonUrl}
-                  className="notebook-workspace__close-mobile"
-                  aria-label="Close notebook"
-                >
-                  <X className="w-5 h-5" />
-                </Link>
-                <Link
-                  href={lessonUrl}
-                  className="notebook-workspace__close"
-                  aria-label="Close notebook"
-                >
-                  <X className="w-5 h-5" />
-                </Link>
-              </div>
-            </div>
-
-            <nav className="notebook-workspace__tabs">
-              <button
-                className={cn(
-                  'notebook-workspace__tab',
-                  activeTab === 'chat' && 'notebook-workspace__tab--active',
-                )}
-                type="button"
-                onClick={() => setActiveTab('chat')}
-              >
-                <MessageSquare className="w-4 h-4" />
-                <span>{t('chatTab')}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('formulas')}
-                className={cn(
-                  'notebook-workspace__tab',
-                  activeTab === 'formulas' && 'notebook-workspace__tab--active',
-                )}
-              >
-                <BookOpen className="w-4 h-4" />
-                <span>{t('formulasTab')}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('notes')}
-                className={cn(
-                  'notebook-workspace__tab',
-                  activeTab === 'notes' && 'notebook-workspace__tab--active',
-                )}
-              >
-                <PenLine className="w-4 h-4" />
-                <span>{t('notesTab')}</span>
-              </button>
-            </nav>
-          </header>
-
-          {activeTab === 'chat' && <div className="notebook-workspace__chat">{chat}</div>}
-          {activeTab !== 'chat' && (
-            <div className="notebook-workspace__tools">
-              {activeTab === 'formulas' && formulas}
-              {activeTab === 'notes' && notes}
-            </div>
-          )}
-        </aside>
-
-        <main className="notebook-workspace__content">
-          <div className="notebook-workspace__paper">{content}</div>
-        </main>
-      </div>
+          {activeTab === 'formulas' && formulas}
+          {activeTab === 'notes' && notes}
+        </div>
+      </aside>
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import tailwindcssAnimate from 'tailwindcss-animate'
 import typography from '@tailwindcss/typography'
+import designTokens from './tailwind.tokens.mjs'
 
 /** @type {import('tailwindcss').Config} */
 const config = {
@@ -46,6 +47,15 @@ const config = {
       },
     },
     extend: {
+      // Design tokens
+      spacing: designTokens.spacing,
+      boxShadow: designTokens.boxShadow,
+      zIndex: designTokens.zIndex,
+      fontSize: designTokens.fontSize,
+      transitionDuration: designTokens.transitionDuration,
+      borderWidth: designTokens.borderWidth,
+      opacity: designTokens.opacity,
+
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
