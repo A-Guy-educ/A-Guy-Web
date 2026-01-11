@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
-import { ViewToggle } from './ViewToggle'
-import { Media as MediaComponent } from '@/components/Media'
-import { ExerciseCard } from '@/app/(frontend)/courses/_components/ExerciseCard'
 import { EmptyState } from '@/app/(frontend)/courses/_components/EmptyState'
-import { useTranslations } from '@/providers/I18n'
+import { ExerciseCard } from '@/app/(frontend)/courses/_components/ExerciseCard'
+import { Media as MediaComponent } from '@/components/Media'
 import type { Exercise, Media as MediaType } from '@/payload-types'
+import { useTranslations } from '@/providers/I18n'
+import { useState } from 'react'
 import { ConvertButton } from './ConvertButton'
+import { ViewToggle } from './ViewToggle'
 
 type ViewMode = 'non-interactive' | 'interactive'
 
@@ -69,11 +69,7 @@ export function LessonContent({
                       />
                     )}
                     <div className="border rounded-lg overflow-hidden bg-gray-50">
-                      <MediaComponent
-                        resource={file}
-                        className="w-full"
-                        htmlElement={null}
-                      />
+                      <MediaComponent resource={file} className="w-full" htmlElement={null} />
                     </div>
                   </div>
                 ))}
