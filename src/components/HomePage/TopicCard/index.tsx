@@ -25,7 +25,9 @@ export function TopicCard({ chapter, progress, courseSlug }: TopicCardProps) {
             )}
             <CardTitle className="text-lg truncate">{chapter.title}</CardTitle>
             {chapter.description && (
-              <CardDescription className="line-clamp-2 text-sm">{chapter.description}</CardDescription>
+              <CardDescription className="line-clamp-2 text-sm">
+                {chapter.description}
+              </CardDescription>
             )}
           </div>
         </CardHeader>

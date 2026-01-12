@@ -33,9 +33,7 @@ export function TypingAnimation({
   return (
     <div className={`font-mono ${className}`} style={{ fontFamily: 'Courier New, monospace' }}>
       {displayedText}
-      {!isComplete && (
-        <span className="inline-block w-2 h-5 bg-foreground ml-1 animate-pulse" />
-      )}
+      {!isComplete && <span className="inline-block w-2 h-5 bg-foreground ml-1 animate-pulse" />}
     </div>
   )
 }

@@ -12,7 +12,8 @@ export async function GET(request: NextRequest) {
   try {
     const chapters = await queryChaptersByGrade({ gradeLevel: grade })
     const course = chapters[0]?.course
-    const courseSlug = typeof course === 'object' && course !== null && 'slug' in course ? course.slug : ''
+    const courseSlug =
+      typeof course === 'object' && course !== null && 'slug' in course ? course.slug : ''
 
     return NextResponse.json({
       chapters,

@@ -3,7 +3,13 @@
 import { useState } from 'react'
 import { TypingAnimation } from '@/components/shared/TypingAnimation'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { setUserProfile } from '@/lib/localStorage/userProfile'
 import { useTranslations } from '@/providers/I18n'
 
