@@ -6,9 +6,11 @@ import { TopicCard } from '@/components/HomePage/TopicCard'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/utilities/ui'
+import { useTranslations } from '@/providers/I18n'
 import type { Chapter, Course } from '@/payload-types'
 
 export function StudyContent() {
+  const t = useTranslations('study')
   const [chapters, setChapters] = useState<Chapter[]>([])
   const [courses, setCourses] = useState<Course[]>([])
   const [progressMap, setProgressMap] = useState<Record<string, number>>({})
@@ -79,14 +81,14 @@ export function StudyContent() {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center text-muted-foreground">טוען...</div>
+        <div className="text-center text-muted-foreground">{t('loading')}</div>
       </div>
     )
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">בחר קורס</h1>
+      <h1 className="text-3xl font-bold mb-8">{t('chooseCourse')}</h1>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-12">
         {courses.map((course) => (
           <Card
@@ -114,12 +116,12 @@ export function StudyContent() {
         ))}
       </div>
       {courses.length === 0 && (
-        <div className="text-center text-muted-foreground py-12">אין קורסים זמינים</div>
+        <div className="text-center text-muted-foreground py-12">{t('noCoursesAvailable')}</div>
       )}
 
       {courseSlug && (
         <>
-          <h2 className="text-2xl font-bold mb-6 mt-12">נושאי לימוד</h2>
+          <h2 className="text-2xl font-bold mb-6 mt-12">{t('studyTopics')}</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {chapters.map((chapter) => (
               <TopicCard
@@ -131,9 +133,7 @@ export function StudyContent() {
             ))}
           </div>
           {chapters.length === 0 && (
-            <div className="text-center text-muted-foreground py-12">
-              אין נושאים זמינים בקורס זה
-            </div>
+            <div className="text-center text-muted-foreground py-12">{t('noTopicsAvailable')}</div>
           )}
         </>
       )}
