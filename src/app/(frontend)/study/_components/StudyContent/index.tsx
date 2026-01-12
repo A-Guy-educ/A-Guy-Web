@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import { getUserProfile, getLocalProgress } from '@/lib/localStorage/userProfile'
 import { TopicCard } from '@/components/HomePage/TopicCard'
-import type { Chapter } from '@/payload-types'
+import { CourseSelector } from '@/components/HomePage/CourseSelector'
+import type { Chapter, Course } from '@/payload-types'
 
 export function StudyContent() {
   const [chapters, setChapters] = useState<Chapter[]>([])
@@ -43,6 +44,23 @@ export function StudyContent() {
     loadData()
   }, [])
 
+  const handleCourseSelect = async (course: Course) => {
+    if (course.slug) {
+      setCourseSlug(course.slug)
+      setIsLoading(true)
+      try {
+        // Load chapters for the selected course
+        const response = await fetch(`/api/chapters/by-course?courseSlug=${course.slug}`)
+        const data = await response.json()
+        setChapters(data.chapters || [])
+      } catch (error) {
+        console.error('Failed to load chapters for course:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -53,7 +71,12 @@ export function StudyContent() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">נושאי לימוד</h1>
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-3xl font-bold">נושאי לימוד</h1>
+        <div className="w-full sm:w-auto sm:min-w-[300px]">
+          <CourseSelector selectedCourseSlug={courseSlug} onCourseSelect={handleCourseSelect} />
+        </div>
+      </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {chapters.map((chapter) => (
           <TopicCard
