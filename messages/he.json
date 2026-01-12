@@ -137,5 +137,12 @@
       "gradeLabel": "כיתה {{grade}}",
       "letsStart": "בואו נתחיל!"
     }
+  },
+  "study": {
+    "loading": "טוען...",
+    "chooseCourse": "בחר קורס",
+    "noCoursesAvailable": "אין קורסים זמינים",
+    "studyTopics": "נושאי לימוד",
+    "noTopicsAvailable": "אין נושאים זמינים בקורס זה"
   }
 }

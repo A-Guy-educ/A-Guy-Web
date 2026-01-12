@@ -137,5 +137,12 @@
       "gradeLabel": "Grade {{grade}}",
       "letsStart": "Let's start!"
     }
+  },
+  "study": {
+    "loading": "Loading...",
+    "chooseCourse": "Choose Course",
+    "noCoursesAvailable": "No courses available",
+    "studyTopics": "Study Topics",
+    "noTopicsAvailable": "No topics available in this course"
   }
 }
