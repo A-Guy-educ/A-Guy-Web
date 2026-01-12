@@ -88,8 +88,9 @@ export function CourseSelector({
       {open && (
         <div
           className={cn(
-            'absolute z-50 mt-2 w-full rounded-md border bg-popover p-4 text-popover-foreground shadow-md',
+            'absolute z-50 mt-2 left-0 right-0 sm:left-auto sm:right-0 rounded-md border bg-popover p-4 text-popover-foreground shadow-md',
             'animate-in fade-in-0 zoom-in-95',
+            'w-[calc(100vw-2rem)] sm:w-[500px]',
           )}
         >
           <div className="grid gap-3 max-h-[400px] overflow-y-auto">
