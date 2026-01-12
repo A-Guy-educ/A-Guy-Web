@@ -35,10 +35,7 @@ export function CourseCardDropdown({ course, className, onClick }: CourseCardDro
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             {course.courseLabel && (
-              <Badge
-                variant="secondary"
-                className="mb-2 text-xs font-semibold w-fit"
-              >
+              <Badge variant="secondary" className="mb-2 text-xs font-semibold w-fit">
                 {course.courseLabel}
               </Badge>
             )}
