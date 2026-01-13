@@ -19,11 +19,7 @@ export const PDFPreviewClient: React.FC = () => {
 
   return (
     <div className="p-4">
-      <iframe
-        src={viewerUrl}
-        className="w-full h-[500px] border rounded-lg"
-        title="PDF Preview"
-      />
+      <iframe src={viewerUrl} className="w-full h-[500px] border rounded-lg" title="PDF Preview" />
     </div>
   )
 }
