@@ -46,7 +46,7 @@ const eslintConfig = [
     },
   },
   {
-    ignores: ['.next/', 'node_modules/', '.cache/', 'dist/', 'build/', 'coverage/', 'public/pdfjs/'],
+    ignores: ['.next/', 'node_modules/', '.cache/', 'dist/', 'build/', 'coverage/'],
   },
 ]
 
