@@ -8,7 +8,7 @@
  * - Long-term memory across sessions
  */
 import { expect, test, type Page } from '@playwright/test'
-import { setupAuthenticatedUser } from './helpers/auth'
+import { setupAuthenticatedUser, generateTestUserEmail, cleanupTestUsers } from './helpers/auth'
 import { getTestCourseData, buildLessonUrl } from './helpers/courses'
 
 // Skip all tests if OPENAI_API_KEY is not set
@@ -27,6 +27,11 @@ test.describe('Memory System E2E Tests', () => {
         'No test course data available. Please ensure at least one published course with chapters and lessons exists.',
       )
     }
+  })
+
+  // Clean up all test users after all tests complete
+  test.afterAll(async () => {
+    await cleanupTestUsers()
   })
 
   /**
@@ -76,9 +81,9 @@ test.describe('Memory System E2E Tests', () => {
 
   test.describe('Chat with Memory Extraction', () => {
     test('should extract and persist user preferences from conversation', async ({ page }) => {
-      // Authenticate user
+      // Authenticate user with unique email
       await setupAuthenticatedUser(page, {
-        email: 'test@example.com',
+        email: generateTestUserEmail('memory-prefs'),
         password: 'password123',
       })
 
@@ -112,7 +117,7 @@ test.describe('Memory System E2E Tests', () => {
 
     test('should maintain conversation context across multiple messages', async ({ page }) => {
       await setupAuthenticatedUser(page, {
-        email: 'test@example.com',
+        email: generateTestUserEmail('memory-context'),
         password: 'password123',
       })
 
@@ -148,7 +153,7 @@ test.describe('Memory System E2E Tests', () => {
   test.describe('Long-Term Memory Retrieval', () => {
     test('should retrieve memories from previous conversations', async ({ page }) => {
       await setupAuthenticatedUser(page, {
-        email: 'test@example.com',
+        email: generateTestUserEmail('memory-retrieval'),
         password: 'password123',
       })
 
@@ -186,7 +191,7 @@ test.describe('Memory System E2E Tests', () => {
     test('should handle conversations when no memories exist', async ({ page }) => {
       // Create a new user without memories
       await setupAuthenticatedUser(page, {
-        email: `newuser-${Date.now()}@example.com`,
+        email: generateTestUserEmail('memory-newuser'),
         password: 'password123',
       })
 
@@ -210,7 +215,7 @@ test.describe('Memory System E2E Tests', () => {
   test.describe('Summary Maintenance', () => {
     test('should handle long conversations with automatic summarization', async ({ page }) => {
       await setupAuthenticatedUser(page, {
-        email: 'test@example.com',
+        email: generateTestUserEmail('memory-summary'),
         password: 'password123',
       })
 
@@ -248,7 +253,7 @@ test.describe('Memory System E2E Tests', () => {
     test('should not leak memories between different users', async ({ page, context }) => {
       // User 1: Set a preference
       await setupAuthenticatedUser(page, {
-        email: 'user1@example.com',
+        email: generateTestUserEmail('tenant-user1'),
         password: 'password123',
       })
 
@@ -269,7 +274,7 @@ test.describe('Memory System E2E Tests', () => {
       // User 2: Ask about preferences (should not know about user1's preferences)
       const page2 = await context.newPage()
       await setupAuthenticatedUser(page2, {
-        email: 'user2@example.com',
+        email: generateTestUserEmail('tenant-user2'),
         password: 'password123',
       })
 
@@ -293,7 +298,7 @@ test.describe('Memory System E2E Tests', () => {
   test.describe('Error Handling', () => {
     test('should gracefully handle chat errors', async ({ page }) => {
       await setupAuthenticatedUser(page, {
-        email: 'test@example.com',
+        email: generateTestUserEmail('error-handling'),
         password: 'password123',
       })
 
@@ -317,7 +322,7 @@ test.describe('Memory System E2E Tests', () => {
 
     test('should handle network errors gracefully', async ({ page, context }) => {
       await setupAuthenticatedUser(page, {
-        email: 'test@example.com',
+        email: generateTestUserEmail('error-network'),
         password: 'password123',
       })
 
@@ -354,7 +359,7 @@ test.describe('Memory System E2E Tests', () => {
   test.describe('Performance', () => {
     test('should respond to messages within reasonable time', async ({ page }) => {
       await setupAuthenticatedUser(page, {
-        email: 'test@example.com',
+        email: generateTestUserEmail('performance'),
         password: 'password123',
       })
 

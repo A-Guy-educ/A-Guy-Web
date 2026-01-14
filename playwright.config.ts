@@ -15,24 +15,19 @@ const dirname = path.dirname(filename)
 // Environment variables can be overridden via CI secrets or process.env
 config({ path: path.resolve(dirname, '.env') })
 
-// Validate DATABASE_URL in CI environment
-// In CI, we should use MongoDB Atlas (via secrets), not localhost
-if (process.env.CI && !process.env.DATABASE_URL) {
-  throw new Error(
-    'DATABASE_URL must be set in CI environment. ' +
-      'Set it in GitHub Secrets (Settings → Secrets and variables → Actions) or workflow env. ' +
-      'For MongoDB Atlas, use: mongodb+srv://username:password@cluster.mongodb.net/database',
-  )
-}
-
-// Determine DATABASE_URL: use provided value or fallback to localhost for local E2E tests only
-const databaseUrl = process.env.DATABASE_URL || 'mongodb://127.0.0.1:27017/test'
+// Determine DATABASE_URL for webServer
+// E2E_DATABASE_URL will be set by globalSetup (testcontainers)
+// Otherwise use provided DATABASE_URL or fallback
+const databaseUrl =
+  process.env.E2E_DATABASE_URL || process.env.DATABASE_URL || 'mongodb://127.0.0.1:27017/test'
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
   testDir: './tests/e2e',
+  globalSetup: './tests/e2e/global-setup.ts',
+  globalTeardown: './tests/e2e/global-teardown.ts',
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */

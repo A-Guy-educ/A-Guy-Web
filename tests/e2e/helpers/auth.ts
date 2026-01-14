@@ -11,8 +11,19 @@ export interface TestUser {
   id?: string
 }
 
+// Registry to track test users created during E2E tests for cleanup
+const testUserRegistry: Set<string> = new Set()
+
+/**
+ * Generate a unique test user email
+ */
+export function generateTestUserEmail(prefix = 'e2e-test'): string {
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}@example.com`
+}
+
 /**
  * Create a test user via Payload Local API
+ * Automatically registers the user for cleanup
  */
 export async function createTestUser(user: TestUser): Promise<TestUser> {
   const payload = await getPayload({ config })
@@ -29,21 +40,34 @@ export async function createTestUser(user: TestUser): Promise<TestUser> {
   })
 
   if (existing.docs.length > 0) {
-    return {
+    const existingUser = {
       ...user,
       id: existing.docs[0].id,
     }
+    // Register for cleanup even if it already existed
+    if (existingUser.id) {
+      testUserRegistry.add(existingUser.id)
+    }
+    return existingUser
   }
 
   // Create new user
+  // Payload automatically hashes passwords when creating via Local API
+  // Add name field (required by some hooks)
   const created = await payload.create({
     collection: 'users',
     data: {
+      name: user.email.split('@')[0] || 'Test User', // Extract name from email
       email: user.email,
-      password: user.password,
-      role: 'student', // Use 'role' (singular) not 'roles' - matches Users collection schema
+      password: user.password, // Payload will hash this automatically
+      role: 'student',
     },
   })
+
+  // Register for cleanup
+  if (created.id) {
+    testUserRegistry.add(created.id)
+  }
 
   return {
     ...user,
@@ -156,6 +180,65 @@ export async function authenticateViaAPI(page: Page, user: TestUser): Promise<vo
 export async function authenticateViaAdminLogin(page: Page, user: TestUser): Promise<void> {
   // Use API-based authentication instead
   return authenticateViaAPI(page, user)
+}
+
+/**
+ * Delete a test user and all associated data
+ */
+export async function deleteTestUser(userId: string): Promise<void> {
+  if (!userId) return
+
+  const payload = await getPayload({ config })
+
+  try {
+    // Delete associated memory items
+    const memories = await payload.find({
+      collection: 'memory_items',
+      where: { userId: { equals: userId } },
+      limit: 1000, // Adjust if needed
+    })
+    for (const mem of memories.docs) {
+      await payload.delete({
+        collection: 'memory_items',
+        id: mem.id,
+      })
+    }
+
+    // Delete associated conversations
+    const conversations = await payload.find({
+      collection: 'conversations',
+      where: { user: { equals: userId } },
+      limit: 1000,
+    })
+    for (const conv of conversations.docs) {
+      await payload.delete({
+        collection: 'conversations',
+        id: conv.id,
+      })
+    }
+
+    // Delete the user
+    await payload.delete({
+      collection: 'users',
+      id: userId,
+    })
+
+    // Remove from registry
+    testUserRegistry.delete(userId)
+  } catch (error) {
+    console.warn(`Failed to delete test user ${userId}:`, error)
+  }
+}
+
+/**
+ * Clean up all registered test users
+ * Call this in afterAll hooks
+ */
+export async function cleanupTestUsers(): Promise<void> {
+  const userIds = Array.from(testUserRegistry)
+  testUserRegistry.clear()
+
+  await Promise.all(userIds.map((id) => deleteTestUser(id)))
 }
 
 /**
