@@ -55,9 +55,23 @@ export function renderViewerHtml(html: string, css: string): string {
   // Step 5: Inline rewritten CSS
   // Note: CSS should already have image paths rewritten via rewriteCss() before calling this
   // Remove external CSS link and inject inline CSS
-  result = result
-    .replace('href="viewer.css"', 'href="data:text/css;base64,REMOVED"')
-    .replace('</head>', `<style>${css}</style>\n</head>`)
+  result = result.replace('href="viewer.css"', 'href="data:text/css;base64,REMOVED"').replace(
+    '</head>',
+    `<style>${css}</style>\n<style>
+      /* Remove padding and fix scrolling for iframe embedding */
+      body {
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+      }
+      #viewerContainer {
+        padding: 0 !important;
+      }
+      #mainContainer {
+        padding: 0 !important;
+      }
+    </style>\n</head>`,
+  )
 
   logger.debug(
     { originalSize: html.length, rewrittenSize: result.length },
