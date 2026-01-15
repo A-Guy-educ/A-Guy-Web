@@ -168,8 +168,9 @@ afterAll(async () => {
 })
 
 /**
- * Simulate fetching conversation via REST API (as frontend does)
- * Uses Payload's Local API with proper access control
+ * Simulate fetching conversation via Payload REST API (as frontend does)
+ * Uses Payload's Local API to simulate REST API behavior with access control
+ * The isOwner access control automatically filters by authenticated user
  */
 async function fetchConversationViaREST(
   payload: Payload,
@@ -181,13 +182,15 @@ async function fetchConversationViaREST(
   messages: Array<{ role: string; content: string }>
   conversationId?: string
 }> {
-  // Simulate what the frontend API service does
-  // Use Payload's Local API with proper access control
+  // Simulate what the frontend API service does via Payload REST API
+  // The isOwner access control should automatically add { user: { equals: userId } } to the query
   const user = await payload.findByID({
     collection: 'users',
     id: userId,
   })
 
+  // Simulate REST API query - Payload's access control merges with where query
+  // The isOwner access control returns { user: { equals: user.id } } which gets merged
   const result = await payload.find({
     collection: 'conversations',
     where: {
@@ -198,7 +201,7 @@ async function fetchConversationViaREST(
     },
     limit: 1,
     user: user as any,
-    overrideAccess: false, // CRITICAL: Enforce access control
+    overrideAccess: false, // CRITICAL: Enforce access control (isOwner will filter by user)
   })
 
   if (result.docs.length === 0) {

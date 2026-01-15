@@ -90,8 +90,9 @@ export const apiService = {
   },
 
   /**
-   * Fetch existing conversation history for a context using Payload's built-in REST API
-   * Access control is automatically enforced by Payload based on collection access rules
+   * Fetch existing conversation history for a context using Payload's REST API
+   * Access control (isOwner) automatically filters by authenticated user
+   * Payload merges the access control constraint with the where query
    *
    * @param contextKey - The context key (e.g., "exercises:abc123")
    * @returns Conversation history with messages
@@ -99,7 +100,8 @@ export const apiService = {
   async getConversation(contextKey: string): Promise<ConversationApiResponse> {
     try {
       // Use Payload's auto-generated REST API endpoint
-      // Access control (isOwner) automatically filters by authenticated user
+      // The isOwner access control automatically adds { user: { equals: user.id } } to the query
+      // Payload merges this with our where query, ensuring only the authenticated user's conversations are returned
       const whereQuery = JSON.stringify({
         and: [
           { contextKey: { equals: contextKey } },
