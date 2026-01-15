@@ -71,10 +71,7 @@ export async function agentChat(req: PayloadRequest & { json?: () => Promise<unk
 
     // 3) Find or create conversation
     const whereClause: Where = {
-      and: [
-        { user: { equals: req.user.id } },
-        { [contextField]: { equals: contextId } },
-      ],
+      and: [{ user: { equals: req.user.id } }, { [contextField]: { equals: contextId } }],
     }
 
     const existingConv = await req.payload.find({
@@ -148,17 +145,17 @@ export async function agentChat(req: PayloadRequest & { json?: () => Promise<unk
     })
 
     // DEBUG: Log message count
-      reqLogger.info(
-        {
-          conversationId,
-          totalMessages: allMessages.length,
-          messagePreview: allMessages.slice(-3).map((m) => ({
-            role: m.role,
-            content: typeof m.content === 'string' ? m.content.substring(0, 50) : '',
-          })),
-        },
-        '[DEBUG] Conversation messages loaded',
-      )
+    reqLogger.info(
+      {
+        conversationId,
+        totalMessages: allMessages.length,
+        messagePreview: allMessages.slice(-3).map((m) => ({
+          role: m.role,
+          content: typeof m.content === 'string' ? m.content.substring(0, 50) : '',
+        })),
+      },
+      '[DEBUG] Conversation messages loaded',
+    )
 
     // 6) Get recent window from persisted messages
     const recentMessages = getRecentWindow(allMessages as Message[])
