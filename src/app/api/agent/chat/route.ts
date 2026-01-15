@@ -15,16 +15,26 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     // At least one context ID must be provided (exerciseId, lessonId, chapterId, or courseId)
-    const hasContext =
-      body.exerciseId || body.lessonId || body.chapterId || body.courseId
+    const hasContext = body.exerciseId || body.lessonId || body.chapterId || body.courseId
 
     if (!hasContext) {
       logger.warn(
-        { requestId, body: { exerciseId: body.exerciseId, lessonId: body.lessonId, chapterId: body.chapterId, courseId: body.courseId } },
+        {
+          requestId,
+          body: {
+            exerciseId: body.exerciseId,
+            lessonId: body.lessonId,
+            chapterId: body.chapterId,
+            courseId: body.courseId,
+          },
+        },
         'Missing context ID in chat request (requires exerciseId, lessonId, chapterId, or courseId)',
       )
       return NextResponse.json(
-        { error: 'Missing context ID (requires exerciseId, lessonId, chapterId, or courseId)', requestId },
+        {
+          error: 'Missing context ID (requires exerciseId, lessonId, chapterId, or courseId)',
+          requestId,
+        },
         { status: 400 },
       )
     }
