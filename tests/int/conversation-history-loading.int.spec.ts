@@ -191,6 +191,7 @@ async function fetchConversationViaREST(
 
   // Simulate REST API query - Payload's access control merges with where query
   // The isOwner access control returns { user: { equals: user.id } } which gets merged
+  // Sort by lastMessageAt descending to get the most recent conversation (matches actual implementation)
   const result = await payload.find({
     collection: 'conversations',
     where: {
@@ -200,6 +201,7 @@ async function fetchConversationViaREST(
       ],
     },
     limit: 1,
+    sort: '-lastMessageAt', // Match actual implementation - sort by most recent
     user: user as any,
     overrideAccess: false, // CRITICAL: Enforce access control (isOwner will filter by user)
   })
@@ -432,5 +434,135 @@ describe.skipIf(!hasDatabaseUrl)('Conversation History Loading', () => {
     expect(fetched.success).toBe(true)
     expect(fetched.exists).toBe(false)
     expect(fetched.messages).toEqual([])
+  })
+
+  it('should filter by user ID and return most recent conversation when multiple users have conversations', async () => {
+    const contextKey = `exercises:${testExerciseId}`
+
+    // User 1 sends a message and gets a conversation
+    const req1 = {
+      payload,
+      user: { id: testUserId } as any,
+      json: async () => ({
+        message: 'User 1 first message',
+        acknowledgment: 'ack',
+        exerciseId: testExerciseId,
+      }),
+    } as unknown as PayloadRequest & { json: () => Promise<unknown> }
+
+    const res1 = await agentChat(req1)
+    expect(res1.status).toBe(200)
+    const body1 = await res1.json()
+    const conversationId1 = body1.conversationId
+
+    // Wait a bit to ensure different timestamps
+    await new Promise((resolve) => setTimeout(resolve, 100))
+
+    // User 2 sends a message and gets a different conversation
+    const req2 = {
+      payload,
+      user: { id: testUserId2 } as any,
+      json: async () => ({
+        message: 'User 2 first message',
+        acknowledgment: 'ack',
+        exerciseId: testExerciseId,
+      }),
+    } as unknown as PayloadRequest & { json: () => Promise<unknown> }
+
+    const res2 = await agentChat(req2)
+    expect(res2.status).toBe(200)
+    const body2 = await res2.json()
+    const conversationId2 = body2.conversationId
+
+    // Wait a bit more
+    await new Promise((resolve) => setTimeout(resolve, 100))
+
+    // User 1 sends another message (updates their conversation's lastMessageAt)
+    const req3 = {
+      payload,
+      user: { id: testUserId } as any,
+      json: async () => ({
+        message: 'User 1 second message',
+        acknowledgment: 'ack',
+        exerciseId: testExerciseId,
+      }),
+    } as unknown as PayloadRequest & { json: () => Promise<unknown> }
+
+    const res3 = await agentChat(req3)
+    expect(res3.status).toBe(200)
+    const body3 = await res3.json()
+    // Should be the same conversation ID (same user, same context)
+    expect(body3.conversationId).toBe(conversationId1)
+
+    // User 1 should get their own conversation (most recent one)
+    const fetched1 = await fetchConversationViaREST(payload, testUserId, contextKey)
+    expect(fetched1.success).toBe(true)
+    expect(fetched1.exists).toBe(true)
+    expect(fetched1.conversationId).toBe(conversationId1)
+    expect(fetched1.messages.some((m) => m.content.includes('User 1'))).toBe(true)
+    expect(fetched1.messages.some((m) => m.content.includes('User 2'))).toBe(false)
+
+    // User 2 should get their own conversation
+    const fetched2 = await fetchConversationViaREST(payload, testUserId2, contextKey)
+    expect(fetched2.success).toBe(true)
+    expect(fetched2.exists).toBe(true)
+    expect(fetched2.conversationId).toBe(conversationId2)
+    expect(fetched2.messages.some((m) => m.content.includes('User 2'))).toBe(true)
+    expect(fetched2.messages.some((m) => m.content.includes('User 1'))).toBe(false)
+
+    // Verify conversations are different
+    expect(conversationId1).not.toBe(conversationId2)
+  })
+
+  it('should return most recent conversation when user has multiple conversations (edge case)', async () => {
+    // This test verifies the sort order works correctly
+    // In practice, the unique index prevents multiple active conversations per user+context
+    // But we test the sort to ensure it works if somehow multiple exist
+
+    const contextKey = `exercises:${testExerciseId}-sort-test-${Date.now()}`
+
+    // Create first conversation manually (bypassing unique index by using different contextKey)
+    const conv1 = await payload.create({
+      collection: 'conversations',
+      data: {
+        user: testUserId,
+        contextRef: { relationTo: 'exercises', value: testExerciseId },
+        contextKey,
+        messages: [
+          { role: 'user', content: 'First message', timestamp: new Date(Date.now() - 2000).toISOString() },
+          { role: 'assistant', content: 'Response 1', timestamp: new Date(Date.now() - 1000).toISOString() },
+        ],
+        lastMessageAt: new Date(Date.now() - 1000).toISOString(),
+      } as any,
+    })
+
+    // Wait to ensure different timestamp
+    await new Promise((resolve) => setTimeout(resolve, 100))
+
+    // Create second conversation with more recent lastMessageAt
+    const conv2 = await payload.create({
+      collection: 'conversations',
+      data: {
+        user: testUserId,
+        contextRef: { relationTo: 'exercises', value: testExerciseId },
+        contextKey,
+        messages: [
+          { role: 'user', content: 'Second message', timestamp: new Date().toISOString() },
+          { role: 'assistant', content: 'Response 2', timestamp: new Date().toISOString() },
+        ],
+        lastMessageAt: new Date().toISOString(),
+      } as any,
+    })
+
+    // Fetch conversation - should return the most recent one (conv2)
+    const fetched = await fetchConversationViaREST(payload, testUserId, contextKey)
+    expect(fetched.success).toBe(true)
+    expect(fetched.exists).toBe(true)
+    expect(fetched.conversationId).toBe(conv2.id) // Should be the more recent one
+    expect(fetched.messages.some((m) => m.content.includes('Second message'))).toBe(true)
+
+    // Clean up
+    await payload.delete({ collection: 'conversations', id: conv1.id })
+    await payload.delete({ collection: 'conversations', id: conv2.id })
   })
 })
