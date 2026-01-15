@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { useFormFields } from '@payloadcms/ui'
+import { PDFMedia } from '@/components/Media/PDFMedia'
 
 export const PDFPreviewClient: React.FC = () => {
   const urlField = useFormFields(([fields]) => fields.url)
@@ -15,13 +16,9 @@ export const PDFPreviewClient: React.FC = () => {
     )
   }
 
-  // Load PDF.js viewer via proxy (Blob CDN sets Content-Disposition: attachment)
-  // Add version parameter to bust cache when viewer files are updated
-  const viewerUrl = `/api/pdfjs-viewer?file=${encodeURIComponent(url)}&v=4.4.168`
-
   return (
-    <div className="p-4">
-      <iframe src={viewerUrl} className="w-full h-[500px] border rounded-lg" title="PDF Preview" />
+    <div className="p-4 h-[500px]">
+      <PDFMedia resource={{ url } as any} />
     </div>
   )
 }

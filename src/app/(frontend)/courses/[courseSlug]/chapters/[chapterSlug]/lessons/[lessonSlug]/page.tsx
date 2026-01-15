@@ -58,7 +58,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const hasContent = validFiles.length > 0
 
   const pdfContent = hasContent ? (
-    <div className="w-full max-w-[920px] h-full flex flex-col">
+    <div className="w-full h-full flex flex-col">
       {validFiles.map((file, index) => (
         <div key={file.id} className="w-full h-full flex-shrink-0">
           {index > 0 && (
@@ -71,7 +71,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
       ))}
     </div>
   ) : (
-    <div className="w-full max-w-[920px] max-h-full flex items-center justify-center">
+    <div className="w-full h-full flex items-center justify-center">
       <EmptyState type="noPDF" />
     </div>
   )
