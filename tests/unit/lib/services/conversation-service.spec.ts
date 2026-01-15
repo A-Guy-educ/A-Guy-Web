@@ -298,11 +298,12 @@ describe('ConversationService (instance methods)', () => {
 
   describe('getOrCreateActiveConversation', () => {
     it('should return existing active conversation', async () => {
+      // INVARIANT: Active = archivedAt field is MISSING
       const existingConversation = {
         id: 'conv-123',
         user: 'user-123',
         contextKey: 'exercises:exercise-123',
-        archivedAt: null,
+        // archivedAt field missing = active
       }
 
       mockPayload.find = vi.fn().mockResolvedValue({
@@ -341,11 +342,12 @@ describe('ConversationService (instance methods)', () => {
 
   describe('resetConversation', () => {
     it('should archive existing and create new conversation', async () => {
+      // INVARIANT: Active = archivedAt field is MISSING
       const existingConversation = {
         id: 'old-conv-123',
         user: 'user-123',
         contextKey: 'exercises:exercise-123',
-        archivedAt: null,
+        // archivedAt field missing = active
       }
 
       mockPayload.find = vi.fn().mockResolvedValue({
@@ -356,11 +358,12 @@ describe('ConversationService (instance methods)', () => {
         id: 'old-conv-123',
         archivedAt: new Date().toISOString(),
       })
+      // INVARIANT: Active = archivedAt field is MISSING
       mockPayload.create = vi.fn().mockResolvedValue({
         id: 'new-conv-456',
         user: 'user-123',
         contextKey: 'exercises:exercise-123',
-        archivedAt: null,
+        // archivedAt field missing = active
       })
 
       const service = new ConversationService(mockPayload)
@@ -373,11 +376,12 @@ describe('ConversationService (instance methods)', () => {
 
     it('should create new conversation when none exists', async () => {
       mockPayload.find = vi.fn().mockResolvedValue({ docs: [], totalDocs: 0 })
+      // INVARIANT: Active = archivedAt field is MISSING
       mockPayload.create = vi.fn().mockResolvedValue({
         id: 'new-conv-123',
         user: 'user-123',
         contextKey: 'exercises:exercise-123',
-        archivedAt: null,
+        // archivedAt field missing = active
       })
 
       const service = new ConversationService(mockPayload)
@@ -429,11 +433,12 @@ describe('ConversationService (instance methods)', () => {
 
   describe('getActiveConversation', () => {
     it('should return active conversation by context key', async () => {
+      // INVARIANT: Active = archivedAt field is MISSING
       const mockConversation = {
         id: 'conv-123',
         user: 'user-123',
         contextKey: 'exercises:exercise-123',
-        archivedAt: null,
+        // archivedAt field missing = active
       }
 
       mockPayload.find = vi.fn().mockResolvedValue({
@@ -517,13 +522,14 @@ describe('Context Resolution Priority', () => {
 })
 
 describe('Archival via archivedAt', () => {
-  it('should use archivedAt=null for active conversations', () => {
+  it('should omit archivedAt field for active conversations', () => {
+    // INVARIANT: Active = archivedAt field is MISSING
     const conversation = {
       id: 'conv-123',
-      archivedAt: null,
+      // archivedAt field missing = active
     }
 
-    expect(conversation.archivedAt).toBeNull()
+    expect(conversation.archivedAt).toBeUndefined()
   })
 
   it('should use archivedAt=Date for archived conversations', () => {

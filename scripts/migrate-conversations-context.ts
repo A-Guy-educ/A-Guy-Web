@@ -8,7 +8,9 @@
  * 2. Add contextKey field (derived operational key)
  * 3. Add archivedAt field (single source of truth for archival)
  * 4. Keep exercise field for backwards compatibility (marked deprecated)
- * 5. Set archivedAt: null for all existing conversations (all are active)
+ * 5. Active conversations must NOT have archivedAt field (missing = active)
+ *    NOTE: After migration, run normalize-conversations-archivedAt.ts to clean up any legacy null values
+ *    INVARIANT: Active = archivedAt field is MISSING. Archived = archivedAt field EXISTS.
  *
  * Run with: pnpm exec tsx scripts/migrate-conversations-context.ts
  *
@@ -109,10 +111,12 @@ async function migrateConversations(options: { dryRun?: boolean } = {}): Promise
         const contextKey = `exercises:${exerciseId}`
 
         // Prepare update data
+        // INVARIANT: Active = archivedAt field is MISSING. Do NOT set archivedAt.
+        // Run normalize-conversations-archivedAt.ts after migration to clean up any null values.
         const updateData = {
           contextRef,
           contextKey,
-          archivedAt: null, // All existing conversations are active
+          // Do NOT set archivedAt - active conversations must NOT have this field
           // Keep exercise field for backwards compatibility (marked deprecated in schema)
         }
 

@@ -61,13 +61,14 @@ describe('Conversations Schema', () => {
   })
 
   describe('archivedAt archival pattern', () => {
-    it('should use null for active conversations', () => {
+    it('should omit archivedAt field for active conversations', () => {
+      // INVARIANT: Active = archivedAt field is MISSING
       const activeConversation = {
         id: 'conv-1',
-        archivedAt: null,
+        // archivedAt field is NOT set (missing)
       }
 
-      expect(activeConversation.archivedAt).toBeNull()
+      expect(activeConversation.archivedAt).toBeUndefined()
     })
 
     it('should use Date for archived conversations', () => {
@@ -81,10 +82,12 @@ describe('Conversations Schema', () => {
     })
 
     it('should differentiate active from archived', () => {
-      const active = { archivedAt: null }
+      // INVARIANT: Active = field missing, Archived = field exists
+      const active = {} // archivedAt field missing
       const archived = { archivedAt: new Date() }
 
-      expect(active.archivedAt).toBeNull()
+      expect(active.archivedAt).toBeUndefined()
+      expect(archived.archivedAt).toBeDefined()
       expect(archived.archivedAt).not.toBeNull()
     })
 
@@ -93,11 +96,12 @@ describe('Conversations Schema', () => {
       // Only archivedAt is used for archival
       const conversation = {
         id: 'conv-1',
-        archivedAt: null,
+        // archivedAt field missing = active
         // status field should not exist
       }
 
       expect(conversation.hasOwnProperty('status')).toBe(false)
+      expect(conversation.hasOwnProperty('archivedAt')).toBe(false)
     })
   })
 
@@ -115,8 +119,8 @@ describe('Conversations Schema', () => {
         {
           name: 'Two active (same user+context) - should fail',
           conversations: [
-            { user: 'u1', contextKey: 'exercises:e1', archivedAt: null },
-            { user: 'u1', contextKey: 'exercises:e1', archivedAt: null },
+            { user: 'u1', contextKey: 'exercises:e1' }, // archivedAt missing = active
+            { user: 'u1', contextKey: 'exercises:e1' }, // archivedAt missing = active
           ],
           shouldBeAllowed: false,
         },
@@ -131,7 +135,7 @@ describe('Conversations Schema', () => {
         {
           name: 'One active + one archived - should pass',
           conversations: [
-            { user: 'u1', contextKey: 'exercises:e1', archivedAt: null },
+            { user: 'u1', contextKey: 'exercises:e1' }, // archivedAt missing = active
             { user: 'u1', contextKey: 'exercises:e1', archivedAt: new Date('2024-01-01') },
           ],
           shouldBeAllowed: true,
@@ -139,16 +143,16 @@ describe('Conversations Schema', () => {
         {
           name: 'Different users (same context) - should pass',
           conversations: [
-            { user: 'u1', contextKey: 'exercises:e1', archivedAt: null },
-            { user: 'u2', contextKey: 'exercises:e1', archivedAt: null },
+            { user: 'u1', contextKey: 'exercises:e1' }, // archivedAt missing = active
+            { user: 'u2', contextKey: 'exercises:e1' }, // archivedAt missing = active
           ],
           shouldBeAllowed: true,
         },
         {
           name: 'Same user (different contexts) - should pass',
           conversations: [
-            { user: 'u1', contextKey: 'exercises:e1', archivedAt: null },
-            { user: 'u1', contextKey: 'exercises:e2', archivedAt: null },
+            { user: 'u1', contextKey: 'exercises:e1' }, // archivedAt missing = active
+            { user: 'u1', contextKey: 'exercises:e2' }, // archivedAt missing = active
           ],
           shouldBeAllowed: true,
         },
@@ -365,13 +369,14 @@ describe('Conversation Access Control', () => {
     })
 
     it('should filter active conversations', () => {
+      // INVARIANT: Active = archivedAt field is MISSING
       const conversations = [
-        { id: 'c1', archivedAt: null }, // active
+        { id: 'c1' }, // active (archivedAt missing)
         { id: 'c2', archivedAt: new Date('2024-01-01') }, // archived
-        { id: 'c3', archivedAt: null }, // active
+        { id: 'c3' }, // active (archivedAt missing)
       ]
 
-      const activeConversations = conversations.filter((c) => c.archivedAt === null)
+      const activeConversations = conversations.filter((c) => c.archivedAt === undefined)
       expect(activeConversations).toHaveLength(2)
     })
   })
