@@ -4,6 +4,8 @@
  * Encapsulates all API calls with error handling.
  * Provides simple interface for components to interact with backend endpoints.
  */
+import { ChatRole } from '@/lib/ai/chat-message-role'
+import { logger } from '@/utilities/logger'
 
 export interface ChatApiResponse {
   success: boolean
@@ -111,10 +113,7 @@ export const apiService = {
 
       const url = `/api/conversations?where=${encodeURIComponent(whereQuery)}&limit=1&depth=0`
       
-      // Log for debugging
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[getConversation] Fetching conversation:', { contextKey, url })
-      }
+      logger.debug({ contextKey, url }, '[getConversation] Fetching conversation')
 
       // Include depth=0 to ensure messages array is populated (messages is not a relationship)
       const response = await fetch(url, {
@@ -127,11 +126,15 @@ export const apiService = {
 
       if (!response.ok) {
         // Log the full error for debugging
-        console.error('[getConversation] API error:', {
-          status: response.status,
-          statusText: response.statusText,
-          data,
-        })
+        logger.error(
+          {
+            status: response.status,
+            statusText: response.statusText,
+            data,
+            contextKey,
+          },
+          '[getConversation] API error',
+        )
 
         if (response.status === 401 || response.status === 403) {
           return { success: false, exists: false, messages: [], authRequired: true }
@@ -156,20 +159,20 @@ export const apiService = {
         const messages = rawMessages
           .filter((msg) => msg && msg.role && msg.content) // Filter out invalid messages
           .map((msg) => ({
-            role: msg.role,
+            role: msg.role === ChatRole.User || msg.role === 'user' ? ChatRole.User : ChatRole.Assistant,
             content: msg.content,
           }))
 
-        // Log for debugging (can be removed in production)
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[getConversation] Loaded conversation:', {
+        logger.debug(
+          {
             conversationId: conversation.id,
             contextKey,
             rawMessageCount: rawMessages.length,
             validMessageCount: messages.length,
             hasMessages: rawMessages.length > 0,
-          })
-        }
+          },
+          '[getConversation] Loaded conversation',
+        )
 
         return {
           success: true,
@@ -181,9 +184,7 @@ export const apiService = {
       }
 
       // No conversation exists yet
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[getConversation] No conversation found for contextKey:', contextKey)
-      }
+      logger.debug({ contextKey }, '[getConversation] No conversation found for contextKey')
 
       return {
         success: true,

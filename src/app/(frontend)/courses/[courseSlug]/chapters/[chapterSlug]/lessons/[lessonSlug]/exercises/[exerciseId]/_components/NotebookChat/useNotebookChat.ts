@@ -1,5 +1,6 @@
 import { ChatRole } from '@/lib/ai/chat-message-role'
 import { apiService } from '@/services/api/api-service'
+import { logger } from '@/utilities/logger'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -91,45 +92,55 @@ export function useNotebookChat({
           if (result.messages && result.messages.length > 0) {
             // Map API messages to chat messages
             const loadedMessages: ChatMessage[] = result.messages.map((msg) => ({
-              role: msg.role === 'user' ? ChatRole.User : ChatRole.Assistant,
+              role:
+                msg.role === ChatRole.User || msg.role === 'user'
+                  ? ChatRole.User
+                  : ChatRole.Assistant,
               content: msg.content,
             }))
-            
+
             // Only update messages if we have valid messages to avoid clearing the chat
             if (loadedMessages.length > 0) {
               setMessages(loadedMessages)
             } else {
-              console.warn('[useNotebookChat] Conversation exists but loaded messages are empty:', {
-                conversationId: result.conversationId,
-                contextKey,
-                rawMessages: result.messages,
-              })
+              logger.warn(
+                {
+                  conversationId: result.conversationId,
+                  contextKey,
+                  rawMessages: result.messages,
+                },
+                '[useNotebookChat] Conversation exists but loaded messages are empty',
+              )
             }
           } else {
             // Conversation exists but has no messages yet - keep initial welcome message
-            console.warn('[useNotebookChat] Conversation exists but has no messages:', {
-              conversationId: result.conversationId,
-              contextKey,
-            })
+            logger.warn(
+              {
+                conversationId: result.conversationId,
+                contextKey,
+              },
+              '[useNotebookChat] Conversation exists but has no messages',
+            )
           }
         } else if (result.success && !result.exists) {
           // No conversation exists yet - keep initial welcome message
           // This is expected for new conversations
-          if (process.env.NODE_ENV === 'development') {
-            console.log('[useNotebookChat] No conversation found for contextKey:', contextKey)
-          }
+          logger.debug({ contextKey }, '[useNotebookChat] No conversation found for contextKey')
         } else {
           // API call failed
-          console.error('[useNotebookChat] Failed to load conversation:', {
-            error: result.error,
-            contextKey,
-            success: result.success,
-            exists: result.exists,
-          })
+          logger.error(
+            {
+              error: result.error,
+              contextKey,
+              success: result.success,
+              exists: result.exists,
+            },
+            '[useNotebookChat] Failed to load conversation',
+          )
         }
       } catch (error) {
         // Fail silently - keep initial message
-        console.error('[useNotebookChat] Failed to load conversation history:', error)
+        logger.error({ err: error, contextKey }, '[useNotebookChat] Failed to load conversation history')
       } finally {
         setIsLoadingHistory(false)
       }
