@@ -111,7 +111,9 @@ export const apiService = {
         ],
       })
 
-      const url = `/api/conversations?where=${encodeURIComponent(whereQuery)}&limit=1&depth=0`
+      // Sort by lastMessageAt descending to get the most recent conversation for this user+contextKey
+      // This ensures we get the correct conversation even if multiple exist (shouldn't happen due to unique index, but safety first)
+      const url = `/api/conversations?where=${encodeURIComponent(whereQuery)}&limit=1&sort=-lastMessageAt&depth=0`
       
       logger.debug({ contextKey, url }, '[getConversation] Fetching conversation')
 
@@ -151,7 +153,21 @@ export const apiService = {
       if (data.docs && data.docs.length > 0) {
         const conversation = data.docs[0] as {
           id: string
+          user?: string | { id: string }
+          contextKey?: string
           messages?: Array<{ role: string; content: string; timestamp?: string }>
+        }
+
+        // Verify the conversation matches the expected contextKey (access control should ensure user matches)
+        if (conversation.contextKey && conversation.contextKey !== contextKey) {
+          logger.warn(
+            {
+              conversationId: conversation.id,
+              expectedContextKey: contextKey,
+              actualContextKey: conversation.contextKey,
+            },
+            '[getConversation] Conversation contextKey mismatch - access control may not be working',
+          )
         }
 
         // Ensure messages array exists and is properly formatted
@@ -167,6 +183,8 @@ export const apiService = {
           {
             conversationId: conversation.id,
             contextKey,
+            conversationContextKey: conversation.contextKey,
+            userId: typeof conversation.user === 'object' ? conversation.user.id : conversation.user,
             rawMessageCount: rawMessages.length,
             validMessageCount: messages.length,
             hasMessages: rawMessages.length > 0,
