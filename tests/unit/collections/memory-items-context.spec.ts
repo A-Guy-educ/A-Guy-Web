@@ -289,14 +289,14 @@ describe('Archived Memory Items', () => {
   })
 
   it('should differentiate archival patterns', () => {
-    // Conversations: archivedAt (null = active, Date = archived)
+    // INVARIANT: Conversations: Active = archivedAt field MISSING, Archived = archivedAt field EXISTS
     // MemoryItems: status (active/archived)
     const conversationArchived = { archivedAt: new Date() }
-    const conversationActive = { archivedAt: null }
+    const conversationActive = {} // archivedAt field missing = active
     const memoryArchived = { status: 'archived' }
     const memoryActive = { status: 'active' }
 
-    expect(conversationActive.archivedAt).toBeNull()
+    expect(conversationActive.archivedAt).toBeUndefined()
     expect(conversationArchived.archivedAt).not.toBeNull()
     expect(memoryActive.status).toBe('active')
     expect(memoryArchived.status).toBe('archived')

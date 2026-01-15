@@ -339,6 +339,66 @@ describe.skipIf(!hasDatabaseUrl)('Conversations Collection', () => {
       })
       expect((oldConv as any).archivedAt).toBeDefined()
     })
+
+    it('should reject archiving without overrideAccess: true', async () => {
+      const service = new ConversationService(payload)
+
+      // Create active conversation
+      const activeConv = await service.getOrCreateActiveConversation(testUserId, {
+        relationTo: 'exercises',
+        value: testExerciseId,
+      })
+
+      // Verify it's active (archivedAt field missing)
+      const beforeAttempt = await payload.findByID({
+        collection: 'conversations',
+        id: activeConv.id,
+      })
+      expect((beforeAttempt as any).archivedAt).toBeUndefined()
+
+      // Attempt to archive WITHOUT overrideAccess: true
+      // This should fail due to field access control
+      let accessError: Error | null = null
+      try {
+        await payload.update({
+          collection: 'conversations',
+          id: activeConv.id,
+          data: {
+            archivedAt: new Date(),
+          } as any,
+          // Intentionally NOT setting overrideAccess: true
+        })
+      } catch (error: any) {
+        accessError = error
+      }
+
+      // Should have access denied error
+      expect(accessError).not.toBeNull()
+      expect(
+        accessError?.message || '',
+      ).toMatch(/access|forbidden|permission|unauthorized/i)
+
+      // Verify conversation is still active (archivedAt field still missing)
+      const afterAttempt = await payload.findByID({
+        collection: 'conversations',
+        id: activeConv.id,
+      })
+      expect((afterAttempt as any).archivedAt).toBeUndefined()
+
+      // Verify it's still included in active queries
+      const activeConversations = await payload.find({
+        collection: 'conversations',
+        where: {
+          and: [
+            { user: { equals: testUserId } },
+            { archivedAt: { exists: false } },
+          ],
+        },
+      })
+
+      const found = activeConversations.docs.find((c) => c.id === activeConv.id)
+      expect(found).toBeDefined()
+    })
   })
 
   describe('Database-level uniqueness enforcement', () => {
