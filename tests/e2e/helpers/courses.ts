@@ -50,6 +50,7 @@ export async function seedTestCourseData(): Promise<TestCourseData | null> {
         data: {
           title: 'Test Category',
         },
+        draft: false,
       })
     }
 
