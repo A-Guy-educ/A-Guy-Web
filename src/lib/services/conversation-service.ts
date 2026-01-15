@@ -95,6 +95,7 @@ export class ConversationService {
     }
 
     // Create new conversation
+    // INVARIANT: Active = archivedAt field is MISSING. Do NOT set archivedAt.
     const newConv = await this.payload.create({
       collection: 'conversations',
       data: {
@@ -107,7 +108,7 @@ export class ConversationService {
         messages: [],
         lastMessageAt: new Date().toISOString(),
         contextPolicyVersion: 'v1',
-        archivedAt: null,
+        // Do NOT set archivedAt - active conversations must NOT have this field
       } as any,
       draft: false,
     })
@@ -136,12 +137,14 @@ export class ConversationService {
 
     if (existingConv.docs.length > 0) {
       const currentConv = existingConv.docs[0]
+      // INVARIANT: Archive by setting archivedAt. Requires overrideAccess: true.
       await this.payload.update({
         collection: 'conversations',
         id: currentConv.id,
         data: {
           archivedAt: new Date().toISOString(),
         } as any,
+        overrideAccess: true, // REQUIRED - field access blocks normal mutations
       })
       logger.info(
         { userId, contextKey, conversationId: currentConv.id },
@@ -153,6 +156,7 @@ export class ConversationService {
     const [relationTo, value] = contextKey.split(':') as [ContextRef['relationTo'], string]
 
     // Create new conversation with same context
+    // INVARIANT: Active = archivedAt field is MISSING. Do NOT set archivedAt.
     const newConv = await this.payload.create({
       collection: 'conversations',
       data: {
@@ -165,7 +169,7 @@ export class ConversationService {
         messages: [],
         lastMessageAt: new Date().toISOString(),
         contextPolicyVersion: 'v1',
-        archivedAt: null,
+        // Do NOT set archivedAt - active conversations must NOT have this field
       } as any,
       draft: false,
     })

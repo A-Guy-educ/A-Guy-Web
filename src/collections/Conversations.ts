@@ -19,8 +19,7 @@
  *
  * Archival:
  * - Use ONLY archivedAt field for archival (no status field)
- * - Active conversation: archivedAt === null
- * - Archived conversation: archivedAt !== null
+ * - INVARIANT: Active = archivedAt field is MISSING. Archived = archivedAt field EXISTS.
  * - MongoDB partial unique index enforces one active conversation per user+context
  */
 import type { User } from '@/payload-types'
@@ -220,17 +219,26 @@ export const Conversations: CollectionConfig = {
 
     // ========================================
     // Archival (Single Source of Truth)
+    // INVARIANT: Active = archivedAt field is MISSING. Archived = archivedAt field EXISTS.
     // ========================================
     {
       name: 'archivedAt',
       type: 'date',
       index: true,
       admin: {
-        description: 'Archival timestamp. Active conversation: null. Archived: non-null.',
+        // INVARIANT: Active = archivedAt missing. Archived = archivedAt exists.
+        description: 'When this conversation was archived. Missing = active.',
+        readOnly: true, // Prevent manual edits in admin UI
         date: {
           pickerAppearance: 'dayAndTime',
         },
       },
+      access: {
+        // Server-only mutation - requires overrideAccess: true to set
+        create: () => false,
+        update: () => false,
+      },
+      // NO defaultValue - active docs must NOT have this field
     },
   ],
   hooks: {

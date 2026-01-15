@@ -9,6 +9,8 @@
  * 3. Add archivedAt field (single source of truth for archival)
  * 4. Keep exercise field for backwards compatibility (marked deprecated)
  * 5. Set archivedAt: null for all existing conversations (all are active)
+ *    NOTE: After migration, run normalize-conversations-archivedAt.ts to fix null values
+ *    INVARIANT: Active = archivedAt field is MISSING. Archived = archivedAt field EXISTS.
  *
  * Run with: pnpm exec tsx scripts/migrate-conversations-context.ts
  *
