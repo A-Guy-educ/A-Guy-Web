@@ -147,7 +147,7 @@ describe.skipIf(!hasDatabaseUrl)('Conversations Collection', () => {
         collection: 'conversations',
         id: activeConv.id,
         data: {
-          archivedAt: new Date().toISOString(),
+          archivedAt: new Date(),
         } as any,
         overrideAccess: true, // Required for archivedAt field
       })
@@ -201,8 +201,9 @@ describe.skipIf(!hasDatabaseUrl)('Conversations Collection', () => {
       })
 
       const exerciseConversations = activeConversations.docs.filter((c) => {
-        const contextKey = (c as any).contextKey
-        return contextKey === `exercises:${testExerciseId}`
+        // Use exercise field, not contextKey
+        const exercise = typeof c.exercise === 'string' ? c.exercise : (c.exercise as any)?.id
+        return exercise === testExerciseId
       })
 
       expect(exerciseConversations.length).toBe(1)
@@ -238,8 +239,9 @@ describe.skipIf(!hasDatabaseUrl)('Conversations Collection', () => {
       })
 
       const lessonConversations = activeConversations.docs.filter((c) => {
-        const contextKey = (c as any).contextKey
-        return contextKey === `lessons:${testLessonId}`
+        // Use lesson field, not contextKey
+        const lesson = typeof (c as any).lesson === 'string' ? (c as any).lesson : (c as any).lesson?.id
+        return lesson === testLessonId
       })
 
       expect(lessonConversations.length).toBe(1)
@@ -268,7 +270,7 @@ describe.skipIf(!hasDatabaseUrl)('Conversations Collection', () => {
         collection: 'conversations',
         id: activeConv.id,
         data: {
-          archivedAt: new Date().toISOString(),
+          archivedAt: new Date(),
         } as any,
         overrideAccess: true, // Required for archivedAt field
       })
@@ -309,7 +311,7 @@ describe.skipIf(!hasDatabaseUrl)('Conversations Collection', () => {
         collection: 'conversations',
         id: conv1.id,
         data: {
-          archivedAt: new Date().toISOString(),
+          archivedAt: new Date(),
         } as any,
         overrideAccess: true,
       })
@@ -336,6 +338,160 @@ describe.skipIf(!hasDatabaseUrl)('Conversations Collection', () => {
         id: conv1.id,
       })
       expect((oldConv as any).archivedAt).toBeDefined()
+    })
+  })
+
+  describe('Database-level uniqueness enforcement', () => {
+    it('should reject duplicate active conversations at DB level (user+exercise)', async () => {
+      // Ensure indexes exist
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const db = (payload.db as any).connection.db
+      const collection = db.collection('conversations')
+
+      // Create indexes if they don't exist
+      const indexes = await collection.indexes()
+      const index1Exists = indexes.some((idx: any) => idx.name === 'unique_active_user_exercise')
+      if (!index1Exists) {
+        await collection.createIndex(
+          { user: 1, exercise: 1 },
+          {
+            unique: true,
+            partialFilterExpression: {
+              archivedAt: { $exists: false },
+              exercise: { $exists: true },
+              lesson: { $exists: false },
+            },
+            name: 'unique_active_user_exercise',
+          },
+        )
+      }
+
+      // Create first active conversation via Payload
+      const conv1 = await payload.create({
+        collection: 'conversations',
+        data: {
+          user: testUserId,
+          exercise: testExerciseId,
+          contextRef: {
+            relationTo: 'exercises',
+            value: testExerciseId,
+          },
+          contextKey: `exercises:${testExerciseId}`,
+          messages: [],
+          lastMessageAt: new Date(),
+          contextPolicyVersion: 'v1',
+          // Do NOT set archivedAt - active conversations must NOT have this field
+        } as any,
+      })
+
+      // Try to create second active conversation directly via MongoDB (bypassing Payload)
+      // This should fail with duplicate key error
+      let duplicateError: Error | null = null
+      try {
+        await collection.insertOne({
+          user: testUserId,
+          exercise: testExerciseId,
+          contextRef: {
+            relationTo: 'exercises',
+            value: testExerciseId,
+          },
+          contextKey: `exercises:${testExerciseId}`,
+          messages: [],
+          lastMessageAt: new Date(),
+          contextPolicyVersion: 'v1',
+          // Do NOT set archivedAt - active conversations must NOT have this field
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+      } catch (error: any) {
+        duplicateError = error
+      }
+
+      // Should have duplicate key error
+      expect(duplicateError).not.toBeNull()
+      expect(duplicateError?.message || '').toMatch(/duplicate key|E11000/i)
+
+      // Cleanup
+      await payload.delete({
+        collection: 'conversations',
+        id: conv1.id,
+      })
+    })
+
+    it('should reject duplicate active conversations at DB level (user+lesson)', async () => {
+      // Ensure indexes exist
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const db = (payload.db as any).connection.db
+      const collection = db.collection('conversations')
+
+      // Create indexes if they don't exist
+      const indexes = await collection.indexes()
+      const index2Exists = indexes.some((idx: any) => idx.name === 'unique_active_user_lesson')
+      if (!index2Exists) {
+        await collection.createIndex(
+          { user: 1, lesson: 1 },
+          {
+            unique: true,
+            partialFilterExpression: {
+              archivedAt: { $exists: false },
+              lesson: { $exists: true },
+              exercise: { $exists: false },
+            },
+            name: 'unique_active_user_lesson',
+          },
+        )
+      }
+
+      // Create first active conversation via Payload
+      const conv1 = await payload.create({
+        collection: 'conversations',
+        data: {
+          user: testUserId,
+          lesson: testLessonId,
+          contextRef: {
+            relationTo: 'lessons',
+            value: testLessonId,
+          },
+          contextKey: `lessons:${testLessonId}`,
+          messages: [],
+          lastMessageAt: new Date(),
+          contextPolicyVersion: 'v1',
+          // Do NOT set archivedAt - active conversations must NOT have this field
+        } as any,
+      })
+
+      // Try to create second active conversation directly via MongoDB (bypassing Payload)
+      // This should fail with duplicate key error
+      let duplicateError: Error | null = null
+      try {
+        await collection.insertOne({
+          user: testUserId,
+          lesson: testLessonId,
+          contextRef: {
+            relationTo: 'lessons',
+            value: testLessonId,
+          },
+          contextKey: `lessons:${testLessonId}`,
+          messages: [],
+          lastMessageAt: new Date(),
+          contextPolicyVersion: 'v1',
+          // Do NOT set archivedAt - active conversations must NOT have this field
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+      } catch (error: any) {
+        duplicateError = error
+      }
+
+      // Should have duplicate key error
+      expect(duplicateError).not.toBeNull()
+      expect(duplicateError?.message || '').toMatch(/duplicate key|E11000/i)
+
+      // Cleanup
+      await payload.delete({
+        collection: 'conversations',
+        id: conv1.id,
+      })
     })
   })
 })

@@ -111,10 +111,12 @@ async function migrateConversations(options: { dryRun?: boolean } = {}): Promise
         const contextKey = `exercises:${exerciseId}`
 
         // Prepare update data
+        // INVARIANT: Active = archivedAt field is MISSING. Do NOT set archivedAt.
+        // Run normalize-conversations-archivedAt.ts after migration to clean up any null values.
         const updateData = {
           contextRef,
           contextKey,
-          archivedAt: null, // All existing conversations are active
+          // Do NOT set archivedAt - active conversations must NOT have this field
           // Keep exercise field for backwards compatibility (marked deprecated in schema)
         }
 

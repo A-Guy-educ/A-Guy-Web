@@ -106,7 +106,7 @@ export class ConversationService {
         },
         contextKey,
         messages: [],
-        lastMessageAt: new Date().toISOString(),
+        lastMessageAt: new Date(),
         contextPolicyVersion: 'v1',
         // Do NOT set archivedAt - active conversations must NOT have this field
       } as any,
@@ -142,7 +142,7 @@ export class ConversationService {
         collection: 'conversations',
         id: currentConv.id,
         data: {
-          archivedAt: new Date().toISOString(),
+          archivedAt: new Date(),
         } as any,
         overrideAccess: true, // REQUIRED - field access blocks normal mutations
       })
@@ -167,7 +167,7 @@ export class ConversationService {
         },
         contextKey,
         messages: [],
-        lastMessageAt: new Date().toISOString(),
+        lastMessageAt: new Date(),
         contextPolicyVersion: 'v1',
         // Do NOT set archivedAt - active conversations must NOT have this field
       } as any,

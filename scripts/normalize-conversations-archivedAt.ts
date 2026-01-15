@@ -29,10 +29,10 @@ if (!DATABASE_URL) {
 }
 
 interface Conversation {
-  _id: string
-  user: string
-  exercise?: string
-  lesson?: string
+  _id: any // ObjectId or string
+  user: any // ObjectId or string (Payload relationships)
+  exercise?: any // ObjectId or string (Payload relationships)
+  lesson?: any // ObjectId or string (Payload relationships)
   archivedAt?: Date | null
   lastMessageAt: Date
   updatedAt?: Date
@@ -82,10 +82,15 @@ async function normalizeConversations() {
 
     for (const conv of activeConversations) {
       let key: string
-      if (conv.exercise) {
-        key = `${conv.user}:exercise:${conv.exercise}`
-      } else if (conv.lesson) {
-        key = `${conv.user}:lesson:${conv.lesson}`
+      // Handle ObjectId or string for user/exercise/lesson
+      const userId = typeof conv.user === 'string' ? conv.user : conv.user?.toString() || String(conv.user)
+      const exerciseId = conv.exercise ? (typeof conv.exercise === 'string' ? conv.exercise : conv.exercise?.toString() || String(conv.exercise)) : null
+      const lessonId = conv.lesson ? (typeof conv.lesson === 'string' ? conv.lesson : conv.lesson?.toString() || String(conv.lesson)) : null
+
+      if (exerciseId) {
+        key = `${userId}:exercise:${exerciseId}`
+      } else if (lessonId) {
+        key = `${userId}:lesson:${lessonId}`
       } else {
         // Skip conversations without exercise or lesson
         console.warn(`   ⚠️  Conversation ${conv._id} has neither exercise nor lesson, skipping`)
@@ -159,10 +164,15 @@ async function normalizeConversations() {
     const remainingGrouped = new Map<string, Conversation[]>()
     for (const conv of remainingActive) {
       let key: string
-      if (conv.exercise) {
-        key = `${conv.user}:exercise:${conv.exercise}`
-      } else if (conv.lesson) {
-        key = `${conv.user}:lesson:${conv.lesson}`
+      // Handle ObjectId or string for user/exercise/lesson
+      const userId = typeof conv.user === 'string' ? conv.user : conv.user?.toString() || String(conv.user)
+      const exerciseId = conv.exercise ? (typeof conv.exercise === 'string' ? conv.exercise : conv.exercise?.toString() || String(conv.exercise)) : null
+      const lessonId = conv.lesson ? (typeof conv.lesson === 'string' ? conv.lesson : conv.lesson?.toString() || String(conv.lesson)) : null
+
+      if (exerciseId) {
+        key = `${userId}:exercise:${exerciseId}`
+      } else if (lessonId) {
+        key = `${userId}:lesson:${lessonId}`
       } else {
         continue
       }
