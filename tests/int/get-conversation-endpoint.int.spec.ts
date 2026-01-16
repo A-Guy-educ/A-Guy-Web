@@ -7,6 +7,7 @@
  * - Unauthenticated request returns 401
  * - Explicit user filtering guarantees isolation
  */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { getPayload } from 'payload'
@@ -76,10 +77,7 @@ beforeEach(async () => {
   const conversations = await payload.find({
     collection: 'conversations',
     where: {
-      or: [
-        { user: { equals: testUserId } },
-        { user: { equals: testUserId2 } },
-      ],
+      or: [{ user: { equals: testUserId } }, { user: { equals: testUserId2 } }],
     },
     limit: 1000,
     overrideAccess: true,
@@ -245,7 +243,7 @@ beforeAll(async () => {
   }
 
   // Drop test-created indexes from other test files to prevent conflicts
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const db = (payload.db as any).connection?.db
   if (db) {
     const collection = db.collection('conversations')
@@ -258,7 +256,7 @@ beforeAll(async () => {
     for (const indexName of indexesToDrop) {
       try {
         await collection.dropIndex(indexName)
-      } catch (e) {
+      } catch (_error) {
         // Index may not exist, ignore
       }
     }
@@ -474,7 +472,7 @@ describe('Get Conversation Endpoint', () => {
   })
 
   it('should explicitly filter by user ID in query', async () => {
-    const contextKey = `exercises:${testExerciseId}-explicit-filter-${Date.now()}`
+    const contextKey = `exercises:${testExerciseId}`
 
     // Create conversations for both users manually
     const conv1 = await payload.create({
@@ -482,7 +480,6 @@ describe('Get Conversation Endpoint', () => {
       data: {
         user: testUserId,
         contextRef: { relationTo: 'exercises', value: testExerciseId },
-        contextKey,
         messages: [
           { role: 'user', content: 'User 1 message', timestamp: new Date().toISOString() },
         ],
@@ -497,7 +494,6 @@ describe('Get Conversation Endpoint', () => {
       data: {
         user: testUserId2,
         contextRef: { relationTo: 'exercises', value: testExerciseId },
-        contextKey,
         messages: [
           { role: 'user', content: 'User 2 message', timestamp: new Date().toISOString() },
         ],

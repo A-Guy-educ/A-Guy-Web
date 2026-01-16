@@ -9,6 +9,7 @@
  * - Conversation history persists and loads correctly after "refresh" (new request)
  * - Access control ensures users only see their own conversations
  */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { getPayload } from 'payload'
@@ -233,7 +234,7 @@ beforeAll(async () => {
   }
 
   // Drop test-created indexes from other test files to prevent conflicts
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const db = (payload.db as any).connection?.db
   if (db) {
     const collection = db.collection('conversations')
@@ -246,7 +247,7 @@ beforeAll(async () => {
     for (const indexName of indexesToDrop) {
       try {
         await collection.dropIndex(indexName)
-      } catch (e) {
+      } catch (_error) {
         // Index may not exist, ignore
       }
     }
@@ -260,10 +261,7 @@ beforeEach(async () => {
   const conversations = await payload.find({
     collection: 'conversations',
     where: {
-      or: [
-        { user: { equals: testUserId } },
-        { user: { equals: testUserId2 } },
-      ],
+      or: [{ user: { equals: testUserId } }, { user: { equals: testUserId2 } }],
     },
     limit: 1000,
     overrideAccess: true,
@@ -348,11 +346,6 @@ async function fetchConversationViaREST(
 }> {
   // Simulate what the frontend API service does via Payload REST API
   // The isOwner access control should automatically add { user: { equals: userId } } to the query
-  const user = await payload.findByID({
-    collection: 'users',
-    id: userId,
-  })
-
   // Simulate REST API query - Use explicit user filter to avoid ObjectId/string mismatch
   // Sort by lastMessageAt descending to get the most recent conversation (matches actual implementation)
   const result = await payload.find({
@@ -414,8 +407,6 @@ describe('Conversation History Loading', () => {
     const body = await res.json()
     expect(body.success).toBe(true)
     expect(body.conversationId).toBeDefined()
-
-    const contextKey = `exercises:${testExerciseId}`
 
     // Verify conversation was created with messages
     const conversation = await payload.findByID({
@@ -681,11 +672,8 @@ describe('Conversation History Loading', () => {
 
   it('should return most recent conversation when sorting by lastMessageAt', async () => {
     // This test verifies the sort order works correctly
-    // Use different contextKeys to avoid unique index constraint
-    // Tests that queries correctly return conversations sorted by lastMessageAt
-
-    const contextKey1 = `exercises:${testExerciseId}-sort-test-1-${Date.now()}`
-    const contextKey2 = `exercises:${testExerciseId}-sort-test-2-${Date.now()}`
+    // ContextKey is derived from contextRef in the beforeChange hook
+    const contextKey = `exercises:${testExerciseId}`
 
     // Create first conversation with older timestamp
     const conv1 = await payload.create({
@@ -693,7 +681,6 @@ describe('Conversation History Loading', () => {
       data: {
         user: testUserId,
         contextRef: { relationTo: 'exercises', value: testExerciseId },
-        contextKey: contextKey1,
         messages: [
           {
             role: 'user',
@@ -719,7 +706,6 @@ describe('Conversation History Loading', () => {
       data: {
         user: testUserId,
         contextRef: { relationTo: 'exercises', value: testExerciseId },
-        contextKey: contextKey2,
         messages: [
           { role: 'user', content: 'Second message', timestamp: new Date().toISOString() },
           { role: 'assistant', content: 'Response 2', timestamp: new Date().toISOString() },
@@ -728,19 +714,12 @@ describe('Conversation History Loading', () => {
       } as any,
     })
 
-    // Query for conv1 specifically - should return conv1
-    const fetched1 = await fetchConversationViaREST(payload, testUserId, contextKey1)
-    expect(fetched1.success).toBe(true)
-    expect(fetched1.exists).toBe(true)
-    expect(fetched1.conversationId).toBe(conv1.id)
-    expect(fetched1.messages.some((m) => m.content.includes('First message'))).toBe(true)
-
-    // Query for conv2 specifically - should return conv2
-    const fetched2 = await fetchConversationViaREST(payload, testUserId, contextKey2)
-    expect(fetched2.success).toBe(true)
-    expect(fetched2.exists).toBe(true)
-    expect(fetched2.conversationId).toBe(conv2.id)
-    expect(fetched2.messages.some((m) => m.content.includes('Second message'))).toBe(true)
+    // Query for most recent conversation (should return conv2)
+    const fetched = await fetchConversationViaREST(payload, testUserId, contextKey)
+    expect(fetched.success).toBe(true)
+    expect(fetched.exists).toBe(true)
+    expect(fetched.conversationId).toBe(conv2.id)
+    expect(fetched.messages.some((m) => m.content.includes('Second message'))).toBe(true)
 
     // Clean up
     await payload.delete({ collection: 'conversations', id: conv1.id })
@@ -752,7 +731,7 @@ describe('Conversation History Loading', () => {
     // by verifying that when User 1 queries, they only get User 1's conversations
     // and when User 2 queries, they only get User 2's conversations
 
-    const contextKey = `exercises:${testExerciseId}-rest-api-test-${Date.now()}`
+    const contextKey = `exercises:${testExerciseId}`
 
     // Create conversation for User 1
     const conv1 = await payload.create({
@@ -760,7 +739,6 @@ describe('Conversation History Loading', () => {
       data: {
         user: testUserId,
         contextRef: { relationTo: 'exercises', value: testExerciseId },
-        contextKey,
         messages: [
           { role: 'user', content: 'User 1 private message', timestamp: new Date().toISOString() },
           { role: 'assistant', content: 'Response to user 1', timestamp: new Date().toISOString() },
@@ -778,7 +756,6 @@ describe('Conversation History Loading', () => {
       data: {
         user: testUserId2,
         contextRef: { relationTo: 'exercises', value: testExerciseId },
-        contextKey,
         messages: [
           { role: 'user', content: 'User 2 private message', timestamp: new Date().toISOString() },
           { role: 'assistant', content: 'Response to user 2', timestamp: new Date().toISOString() },
@@ -845,19 +822,24 @@ describe('Conversation History Loading', () => {
     expect(user2Result.docs[0].messages?.some((m: any) => m.content.includes('User 1'))).toBe(false)
 
     // Test: Verify that without user context, access control blocks access
-    const noUserResult = await payload.find({
-      collection: 'conversations',
-      where: {
-        and: [{ contextKey: { equals: contextKey } }, { archivedAt: { exists: false } }],
-      },
-      limit: 1,
-      sort: '-lastMessageAt',
-      // No user provided - access control should block
-      overrideAccess: false,
-    })
+    let noUserError: unknown
+    try {
+      await payload.find({
+        collection: 'conversations',
+        where: {
+          and: [{ contextKey: { equals: contextKey } }, { archivedAt: { exists: false } }],
+        },
+        limit: 1,
+        sort: '-lastMessageAt',
+        // No user provided - access control should block
+        overrideAccess: false,
+      })
+    } catch (error) {
+      noUserError = error
+    }
 
-    // Access control should return empty result when no user is authenticated
-    expect(noUserResult.docs.length).toBe(0)
+    expect(noUserError).toBeDefined()
+    expect((noUserError as Error).message).toMatch(/forbidden|not allowed/i)
 
     // Clean up
     await payload.delete({ collection: 'conversations', id: conv1.id })
@@ -868,7 +850,7 @@ describe('Conversation History Loading', () => {
     // This test ensures the query structure matches what the frontend sends
     // and validates that access control is properly applied
 
-    const contextKey = `exercises:${testExerciseId}-query-test-${Date.now()}`
+    const contextKey = `exercises:${testExerciseId}`
 
     // Create conversation for test user
     const conv = await payload.create({
@@ -876,7 +858,6 @@ describe('Conversation History Loading', () => {
       data: {
         user: testUserId,
         contextRef: { relationTo: 'exercises', value: testExerciseId },
-        contextKey,
         messages: [
           { role: 'user', content: 'Test message', timestamp: new Date().toISOString() },
           { role: 'assistant', content: 'Test response', timestamp: new Date().toISOString() },
@@ -890,8 +871,6 @@ describe('Conversation History Loading', () => {
     const whereQuery: any = {
       and: [{ contextKey: { equals: contextKey } }, { archivedAt: { exists: false } }],
     }
-
-    const user = await payload.findByID({ collection: 'users', id: testUserId })
 
     // Execute query with access control (simulating REST API behavior)
     // Payload's Local API with overrideAccess: false simulates REST API access control
@@ -936,7 +915,7 @@ describe('Conversation History Loading', () => {
     // Note: We use Payload's Local API with overrideAccess: false to simulate REST API behavior
     // This is the recommended way to test Payload access control in integration tests
 
-    const contextKey = `exercises:${testExerciseId}-rest-endpoint-test-${Date.now()}`
+    const contextKey = `exercises:${testExerciseId}`
 
     // Create conversations for both users
     const conv1 = await payload.create({
@@ -944,7 +923,6 @@ describe('Conversation History Loading', () => {
       data: {
         user: testUserId,
         contextRef: { relationTo: 'exercises', value: testExerciseId },
-        contextKey,
         messages: [
           { role: 'user', content: 'User 1 message', timestamp: new Date().toISOString() },
         ],
@@ -959,7 +937,6 @@ describe('Conversation History Loading', () => {
       data: {
         user: testUserId2,
         contextRef: { relationTo: 'exercises', value: testExerciseId },
-        contextKey,
         messages: [
           { role: 'user', content: 'User 2 message', timestamp: new Date().toISOString() },
         ],

@@ -9,10 +9,12 @@
  *
  * INVARIANT: Active = archivedAt field is MISSING. Archived = archivedAt field EXISTS.
  */
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import config from '@payload-config'
 import type { Payload } from 'payload'
 import { getPayload } from 'payload'
+import { AccountRole } from '@/collections/Users/roles'
 import { ConversationService } from '@/lib/services/conversation-service'
 
 // Skip tests if DATABASE_URL is not set (e.g., in CI without MongoDB service)
@@ -293,7 +295,7 @@ afterAll(async () => {
   }
 
   // Drop test-created indexes to prevent interference with other test files
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const db = (payload.db as any).connection?.db
   if (db) {
     const collection = db.collection('conversations')
@@ -306,7 +308,7 @@ afterAll(async () => {
     for (const indexName of indexesToDrop) {
       try {
         await collection.dropIndex(indexName)
-      } catch (e) {
+      } catch (_error) {
         // Index may not exist, ignore
       }
     }
@@ -332,7 +334,7 @@ describe.skipIf(!hasDatabaseUrl)('Conversations Collection', () => {
       expect(conversation.id).toBeDefined()
 
       // Fetch from DB directly to verify field is actually missing
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const db = (payload.db as any).connection.db
       const collection = db.collection('conversations')
       const { ObjectId } = await import('mongodb')
@@ -468,7 +470,7 @@ describe.skipIf(!hasDatabaseUrl)('Conversations Collection', () => {
       })
 
       // Verify it's active (archivedAt field missing) - check database directly
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const db = (payload.db as any).connection.db
       const collection = db.collection('conversations')
       const { ObjectId } = await import('mongodb')
@@ -541,7 +543,7 @@ describe.skipIf(!hasDatabaseUrl)('Conversations Collection', () => {
 
       // Verify new conversation is active
       // Query database directly to verify archivedAt field is actually missing
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const db = (payload.db as any).connection.db
       const collection = db.collection('conversations')
       const { ObjectId } = await import('mongodb')
@@ -573,7 +575,7 @@ describe.skipIf(!hasDatabaseUrl)('Conversations Collection', () => {
       })
 
       // Verify it's active (archivedAt field missing) - check database directly
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const db = (payload.db as any).connection.db
       const collection = db.collection('conversations')
       const { ObjectId } = await import('mongodb')
@@ -616,22 +618,41 @@ describe.skipIf(!hasDatabaseUrl)('Conversations Collection', () => {
   })
 
   describe('Database-level uniqueness enforcement', () => {
+    afterEach(async () => {
+      if (!payload) return
+      // Drop test-created indexes to avoid leaking constraints into other tests
+
+      const db = (payload.db as any).connection.db
+      const collection = db.collection('conversations')
+      const indexesToDrop = ['unique_active_user_exercise', 'unique_active_user_contextKey']
+
+      for (const indexName of indexesToDrop) {
+        try {
+          await collection.dropIndex(indexName)
+        } catch (_error) {
+          // Index may not exist, ignore
+        }
+      }
+    })
+
     it('should reject duplicate active conversations at DB level (user+exercise)', async () => {
       // Ensure indexes exist
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       const db = (payload.db as any).connection.db
       const collection = db.collection('conversations')
 
       // Create indexes if they don't exist
-      // Note: MongoDB doesn't support $exists: false in partial index filter expressions
-      // We omit archivedAt check and rely on application logic to ensure uniqueness for active conversations
+      // Use the same partial filter expression as production to allow archived conversations
       const indexes = await collection.indexes()
       let index1Exists = indexes.some((idx: any) => idx.name === 'unique_active_user_exercise')
 
-      // Drop and recreate if it exists with wrong definition (has lesson: { $exists: false })
+      // Drop and recreate if it exists with wrong definition (unsupported expressions)
       if (index1Exists) {
         const existingIndex = indexes.find((idx: any) => idx.name === 'unique_active_user_exercise')
-        if (existingIndex?.partialFilterExpression?.lesson) {
+        if (
+          existingIndex?.partialFilterExpression?.archivedAt ||
+          existingIndex?.partialFilterExpression?.lesson
+        ) {
           await collection.dropIndex('unique_active_user_exercise')
           index1Exists = false
         }
@@ -722,10 +743,8 @@ describe.skipIf(!hasDatabaseUrl)('Conversations Collection', () => {
     })
 
     it('should reject duplicate active conversations at DB level (user+contextKey)', async () => {
-      // Note: MongoDB partial indexes don't support $exists: false
-      // Uniqueness is enforced at application level by ConversationService.getOrCreateActiveConversation()
-      // This test verifies that duplicate active conversations are prevented
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // This test verifies that duplicate active conversations are prevented at the DB level
+
       const db = (payload.db as any).connection.db
       const collection = db.collection('conversations')
 
@@ -734,13 +753,15 @@ describe.skipIf(!hasDatabaseUrl)('Conversations Collection', () => {
       const indexes = await collection.indexes()
       const indexName = 'unique_active_user_contextKey'
       const indexExists = indexes.some((idx: any) => idx.name === indexName)
-      
+
       if (!indexExists) {
         await collection.createIndex(
           { user: 1, contextKey: 1 },
           {
             unique: true,
-            sparse: true, // Only index docs where both fields exist
+            partialFilterExpression: {
+              contextKey: { $exists: true },
+            },
             name: indexName,
           },
         )
@@ -1006,6 +1027,19 @@ describe.skipIf(!hasDatabaseUrl)('Conversations Collection', () => {
           role: 'admin',
         },
       })
+      await payload.update({
+        collection: 'users',
+        id: admin.id,
+        data: {
+          role: AccountRole.Admin,
+        },
+        overrideAccess: true,
+      })
+      const adminUser = await payload.findByID({
+        collection: 'users',
+        id: admin.id,
+        overrideAccess: true,
+      })
 
       try {
         const service = new ConversationService(payload)
@@ -1047,7 +1081,7 @@ describe.skipIf(!hasDatabaseUrl)('Conversations Collection', () => {
           where: {
             archivedAt: { exists: false },
           },
-          user: admin as any,
+          user: adminUser as any,
           overrideAccess: false, // Access control should allow admin to see all
         })
 
@@ -1062,14 +1096,14 @@ describe.skipIf(!hasDatabaseUrl)('Conversations Collection', () => {
         const accessedConv1 = await payload.findByID({
           collection: 'conversations',
           id: conv1.id,
-          user: admin as any,
+          user: adminUser as any,
           overrideAccess: false,
         })
 
         const accessedConv2 = await payload.findByID({
           collection: 'conversations',
           id: conv2.id,
-          user: admin as any,
+          user: adminUser as any,
           overrideAccess: false,
         })
 
