@@ -4,7 +4,7 @@ import { getPayload } from 'payload'
 import { startMongoContainer, stopMongoContainer } from '@/utilities/test/mongodb-container'
 import { createContextHierarchy } from '../factories/context.factory'
 import { createTestUser } from '../factories/user.factory'
-import { buildFeatureFlags } from '../mocks/feature-flags.mock'
+import { buildFeatureFlags, createFeatureFlagModule } from '../mocks/feature-flags.mock'
 
 type FlagCombo = {
   SUMMARY_MAINTENANCE_ENABLED: boolean
@@ -60,9 +60,9 @@ async function loadAgentChatWithFlags(flags: FlagCombo) {
     getSystemPrompt: vi.fn(() => 'System prompt'),
   }
 
-  vi.doMock('@/lib/feature-flags', () => ({
-    featureFlags: buildFeatureFlags(flags),
-  }))
+  vi.doMock('@/lib/feature-flags', () =>
+    createFeatureFlagModule(buildFeatureFlags(flags)),
+  )
   vi.doMock('@/lib/ai/maintenance', () => maintenance)
   vi.doMock('@/lib/ai/memory-extraction', () => memoryExtraction)
   vi.doMock('@/lib/ai/vector-search', () => vectorSearch)

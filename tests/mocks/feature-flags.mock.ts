@@ -8,3 +8,15 @@ export function buildFeatureFlags(overrides?: Partial<FeatureFlags>): FeatureFla
     ...overrides,
   }
 }
+
+export function createFeatureFlagModule(flags: FeatureFlags) {
+  return {
+    featureFlags: flags,
+    getFeatureFlagStatus: () => ({
+      summaryMaintenance: flags.SUMMARY_MAINTENANCE_ENABLED,
+      memoryExtraction: flags.MEMORY_EXTRACTION_ENABLED,
+      memoryRetrieval: flags.MEMORY_RETRIEVAL_ENABLED,
+    }),
+    logFeatureFlags: () => undefined,
+  }
+}

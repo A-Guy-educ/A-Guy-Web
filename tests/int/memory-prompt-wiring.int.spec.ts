@@ -72,6 +72,12 @@ vi.mock('@/lib/feature-flags', async (importOriginal) => {
     get featureFlags() {
       return mockFeatureFlags
     },
+    getFeatureFlagStatus: () => ({
+      summaryMaintenance: mockFeatureFlags.SUMMARY_MAINTENANCE_ENABLED,
+      memoryExtraction: mockFeatureFlags.MEMORY_EXTRACTION_ENABLED,
+      memoryRetrieval: mockFeatureFlags.MEMORY_RETRIEVAL_ENABLED,
+    }),
+    logFeatureFlags: () => undefined,
   }
 })
 

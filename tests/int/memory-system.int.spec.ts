@@ -23,13 +23,20 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 // Enable feature flags for tests
 vi.mock('@/lib/feature-flags', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/feature-flags')>()
+  const featureFlags = {
+    SUMMARY_MAINTENANCE_ENABLED: true,
+    MEMORY_EXTRACTION_ENABLED: true,
+    MEMORY_RETRIEVAL_ENABLED: true,
+  }
   return {
     ...actual,
-    featureFlags: {
-      SUMMARY_MAINTENANCE_ENABLED: true,
-      MEMORY_EXTRACTION_ENABLED: true,
-      MEMORY_RETRIEVAL_ENABLED: true,
-    },
+    featureFlags,
+    getFeatureFlagStatus: () => ({
+      summaryMaintenance: featureFlags.SUMMARY_MAINTENANCE_ENABLED,
+      memoryExtraction: featureFlags.MEMORY_EXTRACTION_ENABLED,
+      memoryRetrieval: featureFlags.MEMORY_RETRIEVAL_ENABLED,
+    }),
+    logFeatureFlags: () => undefined,
   }
 })
 
