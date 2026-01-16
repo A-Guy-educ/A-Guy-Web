@@ -58,8 +58,10 @@ vi.mock('@/lib/ai/maintenance', () => ({
   })),
 }))
 
-// Feature flags override
-const featureFlagsOverride: { MEMORY_RETRIEVAL_ENABLED: boolean } = {
+// Feature flags mock - use mutable object that can be updated between tests
+const mockFeatureFlags = {
+  SUMMARY_MAINTENANCE_ENABLED: true,
+  MEMORY_EXTRACTION_ENABLED: true,
   MEMORY_RETRIEVAL_ENABLED: true,
 }
 
@@ -67,10 +69,8 @@ vi.mock('@/lib/feature-flags', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/feature-flags')>()
   return {
     ...actual,
-    featureFlags: {
-      SUMMARY_MAINTENANCE_ENABLED: true,
-      MEMORY_EXTRACTION_ENABLED: true,
-      MEMORY_RETRIEVAL_ENABLED: featureFlagsOverride.MEMORY_RETRIEVAL_ENABLED,
+    get featureFlags() {
+      return mockFeatureFlags
     },
   }
 })
@@ -172,7 +172,7 @@ beforeEach(() => {
   capturedPrompts = []
   mockRetrieveMemoryItems.mockClear()
   mockChatWithExerciseHelper.mockClear()
-  featureFlagsOverride.MEMORY_RETRIEVAL_ENABLED = true
+  mockFeatureFlags.MEMORY_RETRIEVAL_ENABLED = true
 })
 
 afterAll(async () => {
@@ -263,7 +263,7 @@ describe.skipIf(!hasDatabaseUrl)('Memory Prompt Wiring Tests', () => {
 
   describe('feature flag toggle', () => {
     it('does NOT inject memory when MEMORY_RETRIEVAL_ENABLED=false', async () => {
-      featureFlagsOverride.MEMORY_RETRIEVAL_ENABLED = false
+      mockFeatureFlags.MEMORY_RETRIEVAL_ENABLED = false
       const userId = await createTestUser('toggle-off')
 
       mockChatWithExerciseHelper.mockImplementation(async (input) => {
@@ -293,7 +293,7 @@ describe.skipIf(!hasDatabaseUrl)('Memory Prompt Wiring Tests', () => {
     }, 60000)
 
     it('injects memory when MEMORY_RETRIEVAL_ENABLED=true', async () => {
-      featureFlagsOverride.MEMORY_RETRIEVAL_ENABLED = true
+      mockFeatureFlags.MEMORY_RETRIEVAL_ENABLED = true
       const userId = await createTestUser('toggle-on')
 
       mockRetrieveMemoryItems.mockResolvedValueOnce({
