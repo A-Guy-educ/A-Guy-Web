@@ -129,13 +129,14 @@ export function useNotebookChat({
                   },
                   '[useNotebookChat] Loaded conversation history',
                 )
-                // Set messages first, then hide loading indicator in next tick
+                // Set messages first, then hide loading indicator after a brief delay
                 // This ensures messages are rendered before hiding the loading indicator
+                // The delay allows React to process the state update and render the messages
                 setMessages(loadedMessages)
-                // Use requestAnimationFrame to ensure DOM has updated before hiding loading
-                requestAnimationFrame(() => {
+                // Small delay to ensure DOM updates before hiding loading indicator
+                setTimeout(() => {
                   setIsLoadingHistory(false)
-                })
+                }, 50)
                 return
               }
             }
