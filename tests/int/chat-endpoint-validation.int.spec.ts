@@ -6,7 +6,6 @@ import { agentChat } from '@/endpoints/agent/chat'
 import { startMongoContainer, stopMongoContainer } from '@/utilities/test/mongodb-container'
 import { createContextHierarchy } from '../factories/context.factory'
 import { createTestUser } from '../factories/user.factory'
-import { buildFeatureFlags, createFeatureFlagModule } from '../mocks/feature-flags.mock'
 
 vi.mock('@/lib/ai/services/exercise-chat-service', () => ({
   chatWithExerciseHelper: vi.fn(async () => ({
@@ -43,7 +42,21 @@ vi.mock('@/lib/ai/maintenance', () => ({
   })),
 }))
 
-vi.mock('@/lib/feature-flags', () => createFeatureFlagModule(buildFeatureFlags()))
+const featureFlagsMock = {
+  SUMMARY_MAINTENANCE_ENABLED: false,
+  MEMORY_EXTRACTION_ENABLED: false,
+  MEMORY_RETRIEVAL_ENABLED: false,
+}
+
+vi.mock('@/lib/feature-flags', () => ({
+  featureFlags: featureFlagsMock,
+  getFeatureFlagStatus: () => ({
+    summaryMaintenance: featureFlagsMock.SUMMARY_MAINTENANCE_ENABLED,
+    memoryExtraction: featureFlagsMock.MEMORY_EXTRACTION_ENABLED,
+    memoryRetrieval: featureFlagsMock.MEMORY_RETRIEVAL_ENABLED,
+  }),
+  logFeatureFlags: () => undefined,
+}))
 
 let payload: Payload
 let originalDatabaseUrl: string | undefined

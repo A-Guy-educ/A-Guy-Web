@@ -29,14 +29,15 @@ export function createOpenAIMock(options?: {
   const embeddingDimension = options?.embeddingDimension ?? 1536
   const chatContent = options?.chatContent ?? 'Mock response'
 
-  const embeddingsCreate = vi.fn(async () => {
+  const embeddingsCreate = vi.fn(async ({ input }: { input: string | string[] }) => {
     if (options?.embeddingError) {
       throw options.embeddingError
     }
 
+    const inputs = Array.isArray(input) ? input : [input]
     const embedding = Array.from({ length: embeddingDimension }, (_, index) => index / 1000)
     const response: EmbeddingsResponse = {
-      data: [{ embedding, index: 0, object: 'embedding' }],
+      data: inputs.map((_text, index) => ({ embedding, index, object: 'embedding' })),
       model: 'text-embedding-3-small',
       usage: { prompt_tokens: 10, total_tokens: 10 },
       object: 'list',

@@ -7,7 +7,6 @@ import { startMongoContainer, stopMongoContainer } from '@/utilities/test/mongod
 import { createContextHierarchy } from '../factories/context.factory'
 import { createConversation } from '../factories/conversation.factory'
 import { createTestUser } from '../factories/user.factory'
-import { createFeatureFlagModule } from '../mocks/feature-flags.mock'
 
 const generateSummary = vi.hoisted(() =>
   vi.fn(async (_existingSummary: string, messagesToSummarize: any[]) => ({
@@ -17,13 +16,21 @@ const generateSummary = vi.hoisted(() =>
   })),
 )
 
-vi.mock('@/lib/feature-flags', () =>
-  createFeatureFlagModule({
-    SUMMARY_MAINTENANCE_ENABLED: true,
-    MEMORY_EXTRACTION_ENABLED: false,
-    MEMORY_RETRIEVAL_ENABLED: false,
+const featureFlagsMock = {
+  SUMMARY_MAINTENANCE_ENABLED: true,
+  MEMORY_EXTRACTION_ENABLED: false,
+  MEMORY_RETRIEVAL_ENABLED: false,
+}
+
+vi.mock('@/lib/feature-flags', () => ({
+  featureFlags: featureFlagsMock,
+  getFeatureFlagStatus: () => ({
+    summaryMaintenance: featureFlagsMock.SUMMARY_MAINTENANCE_ENABLED,
+    memoryExtraction: featureFlagsMock.MEMORY_EXTRACTION_ENABLED,
+    memoryRetrieval: featureFlagsMock.MEMORY_RETRIEVAL_ENABLED,
   }),
-)
+  logFeatureFlags: () => undefined,
+}))
 
 vi.mock('@/lib/ai/summary', () => ({
   generateSummary,
