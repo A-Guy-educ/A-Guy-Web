@@ -85,11 +85,16 @@ export function useNotebookChat({
         return
       }
 
+      // Ensure loading indicator shows for minimum duration to avoid race conditions
+      const minLoadingTime = Promise.all([new Promise((resolve) => setTimeout(resolve, 100))])
+
       try {
         const retryDelayMs = 500
         const maxRetries = 10
         let attempt = 0
-        let result = await apiService.getConversation(contextKey)
+        let result = (
+          await Promise.all([apiService.getConversation(contextKey), minLoadingTime])
+        )[0]
 
         while (attempt <= maxRetries) {
           if (result.authRequired) {
@@ -124,6 +129,9 @@ export function useNotebookChat({
                   },
                   '[useNotebookChat] Loaded conversation history',
                 )
+                // Set messages and loading state together - React will batch these updates
+                // and they'll be applied in the same render, ensuring messages are available
+                // when isLoadingHistory becomes false
                 setMessages(loadedMessages)
                 setIsLoadingHistory(false)
                 return
@@ -245,7 +253,14 @@ export function useNotebookChat({
     } catch (_error) {
       toast.error(resetErrorMessage)
     }
-  }, [contextKey, isLoading, initialMessage, resetConfirmMessage, resetErrorMessage, resetSuccessMessage])
+  }, [
+    contextKey,
+    isLoading,
+    initialMessage,
+    resetConfirmMessage,
+    resetErrorMessage,
+    resetSuccessMessage,
+  ])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
