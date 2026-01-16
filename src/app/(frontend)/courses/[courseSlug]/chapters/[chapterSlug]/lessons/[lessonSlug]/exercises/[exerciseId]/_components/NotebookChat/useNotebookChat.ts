@@ -129,14 +129,15 @@ export function useNotebookChat({
                   },
                   '[useNotebookChat] Loaded conversation history',
                 )
-                // Set messages first, then hide loading indicator after a brief delay
-                // This ensures messages are rendered before hiding the loading indicator
-                // The delay allows React to process the state update and render the messages
+                // Set messages and loading state together
+                // React will batch these updates, but we need to ensure messages
+                // are actually in the DOM before hiding the loading indicator
                 setMessages(loadedMessages)
-                // Small delay to ensure DOM updates before hiding loading indicator
+                // Use a longer delay to ensure React has rendered the messages
+                // This is critical for E2E tests that check for message presence
                 setTimeout(() => {
                   setIsLoadingHistory(false)
-                }, 50)
+                }, 150)
                 return
               }
             }
