@@ -7,7 +7,7 @@
  * - Only injected for the current lesson context
  * - Rejected if oversized
  */
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import config from '@payload-config'
 import type { Payload } from 'payload'
 import { getPayload } from 'payload'
@@ -120,7 +120,8 @@ beforeAll(
         lessonContextText: 'This is the context for Lesson A. It contains important information about algebra.',
         status: 'published',
         isActive: true,
-      } satisfies Partial<Lesson>,
+        order: 0,
+      } as any,
       draft: false,
     })
     testLessonId = lessonA.id
@@ -134,7 +135,8 @@ beforeAll(
         lessonContextText: 'This is the context for Lesson B. It contains information about geometry.',
         status: 'published',
         isActive: true,
-      } satisfies Partial<Lesson>,
+        order: 1,
+      } as any,
       draft: false,
     })
     testLessonIdB = lessonB.id
@@ -280,7 +282,8 @@ describe.skipIf(!hasDatabaseUrl)('Lesson Context Injection', () => {
         lessonContextText: oversizedContext,
         status: 'published',
         isActive: true,
-      } satisfies Partial<Lesson>,
+        order: 2,
+      } as any,
       draft: false,
     })
 

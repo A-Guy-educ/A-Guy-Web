@@ -263,7 +263,7 @@ export async function agentChat(req: PayloadRequest & { json?: () => Promise<unk
         id: context.value,
         depth: 0,
       })
-      lessonContextText = lesson.lessonContextText ?? undefined
+      lessonContextText = (lesson as { lessonContextText?: string }).lessonContextText ?? undefined
     } else if (context.relationTo === 'exercises') {
       // Exercises inherit lesson context
       const exercise = await req.payload.findByID({
@@ -278,7 +278,7 @@ export async function agentChat(req: PayloadRequest & { json?: () => Promise<unk
           id: lessonId,
           depth: 0,
         })
-        lessonContextText = lesson.lessonContextText ?? undefined
+        lessonContextText = (lesson as { lessonContextText?: string }).lessonContextText ?? undefined
       }
     }
 
