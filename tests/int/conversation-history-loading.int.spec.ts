@@ -54,18 +54,6 @@ vi.mock('@/lib/ai/maintenance', () => ({
   })),
 }))
 
-vi.mock('@/lib/feature-flags', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/feature-flags')>()
-  return {
-    ...actual,
-    featureFlags: {
-      SUMMARY_MAINTENANCE_ENABLED: true,
-      MEMORY_EXTRACTION_ENABLED: true,
-      MEMORY_RETRIEVAL_ENABLED: true,
-    },
-  }
-})
-
 let payload: Payload
 let testUserId: string
 let testUserId2: string // Second user for access control test
