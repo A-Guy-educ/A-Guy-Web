@@ -111,6 +111,14 @@ export const Lessons: CollectionConfig = {
       },
     },
     {
+      name: 'lessonContextText',
+      type: 'textarea',
+      admin: {
+        description: 'AI context text for this lesson. Injected into chat prompts at runtime. NOT indexed or searchable.',
+      },
+      // NOT indexed, NOT required
+    },
+    {
       name: 'slug',
       type: 'text',
       required: false,
