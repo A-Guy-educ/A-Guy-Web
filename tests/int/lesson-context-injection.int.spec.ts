@@ -15,13 +15,10 @@ import type { PayloadRequest } from 'payload'
 import type { Lesson } from '@/payload-types'
 import { agentChat } from '@/endpoints/agent/chat'
 import { LESSON_CONTEXT_BLOCK_START, LESSON_CONTEXT_MAX_CHARS } from '@/lib/ai/lesson-context'
-import { composePrompt } from '@/lib/ai/context-policy'
+import * as contextPolicy from '@/lib/ai/context-policy'
 
 // Skip tests if DATABASE_URL is not set
 const hasDatabaseUrl = !!process.env.DATABASE_URL
-
-// Track calls to composePrompt to verify lesson context injection
-const composePromptSpy = vi.fn(composePrompt)
 
 // Mock AI and vector-related services
 vi.mock('@/lib/ai/services/exercise-chat-service', async () => {
@@ -36,11 +33,12 @@ vi.mock('@/lib/ai/services/exercise-chat-service', async () => {
   }
 })
 
+// Mock context-policy
 vi.mock('@/lib/ai/context-policy', async () => {
-  const actual = await vi.importActual('@/lib/ai/context-policy')
+  const actual = await vi.importActual<typeof import('@/lib/ai/context-policy')>('@/lib/ai/context-policy')
   return {
     ...actual,
-    composePrompt: composePromptSpy,
+    composePrompt: vi.fn(actual.composePrompt),
   }
 })
 
@@ -171,7 +169,7 @@ afterAll(async () => {
 
 describe.skipIf(!hasDatabaseUrl)('Lesson Context Injection', () => {
   beforeEach(() => {
-    composePromptSpy.mockClear()
+    vi.mocked(contextPolicy.composePrompt).mockClear()
   })
 
   it('should inject lessonContextText into composed prompt', async () => {
@@ -189,10 +187,12 @@ describe.skipIf(!hasDatabaseUrl)('Lesson Context Injection', () => {
     expect(res.status).toBe(200)
 
     // Verify composePrompt was called
-    expect(composePromptSpy).toHaveBeenCalled()
+    expect(vi.mocked(contextPolicy.composePrompt)).toHaveBeenCalled()
 
     // Get the system message passed to composePrompt
-    const lastCall = composePromptSpy.mock.calls[composePromptSpy.mock.calls.length - 1]
+    const lastCall = vi.mocked(contextPolicy.composePrompt).mock.calls[
+      vi.mocked(contextPolicy.composePrompt).mock.calls.length - 1
+    ]
     const systemMessage = lastCall[0] as string
 
     // Verify lesson context is present in the system message
@@ -243,7 +243,7 @@ describe.skipIf(!hasDatabaseUrl)('Lesson Context Injection', () => {
     } as unknown as PayloadRequest & { json: () => Promise<unknown> }
 
     await agentChat(reqA)
-    composePromptSpy.mockClear()
+    vi.mocked(contextPolicy.composePrompt).mockClear()
 
     // Send message with Lesson B
     const reqB = {
@@ -259,8 +259,10 @@ describe.skipIf(!hasDatabaseUrl)('Lesson Context Injection', () => {
     await agentChat(reqB)
 
     // Verify composePrompt was called with Lesson B context
-    expect(composePromptSpy).toHaveBeenCalled()
-    const lastCall = composePromptSpy.mock.calls[composePromptSpy.mock.calls.length - 1]
+    expect(vi.mocked(contextPolicy.composePrompt)).toHaveBeenCalled()
+    const lastCall = vi.mocked(contextPolicy.composePrompt).mock.calls[
+      vi.mocked(contextPolicy.composePrompt).mock.calls.length - 1
+    ]
     const systemMessage = lastCall[0] as string
 
     // Lesson B context should be present
