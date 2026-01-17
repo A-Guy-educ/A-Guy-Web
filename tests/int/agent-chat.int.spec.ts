@@ -146,10 +146,23 @@ beforeAll(
     if (existingExercises.docs.length > 0) {
       testExerciseId = existingExercises.docs[0].id
     } else {
+      // Create a lesson first (required for exercise)
+      const lesson = await payload.create({
+        collection: 'lessons',
+        data: {
+          title: 'Test Lesson for Exercise',
+          chapter: testChapterId,
+          order: 1,
+          status: 'published',
+        },
+        draft: true,
+      } as any)
+
       const exercise = await payload.create({
         collection: 'exercises',
         data: {
           title: 'Agent Chat Integration Test Exercise',
+          lesson: lesson.id,
         } satisfies Partial<Exercise>,
         draft: true,
       })
@@ -398,6 +411,116 @@ describe.skipIf(!hasDatabaseUrl)('agentChat endpoint', () => {
       )
 
       await payload.delete({ collection: 'lessons', id: lesson.id } as any)
+    })
+
+    it('prepends system prompts in createdAt ASC order', async () => {
+      const { chatWithExerciseHelper } = await import(
+        '@/lib/ai/services/exercise-chat-service'
+      )
+
+      // Delete existing system prompt from beforeAll to ensure clean test
+      if (testSystemPromptId) {
+        try {
+          await payload.delete({
+            collection: 'prompts',
+            id: testSystemPromptId,
+            overrideAccess: true,
+          } as any)
+          testSystemPromptId = undefined
+        } catch {
+          // Ignore cleanup errors
+        }
+      }
+
+      // Create two system prompts with specific markers
+      // First prompt (older)
+      const sysPromptA = await payload.create({
+        collection: 'prompts',
+        data: {
+          title: 'System Prompt A (Older)',
+          key: `sys-prompt-a-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          template: 'SYS_MARKER_A: First system prompt.',
+          type: 'system',
+          status: 'published',
+        },
+        overrideAccess: true,
+      } as any)
+
+      // Small delay to ensure different timestamps
+      await new Promise((resolve) => setTimeout(resolve, 10))
+
+      // Second prompt (newer)
+      const sysPromptB = await payload.create({
+        collection: 'prompts',
+        data: {
+          title: 'System Prompt B (Newer)',
+          key: `sys-prompt-b-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          template: 'SYS_MARKER_B: Second system prompt.',
+          type: 'system',
+          status: 'published',
+        },
+        overrideAccess: true,
+      } as any)
+
+      const lesson = await payload.create({
+        collection: 'lessons',
+        data: {
+          title: 'Test Lesson For Ordering',
+          slug: `test-lesson-order-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          chapter: testChapterId,
+          order: 1,
+          status: 'published',
+        },
+        draft: true,
+      } as any)
+
+      const req = {
+        payload,
+        user: { id: testUserId } as PayloadRequest['user'],
+        json: async () => ({
+          message: 'Hello',
+          acknowledgment: 'ack-1',
+          lessonId: lesson.id,
+        }),
+      } as unknown as PayloadRequest & { json: () => Promise<unknown> }
+
+      await agentChat(req)
+
+      // Get the call arguments
+      const callArgs = (chatWithExerciseHelper as unknown as { mock: { calls: Array<[unknown]> } }).mock.calls[0]?.[0] as { composedPrompt: { messages: Array<{ role: string; content: string }> } }
+      const systemMessage = callArgs?.composedPrompt?.messages?.find(
+        (m: { role: string }) => m.role === 'system',
+      )?.content
+
+      // Verify system prompts are prepended in correct order (A before B)
+      expect(systemMessage).toBeDefined()
+      if (!systemMessage) {
+        throw new Error('System message not found')
+      }
+
+      // Our test markers should be present
+      expect(systemMessage).toContain('SYS_MARKER_A')
+      expect(systemMessage).toContain('SYS_MARKER_B')
+
+      // Verify ordering: older prompt (A) should come before newer prompt (B)
+      // This is the key assertion - createdAt ASC means older first
+      const indexA = systemMessage.indexOf('SYS_MARKER_A')
+      const indexB = systemMessage.indexOf('SYS_MARKER_B')
+
+      // If ordering is working correctly, A should come before B
+      if (indexA > indexB) {
+        throw new Error(
+          `System prompts not ordered correctly by createdAt ASC. ` +
+          `Expected SYS_MARKER_A (created first) at position ${indexB}, ` +
+          `but found at position ${indexA}. ` +
+          `Actual order: B before A (newer before older)`,
+        )
+      }
+
+      // Cleanup
+      await payload.delete({ collection: 'lessons', id: lesson.id } as any)
+      await payload.delete({ collection: 'prompts', id: sysPromptA.id } as any)
+      await payload.delete({ collection: 'prompts', id: sysPromptB.id } as any)
     })
 
     it('proceeds successfully when no system prompts exist', async () => {

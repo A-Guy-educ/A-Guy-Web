@@ -39,12 +39,12 @@ export async function fetchPublishedSystemPrompts(
           { status: { equals: 'published' } },
         ],
       },
-      sort: 'createdAt,id', // ASC for both - oldest first, id as tiebreaker
+      sort: '-createdAt,-id', // DESC order (newest first), we reverse to get ASC
       limit: 100, // Safety limit
       overrideAccess: true, // Prompts are admin-only
     })
 
-    const prompts = result.docs as unknown as Prompt[]
+    const prompts = (result.docs as unknown as Prompt[]).slice().reverse()
 
     if (prompts.length === 0) {
       logger.debug('No published system prompts found, proceeding without them')
