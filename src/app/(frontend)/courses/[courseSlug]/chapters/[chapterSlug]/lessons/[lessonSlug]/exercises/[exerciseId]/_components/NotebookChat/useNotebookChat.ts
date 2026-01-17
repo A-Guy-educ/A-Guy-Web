@@ -104,9 +104,33 @@ export function useNotebookChat({
           }
 
           if (result.success && result.exists) {
+            // DEBUG: Log the raw result
+            logger.debug(
+              {
+                contextKey,
+                conversationId: result.conversationId,
+                rawMessages: result.messages,
+                rawMessagesLength: result.messages?.length,
+                rawMessagesType: typeof result.messages,
+                isArray: Array.isArray(result.messages),
+              },
+              '[useNotebookChat] API response received',
+            )
+
             // Filter out invalid messages and map to chat messages
-            const validMessages = (result.messages || []).filter(
+            const rawMessages = result.messages || []
+            logger.debug(
+              { contextKey, rawMessagesLength: rawMessages.length },
+              '[useNotebookChat] Processing raw messages',
+            )
+
+            const validMessages = rawMessages.filter(
               (msg) => msg && msg.role && msg.content && typeof msg.content === 'string',
+            )
+
+            logger.debug(
+              { contextKey, validMessagesLength: validMessages.length },
+              '[useNotebookChat] Valid messages count',
             )
 
             if (validMessages.length > 0) {
@@ -119,16 +143,18 @@ export function useNotebookChat({
                 content: String(msg.content),
               }))
 
+              logger.debug(
+                {
+                  contextKey,
+                  conversationId: result.conversationId,
+                  messageCount: loadedMessages.length,
+                  messagesPreview: loadedMessages.slice(0, 2).map(m => ({ role: m.role, content: m.content.substring(0, 30) })),
+                },
+                '[useNotebookChat] Loaded conversation history',
+              )
+
               // Only update messages if we have valid messages to avoid clearing the chat
               if (loadedMessages.length > 0) {
-                logger.debug(
-                  {
-                    contextKey,
-                    conversationId: result.conversationId,
-                    messageCount: loadedMessages.length,
-                  },
-                  '[useNotebookChat] Loaded conversation history',
-                )
                 // Set messages and loading state together
                 // React will batch these updates, but we need to ensure messages
                 // are actually in the DOM before hiding the loading indicator

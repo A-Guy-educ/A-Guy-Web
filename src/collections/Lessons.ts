@@ -22,7 +22,12 @@ export const Lessons: CollectionConfig = {
     beforeChange: [
       ({ data }) => {
         if (data?.title && !data?.slug) {
-          data.slug = formatSlug(data.title)
+          // Generate unique slug from title
+          // Include timestamp for uniqueness, falling back to random if timestamp not available
+          const timestamp = typeof data.createdAt === 'string'
+            ? data.createdAt.replace(/[^0-9]/g, '').slice(-6)
+            : Date.now().toString().slice(-6)
+          data.slug = `${formatSlug(data.title)}-${timestamp}`
         }
         return data
       },

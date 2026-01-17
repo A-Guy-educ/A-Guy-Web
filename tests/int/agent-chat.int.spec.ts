@@ -297,6 +297,7 @@ describe.skipIf(!hasDatabaseUrl)('agentChat endpoint', () => {
         collection: 'lessons',
         data: {
           title: 'Test Lesson',
+          slug: `test-lesson-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           chapter: testChapterId,
           order: 1,
           status: 'published',
