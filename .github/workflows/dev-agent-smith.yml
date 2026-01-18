@@ -1,3 +1,27 @@
+# -----------------------------------------------------------------------------
+# AGENT CODE WORKFLOW
+# -----------------------------------------------------------------------------
+#
+# HOW TO ACTIVATE THE AGENT:
+#
+# 1. @agent-code <request>   -> Full overwrite method (recommended)
+#    Example: "@agent-code Update the README with installation steps"
+#
+# 2. @agent-diff <request>   -> Diff method (for small changes)
+#    Example: "@agent-diff Fix the typo in src/utils.ts"
+#
+# OVERRIDE TOKENS:
+#    @agent-code allow:workflows  -> Allow editing .github/workflows/
+#
+# DENYLISTED PATHS (blocked by default):
+#    .env, .env.*, pnpm-lock.yaml, package.json, .github/workflows/*
+#
+# LIMITS:
+#    Max 10 files per request
+#    Max 500KB output
+#
+# -----------------------------------------------------------------------------
+
 name: Agent Code (Multi-Format Testing)
 
 on:
@@ -74,7 +98,7 @@ jobs:
           MJS
           node call-agent.mjs
 
-      - name: Apply changes - HARDENED (one step: validate + sandbox + temp + move)
+      - name: Apply changes - HARDENED
         id: apply
         run: |
           set -euo pipefail
@@ -246,53 +270,3 @@ jobs:
           commit-message: 'agent-overwrite: apply changes for #${{ github.event.issue.number }}'
           title: 'Overwrite Suggestion for #${{ github.event.issue.number }}'
           branch: agent-overwrite-${{ github.event.issue.number }}
-
-  # JOB 2: THE ORIGINAL DIFF METHOD (unchanged)
-  run-diff-agent:
-    if: contains(github.event.comment.body, '@agent-diff')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Call AI (Unified Diff)
-        id: agent
-        env:
-          AI_BASE_URL: ${{ secrets.AI_BASE_URL }}
-          AI_MODEL: ${{ secrets.AI_MODEL }}
-          AI_KEY: ${{ secrets.AI_KEY }}
-          COMMENT_BODY: ${{ github.event.comment.body }}
-        run: |
-          cat > call-agent.mjs <<'MJS'
-          import { writeFileSync } from "node:fs";
-          const system = "You are a senior code-change agent. Output a valid unified diff in git format. NO markdown fences.";
-          const user = `Request: ${process.env.COMMENT_BODY}`;
-          const res = await fetch(`${process.env.AI_BASE_URL}/chat/completions`, {
-            method: "POST",
-            headers: { "Authorization": `Bearer ${process.env.AI_KEY}`, "Content-Type": "application/json" },
-            body: JSON.stringify({ model: process.env.AI_MODEL, messages: [{role:"system", content:system}, {role:"user", content:user}], temperature: 0.1 }),
-          });
-          const data = await res.json();
-          writeFileSync("agent.patch", data?.choices?.[0]?.message?.content || "", "utf8");
-          MJS
-          node call-agent.mjs
-
-      - name: Apply patch
-        id: apply
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git apply --3way --ignore-whitespace --recount agent.patch || true
-          rm -f agent.patch call-agent.mjs
-          git add .
-          if [ -n "$(git status --porcelain)" ]; then echo "changed=true" >> "$GITHUB_OUTPUT"; else echo "changed=false" >> "$GITHUB_OUTPUT"; fi
-
-      - name: Create Pull Request
-        if: steps.apply.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          title: 'Diff Suggestion for #${{ github.event.issue.number }}'
-          branch: agent-diff-${{ github.event.issue.number }}
