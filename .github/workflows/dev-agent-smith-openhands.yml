@@ -20,8 +20,8 @@ jobs:
     with:
       macro: '@openhands-agent'
       max_iterations: 25
-      target_branch: 'main'
+      target_branch: 'dev'
     secrets:
-      LLM_API_KEY: ${{ secrets.AI_KEY }}
-      LLM_BASE_URL: ${{ secrets.AI_BASE_URL }}
-      LLM_MODEL: ${{ secrets.AI_MODEL }}
+      LLM_API_KEY: ${{secrets.AI_KEY }}
+      LLM_BASE_URL: ${{secrets.AI_BASE_URL }}
+      LLM_MODEL: minimax/${{ secrets.AI_MODEL }}
