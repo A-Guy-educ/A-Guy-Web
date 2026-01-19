@@ -1,3 +1,20 @@
+## 0.2.0 (2026-01-19)
+
+* Merge branch 'dev' into features/openhands-agent ([346bcef](https://github.com/A-Guy-educ/A-Guy/commit/346bcef))
+* Merge pull request #156 from A-Guy-educ/features/openhands-agent ([b2d6739](https://github.com/A-Guy-educ/A-Guy/commit/b2d6739)), closes [#156](https://github.com/A-Guy-educ/A-Guy/issues/156)
+* Merge pull request #158 from A-Guy-educ/dev ([5fc4664](https://github.com/A-Guy-educ/A-Guy/commit/5fc4664)), closes [#158](https://github.com/A-Guy-educ/A-Guy/issues/158)
+* Merge pull request #160 from A-Guy-educ/dev ([5a1f0a5](https://github.com/A-Guy-educ/A-Guy/commit/5a1f0a5)), closes [#160](https://github.com/A-Guy-educ/A-Guy/issues/160)
+* Update dev-agent-smith-openhands.yml ([30a4045](https://github.com/A-Guy-educ/A-Guy/commit/30a4045))
+* Update dev-agent-smith-openhands.yml ([950cfe9](https://github.com/A-Guy-educ/A-Guy/commit/950cfe9))
+* Update dev-agent-smith-openhands.yml ([52dd1e3](https://github.com/A-Guy-educ/A-Guy/commit/52dd1e3))
+* Update dev-agent-smith-openhands.yml ([158621a](https://github.com/A-Guy-educ/A-Guy/commit/158621a))
+* Update dev-agent-smith-openhands.yml ([1bbad61](https://github.com/A-Guy-educ/A-Guy/commit/1bbad61))
+* Update dev-agent-smith-openhands.yml ([27b3eed](https://github.com/A-Guy-educ/A-Guy/commit/27b3eed))
+* fix(ci): Remove invalid slackWebhook config syntax ([6316322](https://github.com/A-Guy-educ/A-Guy/commit/6316322))
+* fix(ci): Use correct env var name SLACK_WEBHOOK for slack-bot plugin ([7b402d1](https://github.com/A-Guy-educ/A-Guy/commit/7b402d1))
+* test: Add lesson type filtering coverage ([e37aedb](https://github.com/A-Guy-educ/A-Guy/commit/e37aedb))
+* feat: Add lesson type tabs ([e36c6e5](https://github.com/A-Guy-educ/A-Guy/commit/e36c6e5))
+
 ## 0.1.0 (2026-01-19)
 
 * Add chat test coverage and infra ([4e542e2](https://github.com/A-Guy-educ/A-Guy/commit/4e542e2))
