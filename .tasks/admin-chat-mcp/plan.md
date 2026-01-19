@@ -33,6 +33,7 @@ This plan implements **Stage 1** of the PRD: Tenant-ready data model with read-o
 ```
 
 **Tasks**:
+
 1. Create `src/collections/Tenants.ts` with fields above
 2. Add `beforeDelete` hook:
    - If `DEFAULT_TENANT_SLUG` env is missing → DENY delete (fail-safe)
@@ -82,6 +83,7 @@ export async function getDefaultTenantId(payload: Payload): Promise<string> {
 **Caching Strategy**: NO global caching. Resolve once per chat request (see Phase 3.3).
 
 **Tasks**:
+
 1. Create `src/lib/tenant/get-default-tenant.ts` as the single source of truth
 2. Add `DEFAULT_TENANT_SLUG` to `.env.example`
 3. Add startup validation in `src/payload.config.ts`:
@@ -104,12 +106,14 @@ export async function getDefaultTenantId(payload: Payload): Promise<string> {
 ```
 
 **Tasks**:
+
 1. Create `src/fields/tenant.ts` with shared field definition
 2. Hook calls `getDefaultTenantId()` - does NOT duplicate resolution logic
 
 ### 1.4 Add Tenant Field to Content Collections
 
 **Collections to modify**:
+
 - `src/collections/Courses.ts`
 - `src/collections/Chapters.ts`
 - `src/collections/Lessons.ts`
@@ -118,6 +122,7 @@ export async function getDefaultTenantId(payload: Payload): Promise<string> {
 - `src/collections/UserProgress.ts`
 
 **Tasks** (per collection):
+
 1. Import tenant field from `src/fields/tenant.ts`
 2. Add tenant field to fields array
 3. Add index on tenant field for query performance
@@ -127,6 +132,7 @@ export async function getDefaultTenantId(payload: Payload): Promise<string> {
 **File**: `src/migrations/001-backfill-tenant.ts`
 
 **Tasks**:
+
 1. Create migration script that:
    - Validates `DEFAULT_TENANT_SLUG` env exists (fail-fast)
    - Creates default tenant (slug from `DEFAULT_TENANT_SLUG` env) if not exists
@@ -145,9 +151,11 @@ export async function getDefaultTenantId(payload: Payload): Promise<string> {
 The **Payload MCP plugin is the MCP server**. We configure it using its **documented configuration surface**.
 
 **Tasks**:
+
 1. Install the official Payload MCP plugin: `pnpm add @payloadcms/plugin-mcp`
 2. Review plugin documentation for actual supported configuration options
 3. Create MCP plugin configuration using **only documented APIs**:
+
    ```typescript
    import { mcpPlugin } from '@payloadcms/plugin-mcp'
 
@@ -158,15 +166,18 @@ The **Payload MCP plugin is the MCP server**. We configure it using its **docume
      // ... other plugin-supported options
    })
    ```
+
 4. Register plugin in `src/plugins/index.ts`
 
 **What the plugin provides (we do NOT implement)**:
+
 - HTTP transport / MCP server endpoint
 - MCP protocol handling (initialize, tools/list, tools/call)
 - JSON-RPC message processing
 - Tool definitions and naming
 
 **What we implement (in the admin chat backend, NOT the plugin)**:
+
 - Tool allowlist based on discovered plugin tool names
 - Tenant injection before/after tool calls
 - Response transformation (field allowlisting)
@@ -190,12 +201,18 @@ async function discoverPluginTools(): Promise<void> {
 
   // Capture and document:
   for (const tool of tools) {
-    console.log(JSON.stringify({
-      name: tool.name,
-      description: tool.description,
-      inputSchema: tool.inputSchema,
-      // Capture any metadata the plugin provides
-    }, null, 2))
+    console.log(
+      JSON.stringify(
+        {
+          name: tool.name,
+          description: tool.description,
+          inputSchema: tool.inputSchema,
+          // Capture any metadata the plugin provides
+        },
+        null,
+        2,
+      ),
+    )
   }
 }
 ```
@@ -234,8 +251,16 @@ const TOOL_PATTERN_CONFIG = {
 
   // Hard blocklist - ALWAYS reject these regardless of pattern match
   blocklist: new Set([
-    'create', 'update', 'delete', 'insert', 'remove', 'modify', 'patch', 'put', 'post'
-  ])
+    'create',
+    'update',
+    'delete',
+    'insert',
+    'remove',
+    'modify',
+    'patch',
+    'put',
+    'post',
+  ]),
 }
 
 function isAllowedTool(toolName: string): boolean {
@@ -262,10 +287,9 @@ it('fails fast on unknown tool name patterns', () => {
   // If a tool doesn't match our expected pattern AND isn't explicitly allowed,
   // it should be rejected and logged as a warning
   expect(isAllowedTool(unknownTool)).toBe(false)
-  expect(logger.warn).toHaveBeenCalledWith(
-    expect.stringContaining('Unknown tool pattern'),
-    { toolName: unknownTool }
-  )
+  expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('Unknown tool pattern'), {
+    toolName: unknownTool,
+  })
 })
 
 it('always rejects write operations regardless of pattern', () => {
@@ -274,16 +298,17 @@ it('always rejects write operations regardless of pattern', () => {
     'payload_update_lessons',
     'payload_delete_media',
     'some_tool_with_insert_anywhere',
-    'PAYLOAD_DELETE_COURSES' // case variations
+    'PAYLOAD_DELETE_COURSES', // case variations
   ]
 
-  writeOps.forEach(tool => {
+  writeOps.forEach((tool) => {
     expect(isAllowedTool(tool)).toBe(false)
   })
 })
 ```
 
 **Tasks**:
+
 1. **BLOCKER**: Run discovery script and capture actual plugin tool definitions
 2. Create `docs/features/admin-chat-mcp/discovered-tools.json` with plugin output
 3. Determine if plugin provides metadata (prefer Option A) or requires regex (Option B)
@@ -307,19 +332,26 @@ async function discoverToolArgumentSchemas(): Promise<void> {
   const tools = await mcpClient.listTools()
 
   for (const tool of tools) {
-    console.log(JSON.stringify({
-      toolName: tool.name,
-      inputSchema: tool.inputSchema,
-      // Look specifically for:
-      // - Where is the 'where' clause? (e.g., args.where, args.filter, args.query)
-      // - What is the structure? (e.g., { field: { equals: value } })
-      // - Is there a 'tenant' field already? (we need to know to reject/override it)
-    }, null, 2))
+    console.log(
+      JSON.stringify(
+        {
+          toolName: tool.name,
+          inputSchema: tool.inputSchema,
+          // Look specifically for:
+          // - Where is the 'where' clause? (e.g., args.where, args.filter, args.query)
+          // - What is the structure? (e.g., { field: { equals: value } })
+          // - Is there a 'tenant' field already? (we need to know to reject/override it)
+        },
+        null,
+        2,
+      ),
+    )
   }
 }
 ```
 
 **Output**: Update `docs/features/admin-chat-mcp/discovered-tools.json` to include:
+
 - Exact path where filters live (e.g., `args.where`, `args.filter`)
 - Structure of filter conditions (Payload-style vs other)
 - Any existing tenant-related fields
@@ -446,6 +478,7 @@ function injectTenantFilter(
 ```
 
 **Tasks**:
+
 1. **BLOCKER**: Run discovery script and capture actual argument schemas
 2. Document discovered filter path, structure, and style
 3. Update `TENANT_INJECTION_CONFIG` with discovered values
@@ -463,17 +496,18 @@ Applied in the **admin chat backend** after receiving plugin response.
 
 **Returned fields per collection** (explicit allowlist - metadata only):
 
-| Collection | Fields |
-|------------|--------|
-| courses | id, title, slug, status, updatedAt |
-| chapters | id, title, slug, status, order, course.id, course.title, updatedAt |
-| lessons | id, title, slug, status, order, chapter.id, chapter.title, updatedAt |
-| exercises | id, title, status, order, lesson.id, lesson.title, updatedAt |
-| media | id, filename, mimeType, filesize, url, updatedAt |
+| Collection | Fields                                                               |
+| ---------- | -------------------------------------------------------------------- |
+| courses    | id, title, slug, status, updatedAt                                   |
+| chapters   | id, title, slug, status, order, course.id, course.title, updatedAt   |
+| lessons    | id, title, slug, status, order, chapter.id, chapter.title, updatedAt |
+| exercises  | id, title, status, order, lesson.id, lesson.title, updatedAt         |
+| media      | id, filename, mimeType, filesize, url, updatedAt                     |
 
 **Note**: No large/verbose fields (descriptions, rich text, etc.) in Stage 1.
 
 **Tasks**:
+
 1. Create `src/lib/mcp/transforms/index.ts` - transformer registry
 2. Create per-collection transformers that extract only allowlisted fields
 3. Add tests for transformation
@@ -518,6 +552,7 @@ class MCPClient {
 **Note**: Tool allowlisting is NOT in the client. It's in `chat-integration.ts`.
 
 **Tasks**:
+
 1. Create `src/lib/mcp/client/mcp-client.ts`
 2. Create `src/lib/mcp/client/types.ts` - MCP protocol types
 3. Create singleton instance with lazy initialization
@@ -533,19 +568,20 @@ class MCPClient {
 
 function mcpToolsToGeminiFunctionDeclarations(
   tools: Tool[],
-  allowedToolNames: Set<string>
+  allowedToolNames: Set<string>,
 ): FunctionDeclaration[] {
   return tools
-    .filter(tool => allowedToolNames.has(tool.name))
-    .map(tool => ({
+    .filter((tool) => allowedToolNames.has(tool.name))
+    .map((tool) => ({
       name: tool.name,
       description: tool.description,
-      parameters: convertJsonSchemaToGemini(tool.inputSchema)
+      parameters: convertJsonSchemaToGemini(tool.inputSchema),
     }))
 }
 ```
 
 **Tasks**:
+
 1. Create `src/lib/ai/providers/gemini/gemini-tools.ts`
 2. Update `src/lib/ai/providers/gemini/gemini.provider.ts`:
    - Add optional `tools` parameter to `generateChatCompletion`
@@ -597,6 +633,7 @@ while (response.toolCalls && response.toolCalls.length > 0) {
 ```
 
 **Tasks**:
+
 1. Modify `src/endpoints/agent/chat.ts` to:
    - Resolve tenant ONCE early in request
    - Pass tenantId to all tool execution calls
@@ -632,6 +669,7 @@ while (response.toolCalls && response.toolCalls.length > 0) {
 ```
 
 **Tasks**:
+
 1. Create `src/collections/MCPAuditLogs.ts`
 2. Register in `src/payload.config.ts`
 3. Run `pnpm generate:types`
@@ -645,8 +683,8 @@ while (response.toolCalls && response.toolCalls.length > 0) {
 async function logMCPCall(params: {
   adminUserId: string
   tenantId: string
-  toolName: string   // Actual plugin tool name
-  args: unknown      // sanitized
+  toolName: string // Actual plugin tool name
+  args: unknown // sanitized
   resultCount: number
   success: boolean
   durationMs: number
@@ -655,6 +693,7 @@ async function logMCPCall(params: {
 ```
 
 **Tasks**:
+
 1. Create `src/lib/mcp/audit/audit-service.ts`
 2. Integrate into `chat-integration.ts` (called after every tool execution)
 3. Add requestId generation and propagation
@@ -682,6 +721,7 @@ async function logMCPCall(params: {
    - Reject any write-like arguments
 
 **Tasks**:
+
 1. Add explicit deny logging for blocked operations
 2. Create security test suite validating all three locks
 3. Document bypass prevention in code comments
@@ -700,7 +740,7 @@ function containsTenantField(obj: unknown): boolean {
   // Recursively check for 'tenant' key
   if (typeof obj !== 'object' || obj === null) return false
   if ('tenant' in obj) return true
-  return Object.values(obj).some(v => containsTenantField(v))
+  return Object.values(obj).some((v) => containsTenantField(v))
 }
 
 function injectTenantFilter(args: unknown, tenantId: string): unknown {
@@ -710,6 +750,7 @@ function injectTenantFilter(args: unknown, tenantId: string): unknown {
 ```
 
 **Tasks**:
+
 1. Implement tenant field rejection in `chat-integration.ts`
 2. Add tests for tenant override attempts (should all fail)
 3. Log all tenant override attempts as security events
@@ -729,15 +770,16 @@ function injectTenantFilter(args: unknown, tenantId: string): unknown {
 
 **Allowed filters per collection** (strict allowlist):
 
-| Collection | Allowed `where` fields | Allowed `sort` fields |
-|------------|------------------------|----------------------|
-| courses | status, title | title, updatedAt |
-| chapters | status, title, course | order, title, updatedAt |
-| lessons | status, title, chapter | order, title, updatedAt |
-| exercises | status, title, lesson | order, title, updatedAt |
-| media | filename, mimeType | filename, updatedAt |
+| Collection | Allowed `where` fields | Allowed `sort` fields   |
+| ---------- | ---------------------- | ----------------------- |
+| courses    | status, title          | title, updatedAt        |
+| chapters   | status, title, course  | order, title, updatedAt |
+| lessons    | status, title, chapter | order, title, updatedAt |
+| exercises  | status, title, lesson  | order, title, updatedAt |
+| media      | filename, mimeType     | filename, updatedAt     |
 
 **Tasks**:
+
 1. Create `src/lib/mcp/validation/argument-validator.ts`
 2. Create per-collection filter/sort allowlists
 3. Add validation tests with malicious inputs
@@ -749,6 +791,7 @@ function injectTenantFilter(args: unknown, tenantId: string): unknown {
 ### 6.1 Unit Tests
 
 **Files**:
+
 - `tests/unit/mcp/tool-allowlist.test.ts`
 - `tests/unit/mcp/chat-integration.test.ts`
 - `tests/unit/mcp/validation/argument-validator.test.ts`
@@ -756,6 +799,7 @@ function injectTenantFilter(args: unknown, tenantId: string): unknown {
 - `tests/unit/tenant/get-default-tenant.test.ts`
 
 **Test Cases**:
+
 - Tool discovery and allowlist filtering
 - Tenant injection (always present)
 - Tenant override rejection (security)
@@ -767,11 +811,13 @@ function injectTenantFilter(args: unknown, tenantId: string): unknown {
 ### 6.2 Integration Tests
 
 **Files**:
+
 - `tests/int/mcp/plugin.int.spec.ts`
 - `tests/int/mcp/client.int.spec.ts`
 - `tests/int/mcp/chat-integration.int.spec.ts`
 
 **Test Cases**:
+
 - End-to-end MCP plugin request/response
 - Admin chat with tool calling
 - Audit log creation
@@ -781,9 +827,11 @@ function injectTenantFilter(args: unknown, tenantId: string): unknown {
 ### 6.3 E2E Tests
 
 **Files**:
+
 - `tests/e2e/admin-chat-mcp.spec.ts`
 
 **Test Cases**:
+
 - Admin asks "Show me the last 5 unpublished lessons" → receives formatted list
 - Non-admin user cannot trigger MCP tools
 - Invalid tool calls are blocked and logged
@@ -807,6 +855,7 @@ MCP_ENABLED=true  # Feature flag to enable/disable MCP tools in chat
 ```
 
 **Startup behavior** (FAIL-FAST - no silent degradation):
+
 - If `DEFAULT_TENANT_SLUG` is missing AND `MCP_ENABLED=true` → Application FAILS TO START with clear error
 - If `MCP_ENABLED=false` → MCP tools not offered to Gemini, `DEFAULT_TENANT_SLUG` not required
 
@@ -815,6 +864,7 @@ MCP_ENABLED=true  # Feature flag to enable/disable MCP tools in chat
 ### 7.2 Documentation
 
 **Files**:
+
 - `docs/features/admin-chat-mcp/README.md` - Feature overview
 - `docs/features/admin-chat-mcp/SECURITY.md` - Security model
 - `docs/features/admin-chat-mcp/TOOLS.md` - Available tools (document actual plugin tool names)
@@ -824,6 +874,7 @@ MCP_ENABLED=true  # Feature flag to enable/disable MCP tools in chat
 ## Implementation Order (Recommended)
 
 ### Week 1: Foundation
+
 1. Phase 1.1: Create Tenants collection
 2. Phase 1.2: Create tenant resolver (single source of truth)
 3. Phase 1.3: Create tenant field utility
@@ -831,6 +882,7 @@ MCP_ENABLED=true  # Feature flag to enable/disable MCP tools in chat
 5. Phase 1.5: Data migration script
 
 ### Week 2: MCP Plugin & Discovery (CRITICAL - BLOCKERS)
+
 6. Phase 2.1: Install and configure Payload MCP plugin
 7. **BLOCKER**: Run tool discovery script, capture output
 8. **BLOCKER**: Run argument schema discovery, capture output
@@ -840,6 +892,7 @@ MCP_ENABLED=true  # Feature flag to enable/disable MCP tools in chat
 12. Document `TENANT_INJECTION_CONFIG` with actual discovered values
 
 ### Week 3: MCP Client & Integration
+
 13. Phase 2.3: Implement tenant enforcement with discovered schema
 14. Phase 2.4: Response transformers
 15. Phase 3.1: MCP client service
@@ -847,12 +900,14 @@ MCP_ENABLED=true  # Feature flag to enable/disable MCP tools in chat
 17. Phase 3.3: Chat endpoint integration
 
 ### Week 4: Security & Polish
+
 18. Phase 4: Audit logging
 19. Phase 5: Security hardening
 20. Phase 6: Testing
 21. Phase 7: Configuration & docs
 
 **⚠️ Gate Condition**: Steps 7-12 in Week 2 are BLOCKERS. Do not proceed to Week 3 until:
+
 - Tool names are captured from actual plugin output
 - Argument schemas are captured from actual plugin output
 - Allowlist strategy is selected based on evidence (not assumptions)
@@ -931,35 +986,36 @@ src/lib/ai/services/exercise-chat-service.ts    # Tool support
 
 ## Acceptance Criteria Validation
 
-| Criteria | Implementation |
-|----------|----------------|
+| Criteria                                               | Implementation                                                                                                                                                             |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Admin can ask "Show me the last 5 unpublished lessons" | Chat endpoint detects admin context → discovers allowed tools from plugin → Gemini calls plugin tool → backend injects tenant, validates args → returns allowlisted fields |
-| Chat performs MCP read call scoped to Tenant | Tenant resolved once per request via `getDefaultTenantId()`, injected in `chat-integration.ts` |
-| Tenant cannot be overridden by model | `chat-integration.ts` rejects any `tenant` in args before processing |
-| Unauthorized action attempts are blocked and logged | Tool allowlist + argument validation + audit logging |
-| Only read operations possible | Tool allowlist filters to read-only plugin tools |
-| Results capped at 10 | Argument validator enforces `limit <= 10` |
-| Missing DEFAULT_TENANT_SLUG fails fast | If `MCP_ENABLED=true` AND missing → startup fails; `getDefaultTenantSlug()` throws at runtime as secondary guard |
+| Chat performs MCP read call scoped to Tenant           | Tenant resolved once per request via `getDefaultTenantId()`, injected in `chat-integration.ts`                                                                             |
+| Tenant cannot be overridden by model                   | `chat-integration.ts` rejects any `tenant` in args before processing                                                                                                       |
+| Unauthorized action attempts are blocked and logged    | Tool allowlist + argument validation + audit logging                                                                                                                       |
+| Only read operations possible                          | Tool allowlist filters to read-only plugin tools                                                                                                                           |
+| Results capped at 10                                   | Argument validator enforces `limit <= 10`                                                                                                                                  |
+| Missing DEFAULT_TENANT_SLUG fails fast                 | If `MCP_ENABLED=true` AND missing → startup fails; `getDefaultTenantSlug()` throws at runtime as secondary guard                                                           |
 
 ---
 
 ## Risks & Mitigations
 
-| Risk | Mitigation |
-|------|------------|
-| Plugin exposes write operations | Tool allowlist filters to read-only tools only |
-| Cross-tenant data leak | Tenant injected in backend, rejected if in args |
+| Risk                             | Mitigation                                                |
+| -------------------------------- | --------------------------------------------------------- |
+| Plugin exposes write operations  | Tool allowlist filters to read-only tools only            |
+| Cross-tenant data leak           | Tenant injected in backend, rejected if in args           |
 | Tool call without user awareness | Gemini function calls are explicit, results shown in chat |
-| Audit log tampering | Append-only collection, no update access |
-| Tenant resolution inconsistency | Single source of truth + resolve once per request |
-| Plugin API changes | Tool names discovered at runtime, not hardcoded |
-| Missing env var | Fail-fast with clear error message |
+| Audit log tampering              | Append-only collection, no update access                  |
+| Tenant resolution inconsistency  | Single source of truth + resolve once per request         |
+| Plugin API changes               | Tool names discovered at runtime, not hardcoded           |
+| Missing env var                  | Fail-fast with clear error message                        |
 
 ---
 
 ## Exit Criteria for Stage 2
 
 Before proceeding to write operations:
+
 - [ ] Zero unexpected tool calls in production
 - [ ] Stable latency (<500ms p95 for tool calls)
 - [ ] Zero tenant override attempts succeeded
@@ -972,6 +1028,7 @@ Before proceeding to write operations:
 ## Acceptance Check (Plan Validity)
 
 ### Core Requirements
+
 ✅ No assumed plugin API (no fictional `toolHandler`)
 ✅ Tool names discovered from plugin, not hardcoded
 ✅ Allowlist based on real plugin tool names
@@ -981,6 +1038,7 @@ Before proceeding to write operations:
 ✅ Payload MCP plugin is the only MCP server
 
 ### Critical Fixes Applied
+
 ✅ **DEFAULT_TENANT_SLUG Fail-Fast**: If `MCP_ENABLED=true` AND missing → startup fails (no silent degradation)
 ✅ **Tool Allowlist Strategy**: Metadata-based (Option A) or regex with hard defensive tests (Option B) - selected AFTER discovery
 ✅ **Tenant Injection Determinism**: `TENANT_INJECTION_CONFIG` populated from mandatory discovery step, not assumed
