@@ -24,21 +24,21 @@
 
 ### Existing Loading Patterns
 
-| Component | Location | Current Pattern |
-|-----------|----------|-----------------|
-| LoginForm | `src/app/(frontend)/login/LoginForm.tsx` | Local `useState(false)` for `isLoading` |
-| SignupForm | `src/app/(frontend)/signup/SignupForm.tsx` | Local `useState(false)` for `isLoading` |
-| ChatInterface | `src/app/(frontend)/.../ChatInterface/index.tsx` | Uses `isLoading` from `useNotebookChat` hook |
-| StudyContent | `src/app/(frontend)/study/_components/StudyContent/index.tsx` | Local `useState(true)` for `isLoading` |
-| HeaderClient | `src/Header/Component.client.tsx` | Local `isAuthLoading` state |
+| Component     | Location                                                      | Current Pattern                              |
+| ------------- | ------------------------------------------------------------- | -------------------------------------------- |
+| LoginForm     | `src/app/(frontend)/login/LoginForm.tsx`                      | Local `useState(false)` for `isLoading`      |
+| SignupForm    | `src/app/(frontend)/signup/SignupForm.tsx`                    | Local `useState(false)` for `isLoading`      |
+| ChatInterface | `src/app/(frontend)/.../ChatInterface/index.tsx`              | Uses `isLoading` from `useNotebookChat` hook |
+| StudyContent  | `src/app/(frontend)/study/_components/StudyContent/index.tsx` | Local `useState(true)` for `isLoading`       |
+| HeaderClient  | `src/Header/Component.client.tsx`                             | Local `isAuthLoading` state                  |
 
 ### Existing Components to Leverage
 
-| Component | Location | Purpose |
-|-----------|----------|---------|
-| Spinner | `src/components/shared/Loading/Spinner.tsx` | Animated spinner with CVA variants |
-| Skeleton | `src/components/shared/Loading/Skeleton.tsx` | Skeleton placeholder with variants |
-| Button | `src/components/ui/button.tsx` | No built-in loading state (needs extension) |
+| Component | Location                                     | Purpose                                     |
+| --------- | -------------------------------------------- | ------------------------------------------- |
+| Spinner   | `src/components/shared/Loading/Spinner.tsx`  | Animated spinner with CVA variants          |
+| Skeleton  | `src/components/shared/Loading/Skeleton.tsx` | Skeleton placeholder with variants          |
+| Button    | `src/components/ui/button.tsx`               | No built-in loading state (needs extension) |
 
 ### User-Facing Fetch Calls (4 total)
 
@@ -101,12 +101,12 @@ html
 type LoadingType = 'route' | 'screen' | 'inline' | 'action'
 ```
 
-| Type | Description | UI Treatment |
-|------|-------------|--------------|
-| `route` | Route transition | Top indeterminate bar |
-| `screen` | Full content area loading | Skeleton/placeholder |
-| `inline` | Small inline operation | Local spinner |
-| `action` | User-triggered mutation | Button spinner + disable |
+| Type     | Description               | UI Treatment             |
+| -------- | ------------------------- | ------------------------ |
+| `route`  | Route transition          | Top indeterminate bar    |
+| `screen` | Full content area loading | Skeleton/placeholder     |
+| `inline` | Small inline operation    | Local spinner            |
+| `action` | User-triggered mutation   | Button spinner + disable |
 
 ---
 
@@ -143,7 +143,7 @@ export function createLoadingManager() {
 
   function notify() {
     version++
-    listeners.forEach(listener => listener())
+    listeners.forEach((listener) => listener())
   }
 
   return {
@@ -165,7 +165,9 @@ export function createLoadingManager() {
             operations.delete(key)
             notify()
             if (process.env.NODE_ENV === 'development') {
-              console.warn(`[LoadingManager] Route transition "${key}" timed out after ${ROUTE_SAFETY_TIMEOUT_MS}ms`)
+              console.warn(
+                `[LoadingManager] Route transition "${key}" timed out after ${ROUTE_SAFETY_TIMEOUT_MS}ms`,
+              )
             }
           }
         }, ROUTE_SAFETY_TIMEOUT_MS)
@@ -229,7 +231,7 @@ export function createLoadingManager() {
     // For SSR
     getServerSnapshot(): LoadingSnapshot {
       return { version: 0, operationCount: 0 }
-    }
+    },
   }
 }
 
@@ -285,11 +287,7 @@ export function useLoadingState(selector: LoadingSelector): boolean {
 
   const getServerSnapshot = useCallback(() => false, [])
 
-  return useSyncExternalStore(
-    loadingManager.subscribe,
-    getSnapshot,
-    getServerSnapshot
-  )
+  return useSyncExternalStore(loadingManager.subscribe, getSnapshot, getServerSnapshot)
 }
 ```
 
@@ -508,9 +506,8 @@ function normalizePathname(path: string, ignoreHash = false): string {
   const queryPart = rest.length > 0 ? '?' + rest.join('?') : ''
 
   // Remove trailing slash from pathname (unless root)
-  const normalizedPathname = pathname.endsWith('/') && pathname !== '/'
-    ? pathname.slice(0, -1)
-    : pathname
+  const normalizedPathname =
+    pathname.endsWith('/') && pathname !== '/' ? pathname.slice(0, -1) : pathname
 
   return normalizedPathname + queryPart
 }
@@ -634,7 +631,7 @@ export function useRouterWithLoading() {
 
       router.push(href, options)
     },
-    [router, pathname, searchParams]
+    [router, pathname, searchParams],
   )
 
   const replace = useCallback(
@@ -649,7 +646,7 @@ export function useRouterWithLoading() {
 
       router.replace(href, options)
     },
-    [router, pathname, searchParams]
+    [router, pathname, searchParams],
   )
 
   return useMemo(
@@ -658,7 +655,7 @@ export function useRouterWithLoading() {
       push,
       replace,
     }),
-    [router, push, replace]
+    [router, push, replace],
   )
 }
 ```
@@ -688,7 +685,7 @@ export interface AsyncActionOptions {
 export function createAsyncAction(manager: LoadingManagerInstance) {
   return async function asyncAction<T>(
     action: () => Promise<T>,
-    options: AsyncActionOptions
+    options: AsyncActionOptions,
   ): Promise<ActionResult<T>> {
     const { key, preventDuplicate = true } = options
 
@@ -771,7 +768,7 @@ interface UseAsyncActionReturn<T, A extends unknown[]> {
  */
 export function useAsyncAction<T, A extends unknown[]>(
   action: (...args: A) => Promise<T>,
-  options: AsyncActionOptions
+  options: AsyncActionOptions,
 ): UseAsyncActionReturn<T, A> {
   // Use generic key selector instead of action-specific
   const isLoading = useLoadingState({ key: options.key })
@@ -782,13 +779,10 @@ export function useAsyncAction<T, A extends unknown[]>(
     async (...args: A): Promise<ActionResult<T>> => {
       return asyncAction(() => action(...args), stableOptions)
     },
-    [action, stableOptions]
+    [action, stableOptions],
   )
 
-  return useMemo(
-    () => ({ execute, isLoading }),
-    [execute, isLoading]
-  )
+  return useMemo(() => ({ execute, isLoading }), [execute, isLoading])
 }
 ```
 
@@ -1135,15 +1129,24 @@ import { loadingManager, type LoadingType } from './LoadingManager'
  */
 function getHttpErrorMessage(status: number): string {
   switch (status) {
-    case 400: return 'Bad request'
-    case 401: return 'Not authenticated'
-    case 403: return 'Access denied'
-    case 404: return 'Not found'
-    case 429: return 'Too many requests'
-    case 500: return 'Server error'
-    case 502: return 'Bad gateway'
-    case 503: return 'Service unavailable'
-    default: return `Request failed (${status})`
+    case 400:
+      return 'Bad request'
+    case 401:
+      return 'Not authenticated'
+    case 403:
+      return 'Access denied'
+    case 404:
+      return 'Not found'
+    case 429:
+      return 'Too many requests'
+    case 500:
+      return 'Server error'
+    case 502:
+      return 'Bad gateway'
+    case 503:
+      return 'Service unavailable'
+    default:
+      return `Request failed (${status})`
   }
 }
 
@@ -1172,14 +1175,9 @@ const DEFAULT_TIMEOUT = 30000
  */
 export async function userApiClient<T>(
   url: string,
-  options: FetchOptions = {}
+  options: FetchOptions = {},
 ): Promise<ApiResponse<T>> {
-  const {
-    loadingKey,
-    loadingType = 'inline',
-    timeout = DEFAULT_TIMEOUT,
-    ...fetchOptions
-  } = options
+  const { loadingKey, loadingType = 'inline', timeout = DEFAULT_TIMEOUT, ...fetchOptions } = options
 
   // Register loading if key provided
   if (loadingKey) {
@@ -1206,7 +1204,8 @@ export async function userApiClient<T>(
         try {
           const errorData = await response.json()
           // Use error message from JSON if available
-          const message = errorData?.message || errorData?.error || getHttpErrorMessage(response.status)
+          const message =
+            errorData?.message || errorData?.error || getHttpErrorMessage(response.status)
           return { data: null, error: message, status: response.status }
         } catch {
           // JSON parse failed, fall through to default
@@ -1287,7 +1286,7 @@ export async function userApiClient<T>(
  */
 export function createApiRequest<T>(
   url: string,
-  options: FetchOptions = {}
+  options: FetchOptions = {},
 ): () => Promise<ApiResponse<T>> {
   return () => userApiClient<T>(url, options)
 }
@@ -1738,7 +1737,9 @@ describe('LoadingManager', () => {
   describe('subscription', () => {
     it('should notify listeners on state change', () => {
       let notified = false
-      manager.subscribe(() => { notified = true })
+      manager.subscribe(() => {
+        notified = true
+      })
 
       manager.register('key', 'action')
       expect(notified).toBe(true)
@@ -1746,7 +1747,9 @@ describe('LoadingManager', () => {
 
     it('should allow unsubscription', () => {
       let count = 0
-      const unsubscribe = manager.subscribe(() => { count++ })
+      const unsubscribe = manager.subscribe(() => {
+        count++
+      })
 
       manager.register('key1', 'action')
       expect(count).toBe(1)
@@ -1760,7 +1763,9 @@ describe('LoadingManager', () => {
       vi.useFakeTimers()
 
       let notifyCount = 0
-      manager.subscribe(() => { notifyCount++ })
+      manager.subscribe(() => {
+        notifyCount++
+      })
 
       // Register route (triggers timeout setup)
       manager.register('route-key', 'route')
@@ -1870,11 +1875,13 @@ describe('resolveHrefToString', () => {
   })
 
   it('should handle complex UrlObject', () => {
-    expect(resolveHrefToString({
-      pathname: '/page',
-      search: '?a=1&b=2',
-      hash: '#section'
-    })).toBe('/page?a=1&b=2#section')
+    expect(
+      resolveHrefToString({
+        pathname: '/page',
+        search: '?a=1&b=2',
+        hash: '#section',
+      }),
+    ).toBe('/page?a=1&b=2#section')
   })
 
   describe('with ignoreHash=true', () => {
@@ -1884,15 +1891,25 @@ describe('resolveHrefToString', () => {
     })
 
     it('should strip hash from UrlObject', () => {
-      expect(resolveHrefToString({
-        pathname: '/page',
-        hash: '#section'
-      }, true)).toBe('/page')
-      expect(resolveHrefToString({
-        pathname: '/page',
-        search: '?q=1',
-        hash: '#section'
-      }, true)).toBe('/page?q=1')
+      expect(
+        resolveHrefToString(
+          {
+            pathname: '/page',
+            hash: '#section',
+          },
+          true,
+        ),
+      ).toBe('/page')
+      expect(
+        resolveHrefToString(
+          {
+            pathname: '/page',
+            search: '?q=1',
+            hash: '#section',
+          },
+          true,
+        ),
+      ).toBe('/page?q=1')
     })
 
     it('should return root for hash-only hrefs', () => {
@@ -1959,9 +1976,11 @@ describe('asyncAction', () => {
   })
 
   it('should prevent duplicate submissions when enabled', async () => {
-    const action = vi.fn().mockImplementation(
-      () => new Promise(resolve => setTimeout(() => resolve({ success: true }), 100))
-    )
+    const action = vi
+      .fn()
+      .mockImplementation(
+        () => new Promise((resolve) => setTimeout(() => resolve({ success: true }), 100)),
+      )
 
     // Start first action
     const promise1 = asyncAction(action, { key: 'test', preventDuplicate: true })
@@ -2032,7 +2051,7 @@ describe('Auth Form Loading Integration', () => {
 
     // Simulate login action with delay
     const mockLoginAction = vi.fn().mockImplementation(async () => {
-      await new Promise(r => setTimeout(r, 50))
+      await new Promise((r) => setTimeout(r, 50))
       return { success: true }
     })
 
@@ -2045,7 +2064,7 @@ describe('Auth Form Loading Integration', () => {
 
   it('should prevent rapid double-submission', async () => {
     const mockAction = vi.fn().mockImplementation(async () => {
-      await new Promise(r => setTimeout(r, 100))
+      await new Promise((r) => setTimeout(r, 100))
       return { success: true }
     })
 
@@ -2300,25 +2319,25 @@ Update only these **known user-facing navigation hotspots** to use `SystemLink`:
 
 ## Acceptance Criteria Verification
 
-| # | Criterion | Specific Check | Pass/Fail |
-|---|-----------|----------------|-----------|
-| 1 | Route loading triggers on click | Click SystemLink → `loadingManager.isKeyBusy('route:transition')` is `true` | ☐ |
-| 2 | Route loading clears on arrival | Navigation completes → `isKeyBusy('route:transition')` is `false` | ☐ |
-| 3 | Route bar appears after threshold | Slow nav (>300ms) → top bar visible with `role="progressbar"` | ☐ |
-| 4 | Route bar doesn't flash | Fast nav (<300ms) → bar never becomes visible | ☐ |
-| 5 | Route bar is indeterminate | No percentage; CSS sliding animation | ☐ |
-| 6 | Login button disables on submit | Click Submit → button has `disabled` attribute | ☐ |
-| 7 | Login shows spinner in button | During submit → Spinner visible inside button | ☐ |
-| 8 | Login prevents double-submit | Rapid clicks → `asyncAction` returns `success: false, error: 'Action already in progress'` | ☐ |
-| 9 | Signup button disables on submit | Click Submit → button has `disabled` attribute | ☐ |
-| 10 | Signup shows spinner in button | During submit → Spinner visible inside button | ☐ |
-| 11 | Signup prevents double-submit | Rapid clicks → `asyncAction` returns `success: false, error: 'Action already in progress'` | ☐ |
-| 12 | StudyContent shows loading key | During fetch → `isKeyBusy('data:chapters')` is `true` | ☐ |
-| 13 | Admin panel unchanged | Visit /admin → no visual changes, no console errors | ☐ |
-| 14 | Unit tests pass | `pnpm test:int` → all LoadingManager/resolveHref tests pass | ☐ |
-| 15 | E2E tests pass | `pnpm test:e2e` → auth-forms and route-indicator specs pass | ☐ |
-| 16 | TypeScript compiles | `pnpm typecheck` → no errors | ☐ |
-| 17 | Lint passes | `pnpm lint` → no errors | ☐ |
+| #   | Criterion                         | Specific Check                                                                             | Pass/Fail |
+| --- | --------------------------------- | ------------------------------------------------------------------------------------------ | --------- |
+| 1   | Route loading triggers on click   | Click SystemLink → `loadingManager.isKeyBusy('route:transition')` is `true`                | ☐         |
+| 2   | Route loading clears on arrival   | Navigation completes → `isKeyBusy('route:transition')` is `false`                          | ☐         |
+| 3   | Route bar appears after threshold | Slow nav (>300ms) → top bar visible with `role="progressbar"`                              | ☐         |
+| 4   | Route bar doesn't flash           | Fast nav (<300ms) → bar never becomes visible                                              | ☐         |
+| 5   | Route bar is indeterminate        | No percentage; CSS sliding animation                                                       | ☐         |
+| 6   | Login button disables on submit   | Click Submit → button has `disabled` attribute                                             | ☐         |
+| 7   | Login shows spinner in button     | During submit → Spinner visible inside button                                              | ☐         |
+| 8   | Login prevents double-submit      | Rapid clicks → `asyncAction` returns `success: false, error: 'Action already in progress'` | ☐         |
+| 9   | Signup button disables on submit  | Click Submit → button has `disabled` attribute                                             | ☐         |
+| 10  | Signup shows spinner in button    | During submit → Spinner visible inside button                                              | ☐         |
+| 11  | Signup prevents double-submit     | Rapid clicks → `asyncAction` returns `success: false, error: 'Action already in progress'` | ☐         |
+| 12  | StudyContent shows loading key    | During fetch → `isKeyBusy('data:chapters')` is `true`                                      | ☐         |
+| 13  | Admin panel unchanged             | Visit /admin → no visual changes, no console errors                                        | ☐         |
+| 14  | Unit tests pass                   | `pnpm test:int` → all LoadingManager/resolveHref tests pass                                | ☐         |
+| 15  | E2E tests pass                    | `pnpm test:e2e` → auth-forms and route-indicator specs pass                                | ☐         |
+| 16  | TypeScript compiles               | `pnpm typecheck` → no errors                                                               | ☐         |
+| 17  | Lint passes                       | `pnpm lint` → no errors                                                                    | ☐         |
 
 ---
 
@@ -2359,56 +2378,57 @@ Update only these **known user-facing navigation hotspots** to use `SystemLink`:
 
 ### Key Fixes Applied (Round 1)
 
-| Issue | Fix |
-|-------|-----|
-| Snapshot immutability (no re-renders) | Added `version` counter, return new snapshot object |
-| Fake progress in RouteLoadingIndicator | Replaced with indeterminate CSS animation |
-| Wrong navigation lifecycle | Trigger-based via `SystemLink`/`useRouterWithLoading` |
-| `isActionBusy` only for action type | Added generic `isKeyBusy(key)` |
-| Unsafe JSON parsing | Check `content-type`, handle non-JSON gracefully |
-| E2E tests targeting wrong paths | Use UI state assertions, not network interception |
+| Issue                                  | Fix                                                   |
+| -------------------------------------- | ----------------------------------------------------- |
+| Snapshot immutability (no re-renders)  | Added `version` counter, return new snapshot object   |
+| Fake progress in RouteLoadingIndicator | Replaced with indeterminate CSS animation             |
+| Wrong navigation lifecycle             | Trigger-based via `SystemLink`/`useRouterWithLoading` |
+| `isActionBusy` only for action type    | Added generic `isKeyBusy(key)`                        |
+| Unsafe JSON parsing                    | Check `content-type`, handle non-JSON gracefully      |
+| E2E tests targeting wrong paths        | Use UI state assertions, not network interception     |
 
 ### Key Fixes Applied (Round 2)
 
-| Issue | Fix |
-|-------|-----|
-| Route loading can get stuck | Added 15s safety timeout auto-unregister |
-| SystemLink URL comparison unreliable | Added `resolveHrefToString` utility with normalization |
-| RouteLoadingIndicator stuck-protection | Safety timeout + `isMountedRef` + timer cleanup |
-| LoadingProvider context complexity | **Removed entirely** - direct store access instead |
-| Playwright RSC interception fragile | Deterministic test approach without `_rsc` interception |
-| vi.doMock timing issues | Dependency injection pattern with `createAsyncAction` factory |
-| SystemLink enforcement scope creep | Manual migration of known hotspots only (no ESLint/codemod) |
+| Issue                                  | Fix                                                           |
+| -------------------------------------- | ------------------------------------------------------------- |
+| Route loading can get stuck            | Added 15s safety timeout auto-unregister                      |
+| SystemLink URL comparison unreliable   | Added `resolveHrefToString` utility with normalization        |
+| RouteLoadingIndicator stuck-protection | Safety timeout + `isMountedRef` + timer cleanup               |
+| LoadingProvider context complexity     | **Removed entirely** - direct store access instead            |
+| Playwright RSC interception fragile    | Deterministic test approach without `_rsc` interception       |
+| vi.doMock timing issues                | Dependency injection pattern with `createAsyncAction` factory |
+| SystemLink enforcement scope creep     | Manual migration of known hotspots only (no ESLint/codemod)   |
 
 ### Key Fixes Applied (Round 3 - Scope Reduction)
 
-| Issue | Fix |
-|-------|-----|
-| SystemLink ESLint rule scope creep | Removed - manual migration of 4 hotspots only |
-| AsyncAction.ts compile errors | Fixed type exports: `LoadingManagerInstance` |
-| Unit test missing `vi` import | Added to LoadingManager tests |
-| LoadingProvider unnecessary complexity | Removed entirely - direct store access |
-| Loading keys unused in this task | Trimmed to only: `ROUTE_TRANSITION`, `LOGIN`, `SIGNUP`, `CHAPTERS_LOAD` |
-| Header auth check duplicate work | Keep auth check inline/silent, no global UI for it |
+| Issue                                  | Fix                                                                     |
+| -------------------------------------- | ----------------------------------------------------------------------- |
+| SystemLink ESLint rule scope creep     | Removed - manual migration of 4 hotspots only                           |
+| AsyncAction.ts compile errors          | Fixed type exports: `LoadingManagerInstance`                            |
+| Unit test missing `vi` import          | Added to LoadingManager tests                                           |
+| LoadingProvider unnecessary complexity | Removed entirely - direct store access                                  |
+| Loading keys unused in this task       | Trimmed to only: `ROUTE_TRANSITION`, `LOGIN`, `SIGNUP`, `CHAPTERS_LOAD` |
+| Header auth check duplicate work       | Keep auth check inline/silent, no global UI for it                      |
 
 ### Key Fixes Applied (Round 4 - Final Polish)
 
-| Issue | Fix |
-|-------|-----|
-| `NodeJS.Timeout` not portable | Changed to `ReturnType<typeof setTimeout>` |
+| Issue                            | Fix                                                           |
+| -------------------------------- | ------------------------------------------------------------- |
+| `NodeJS.Timeout` not portable    | Changed to `ReturnType<typeof setTimeout>`                    |
 | `buildCurrentPath` type mismatch | Accept `{ toString(): string }` for `ReadonlyURLSearchParams` |
-| E2E tests use fake selectors | Use real selectors like `a[href="/login"]` |
-| No test for double-notify | Added subscription test for manual unregister |
-| Hash changes trigger loading | `resolveHrefToString(href, true)` ignores hash |
-| LoadingBoundary not integrated | Deferred to future task (not in this PR) |
-| userApiClient returns raw HTML | Return stable error message, not raw HTML |
-| EXERCISE_IMPORT unclear scope | Clarified: not wired in this PR |
+| E2E tests use fake selectors     | Use real selectors like `a[href="/login"]`                    |
+| No test for double-notify        | Added subscription test for manual unregister                 |
+| Hash changes trigger loading     | `resolveHrefToString(href, true)` ignores hash                |
+| LoadingBoundary not integrated   | Deferred to future task (not in this PR)                      |
+| userApiClient returns raw HTML   | Return stable error message, not raw HTML                     |
+| EXERCISE_IMPORT unclear scope    | Clarified: not wired in this PR                               |
 
 ---
 
 ## 12. Deliverable Definition
 
 **One PR that:**
+
 - Adds minimal route top-bar indicator (thin, never blocks UI)
 - Adds async action wrapper for login/signup
 - Adds fetch wrapper for the 3-4 client fetches (no sweeping refactors)
@@ -2417,6 +2437,7 @@ Update only these **known user-facing navigation hotspots** to use `SystemLink`:
 - **Zero admin impact** (verify manually)
 
 **NOT in this PR:**
+
 - No ESLint rule for SystemLink
 - No codemod script
 - No DAL refactor for Payload queries
@@ -2431,3 +2452,19 @@ Update only these **known user-facing navigation hotspots** to use `SystemLink`:
 - **Performance Monitoring**: Add instrumentation to track actual loading times for optimization
 - **Back/Forward Navigation**: Consider handling `popstate` events if browser back/forward should show loading
 - **Broader SystemLink adoption**: Consider with proper review in separate task
+
+# Short Fix List (Must Fix)
+
+1. **Use `SystemLink` (not `next/link`) in hotspots**
+
+- Replace `Link` imports/usages with `SystemLink` in:
+  - `src/app/(frontend)/login/LoginForm.tsx` (Login → Signup)
+  - `src/app/(frontend)/signup/SignupForm.tsx` (Signup → Login)
+  - Header main nav links (the user-facing ones)
+
+2. **Make route-indicator E2E deterministic**
+
+- Add a dev-only slow route (e.g. `/test-slow-nav` with `await setTimeout(1000)`), then assert:
+  - progressbar becomes visible after threshold
+  - progressbar disappears after navigation completes
+    OR remove the route-indicator E2E test (current version doesn’t verify the indicator reliably).
