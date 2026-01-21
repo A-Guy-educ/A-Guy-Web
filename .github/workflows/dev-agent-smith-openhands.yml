@@ -14,13 +14,9 @@ concurrency:
   group: agent-orchestrator-${{ github.repository }}-${{ github.event.issue.number }}
   cancel-in-progress: true
 
-
 jobs:
   orchestrator:
-    if: >
-      github.event.issue.state == 'open' &&
-      github.event.sender.type != 'Bot' &&
-      startsWith(github.event.comment.body, '@agent')
+    if: ${{ github.event.issue.state == 'open' && github.event.sender.type != 'Bot' && startsWith(github.event.comment.body, '@agent') }}
 
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -62,7 +58,7 @@ jobs:
 
   simple:
     needs: orchestrator
-    if: needs.orchestrator.outputs.mode == 'simple'
+    if: ${{ needs.orchestrator.outputs.mode == 'simple' }}
     runs-on: ubuntu-latest
     steps:
       - name: Run simple patch engine
@@ -77,9 +73,8 @@ jobs:
 
   openhands:
     needs: orchestrator
-    if: needs.orchestrator.outputs.mode == 'openhands'
+    if: ${{ needs.orchestrator.outputs.mode == 'openhands' }}
     uses: OpenHands/OpenHands/.github/workflows/openhands-resolver.yml@0.62.0
-
     with:
       macro: '@agent'
       max_iterations: 25
@@ -97,20 +92,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Mark issue as done
-        if: >-
-          needs.orchestrator.result == 'success' &&
-          (needs.simple.result == 'success' || needs.simple.result == 'skipped') &&
-          (needs.openhands.result == 'success' || needs.openhands.result == 'skipped')
+        if: ${{ needs.orchestrator.result == 'success' && (needs.simple.result == 'success' || needs.simple.result == 'skipped') && (needs.openhands.result == 'success' || needs.openhands.result == 'skipped') }}
         run: |
           gh issue edit "${{ needs.orchestrator.outputs.issue_number }}" --remove-label "agent:running" --add-label "agent:done"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Mark issue as error
-        if: >-
-          needs.orchestrator.result == 'failure' ||
-          needs.simple.result == 'failure' ||
-          needs.openhands.result == 'failure'
+        if: ${{ needs.orchestrator.result == 'failure' || needs.simple.result == 'failure' || needs.openhands.result == 'failure' }}
         run: |
           gh issue edit "${{ needs.orchestrator.outputs.issue_number }}" --remove-label "agent:running" --add-label "agent:error"
         env:
