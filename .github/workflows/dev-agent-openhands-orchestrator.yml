@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   orchestrator:
-    if: ${{ github.event.issue.state == 'open' && github.event.sender.type != 'Bot' && startsWith(github.event.comment.body, '@agent') }}
+    if: ${{ github.event.issue.state == 'open' && github.event.sender.type != 'Bot' && startsWith(github.event.comment.body, '@agent-orchestrator') }}
 
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -50,7 +50,7 @@ jobs:
       - name: Decide execution mode
         id: decide
         run: |
-          if echo "${{ github.event.comment.body }}" | grep -q "@agent simple"; then
+          if echo "${{ github.event.comment.body }}" | grep -q "@agent-orchestrator simple"; then
             echo "mode=simple" >> $GITHUB_OUTPUT
           else
             echo "mode=openhands" >> $GITHUB_OUTPUT
@@ -76,7 +76,7 @@ jobs:
     if: ${{ needs.orchestrator.outputs.mode == 'openhands' }}
     uses: OpenHands/OpenHands/.github/workflows/openhands-resolver.yml@0.62.0
     with:
-      macro: '@agent'
+      macro: '@agent-orchestrator'
       max_iterations: 25
       target_branch: dev
       pr_type: ready
