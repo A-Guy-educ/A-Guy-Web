@@ -3,7 +3,7 @@ import { PRODUCT_EVENTS } from '@/lib/analytics/contracts/events'
 import { useAnalytics } from '@/lib/analytics/providers/AnalyticsProvider'
 import { apiService } from '@/services/api/api-service'
 import { logger } from '@/utilities/logger'
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 export interface ChatMessage {
@@ -56,13 +56,6 @@ export function useNotebookChat({
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingHistory, setIsLoadingHistory] = useState(true)
 
-  // Track container height to detect when content grows
-  const containerHeightRef = useRef<number>(0)
-  // Track if we're currently interacting with UI that shouldn't trigger scroll
-  const isInteractingRef = useRef(false)
-  // Track the last message count to detect new messages
-  const lastMessageCountRef = useRef(messages.length)
-
   // Compute contextKey based on available context (priority: Exercise > Lesson > Chapter > Course)
   const contextKey = useMemo(() => {
     if (exerciseId) return `exercises:${exerciseId}`
@@ -72,109 +65,22 @@ export function useNotebookChat({
     return null
   }, [exerciseId, lessonId, chapterId, courseId])
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
-
-  // Detect interaction start/end (resize, touch, keyboard)
-  useEffect(() => {
-    let interactionTimeout: NodeJS.Timeout
-
-    const startInteraction = () => {
-      isInteractingRef.current = true
-      clearTimeout(interactionTimeout)
-    }
-
-    const endInteraction = () => {
-      // Small delay to let the interaction complete
-      interactionTimeout = setTimeout(() => {
-        isInteractingRef.current = false
-      }, 300)
-    }
-
-    // Resize events (dragging resizer)
-    document.addEventListener('mousedown', startInteraction)
-    document.addEventListener('mouseup', endInteraction)
-    document.addEventListener('touchstart', startInteraction)
-    document.addEventListener('touchend', endInteraction)
-
-    // Keyboard appearance on mobile
-    window.addEventListener('resize', startInteraction)
-    window.visualViewport?.addEventListener('resize', startInteraction)
-
-    // Focus on input (when keyboard about to appear)
-    inputRef.current?.addEventListener('focus', startInteraction)
-    inputRef.current?.addEventListener('blur', endInteraction)
-
-    return () => {
-      document.removeEventListener('mousedown', startInteraction)
-      document.removeEventListener('mouseup', endInteraction)
-      document.removeEventListener('touchstart', startInteraction)
-      document.removeEventListener('touchend', endInteraction)
-      window.removeEventListener('resize', startInteraction)
-      window.visualViewport?.removeEventListener('resize', startInteraction)
-      inputRef.current?.removeEventListener('focus', startInteraction)
-      inputRef.current?.removeEventListener('blur', endInteraction)
-      clearTimeout(interactionTimeout)
-    }
-  }, [])
-
-  // Use ResizeObserver to detect when content size changes (e.g., after KaTeX rendering)
-  // Only scroll if the container grew (new content) and we're not currently interacting
-  useEffect(() => {
+  // Simple scroll to bottom using scrollTop instead of scrollIntoView
+  // scrollIntoView can cause layout issues in nested flex containers
+  const scrollToBottom = useCallback(() => {
     const container = messagesContainerRef.current
-    const endRef = messagesEndRef.current
-    if (!container || !endRef) return
-
-    let resizeTimeout: NodeJS.Timeout
-
-    const observer = new ResizeObserver((entries) => {
-      // Skip scrolling during any interaction (resize, touch, keyboard)
-      if (isInteractingRef.current) return
-
-      for (const entry of entries) {
-        const newHeight = entry.contentRect.height
-        const previousHeight = containerHeightRef.current
-
-        // Only scroll if the container grew (content was added) and it's not initial mount
-        if (previousHeight > 0 && newHeight > previousHeight) {
-          // Debounce scroll to after content has stabilized
-          clearTimeout(resizeTimeout)
-          resizeTimeout = setTimeout(() => {
-            // Double-check we're not interacting before scrolling
-            if (!isInteractingRef.current) {
-              endRef.scrollIntoView({ behavior: 'smooth' })
-            }
-          }, 150)
-        }
-
-        containerHeightRef.current = newHeight
-      }
-    })
-
-    observer.observe(container)
-    // Initialize height tracking
-    containerHeightRef.current = container.getBoundingClientRect().height
-
-    return () => {
-      observer.disconnect()
-      clearTimeout(resizeTimeout)
+    if (container) {
+      container.scrollTop = container.scrollHeight
     }
-  }, []) // Only set up once on mount
-
-  // Scroll to bottom when messages change (primary scroll mechanism)
-  useLayoutEffect(() => {
-    // Always scroll when messages change, regardless of interaction state
-    scrollToBottom()
-    lastMessageCountRef.current = messages.length
-  }, [messages])
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      scrollToBottom()
-    }, 50)
-    return () => clearTimeout(timer)
   }, [])
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    // Use requestAnimationFrame to ensure DOM has updated
+    requestAnimationFrame(() => {
+      scrollToBottom()
+    })
+  }, [messages, scrollToBottom])
 
   // Load existing conversation history on mount
   useEffect(() => {
