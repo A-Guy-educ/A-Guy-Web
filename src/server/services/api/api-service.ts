@@ -45,6 +45,7 @@ export const apiService = {
    * @param message - The user's message
    * @param acknowledgment - The AI's acknowledgment message (from locale)
    * @param context - Context parameters (prefer IDs over slugs)
+   * @param mediaIds - Optional array of media IDs to attach (max 5)
    * @returns Response with success status and either message or error
    */
   async chat(
@@ -56,13 +57,19 @@ export const apiService = {
       chapterId?: string
       courseId?: string
     },
+    mediaIds?: string[],
   ): Promise<ChatApiResponse> {
     try {
       const response = await fetch('/api/agent/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ message, acknowledgment, ...context }),
+        body: JSON.stringify({
+          message,
+          acknowledgment,
+          ...context,
+          ...(mediaIds && mediaIds.length > 0 ? { mediaIds } : {}),
+        }),
       })
 
       const data = await response.json()

@@ -1,5 +1,15 @@
 name: Media Expiry Cleanup
 
+# This workflow cleans up expired ephemeral media files
+# Used for chat attachments that have a 30-day retention policy
+#
+# Required GitHub Secrets (set in repo Settings > Secrets > Actions):
+# - CRON_ENDPOINT: Base URL of the deployed application (e.g., https://your-app.vercel.app)
+# - CRON_SECRET: Secret token for authenticating cron requests (must match CRON_SECRET env var)
+#
+# Note: Application config should use Config_entries in the admin panel.
+# GitHub secrets are only for values needed by external CI/CD workflows.
+
 on:
   schedule:
     # Run daily at 2 AM UTC

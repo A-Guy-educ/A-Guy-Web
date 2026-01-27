@@ -9,13 +9,187 @@ import { resolveMediaFilePath, resolveMediaPublicUrl } from '@/lib/config/storag
 import { MediaType } from '@/infra/media/types'
 import { logger } from '@/infra/utils/logger'
 
-import type { MediaPartType, MediaPartWithPath, MediaValidationResult } from './types'
+import type {
+  MediaPartType,
+  MediaPartWithPath,
+  MediaValidationResult,
+  MediaItemResult,
+} from './types'
 
+// Validation constants
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 const MAX_ATTACHMENTS = 5
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf']
 const SUPPORTED_TYPES = [MediaType.Image, MediaType.PDF]
 
+// Type for Media collection document
+interface MediaDocument {
+  id: string
+  filename?: string
+  mimeType?: string
+  filesize?: number
+  type?: MediaType
+  expiresAt?: string
+  tenant?: string | { id: string }
+  retentionPolicy?: string
+}
+
+/**
+ * Creates an error result for a media item
+ */
+function createErrorResult(mediaId: string, mimeType: string, error: string): MediaItemResult {
+  return { mediaId, type: 'image', mimeType, error }
+}
+
+/**
+ * Validates attachment count is within limits
+ */
+function validateAttachmentCount(mediaIds: string[]): MediaItemResult | null {
+  if (mediaIds.length > MAX_ATTACHMENTS) {
+    return createErrorResult('all', '', `Maximum ${MAX_ATTACHMENTS} attachments allowed`)
+  }
+  return null
+}
+
+/**
+ * Fetches media documents from database with tenant filter
+ * DB-level tenant filter ensures no cross-tenant leaks
+ */
+async function fetchMediaDocuments(
+  payload: Payload,
+  mediaIds: string[],
+  tenantId: string,
+): Promise<MediaDocument[]> {
+  const result = await payload.find({
+    collection: 'media',
+    where: {
+      and: [{ id: { in: mediaIds } }, { tenant: { equals: tenantId } }],
+    },
+    limit: mediaIds.length,
+    depth: 0,
+    overrideAccess: true,
+  })
+  return result.docs as MediaDocument[]
+}
+
+/**
+ * Checks for media IDs that weren't found in the database
+ */
+function findMissingMediaIds(requestedIds: string[], foundDocs: MediaDocument[]): string[] {
+  const foundIds = new Set(foundDocs.map((doc) => doc.id))
+  return requestedIds.filter((id) => !foundIds.has(id))
+}
+
+/**
+ * Validates that media has a filename
+ */
+function validateFilename(doc: MediaDocument): string | null {
+  if (!doc.filename) {
+    return 'Media record missing filename'
+  }
+  return null
+}
+
+/**
+ * Validates that media has not expired
+ */
+function validateExpiry(doc: MediaDocument): string | null {
+  if (doc.expiresAt && new Date(doc.expiresAt) < new Date()) {
+    return 'Media has expired'
+  }
+  return null
+}
+
+/**
+ * Validates MIME type is allowed
+ */
+function validateMimeType(mimeType: string): string | null {
+  if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
+    return `Unsupported MIME type: ${mimeType}`
+  }
+  return null
+}
+
+/**
+ * Validates file size is within limits
+ */
+function validateFileSize(filesize: number | undefined): string | null {
+  if ((filesize || 0) > MAX_FILE_SIZE) {
+    return 'File size exceeds 10MB limit'
+  }
+  return null
+}
+
+/**
+ * Validates media type is supported
+ */
+function validateMediaType(docType: MediaType | undefined): string | null {
+  if (!docType || !SUPPORTED_TYPES.includes(docType)) {
+    return `Unsupported media type: ${docType || 'unknown'}`
+  }
+  return null
+}
+
+/**
+ * Determines the media part type for Gemini
+ */
+function getMediaPartType(docType: MediaType | undefined): MediaPartType {
+  return docType === MediaType.PDF ? 'pdf' : 'image'
+}
+
+/**
+ * Resolves file paths for a media document
+ */
+function resolveMediaDocumentPaths(
+  doc: MediaDocument,
+): { absoluteFilePath: string; publicUrl: string } | null {
+  if (!doc.filename) return null
+  try {
+    return {
+      absoluteFilePath: resolveMediaFilePath(doc.filename),
+      publicUrl: resolveMediaPublicUrl(doc.filename),
+    }
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Validates a single media document
+ * Returns error message or null if valid
+ */
+function validateMediaDocument(doc: MediaDocument): {
+  error: string | null
+  isUnsupported: boolean
+} {
+  // Check filename
+  const filenameError = validateFilename(doc)
+  if (filenameError) return { error: filenameError, isUnsupported: false }
+
+  // Check expiry
+  const expiryError = validateExpiry(doc)
+  if (expiryError) return { error: expiryError, isUnsupported: false }
+
+  // Check MIME type
+  const mimeType = doc.mimeType || 'unknown'
+  const mimeError = validateMimeType(mimeType)
+  if (mimeError) return { error: mimeError, isUnsupported: true }
+
+  // Check file size
+  const sizeError = validateFileSize(doc.filesize)
+  if (sizeError) return { error: sizeError, isUnsupported: false }
+
+  // Check media type
+  const typeError = validateMediaType(doc.type)
+  if (typeError) return { error: typeError, isUnsupported: true }
+
+  return { error: null, isUnsupported: false }
+}
+
+/**
+ * Main validation function for chat media
+ * Validates media exists, belongs to tenant, not expired, valid type/size
+ */
 export async function validateChatMedia(
   payload: Payload,
   mediaIds: string[],
@@ -30,141 +204,67 @@ export async function validateChatMedia(
   }
   const mediaPartsWithPath: MediaPartWithPath[] = []
 
-  // Server-side enforcement: max 5 attachments
-  if (mediaIds.length > MAX_ATTACHMENTS) {
+  // Validate attachment count
+  const countError = validateAttachmentCount(mediaIds)
+  if (countError) {
     result.valid = false
-    result.mediaItems.push({
-      mediaId: 'all',
-      type: 'image',
-      mimeType: '',
-      error: `Maximum ${MAX_ATTACHMENTS} attachments allowed`,
-    })
+    result.mediaItems.push(countError)
     return { ...result, mediaPartsWithPath }
   }
 
+  // Early return for empty list
   if (mediaIds.length === 0) {
     return { ...result, mediaPartsWithPath }
   }
 
-  // DB-level tenant filter (safe - cannot leak cross-tenant)
-  const mediaDocs = await payload.find({
-    collection: 'media',
-    where: {
-      and: [{ id: { in: mediaIds } }, { tenant: { equals: tenantId } }],
-    },
-    limit: mediaIds.length,
-    depth: 0,
-    overrideAccess: true,
-  })
+  // Fetch documents with tenant filter
+  const mediaDocs = await fetchMediaDocuments(payload, mediaIds, tenantId)
 
-  const foundIds = new Set(mediaDocs.docs.map((doc) => doc.id))
-
-  // Check for missing IDs
-  for (const mediaId of mediaIds) {
-    if (!foundIds.has(mediaId)) {
-      result.valid = false
-      result.mediaItems.push({
-        mediaId,
-        type: 'image',
-        mimeType: '',
-        error: 'Media not found or access denied',
-      })
-      reqLogger.warn({ mediaId }, 'Media not found or wrong tenant')
-    }
+  // Check for missing media
+  const missingIds = findMissingMediaIds(mediaIds, mediaDocs)
+  for (const mediaId of missingIds) {
+    result.valid = false
+    result.mediaItems.push(createErrorResult(mediaId, '', 'Media not found or access denied'))
+    reqLogger.warn({ mediaId }, 'Media not found or wrong tenant')
   }
 
   // Process each found document
-  for (const doc of mediaDocs.docs) {
-    const mediaId = doc.id as string
-    const filename = doc.filename as string | undefined
+  for (const doc of mediaDocs) {
+    const mediaId = doc.id
     const mimeType = doc.mimeType || 'unknown'
 
-    // VALIDATION: Check for missing filename
-    if (!filename) {
-      result.valid = false
-      result.mediaItems.push({
-        mediaId,
-        type: 'image',
-        mimeType,
-        error: 'Media record missing filename',
-      })
-      reqLogger.warn({ mediaId }, 'Media record has no filename')
-      continue
-    }
-
-    // Check expiry
-    if (doc.expiresAt && new Date(doc.expiresAt) < new Date()) {
-      result.valid = false
-      result.mediaItems.push({
-        mediaId,
-        type: 'image', // Best guess
-        mimeType,
-        error: 'Media has expired',
-      })
-      continue
-    }
-
-    // Check MIME type
-    if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
-      result.hasUnsupportedMedia = true
-      result.mediaItems.push({
-        mediaId,
-        type: 'image',
-        mimeType,
-        error: `Unsupported MIME type: ${mimeType}`,
-      })
-      continue
-    }
-
-    // Check file size
-    if ((doc.filesize || 0) > MAX_FILE_SIZE) {
-      result.valid = false
-      result.mediaItems.push({
-        mediaId,
-        type: 'image',
-        mimeType,
-        error: `File size exceeds 10MB limit`,
-      })
-      continue
-    }
-
-    // Check supported type
-    const docType = doc.type as MediaType | undefined
-    const isSupportedType = docType && SUPPORTED_TYPES.includes(docType)
-    const mediaPartType: MediaPartType = docType === MediaType.PDF ? 'pdf' : 'image'
-
-    if (!isSupportedType) {
-      result.hasUnsupportedMedia = true
-      result.mediaItems.push({
-        mediaId,
-        type: 'image',
-        mimeType,
-        error: `Unsupported media type: ${docType || 'unknown'}`,
-      })
+    // Validate the document
+    const validation = validateMediaDocument(doc)
+    if (validation.error) {
+      if (validation.isUnsupported) {
+        result.hasUnsupportedMedia = true
+      } else {
+        result.valid = false
+      }
+      result.mediaItems.push(createErrorResult(mediaId, mimeType, validation.error))
+      if (validation.error.includes('filename')) {
+        reqLogger.warn({ mediaId }, 'Media record has no filename')
+      }
       continue
     }
 
     // Resolve paths for Gemini mapper
-    try {
-      const absoluteFilePath = resolveMediaFilePath(filename)
-      const publicUrl = resolveMediaPublicUrl(filename)
-
-      mediaPartsWithPath.push({
-        mediaId,
-        type: mediaPartType,
-        absoluteFilePath,
-        publicUrl,
-        mimeType,
-      })
-    } catch (_error) {
+    const paths = resolveMediaDocumentPaths(doc)
+    if (!paths) {
       result.valid = false
-      result.mediaItems.push({
-        mediaId,
-        type: 'image',
-        mimeType,
-        error: 'Invalid media path configuration',
-      })
+      result.mediaItems.push(
+        createErrorResult(mediaId, mimeType, 'Invalid media path configuration'),
+      )
+      continue
     }
+
+    mediaPartsWithPath.push({
+      mediaId,
+      type: getMediaPartType(doc.type),
+      absoluteFilePath: paths.absoluteFilePath,
+      publicUrl: paths.publicUrl,
+      mimeType,
+    })
   }
 
   return { ...result, mediaPartsWithPath }

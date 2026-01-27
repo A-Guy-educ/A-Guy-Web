@@ -38,11 +38,15 @@ export function resolveMediaFilePath(filename: string): string {
 
 /**
  * Resolve public URL for a media file
+ * @throws Error if NEXT_PUBLIC_BASE_URL is not configured
  */
 export function resolveMediaPublicUrl(filename: string, baseUrl?: string): string {
   if (!filename) {
     throw new Error('Filename is required to resolve media URL')
   }
-  const base = baseUrl || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+  const base = baseUrl || process.env.NEXT_PUBLIC_BASE_URL
+  if (!base) {
+    throw new Error('NEXT_PUBLIC_BASE_URL environment variable is required')
+  }
   return `${base}${MEDIA_PUBLIC_URL}/${filename}`
 }

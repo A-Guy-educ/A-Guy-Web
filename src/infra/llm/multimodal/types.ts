@@ -13,14 +13,16 @@ export interface MediaPartWithPath {
   mimeType: string
 }
 
+export interface MediaItemResult {
+  mediaId: string
+  type: MediaPartType
+  mimeType: string
+  error?: string
+}
+
 export interface MediaValidationResult {
   valid: boolean
-  mediaItems: Array<{
-    mediaId: string
-    type: MediaPartType
-    mimeType: string
-    error?: string
-  }>
+  mediaItems: MediaItemResult[]
   hasUnsupportedMedia: boolean
 }
 
