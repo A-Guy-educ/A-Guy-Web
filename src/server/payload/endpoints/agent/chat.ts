@@ -24,6 +24,11 @@ import {
 } from '@/infra/llm/context-policy'
 import { runSummaryMaintenance } from '@/infra/llm/maintenance'
 import { extractMemoryCandidates, persistMemoryItems } from '@/infra/llm/memory-extraction'
+import {
+  setEphemeralRetention,
+  validateChatMedia,
+  type MediaPartWithPath,
+} from '@/infra/llm/multimodal'
 import { createContextLog, logContextUsage, logPromptSnapshot } from '@/infra/llm/observability'
 import { composeSystemInstructions } from '@/infra/llm/prompt-composer.server'
 import { resolveAgentSystemPrompt } from '@/infra/llm/prompt-resolver.server'
@@ -35,6 +40,7 @@ import { logger } from '@/infra/utils/logger'
 import type { Prompt } from '@/payload-types'
 import { isUsersCollectionUser } from '@/server/payload/access/isUsersCollectionUser'
 import { AccountRole } from '@/server/payload/collections/Users/roles'
+import { getDefaultTenantId } from '@/server/repos/tenant/get-default-tenant'
 import { ConversationService, deriveContextLevel } from '@/server/services/conversation-service'
 import { PayloadRequest } from 'payload'
 import { z } from 'zod'
@@ -47,6 +53,8 @@ const requestSchema = z.object({
   lessonId: z.string().optional(),
   chapterId: z.string().optional(),
   courseId: z.string().optional(),
+  // Media attachments (max 5)
+  mediaIds: z.array(z.string()).max(5).optional(),
 })
 
 export async function agentChat(req: PayloadRequest & { json?: () => Promise<unknown> }) {
@@ -159,11 +167,12 @@ export async function agentChat(req: PayloadRequest & { json?: () => Promise<unk
 
     reqLogger.info({ conversationId, contextKey: context.contextKey }, 'Using conversation')
 
-    // 6) Persist user message FIRST
+    // 6) Persist user message FIRST (including media references if any)
     const userMessage = {
       role: 'user' as const,
       content: validated.message,
       timestamp: new Date().toISOString(),
+      media: validated.mediaIds?.map((id) => ({ mediaId: id })) || [],
     }
 
     const conversationHistory = conversation.messages || []
@@ -407,6 +416,52 @@ export async function agentChat(req: PayloadRequest & { json?: () => Promise<unk
       throw error
     }
 
+    // 10.5) Validate media attachments (if any)
+    let validatedMediaParts: MediaPartWithPath[] = []
+
+    if (validated.mediaIds && validated.mediaIds.length > 0) {
+      reqLogger.info({ mediaIds: validated.mediaIds }, 'Processing media attachments')
+
+      // Get default tenant for validation
+      const tenantId = await getDefaultTenantId(req.payload)
+
+      const validationResult = await validateChatMedia(
+        req.payload,
+        validated.mediaIds,
+        req.user.id,
+        tenantId,
+      )
+
+      // Full validation success required
+      if (!validationResult.valid) {
+        const errors = validationResult.mediaItems
+          .filter((m) => m.error)
+          .map((m) => `${m.mediaId}: ${m.error}`)
+          .join(', ')
+        return Response.json(
+          { error: 'Invalid media attachments', details: errors },
+          { status: 400 },
+        )
+      }
+
+      if (validationResult.hasUnsupportedMedia) {
+        return Response.json(
+          { error: 'Some media types are not supported by the AI model' },
+          { status: 400 },
+        )
+      }
+
+      // Set ephemeral retention using validated parts (tenant-safe)
+      await setEphemeralRetention(req.payload, validationResult.mediaPartsWithPath, req)
+
+      validatedMediaParts = validationResult.mediaPartsWithPath
+
+      reqLogger.info(
+        { validMediaCount: validatedMediaParts.length },
+        'Media validation passed, retention set to ephemeral',
+      )
+    }
+
     // 11) Compose prompt using Context Policy V1
     const composedPrompt = composePrompt(systemInstructions, {
       systemMessage: systemInstructions,
@@ -418,13 +473,14 @@ export async function agentChat(req: PayloadRequest & { json?: () => Promise<unk
     // Log prompt snapshot in development
     logPromptSnapshot(conversationId, composedPrompt)
 
-    // 12) Call AI service with composed prompt
+    // 12) Call AI service with composed prompt (and media if present)
     const modelCallStart = Date.now()
     const result = await chatWithExerciseHelper(
       {
         message: validated.message,
         acknowledgment: validated.acknowledgment,
         composedPrompt: composedPrompt,
+        mediaPartsWithPath: validatedMediaParts.length > 0 ? validatedMediaParts : undefined,
       },
       req.payload,
     )

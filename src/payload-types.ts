@@ -405,7 +405,6 @@ export interface User {
   registeredAt?: string | null;
   googleProfile?: {
     name?: string | null;
-    picture?: string | null;
   };
   oauthLoginSecretEnc?: string | null;
   updatedAt: string;
@@ -542,6 +541,11 @@ export interface Media {
    * User who created this document
    */
   createdBy?: (string | null) | User;
+  retentionPolicy: 'persistent' | 'ephemeral';
+  /**
+   * Auto-set for ephemeral media (30 days from creation)
+   */
+  expiresAt?: string | null;
   folder?: (string | null) | FolderInterface;
   updatedAt: string;
   createdAt: string;
@@ -960,6 +964,15 @@ export interface Conversation {
          */
         content: string;
         timestamp: string;
+        /**
+         * Media attachments for this message (max 5)
+         */
+        media?:
+          | {
+              mediaId: string | Media;
+              id?: string | null;
+            }[]
+          | null;
         id?: string | null;
       }[]
     | null;
@@ -2010,6 +2023,12 @@ export interface ConversationsSelect<T extends boolean = true> {
         role?: T;
         content?: T;
         timestamp?: T;
+        media?:
+          | T
+          | {
+              mediaId?: T;
+              id?: T;
+            };
         id?: T;
       };
   summary?: T;
@@ -2186,7 +2205,6 @@ export interface UsersSelect<T extends boolean = true> {
     | T
     | {
         name?: T;
-        picture?: T;
       };
   oauthLoginSecretEnc?: T;
   updatedAt?: T;
@@ -2239,6 +2257,8 @@ export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   caption?: T;
   createdBy?: T;
+  retentionPolicy?: T;
+  expiresAt?: T;
   folder?: T;
   updatedAt?: T;
   createdAt?: T;
