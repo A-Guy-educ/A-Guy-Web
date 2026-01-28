@@ -23,9 +23,9 @@ export const MEDIA_STORAGE_DIR = MEDIA_SUBDIR
 
 /**
  * Public URL path prefix for media files
- * Inferred from storage pattern (usually /media)
+ * Must match Payload's media endpoint route
  */
-export const MEDIA_PUBLIC_URL = '/media'
+export const MEDIA_PUBLIC_URL = '/api/media/file'
 
 /**
  * Resolve absolute filesystem path for a media file
