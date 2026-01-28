@@ -30,6 +30,8 @@ export interface ExerciseChatInput {
   composedPrompt?: ComposedPrompt
   /** Media attachments for multimodal messages */
   mediaPartsWithPath?: MediaPartWithPath[]
+  /** Request context for auth headers (serverless compatibility) */
+  req?: { headers: { authorization?: string; cookie?: string } }
 }
 
 export interface ExerciseChatResult {
@@ -90,6 +92,7 @@ export async function chatWithExerciseHelper(
         input.mediaPartsWithPath,
         AI_MODELS.EXERCISE_CHAT,
         payload,
+        input.req,
       )
     }
 
@@ -129,6 +132,7 @@ async function sendMultimodalToGemini(
   mediaPartsWithPath: MediaPartWithPath[],
   model: AIModel,
   payload: Payload,
+  req?: { headers: { authorization?: string; cookie?: string } },
 ): Promise<ExerciseChatResult> {
   const client = await getGeminiClient(payload)
   const geminiModel = client.getGenerativeModel({
@@ -141,7 +145,11 @@ async function sendMultimodalToGemini(
   })
 
   // Convert media to Gemini parts
-  const { currentMessage: multimodalParts } = await mapMultimodalToGemini(mediaPartsWithPath)
+  const { currentMessage: multimodalParts } = await mapMultimodalToGemini(
+    mediaPartsWithPath,
+    payload,
+    req,
+  )
 
   logger.info(
     {

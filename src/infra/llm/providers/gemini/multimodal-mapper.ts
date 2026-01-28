@@ -7,6 +7,7 @@ import fs from 'fs/promises'
 
 import { logger } from '@/infra/utils/logger'
 import type { MediaPartWithPath } from '@/infra/llm/multimodal/types'
+import type { Payload } from 'payload'
 
 /**
  * Convert validated media parts to Gemini format
@@ -14,6 +15,8 @@ import type { MediaPartWithPath } from '@/infra/llm/multimodal/types'
  */
 export async function mapMultimodalToGemini(
   mediaPartsWithPath: MediaPartWithPath[],
+  payload: Payload,
+  req?: { headers: { authorization?: string; cookie?: string } },
 ): Promise<{ currentMessage: Part[] }> {
   const currentParts: Part[] = []
 
@@ -23,7 +26,7 @@ export async function mapMultimodalToGemini(
   )
 
   for (const mediaPart of mediaPartsWithPath) {
-    const geminiPart = await convertMediaToGeminiPart(mediaPart)
+    const geminiPart = await convertMediaToGeminiPart(mediaPart, payload, req)
     if (geminiPart) {
       currentParts.push(geminiPart)
       logger.info(
@@ -48,17 +51,21 @@ export async function mapMultimodalToGemini(
 
 /**
  * Convert a single media part to Gemini inline data format
- * Uses HTTP fetch for serverless compatibility (Vercel)
+ * Uses Payload Local API for serverless compatibility
  */
-async function convertMediaToGeminiPart(mediaPart: MediaPartWithPath): Promise<Part | null> {
+async function convertMediaToGeminiPart(
+  mediaPart: MediaPartWithPath,
+  payload: Payload,
+  req?: { headers: { authorization?: string; cookie?: string } },
+): Promise<Part | null> {
   const { absoluteFilePath, publicUrl, mimeType, mediaId } = mediaPart
 
   logger.info({ mediaId, absoluteFilePath, mimeType }, '[MultimodalMapper] Reading file for Gemini')
 
   try {
-    // Try filesystem first (local dev), fallback to HTTP (serverless)
     let fileBuffer: Buffer
 
+    // Try filesystem first (local dev)
     try {
       fileBuffer = await fs.readFile(absoluteFilePath)
       logger.info(
@@ -66,10 +73,39 @@ async function convertMediaToGeminiPart(mediaPart: MediaPartWithPath): Promise<P
         '[MultimodalMapper] File read via filesystem',
       )
     } catch (_fsError) {
-      // Filesystem failed (likely serverless), fetch via HTTP
-      logger.info({ mediaId, publicUrl }, '[MultimodalMapper] Filesystem failed, fetching via HTTP')
+      // Filesystem failed (serverless), use Payload Local API
+      logger.info(
+        { mediaId, publicUrl },
+        '[MultimodalMapper] Filesystem failed, using Payload Local API',
+      )
 
-      const response = await fetch(publicUrl)
+      // Fetch media document to get file data
+      const mediaDoc = await payload.findByID({
+        collection: 'media',
+        id: mediaId,
+        depth: 0,
+        overrideAccess: true, // Bypass access control for internal operations
+      })
+
+      if (!mediaDoc || !mediaDoc.url) {
+        throw new Error('Media document has no file URL')
+      }
+
+      // Fetch the file using the URL with authentication headers
+      const headers: Record<string, string> = {}
+      if (req?.headers.authorization) {
+        headers['Authorization'] = req.headers.authorization
+      }
+      if (req?.headers.cookie) {
+        headers['Cookie'] = req.headers.cookie
+      }
+
+      logger.info(
+        { mediaId, publicUrl, hasAuth: !!req?.headers.authorization },
+        '[MultimodalMapper] Fetching file with auth headers',
+      )
+
+      const response = await fetch(publicUrl, { headers })
       if (!response.ok) {
         throw new Error(`HTTP fetch failed: ${response.status} ${response.statusText}`)
       }
@@ -77,8 +113,8 @@ async function convertMediaToGeminiPart(mediaPart: MediaPartWithPath): Promise<P
       const arrayBuffer = await response.arrayBuffer()
       fileBuffer = Buffer.from(arrayBuffer)
       logger.info(
-        { mediaId, fileSize: fileBuffer.length, method: 'http' },
-        '[MultimodalMapper] File fetched via HTTP',
+        { mediaId, fileSize: fileBuffer.length, method: 'payload-api' },
+        '[MultimodalMapper] File fetched via Payload API',
       )
     }
 

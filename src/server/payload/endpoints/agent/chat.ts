@@ -255,6 +255,12 @@ export async function agentChat(req: PayloadRequest & { json?: () => Promise<unk
         composedPrompt: composedPrompt,
         mediaPartsWithPath:
           mediaResult.mediaPartsWithPath.length > 0 ? mediaResult.mediaPartsWithPath : undefined,
+        req: {
+          headers: {
+            authorization: req.headers.get('authorization') || undefined,
+            cookie: req.headers.get('cookie') || undefined,
+          },
+        },
       },
       req.payload,
     )
