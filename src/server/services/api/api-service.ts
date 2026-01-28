@@ -19,6 +19,7 @@ export interface ChatApiResponse {
 export interface ConversationMessage {
   role: string
   content: string
+  media?: Array<{ mediaId: string; filename?: string }>
 }
 
 export interface ConversationApiResponse {
@@ -131,11 +132,20 @@ export const apiService = {
       }
 
       if (data.success && data.exists) {
-        const messages = (data.messages || []).map((msg: { role: string; content: string }) => ({
-          role:
-            msg.role === ChatRole.User || msg.role === 'user' ? ChatRole.User : ChatRole.Assistant,
-          content: msg.content,
-        }))
+        const messages = (data.messages || []).map(
+          (msg: {
+            role: string
+            content: string
+            media?: Array<{ mediaId: string; filename?: string }>
+          }) => ({
+            role:
+              msg.role === ChatRole.User || msg.role === 'user'
+                ? ChatRole.User
+                : ChatRole.Assistant,
+            content: msg.content,
+            media: msg.media,
+          }),
+        )
 
         logger.debug(
           {

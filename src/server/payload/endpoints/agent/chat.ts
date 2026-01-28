@@ -135,10 +135,18 @@ export async function agentChat(req: PayloadRequest & { json?: () => Promise<unk
       media: validated.mediaIds?.map((id) => ({ mediaId: id })) || [],
     }
 
+    reqLogger.info(
+      {
+        userMessageMedia: userMessage.media,
+        mediaCount: userMessage.media.length,
+      },
+      '[DEBUG] User message before save',
+    )
+
     const conversationHistory = conversation.messages || []
     const allMessages = [...conversationHistory, userMessage]
 
-    await req.payload.update({
+    const updateResult = await req.payload.update({
       collection: 'conversations',
       id: conversationId,
       data: {
@@ -148,6 +156,18 @@ export async function agentChat(req: PayloadRequest & { json?: () => Promise<unk
       user: req.user,
       overrideAccess: true,
     })
+
+    reqLogger.info(
+      {
+        savedMessages: updateResult.messages?.slice(-1).map((m) => ({
+          role: m.role,
+          hasMedia: !!m.media,
+          mediaCount: m.media?.length || 0,
+          media: m.media,
+        })),
+      },
+      '[DEBUG] Message after save',
+    )
 
     reqLogger.info(
       {

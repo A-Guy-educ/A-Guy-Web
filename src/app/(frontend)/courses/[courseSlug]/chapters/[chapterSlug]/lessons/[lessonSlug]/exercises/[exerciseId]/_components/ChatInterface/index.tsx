@@ -147,37 +147,48 @@ export function ChatInterface({
           </div>
         )}
         {!isLoadingHistory &&
-          messages.map((msg, idx) => (
-            <div
-              key={idx}
-              className={cn(
-                'max-w-[85%] px-[18px] py-3.5 text-base leading-relaxed shadow-sm',
-                msg.role === ChatMessageRole.User
-                  ? 'ml-auto bg-primary text-primary-foreground rounded-[20px] rounded-bl-[4px]'
-                  : 'mr-auto bg-card text-foreground border border-border rounded-[20px] rounded-br-[4px]',
-              )}
-            >
-              {msg.media && msg.media.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mb-2">
-                  {msg.media.map((mediaItem, mediaIdx) => (
-                    <div
-                      key={mediaIdx}
-                      className={cn(
-                        'inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs',
-                        msg.role === ChatMessageRole.User ? 'bg-primary-foreground/20' : 'bg-muted',
-                      )}
-                    >
-                      <ImageIcon className="w-3 h-3" />
-                      <span className="max-w-[120px] truncate">
-                        {mediaItem.filename || `media-${mediaIdx + 1}`}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <ChatMessageContent content={msg.content} />
-            </div>
-          ))}
+          messages.map((msg, idx) => {
+            console.log('[ChatInterface] Message:', {
+              idx,
+              role: msg.role,
+              hasMedia: !!msg.media,
+              mediaLength: msg.media?.length,
+              media: msg.media,
+            })
+            return (
+              <div
+                key={idx}
+                className={cn(
+                  'max-w-[85%] px-[18px] py-3.5 text-base leading-relaxed shadow-sm',
+                  msg.role === ChatMessageRole.User
+                    ? 'ml-auto bg-primary text-primary-foreground rounded-[20px] rounded-bl-[4px]'
+                    : 'mr-auto bg-card text-foreground border border-border rounded-[20px] rounded-br-[4px]',
+                )}
+              >
+                {msg.media && msg.media.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {msg.media.map((mediaItem, mediaIdx) => (
+                      <div
+                        key={mediaIdx}
+                        className={cn(
+                          'inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs',
+                          msg.role === ChatMessageRole.User
+                            ? 'bg-primary-foreground/20'
+                            : 'bg-muted',
+                        )}
+                      >
+                        <ImageIcon className="w-3 h-3" />
+                        <span className="max-w-[120px] truncate">
+                          {mediaItem.filename || `media-${mediaIdx + 1}`}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <ChatMessageContent content={msg.content} />
+              </div>
+            )
+          })}
         {isLoading && (
           <div className="mr-auto bg-card text-foreground border border-border px-[18px] py-3.5 rounded-[20px] rounded-br-[4px] max-w-[85%] flex items-center gap-2 shadow-sm">
             <Loader2 className="w-4 h-4 animate-spin" />

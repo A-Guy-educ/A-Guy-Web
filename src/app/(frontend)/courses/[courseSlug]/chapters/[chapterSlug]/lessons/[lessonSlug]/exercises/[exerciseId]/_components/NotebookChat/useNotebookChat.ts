@@ -166,29 +166,35 @@ export function useNotebookChat({
 
             if (validMessages.length > 0) {
               // Map API messages to chat messages
-              const loadedMessages: ChatMessage[] = validMessages.map((msg) => ({
-                role:
-                  msg.role === ChatRole.User || msg.role === 'user'
-                    ? ChatRole.User
-                    : ChatRole.Assistant,
-                content: String(msg.content),
+              const loadedMessages: ChatMessage[] = validMessages.map((msg) => {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                media: (msg as any).media?.map((m: { mediaId: string; filename?: string }) => ({
-                  mediaId: typeof m.mediaId === 'string' ? m.mediaId : String(m.mediaId),
-                  filename: m.filename,
-                })),
-              }))
+                const rawMedia = (msg as any).media
+                logger.info({ rawMedia, msgRole: msg.role }, '[DEBUG] Raw media from API')
 
-              logger.debug(
+                return {
+                  role:
+                    msg.role === ChatRole.User || msg.role === 'user'
+                      ? ChatRole.User
+                      : ChatRole.Assistant,
+                  content: String(msg.content),
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  media: (msg as any).media?.map((m: { mediaId: string; filename?: string }) => ({
+                    mediaId: typeof m.mediaId === 'string' ? m.mediaId : String(m.mediaId),
+                    filename: m.filename,
+                  })),
+                }
+              })
+
+              logger.info(
                 {
                   contextKey,
                   conversationId: result.conversationId,
                   messageCount: loadedMessages.length,
-                  messagesPreview: loadedMessages
-                    .slice(0, 2)
-                    .map((m) => ({ role: m.role, content: m.content.substring(0, 30) })),
+                  messagesWithMedia: loadedMessages.filter((m) => m.media && m.media.length > 0)
+                    .length,
+                  firstMessageMedia: loadedMessages[0]?.media,
                 },
-                '[useNotebookChat] Loaded conversation history',
+                '[DEBUG] Loaded conversation history',
               )
 
               // Only update messages if we have valid messages to avoid clearing the chat
