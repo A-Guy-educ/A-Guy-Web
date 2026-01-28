@@ -142,12 +142,13 @@ function getMediaPartType(docType: MediaType | undefined): MediaPartType {
  */
 function resolveMediaDocumentPaths(
   doc: MediaDocument,
+  baseUrl?: string,
 ): { absoluteFilePath: string; publicUrl: string } | null {
   if (!doc.filename) return null
   try {
     return {
       absoluteFilePath: resolveMediaFilePath(doc.filename),
-      publicUrl: resolveMediaPublicUrl(doc.filename),
+      publicUrl: resolveMediaPublicUrl(doc.filename, baseUrl),
     }
   } catch {
     return null
@@ -194,8 +195,9 @@ export async function validateChatMedia(
   payload: Payload,
   mediaIds: string[],
   userId: string,
+  baseUrl?: string,
 ): Promise<MediaValidationResult & { mediaPartsWithPath: MediaPartWithPath[] }> {
-  const reqLogger = logger.child({ mediaIds, userId })
+  const reqLogger = logger.child({ mediaIds, userId, baseUrl })
   const result: MediaValidationResult = {
     valid: true,
     mediaItems: [],
@@ -248,7 +250,7 @@ export async function validateChatMedia(
     }
 
     // Resolve paths for Gemini mapper
-    const paths = resolveMediaDocumentPaths(doc)
+    const paths = resolveMediaDocumentPaths(doc, baseUrl)
     if (!paths) {
       result.valid = false
       result.mediaItems.push(

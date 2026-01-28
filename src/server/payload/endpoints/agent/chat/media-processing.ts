@@ -35,7 +35,11 @@ export async function processMediaAttachments(
 
   reqLogger.info({ mediaIds, userId }, 'Processing media attachments')
 
-  const validationResult = await validateChatMedia(payload, mediaIds, userId)
+  // Extract baseUrl from request for serverless compatibility (Vercel)
+  const baseUrl = req.url ? new URL(req.url).origin : undefined
+  reqLogger.info({ baseUrl }, 'Using baseUrl for media path resolution')
+
+  const validationResult = await validateChatMedia(payload, mediaIds, userId, baseUrl)
   reqLogger.info(
     { valid: validationResult.valid, mediaItems: validationResult.mediaItems },
     'Media validation result',

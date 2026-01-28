@@ -48,16 +48,41 @@ export async function mapMultimodalToGemini(
 
 /**
  * Convert a single media part to Gemini inline data format
+ * Uses HTTP fetch for serverless compatibility (Vercel)
  */
 async function convertMediaToGeminiPart(mediaPart: MediaPartWithPath): Promise<Part | null> {
-  const { absoluteFilePath, mimeType, mediaId } = mediaPart
+  const { absoluteFilePath, publicUrl, mimeType, mediaId } = mediaPart
 
   logger.info({ mediaId, absoluteFilePath, mimeType }, '[MultimodalMapper] Reading file for Gemini')
 
   try {
-    const fileBuffer = await fs.readFile(absoluteFilePath)
-    const base64 = fileBuffer.toString('base64')
+    // Try filesystem first (local dev), fallback to HTTP (serverless)
+    let fileBuffer: Buffer
 
+    try {
+      fileBuffer = await fs.readFile(absoluteFilePath)
+      logger.info(
+        { mediaId, fileSize: fileBuffer.length, method: 'fs' },
+        '[MultimodalMapper] File read via filesystem',
+      )
+    } catch (_fsError) {
+      // Filesystem failed (likely serverless), fetch via HTTP
+      logger.info({ mediaId, publicUrl }, '[MultimodalMapper] Filesystem failed, fetching via HTTP')
+
+      const response = await fetch(publicUrl)
+      if (!response.ok) {
+        throw new Error(`HTTP fetch failed: ${response.status} ${response.statusText}`)
+      }
+
+      const arrayBuffer = await response.arrayBuffer()
+      fileBuffer = Buffer.from(arrayBuffer)
+      logger.info(
+        { mediaId, fileSize: fileBuffer.length, method: 'http' },
+        '[MultimodalMapper] File fetched via HTTP',
+      )
+    }
+
+    const base64 = fileBuffer.toString('base64')
     logger.info(
       { mediaId, fileSize: fileBuffer.length, base64Length: base64.length },
       '[MultimodalMapper] File read successfully',
@@ -71,7 +96,7 @@ async function convertMediaToGeminiPart(mediaPart: MediaPartWithPath): Promise<P
     }
   } catch (error) {
     logger.error(
-      { err: error, mediaId, absoluteFilePath },
+      { err: error, mediaId, absoluteFilePath, publicUrl },
       '[MultimodalMapper] Failed to read media file for Gemini',
     )
     return null

@@ -39,15 +39,17 @@ export function resolveMediaFilePath(filename: string): string {
 
 /**
  * Resolve public URL for a media file
- * @throws Error if NEXT_PUBLIC_SERVER_URL is not configured
+ * Supports both absolute URLs (with baseUrl) and relative URLs (fallback)
  */
 export function resolveMediaPublicUrl(filename: string, baseUrl?: string): string {
   if (!filename) {
     throw new Error('Filename is required to resolve media URL')
   }
   const base = baseUrl || process.env.NEXT_PUBLIC_SERVER_URL
-  if (!base) {
-    throw new Error('NEXT_PUBLIC_SERVER_URL environment variable is required')
+  if (base) {
+    // Absolute URL (preferred for serverless)
+    return `${base}${MEDIA_PUBLIC_URL}/${filename}`
   }
-  return `${base}${MEDIA_PUBLIC_URL}/${filename}`
+  // Fallback to relative URL (local dev only)
+  return `${MEDIA_PUBLIC_URL}/${filename}`
 }
