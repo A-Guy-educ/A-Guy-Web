@@ -9,6 +9,7 @@ import { toast } from 'sonner'
 export interface ChatMessage {
   role: ChatRole
   content: string
+  media?: Array<{ mediaId: string; filename?: string }>
 }
 
 export interface UploadedMedia {
@@ -171,6 +172,11 @@ export function useNotebookChat({
                     ? ChatRole.User
                     : ChatRole.Assistant,
                 content: String(msg.content),
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                media: (msg as any).media?.map((m: { mediaId: string; filename?: string }) => ({
+                  mediaId: typeof m.mediaId === 'string' ? m.mediaId : String(m.mediaId),
+                  filename: m.filename,
+                })),
               }))
 
               logger.debug(

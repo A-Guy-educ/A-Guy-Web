@@ -133,6 +133,7 @@ async function sendMultimodalToGemini(
   const client = await getGeminiClient(payload)
   const geminiModel = client.getGenerativeModel({
     model: model.name,
+    systemInstruction: systemPrompt, // Proper system instruction format for Gemini
     generationConfig: {
       temperature: model.temperature,
       maxOutputTokens: model.maxOutputTokens,
@@ -151,11 +152,8 @@ async function sendMultimodalToGemini(
     '[ExerciseChat] Multimodal parts prepared for Gemini',
   )
 
-  // Build content: system prompt + user message text + media parts
-  const fullContents: Part[] = [
-    { text: `System: ${systemPrompt}\n\nUser: ${userMessage}` },
-    ...multimodalParts,
-  ]
+  // Build content: user message text + media parts (system instruction passed separately above)
+  const fullContents: Part[] = [{ text: userMessage }, ...multimodalParts]
 
   logger.info(
     {

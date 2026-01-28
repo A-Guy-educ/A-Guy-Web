@@ -69,7 +69,7 @@ export async function getConversation(req: PayloadRequest & { json?: () => Promi
         },
         limit: 1,
         sort: '-lastMessageAt', // Most recent first
-        depth: 0, // No relationship population needed
+        depth: 1, // Populate media relationships to get filenames
         user: req.user,
         overrideAccess: false, // Enforce access control
       })
@@ -161,6 +161,19 @@ export async function getConversation(req: PayloadRequest & { json?: () => Promi
       .map((msg) => ({
         role: msg.role === 'user' ? ChatRole.User : ChatRole.Assistant,
         content: String(msg.content).trim(),
+        media: msg.media?.map((m) => {
+          // Media can be populated object or just ID string
+          if (typeof m === 'object' && m !== null && 'mediaId' in m) {
+            const mediaId = typeof m.mediaId === 'object' ? m.mediaId.id : m.mediaId
+            const filename = typeof m.mediaId === 'object' ? m.mediaId.filename : undefined
+            return {
+              mediaId: String(mediaId),
+              filename,
+            }
+          }
+          // Shouldn't happen but handle gracefully
+          return { mediaId: String(m), filename: undefined }
+        }),
       }))
 
     reqLogger.info(
