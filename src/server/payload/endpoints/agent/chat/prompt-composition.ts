@@ -80,7 +80,12 @@ async function fetchExerciseLessonContext(
   })
 
   if (!(exercise as { lesson?: unknown }).lesson) {
-    return { lessonContextText: undefined, lessonPrompt: null, courseContextText: undefined, coursePrompt: null }
+    return {
+      lessonContextText: undefined,
+      lessonPrompt: null,
+      courseContextText: undefined,
+      coursePrompt: null,
+    }
   }
 
   const lessonId =
@@ -126,7 +131,12 @@ async function fetchExerciseLessonContext(
       { err: error, lessonId, exerciseId },
       'Failed to fetch lesson for exercise context, continuing without lesson context',
     )
-    return { lessonContextText: undefined, lessonPrompt: null, courseContextText: undefined, coursePrompt: null }
+    return {
+      lessonContextText: undefined,
+      lessonPrompt: null,
+      courseContextText: undefined,
+      coursePrompt: null,
+    }
   }
 }
 
@@ -201,7 +211,12 @@ export async function fetchLessonContextForContext(
   } else if (context.relationTo === 'exercises') {
     lessonContext = await fetchExerciseLessonContext(payload, context.value, user, reqLogger)
   } else {
-    lessonContext = { lessonContextText: undefined, lessonPrompt: null, courseContextText: undefined, coursePrompt: null }
+    lessonContext = {
+      lessonContextText: undefined,
+      lessonPrompt: null,
+      courseContextText: undefined,
+      coursePrompt: null,
+    }
   }
 
   // Fetch course prompt if no lesson prompt and courseId is provided
@@ -260,7 +275,10 @@ export async function composeFullSystemInstructions(
 
   // Resolve system prompt using pre-loaded prompt object
   // Priority: lesson prompt > course prompt > default prompt
-  const promptResolution = await resolveAgentSystemPrompt(payload, lessonPrompt || coursePrompt || null)
+  const promptResolution = await resolveAgentSystemPrompt(
+    payload,
+    lessonPrompt || coursePrompt || null,
+  )
 
   reqLogger.info(
     {
