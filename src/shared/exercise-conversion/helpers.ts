@@ -3,6 +3,50 @@
  * All functions are pure (no IO), accept `now` as arg when time-dependent.
  */
 
+import { nanoid } from 'nanoid'
+
+/**
+ * v2.1 Fix 5: INVARIANT - Block ID Enrichment
+ *
+ * After Zod schema validation of extractor output:
+ * 1. Raw exercises have optional block IDs (RawExtractedExercise)
+ * 2. ALWAYS call enrichBlockIds() to generate missing IDs via nanoid()
+ * 3. Result is ExerciseExtractedEnriched with guaranteed block IDs
+ * 4. Only enriched exercises are passed to hashing/persistence
+ */
+export function enrichBlockIds(raw: {
+  title: string
+  blocks: Array<{
+    type: string
+    id?: string
+    format?: string
+    value?: string
+    latex?: string
+    renderMode?: string
+  }>
+  orderInSegment: number
+}): {
+  title: string
+  blocks: Array<{
+    type: string
+    id: string
+    format?: string
+    value?: string
+    latex?: string
+    renderMode?: string
+  }>
+  orderInSegment: number
+} {
+  return {
+    ...raw,
+    blocks: raw.blocks.map((block) => ({
+      ...block,
+      id: block.id || nanoid(),
+      renderMode: block.type === 'latex' ? (block.renderMode || 'block') : undefined,
+    })),
+  }
+}
+
 /**
  * Build Jobs REST API "where" query for Status Panel.
  * Pure function - no IO.
