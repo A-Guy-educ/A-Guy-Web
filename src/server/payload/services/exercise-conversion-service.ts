@@ -100,7 +100,6 @@ export class ExerciseConversionService {
     }
 
     // Compute hash of prompt content for change detection
-    const encoder = new TextEncoder()
     const extractorHash = await this.hashContent(promptSnapshot.extractor)
     const verifierHash = await this.hashContent(promptSnapshot.verifier)
 

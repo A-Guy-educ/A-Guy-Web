@@ -1,12 +1,21 @@
 // Import job-related constants from centralized location
 import {
+  HEARTBEAT_INTERVAL_MS,
   LOCK_RECLAIM_THRESHOLD_MS,
+  LOCK_TIMEOUT_MS,
   PDF_MAX_BYTES,
   TASK_SLUGS,
   readIntEnv,
 } from '@/server/payload/jobs/constants'
 
-export { LOCK_RECLAIM_THRESHOLD_MS, PDF_MAX_BYTES, TASK_SLUGS, readIntEnv }
+export {
+  HEARTBEAT_INTERVAL_MS,
+  LOCK_RECLAIM_THRESHOLD_MS,
+  LOCK_TIMEOUT_MS,
+  PDF_MAX_BYTES,
+  TASK_SLUGS,
+  readIntEnv,
+}
 
 export const MAX_SEGMENT_PAGES = 2
 export const MAX_EXERCISES_PER_SEGMENT = 1000
