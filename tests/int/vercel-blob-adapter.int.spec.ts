@@ -27,8 +27,12 @@ describe('VercelBlobAdapter Integration', () => {
   let uploadedUrl: string | null = null
 
   // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-  const describeIf = (condition: boolean, ...args: Parameters<typeof describe>): ReturnType<typeof describe> => {
-    return condition ? describe.skip(...args) : describe(...args)
+  const describeIf = (condition: boolean, name: string, fn: () => void): void => {
+    if (condition) {
+      describe.skip(name, fn)
+    } else {
+      describe(name, fn)
+    }
   }
 
   describeIf(isSkipped, 'Vercel Blob Integration (skipped - no token)', () => {

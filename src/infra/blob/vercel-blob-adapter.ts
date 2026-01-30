@@ -297,7 +297,7 @@ export class VercelBlobAdapter {
    */
   async getSignedUrl(
     url: string,
-    expiresIn = 3600 // 1 hour default
+    _expiresIn = 3600 // 1 hour default (reserved for future use)
   ): Promise<string> {
     // Note: @vercel/blob's put() returns a URL that may already be signed
     // For existing blobs, we need to use the download API

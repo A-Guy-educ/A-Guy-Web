@@ -4,7 +4,6 @@ import { useDocumentInfo, useFormFields } from '@payloadcms/ui'
 import React, { lazy, Suspense, useEffect, useState } from 'react'
 import { ConversionStatusPanel } from '../ConversionStatusPanel'
 import { DraftExercisesList } from '../DraftExercisesList'
-import '../styles.css'
 
 // Lazy load the ConvertModal component
 const ConvertModal = lazy(() =>
@@ -17,14 +16,14 @@ interface MediaItem {
   mimeType?: string
 }
 
-interface LessonConversionPanelProps {
+type LessonConversionPanelProps = {
   // This is a UI field component - it doesn't receive props directly
   // but uses useDocumentInfo and useFormFields hooks
 }
 
 export const LessonConversionPanel: React.FC<LessonConversionPanelProps> = () => {
   const { id: lessonId } = useDocumentInfo()
-  const contentFilesField = useFormFields(([fields]) => fields.contentFiles)
+  const contentFilesField = useFormFields(([fields]: [Record<string, unknown>]) => fields.contentFiles)
 
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -80,8 +79,8 @@ export const LessonConversionPanel: React.FC<LessonConversionPanelProps> = () =>
 
   if (isLoading) {
     return (
-      <div className="conversion-panel">
-        <h3>Exercise Conversion</h3>
+      <div className="p-4 border rounded-lg bg-gray-50">
+        <h3 className="text-lg font-semibold mb-2">Exercise Conversion</h3>
         <p>Loading media files...</p>
       </div>
     )
@@ -89,56 +88,56 @@ export const LessonConversionPanel: React.FC<LessonConversionPanelProps> = () =>
 
   if (pdfFiles.length === 0) {
     return (
-      <div className="conversion-panel">
-        <h3>Exercise Conversion</h3>
-        <p className="no-pdfs">No PDF files attached to this lesson.</p>
+      <div className="p-4 border rounded-lg bg-gray-50">
+        <h3 className="text-lg font-semibold mb-2">Exercise Conversion</h3>
+        <p>No PDF files attached to this lesson.</p>
       </div>
     )
   }
 
   return (
-    <div className="conversion-panel">
-      <h3>Exercise Conversion</h3>
+    <div className="p-4 border rounded-lg bg-gray-50">
+      <h3 className="text-lg font-semibold mb-4">Exercise Conversion</h3>
 
       {pdfFiles.map((pdf) => (
-        <div key={pdf.id} className="pdf-section">
-          <div className="pdf-header">
-            <span className="pdf-icon">📄</span>
-            <span className="pdf-filename">{pdf.filename || pdf.id}</span>
+        <div key={pdf.id} className="mb-4 p-3 border rounded bg-white">
+          <div className="flex items-center gap-2 mb-2">
+            <span>📄</span>
+            <span className="font-medium">{pdf.filename || pdf.id}</span>
             <button
-              className="btn btn-secondary convert-btn"
+              className="ml-auto px-3 py-1 bg-secondary text-secondary-foreground rounded"
               onClick={() => setActiveModal(pdf.id)}
             >
               Convert → Exercises
             </button>
           </div>
 
-          {/* Status Panel - always visible for this PDF */}
-          <ConversionStatusPanel
-            lessonId={String(lessonId)}
-            mediaId={pdf.id}
-            onViewExercises={() => setExpandedPdf(expandedPdf === pdf.id ? null : pdf.id)}
-          />
+            {/* Status Panel - always visible for this PDF */}
+            <ConversionStatusPanel
+              lessonId={String(lessonId)}
+              mediaId={pdf.id}
+              onViewExercises={() => setExpandedPdf(expandedPdf === pdf.id ? null : pdf.id)}
+            />
 
-          {/* Draft Exercises - expandable */}
-          {expandedPdf === pdf.id && (
-            <DraftExercisesList lessonId={String(lessonId)} sourceDocId={pdf.id} />
-          )}
+            {/* Draft Exercises - expandable */}
+            {expandedPdf === pdf.id && (
+              <DraftExercisesList lessonId={String(lessonId)} sourceDocId={pdf.id} />
+            )}
 
-          {/* Convert Modal */}
-          {activeModal === pdf.id && (
-            <Suspense fallback={<div>Loading...</div>}>
-              <ConvertModal
-                lessonId={String(lessonId)}
-                mediaId={pdf.id}
-                filename={String(pdf.filename || pdf.id)}
-                onClose={() => setActiveModal(null)}
-              />
-            </Suspense>
-          )}
-        </div>
-      ))}
-    </div>
+            {/* Convert Modal */}
+            {activeModal === pdf.id && (
+              <Suspense fallback={<div>Loading...</div>}>
+                <ConvertModal
+                  lessonId={String(lessonId)}
+                  mediaId={pdf.id}
+                  filename={String(pdf.filename || pdf.id)}
+                  onClose={() => setActiveModal(null)}
+                />
+              </Suspense>
+            )}
+          </div>
+        ))}
+      </div>
   )
 }
 

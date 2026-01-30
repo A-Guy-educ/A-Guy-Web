@@ -72,16 +72,24 @@ export function ConversionStatusPanel({
 
     setIsRunning(true)
     try {
-      await fetch('/api/jobs/run-immediate', {
+      const response = await fetch('/api/jobs/run-immediate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ jobId: status.id }),
       })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `HTTP ${response.status}`)
+      }
+
       // Refresh status
       setStatus(null)
       setIsLoading(true)
     } catch (error) {
       console.error('[ConversionStatusPanel] Error:', error)
+      alert(`Failed to run job: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsRunning(false)
     }
@@ -110,7 +118,7 @@ export function ConversionStatusPanel({
           {canRun && (
             <button
               type="button"
-              className="btn btn--style-secondary"
+              className="btn btn-secondary"
               onClick={handleRunNow}
               disabled={isRunning}
               style={{ padding: '4px 12px', fontSize: '12px' }}

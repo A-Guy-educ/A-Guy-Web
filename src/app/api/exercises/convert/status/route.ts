@@ -28,10 +28,11 @@ export async function GET(request: NextRequest) {
 
     // Use MongoDB native query via Payload's db adapter
     // Payload's query API doesn't support dot notation for JSON fields (input.ctx.*)
-    const db = payload.db as any
+    const db = payload.db as { connection: { collection: (name: string) => unknown } }
     const collection = db.connection.collection('payload-jobs')
 
-    const docs = await collection
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const docs = await (collection as any)
       .find({
         taskSlug: TASK_SLUG,
         'input.ctx.lessonId': lessonId,
@@ -42,7 +43,8 @@ export async function GET(request: NextRequest) {
       .toArray()
 
     // Compute status from raw MongoDB fields
-    const docsWithStatus = docs.map((doc) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const docsWithStatus = docs.map((doc: any) => ({
       ...doc,
       id: doc._id?.toString() || doc._id, // Map MongoDB _id to id
       status: doc.processing
