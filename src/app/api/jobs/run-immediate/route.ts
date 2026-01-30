@@ -4,20 +4,21 @@ import { ObjectId } from 'mongodb'
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 
-async function getJobsCollection(payload: any) {
-  const db = payload.db as any
-  // Use direct MongoDB access like status API does
+async function getJobsCollection(payload: Parameters<typeof getPayload>[0]['config']) {
+  const db = payload.db as { connection?: { collection: (name: string) => unknown } }
   const coll = db.connection?.collection?.('payload-jobs')
   if (!coll) throw new Error('Cannot access Jobs collection')
   return coll
 }
 
-async function atomicClaimAndRunJob(coll: any, jobId: string) {
+async function atomicClaimAndRunJob(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  coll: any,
+  jobId: string,
+) {
   const now = new Date()
   const expiresAt = new Date(now.getTime() + LOCK_TIMEOUT_MS)
 
-  // Atomic claim and update processing to true
-  // Include all jobs except 'processing: true' and 'hasError: true'
   const job = await coll.findOneAndUpdate(
     {
       _id: new ObjectId(jobId),
@@ -41,12 +42,38 @@ async function atomicClaimAndRunJob(coll: any, jobId: string) {
   return job
 }
 
+async function updateJobStatus(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  coll: any,
+  jobId: string,
+  status: 'completed' | 'failed',
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  output?: any,
+): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const update: any = {
+    processing: false,
+    completedAt: new Date(),
+    hasError: status === 'failed',
+  }
+
+  if (output) {
+    update.jobOutput = output
+  }
+
+  await coll.updateOne(
+    { _id: new ObjectId(jobId) },
+    { $set: update },
+  )
+}
+
 export async function POST(request: NextRequest) {
   try {
     const payload = await getPayload({ config })
     const { user } = await payload.auth({ headers: request.headers })
 
     // Admin-only access
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (!user || (user as any).role !== 'admin') {
       return NextResponse.json({ error: 'Unauthorized - admin access required' }, { status: 401 })
     }
@@ -64,18 +91,50 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Job not found, already running, or already completed' }, { status: 404 })
     }
 
-    // Trigger the actual job task using payload.jobs.run
-    await payload.jobs.run({
-      id: jobId,
-    })
+    console.log(`[run-immediately] Executing job ${jobId} synchronously`)
+
+    // Execute the task synchronously by calling the handler directly
+    const req = {
+      payload,
+      user,
+      headers: request.headers,
+    }
+
+    // Dynamic import to avoid ES module initialization order issues
+    const { pdfToExercisesTask } = await import('@/server/payload/jobs/pdf-to-exercises-task')
+
+    // Call the handler synchronously
+    await pdfToExercisesTask.handler({ job, req })
+
+    // Update job status to completed
+    await updateJobStatus(coll, jobId, 'completed', job.output)
+
+    console.log(`[run-immediately] Job ${jobId} completed successfully`)
 
     return NextResponse.json({
       success: true,
       jobId,
-      message: 'Job execution triggered successfully',
+      message: 'Job executed successfully',
     })
   } catch (error) {
-    console.error('[run-immediate] Error:', error)
-    return NextResponse.json({ error: 'Failed to trigger job execution' }, { status: 500 })
+    console.error('[run-immediately] Error:', error)
+
+    // Try to update job status to failed if we can identify the job
+    try {
+      const payload = await getPayload({ config })
+      const coll = await getJobsCollection(payload)
+      const { jobId } = await request.json().catch(() => ({}))
+
+      if (jobId) {
+        await updateJobStatus(coll, jobId, 'failed', { error: String(error) })
+      }
+    } catch (updateError) {
+      console.error('[run-immediately] Failed to update job status:', updateError)
+    }
+
+    return NextResponse.json(
+      { error: `Failed to execute job: ${error instanceof Error ? error.message : 'Unknown error'}` },
+      { status: 500 },
+    )
   }
 }

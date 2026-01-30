@@ -49,7 +49,7 @@ export function normalizeToAbsoluteUrl(url: string): string {
 export async function getPdfBufferFromBlob(
   mediaId: string,
   payload: any,
-  req?: { headers?: { authorization?: string; cookie?: string } },
+  _req?: { headers?: { authorization?: string; cookie?: string } },
 ): Promise<Buffer> {
   // Fetch media document
   const media = await payload.findByID({ collection: 'media', id: mediaId, depth: 0 })
