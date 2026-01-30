@@ -1,32 +1,24 @@
-import { apiError, apiSuccess } from '@/server/api/responses'
-import { LOCK_TIMEOUT_MS } from '@/server/payload/jobs/constants'
+import { LOCK_TIMEOUT_MS } from '@/server/config/constants'
 import configPromise from '@payload-config'
 import { ObjectId } from 'mongodb'
-<<<<<<< Updated upstream
 import { NextRequest, NextResponse } from 'next/server'
-import type { SanitizedConfig } from 'payload'
-import { getPayload } from 'payload'
-
-async function getJobsCollection(configToUse: SanitizedConfig | Promise<SanitizedConfig>) {
-  const resolvedConfig = await configToUse
-  const db = (resolvedConfig as { db?: { connection?: { collection: (name: string) => unknown } } })
-    .db
-  const coll = db?.connection?.collection?.('payload-jobs')
-=======
-import { NextRequest } from 'next/server'
 import type { Payload } from 'payload'
 import { getPayload } from 'payload'
 
 async function getJobsCollection(payloadInstance: Payload) {
   const db = payloadInstance.db as any
+  // Payload 3.x: Use collections.jobs or collection('jobs')
   const coll =
     db.collections?.jobs || db.collection?.('jobs') || db.connection?.collection?.('payload-jobs')
->>>>>>> Stashed changes
   if (!coll) throw new Error('Cannot access Jobs collection')
   return coll
 }
 
-async function atomicClaimAndRunJob(coll: any, jobId: string) {
+async function atomicClaimAndRunJob(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  coll: any,
+  jobId: string,
+) {
   const now = new Date()
   const expiresAt = new Date(now.getTime() + LOCK_TIMEOUT_MS)
 
@@ -51,11 +43,14 @@ async function atomicClaimAndRunJob(coll: any, jobId: string) {
 }
 
 async function updateJobStatus(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   coll: any,
   jobId: string,
   status: 'completed' | 'failed',
-  output?: unknown,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  output?: any,
 ): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const update: any = {
     processing: false,
     completedAt: new Date(),
@@ -70,44 +65,49 @@ async function updateJobStatus(
 }
 
 export async function POST(request: NextRequest) {
+  let payload: Payload | null = null
+
   try {
-    const payload = await getPayload({ config: configPromise })
+    payload = await getPayload({ config: configPromise })
     const { user } = await payload.auth({ headers: request.headers })
 
     // Admin-only access
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (!user || (user as any).role !== 'admin') {
-      return apiError('UNAUTHORIZED', 'Admin access required', 401)
+      return NextResponse.json({ error: 'Unauthorized - admin access required' }, { status: 401 })
     }
 
     const { jobId } = await request.json()
 
     if (!jobId) {
-      return apiError('VALIDATION_ERROR', 'jobId is required', 400)
+      return NextResponse.json({ error: 'jobId is required' }, { status: 400 })
     }
 
-<<<<<<< Updated upstream
-    const coll = await getJobsCollection(configPromise)
-=======
-    // Access the jobs collection through payload.db
+    // Access the jobs collection through payload.db with a properly connected instance
     const coll = await getJobsCollection(payload)
 
->>>>>>> Stashed changes
     const job = await atomicClaimAndRunJob(coll, jobId)
 
     if (!job) {
-      return apiError('JOB_NOT_FOUND', 'Job not found, already running, or already completed', 404)
+      return NextResponse.json(
+        { error: 'Job not found, already running, or already completed' },
+        { status: 404 },
+      )
     }
 
     console.log(`[run-immediately] Executing job ${jobId} synchronously`)
 
-    // Execute the task synchronously
+    // Execute the task synchronously by calling the handler directly
     const req = {
       payload,
       user,
       headers: request.headers,
     }
 
+    // Dynamic import to avoid ES module initialization order issues
     const { pdfToExercisesTask } = await import('@/server/payload/jobs/pdf-to-exercises-task')
+
+    // Call the handler synchronously
     await pdfToExercisesTask.handler({ job, req })
 
     // Update job status to completed
@@ -115,28 +115,33 @@ export async function POST(request: NextRequest) {
 
     console.log(`[run-immediately] Job ${jobId} completed successfully`)
 
-    return apiSuccess({ jobId }, 'Job executed successfully')
+    return NextResponse.json({
+      success: true,
+      jobId,
+      message: 'Job executed successfully',
+    })
   } catch (error) {
     console.error('[run-immediately] Error:', error)
 
-    // Try to update job status to failed
+    // Try to update job status to failed if we can identify the job
     try {
-      // Payload not needed here, just need config for getJobsCollection
-      await getPayload({ config: configPromise })
-      const coll = await getJobsCollection(configPromise)
-      const { jobId } = await request.json().catch(() => ({}))
+      if (payload) {
+        const coll = await getJobsCollection(payload)
+        const { jobId } = await request.json().catch(() => ({}))
 
-      if (jobId) {
-        await updateJobStatus(coll, jobId, 'failed', { error: String(error) })
+        if (jobId) {
+          await updateJobStatus(coll, jobId, 'failed', { error: String(error) })
+        }
       }
     } catch (updateError) {
       console.error('[run-immediately] Failed to update job status:', updateError)
     }
 
-    return apiError(
-      'INTERNAL_ERROR',
-      `Failed to execute job: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      500,
+    return NextResponse.json(
+      {
+        error: `Failed to execute job: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      },
+      { status: 500 },
     )
   }
 }

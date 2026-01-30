@@ -7,7 +7,6 @@ interface ConvertFormProps {
   mediaId: string
   filename: string
   onClose: () => void
-  onJobCreated?: (jobId: string) => void
 }
 
 interface PromptOption {
@@ -18,13 +17,7 @@ interface PromptOption {
   usage: string
 }
 
-export function ConvertForm({
-  lessonId,
-  mediaId,
-  filename,
-  onClose,
-  onJobCreated,
-}: ConvertFormProps) {
+export function ConvertForm({ lessonId, mediaId, filename, onClose }: ConvertFormProps) {
   const [extractorPrompts, setExtractorPrompts] = useState<PromptOption[]>([])
   const [verifierPrompts, setVerifierPrompts] = useState<PromptOption[]>([])
   const [selectedExtractor, setSelectedExtractor] = useState<string>('')
@@ -85,9 +78,6 @@ export function ConvertForm({
 
       const data = await response.json()
       setSuccess(`Conversion queued! Job ID: ${data.jobId}`)
-      if (onJobCreated) {
-        onJobCreated(data.jobId)
-      }
       setTimeout(() => {
         onClose()
       }, 2000)
