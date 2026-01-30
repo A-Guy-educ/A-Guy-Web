@@ -4,7 +4,6 @@ import { useDocumentInfo, useFormFields } from '@payloadcms/ui'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { ConversionStatusPanel } from '../ConversionStatusPanel'
 import { DraftExercisesList } from '../DraftExercisesList'
-import '../styles.css' // Import custom styles for exercise conversion panel
 
 // Lazy load the ConvertModal component
 const ConvertModal = lazy(() =>
