@@ -5,9 +5,8 @@
  * This is the ONLY place where analytics.track() is called outside of tests.
  */
 
-import type { SystemEventEnvelope, Unsubscribe } from '@/infra/system-events'
+import type { SystemEventEnvelope, SystemEventName, Unsubscribe } from '@/infra/system-events'
 import { SYSTEM_EVENTS, systemEventBus } from '@/infra/system-events'
-import { analyticsConfig } from './config'
 import { PRODUCT_EVENTS } from './contracts/events'
 import { analytics } from './core/tracker'
 
@@ -30,10 +29,10 @@ export function initAnalyticsSubscriber(): () => void {
 
   // Helper to wrap handlers with error isolation
   const safeSubscribe = (
-    event: keyof typeof SYSTEM_EVENTS,
+    event: SystemEventName,
     handler: (envelope: SystemEventEnvelope<unknown>) => void,
   ): Unsubscribe => {
-    return systemEventBus.on(event as never, (envelope) => {
+    return systemEventBus.on(event, (envelope) => {
       try {
         handler(envelope)
       } catch (error) {
@@ -44,9 +43,10 @@ export function initAnalyticsSubscriber(): () => void {
   }
 
   // Subscribe to all 10 system events
+  console.log('[Analytics] 🔄 Initializing system events subscriber...')
   cleanupFns = [
     // Page & Session
-    safeSubscribe('PAGE_VIEWED', (envelope) => {
+    safeSubscribe(SYSTEM_EVENTS.PAGE_VIEWED, (envelope) => {
       const payload = envelope.payload as {
         page_path?: string
         page_title?: string
@@ -61,7 +61,7 @@ export function initAnalyticsSubscriber(): () => void {
       })
     }),
 
-    safeSubscribe('SESSION_STARTED', (envelope) => {
+    safeSubscribe(SYSTEM_EVENTS.SESSION_STARTED, (envelope) => {
       const payload = envelope.payload as {
         session_id?: string
         is_anonymous?: boolean
@@ -74,7 +74,7 @@ export function initAnalyticsSubscriber(): () => void {
       })
     }),
 
-    safeSubscribe('USER_RESOLVED', (envelope) => {
+    safeSubscribe(SYSTEM_EVENTS.USER_RESOLVED, (envelope) => {
       const payload = envelope.payload as { user_id?: string; auth_method?: string }
       // Map to USER_IDENTIFIED event
       analytics.track(PRODUCT_EVENTS.USER_IDENTIFIED, {
@@ -90,7 +90,7 @@ export function initAnalyticsSubscriber(): () => void {
     }),
 
     // Course & Lesson Lifecycle
-    safeSubscribe('COURSE_ENTERED', (envelope) => {
+    safeSubscribe(SYSTEM_EVENTS.COURSE_ENTERED, (envelope) => {
       const payload = envelope.payload as {
         course_id?: string
         course_title?: string
@@ -103,7 +103,7 @@ export function initAnalyticsSubscriber(): () => void {
       })
     }),
 
-    safeSubscribe('LESSON_STARTED', (envelope) => {
+    safeSubscribe(SYSTEM_EVENTS.LESSON_STARTED, (envelope) => {
       const payload = envelope.payload as {
         lesson_id?: string
         lesson_title?: string
@@ -120,7 +120,7 @@ export function initAnalyticsSubscriber(): () => void {
       })
     }),
 
-    safeSubscribe('LESSON_ENDED', (envelope) => {
+    safeSubscribe(SYSTEM_EVENTS.LESSON_ENDED, (envelope) => {
       const payload = envelope.payload as {
         lesson_id?: string
         course_id?: string
@@ -138,7 +138,7 @@ export function initAnalyticsSubscriber(): () => void {
     }),
 
     // Content Interaction
-    safeSubscribe('PDF_VIEWED', (envelope) => {
+    safeSubscribe(SYSTEM_EVENTS.PDF_VIEWED, (envelope) => {
       const payload = envelope.payload as {
         pdf_url?: string
         pdf_title?: string
@@ -155,13 +155,14 @@ export function initAnalyticsSubscriber(): () => void {
       })
     }),
 
-    safeSubscribe('CHAT_MESSAGE_SUBMITTED', (envelope) => {
+    safeSubscribe(SYSTEM_EVENTS.CHAT_MESSAGE_SUBMITTED, (envelope) => {
       const payload = envelope.payload as {
         conversation_id?: string
         message_type?: 'user' | 'assistant'
         message_length?: number
         user_id?: string
       }
+      console.log(`[Analytics] 📥 RECEIVED: CHAT_MESSAGE_SUBMITTED`, payload)
       analytics.track(PRODUCT_EVENTS.CHAT_MESSAGE_SENT, {
         conversation_id: payload.conversation_id,
         message_type: payload.message_type,
@@ -171,7 +172,7 @@ export function initAnalyticsSubscriber(): () => void {
     }),
 
     // Registration Funnel
-    safeSubscribe('REGISTRATION_PROMPT_SHOWN', (envelope) => {
+    safeSubscribe(SYSTEM_EVENTS.REGISTRATION_PROMPT_SHOWN, (envelope) => {
       const payload = envelope.payload as {
         prompt_location?: string
         trigger_reason?: string
@@ -184,7 +185,7 @@ export function initAnalyticsSubscriber(): () => void {
       })
     }),
 
-    safeSubscribe('REGISTRATION_COMPLETED', (envelope) => {
+    safeSubscribe(SYSTEM_EVENTS.REGISTRATION_COMPLETED, (envelope) => {
       const payload = envelope.payload as {
         user_id?: string
         registration_method?: 'email' | 'social' | 'anonymous_upgrade'
@@ -202,9 +203,11 @@ export function initAnalyticsSubscriber(): () => void {
     }),
   ]
 
-  if (analyticsConfig.debugMode) {
-    console.log('[Analytics] System events subscriber initialized')
-  }
+  console.log(
+    '[Analytics] ✅ System events subscriber initialized with',
+    cleanupFns.length,
+    'handlers',
+  )
 
   return () => cleanup()
 }

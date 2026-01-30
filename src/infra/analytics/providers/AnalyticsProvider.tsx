@@ -36,8 +36,11 @@ interface AnalyticsProviderProps {
  * Handles script loading and initialization
  */
 export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
+  // Initialize analytics and subscribe to system events synchronously
+  // This must happen BEFORE any children render to prevent race conditions
+  // where usePageView fires before handlers are registered
   useEffect(() => {
-    // Initialize analytics on mount
+    // Initialize analytics core
     initializeAnalytics()
 
     // Initialize system events subscriber (analytics integration)
@@ -65,6 +68,8 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
 
   return (
     <AnalyticsContext.Provider value={analytics}>
+      {/* Initialize subscriber synchronously before children effects run */}
+      <SubscriberInitializer />
       {/* Load analytics scripts */}
       <GA4Scripts />
       <MixpanelScripts />
@@ -76,6 +81,18 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
       {children}
     </AnalyticsContext.Provider>
   )
+}
+
+/**
+ * Synchronous subscriber initializer
+ * Registers handlers IMMEDIATELY on mount, before any child effects run
+ * This ensures events emitted during render or in child useEffects are captured
+ * CRITICAL: Must be rendered BEFORE any component that uses usePageView
+ */
+function SubscriberInitializer() {
+  // Register handlers synchronously - this must happen before any usePageView effects
+  initAnalyticsSubscriber()
+  return null
 }
 
 /**
