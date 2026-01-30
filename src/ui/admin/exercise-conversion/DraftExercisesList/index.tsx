@@ -57,7 +57,16 @@ export function DraftExercisesList({ lessonId, sourceDocId }: DraftExercisesList
 
   if (isLoading) {
     return (
-      <div className="mt-2 p-3 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-500 rounded">
+      <div
+        style={{
+          marginTop: 4,
+          padding: 8,
+          backgroundColor: 'var(--theme-elevation-50)',
+          borderRadius: 4,
+          color: 'var(--theme-elevation-500)',
+          fontSize: 11,
+        }}
+      >
         Loading exercises...
       </div>
     )
@@ -65,8 +74,20 @@ export function DraftExercisesList({ lessonId, sourceDocId }: DraftExercisesList
 
   if (exercises.length === 0) {
     return (
-      <div className="mt-2 p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded">
-        <p className="text-zinc-500 dark:text-zinc-400 text-sm">
+      <div
+        style={{
+          marginTop: 4,
+          padding: 8,
+          backgroundColor: 'var(--theme-elevation-50)',
+          borderRadius: 4,
+        }}
+      >
+        <p
+          style={{
+            fontSize: 11,
+            color: 'var(--theme-elevation-500)',
+          }}
+        >
           No draft exercises found for this conversion.
         </p>
       </div>
@@ -74,18 +95,56 @@ export function DraftExercisesList({ lessonId, sourceDocId }: DraftExercisesList
   }
 
   return (
-    <div className="mt-2 p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded">
-      <h3 className="text-sm font-medium mb-2">Draft Exercises ({exercises.length})</h3>
-      <ul className="list-none p-0 m-0">
+    <div
+      style={{
+        marginTop: 4,
+        padding: 8,
+        backgroundColor: 'var(--theme-elevation-50)',
+        borderRadius: 4,
+      }}
+    >
+      <span
+        style={{
+          fontSize: 12,
+          fontWeight: 600,
+          color: 'var(--theme-elevation-700)',
+          marginBottom: 8,
+          display: 'block',
+        }}
+      >
+        Draft Exercises ({exercises.length})
+      </span>
+      <ul
+        style={{
+          listStyle: 'none',
+          padding: 0,
+          margin: 0,
+        }}
+      >
         {exercises.map((exercise) => (
-          <li key={exercise.id} className="mb-1">
+          <li key={exercise.id} style={{ marginBottom: 4 }}>
             <button
-              className="w-full text-left px-0 py-1 bg-transparent border-none text-zinc-700 dark:text-zinc-300 cursor-pointer hover:text-zinc-900 dark:hover:text-zinc-100 hover:underline"
               onClick={() => router.push(`/admin/collections/exercises/${exercise.id}`)}
+              style={{
+                width: '100%',
+                textAlign: 'left',
+                padding: '2px 0',
+                backgroundColor: 'transparent',
+                border: 'none',
+                color: 'var(--theme-elevation-700)',
+                cursor: 'pointer',
+                fontSize: 11,
+              }}
             >
               {exercise.title}
               {exercise.sourcePageStart && exercise.sourcePageEnd && (
-                <span className="text-zinc-400 dark:text-zinc-500 text-xs ml-1">
+                <span
+                  style={{
+                    color: 'var(--theme-elevation-400)',
+                    fontSize: 10,
+                    marginLeft: 4,
+                  }}
+                >
                   (Pages {exercise.sourcePageStart}-{exercise.sourcePageEnd})
                 </span>
               )}

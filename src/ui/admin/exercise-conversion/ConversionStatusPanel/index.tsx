@@ -26,12 +26,35 @@ interface ConversionStatusPanelProps {
   onViewExercises?: () => void
 }
 
-// Badge color classes based on status
-const badgeColors = {
-  queued: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-  running: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  completed: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  failed: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+// Badge colors using Payload CSS variables
+const getBadgeStyle = (status: string) => {
+  switch (status) {
+    case 'queued':
+      return {
+        backgroundColor: 'var(--theme-warning-100)',
+        color: 'var(--theme-warning)',
+      }
+    case 'running':
+      return {
+        backgroundColor: 'var(--theme-info-100)',
+        color: 'var(--theme-info)',
+      }
+    case 'completed':
+      return {
+        backgroundColor: 'var(--theme-success-100)',
+        color: 'var(--theme-success)',
+      }
+    case 'failed':
+      return {
+        backgroundColor: 'var(--theme-error-100)',
+        color: 'var(--theme-error)',
+      }
+    default:
+      return {
+        backgroundColor: 'var(--theme-elevation-200)',
+        color: 'var(--theme-elevation-700)',
+      }
+  }
 }
 
 export function ConversionStatusPanel({
@@ -104,7 +127,15 @@ export function ConversionStatusPanel({
 
   if (isLoading) {
     return (
-      <div className="bg-zinc-100 dark:bg-zinc-800 text-zinc-500 p-3 rounded">
+      <div
+        style={{
+          padding: 8,
+          backgroundColor: 'var(--theme-elevation-100)',
+          borderRadius: 4,
+          color: 'var(--theme-elevation-500)',
+          fontSize: 11,
+        }}
+      >
         Loading status...
       </div>
     )
@@ -119,52 +150,116 @@ export function ConversionStatusPanel({
     : 0
 
   const canRun = status.status === 'queued' || status.status === 'failed'
+  const badgeStyle = getBadgeStyle(status.status)
 
   return (
-    <div className="bg-zinc-100 dark:bg-zinc-800 p-3 rounded mt-2">
-      <div className="flex justify-between items-center mb-2">
-        <h3 className="text-sm font-medium m-0">Conversion Status</h3>
-        <div className="flex gap-2 items-center">
+    <div
+      style={{
+        padding: 8,
+        backgroundColor: 'var(--theme-elevation-100)',
+        borderRadius: 4,
+        marginTop: 4,
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: 8,
+        }}
+      >
+        <span
+          style={{
+            fontSize: 12,
+            fontWeight: 600,
+            color: 'var(--theme-elevation-700)',
+          }}
+        >
+          Conversion Status
+        </span>
+        <div
+          style={{
+            display: 'flex',
+            gap: 6,
+            alignItems: 'center',
+          }}
+        >
           <span
-            className={`px-2 py-0.5 rounded text-xs font-semibold uppercase ${badgeColors[status.status]}`}
+            style={{
+              padding: '2px 6px',
+              borderRadius: 3,
+              fontSize: 10,
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              ...badgeStyle,
+            }}
           >
             {status.status}
           </span>
           {canRun && (
             <button
-              type="button"
-              className="px-3 py-1 bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded text-xs font-medium hover:bg-zinc-300 dark:hover:bg-zinc-600 disabled:opacity-50"
               onClick={handleRunNow}
               disabled={isRunning}
+              style={{
+                padding: '2px 8px',
+                fontSize: 10,
+                fontWeight: 500,
+                border: 'none',
+                borderRadius: 3,
+                backgroundColor: 'var(--theme-elevation-200)',
+                color: 'var(--theme-elevation-700)',
+                cursor: isRunning ? 'not-allowed' : 'pointer',
+                opacity: isRunning ? 0.5 : 1,
+              }}
             >
-              {isRunning ? 'Running...' : '▶ Run Now'}
+              {isRunning ? 'Running...' : 'Run Now'}
             </button>
           )}
         </div>
       </div>
 
       {status.status === 'running' && (
-        <div className="h-2 bg-zinc-200 dark:bg-zinc-700 rounded overflow-hidden mb-2">
+        <div
+          style={{
+            height: 6,
+            backgroundColor: 'var(--theme-elevation-200)',
+            borderRadius: 3,
+            overflow: 'hidden',
+            marginBottom: 8,
+          }}
+        >
           <div
-            className="h-full bg-green-500 transition-all duration-300"
-            style={{ width: `${progress}%` }}
+            style={{
+              height: '100%',
+              backgroundColor: 'var(--theme-success)',
+              transition: 'width 0.3s ease',
+              width: `${progress}%`,
+            }}
           />
         </div>
       )}
 
-      <div className="flex gap-4 text-sm">
+      <div
+        style={{
+          display: 'flex',
+          gap: 16,
+          fontSize: 11,
+          color: 'var(--theme-elevation-600)',
+        }}
+      >
         {status.output && (
           <>
             <div>
-              <span className="text-zinc-500 dark:text-zinc-400 mr-1">Segments</span>
-              <span>
+              <span style={{ color: 'var(--theme-elevation-500)', marginRight: 4 }}>Segments</span>
+              <span style={{ color: 'var(--theme-elevation-900)' }}>
                 {status.output.segmentsDone} / {status.output.segmentsTotal}
               </span>
             </div>
             <div>
-              <span className="text-zinc-500 dark:text-zinc-400 mr-1">Exercises</span>
-              <span>
-                {status.output.exercisesCreated} created
+              <span style={{ color: 'var(--theme-elevation-500)', marginRight: 4 }}>Exercises</span>
+              <span style={{ color: 'var(--theme-elevation-900)' }}>
+                {status.output.exercisesCreated}
                 {status.output.exercisesDeduped > 0 &&
                   ` (${status.output.exercisesDeduped} deduped)`}
               </span>
@@ -175,8 +270,18 @@ export function ConversionStatusPanel({
 
       {status.status === 'completed' && onViewExercises && (
         <button
-          className="mt-3 px-4 py-1.5 bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded text-sm font-medium hover:bg-zinc-300 dark:hover:bg-zinc-600"
           onClick={onViewExercises}
+          style={{
+            marginTop: 8,
+            padding: '4px 12px',
+            fontSize: 11,
+            fontWeight: 500,
+            border: 'none',
+            borderRadius: 3,
+            backgroundColor: 'var(--theme-elevation-200)',
+            color: 'var(--theme-elevation-700)',
+            cursor: 'pointer',
+          }}
         >
           View Created Exercises
         </button>
