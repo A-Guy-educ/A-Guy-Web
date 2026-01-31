@@ -37,15 +37,6 @@ export const queryCourseBySlug = cache(async ({ slug }: { slug: string }) => {
 export const queryPublishedCourses = cache(async () => {
   const payload = await getPayload({ config: configPromise })
 
-  // First, try to get all courses to debug
-  const allCourses = await payload.find({
-    collection: 'courses',
-    sort: 'order',
-    limit: 1000,
-    pagination: false,
-  })
-
-  // Filter published and active courses
   const result = await payload.find({
     collection: 'courses',
     where: {
