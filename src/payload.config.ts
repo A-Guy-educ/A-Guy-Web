@@ -27,6 +27,7 @@ import { Users } from '@/server/payload/collections/Users'
 import { importExerciseFromImage } from '@/server/payload/endpoints/exercises/import-from-image'
 import { importExerciseFromLesson } from '@/server/payload/endpoints/exercises/import-from-lesson'
 import { defaultLexical } from '@/server/payload/fields/defaultLexical'
+import { pdfToExercisesTask } from '@/server/payload/jobs/pdf-to-exercises-task'
 import { plugins } from '@/server/payload/plugins'
 import { Footer } from '@/ui/web/footer/config'
 import { Header } from '@/ui/web/header/config'
@@ -150,6 +151,70 @@ export default buildConfig({
         return authHeader === `Bearer ${process.env.CRON_SECRET}`
       },
     },
-    tasks: [],
+    tasks: [pdfToExercisesTask],
+    // Expose jobs collection in admin panel for monitoring conversion jobs
+    jobsCollectionOverrides: ({ defaultJobsCollection }) => ({
+      ...defaultJobsCollection,
+      admin: {
+        ...defaultJobsCollection.admin,
+        hidden: false, // Make visible in admin sidebar
+        group: 'System', // Group with other system collections
+        defaultColumns: [
+          'taskSlug',
+          'inputCtx',
+          'status',
+          'progress',
+          'hasErrors',
+          'createdAt',
+          'completedAt',
+        ],
+      },
+      access: {
+        ...defaultJobsCollection.access,
+        // Admin-only access
+        read: ({ req }) => req.user?.role === 'admin',
+        update: ({ req }) => req.user?.role === 'admin',
+        delete: ({ req }) => req.user?.role === 'admin',
+      },
+      hooks: {
+        afterRead: [
+          (args) => {
+            const job = args.doc as any
+            // Compute display fields for admin UI
+
+            // status: Compute from MongoDB fields
+            let status = 'queued'
+            if (job?.processing) {
+              status = 'running'
+            } else if (job?.hasError) {
+              status = 'failed'
+            } else if (job?.completedAt) {
+              status = 'completed'
+            }
+
+            // inputCtx: Show lessonId prefix for quick identification
+            const lessonId = job?.input?.ctx?.lessonId
+            const inputCtx = lessonId ? `Lesson: ${lessonId.slice(0, 8)}...` : '—'
+
+            // progress: Show segments progress if available
+            let progress = '—'
+            if (job?.output?.segmentsTotal) {
+              progress = `${job.output.segmentsDone || 0}/${job.output.segmentsTotal} segments`
+            }
+
+            // hasErrors: Show ✅ or ❌
+            const hasErrors = job?.output?.errors?.length > 0 ? '❌' : '✅'
+
+            return {
+              ...job,
+              status,
+              inputCtx,
+              progress,
+              hasErrors,
+            }
+          },
+        ],
+      },
+    }),
   },
 })

@@ -10,9 +10,11 @@ export {
   GeminiError,
   GeminiErrorCode,
   generateChatCompletion,
+  generateMultimodalCompletion,
   isGeminiApiKeyConfigured,
   type AIModel,
   type ChatMessage,
   type GenerateChatInput,
   type GenerateChatOutput,
+  type GenerateMultimodalInput,
 } from './gemini.provider'
