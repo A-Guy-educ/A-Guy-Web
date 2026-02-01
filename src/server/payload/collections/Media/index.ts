@@ -138,42 +138,6 @@ export const Media: CollectionConfig = {
     beforeChange: [enforceRetentionPolicyHook],
   },
   // File storage is handled by @payloadcms/storage-vercel-blob plugin
-  // This config only defines admin UI preferences (thumbnails, focal point, image sizes)
-  upload: {
-    adminThumbnail: 'thumbnail',
-    focalPoint: true,
-    imageSizes: [
-      {
-        name: 'thumbnail',
-        width: 300,
-      },
-      {
-        name: 'square',
-        width: 500,
-        height: 500,
-      },
-      {
-        name: 'small',
-        width: 600,
-      },
-      {
-        name: 'medium',
-        width: 900,
-      },
-      {
-        name: 'large',
-        width: 1400,
-      },
-      {
-        name: 'xlarge',
-        width: 1920,
-      },
-      {
-        name: 'og',
-        width: 1200,
-        height: 630,
-        crop: 'center',
-      },
-    ],
-  },
+  // The plugin intercepts uploads and stores files in Vercel Blob
+  // DO NOT add 'upload' config here - it will override the plugin behavior
 }

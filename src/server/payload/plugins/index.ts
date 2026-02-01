@@ -114,7 +114,9 @@ export const plugins: Plugin[] = [
       },
     },
   }),
+  // Vercel Blob storage plugin - configured to intercept uploads and store in blob
   vercelBlobStorage({
+    // Enable blob storage for media and exercise-assets collections
     collections: {
       media: true,
       'exercise-assets': true,
