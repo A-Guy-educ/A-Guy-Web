@@ -14,6 +14,7 @@ import { AI_MODELS } from '@/infra/llm/models'
 import type { MediaPartWithPath } from '@/infra/llm/multimodal/types'
 import { generateMultimodalCompletion } from '@/infra/llm/providers/gemini'
 import { mapMultimodalToGemini } from '@/infra/llm/providers/gemini/multimodal-mapper'
+import { getPdfWorkerUrl } from '@/infra/pdfjs/config'
 import {
   enrichBlockIds,
   parseExtractorResponseText,
@@ -231,6 +232,10 @@ async function updateJobStatus(
 
 async function segmentPdf(pdfBuffer: Buffer, maxPagesPerSegment: number) {
   const pdfjs = await import('pdfjs-dist')
+
+  // Configure worker URL from Vercel Blob CDN (fixes serverless environment issue)
+  pdfjs.GlobalWorkerOptions.workerSrc = await getPdfWorkerUrl()
+
   // Use buffer data - cast to Uint8Array for pdfjs-dist compatibility
   const pdf = await pdfjs.getDocument({ data: Uint8Array.from(pdfBuffer) }).promise
   const pageCount = pdf.numPages
