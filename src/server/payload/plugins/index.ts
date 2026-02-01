@@ -31,17 +31,6 @@ const generateURL: GenerateURL<Page> = ({ doc }) => {
   return doc?.slug ? `${url}/${doc.slug}` : url
 }
 
-// Vercel Blob storage plugin with runtime token validation
-// The token check runs at runtime (not during postinstall/generate:types)
-const vercelBlobPlugin = vercelBlobStorage({
-  // Enable blob storage for media and exercise-assets collections
-  collections: {
-    media: true,
-    'exercise-assets': true,
-  },
-  token: process.env.BLOB_READ_WRITE_TOKEN,
-})
-
 // Runtime validation function - called at startup to enforce blob storage
 // Skipped during type generation to allow generate:types to run
 function validateBlobStorageConfig(): void {
@@ -60,8 +49,21 @@ function validateBlobStorageConfig(): void {
   }
 }
 
-// Validate at module load time (skipped during type generation)
-validateBlobStorageConfig()
+// Vercel Blob storage plugin - only created when token is available
+// During type generation (PAYLOAD_GENERATE_TYPES=true), this is skipped
+let vercelBlobPlugin: Plugin | null = null
+if (process.env.PAYLOAD_GENERATE_TYPES !== 'true') {
+  validateBlobStorageConfig()
+
+  vercelBlobPlugin = vercelBlobStorage({
+    // Enable blob storage for media and exercise-assets collections
+    collections: {
+      media: true,
+      'exercise-assets': true,
+    },
+    token: process.env.BLOB_READ_WRITE_TOKEN,
+  })
+}
 
 // Export for testing
 export { validateBlobStorageConfig }
@@ -132,7 +134,7 @@ export const plugins: Plugin[] = [
       },
     },
   }),
-  vercelBlobPlugin,
+  ...(vercelBlobPlugin ? [vercelBlobPlugin] : []),
   // Only include MCP plugin when explicitly enabled
   ...(mcp ? [mcp] : []),
 ]
