@@ -229,18 +229,15 @@ async function updateJobStatus(
   }
 }
 
+/**
+ * Segment PDF into page ranges for batch processing
+ * Uses pdf-lib for serverless-compatible page counting
+ */
 async function segmentPdf(pdfBuffer: Buffer, maxPagesPerSegment: number) {
-  // Use legacy build for Node.js - designed for server-side processing
-  const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
-
-  // FIX: Disable worker entirely for Vercel compatibility
-  // Vercel's ESM loader doesn't support file:// or https:// worker URLs
-  // For simple page counting, we don't need a worker anyway
-  pdfjs.GlobalWorkerOptions.workerSrc = ''
-
-  // Use buffer data - cast to Uint8Array for pdfjs-dist compatibility
-  const pdf = await pdfjs.getDocument({ data: Uint8Array.from(pdfBuffer) }).promise
-  const pageCount = pdf.numPages
+  // Use pdf-lib for serverless-compatible page counting
+  // pdf-lib has no worker thread issues on Vercel
+  const { getPageCount } = await import('@/server/utils/pdf-metadata')
+  const pageCount = await getPageCount(pdfBuffer)
 
   const segments = []
   for (let start = 1; start <= pageCount; start += maxPagesPerSegment) {

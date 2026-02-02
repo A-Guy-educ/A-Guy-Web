@@ -1,12 +1,14 @@
 /**
- * Tests for PDF segmentation using pdfjs-dist legacy build
- * Verifies the fix for Node.js ESM worker compatibility
+ * Tests for PDF segmentation using pdf-lib
+ * Serverless-compatible solution for Vercel
  *
+ * @see src/server/utils/pdf-metadata.ts
  * @see src/server/payload/jobs/pdf-to-exercises-task.ts
  */
+import { getPageCount, getPdfMetadata } from '@/server/utils/pdf-metadata'
 import { describe, expect, it } from 'vitest'
 
-describe('PDF Segmentation with Legacy Build', () => {
+describe('PDF Metadata with pdf-lib', () => {
   // Minimal valid PDF for testing (1 page)
   const createMinimalPdf = () =>
     Buffer.from(`%PDF-1.4
@@ -24,46 +26,57 @@ startxref
 196
 %%EOF`)
 
-  it('should import pdfjs-dist legacy build without error', async () => {
-    const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
-    expect(pdfjs).toBeDefined()
-    expect(pdfjs.getDocument).toBeDefined()
+  // Multi-page PDF for segmentation testing
+  const createMultiPagePdf = (pageCount: number) => {
+    let pdfContent = '%PDF-1.4\n'
+    pdfContent += '1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n'
+
+    const pageRefs: string[] = []
+    let objectNum = 3
+
+    for (let i = 0; i < pageCount; i++) {
+      pageRefs.push(`${objectNum} 0 R`)
+      pdfContent += `${objectNum} 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >> endobj\n`
+      objectNum++
+    }
+
+    pdfContent += `2 0 obj << /Type /Pages /Kids [${pageRefs.join(' ')}] /Count ${pageCount} >> endobj\n`
+
+    pdfContent += `xref\n0 ${objectNum}\n`
+    pdfContent += '0000000000 65535 f\n'
+
+    for (let i = 1; i < objectNum; i++) {
+      pdfContent += `000000000${i < 10 ? '0' + i : i} 00000 n\n`
+    }
+
+    pdfContent += `trailer << /Size ${objectNum} /Root 1 0 R >>\n`
+    pdfContent += `startxref\n${pdfContent.length + 50}\n`
+    pdfContent += '%%EOF'
+
+    return Buffer.from(pdfContent)
+  }
+
+  it('should load pdf-lib and extract page count', async () => {
+    const pdfBuffer = createMinimalPdf()
+    const pageCount = await getPageCount(pdfBuffer)
+
+    expect(pageCount).toBe(1)
   })
 
-  it('should load PDF document from buffer', async () => {
-    const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
+  it('should extract full metadata', async () => {
     const pdfBuffer = createMinimalPdf()
+    const metadata = await getPdfMetadata(pdfBuffer)
 
-    const loadingTask = pdfjs.getDocument({ data: Uint8Array.from(pdfBuffer) })
-    const pdf = await loadingTask.promise
-
-    expect(pdf).toBeDefined()
-    expect(pdf.numPages).toBe(1)
+    expect(metadata).toBeDefined()
+    expect(metadata.pageCount).toBe(1)
+    expect(metadata.title).toBeUndefined()
+    expect(metadata.author).toBeUndefined()
   })
 
-  it('should work without explicit worker configuration in Node.js', async () => {
-    const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
-
-    // Legacy build has a default workerSrc but works in Node.js without
-    // needing to configure it - no HTTPS URL fetching or blob URL creation needed
-    // The key point: it does NOT require us to set GlobalWorkerOptions.workerSrc
-    // to an HTTPS URL that would fail with "ESM loader protocol" error
-
+  it('should segment single-page PDF correctly', async () => {
     const pdfBuffer = createMinimalPdf()
-    // This should work without any worker configuration
-    const pdf = await pdfjs.getDocument({ data: Uint8Array.from(pdfBuffer) }).promise
+    const pageCount = await getPageCount(pdfBuffer)
 
-    expect(pdf.numPages).toBe(1)
-  })
-
-  it('should segment PDF correctly', async () => {
-    const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
-    const pdfBuffer = createMinimalPdf()
-
-    const pdf = await pdfjs.getDocument({ data: Uint8Array.from(pdfBuffer) }).promise
-    const pageCount = pdf.numPages
-
-    // Simulate segmentation logic from pdf-to-exercises-task.ts
     const maxPagesPerSegment = 5
     const segments: { pageStart: number; pageEnd: number; pageCount: number }[] = []
 
@@ -74,5 +87,44 @@ startxref
 
     expect(segments).toHaveLength(1)
     expect(segments[0]).toEqual({ pageStart: 1, pageEnd: 1, pageCount: 1 })
+  })
+
+  it('should segment multi-page PDF correctly', async () => {
+    const pageCount = 12
+    const pdfBuffer = createMultiPagePdf(pageCount)
+    const actualPageCount = await getPageCount(pdfBuffer)
+
+    expect(actualPageCount).toBe(pageCount)
+
+    const maxPagesPerSegment = 5
+    const segments: { pageStart: number; pageEnd: number; pageCount: number }[] = []
+
+    for (let start = 1; start <= actualPageCount; start += maxPagesPerSegment) {
+      const end = Math.min(start + maxPagesPerSegment - 1, actualPageCount)
+      segments.push({ pageStart: start, pageEnd: end, pageCount: end - start + 1 })
+    }
+
+    expect(segments).toHaveLength(3)
+    expect(segments[0]).toEqual({ pageStart: 1, pageEnd: 5, pageCount: 5 })
+    expect(segments[1]).toEqual({ pageStart: 6, pageEnd: 10, pageCount: 5 })
+    expect(segments[2]).toEqual({ pageStart: 11, pageEnd: 12, pageCount: 2 })
+  })
+
+  it('should handle edge case of exactly max pages per segment', async () => {
+    const pageCount = 10
+    const pdfBuffer = createMultiPagePdf(pageCount)
+    const actualPageCount = await getPageCount(pdfBuffer)
+
+    const maxPagesPerSegment = 5
+    const segments: { pageStart: number; pageEnd: number; pageCount: number }[] = []
+
+    for (let start = 1; start <= actualPageCount; start += maxPagesPerSegment) {
+      const end = Math.min(start + maxPagesPerSegment - 1, actualPageCount)
+      segments.push({ pageStart: start, pageEnd: end, pageCount: end - start + 1 })
+    }
+
+    expect(segments).toHaveLength(2)
+    expect(segments[0]).toEqual({ pageStart: 1, pageEnd: 5, pageCount: 5 })
+    expect(segments[1]).toEqual({ pageStart: 6, pageEnd: 10, pageCount: 5 })
   })
 })
