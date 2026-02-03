@@ -1,9 +1,9 @@
 /**
  * LLM Provider Constants
- * Centralized constants and defaults for LLM operations
  *
- * @fileType constants
- * @domain ai
+ * @deprecated Use getChatConfig() from '@/infra/llm/providers/shared/chat-config'
+ * instead. These hardcoded constants are kept for backwards compatibility only.
+ * All new code should load configuration dynamically from the 'chat' domain.
  */
 
 // Timeouts for different operation types (in milliseconds)
