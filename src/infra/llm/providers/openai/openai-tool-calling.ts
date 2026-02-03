@@ -68,7 +68,7 @@ export async function generateChatCompletionWithTools(
   input: ToolCallingInput,
   payload: Payload,
 ): Promise<ToolCallingOutput> {
-  const config = getChatConfig()
+  const config = await getChatConfig()
   const timeoutMs = input.timeoutMs ?? config.chatSettings.defaultToolTimeoutMs
 
   return withRetry<ToolCallingOutput, Error>(
@@ -233,7 +233,7 @@ async function executeToolCallingWithTimeout(
   )
 
   // Get max iterations from config
-  const config = getChatConfig()
+  const config = await getChatConfig()
   const maxToolIterations = config.chatSettings.maxToolIterations
 
   while (toolCalls.length > 0) {

@@ -20,7 +20,7 @@ export interface GenerateMultimodalInput {
   model: { temperature?: number; maxOutputTokens?: number }
 }
 
-export function validateChatInput(input: GenerateChatInput, provider: string): void {
+export async function validateChatInput(input: GenerateChatInput, provider: string): Promise<void> {
   if (!input.messages || !Array.isArray(input.messages) || input.messages.length === 0) {
     throw new LLMError('Messages array is required', LLMErrorCode.VALIDATION_ERROR, provider, false)
   }
@@ -45,7 +45,7 @@ export function validateChatInput(input: GenerateChatInput, provider: string): v
     }
   }
 
-  const config = getChatConfig()
+  const config = await getChatConfig()
   if (input.model?.temperature !== undefined) {
     if (
       input.model.temperature < config.temperature.min ||
@@ -72,8 +72,11 @@ export function validateChatInput(input: GenerateChatInput, provider: string): v
   }
 }
 
-export function validateMultimodalInput(input: GenerateMultimodalInput, provider: string): void {
-  validateChatInput({ messages: input.messages, model: input.model }, provider)
+export async function validateMultimodalInput(
+  input: GenerateMultimodalInput,
+  provider: string,
+): Promise<void> {
+  await validateChatInput({ messages: input.messages, model: input.model }, provider)
 
   if (!input.mediaParts || !Array.isArray(input.mediaParts)) {
     throw new LLMError(
@@ -84,7 +87,7 @@ export function validateMultimodalInput(input: GenerateMultimodalInput, provider
     )
   }
 
-  const config = getChatConfig()
+  const config = await getChatConfig()
   if (input.mediaParts.length > config.multipart.maxImages) {
     throw new LLMError(
       `Cannot process more than ${config.multipart.maxImages} media parts`,

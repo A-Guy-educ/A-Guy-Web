@@ -27,6 +27,6 @@ export interface ChatConfig {
   }
 }
 
-export function getChatConfig(): ChatConfig {
-  return getConfigDomain(ConfigDomain.Chat) as ChatConfig
+export async function getChatConfig(): Promise<ChatConfig> {
+  return (await getConfigDomain(ConfigDomain.Chat)) as unknown as ChatConfig
 }

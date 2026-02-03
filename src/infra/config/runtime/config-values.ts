@@ -15,7 +15,7 @@
  * - Tenant-scoped: each entry belongs to exactly one tenant
  * - Domain-grouped: Map<tenantId, Map<domain, config>>
  * - Explicit: must call loadConfigValues() before using getters
- * - Minimal: no startup hooks, no health endpoints, no lazy loading
+ * - Lazy loading: can auto-load via setPayloadGetterForLazyLoading()
  */
 
 import type { ConfigDomain } from '@/infra/config/config-constants'
@@ -23,6 +23,59 @@ import type { ConfigValue } from '@/payload-types'
 import type { Payload, Where } from 'payload'
 import { ConfigValueNotFoundError } from './errors'
 import type { ConfigValuesCache, LoadConfigValuesResult } from './types'
+
+// ============================================
+// Lazy Loading Support
+// ============================================
+
+/**
+ * Getter function to obtain Payload instance (for lazy loading)
+ */
+type PayloadGetter = () => Promise<Payload>
+
+let lazyPayloadGetter: PayloadGetter | null = null
+let lazyLoadAttempted = false
+
+/**
+ * Register a Payload getter for lazy config loading
+ * This allows getConfigDomain() to auto-load config on first access
+ *
+ * @param getter - Async function that returns Payload instance
+ */
+export function setPayloadGetterForLazyLoading(getter: PayloadGetter): void {
+  lazyPayloadGetter = getter
+}
+
+/**
+ * Check if lazy loading is configured
+ */
+function hasLazyLoading(): boolean {
+  return lazyPayloadGetter !== null && !lazyLoadAttempted
+}
+
+/**
+ * Attempt lazy loading of config values
+ * Returns true if loaded successfully, false otherwise
+ */
+async function tryLazyLoad(): Promise<boolean> {
+  if (!lazyPayloadGetter || lazyLoadAttempted) {
+    return false
+  }
+
+  lazyLoadAttempted = true
+
+  try {
+    const payload = await lazyPayloadGetter()
+    await loadConfigValues(payload)
+    return true
+  } catch (error) {
+    // Log error but don't prevent the function from throwing
+    if (typeof console !== 'undefined' && console?.warn) {
+      console.warn('Failed to lazily load config values:', error)
+    }
+    return false
+  }
+}
 
 // ============================================
 // Module-Level State (Process Singleton)
@@ -48,12 +101,23 @@ function assertServerSide(): void {
 }
 
 /**
- * Check if config values have been loaded
+ * Check if config values have been loaded, or try lazy load
  */
-function assertLoaded(): void {
-  if (!configValuesCache) {
-    throw new Error('Config values have not been loaded. Call loadConfigValues() first.')
+async function assertLoadedOrLazyLoad(): Promise<void> {
+  if (configValuesCache) {
+    return // Already loaded
   }
+
+  // Try lazy loading if configured
+  if (hasLazyLoading()) {
+    const loaded = await tryLazyLoad()
+    if (loaded) {
+      return // Lazy load succeeded
+    }
+  }
+
+  // Still not loaded - throw original error
+  throw new Error('Config values have not been loaded. Call loadConfigValues() first.')
 }
 
 // ============================================
@@ -218,6 +282,7 @@ export async function reloadConfigValues(payload: Payload): Promise<LoadConfigVa
   lastLoadConfigValuesResult = null
   defaultTenantId = null
   defaultTenantLoaded = false
+  lazyLoadAttempted = false
 
   return loadConfigValues(payload)
 }
@@ -246,12 +311,12 @@ export interface ConfigDomainOptions {
  * @throws Error if config not loaded
  * @throws ConfigValueNotFoundError if domain not found and no default
  */
-export function getConfigDomain<T = Record<string, unknown>>(
+export async function getConfigDomain<T = Record<string, unknown>>(
   domain: ConfigDomain,
   options?: { tenantId?: string; throwIfNotFound?: boolean },
-): T {
+): Promise<T> {
   assertServerSide()
-  assertLoaded()
+  await assertLoadedOrLazyLoad()
 
   const { tenantId, throwIfNotFound = true } = options ?? {}
   const resolvedTenantId = tenantId ?? defaultTenantId
@@ -284,13 +349,13 @@ export function getConfigDomain<T = Record<string, unknown>>(
  * @throws Error if config not loaded
  * @throws ConfigValueNotFoundError if key not found and no default
  */
-export function getConfigValueByKey<T = unknown>(
+export async function getConfigValueByKey<T = unknown>(
   domain: ConfigDomain,
   key: string,
   options?: { tenantId?: string; defaultValue?: T; throwIfNotFound?: boolean },
-): T {
+): Promise<T> {
   assertServerSide()
-  assertLoaded()
+  await assertLoadedOrLazyLoad()
 
   const { tenantId, defaultValue, throwIfNotFound = true } = options ?? {}
   const resolvedTenantId = tenantId ?? defaultTenantId
@@ -368,9 +433,9 @@ export function getConfigValuesMetadata(): {
 /**
  * Get all loaded domains for a tenant (for introspection)
  */
-export function getConfigDomains(tenantId?: string): ConfigDomain[] {
+export async function getConfigDomains(tenantId?: string): Promise<ConfigDomain[]> {
   assertServerSide()
-  assertLoaded()
+  await assertLoadedOrLazyLoad()
 
   const resolvedTenantId = tenantId ?? defaultTenantId
   if (!resolvedTenantId) {
@@ -402,6 +467,7 @@ export function clearConfigValuesCache(): void {
   lastLoadConfigValuesResult = null
   defaultTenantId = null
   defaultTenantLoaded = false
+  lazyLoadAttempted = false
 }
 
 /**

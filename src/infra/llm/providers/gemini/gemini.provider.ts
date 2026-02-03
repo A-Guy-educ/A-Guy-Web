@@ -77,7 +77,7 @@ export async function generateChatCompletion(
   input: GenerateChatInput,
   payload: Payload,
 ): Promise<GenerateChatOutput> {
-  const config = getChatConfig()
+  const config = await getChatConfig()
   const timeoutMs = input.timeoutMs ?? config.chatSettings.defaultChatTimeoutMs
 
   return withRetry<GenerateChatOutput, Error>(() => executeWithTimeout(input, timeoutMs, payload), {
@@ -99,7 +99,7 @@ export async function generateMultimodalCompletion(
   input: GenerateMultimodalInput,
   payload: Payload,
 ): Promise<GenerateChatOutput> {
-  const config = getChatConfig()
+  const config = await getChatConfig()
   const timeoutMs = input.timeoutMs ?? config.chatSettings.defaultChatTimeoutMs
 
   return withRetry<GenerateChatOutput, Error>(
