@@ -18,7 +18,7 @@ import {
   LLMProviderType,
 } from '@/infra/llm/providers/factory'
 import { mapMultimodalToGemini } from '@/infra/llm/providers/gemini/multimodal-mapper'
-import { mapMultimodalToOpenAI } from '@/infra/llm/providers/openai/multimodal-mapper'
+import { mapMultimodalToOpenAI } from '@/infra/llm/providers/openai-compatible/multimodal-mapper'
 import {
   enrichBlockIds,
   isContentRicher,
@@ -93,7 +93,7 @@ export const pdfToExercisesTask = {
       }
 
       // Use provider-appropriate multimodal mapper
-      const providerType = getProviderTypeFromEnv()
+      const providerType = await getProviderTypeFromEnv(payload)
       let attachments: Array<{ data: string; mimeType: string }>
 
       if (providerType === LLMProviderType.OPENAI_COMPATIBLE) {
@@ -361,7 +361,8 @@ Return a JSON array of exercises with this schema:
 
   // Use factory provider with AI_MODELS configuration
   const provider = await getLLMProvider(payload)
-  const modelConfig = getProviderModelConfig(getProviderTypeFromEnv(), 'PDF_TO_EXERCISE')
+  const providerType = await getProviderTypeFromEnv(payload)
+  const modelConfig = getProviderModelConfig(providerType, 'PDF_TO_EXERCISE')
 
   const extractorResult = await provider.generateMultimodalCompletion(
     {
@@ -435,7 +436,8 @@ async function callVerifier(
 ): Promise<{ valid: boolean; reason?: string }> {
   try {
     const provider = await getLLMProvider(payload)
-    const modelConfig = getProviderModelConfig(getProviderTypeFromEnv(), 'PDF_TO_EXERCISE')
+    const providerType = await getProviderTypeFromEnv(payload)
+    const modelConfig = getProviderModelConfig(providerType, 'PDF_TO_EXERCISE')
 
     const result = await provider.generateMultimodalCompletion(
       {

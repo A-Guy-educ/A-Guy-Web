@@ -8,11 +8,11 @@
  * @domain ai
  * @pattern tool-calling, function-calling, mcp-integration
  */
+import { createErrorClassifier, LLM_DEFAULTS, withRetry } from '@/infra/llm/providers/shared'
 import { logger } from '@/infra/utils/logger'
 import type { MCPTool } from '@/server/repos/mcp/client/types'
 import type { Payload } from 'payload'
-import { getOpenAIClient } from './openai.client'
-import { isRetryableOpenAIError, wrapOpenAIError } from './openai.errors'
+import { getOpenAICompatibleClient } from './openai.client'
 import {
   extractTextFromOpenAIResponse,
   extractToolCalls,
@@ -22,6 +22,14 @@ import {
   type OpenAIRole,
 } from './openai.mapper'
 import type { AIModel, GenerateChatOutput } from './openai.provider'
+
+// Provider identification for logging
+const PROVIDER_NAME = 'openai-compatible'
+const PROVIDER_VERSION = '1.0'
+
+// Error classifier for OpenAI
+const { isRetryable: isRetryableError, wrapError: wrapOpenAIError } =
+  createErrorClassifier('openai')
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -45,7 +53,6 @@ export interface ToolCallingOutput extends GenerateChatOutput {
 // Configuration
 // ─────────────────────────────────────────────────────────────────────────────
 
-const DEFAULT_TIMEOUT_MS = 60_000 // Longer timeout for tool calling
 const MAX_TOOL_ITERATIONS = 5 // Prevent infinite loops
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -70,36 +77,24 @@ export async function generateChatCompletionWithTools(
   input: ToolCallingInput,
   payload: Payload,
 ): Promise<ToolCallingOutput> {
-  const timeoutMs = input.timeoutMs ?? DEFAULT_TIMEOUT_MS
-  let lastError: Error | null = null
+  const timeoutMs = input.timeoutMs ?? LLM_DEFAULTS.toolTimeoutMs
 
-  for (let attempt = 0; attempt <= 2; attempt++) {
-    try {
-      return await executeToolCallingWithTimeout(input, timeoutMs, payload)
-    } catch (error) {
-      lastError = error instanceof Error ? error : new Error(String(error))
-      const openaiError = wrapOpenAIError(lastError)
-
-      // Don't retry non-retryable errors
-      if (!isRetryableOpenAIError(lastError)) {
-        logger.error({ err: lastError, attempt }, '[OpenAIToolCalling] Non-retryable error')
-        throw openaiError
-      }
-
-      // Retry with exponential backoff
-      if (attempt < 2) {
-        const delay = 1000 * Math.pow(2, attempt)
+  return withRetry<ToolCallingOutput, Error>(
+    () => executeToolCallingWithTimeout(input, timeoutMs, payload),
+    {
+      maxRetries: LLM_DEFAULTS.maxRetries,
+      delayMs: LLM_DEFAULTS.retryDelayMs,
+      isRetryable: isRetryableError,
+      wrapError: (e: Error) => wrapOpenAIError(e),
+      logPrefix: '[OpenAIToolCalling]',
+      onRetry: (error: Error, attempt: number) => {
         logger.warn(
-          { err: lastError, attempt, delay, retrying: true },
+          { err: error, attempt, retrying: true },
           '[OpenAIToolCalling] Retrying after error',
         )
-        await sleep(delay)
-      }
-    }
-  }
-
-  logger.error({ err: lastError }, '[OpenAIToolCalling] All retries exhausted')
-  throw wrapOpenAIError(lastError ?? new Error('Unknown error'))
+      },
+    },
+  )
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -111,7 +106,7 @@ async function executeToolCallingWithTimeout(
   timeoutMs: number,
   payload: Payload,
 ): Promise<ToolCallingOutput> {
-  const client = await getOpenAIClient(payload)
+  const client = await getOpenAICompatibleClient(payload)
 
   // Convert MCP tools to OpenAI function tools with required name field
   // OpenAI requires parameters with at least { type: 'object' }
@@ -172,11 +167,30 @@ async function executeToolCallingWithTimeout(
 
   const messages = mapMessagesToOpenAIFormat(allMessages)
 
+  // Log provider details for the tool calling request
+  logger.info(
+    {
+      provider: PROVIDER_NAME,
+      providerVersion: PROVIDER_VERSION,
+      model: input.model.name,
+      temperature: input.model.temperature,
+      maxOutputTokens: input.model.maxOutputTokens,
+      capabilities: input.model.capabilities ?? [],
+      toolCount: functions.length,
+      messageCount: messages.length,
+      timeoutMs,
+      currentMessagePreview: allMessages[allMessages.length - 1]?.content?.substring(0, 100) ?? '',
+    },
+    '[OpenAIToolCalling] Tool calling request',
+  )
+
+  const startTime = Date.now()
+
   // Create timeout promise
   const timeoutPromise = new Promise<never>((_, reject) => {
-    setTimeout(() => {
-      reject(new Error(`Tool calling request timed out after ${timeoutMs}ms`))
-    }, timeoutMs)
+    const timeoutError = new Error(`Tool calling request timed out after ${timeoutMs}ms`)
+    timeoutError.name = 'TimeoutError'
+    setTimeout(() => reject(timeoutError), timeoutMs)
   })
 
   // Initial chat completion request
@@ -335,9 +349,18 @@ async function executeToolCallingWithTimeout(
 
   // Get final text response
   const text = extractTextFromOpenAIResponse(completion)
+  const processingTimeMs = Date.now() - startTime
 
-  logger.debug(
-    { textLength: text.length, toolCallCount: allToolCalls.length },
+  // Log successful completion
+  logger.info(
+    {
+      provider: PROVIDER_NAME,
+      providerVersion: PROVIDER_VERSION,
+      model: input.model.name,
+      processingTimeMs,
+      responseLength: text.length,
+      toolCallCount: allToolCalls.length,
+    },
     '[OpenAIToolCalling] Tool calling completed',
   )
 
@@ -346,8 +369,4 @@ async function executeToolCallingWithTimeout(
     raw: completion,
     toolCalls: allToolCalls,
   }
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
 }

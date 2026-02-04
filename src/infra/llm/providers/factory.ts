@@ -6,34 +6,23 @@
  * @domain ai
  * @pattern provider-factory, abstraction, dependency-injection
  *
- * Uses centralized AI_MODELS from @/infra/llm/models.ts for model configurations.
- * Only defines provider-specific model name mappings (not temperature/maxTokens).
+ * Uses centralized MODEL_REGISTRY and PROVIDER_MODEL_NAMES from @/infra/llm/models.ts
+ * for model configurations. This ensures a single source of truth for all model definitions.
  */
+import { getSystemParam, isConfigLoaded, loadRuntimeConfig } from '@/infra/config/runtime'
+import { logger } from '@/infra/utils/logger'
+import { getDefaultTenantId } from '@/server/repos/tenant/get-default-tenant'
 import type { Payload } from 'payload'
-import { AI_MODELS, type AIModelKey } from '../models'
+import { LLMProviderType } from './types'
+export { LLMProviderType }
 
-// Provider types - matches LLM_PROVIDER env var values
-export const LLMProviderType = {
-  GEMINI: 'gemini',
-  OPENAI_COMPATIBLE: 'openai-compatible',
-} as const
-
-export type LLMProviderType = (typeof LLMProviderType)[keyof typeof LLMProviderType]
-
-// Provider-specific model name mappings (maps AI_MODELS keys to provider-specific model names)
-// Temperature and maxOutputTokens come from centralized AI_MODELS
-const PROVIDER_MODEL_MAP: Record<LLMProviderType, Record<AIModelKey, string>> = {
-  [LLMProviderType.GEMINI]: {
-    IMAGE_TO_EXERCISE: 'gemini-2.0-flash-001',
-    EXERCISE_CHAT: 'gemini-2.0-flash-001',
-    PDF_TO_EXERCISE: 'gemini-2.0-flash-001',
-  },
-  [LLMProviderType.OPENAI_COMPATIBLE]: {
-    IMAGE_TO_EXERCISE: 'MiniMax-M2.1',
-    EXERCISE_CHAT: 'MiniMax-M2.1',
-    PDF_TO_EXERCISE: 'MiniMax-M2.1',
-  },
-}
+import {
+  MODEL_REGISTRY,
+  PROVIDER_MODEL_NAMES,
+  getModelNameOverride,
+  type AIModel,
+  type AIModelKey,
+} from '../models'
 
 // Configuration
 export interface LLMProviderConfig {
@@ -45,42 +34,89 @@ export interface LLMProviderConfig {
 const DEFAULT_MODEL_KEY: AIModelKey = 'EXERCISE_CHAT'
 
 /**
- * Resolve provider type from LLM_PROVIDER environment variable
+ * Resolve provider type from LLM_PROVIDER (env var or runtime config)
  * Supports: 'gemini', 'openai-compatible'
  */
-export function getProviderTypeFromEnv(): LLMProviderType {
+export async function getProviderTypeFromEnv(payload?: Payload): Promise<LLMProviderType> {
+  // First check process.env for direct override
   const envValue = process.env.LLM_PROVIDER?.toLowerCase()
-
-  if (envValue === 'openai-compatible') {
-    return LLMProviderType.OPENAI_COMPATIBLE
+  if (envValue) {
+    logger.debug({ envValue }, '[LLMFactory] LLM_PROVIDER from process.env')
+    if (envValue === 'openai-compatible') {
+      return LLMProviderType.OPENAI_COMPATIBLE
+    }
+    return LLMProviderType.GEMINI
   }
 
-  // Default to gemini for 'gemini' or any other value/missing
+  // Then check runtime config (Config_entries)
+  if (payload) {
+    try {
+      let defaultTenantId: string | undefined
+      if (!isConfigLoaded()) {
+        defaultTenantId = await getDefaultTenantId(payload)
+        logger.debug({ tenantId: defaultTenantId }, '[LLMFactory] Loading runtime config')
+        await loadRuntimeConfig(payload, defaultTenantId)
+      } else {
+        defaultTenantId = await getDefaultTenantId(payload)
+      }
+      logger.debug(
+        { tenantId: defaultTenantId },
+        '[LLMFactory] Config loaded, looking up LLM_PROVIDER',
+      )
+      const configValue = getSystemParam('LLM_PROVIDER', {
+        tenantId: defaultTenantId,
+        throwIfNotFound: false,
+      })
+      logger.debug({ configValue }, '[LLMFactory] getSystemParam result')
+      if (configValue) {
+        const normalizedValue = configValue.toLowerCase()
+        logger.debug(
+          { configValue: normalizedValue },
+          '[LLMFactory] LLM_PROVIDER from runtime config',
+        )
+        if (normalizedValue === 'openai-compatible') {
+          return LLMProviderType.OPENAI_COMPATIBLE
+        }
+        return LLMProviderType.GEMINI
+      }
+    } catch (error) {
+      logger.error({ err: error }, '[LLMFactory] Error reading LLM_PROVIDER from config')
+      // Config not loaded, continue with default
+    }
+  }
+
+  // Default to gemini
+  logger.debug('[LLMFactory] LLM_PROVIDER not configured, defaulting to gemini')
   return LLMProviderType.GEMINI
 }
 
 /**
- * Get provider type for a given config (uses env var if not explicitly set)
+ * Get provider type for a given config (uses env var or runtime config if not explicitly set)
  */
-function resolveProviderType(config?: Partial<LLMProviderConfig>): LLMProviderType {
+async function resolveProviderType(
+  config?: Partial<LLMProviderConfig>,
+  payload?: Payload,
+): Promise<LLMProviderType> {
   if (config?.type) {
     return config.type
   }
-  return getProviderTypeFromEnv()
+  return getProviderTypeFromEnv(payload)
 }
 
 /**
  * Get custom base URL for openai-compatible provider
+ * ONLY uses OPENAI_COMPATIBLE_BASE_URL - no fallback to OPENAI_BASE_URL
  */
 export function getOpenAICompatibleBaseUrl(): string | undefined {
-  return process.env.OPENAI_COMPATIBLE_BASE_URL || process.env.OPENAI_BASE_URL
+  return process.env.OPENAI_COMPATIBLE_BASE_URL
 }
 
 /**
  * Get API key for openai-compatible provider
+ * ONLY uses OPENAI_COMPATIBLE_API_KEY - no fallback to OPENAI_API_KEY
  */
 export function getOpenAICompatibleApiKey(): string | undefined {
-  return process.env.OPENAI_COMPATIBLE_API_KEY || process.env.OPENAI_API_KEY
+  return process.env.OPENAI_COMPATIBLE_API_KEY
 }
 
 // Unified provider interface
@@ -139,35 +175,37 @@ export interface UnifiedLLMProvider {
 
 /**
  * Get model config for a specific provider and task
- * Uses centralized AI_MODELS (temperature, maxOutputTokens) and provider-specific model names
+ * Uses centralized MODEL_REGISTRY (temperature, maxOutputTokens) and provider-specific model names
+ * Supports runtime overrides via LLM_MODEL_OVERRIDE_* environment variables
  */
 export function getProviderModelConfig(
   providerType: LLMProviderType,
   modelKey: AIModelKey = DEFAULT_MODEL_KEY,
-): { name: string; temperature: number; maxOutputTokens: number } {
-  const baseConfig = AI_MODELS[modelKey]
-  const providerModelName = PROVIDER_MODEL_MAP[providerType][modelKey]
+): AIModel {
+  // Check for runtime model name override first
+  const overrideName = getModelNameOverride(modelKey)
+  const modelName = overrideName ?? PROVIDER_MODEL_NAMES[providerType][modelKey]
 
   return {
-    name: providerModelName,
-    temperature: baseConfig.temperature,
-    maxOutputTokens: baseConfig.maxOutputTokens,
+    name: modelName,
+    ...MODEL_REGISTRY[modelKey],
   }
 }
 
 /**
  * Get the active LLM provider based on configuration
- * Respects LLM_PROVIDER env var if type is not explicitly provided
+ * Respects LLM_PROVIDER (env var or runtime config) if type is not explicitly provided
  */
 export async function getLLMProvider(
   payload: Payload,
   config?: Partial<LLMProviderConfig>,
 ): Promise<UnifiedLLMProvider> {
-  const providerType = resolveProviderType(config)
+  const providerType = await resolveProviderType(config, payload)
+  logger.debug({ providerType }, '[LLMFactory] Using provider type')
 
   switch (providerType) {
     case LLMProviderType.OPENAI_COMPATIBLE: {
-      const mod = await import('./openai')
+      const mod = await import('./openai-compatible')
       return createOpenAIProvider(mod)
     }
     case LLMProviderType.GEMINI:
@@ -186,28 +224,39 @@ export async function checkProviderAvailability(payload: Payload): Promise<{
   'openai-compatible': boolean
 }> {
   const { isGeminiApiKeyConfigured } = await import('./gemini')
-  const { isOpenAIApiKeyConfigured } = await import('./openai')
+  const { isOpenAICompatibleApiKeyConfigured } = await import('./openai-compatible')
 
   const [gemini, openaiCompatible] = await Promise.all([
     isGeminiApiKeyConfigured(payload),
-    isOpenAIApiKeyConfigured(payload),
+    isOpenAICompatibleApiKeyConfigured(payload),
   ])
 
   return { gemini, 'openai-compatible': openaiCompatible }
 }
 
 /**
- * Auto-detect the best available provider (respects LLM_PROVIDER env var preference)
+ * Auto-detect the best available provider (respects LLM_PROVIDER preference from env or config)
  */
 export async function detectBestProvider(payload: Payload): Promise<LLMProviderType> {
-  // First check if user specified a preference via env var
-  const envProvider = getProviderTypeFromEnv()
+  // First check if user specified a preference via env var or runtime config
+  const envProvider = await getProviderTypeFromEnv(payload)
+  logger.debug({ preferredProvider: envProvider }, '[LLMFactory] detectBestProvider')
 
   // Check if the preferred provider is available
   const availability = await checkProviderAvailability(payload)
+  logger.debug({ availability }, '[LLMFactory] detectBestProvider - availability')
 
   if (envProvider === LLMProviderType.OPENAI_COMPATIBLE && availability['openai-compatible']) {
+    logger.debug(
+      '[LLMFactory] detectBestProvider - using OPENAI_COMPATIBLE (preferred and available)',
+    )
     return LLMProviderType.OPENAI_COMPATIBLE
+  }
+
+  if (envProvider === LLMProviderType.OPENAI_COMPATIBLE && !availability['openai-compatible']) {
+    logger.debug(
+      '[LLMFactory] detectBestProvider - OPENAI_COMPATIBLE preferred but NOT available, falling back',
+    )
   }
 
   if (envProvider === LLMProviderType.GEMINI && availability.gemini) {
@@ -216,6 +265,7 @@ export async function detectBestProvider(payload: Payload): Promise<LLMProviderT
 
   // Fallback: prefer available provider
   if (availability['openai-compatible']) {
+    logger.debug('[LLMFactory] detectBestProvider - fallback: using OPENAI_COMPATIBLE (available)')
     return LLMProviderType.OPENAI_COMPATIBLE
   }
   if (availability.gemini) {
@@ -223,6 +273,7 @@ export async function detectBestProvider(payload: Payload): Promise<LLMProviderT
   }
 
   // Default to gemini if none configured
+  logger.debug('[LLMFactory] detectBestProvider - no providers available, defaulting to GEMINI')
   return LLMProviderType.GEMINI
 }
 
@@ -248,14 +299,14 @@ function createOpenAIProvider(mod: {
   generateChatCompletion: UnifiedLLMProvider['generateChatCompletion']
   generateMultimodalCompletion: UnifiedLLMProvider['generateMultimodalCompletion']
   generateChatCompletionWithTools: UnifiedLLMProvider['generateChatCompletionWithTools']
-  isOpenAIApiKeyConfigured: (payload: Payload) => Promise<boolean>
+  isOpenAICompatibleApiKeyConfigured: (payload: Payload) => Promise<boolean>
   OpenAIErrorCode: Record<string, string>
 }): UnifiedLLMProvider {
   return {
     generateChatCompletion: mod.generateChatCompletion,
     generateMultimodalCompletion: mod.generateMultimodalCompletion,
     generateChatCompletionWithTools: mod.generateChatCompletionWithTools,
-    isConfigured: mod.isOpenAIApiKeyConfigured,
+    isConfigured: mod.isOpenAICompatibleApiKeyConfigured,
     errorCodes: mod.OpenAIErrorCode,
   }
 }
