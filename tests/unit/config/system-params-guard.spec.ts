@@ -3,13 +3,12 @@
  *
  * Validates that system params throw ConfigNotLoadedError when accessed
  * before loadRuntimeConfig() has been called.
+ *
+ * Note: getSystemParam() has been removed. Use getPdfConversionMaxPromptSizeBytes()
+ * and other SystemParams methods which internally use ConfigValues.
  */
 import { ConfigNotLoadedError } from '@/infra/config/runtime/errors'
-import {
-  clearConfigCache,
-  getSystemParam,
-  isConfigLoaded,
-} from '@/infra/config/runtime/runtime-config'
+import { clearConfigCache, isConfigLoaded } from '@/infra/config/runtime/runtime-config'
 import { getPdfConversionMaxPromptSizeBytes } from '@/infra/config/system-params'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
@@ -24,30 +23,11 @@ describe('System Params Config Guard', () => {
     clearConfigCache()
   })
 
-  it('should throw ConfigNotLoadedError when getSystemParam is called without loading config', () => {
-    expect(isConfigLoaded()).toBe(false)
-
-    expect(() => {
-      getSystemParam('pdf_conversion_max_prompt_size_bytes', { throwIfNotFound: false })
-    }).toThrow(ConfigNotLoadedError)
-  })
-
   it('should throw ConfigNotLoadedError when getPdfConversionMaxPromptSizeBytes is called without loading config', () => {
     expect(isConfigLoaded()).toBe(false)
 
     expect(() => {
       getPdfConversionMaxPromptSizeBytes('some-tenant-id')
     }).toThrow(ConfigNotLoadedError)
-  })
-
-  it('should have correct error message', () => {
-    expect(isConfigLoaded()).toBe(false)
-
-    try {
-      getSystemParam('any_key', { throwIfNotFound: false })
-    } catch (error) {
-      expect(error).toBeInstanceOf(ConfigNotLoadedError)
-      expect((error as Error).message).toContain('loadRuntimeConfig()')
-    }
   })
 })

@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
 
     // ========== Prompt Size Validation (after validation passes) ==========
     // Use byteLength for accurate size check (UTF-8 encoding)
-    const maxPromptSize = getPdfConversionMaxPromptSizeBytes(lessonTenantId)
+    const maxPromptSize = await getPdfConversionMaxPromptSizeBytes(lessonTenantId)
     const extractorSize = Buffer.byteLength(extractorPrompt.template, 'utf8')
     if (extractorSize > maxPromptSize) {
       return errorResponse(

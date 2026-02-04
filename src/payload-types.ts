@@ -70,7 +70,7 @@ export interface Config {
   collections: {
     pages: Page;
     categories: Category;
-    config_entries: ConfigEntry;
+    config_secrets: ConfigSecret;
     config_values: ConfigValue;
     config_audit_logs: ConfigAuditLog;
     conversations: Conversation;
@@ -108,7 +108,7 @@ export interface Config {
   collectionsSelect: {
     pages: PagesSelect<false> | PagesSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
-    config_entries: ConfigEntriesSelect<false> | ConfigEntriesSelect<true>;
+    config_secrets: ConfigSecretsSelect<false> | ConfigSecretsSelect<true>;
     config_values: ConfigValuesSelect<false> | ConfigValuesSelect<true>;
     config_audit_logs: ConfigAuditLogsSelect<false> | ConfigAuditLogsSelect<true>;
     conversations: ConversationsSelect<false> | ConversationsSelect<true>;
@@ -888,35 +888,31 @@ export interface HtmlBlock {
   blockType: 'html';
 }
 /**
- * Tenant-scoped configuration key/value store. Variables are plaintext, secrets are encrypted.
+ * Tenant-scoped encrypted secrets. All values are always encrypted.
  *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "config_entries".
+ * via the `definition` "config_secrets".
  */
-export interface ConfigEntry {
+export interface ConfigSecret {
   id: string;
   /**
    * Configuration key (snake_case, immutable after creation)
    */
   key: string;
   /**
-   * Tenant this config entry belongs to
+   * Tenant this secret belongs to
    */
   tenant: string | Tenant;
   /**
-   * Variable: stored as plaintext. Secret: encrypted at rest. System Param: application constants.
-   */
-  kind: 'variable' | 'secret' | 'system_param';
-  /**
-   * Optional title/description for this configuration entry
+   * Optional title/description for this secret
    */
   title?: string | null;
   /**
-   * Configuration value. Secrets are write-only after save.
+   * Secret value (write-only after save)
    */
   value: string;
   /**
-   * Enable or disable this configuration entry
+   * Enable or disable this secret
    */
   enabled: boolean;
   updatedAt: string;
@@ -958,7 +954,7 @@ export interface ConfigValue {
   createdAt: string;
 }
 /**
- * Append-only audit log for config mutations. Secrets never stored in plaintext.
+ * Append-only audit log for config secret mutations. Secrets never stored in plaintext.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "config_audit_logs".
@@ -973,10 +969,6 @@ export interface ConfigAuditLog {
    * Tenant of the mutated config entry
    */
   tenant: string | Tenant;
-  /**
-   * Type of config entry
-   */
-  kind: 'variable' | 'secret' | 'system_param';
   /**
    * Action performed
    */
@@ -1838,8 +1830,8 @@ export interface PayloadLockedDocument {
         value: string | Category;
       } | null)
     | ({
-        relationTo: 'config_entries';
-        value: string | ConfigEntry;
+        relationTo: 'config_secrets';
+        value: string | ConfigSecret;
       } | null)
     | ({
         relationTo: 'config_values';
@@ -2142,12 +2134,11 @@ export interface CategoriesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "config_entries_select".
+ * via the `definition` "config_secrets_select".
  */
-export interface ConfigEntriesSelect<T extends boolean = true> {
+export interface ConfigSecretsSelect<T extends boolean = true> {
   key?: T;
   tenant?: T;
-  kind?: T;
   title?: T;
   value?: T;
   enabled?: T;
@@ -2173,7 +2164,6 @@ export interface ConfigValuesSelect<T extends boolean = true> {
 export interface ConfigAuditLogsSelect<T extends boolean = true> {
   key?: T;
   tenant?: T;
-  kind?: T;
   action?: T;
   actor?: T;
   reason?: T;
