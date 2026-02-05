@@ -46,7 +46,7 @@ export async function normalizeToAbsoluteUrl(url: string): Promise<string> {
 export async function getPdfBufferFromBlob(
   mediaId: string,
   payload: any,
-  req?: { headers?: { authorization?: string; cookie?: string } },
+  _req?: { headers?: { authorization?: string; cookie?: string } },
 ): Promise<Buffer> {
   // Fetch media document
   const media = await payload.findByID({ collection: 'media', id: mediaId, depth: 0 })
@@ -65,13 +65,11 @@ export async function getPdfBufferFromBlob(
     throw stageError('FETCH_FAILED', 'Media document has no URL')
   }
 
-  let pdfBuffer: Buffer
-
   // PDFs must use Vercel Blob URLs - fetch directly from blob storage
   if (!isVercelBlobUrl(media.url)) {
     throw stageError('NOT_BLOB_URL', `PDF URL must be a Vercel Blob URL. Got: ${media.url}`)
   }
-  pdfBuffer = await getPdfBufferFromUrl(media.url)
+  const pdfBuffer = await getPdfBufferFromUrl(media.url)
 
   // Validate size
   if (pdfBuffer.length > PDF_MAX_BYTES) {
