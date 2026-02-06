@@ -112,6 +112,65 @@ export async function createGenkitUnifiedAdapter(
     },
 
     /**
+     * Generate streaming chat completion
+     * Returns a stream of chunks and a promise that resolves when streaming is complete
+     */
+    generateStreamingChatCompletion: async (
+      input: ChatCompletionInput,
+      payloadInstance: Payload,
+    ) => {
+      const modelKey = getModelKeyFromModelName(input.model.name) || 'EXERCISE_CHAT'
+      const config = await resolveGenkitConfig(modelKey, tenantId, payloadInstance)
+
+      const ai = await getGenkitInstance(payloadInstance, tenantId)
+
+      // Build prompt
+      const prompt =
+        input.system + '\n\n' + input.messages.map((m) => `${m.role}: ${m.content}`).join('\n')
+
+      // Get streaming response (cast to any due to Genkit type complexity)
+      const streamingResponse = (await ai.generateStream({
+        model: config.model,
+        prompt,
+      })) as any
+
+      // Create async iterable from stream
+      const stream: AsyncIterable<{ text: string }> = {
+        [Symbol.asyncIterator]: () => {
+          const iterator = streamingResponse[Symbol.asyncIterator]()
+          return {
+            async next() {
+              const result = await iterator.next()
+              if (result.done) {
+                return { done: true, value: undefined }
+              }
+              // Genkit stream returns chunks with text
+              return {
+                done: false,
+                value: { text: result.value?.text || '' },
+              }
+            },
+          }
+        },
+      }
+
+      // Promise that resolves when streaming is complete
+      const response = (async () => {
+        try {
+          const finalResult = await streamingResponse
+          return { text: finalResult?.text || '' }
+        } catch (error) {
+          const llmError = errorAdapter.wrapError(
+            error instanceof Error ? error : new Error(String(error)),
+          )
+          throw llmError
+        }
+      })()
+
+      return { stream, response }
+    },
+
+    /**
      * Generate multimodal completion
      */
     generateMultimodalCompletion: async (
