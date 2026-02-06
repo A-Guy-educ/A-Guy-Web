@@ -130,6 +130,19 @@ export function buildDiagramPrompt(
 
 **Diagram Description**:
 ${diagramDescription}
+
+## Output Format
+
+Return a JSON object with the following structure:
+\`\`\`json
+{
+  "tikz": "<complete tikz code>",
+  "confidence": "low|medium|high",
+  "notes": "<optional notes about the diagram>"
+}
+\`\`\`
+
+Include ONLY the JSON object in your response, no additional text.
 `
 }
 

@@ -1,36 +1,52 @@
 import { runDiagramPass } from '@/server/services/exercise-conversion/diagram-pass'
 import type { EnrichedExercise } from '@/server/services/exercise-conversion/idempotency'
+import type { Mock } from 'vitest'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-// Mock LLM provider with proper interface
-const mockProvider = {
-  generateMultimodalCompletion: vi.fn(),
-  generateChatCompletion: vi.fn(),
-  generateChatCompletionWithTools: vi.fn(),
-  isConfigured: vi.fn().mockReturnValue(true),
-  errorCodes: {} as Record<string, string>,
+// Shared mock storage - this must be at top level so vi.mock can access it
+const mocks = {
+  provider: {
+    generateMultimodalCompletion: null as Mock | null,
+    generateChatCompletion: null as Mock | null,
+    generateChatCompletionWithTools: null as Mock | null,
+    isConfigured: null as Mock | null,
+    errorCodes: {} as Record<string, string>,
+  },
 }
 
-vi.mock('@/infra/llm/providers/factory', () => ({
-  getLLMProvider: vi.fn().mockResolvedValue(mockProvider),
-  getProviderTypeFromEnv: vi.fn().mockResolvedValue('GEMINI'),
-  getProviderModelConfig: vi
-    .fn()
-    .mockReturnValue({ name: 'test', temperature: 0.1, maxOutputTokens: 8192 }),
-}))
+// Initialize mock functions before vi.mock
+mocks.provider.generateMultimodalCompletion = vi.fn()
+mocks.provider.generateChatCompletion = vi.fn()
+mocks.provider.generateChatCompletionWithTools = vi.fn()
+mocks.provider.isConfigured = vi.fn().mockReturnValue(true)
+
+vi.mock('@/infra/llm/providers/factory', async () => {
+  return {
+    getLLMProvider: vi.fn().mockResolvedValue(mocks.provider),
+    getProviderTypeFromEnv: vi.fn().mockResolvedValue('GEMINI'),
+    getProviderModelConfig: vi
+      .fn()
+      .mockReturnValue({ name: 'test', temperature: 0.1, maxOutputTokens: 8192 }),
+  }
+})
 
 describe('Diagram Pass Integration', () => {
-  const mockPayload = {} as any
+  const mockPayload = {} as never
   const mockAttachments = [{ data: 'base64pdf', mimeType: 'application/pdf' }]
   const mockSegment = { pageStart: 1, pageEnd: 2 }
   const mockPrompt = 'Generate TikZ'
 
   beforeEach(() => {
     vi.clearAllMocks()
+    // Reset mock implementations
+    mocks.provider.generateMultimodalCompletion = vi.fn()
+    mocks.provider.generateChatCompletion = vi.fn()
+    mocks.provider.generateChatCompletionWithTools = vi.fn()
+    mocks.provider.isConfigured = vi.fn().mockReturnValue(true)
   })
 
   it('should process exercises with diagram blocks', async () => {
-    mockProvider.generateMultimodalCompletion.mockResolvedValueOnce({
+    mocks.provider.generateMultimodalCompletion!.mockResolvedValueOnce({
       text: '{"tikz":"\\\\begin{tikzpicture}\\\\draw (0,0) circle (1);\\\\end{tikzpicture}","confidence":"medium"}',
     })
 
@@ -85,7 +101,7 @@ describe('Diagram Pass Integration', () => {
 
   it('should handle LLM failure gracefully', async () => {
     // Mock LLM to return null (failure)
-    mockProvider.generateMultimodalCompletion.mockResolvedValueOnce({
+    mocks.provider.generateMultimodalCompletion!.mockResolvedValueOnce({
       text: 'invalid json',
     })
 
@@ -113,8 +129,8 @@ describe('Diagram Pass Integration', () => {
   })
 
   it('should track insertion offsets correctly for multiple diagrams in same exercise', async () => {
-    mockProvider.generateMultimodalCompletion
-      .mockResolvedValueOnce({
+    mocks.provider
+      .generateMultimodalCompletion!.mockResolvedValueOnce({
         text: '{"tikz":"tikz1","confidence":"high"}',
       })
       .mockResolvedValueOnce({
