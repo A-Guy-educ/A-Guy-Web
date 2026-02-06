@@ -348,13 +348,6 @@ export function isVercelBlobUrl(url: string): boolean {
 }
 
 /**
- * Get the external storage base URL for constructing absolute URLs
- */
-export async function getExternalStorageUrl(): Promise<string> {
-  return 'http://localhost:3000'
-}
-
-/**
  * Helper function to extract the pathname from a Vercel Blob URL
  */
 export function getBlobPathname(url: string): string {
