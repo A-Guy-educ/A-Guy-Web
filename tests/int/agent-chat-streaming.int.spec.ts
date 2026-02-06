@@ -52,6 +52,7 @@ let testExerciseId: string
 let testChapterId: string
 let testCourseId: string
 let testCategoryId: string
+let lessons: { docs: Array<{ id: string }> }
 
 describe.skipIf(!hasDatabaseUrl)('agentChatStream', () => {
   beforeAll(async () => {
@@ -106,12 +107,25 @@ describe.skipIf(!hasDatabaseUrl)('agentChatStream', () => {
       draft: true,
     } as any)
     testChapterId = chapter.id
+    // Create a lesson first (required for exercise)
+    const lesson = await payload.create({
+      collection: 'lessons',
+      data: {
+        title: 'Test Lesson for Exercise Stream',
+        chapter: testChapterId,
+        order: 1,
+        status: 'published',
+      },
+      draft: true,
+    } as any)
+
     testExerciseId = (
       await payload.create({
         collection: 'exercises',
         data: {
           title: 'Test Exercise Stream',
           slug: `test-exercise-stream-${Date.now()}`,
+          lesson: lesson.id,
           chapter: testChapterId,
           order: 1,
           type: 'free_response',
@@ -135,6 +149,19 @@ describe.skipIf(!hasDatabaseUrl)('agentChatStream', () => {
         id: testExerciseId,
         overrideAccess: true,
       } as any)
+      // Find and delete the lesson we created
+      lessons = await payload.find({
+        collection: 'lessons',
+        where: { title: { equals: 'Test Lesson for Exercise Stream' } },
+        limit: 1,
+      })
+      if (lessons.docs.length > 0) {
+        await payload.delete({
+          collection: 'lessons',
+          id: lessons.docs[0].id,
+          overrideAccess: true,
+        } as any)
+      }
       await payload.delete({
         collection: 'chapters',
         id: testChapterId,
