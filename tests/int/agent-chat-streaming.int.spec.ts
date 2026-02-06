@@ -21,10 +21,37 @@ vi.mock('@/infra/llm/services/exercise-chat-service', () => ({
   }),
 }))
 
+vi.mock('@/infra/llm/vector-index-check', () => ({
+  isVectorIndexAvailable: vi.fn(async () => false),
+}))
+
+vi.mock('@/infra/llm/vector-search', () => ({
+  retrieveMemoryItems: vi.fn(async () => ({
+    items: [],
+    latencyMs: 0,
+    localCount: 0,
+    globalCount: 0,
+  })),
+}))
+
+vi.mock('@/infra/llm/memory-extraction', () => ({
+  extractMemoryCandidates: vi.fn(async () => []),
+  persistMemoryItems: vi.fn(async () => 0),
+}))
+
+vi.mock('@/infra/llm/maintenance', () => ({
+  runSummaryMaintenance: vi.fn(async () => ({
+    summaryUpdated: false,
+    messagesTrimmed: 0,
+  })),
+}))
+
 let payload: Payload
 let testUserId: string
 let testExerciseId: string
 let testChapterId: string
+let testCourseId: string
+let testCategoryId: string
 
 describe.skipIf(!hasDatabaseUrl)('agentChatStream', () => {
   beforeAll(async () => {
@@ -40,18 +67,45 @@ describe.skipIf(!hasDatabaseUrl)('agentChatStream', () => {
       draft: true,
     } as any)
     testUserId = user.id
-    testChapterId = (
-      await payload.create({
-        collection: 'chapters',
-        data: {
-          title: 'Test Chapter Stream',
-          slug: `test-chapter-stream-${Date.now()}`,
-          order: 1,
-          isPremium: false,
-        },
-        draft: true,
-      } as any)
-    ).id
+    // Create a category first (required by courses)
+    const category = await payload.create({
+      collection: 'categories',
+      data: { title: 'Test Category', slug: `test-category-stream-${Date.now()}` },
+      user: { id: testUserId },
+    } as any)
+    testCategoryId = category.id
+
+    // Create test course with all required fields
+    const course = await payload.create({
+      collection: 'courses',
+      data: {
+        courseLabel: 'TST',
+        title: 'Test Course Stream',
+        slug: `test-course-stream-${Date.now()}`,
+        categories: [category.id],
+        order: 1,
+        status: 'published',
+        isActive: true,
+      },
+      draft: true,
+    } as any)
+    testCourseId = course.id
+
+    // Create test chapter with all required fields
+    const chapter = await payload.create({
+      collection: 'chapters',
+      data: {
+        chapterLabel: '1',
+        title: 'Test Chapter Stream',
+        slug: `test-chapter-stream-${Date.now()}`,
+        course: course.id,
+        order: 1,
+        status: 'published',
+        isActive: true,
+      },
+      draft: true,
+    } as any)
+    testChapterId = chapter.id
     testExerciseId = (
       await payload.create({
         collection: 'exercises',
@@ -84,6 +138,16 @@ describe.skipIf(!hasDatabaseUrl)('agentChatStream', () => {
       await payload.delete({
         collection: 'chapters',
         id: testChapterId,
+        overrideAccess: true,
+      } as any)
+      await payload.delete({
+        collection: 'courses',
+        id: testCourseId,
+        overrideAccess: true,
+      } as any)
+      await payload.delete({
+        collection: 'categories',
+        id: testCategoryId,
         overrideAccess: true,
       } as any)
     } catch {}
