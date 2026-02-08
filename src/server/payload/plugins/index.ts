@@ -46,7 +46,7 @@ if (process.env.PAYLOAD_GENERATE_TYPES !== 'true') {
   }
 
   vercelBlobPlugin = vercelBlobStorage({
-    // Enable blob storage for media and exercise-assets collections
+    clientUploads: true,
     collections: {
       media: true,
       'exercise-assets': true,
