@@ -85,6 +85,8 @@ export interface Config {
     users: User;
     'user-progress': UserProgress;
     media: Media;
+    'chat-assets': ChatAsset;
+    'upload-sessions': UploadSession;
     posts: Post;
     'pricing-plans': PricingPlan;
     'mcp-audit-logs': McpAuditLog;
@@ -123,6 +125,8 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     'user-progress': UserProgressSelect<false> | UserProgressSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    'chat-assets': ChatAssetsSelect<false> | ChatAssetsSelect<true>;
+    'upload-sessions': UploadSessionsSelect<false> | UploadSessionsSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
     'pricing-plans': PricingPlansSelect<false> | PricingPlansSelect<true>;
     'mcp-audit-logs': McpAuditLogsSelect<false> | McpAuditLogsSelect<true>;
@@ -594,6 +598,9 @@ export interface Media {
     | number
     | boolean
     | null;
+  folder?: (string | null) | FolderInterface;
+  updatedAt: string;
+  createdAt: string;
   url?: string | null;
   thumbnailURL?: string | null;
   filename?: string | null;
@@ -603,9 +610,6 @@ export interface Media {
   height?: number | null;
   focalX?: number | null;
   focalY?: number | null;
-  folder?: (string | null) | FolderInterface;
-  updatedAt: string;
-  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1048,6 +1052,15 @@ export interface Conversation {
               id?: string | null;
             }[]
           | null;
+        /**
+         * Chat asset attachments (direct-to-Blob uploads, max 5)
+         */
+        chatAssets?:
+          | {
+              chatAssetId: string | ChatAsset;
+              id?: string | null;
+            }[]
+          | null;
         id?: string | null;
       }[]
     | null;
@@ -1279,6 +1292,48 @@ export interface Exercise {
   createdAt: string;
 }
 /**
+ * Chat attachments uploaded directly to Vercel Blob
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chat-assets".
+ */
+export interface ChatAsset {
+  id: string;
+  /**
+   * Tenant scope for this document
+   */
+  tenant: string | Tenant;
+  /**
+   * User who created this document
+   */
+  createdBy?: (string | null) | User;
+  /**
+   * Vercel Blob URL for the asset
+   */
+  url: string;
+  /**
+   * Vercel Blob pathname for the asset
+   */
+  pathname: string;
+  /**
+   * Original filename as uploaded by user
+   */
+  originalFilename: string;
+  /**
+   * MIME type of the asset
+   */
+  mimeType: string;
+  /**
+   * File size in bytes
+   */
+  filesize: number;
+  retentionPolicy: 'persistent' | 'ephemeral';
+  expiresAt?: string | null;
+  uploadSessionId: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Long-term memory items for AI chat context
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1443,6 +1498,61 @@ export interface UserProgress {
         id?: string | null;
       }[]
     | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Upload session tracking for direct-to-Blob uploads
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "upload-sessions".
+ */
+export interface UploadSession {
+  id: string;
+  /**
+   * Tenant scope for this document
+   */
+  tenant: string | Tenant;
+  /**
+   * User who created this document
+   */
+  createdBy?: (string | null) | User;
+  /**
+   * Purpose of the upload session
+   */
+  purpose: 'chat-media';
+  /**
+   * Original filename as uploaded by user
+   */
+  originalFilename: string;
+  /**
+   * MIME type of the file
+   */
+  mimeType: string;
+  /**
+   * Expected file size in bytes (from client hint)
+   */
+  expectedSize?: number | null;
+  /**
+   * Vercel Blob pathname for the file
+   */
+  pathname: string;
+  /**
+   * Vercel Blob URL (set after upload completes)
+   */
+  blobUrl?: string | null;
+  /**
+   * Status of the upload session
+   */
+  status: 'initiated' | 'uploaded' | 'finalized' | 'cancelled' | 'failed';
+  /**
+   * Reference to created chat-assets document
+   */
+  chatAssetId?: (string | null) | ChatAsset;
+  /**
+   * Expiration time for orphan cleanup
+   */
+  expiresAt: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -1910,6 +2020,14 @@ export interface PayloadLockedDocument {
         value: string | Media;
       } | null)
     | ({
+        relationTo: 'chat-assets';
+        value: string | ChatAsset;
+      } | null)
+    | ({
+        relationTo: 'upload-sessions';
+        value: string | UploadSession;
+      } | null)
+    | ({
         relationTo: 'posts';
         value: string | Post;
       } | null)
@@ -2211,6 +2329,12 @@ export interface ConversationsSelect<T extends boolean = true> {
               mediaId?: T;
               id?: T;
             };
+        chatAssets?:
+          | T
+          | {
+              chatAssetId?: T;
+              id?: T;
+            };
         id?: T;
       };
   summary?: T;
@@ -2456,6 +2580,9 @@ export interface MediaSelect<T extends boolean = true> {
   retentionPolicy?: T;
   expiresAt?: T;
   sizes?: T;
+  folder?: T;
+  updatedAt?: T;
+  createdAt?: T;
   url?: T;
   thumbnailURL?: T;
   filename?: T;
@@ -2465,7 +2592,41 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
-  folder?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chat-assets_select".
+ */
+export interface ChatAssetsSelect<T extends boolean = true> {
+  tenant?: T;
+  createdBy?: T;
+  url?: T;
+  pathname?: T;
+  originalFilename?: T;
+  mimeType?: T;
+  filesize?: T;
+  retentionPolicy?: T;
+  expiresAt?: T;
+  uploadSessionId?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "upload-sessions_select".
+ */
+export interface UploadSessionsSelect<T extends boolean = true> {
+  tenant?: T;
+  createdBy?: T;
+  purpose?: T;
+  originalFilename?: T;
+  mimeType?: T;
+  expectedSize?: T;
+  pathname?: T;
+  blobUrl?: T;
+  status?: T;
+  chatAssetId?: T;
+  expiresAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

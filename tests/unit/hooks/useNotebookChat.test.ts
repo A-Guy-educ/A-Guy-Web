@@ -146,6 +146,7 @@ describe('useNotebookChat', () => {
         categoryId: undefined,
       },
       undefined,
+      undefined, // chatAssetIds
       false, // adminMode
     )
   })

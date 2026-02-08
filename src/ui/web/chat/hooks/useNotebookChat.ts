@@ -7,11 +7,13 @@ import { logger } from '@/infra/utils/logger'
 import { apiService } from '@/server/services/api/api-service'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { useDirectChatAssetUpload } from './useDirectChatAssetUpload'
 
 export interface ChatMessage {
   role: ChatRole
   content: string
   media?: Array<{ mediaId: string; filename?: string }>
+  chatAssets?: Array<{ chatAssetId: string; filename?: string }>
 }
 
 export interface UploadedMedia {
@@ -25,7 +27,7 @@ export interface ChatError {
   message: string
 }
 
-// Media upload constraints
+// Legacy media upload constraints
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf']
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 const MAX_FILES = 5
@@ -95,6 +97,17 @@ export function useNotebookChat({
   // Media upload state
   const [uploadedMedia, setUploadedMedia] = useState<UploadedMedia[]>([])
   const [isUploading, setIsUploading] = useState(false)
+
+  // Direct-to-Blob chat asset uploads
+  const {
+    uploadingFiles: directUploads,
+    addFiles: addDirectUploads,
+    cancelFile: cancelDirectUpload,
+    retryFile: retryDirectUpload,
+    removeFile: removeDirectUpload,
+    isUploading: isDirectUploading,
+    completedAssetIds: completedChatAssetIds,
+  } = useDirectChatAssetUpload()
 
   // Error state
   const [chatError, setChatError] = useState<ChatError | null>(null)
@@ -367,16 +380,22 @@ export function useNotebookChat({
   }, [])
 
   const sendMessage = async (message: string) => {
-    if ((!message.trim() && uploadedMedia.length === 0) || isLoading) return
+    if (
+      (!message.trim() && uploadedMedia.length === 0 && completedChatAssetIds.length === 0) ||
+      isLoading
+    )
+      return
 
     // Capture mediaIds and metadata before clearing
     const mediaIds = uploadedMedia.map((m) => m.id)
     const mediaMetadata = uploadedMedia.map((m) => ({ mediaId: m.id, filename: m.filename }))
+    const chatAssetMetadata = completedChatAssetIds.map((id) => ({ chatAssetId: id }))
 
     const userMessage: ChatMessage = {
       role: ChatRole.User,
       content: message,
       media: mediaMetadata.length > 0 ? mediaMetadata : undefined,
+      chatAssets: chatAssetMetadata.length > 0 ? chatAssetMetadata : undefined,
     }
     setMessages((prev) => [...prev, userMessage])
     setInputValue('')
@@ -400,12 +419,13 @@ export function useNotebookChat({
     }
 
     // Use streaming when no media attached and not in admin mode
-    const useStreaming = mediaIds.length === 0 && !adminMode
+    const hasAttachments = mediaIds.length > 0 || completedChatAssetIds.length > 0
+    const useStreaming = !hasAttachments && !adminMode
 
     if (useStreaming) {
       await streamMessage(message, acknowledgment, context)
     } else {
-      await sendMessageSync(message, acknowledgment, context, mediaIds)
+      await sendMessageSync(message, acknowledgment, context, mediaIds, completedChatAssetIds)
     }
   }
 
@@ -499,9 +519,17 @@ export function useNotebookChat({
       categoryId?: string
     },
     mediaIds?: string[],
+    chatAssetIds?: string[],
   ) => {
     try {
-      const result = await apiService.chat(message, acknowledgment, context, mediaIds, adminMode)
+      const result = await apiService.chat(
+        message,
+        acknowledgment,
+        context,
+        mediaIds,
+        chatAssetIds,
+        adminMode,
+      )
 
       if (!result.success) {
         if (result.authRequired) {
@@ -604,12 +632,20 @@ export function useNotebookChat({
     handleKeyDown,
     handleQuickAction,
     handleReset,
-    // Media upload
+    // Legacy media upload
     uploadedMedia,
     isUploading,
     handleFileSelect,
     removeMedia,
     openFilePicker,
+    // Direct-to-Blob chat asset uploads
+    directUploads,
+    addDirectUploads,
+    cancelDirectUpload,
+    retryDirectUpload,
+    removeDirectUpload,
+    isDirectUploading,
+    completedChatAssetIds,
     // Error handling
     chatError,
     dismissError,

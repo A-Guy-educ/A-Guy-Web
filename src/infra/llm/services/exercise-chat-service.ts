@@ -7,6 +7,7 @@
  */
 import type { Payload } from 'payload'
 
+import { isVercelBlobUrl } from '@/infra/blob/vercel-blob-adapter'
 import { logger } from '@/infra/utils/logger'
 
 import type { ComposedPrompt } from '../context-policy'
@@ -229,8 +230,26 @@ async function sendMultimodalToGenkit(
   const attachments: Array<{ data: string; mimeType: string }> = []
 
   for (const mediaPart of mediaPartsWithPath) {
-    if (mediaPart.mediaId) {
-      try {
+    try {
+      // Check if this is a blob-only media part (absoluteFilePath empty, publicUrl is Vercel Blob)
+      const isBlobOnly = !mediaPart.absoluteFilePath && isVercelBlobUrl(mediaPart.publicUrl)
+
+      let mimeType = mediaPart.mimeType || 'image/jpeg'
+      let dataBase64: string | null = null
+
+      if (isBlobOnly) {
+        // Fetch directly from blob URL
+        const response = await fetch(mediaPart.publicUrl)
+        if (response.ok) {
+          const arrayBuffer = await response.arrayBuffer()
+          dataBase64 = Buffer.from(arrayBuffer).toString('base64')
+          const contentType = response.headers.get('content-type')
+          if (contentType) {
+            mimeType = contentType
+          }
+        }
+      } else {
+        // Original behavior: fetch from media doc URL
         const mediaDoc = await payload.findByID({
           collection: 'media',
           id: mediaPart.mediaId,
@@ -238,26 +257,29 @@ async function sendMultimodalToGenkit(
         })
 
         if (mediaDoc && 'url' in mediaDoc && mediaDoc.url) {
-          // Fetch the image and convert to base64
           const imageUrl = mediaDoc.url.startsWith('/')
             ? `${process.env.PAYLOAD_PUBLIC_SERVER_URL || 'http://localhost:3000'}${mediaDoc.url}`
             : mediaDoc.url
 
           const response = await fetch(imageUrl)
-          const arrayBuffer = await response.arrayBuffer()
-          const base64 = Buffer.from(arrayBuffer).toString('base64')
-
-          attachments.push({
-            data: base64,
-            mimeType: mediaDoc.mimeType || 'image/jpeg',
-          })
+          if (response.ok) {
+            const arrayBuffer = await response.arrayBuffer()
+            dataBase64 = Buffer.from(arrayBuffer).toString('base64')
+          }
         }
-      } catch (fetchError) {
-        logger.warn(
-          { err: fetchError, mediaId: mediaPart.mediaId },
-          '[ExerciseChat] Failed to fetch media',
-        )
       }
+
+      if (dataBase64) {
+        attachments.push({
+          data: dataBase64,
+          mimeType,
+        })
+      }
+    } catch (fetchError) {
+      logger.warn(
+        { err: fetchError, mediaId: mediaPart.mediaId },
+        '[ExerciseChat] Failed to fetch media',
+      )
     }
   }
 
