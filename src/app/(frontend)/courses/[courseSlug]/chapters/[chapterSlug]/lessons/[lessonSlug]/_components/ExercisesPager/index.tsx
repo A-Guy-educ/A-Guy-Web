@@ -5,10 +5,10 @@ import type { Exercise } from '@/payload-types'
 import { Button } from '@/ui/web/components/button'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
 import { ExerciseRenderer } from '@/ui/web/exerciserenderer'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/ui/web/components/card'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { BookOpen, ChevronLeft, ChevronRight, Layers, Sparkles } from 'lucide-react'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import type { ExerciseContentData } from '@/ui/web/exerciserenderer/types'
+import { Progress } from '@/ui/web/components/progress'
 
 interface ExercisesPagerProps {
   exercises: Exercise[]
@@ -36,15 +36,14 @@ export function ExercisesPager({ exercises, lessonTitle, backUrl }: ExercisesPag
 
   const totalExercises = exercises.length
   const totalPages = totalExercises + 2 // intro + exercises + completed
+  const progressPercent = ((pageState.pageNumber + 1) / totalPages) * 100
 
   const handleNext = () => {
     const nextPage = pageState.pageNumber + 1
 
     if (nextPage === totalPages - 1) {
-      // Moving to completed page
       setPageState({ type: 'completed', pageNumber: nextPage })
     } else if (nextPage > 0 && nextPage < totalPages - 1) {
-      // Moving to an exercise page
       setPageState({
         type: 'exercise',
         pageNumber: nextPage,
@@ -57,10 +56,8 @@ export function ExercisesPager({ exercises, lessonTitle, backUrl }: ExercisesPag
     const prevPage = pageState.pageNumber - 1
 
     if (prevPage === 0) {
-      // Moving back to intro
       setPageState({ type: 'intro', pageNumber: 0 })
     } else if (prevPage > 0 && prevPage < totalPages - 1) {
-      // Moving to a previous exercise
       setPageState({
         type: 'exercise',
         pageNumber: prevPage,
@@ -81,106 +78,172 @@ export function ExercisesPager({ exercises, lessonTitle, backUrl }: ExercisesPag
   const canGoPrev = pageState.pageNumber > 0
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Progress Bar */}
+      <Progress value={progressPercent} className="h-1.5 rounded-none" />
+
       {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Intro Page */}
+      <main className="flex-1 overflow-y-auto">
+        <div className="container mx-auto px-4 sm:px-6 py-8 md:py-12 max-w-3xl">
+          {/* ── Intro Page ── */}
           {pageState.type === 'intro' && (
-            <Card className="border-2">
-              <CardHeader className="text-center pb-4">
-                <CardTitle className="text-3xl md:text-4xl font-bold mb-4">{lessonTitle}</CardTitle>
-                <CardDescription className="text-base md:text-lg">
+            <div className="space-y-8">
+              {/* Header */}
+              <header className="text-center">
+                <span className="inline-block px-4 py-1.5 bg-muted text-muted-foreground rounded-full text-[10px] tracking-[0.2em] uppercase mb-5 border border-border/40">
+                  {t('exercisesPagerIntro')}
+                </span>
+                <h1 className="text-4xl md:text-[42px] font-medium leading-tight text-foreground mb-3">
+                  {lessonTitle}
+                </h1>
+                <div className="w-20 h-1 bg-primary mx-auto rounded-full" />
+              </header>
+
+              {/* Intro Card */}
+              <div className="bg-card rounded-3xl p-8 md:p-10 border border-border/60 shadow-xl shadow-muted/50 text-center">
+                <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-lg shadow-primary/10 border border-primary/20">
+                  <BookOpen className="w-9 h-9 text-primary" />
+                </div>
+
+                <h2 className="text-2xl font-medium mb-4 text-foreground">
+                  {t('exercisesPagerWelcome')}
+                </h2>
+                <p className="text-muted-foreground mb-10 text-base leading-relaxed max-w-md mx-auto">
                   {t('exercisesPagerIntroDescriptionPart1')} {totalExercises}{' '}
                   {t('exercisesPagerIntroDescriptionPart2')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6 pb-8 flex justify-center">
-                <Button onClick={handleStart} size="lg" className="min-w-[200px]">
-                  {t('exercisesPagerStart')}
-                  <ChevronRight className="ml-2 h-5 w-5" />
+                </p>
+
+                {/* Exercise count indicator */}
+                <div className="inline-flex items-center gap-3 px-5 py-3 bg-muted rounded-2xl border border-border/60 mb-10">
+                  <Layers className="w-5 h-5 text-primary" />
+                  <span className="text-primary text-xl font-medium">{totalExercises}</span>
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                    {t('exercise')}
+                  </span>
+                </div>
+
+                {/* CTA */}
+                <Button
+                  onClick={handleStart}
+                  size="lg"
+                  className="w-full py-6 rounded-2xl text-lg shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300"
+                >
+                  {t('exercisesPagerStart')}{' '}
+                  <ChevronLeft className="w-5 h-5 ms-2 rtl:rotate-0 ltr:rotate-180" />
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )}
 
-          {/* Exercise Page */}
+          {/* ── Exercise Page ── */}
           {pageState.type === 'exercise' && pageState.exerciseIndex !== undefined && (
-            <div className="space-y-6">
-              {/* Exercise Header */}
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">
-                    {t('exercise')} {pageState.exerciseIndex + 1} {t('of')} {totalExercises}
-                  </p>
-                  <h2 className="text-2xl md:text-3xl font-bold">
-                    {exercises[pageState.exerciseIndex]?.title}
-                  </h2>
+            <div className="space-y-8">
+              {/* Exercise Context Card */}
+              <div className="bg-card rounded-3xl p-6 md:p-8 border border-border/60 shadow-lg shadow-muted/40 relative overflow-hidden">
+                <div className="absolute top-0 end-0 w-1.5 h-full bg-primary rounded-s-full" />
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+                    <Layers className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-[0.15em]">
+                      {t('exercise')} {pageState.exerciseIndex + 1} {t('of')} {totalExercises}
+                    </p>
+                    <h2 className="text-xl font-medium text-foreground">
+                      {exercises[pageState.exerciseIndex]?.title}
+                    </h2>
+                  </div>
                 </div>
               </div>
 
               {/* Exercise Content */}
-              <ExerciseRenderer
-                content={
-                  exercises[pageState.exerciseIndex]?.content as unknown as ExerciseContentData
-                }
-                mode="student"
-                showCheckAnswer={true}
-              />
+              <div className="bg-card rounded-3xl p-6 md:p-8 border border-border/60 shadow-lg shadow-muted/40">
+                <ExerciseRenderer
+                  content={
+                    exercises[pageState.exerciseIndex]?.content as unknown as ExerciseContentData
+                  }
+                  mode="student"
+                  showCheckAnswer={true}
+                />
+              </div>
+
+              {/* Navigation */}
+              <div className="flex justify-between items-center pt-4">
+                <button
+                  onClick={handlePrev}
+                  disabled={!canGoPrev}
+                  className="text-muted-foreground text-sm hover:text-foreground transition-colors duration-300 flex items-center gap-1.5 disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />{' '}
+                  {t('exercisesPagerPrev')}
+                </button>
+                <Button
+                  onClick={handleNext}
+                  disabled={!canGoNext}
+                  size="lg"
+                  className="px-10 py-4 rounded-2xl text-base shadow-lg shadow-primary/20 hover:shadow-xl transition-all duration-300"
+                >
+                  {t('exercisesPagerNext')}
+                </Button>
+              </div>
             </div>
           )}
 
-          {/* Completed Page */}
+          {/* ── Completed / Outro Page ── */}
           {pageState.type === 'completed' && (
-            <Card className="border-2">
-              <CardHeader className="text-center pb-4">
-                <CardTitle className="text-3xl md:text-4xl font-bold mb-4">
+            <div className="space-y-8">
+              {/* Header */}
+              <header className="text-center">
+                <span className="inline-block px-4 py-1.5 bg-secondary/10 text-secondary rounded-full text-[10px] tracking-[0.2em] uppercase mb-5 border border-secondary/20">
+                  {t('exercisesPagerCompleted')}
+                </span>
+                <h1 className="text-4xl md:text-[42px] font-medium leading-tight text-foreground mb-3">
                   {t('exercisesPagerCompletedTitle')}
-                </CardTitle>
-                <CardDescription className="text-base md:text-lg">
+                </h1>
+                <div className="w-20 h-1 bg-secondary mx-auto rounded-full" />
+              </header>
+
+              {/* Completion Card */}
+              <div className="bg-card rounded-3xl p-8 md:p-10 border border-border/60 shadow-xl shadow-muted/50 text-center">
+                <div className="w-20 h-20 bg-secondary/10 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-lg shadow-secondary/10 border border-secondary/20">
+                  <Sparkles className="w-9 h-9 text-secondary" />
+                </div>
+
+                <h2 className="text-2xl font-medium mb-4 text-foreground">
+                  {t('exercisesPagerCompletedTitle')}
+                </h2>
+                <p className="text-muted-foreground mb-10 text-base leading-relaxed max-w-md mx-auto">
                   {t('exercisesPagerCompletedDescription')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6 pb-8 flex justify-center">
-                <Button asChild size="lg" className="min-w-[200px]">
-                  <SystemLink href={backUrl}>{t('exercisesPagerComplete')}</SystemLink>
+                </p>
+
+                {/* Completion CTA */}
+                <Button
+                  asChild
+                  size="lg"
+                  variant="secondary"
+                  className="w-full py-6 rounded-2xl text-lg shadow-lg shadow-secondary/20 hover:shadow-xl hover:shadow-secondary/30 transition-all duration-300"
+                >
+                  <SystemLink href={backUrl}>
+                    <Sparkles className="w-5 h-5 me-2" />
+                    {t('exercisesPagerComplete')}
+                  </SystemLink>
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
+
+              {/* Back link */}
+              <div className="flex justify-center pt-4">
+                <button
+                  onClick={handlePrev}
+                  className="text-muted-foreground text-sm hover:text-foreground transition-colors duration-300 flex items-center gap-1.5"
+                >
+                  <ChevronRight className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />{' '}
+                  {t('exercisesPagerPrev')}
+                </button>
+              </div>
+            </div>
           )}
         </div>
-      </div>
-
-      {/* Navigation Controls - Fixed at bottom */}
-      <div className="border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
-          {/* Previous Button */}
-          <Button
-            onClick={handlePrev}
-            disabled={!canGoPrev}
-            variant="outline"
-            size="lg"
-            className="min-w-[120px]"
-          >
-            <ChevronLeft className="mr-2 h-5 w-5" />
-            {t('exercisesPagerPrev')}
-          </Button>
-
-          {/* Page Indicator */}
-          <div className="text-sm text-muted-foreground hidden sm:block">
-            {pageState.type === 'intro' && t('exercisesPagerIntro')}
-            {pageState.type === 'exercise' &&
-              `${t('exercise')} ${pageState.exerciseIndex! + 1}/${totalExercises}`}
-            {pageState.type === 'completed' && t('exercisesPagerCompleted')}
-          </div>
-
-          {/* Next Button */}
-          <Button onClick={handleNext} disabled={!canGoNext} size="lg" className="min-w-[120px]">
-            {t('exercisesPagerNext')}
-            <ChevronRight className="ml-2 h-5 w-5" />
-          </Button>
-        </div>
-      </div>
+      </main>
     </div>
   )
 }
