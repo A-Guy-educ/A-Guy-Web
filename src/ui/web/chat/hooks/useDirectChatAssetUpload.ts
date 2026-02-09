@@ -174,13 +174,6 @@ export function useDirectChatAssetUpload(): UseDirectChatAssetUploadReturn {
         access: 'public',
         clientPayload,
         handleUploadUrl: '/api/blob/upload-token',
-        abortSignal: abortController.signal,
-        onUploadProgress: ({ loaded, total }: { loaded: number; total: number }) => {
-          const progress = total > 0 ? (loaded / total) * 100 : 0
-          setUploadingFiles((prev) =>
-            prev.map((f) => (f.localId === localId ? { ...f, progress: Math.round(progress) } : f)),
-          )
-        },
       })
 
       setUploadingFiles((prev) =>
