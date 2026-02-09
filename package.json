@@ -212,7 +212,8 @@
       "unrs-resolver"
     ],
     "overrides": {
-      "@modelcontextprotocol/sdk": ">=1.25.2"
+      "@modelcontextprotocol/sdk": ">=1.25.2",
+      "@vercel/blob": "^2.0.0"
     }
   }
 }
