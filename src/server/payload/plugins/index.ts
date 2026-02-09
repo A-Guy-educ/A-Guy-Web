@@ -46,6 +46,7 @@ if (process.env.PAYLOAD_GENERATE_TYPES !== 'true') {
   }
 
   vercelBlobPlugin = vercelBlobStorage({
+    addRandomSuffix: true,
     clientUploads: true,
     collections: {
       media: true,
