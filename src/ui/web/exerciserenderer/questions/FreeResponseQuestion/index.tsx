@@ -27,7 +27,7 @@ export function FreeResponseQuestion({
   checkResult: _checkResult,
   t,
 }: FreeResponseQuestionProps) {
-  const value = answer.type === 'free_response' ? answer.value : ''
+  const value = answer?.type === 'free_response' ? answer.value : ''
 
   // Convert InlineRichText to RichTextBlock for renderer
   const promptBlock: RichTextBlock = {

@@ -124,7 +124,7 @@ export function ExerciseRenderer({
 
           // Question blocks - render with answer UI
           const question = block as QuestionBlock
-          const answer = answers[question.id]
+          const answer = answers[question.id] ?? getInitialAnswer(question)
           const checkResult = checkResults[question.id] || null
           const checked = hasChecked[question.id] || false
           const disabled = checked && checkResult?.isCorrect
