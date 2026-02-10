@@ -22,6 +22,7 @@ If any required artifact is missing or ambiguous — STOP.
 - Spec: `docs/specs/<task-id>.spec.md`
 - Plan: referenced output from Plan agent
 - Verify Report: last verify output (PASS/FAIL)
+- Auditor Output: `.tasks/<task-id>/runs/<run-id>/auditor.json`
 
 ---
 
@@ -161,21 +162,68 @@ Instruction:
 
 ---
 
-### STATE 5 — VERIFY FAILED → RETURN TO BUILD
+### STATE 4b — VERIFY FAILED → AUDIT
 
 Condition:
 
 - Last verify result = FAIL
+- AND no auditor output exists for the current run yet
+
+Next Agent:
+
+- `auditor`
+
+Instruction:
+
+- Analyze the failed run
+- Classify the failure (SPEC_PROMPT / CONTEXT / EXECUTION / UNKNOWN)
+- Produce one preventive improvement
+- Write output to `.tasks/<task-id>/runs/<run-id>/auditor.json`
+- Auditor must set `retrySafe` field
+- Do not modify code
+
+Post-audit:
+
+- If `retrySafe = YES` → return to STATE 3 (BUILD)
+- If `retrySafe = NO` → STOP, manual intervention required
+- If `retrySafe = UNKNOWN` → STOP, improve observability first
+
+---
+
+### STATE 5 — AUDIT
+
+Condition:
+
+- Last verify result = PASS
+- AND (no auditor output exists for current run OR auditor output has `canClose = false`)
+
+Next Agent:
+
+- `auditor`
+
+Instruction:
+
+- Analyze the full run (spec, plan, build diffs, verify report)
+- Produce exactly one process improvement
+- Write output to `.tasks/<task-id>/runs/<run-id>/auditor.json`
+- Output must conform to AuditorOutput schema
+- Do not modify code
+- Do not commit
+
+---
+
+### STATE 5b — AUDIT FAILED → MANUAL INTERVENTION
+
+Condition:
+
+- Auditor output exists but `canClose = false`
+- OR Auditor output schema validation failed
 
 Action:
 
-- **IMMEDIATE RETURN TO STATE 3 (BUILD)**
-
-Rule:
-
-- No transition to Spec or Plan is allowed automatically
-- Fixes must be applied by Build only
-- Scope must not change
+- STOP pipeline execution
+- Report: "Auditor gate blocked closure. Reason: [canClose=false | schema invalid]"
+- Follow-up task must be created before pipeline can close
 
 ---
 
@@ -184,6 +232,9 @@ Rule:
 Condition:
 
 - Last verify result = PASS
+- AND auditor output exists for current run
+- AND auditor output `canClose = true`
+- AND auditor output schema is valid
 
 Action:
 
@@ -196,11 +247,17 @@ Action:
 
 STATE 3 (BUILD)
 → STATE 4 (VERIFY)
-→ FAIL → STATE 3 (BUILD)
-→ PASS → STATE 6 (DONE)
+→ FAIL → STATE 4b (AUDIT)
+→ retrySafe=YES → STATE 3 (BUILD)
+→ retrySafe=NO/UNKNOWN → MANUAL INTERVENTION
+→ PASS → STATE 5 (AUDIT)
+→ canClose=true → STATE 6 (DONE)
+→ canClose=false → MANUAL INTERVENTION
 
 Verify never advances the pipeline.
 Verify only blocks or releases.
+Audit always runs before DONE.
+Audit blocks closure if canClose=false.
 
 ---
 
@@ -223,6 +280,7 @@ Every driver/orchestrator run MUST output exactly:
 - Blocking Condition (if any)
 - Next Agent to Run
 - Exact Instruction to That Agent
+- Run ID: (if in AUDIT or post-AUDIT state)
 
 No commentary. No alternatives.
 
