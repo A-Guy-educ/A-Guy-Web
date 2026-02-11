@@ -102,7 +102,7 @@ export function useNotebookChat({
   const [chatError, setChatError] = useState<ChatError | null>(null)
 
   // Guest mode state
-  const [isGuestMode, setIsGuestMode] = useState(false)
+  const [_isGuestMode, setIsGuestMode] = useState(false)
 
   // Compute contextKey based on available context
   // For admin mode: use users:{userId} (user-scoped conversation)
@@ -664,6 +664,9 @@ export function useNotebookChat({
     // Error handling
     chatError,
     dismissError,
+    // Guest mode
+    isGuestMode: _isGuestMode,
+    // Programmatic message injection
     addAssistantMessage,
     sendContextualHelp,
   }
