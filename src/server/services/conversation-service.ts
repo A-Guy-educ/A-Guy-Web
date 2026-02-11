@@ -14,8 +14,8 @@
  * - Validate enrollment/ownership for access control
  */
 import { logger } from '@/infra/utils/logger'
-import { AccountRole } from '@/server/payload/collections/Users/roles'
 import { GUEST_SESSION_MAX_CONVERSATIONS } from '@/server/config/constants'
+import { AccountRole } from '@/server/payload/collections/Users/roles'
 import type { Payload } from 'payload'
 
 export class GuestConversationLimitError extends Error {
@@ -207,15 +207,7 @@ export class ConversationService {
     courseId?: string
     categoryId?: string
   }): Promise<ResolvedContext> {
-    // Priority order: Lesson > Exercise (→ parent lesson) > Chapter > Course > Category
-    if (params.lessonId) {
-      return {
-        relationTo: 'lessons',
-        value: params.lessonId,
-        contextKey: `lessons:${params.lessonId}`,
-      }
-    }
-
+    // Priority order: Exercise > Lesson > Chapter > Course > Category
     if (params.exerciseId) {
       // Look up the parent lesson so all exercises in the same lesson share one conversation
       const exercise = await this.payload.findByID({
@@ -237,6 +229,14 @@ export class ConversationService {
         relationTo: 'exercises',
         value: params.exerciseId,
         contextKey: `exercises:${params.exerciseId}`,
+      }
+    }
+
+    if (params.lessonId) {
+      return {
+        relationTo: 'lessons',
+        value: params.lessonId,
+        contextKey: `lessons:${params.lessonId}`,
       }
     }
 
