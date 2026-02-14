@@ -7,26 +7,37 @@ import type { Footer } from '@/payload-types'
 import { ThemeSelector } from '@/ui/web/providers/Theme/ThemeSelector'
 import { CMSLink } from '@/ui/web/Link'
 import { TelescopeLogo } from '@/ui/web/TelescopeLogo'
+import { readFile } from 'fs/promises'
+import { join } from 'path'
 
-// Version from package.json - fallback to 'dev' if not available
-const VERSION = process.env.NEXT_PUBLIC_APP_VERSION || 'dev'
+/**
+ * Read version directly from package.json
+ */
+async function getVersion(): Promise<string> {
+  try {
+    const packageJson = await readFile(join(process.cwd(), 'package.json'), 'utf-8')
+    const { version } = JSON.parse(packageJson)
+    return version || 'dev'
+  } catch {
+    return 'dev'
+  }
+}
 
 /**
  * Minimal version display for public footer
  * Matches admin page styling: 12px, subtle color
  */
-function VersionDisplay() {
-  const versionDisplay = `v${VERSION}`
-
+function VersionDisplay({ version }: { version: string }) {
   return (
     <span className="text-xs text-muted-foreground/70 font-normal" style={{ fontSize: '12px' }}>
-      {versionDisplay}
+      v{version}
     </span>
   )
 }
 
 export async function Footer() {
   const footerData: Footer = await getCachedGlobal('footer', 1)()
+  const version = await getVersion()
 
   const navItems = footerData?.navItems || []
 
@@ -50,7 +61,7 @@ export async function Footer() {
               )
             })}
             <span className="hidden md:inline-block mx-2 text-muted-foreground/30">|</span>
-            <VersionDisplay />
+            <VersionDisplay version={version} />
           </nav>
         </div>
       </div>
