@@ -21,14 +21,13 @@ You do NOT replace verification or testing.
 
 ## Inputs
 
-You receive a **Run Bundle** containing:
+Read these files from `.tasks/<taskId>/`:
 
-- Task ID, title, and spec path
-- Orchestrator timeline (agent sequence + timestamps)
-- Agent output summaries
-- Final state (SUCCESS / FAILURE / ABORTED)
-- Primary artifacts (diff summary, files changed, docs changed)
-- Optional: full logs, tool errors, CI output
+- task.md (original requirements)
+- spec.md (detailed requirements)
+- plan.md (implementation plan)
+- build.md (what was built)
+- verify.md (verification results)
 
 ## What You Must Do
 
@@ -58,7 +57,7 @@ You receive a **Run Bundle** containing:
    - AUTOMATION: CI check / lint rule / script
    - NAMING_STRUCTURE: folder/file naming convention
 
-### On FAILURE / ABORTED runs:
+### On FAILURE runs:
 
 1. Classify the failure:
    - SPEC_PROMPT: unclear requirements, missing constraints, agents misinterpreted spec
@@ -80,44 +79,56 @@ You receive a **Run Bundle** containing:
 
 ## Output Format (MANDATORY)
 
-Write your output as JSON to: `.tasks/<taskId>/runs/<runId>/auditor.json`
+Write your output as markdown to: `.tasks/<taskId>/auditor.md`
 
-The JSON must conform to the AuditorOutput schema:
+```markdown
+# Auditor Report: <taskId>
 
-```json
-{
-  "runId": "<run-id>",
-  "taskId": "<task-id>",
-  "runState": "SUCCESS | FAILURE | ABORTED",
-  "classification": "SPEC_PROMPT | CONTEXT | EXECUTION | UNKNOWN",
-  "processDelta": ["bullet 1", "bullet 2"],
-  "chosenImprovement": {
-    "type": "DOC | INDEX | GUARDRAIL | PROMPT | AUTOMATION | NAMING_STRUCTURE",
-    "title": "Short imperative title",
-    "rationale": "1-2 sentences explaining why",
-    "whereItLives": ["path/to/file.md"],
-    "acceptanceCriteria": ["Check 1", "Check 2"]
-  },
-  "canClose": true,
-  "followUpRequired": false,
-  "retrySafe": "YES | NO | UNKNOWN",
-  "notes": ["optional note 1"],
-  "failureAnalysis": {
-    "rootCause": "One sentence",
-    "earliestMissedSignal": "What could have caught it",
-    "responsibilityBoundary": "verifier"
-  }
-}
+## Run Summary
+
+- **Status:** SUCCESS / FAILURE
+- **Classification:** SPEC_PROMPT / CONTEXT / EXECUTION / UNKNOWN
+
+## Process Observations
+
+- Observation 1
+- Observation 2
+
+## Chosen Improvement
+
+- **Type:** DOC / INDEX / GUARDRAIL / PROMPT / AUTOMATION / NAMING_STRUCTURE
+- **Title:** Short imperative title
+- **Rationale:** 1-2 sentences explaining why this improvement matters
+
+## What Needs to Change
+
+Describe the specific change needed.
+
+## Where It Lives
+
+- Path to file(s) that need updating
+
+## Acceptance Criteria
+
+- [ ] Check 1
+- [ ] Check 2
+
+## Failure Analysis (FAILURE runs only)
+
+- **Root Cause:** One sentence
+- **Earliest Missed Signal:** What could have caught it
+- **Responsibility Boundary:** Where it should have been caught
+
+## Retry Safety
+
+- **YES / NO / UNKNOWN**
+- Brief explanation
 ```
 
 ## Hard Rules
 
 - EXACTLY one chosenImprovement (never zero, never more than one)
-- processDelta: 1-4 bullets maximum
-- acceptanceCriteria: 2-5 items, each must be testable/verifiable
-- whereItLives: must point to concrete repo artifact(s), never empty
-- On FAILURE: failureAnalysis is REQUIRED (rootCause, earliestMissedSignal, responsibilityBoundary)
-- On FAILURE: canClose MUST be false unless a follow-up task is being created
-- On FAILURE: classification MUST NOT be UNKNOWN unless explicitly justified
-- On SUCCESS: canClose may be true if the improvement is actionable as-is
-- NEVER output fluffy, vague improvements. Be concrete.
+- Be concrete and actionable, not vague
+- Point to specific files and concrete changes
+- On FAILURE: failureAnalysis is REQUIRED
+- NEVER output fluffy, generic improvements. Be specific.

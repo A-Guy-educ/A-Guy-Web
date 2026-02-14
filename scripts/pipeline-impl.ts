@@ -17,11 +17,41 @@ if (!taskId) {
 const projectDir = process.cwd()
 const taskDir = path.join(projectDir, '.tasks', taskId)
 
+// R3: Check ocode CLI availability
+try {
+  execSync('which ocode', { stdio: 'pipe' })
+} catch {
+  console.error('Error: ocode CLI not found.')
+  console.error('Install: curl -fsSL https://opencode.ai/install | bash')
+  process.exit(1)
+}
+
 // Check that clarification exists
 if (!fs.existsSync(path.join(taskDir, 'clarified.md'))) {
   console.error(`Error: ${taskDir}/clarified.md not found`)
   console.log('Run "pnpm pipeline:spec <task-id>" first to generate questions.')
   process.exit(1)
+}
+
+// R8: Write agent context file
+function writeAgentContext(): void {
+  const contextFiles = [
+    'task.md',
+    'spec.md',
+    'clarified.md',
+    'plan.md',
+    'build.md',
+    'test.md',
+    'verify.md',
+  ]
+  const parts: string[] = []
+  for (const file of contextFiles) {
+    const p = path.join(taskDir, file)
+    if (fs.existsSync(p)) {
+      parts.push(`# ${file}\n\n${fs.readFileSync(p, 'utf-8')}`)
+    }
+  }
+  fs.writeFileSync(path.join(taskDir, '.context.md'), parts.join('\n\n---\n\n'))
 }
 
 // Always run: plan → build → test → verify → auditor → pr
@@ -31,9 +61,15 @@ console.log(`=== Pipeline Impl: ${taskId} ===`)
 
 for (let i = 0; i < stages.length; i++) {
   const stage = stages[i]
+  const outputFile = path.join(taskDir, `${stage}.md`)
+
+  // R2: Delete stale verify.md before re-running verify
+  if (stage === 'verify' && fs.existsSync(outputFile)) {
+    fs.unlinkSync(outputFile)
+    console.log(`[${i + 1}/${stages.length}] Deleted stale verify.md for re-verification`)
+  }
 
   // Skip if output already exists
-  const outputFile = path.join(taskDir, `${stage}.md`)
   if (fs.existsSync(outputFile)) {
     console.log(`[${i + 1}/${stages.length}] ${stage} already exists, skipping`)
     continue
@@ -41,10 +77,34 @@ for (let i = 0; i < stages.length; i++) {
 
   console.log(`[${i + 1}/${stages.length}] Running ${stage} agent...`)
 
-  execSync(`ocode run --agent ${stage} "Execute ${stage} for ${taskId}"`, {
-    cwd: projectDir,
-    stdio: 'inherit',
-  })
+  // R8: Write context file before invoking agent
+  writeAgentContext()
+
+  // R4: try/catch around execSync
+  try {
+    execSync(
+      `ocode run --agent ${stage} "Execute ${stage} for ${taskId}. Read context from .tasks/${taskId}/.context.md"`,
+      {
+        cwd: projectDir,
+        stdio: 'inherit',
+      },
+    )
+  } catch {
+    console.error(`\n❌ Stage "${stage}" failed for ${taskId}`)
+    console.error('Fix the issue and re-run. Completed stages will be skipped.')
+    process.exit(1)
+  }
+
+  // R1: Check verify content for FAIL
+  if (stage === 'verify' && fs.existsSync(outputFile)) {
+    const content = fs.readFileSync(outputFile, 'utf-8')
+    if (/FAIL/i.test(content)) {
+      console.error(`\n❌ Verification FAILED for ${taskId}`)
+      console.error(`See: ${outputFile}`)
+      console.error('Fix issues and re-run. The verify stage will re-run automatically.')
+      process.exit(1)
+    }
+  }
 
   console.log(`✓ ${stage} complete`)
 }

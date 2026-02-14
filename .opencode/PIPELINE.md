@@ -2,6 +2,8 @@
 
 Automated development pipeline for A-Guy project using OpenCode CLI agents.
 
+**Note:** For LLM agent execution, see `.opencode/DRIVER.md`. This document is a human reference.
+
 ## Pipeline Stages
 
 ```

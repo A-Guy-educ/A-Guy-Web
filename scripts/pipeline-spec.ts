@@ -17,6 +17,42 @@ if (!taskId) {
 const projectDir = process.cwd()
 const taskDir = path.join(projectDir, '.tasks', taskId)
 
+// R3: Check ocode CLI availability
+try {
+  execSync('which ocode', { stdio: 'pipe' })
+} catch {
+  console.error('Error: ocode CLI not found.')
+  console.error('Install: curl -fsSL https://opencode.ai/install | bash')
+  process.exit(1)
+}
+
+// R12: Ensure task directory exists
+if (!fs.existsSync(taskDir)) {
+  fs.mkdirSync(taskDir, { recursive: true })
+  console.log(`Created task directory: ${taskDir}`)
+}
+
+// R8: Write agent context file
+function writeAgentContext(): void {
+  const contextFiles = [
+    'task.md',
+    'spec.md',
+    'clarified.md',
+    'plan.md',
+    'build.md',
+    'test.md',
+    'verify.md',
+  ]
+  const parts: string[] = []
+  for (const file of contextFiles) {
+    const p = path.join(taskDir, file)
+    if (fs.existsSync(p)) {
+      parts.push(`# ${file}\n\n${fs.readFileSync(p, 'utf-8')}`)
+    }
+  }
+  fs.writeFileSync(path.join(taskDir, '.context.md'), parts.join('\n\n---\n\n'))
+}
+
 // Always run: spec → clarify
 const stages = ['spec', 'clarify']
 
@@ -25,8 +61,11 @@ console.log(`=== Pipeline Spec: ${taskId} ===`)
 for (let i = 0; i < stages.length; i++) {
   const stage = stages[i]
 
+  // clarify agent writes questions.md, not clarify.md
+  const outputFileName = stage === 'clarify' ? 'questions.md' : `${stage}.md`
+  const outputFile = path.join(taskDir, outputFileName)
+
   // Skip if output already exists
-  const outputFile = path.join(taskDir, `${stage}.md`)
   if (fs.existsSync(outputFile)) {
     console.log(`[${i + 1}/${stages.length}] ${stage} already exists, skipping`)
     continue
@@ -34,10 +73,23 @@ for (let i = 0; i < stages.length; i++) {
 
   console.log(`[${i + 1}/${stages.length}] Running ${stage} agent...`)
 
-  execSync(`ocode run --agent ${stage} "Execute ${stage} for ${taskId}"`, {
-    cwd: projectDir,
-    stdio: 'inherit',
-  })
+  // R8: Write context file before invoking agent
+  writeAgentContext()
+
+  // R4: try/catch around execSync
+  try {
+    execSync(
+      `ocode run --agent ${stage} "Execute ${stage} for ${taskId}. Read context from .tasks/${taskId}/.context.md"`,
+      {
+        cwd: projectDir,
+        stdio: 'inherit',
+      },
+    )
+  } catch {
+    console.error(`\n❌ Stage "${stage}" failed for ${taskId}`)
+    console.error('Fix the issue and re-run. Completed stages will be skipped.')
+    process.exit(1)
+  }
 
   console.log(`✓ ${stage} complete`)
 }
