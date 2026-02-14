@@ -112,3 +112,5 @@ Write report to `.tasks/<taskId>/test.md`:
 - Add assertions for every expected outcome
 - Do NOT modify production code
 - Output tests to correct directory structure
+- **Run tests ONE time only, then write report and exit - do NOT loop on failures**
+- If tests fail, write the test report with failures documented and let the pipeline handle the failure
