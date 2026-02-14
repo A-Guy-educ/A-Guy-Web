@@ -54,6 +54,22 @@ function writeAgentContext(): void {
   fs.writeFileSync(path.join(taskDir, '.context.md'), parts.join('\n\n---\n\n'))
 }
 
+// Commit task files to preserve pipeline artifacts
+function commitTaskFiles(): void {
+  console.log(`[commit] Adding task files...`)
+  try {
+    execSync(`git add ${taskDir}`, { cwd: projectDir, stdio: 'inherit' })
+    execSync(`git commit --no-gpg-sign -m "docs: commit ${taskId} task files"`, {
+      cwd: projectDir,
+      stdio: 'inherit',
+    })
+    console.log(`[commit] Task files committed`)
+  } catch {
+    // Ignore if nothing to commit or other git errors
+    console.log(`[commit] No changes to commit (or git error)`)
+  }
+}
+
 // Always run: plan → build → test → verify → auditor → pr
 const stages = ['plan', 'build', 'test', 'verify', 'auditor', 'pr']
 
@@ -104,6 +120,8 @@ for (let i = 0; i < stages.length; i++) {
       console.error('Fix issues and re-run. The verify stage will re-run automatically.')
       process.exit(1)
     }
+    // Commit task files after verify passes
+    commitTaskFiles()
   }
 
   console.log(`✓ ${stage} complete`)
