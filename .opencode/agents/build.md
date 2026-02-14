@@ -1,6 +1,6 @@
 ---
 name: build
-description: Implements changes according to plan, commits and pushes to branch
+description: Implements changes, commits and pushes to branch
 mode: primary
 tools:
   bash: true
@@ -40,7 +40,7 @@ pnpm check:branch  # Validate branch name
 ### 3. Commit & Push
 
 ```bash
-git add .
+git add -A
 git commit -m "<type>(<task-id>): description"
 git push -u origin <branch>
 ```
@@ -53,6 +53,7 @@ git push -u origin <branch>
 
 ## Rules
 
-- You own Git: commit and push
+- You own Git: branch creation, commits, and push
+- The PR agent only opens the GitHub PR — you handle all git operations
 - You may consult subagents (code-reviewer, security-auditor, payload-expert)
 - If verify has failed: fix only the reported issues
