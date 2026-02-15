@@ -11,7 +11,10 @@ import { writeAgentContext, ALL_IMPL_STAGES } from './pipeline-utils'
 const args = process.argv.slice(2)
 
 // Simple arg parser: extract named options and positional args
-function parseArgs(argv: string[]): { positional: string[]; options: Record<string, string | true> } {
+function parseArgs(argv: string[]): {
+  positional: string[]
+  options: Record<string, string | true>
+} {
   const positional: string[] = []
   const options: Record<string, string | true> = {}
   let i = 0
@@ -67,7 +70,8 @@ if (!fs.existsSync(taskDir)) {
 }
 
 // Parse feedback
-let feedback: string | null = typeof parsed.options.feedback === 'string' ? parsed.options.feedback : null
+let feedback: string | null =
+  typeof parsed.options.feedback === 'string' ? parsed.options.feedback : null
 
 // Parse from stage
 let fromStage = 'build' // default to re-running from build

@@ -1,11 +1,10 @@
 import type { CollectionConfig } from 'payload'
 
+import { tenantField } from '@/server/payload/fields/tenant'
 import { anyone } from '../access/anyone'
 import { authenticated } from '../access/authenticated'
 import { createdByField } from '../fields/createdBy'
-import { tenantField } from '@/server/payload/fields/tenant'
 import { computeAdminTitle } from '../hooks/chapters/computeAdminTitle'
-import { computeAdminTitleOnRead } from '../hooks/chapters/computeAdminTitleOnRead'
 
 const formatSlug = (val: string): string =>
   val
@@ -24,6 +23,7 @@ export const Chapters: CollectionConfig = {
   hooks: {
     beforeChange: [
       ({ data }) => {
+        console.log('data:', data)
         if (data?.title && !data?.slug) {
           data.slug = formatSlug(data.title)
         }
@@ -31,7 +31,6 @@ export const Chapters: CollectionConfig = {
       },
       computeAdminTitle,
     ],
-    afterRead: [computeAdminTitleOnRead],
   },
   admin: {
     useAsTitle: 'adminTitle',

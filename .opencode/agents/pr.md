@@ -73,10 +73,12 @@ Write to: `.tasks/<taskId>/pr.md`
 # PR Agent Report: <taskId>
 
 ## Branch
+
 - **Branch:** <branch-name>
 - **Base:** dev
 
 ## Pull Request
+
 - **Title:** <pr-title>
 - **URL:** <pr-url>
 - **Status:** OPEN
