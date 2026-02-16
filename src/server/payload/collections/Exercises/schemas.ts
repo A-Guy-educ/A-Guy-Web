@@ -5,6 +5,10 @@ import { z } from 'zod'
 export type LatexBlock = import('@/shared/exercise-content/types').LatexBlock
 export type ContentData = import('@/shared/exercise-content/types').ContentData
 
+// Import graphics contracts for Geometry and Axis schemas
+import { AxisSpecV1Schema } from '@/infra/contracts/graphics/axis.v1'
+import { GeometrySpecV1Schema } from '@/infra/contracts/graphics/geometry.v1'
+
 // ---------------------------------
 // Zod: Inline Rich Text (NO id)
 // ---------------------------------
@@ -211,46 +215,16 @@ const TableBlockSchema = z
       })
     }
 
-    if (table.solutionFill) {
-      if (!table.answers || Object.keys(table.answers).length === 0) {
+    // Validate answer keys are within table bounds
+    for (const [key] of Object.entries(table.answers || {})) {
+      const [rowIdx, colIdx] = key.split('-').map(Number)
+
+      if (rowIdx >= table.rowsData.length || colIdx >= headerCount) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'When solutionFill is true, answers must have at least one entry',
-          path: ['answers'],
+          message: `Answer key "${key}" references out-of-bounds cell`,
+          path: ['answers', key],
         })
-      }
-
-      for (const [key] of Object.entries(table.answers || {})) {
-        const [rowIdx, colIdx] = key.split('-').map(Number)
-
-        if (rowIdx >= table.rowsData.length || colIdx >= headerCount) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: `Answer key "${key}" references out-of-bounds cell`,
-            path: ['answers', key],
-          })
-        } else if (table.rowsData[rowIdx][colIdx] !== '') {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: `Answer key "${key}" points to a non-empty cell (fillable cells must be empty)`,
-            path: ['answers', key],
-          })
-        }
-      }
-
-      for (let rowIdx = 0; rowIdx < table.rowsData.length; rowIdx++) {
-        for (let colIdx = 0; colIdx < table.rowsData[rowIdx].length; colIdx++) {
-          if (table.rowsData[rowIdx][colIdx] === '') {
-            const key = `${rowIdx}-${colIdx}`
-            if (!table.answers || !(key in table.answers)) {
-              ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: `Empty cell at ${key} must have a corresponding answer key`,
-                path: ['rowsData', rowIdx, colIdx],
-              })
-            }
-          }
-        }
       }
     }
   })
@@ -271,6 +245,109 @@ export const QuestionTableBlockSchema = z
   .strict()
 
 // ---------------------------------
+// Zod: Matching Option Schema
+// ---------------------------------
+const MatchingOptionSchema = z
+  .object({
+    id: z.string().min(1),
+    content: InlineRichTextSchema,
+  })
+  .strict()
+
+// ---------------------------------
+// Zod: Matching Pair Schema (answer)
+// ---------------------------------
+const MatchingPairSchema = z
+  .object({
+    optionId: z.string().min(1),
+    matchId: z.string().min(1),
+  })
+  .strict()
+
+// ---------------------------------
+// Zod: Question Matching Block Schema
+// ---------------------------------
+export const QuestionMatchingBlockSchema = z
+  .object({
+    id: z.string().min(1),
+    type: z.literal('question_matching'),
+    prompt: InlineRichTextSchema,
+    leftColumn: z.array(MatchingOptionSchema).min(2),
+    rightColumn: z.array(MatchingOptionSchema).min(2),
+    correctPairs: z.array(MatchingPairSchema).min(1),
+    shuffleRightColumn: z.boolean().default(true),
+    hint: InlineRichTextSchema.optional(),
+    solution: InlineRichTextSchema.optional(),
+    fullSolution: InlineRichTextSchema.optional(),
+  })
+  .strict()
+  .superRefine((data, ctx) => {
+    // Validate all option IDs exist in their respective columns
+    const leftIds = new Set(data.leftColumn.map((o) => o.id))
+    const rightIds = new Set(data.rightColumn.map((o) => o.id))
+
+    for (const pair of data.correctPairs) {
+      if (!leftIds.has(pair.optionId)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `correctPairs contains unknown optionId: ${pair.optionId}`,
+          path: ['correctPairs'],
+        })
+      }
+      if (!rightIds.has(pair.matchId)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `correctPairs contains unknown matchId: ${pair.matchId}`,
+          path: ['correctPairs'],
+        })
+      }
+    }
+  })
+
+// ---------------------------------
+// Zod: SVG Block Schema
+// ---------------------------------
+const SvgBlockSchema = z
+  .object({
+    id: z.string().min(1),
+    type: z.literal('svg'),
+    value: z.string().min(1), // SVG content
+    altText: z.string().optional(),
+    caption: InlineRichTextSchema.optional(),
+  })
+  .strict()
+
+// ---------------------------------
+// Zod: Question Geometry Block Schema
+// ---------------------------------
+export const QuestionGeometryBlockSchema = z
+  .object({
+    id: z.string().min(1),
+    type: z.literal('question_geometry'),
+    prompt: InlineRichTextSchema,
+    geometry: GeometrySpecV1Schema,
+    hint: InlineRichTextSchema.optional(),
+    solution: InlineRichTextSchema.optional(),
+    fullSolution: InlineRichTextSchema.optional(),
+  })
+  .strict()
+
+// ---------------------------------
+// Zod: Question Axis Block Schema
+// ---------------------------------
+export const QuestionAxisBlockSchema = z
+  .object({
+    id: z.string().min(1),
+    type: z.literal('question_axis'),
+    prompt: InlineRichTextSchema,
+    axis: AxisSpecV1Schema,
+    hint: InlineRichTextSchema.optional(),
+    solution: InlineRichTextSchema.optional(),
+    fullSolution: InlineRichTextSchema.optional(),
+  })
+  .strict()
+
+// ---------------------------------
 // Zod: Content union (exported for admin components)
 // ---------------------------------
 export const ContentBlockSchema = z.discriminatedUnion('type', [
@@ -279,6 +356,10 @@ export const ContentBlockSchema = z.discriminatedUnion('type', [
   QuestionFreeResponseBlockSchema,
   LatexBlockSchema,
   QuestionTableBlockSchema,
+  QuestionMatchingBlockSchema,
+  SvgBlockSchema,
+  QuestionGeometryBlockSchema,
+  QuestionAxisBlockSchema,
 ])
 
 export type ContentBlock = z.infer<typeof ContentBlockSchema>
