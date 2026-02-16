@@ -58,6 +58,7 @@ export const JOB_FIELDS = {
 
 export const TASK_SLUGS = {
   PDF_TO_EXERCISES: 'pdf_to_exercises' as const,
+  PDF_TO_EXERCISES_V2: 'pdf_to_exercises_v2' as const,
 } as const
 
 export const LOCK_TIMEOUT_MS = readIntEnv('LOCK_TIMEOUT_MS', 5 * 60 * 1000, { min: 1000 })
