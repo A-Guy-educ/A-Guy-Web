@@ -2,127 +2,154 @@
 
 ## Tests Written
 
-### E2E Tests
+### 1. Integration Tests: V2 Vision Detection Service
 
-- **File:** `tests/e2e/v2-canvas-fix.e2e.spec.ts`
-- **Test Count:** 13 tests across 5 test describe blocks
-- **Coverage:**
-  - PDF page rendering without canvas.node errors ✅
-  - Multi-page PDF processing ✅
-  - Single-page PDF handling ✅
-  - Exercise creation from cropped segments ✅
-  - Traceability metadata display ✅
-  - Guardrails for failed crops ✅
-  - Zero-segment completion with warnings ✅
-  - Job status transitions (queued → running → completed) ✅
-  - V1/V2 coexistence ✅
+**File:** `tests/int/v2-vision-detection.int.spec.ts`
+**Test Count:** 8 tests
 
-### Integration Tests
+**Coverage:**
 
-- **File:** `tests/int/v2-canvas-fix.int.spec.ts`
-- **Test Count:** 5 tests across 3 test describe blocks
-- **Coverage:**
-  - @napi-rs/canvas package installation ✅
-  - next.config.js serverExternalPackages configuration ✅
-  - V2 job structure validation ✅
-  - V2 output structure validation ✅
-  - Exercise traceability metadata ✅
-  - Query by pipelineVersion ✅
+- ✅ PDF rendering without Buffer rejection error
+- ✅ Multi-page PDF processing
+- ✅ PNG output validation with magic bytes
+- ✅ Various PDF buffer sizes
+- ✅ detectExerciseBboxes without errors
+- ✅ Uint8Array conversion pattern verification
 
-## Test Cases
+**Test Cases:**
 
-| Test Name                 | Description                                                 | Assertions   |
-| ------------------------- | ----------------------------------------------------------- | ------------ |
-| pdf-rendering-multi-page  | Verifies multi-page PDF processes without canvas.node error | 3 assertions |
-| pdf-rendering-single-page | Verifies single-page PDF handles correctly                  | 2 assertions |
-| exercise-count-display    | Verifies exercise count shows after completion              | 2 assertions |
-| traceability-metadata     | Verifies job output shows bbox/error info                   | 2 assertions |
-| zero-segments-warning     | Verifies warnings display when no valid segments            | 2 assertions |
-| failed-job-errors         | Verifies failed job shows error details                     | 3 assertions |
-| partial-progress          | Verifies interrupted job shows partial progress             | 3 assertions |
-| status-transition         | Verifies queued → running transition                        | 2 assertions |
-| rapid-status-changes      | Verifies handles rapid status updates                       | 2 assertions |
-| v1-v2-coexistence         | Verifies both buttons visible independently                 | 2 assertions |
-| v1-v2-independent         | Verifies V2 doesn't affect V1 jobs                          | 2 assertions |
-| canvas-import             | Verifies @napi-rs/canvas replaces canvas                    | 2 assertions |
-| next-config               | Verifies serverExternalPackages updated                     | 1 assertion  |
-| v2-job-structure          | Verifies job has pipelineVersion=2, conversionMode=v2_crops | 5 assertions |
-| v2-output-structure       | Verifies job output has correct fields                      | 5 assertions |
-| exercise-metadata         | Verifies exercise has traceability fields                   | 6 assertions |
-| query-pipeline-version    | Verifies querying by pipelineVersion works                  | 3 assertions |
+| Test Name                                                  | Description                                                                                          | Assertions    |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------- |
+| renderPdfPageToImage - should successfully render PDF page | Verifies pdfjs-dist accepts Uint8Array without throwing "Please provide binary data as <Uint8Array>" | 4 assertions  |
+| renderPdfPageToImage - should render multiple pages        | Tests multi-page PDF rendering (3 pages)                                                             | 6 assertions  |
+| renderPdfPageToImage - should return valid PNG buffer      | Validates PNG magic bytes (0x89504E47)                                                               | 4 assertions  |
+| renderPdfPageToImage - should handle various PDF sizes     | Tests minimal and larger PDFs                                                                        | 4 assertions  |
+| detectExerciseBboxes - should not throw Buffer rejection   | Verifies main function works with pdfBuffer                                                          | 2 assertions  |
+| Uint8Array conversion - should correctly convert Buffer    | Tests Buffer → Uint8Array conversion                                                                 | 5 assertions  |
+| Uint8Array conversion - should preserve all bytes          | Validates byte-by-byte preservation for large buffers                                                | 12 assertions |
 
-## Key Test Scenarios
+---
 
-### 1. Canvas Fix Verification
+### 2. E2E Tests: V2 Error Display
 
-Tests verify that the `@napi-rs/canvas` replacement for the native `canvas` module works correctly:
+**File:** `tests/e2e/v2-error-display.e2e.spec.ts`
+**Test Count:** 9 tests
 
-- No `Cannot find module '../build/Release/canvas.node'` errors
-- PDF pages render successfully
-- Multi-page PDFs process all pages
+**Coverage:**
 
-### 2. Job Lifecycle
+- ✅ Error reasons display with page index
+- ✅ Multiple errors rendering
+- ✅ Empty errors array handling
+- ✅ Error-themed styling
+- ✅ Complete job flow with errors
+- ✅ Guardrails failure display
+- ✅ Warnings vs errors distinction
 
-Tests cover the complete V2 job lifecycle:
+**Test Cases:**
 
-- Job creation with correct `pipelineVersion=2` and `conversionMode=v2_crops`
-- Status transitions: `queued` → `running` → `completed` (or `failed`)
-- Progress tracking: pages processed, exercises created, errors count
+| Test Name                                                             | Description                                      | Assertions   |
+| --------------------------------------------------------------------- | ------------------------------------------------ | ------------ |
+| Error Details Rendering - should display error reason with page index | Verifies "Page N: reason" format for failed jobs | 4 assertions |
+| Error Details Rendering - should display single error                 | Tests single error message rendering             | 2 assertions |
+| Error Details Rendering - should display multiple errors              | Tests 4 errors across different pages            | 5 assertions |
+| Error Details Rendering - should NOT show error section when empty    | Verifies no error UI when errors array is empty  | 2 assertions |
+| Error Details Rendering - should show error-themed styling            | Checks for ❌ icon and error styling             | 2 assertions |
+| Complete Job Flow - should display errors when job fails              | End-to-end error display in conversion flow      | 4 assertions |
+| Complete Job Flow - should show zero exercises when all fail          | Guardrails failure display                       | 4 assertions |
+| Warning vs Error - should display both when present                   | Tests mixed errors/warnings scenario             | 4 assertions |
+| Warning vs Error - should distinguish icons                           | Verifies ❌ for errors, ⚠️ for warnings          | 2 assertions |
 
-### 3. Exercise Creation
+---
 
-Tests verify exercise creation from V2 pipeline:
+### 3. Unit Tests: V2StatusPanel Component
 
-- Exercises created with `pipelineVersion=2`
-- Traceability metadata: `sourcePageIndex`, `sourceBboxNormalized`, `sourcePdfDocumentId`, `jobId`
-- Exercises linked to correct lesson and tenant
+**File:** `tests/unit/components/V2StatusPanel.test.tsx`
+**Test Count:** 11 tests
 
-### 4. Guardrails & Edge Cases
+**Coverage:**
 
-Tests cover failure scenarios:
+- ✅ Error count rendering
+- ✅ Error reasons with page index
+- ✅ Empty errors handling
+- ✅ Error styling
+- ✅ Multiple errors handling
+- ✅ Errors + warnings together
+- ✅ All status badges (queued/running/completed/failed)
 
-- Failed image crops logged without creating exercises
-- Zero valid segments: job completes with warnings
-- Partial progress for interrupted jobs
-- Error details for debugging
+**Test Cases:**
 
-### 5. V1/V2 Coexistence
+| Test Name                                                | Description                              | Assertions   |
+| -------------------------------------------------------- | ---------------------------------------- | ------------ |
+| Error Display - renders error count                      | Verifies "Errors" label and count number | 2 assertions |
+| Error Display - renders individual error reasons         | Tests "Page N: reason" format            | 2 assertions |
+| Error Display - does not render error section when empty | Checks no error UI for empty array       | 1 assertion  |
+| Error Display - renders error-themed styling             | Verifies ❌ icon presence                | 1 assertion  |
+| Error Display - handles multiple errors correctly        | Tests 3 errors rendering                 | 5 assertions |
+| Error Display - displays both errors and warnings        | Mixed errors/warnings scenario           | 2 assertions |
+| Status Display - displays correct badge for queued       | QUEUED badge rendering                   | 1 assertion  |
+| Status Display - displays correct badge for running      | RUNNING badge + progress display         | 3 assertions |
+| Status Display - displays correct badge for completed    | COMPLETED badge rendering                | 1 assertion  |
+| Status Display - displays correct badge for failed       | FAILED badge rendering                   | 1 assertion  |
 
-Tests verify V1 and V2 operate independently:
+---
 
-- Both buttons visible in Lesson Conversion Panel
-- V2 conversion doesn't affect V1 jobs
-- Separate status tracking for each pipeline
+## Summary Statistics
 
-## Running the Tests
+| Metric                       | Value |
+| ---------------------------- | ----- |
+| **Total Test Files Created** | 3     |
+| **Total Tests Written**      | 28    |
+| **Total Assertions**         | ~75+  |
+| **Integration Tests**        | 8     |
+| **E2E Tests**                | 9     |
+| **Unit Tests**               | 11    |
+
+## Coverage by Acceptance Criteria
+
+| Acceptance Criteria                    | Covered By                                               |
+| -------------------------------------- | -------------------------------------------------------- |
+| FR-003: V2 Status + Progress Display   | `v2-error-display.e2e.spec.ts`, `V2StatusPanel.test.tsx` |
+| FR-004: V2 Runner Execution Model      | `v2-vision-detection.int.spec.ts`                        |
+| FR-005: Cropping Pipeline Integration  | `v2-vision-detection.int.spec.ts`                        |
+| FR-010: Guardrails for Failed Segments | `v2-error-display.e2e.spec.ts`                           |
+| NFR-003: Observability                 | `v2-error-display.e2e.spec.ts`, `V2StatusPanel.test.tsx` |
+
+## Test Execution Commands
 
 ```bash
-# Run E2E tests
-pnpm test:e2e tests/e2e/v2-canvas-fix.e2e.spec.ts
-
 # Run integration tests
-pnpm test:int tests/int/v2-canvas-fix.int.spec.ts
+pnpm test:int -- tests/int/v2-vision-detection.int.spec.ts
 
-# Run all V2 tests
-pnpm test:e2e tests/e2e/v2-*.e2e.spec.ts
-pnpm test:int tests/int/v2-*.int.spec.ts
+# Run E2E tests
+pnpm test:e2e -- tests/e2e/v2-error-display.e2e.spec.ts
+
+# Run unit tests
+pnpm exec vitest run tests/unit/components/V2StatusPanel.test.tsx
+
+# Run all V2-related tests
+pnpm test:int --grep "V2"
+pnpm test:e2e --grep "V2"
 ```
 
 ## Notes
 
-- Tests use mocked API responses to simulate V2 job states
-- E2E tests verify UI behavior without requiring actual PDF processing
-- Integration tests verify data structures and API contracts
-- The canvas fix is verified through package.json and next.config.js checks
-- Tests assume the dev server is running (`pnpm dev`)
+### Test Data
 
-## Existing Tests Reference
+- Integration tests use `pdf-lib` to generate test PDF buffers in memory
+- E2E tests use mocked API responses with realistic V2 job output structures
+- Unit tests use React Testing Library with mocked useDocumentInfo hook
 
-Additional V2 tests exist that complement these tests:
+### Edge Cases Covered
 
-- `tests/e2e/v2-conversion-panel.e2e.spec.ts` - UI panel tests
-- `tests/int/v2-queue-api.int.spec.ts` - Queue API endpoint tests
-- `tests/int/v2-task-handler.int.spec.ts` - Task handler tests
-- `tests/int/v2-exercises-fields.int.spec.ts` - Exercise field tests
+1. **Empty errors array** - No error section rendered
+2. **Single error** - Correct page index display (1-indexed)
+3. **Multiple errors** - All errors rendered with correct page numbers
+4. **Mixed errors and warnings** - Both sections visible with distinct icons
+5. **Various PDF sizes** - Minimal and large PDF buffers
+6. **Multi-page PDFs** - All pages render successfully
 
-These tests together provide comprehensive coverage of the V2 conversion feature.
+### Potential Improvements
+
+- Add visual regression tests for V2StatusPanel component
+- Add integration tests with real PDF files (requires blob storage setup)
+- Add performance tests for large PDF processing
