@@ -142,6 +142,8 @@ export function ChatInterface({
     dismissError,
     // External media injection (Ask page uploads)
     addExternalMedia,
+    askMedia,
+    clearAskMedia,
     // Programmatic message injection
     injectExerciseContext,
     // Contextual help for incorrect answers
@@ -513,9 +515,25 @@ export function ChatInterface({
           </div>
         )}
 
-        {/* Media Preview Chips */}
-        {uploadedMedia.length > 0 && (
+        {/* Media Preview Chips — persistent ask media + regular uploads */}
+        {(askMedia || uploadedMedia.length > 0) && (
           <div className="flex flex-wrap gap-2 mb-2.5 max-w-[850px] mx-auto">
+            {askMedia && (
+              <div className="flex items-center gap-1.5 bg-primary/10 rounded-full px-3 py-1.5 text-sm border border-primary/30">
+                <ImageIcon className="w-4 h-4 text-primary" />
+                <span className="max-w-[120px] truncate text-foreground">
+                  {askMedia.filename}
+                </span>
+                <button
+                  type="button"
+                  onClick={clearAskMedia}
+                  className="p-0.5 hover:bg-destructive/20 rounded-full transition-colors"
+                  aria-label={tCourses('chatRemoveFile')}
+                >
+                  <X className="w-3.5 h-3.5 text-muted-foreground hover:text-destructive" />
+                </button>
+              </div>
+            )}
             {uploadedMedia.map((media) => (
               <div
                 key={media.id}

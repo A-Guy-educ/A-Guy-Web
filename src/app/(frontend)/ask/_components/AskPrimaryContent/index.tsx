@@ -15,15 +15,13 @@ function dispatchMediaAttach(detail: AskMediaAttachEvent) {
 export function AskPrimaryContent() {
   const t = useTranslations('homepage.ask')
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [files, setFiles] = useState<ExerciseFile[]>([])
+  const [currentFile, setCurrentFile] = useState<ExerciseFile | null>(null)
   const [isUploading, setIsUploading] = useState(false)
 
-  // Revoke blob URLs on unmount to prevent memory leaks
+  // Revoke blob URL on unmount to prevent memory leaks
   useEffect(() => {
     return () => {
-      files.forEach((f) => {
-        if (f.url.startsWith('blob:')) URL.revokeObjectURL(f.url)
-      })
+      if (currentFile?.url.startsWith('blob:')) URL.revokeObjectURL(currentFile.url)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- cleanup only on unmount
   }, [])
@@ -34,6 +32,11 @@ export function AskPrimaryContent() {
 
     // Reset input immediately so same file can be re-uploaded
     e.target.value = ''
+
+    // Revoke previous blob URL before replacing
+    if (currentFile?.url.startsWith('blob:')) {
+      URL.revokeObjectURL(currentFile.url)
+    }
 
     // Show preview immediately via object URL
     const previewUrl = URL.createObjectURL(file)
@@ -46,7 +49,7 @@ export function AskPrimaryContent() {
       date: new Date().toLocaleDateString('he-IL'),
       isUploading: true,
     }
-    setFiles((prev) => [newFile, ...prev])
+    setCurrentFile(newFile)
     setIsUploading(true)
 
     try {
@@ -66,17 +69,16 @@ export function AskPrimaryContent() {
       const filename = doc.doc?.filename || doc.filename || file.name
 
       // Mark upload complete and store mediaId
-      setFiles((prev) =>
-        prev.map((f) => (f.id === fileId ? { ...f, mediaId, isUploading: false } : f)),
+      setCurrentFile((prev) =>
+        prev && prev.id === fileId ? { ...prev, mediaId, isUploading: false } : prev,
       )
 
-      // Notify the chat pane so the AI sees this image with the next message
+      // Notify the chat pane — this becomes the persistent image for all messages
       dispatchMediaAttach({ mediaId, filename })
     } catch {
       toast.error(t('uploadFailed'))
-      // Remove the failed card and revoke its blob URL
       URL.revokeObjectURL(previewUrl)
-      setFiles((prev) => prev.filter((f) => f.id !== fileId))
+      setCurrentFile(null)
     } finally {
       setIsUploading(false)
     }
@@ -101,7 +103,7 @@ export function AskPrimaryContent() {
             ) : (
               <PlusCircle className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
             )}
-            <span>{t('uploadButton')}</span>
+            <span>{currentFile ? t('replaceButton') : t('uploadButton')}</span>
           </button>
           <input
             type="file"
@@ -112,11 +114,7 @@ export function AskPrimaryContent() {
           />
         </div>
 
-        <div className="space-y-2">
-          {files.map((f) => (
-            <AskExerciseCard key={f.id} file={f} />
-          ))}
-        </div>
+        {currentFile && <AskExerciseCard file={currentFile} />}
       </div>
     </div>
   )

@@ -99,6 +99,9 @@ export function useNotebookChat({
   const [uploadedMedia, setUploadedMedia] = useState<UploadedMedia[]>([])
   const [isUploading, setIsUploading] = useState(false)
 
+  // Persistent media for Ask page — sent with every message, not cleared after send
+  const [askMedia, setAskMedia] = useState<UploadedMedia | null>(null)
+
   // Error state
   const [chatError, setChatError] = useState<ChatError | null>(null)
 
@@ -386,11 +389,19 @@ export function useNotebookChat({
   }, [])
 
   const sendMessage = async (message: string) => {
-    if ((!message.trim() && uploadedMedia.length === 0) || isLoading) return
+    if ((!message.trim() && uploadedMedia.length === 0 && !askMedia) || isLoading) return
 
-    // Capture mediaIds and metadata before clearing
+    // Combine regular pending media + persistent ask media
     const mediaIds = uploadedMedia.map((m) => m.id)
-    const mediaMetadata = uploadedMedia.map((m) => ({ mediaId: m.id, filename: m.filename }))
+    if (askMedia && !mediaIds.includes(askMedia.id)) {
+      mediaIds.push(askMedia.id)
+    }
+    const mediaMetadata = [
+      ...uploadedMedia.map((m) => ({ mediaId: m.id, filename: m.filename })),
+      ...(askMedia && !uploadedMedia.some((m) => m.id === askMedia.id)
+        ? [{ mediaId: askMedia.id, filename: askMedia.filename }]
+        : []),
+    ]
 
     const userMessage: ChatMessage = {
       role: ChatRole.User,
@@ -401,6 +412,7 @@ export function useNotebookChat({
     setInputValue('')
     setIsLoading(true)
 
+    // Clear regular pending media but NOT persistent askMedia
     setUploadedMedia([])
 
     // Track chat message submitted (message length only, NOT content)
@@ -750,18 +762,19 @@ export function useNotebookChat({
   }, [])
 
   /**
-   * Add externally-uploaded media (e.g. from Ask page upload) to pending attachments.
-   * The media will be sent with the user's next chat message.
+   * Set persistent Ask-page media (replaces any previous).
+   * This media is sent with EVERY chat message until cleared.
    */
   const addExternalMedia = useCallback(
     (mediaId: string, filename: string, mimeType = 'image/jpeg') => {
-      setUploadedMedia((prev) => {
-        if (prev.some((m) => m.id === mediaId)) return prev
-        return [...prev, { id: mediaId, filename, mimeType }]
-      })
+      setAskMedia({ id: mediaId, filename, mimeType })
     },
     [],
   )
+
+  const clearAskMedia = useCallback(() => {
+    setAskMedia(null)
+  }, [])
 
   /**
    * Send a contextual help prompt with an already-uploaded media ID.
@@ -802,6 +815,9 @@ export function useNotebookChat({
     removeMedia,
     openFilePicker,
     addExternalMedia,
+    // Persistent Ask-page media (sent with every message)
+    askMedia,
+    clearAskMedia,
     // Error handling
     chatError,
     dismissError,
