@@ -12,10 +12,7 @@ import { describe, expect, it } from 'vitest'
  * Mirrors the media combination logic from useNotebookChat.sendMessage.
  * Extracted here for pure unit testing without React hook dependencies.
  */
-function combineMediaIds(
-  uploadedMediaIds: string[],
-  askMediaId: string | null,
-): string[] {
+function combineMediaIds(uploadedMediaIds: string[], askMediaId: string | null): string[] {
   const mediaIds = [...uploadedMediaIds]
   if (askMediaId && !mediaIds.includes(askMediaId)) {
     mediaIds.push(askMediaId)
@@ -46,11 +43,7 @@ function combineMediaMetadata(
  * Mirrors the single-replace behavior of addExternalMedia.
  * Returns the new askMedia state (replaces previous entirely).
  */
-function replaceAskMedia(
-  mediaId: string,
-  filename: string,
-  mimeType = 'image/jpeg',
-) {
+function replaceAskMedia(mediaId: string, filename: string, mimeType = 'image/jpeg') {
   return { id: mediaId, filename, mimeType }
 }
 
@@ -110,28 +103,25 @@ describe('Ask Persistent Media', () => {
 
   describe('combineMediaMetadata', () => {
     it('should include askMedia metadata when no uploaded media', () => {
-      const result = combineMediaMetadata(
-        [],
-        { id: 'ask-1', filename: 'exercise.png' },
-      )
+      const result = combineMediaMetadata([], { id: 'ask-1', filename: 'exercise.png' })
       expect(result).toEqual([{ mediaId: 'ask-1', filename: 'exercise.png' }])
     })
 
     it('should combine both sources', () => {
-      const result = combineMediaMetadata(
-        [{ id: 'upload-1', filename: 'photo.jpg' }],
-        { id: 'ask-1', filename: 'exercise.png' },
-      )
+      const result = combineMediaMetadata([{ id: 'upload-1', filename: 'photo.jpg' }], {
+        id: 'ask-1',
+        filename: 'exercise.png',
+      })
       expect(result).toHaveLength(2)
       expect(result[0]).toEqual({ mediaId: 'upload-1', filename: 'photo.jpg' })
       expect(result[1]).toEqual({ mediaId: 'ask-1', filename: 'exercise.png' })
     })
 
     it('should deduplicate when askMedia ID matches an uploaded media ID', () => {
-      const result = combineMediaMetadata(
-        [{ id: 'same-id', filename: 'uploaded.jpg' }],
-        { id: 'same-id', filename: 'exercise.png' },
-      )
+      const result = combineMediaMetadata([{ id: 'same-id', filename: 'uploaded.jpg' }], {
+        id: 'same-id',
+        filename: 'exercise.png',
+      })
       expect(result).toHaveLength(1)
       expect(result[0]).toEqual({ mediaId: 'same-id', filename: 'uploaded.jpg' })
     })

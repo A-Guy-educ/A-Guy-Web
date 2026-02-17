@@ -521,9 +521,7 @@ export function ChatInterface({
             {askMedia && (
               <div className="flex items-center gap-1.5 bg-primary/10 rounded-full px-3 py-1.5 text-sm border border-primary/30">
                 <ImageIcon className="w-4 h-4 text-primary" />
-                <span className="max-w-[120px] truncate text-foreground">
-                  {askMedia.filename}
-                </span>
+                <span className="max-w-[120px] truncate text-foreground">{askMedia.filename}</span>
                 <button
                   type="button"
                   onClick={clearAskMedia}
