@@ -292,10 +292,15 @@ export async function persistAssistantMessage(
   assistantContent: string,
   reqUser: PayloadRequest['user'],
 ): Promise<void> {
+  // Check if the last user message was hidden - if so, hide the assistant response too
+  const lastMessage = allMessages[allMessages.length - 1]
+  const isHidden = lastMessage?.hidden === true
+
   const assistantMessage = {
     role: 'assistant' as const,
     content: assistantContent,
     timestamp: new Date().toISOString(),
+    hidden: isHidden,
   }
 
   const updatedMessages = [
