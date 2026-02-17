@@ -116,6 +116,7 @@ export function ChatInterface({
     dismissError,
     // Programmatic contextual help
     sendContextualHelp,
+    sendContextualHelpWithMedia,
   } = useNotebookChat({
     initialMessage: t('chatWelcome'),
     authRequiredMessage: t('chatAuthRequired'),
@@ -164,9 +165,10 @@ export function ChatInterface({
   // Ask page actions (hint, solution, check solution from canvas)
   const askActionRef = useRef<(e: Event) => void>(() => {})
   askActionRef.current = (e: Event) => {
-    const { type, title } = (e as CustomEvent).detail as {
+    const { type, title, imageData } = (e as CustomEvent).detail as {
       type: 'hint' | 'solution' | 'check'
       title: string
+      imageData?: string
     }
     onChatInteraction?.()
     if (type === 'hint') {
@@ -177,9 +179,10 @@ export function ChatInterface({
       sendContextualHelp(
         `The student is working on "${title}" and wants to see the solution approach. Guide them step by step through the solution.`,
       )
-    } else if (type === 'check') {
-      sendContextualHelp(
-        `The student drew a solution for "${title}" on the canvas and wants it checked. Analyze their approach and provide feedback. Be encouraging and supportive.`,
+    } else if (type === 'check' && imageData) {
+      sendContextualHelpWithMedia(
+        `The student drew a solution for "${title}" on the canvas. Analyze the image of their work and tell them if their approach looks correct. Be encouraging and supportive.`,
+        imageData,
       )
     }
   }

@@ -6,17 +6,10 @@ import { useRef, useState } from 'react'
 import type { ExerciseFile } from '../ask-types'
 import { AskExerciseCard } from '../AskExerciseCard'
 
-const PLACEHOLDER_EXERCISE: ExerciseFile = {
-  id: 1,
-  title: 'תרגיל 1 - פונקציות',
-  url: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&q=80&w=1200',
-  date: new Date().toLocaleDateString('he-IL'),
-}
-
 export function AskPrimaryContent() {
   const t = useTranslations('homepage.ask')
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [files, setFiles] = useState<ExerciseFile[]>([PLACEHOLDER_EXERCISE])
+  const [files, setFiles] = useState<ExerciseFile[]>([])
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]

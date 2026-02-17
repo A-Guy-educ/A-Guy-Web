@@ -638,6 +638,52 @@ export function useNotebookChat({
     await streamMessage(prompt, acknowledgment, context, { hidden: true })
   }
 
+  /**
+   * Send a contextual help prompt with an image (e.g. canvas drawing).
+   * Uploads the image, then sends via sync path (media requires sync).
+   * No user message bubble shown — only the AI response appears.
+   */
+  const sendContextualHelpWithMedia = async (prompt: string, imageDataUrl: string) => {
+    if (isLoading || isLoadingHistory) return
+    setIsLoading(true)
+    const context = { exerciseId, lessonId, chapterId, courseId, categoryId }
+
+    try {
+      // Convert data URL to Blob then File
+      const [header, data] = imageDataUrl.split(',')
+      const mime = header.match(/:(.*?);/)?.[1] || 'image/png'
+      const binary = atob(data)
+      const bytes = new Uint8Array(binary.length)
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i)
+      }
+      const file = new File([new Blob([bytes], { type: mime })], 'solution.png', { type: mime })
+
+      // Upload to media endpoint
+      const formData = new FormData()
+      formData.append('file', file)
+      const response = await fetch('/api/media', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error('Media upload failed')
+      }
+
+      const doc = await response.json()
+      const mediaId = doc.doc?.id || doc.id
+
+      // Send via sync path with uploaded media (no user bubble)
+      await sendMessageSync(prompt, acknowledgment, context, [mediaId])
+    } catch (error) {
+      logger.error({ err: error }, 'Failed to send canvas for check')
+      toast.error(errorMessage)
+      setIsLoading(false)
+    }
+  }
+
   const dismissError = useCallback(() => {
     setChatError(null)
   }, [])
@@ -671,5 +717,6 @@ export function useNotebookChat({
     // Programmatic message injection
     addAssistantMessage,
     sendContextualHelp,
+    sendContextualHelpWithMedia,
   }
 }
