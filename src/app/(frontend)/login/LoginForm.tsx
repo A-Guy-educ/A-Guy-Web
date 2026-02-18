@@ -16,7 +16,7 @@ import { LOADING_KEYS } from '@/infra/loading/keys'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
 import { Spinner } from '@/infra/loading/components/Spinner'
 
-function LoginFormContent() {
+function LoginFormContent({ passwordEnabled }: { passwordEnabled: boolean }) {
   const t = useTranslations('auth.login')
   const tOauth = useTranslations('auth.oauth')
   const router = useRouterWithLoading()
@@ -59,59 +59,63 @@ function LoginFormContent() {
       <CardContent>
         <div className="space-y-4">
           <GoogleLoginButton returnTo={returnTo} className="w-full" />
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
+          {passwordEnabled && (
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  {tOauth('orDivider')}
+                </span>
+              </div>
             </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                {tOauth('orDivider')}
-              </span>
-            </div>
-          </div>
+          )}
         </div>
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">{t('email')}</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder={t('emailPlaceholder')}
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              disabled={isLoading}
-              required
-            />
-          </div>
+        {passwordEnabled && (
+          <form onSubmit={onSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">{t('email')}</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder={t('emailPlaceholder')}
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                disabled={isLoading}
+                required
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="password">{t('password')}</Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              placeholder={t('passwordPlaceholder')}
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              disabled={isLoading}
-              required
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">{t('password')}</Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                placeholder={t('passwordPlaceholder')}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                disabled={isLoading}
+                required
+              />
+            </div>
 
-          {error && <p className="text-sm text-destructive">{t(`errors.${error}`)}</p>}
+            {error && <p className="text-sm text-destructive">{t(`errors.${error}`)}</p>}
 
-          <Button type="submit" className="w-full" disabled={!isFormValid || isLoading}>
-            {isLoading ? (
-              <span className="flex items-center gap-2">
-                <Spinner size="sm" />
-                {t('loggingIn')}
-              </span>
-            ) : (
-              t('loginButton')
-            )}
-          </Button>
-        </form>
+            <Button type="submit" className="w-full" disabled={!isFormValid || isLoading}>
+              {isLoading ? (
+                <span className="flex items-center gap-2">
+                  <Spinner size="sm" />
+                  {t('loggingIn')}
+                </span>
+              ) : (
+                t('loginButton')
+              )}
+            </Button>
+          </form>
+        )}
       </CardContent>
       <CardFooter className="flex justify-center">
         <p className="text-sm text-muted-foreground">
@@ -125,10 +129,10 @@ function LoginFormContent() {
   )
 }
 
-export function LoginForm() {
+export function LoginForm({ passwordEnabled }: { passwordEnabled: boolean }) {
   return (
     <Suspense fallback={<LoginFormSkeleton />}>
-      <LoginFormContent />
+      <LoginFormContent passwordEnabled={passwordEnabled} />
     </Suspense>
   )
 }
