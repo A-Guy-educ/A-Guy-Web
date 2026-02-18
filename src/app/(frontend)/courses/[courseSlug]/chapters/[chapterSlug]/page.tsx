@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation'
 import { queryCourseBySlug } from '@/server/repos/queries/courses'
 import { queryChapterBySlug } from '@/server/repos/queries/chapters'
 import { queryLessonsByChapter } from '@/server/repos/queries/lessons'
+import { isAuthenticatedServer } from '@/server/utils/access-gate-server'
+import { AccessGateProvider } from '@/ui/web/auth/AccessGateProvider'
 import { ChapterPageBreadcrumb } from '../../../_components/ChapterPageBreadcrumb'
 import { ChapterHeader } from '../../../_components/ChapterHeader'
 import { LessonsSectionTitle } from '../../../_components/LessonsSectionTitle'
@@ -34,41 +36,54 @@ export default async function ChapterPage({ params }: ChapterPageProps) {
     notFound()
   }
 
+  const courseAccessType = course.accessType ?? 'free'
+
+  // Server-side block: for mandatory mode, don't render content for unauthenticated users
+  if (courseAccessType === 'mandatory' && !(await isAuthenticatedServer())) {
+    return (
+      <AccessGateProvider accessType={courseAccessType} courseSlug={courseSlug}>
+        <div className="min-h-screen" />
+      </AccessGateProvider>
+    )
+  }
+
   const lessons = await queryLessonsByChapter({ chapterId: chapter.id })
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <ChapterPageBreadcrumb
-        courseTitle={course.title}
-        courseSlug={courseSlug}
-        chapterTitle={chapter.title}
-      />
+    <AccessGateProvider accessType={courseAccessType} courseSlug={courseSlug}>
+      <div className="container mx-auto px-4 py-8">
+        <ChapterPageBreadcrumb
+          courseTitle={course.title}
+          courseSlug={courseSlug}
+          chapterTitle={chapter.title}
+        />
 
-      <ChapterHeader
-        chapterLabel={chapter.chapterLabel}
-        title={chapter.title}
-        description={chapter.description}
-      />
+        <ChapterHeader
+          chapterLabel={chapter.chapterLabel}
+          title={chapter.title}
+          description={chapter.description}
+        />
 
-      <section>
-        <LessonsSectionTitle />
+        <section>
+          <LessonsSectionTitle />
 
-        {lessons.length === 0 ? (
-          <EmptyState type="noLessons" />
-        ) : (
-          <div className="space-y-3">
-            {lessons.map((lesson) => (
-              <LessonCard
-                key={lesson.id}
-                lesson={lesson}
-                courseSlug={courseSlug}
-                chapterSlug={chapterSlug}
-              />
-            ))}
-          </div>
-        )}
-      </section>
-    </div>
+          {lessons.length === 0 ? (
+            <EmptyState type="noLessons" />
+          ) : (
+            <div className="space-y-3">
+              {lessons.map((lesson) => (
+                <LessonCard
+                  key={lesson.id}
+                  lesson={lesson}
+                  courseSlug={courseSlug}
+                  chapterSlug={chapterSlug}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
+    </AccessGateProvider>
   )
 }
 

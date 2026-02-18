@@ -64,6 +64,7 @@ describe('Chapter adminTitle', () => {
         status: 'published',
         isActive: true,
         tenant: tenantId,
+        accessType: 'free',
       },
     })
     course1Id = course1.id
@@ -80,6 +81,7 @@ describe('Chapter adminTitle', () => {
         status: 'published',
         isActive: true,
         tenant: tenantId,
+        accessType: 'free',
       },
     })
     course2Id = course2.id
@@ -247,6 +249,7 @@ describe('Chapter adminTitle', () => {
         status: 'published',
         isActive: true,
         tenant: tenantId,
+        accessType: 'inherit',
       },
       depth: 0, // Don't populate relationships
       draft: true,

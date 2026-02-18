@@ -179,6 +179,7 @@ export async function seedTestCourseData(): Promise<TestCourseData | null> {
         order: 0,
         categories: [category.id],
         tenant: tenantId,
+        accessType: 'free',
       },
     })
 
@@ -213,6 +214,7 @@ export async function seedTestCourseData(): Promise<TestCourseData | null> {
         isActive: true,
         order: 0,
         tenant: tenantId,
+        accessType: 'inherit',
       },
     })
 

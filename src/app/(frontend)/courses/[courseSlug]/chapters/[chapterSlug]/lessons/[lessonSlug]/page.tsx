@@ -1,9 +1,12 @@
 import { DynamicLesson } from '@/demos/dynamic-lesson'
 import type { Media } from '@/payload-types'
+import { resolveAccessType } from '@/server/constants/access-types'
 import { queryCourseBySlug } from '@/server/repos/queries/courses'
 import { queryExercisesByLesson } from '@/server/repos/queries/exercises'
 import { queryLessonBySlug } from '@/server/repos/queries/lessons'
 import { queryMediaByIds } from '@/server/repos/queries/media'
+import { isAuthenticatedServer } from '@/server/utils/access-gate-server'
+import { AccessGateProvider } from '@/ui/web/auth/AccessGateProvider'
 import { ChatInterface } from '@/ui/web/chat'
 import { extractAllMediaIds } from '@/ui/web/exerciserenderer/utils/extractMediaIds'
 import { Media as MediaComponent } from '@/ui/web/media'
@@ -23,12 +26,9 @@ interface LessonPageProps {
 export default async function LessonPage({ params }: LessonPageProps) {
   const { courseSlug, chapterSlug, lessonSlug } = await params
 
-  const [course, lesson, exercises] = await Promise.all([
+  const [course, lesson] = await Promise.all([
     queryCourseBySlug({ slug: courseSlug }),
     queryLessonBySlug({ slug: lessonSlug }),
-    queryLessonBySlug({ slug: lessonSlug }).then((l) =>
-      l ? queryExercisesByLesson({ lessonId: l.id }) : [],
-    ),
   ])
 
   if (!course || !lesson) {
@@ -48,6 +48,19 @@ export default async function LessonPage({ params }: LessonPageProps) {
     notFound()
   }
 
+  const effectiveAccessType = resolveAccessType(lesson.accessType, course.accessType)
+
+  // Server-side block: for mandatory mode, don't render content for unauthenticated users
+  if (effectiveAccessType === 'mandatory' && !(await isAuthenticatedServer())) {
+    return (
+      <AccessGateProvider accessType={effectiveAccessType} courseSlug={courseSlug}>
+        <div className="min-h-screen" />
+      </AccessGateProvider>
+    )
+  }
+
+  const exercises = await queryExercisesByLesson({ lessonId: lesson.id })
+
   // Use lesson-scoped chat context to keep history stable across refreshes
   const chatLessonId = lesson.id
   const backUrl = `/courses/${courseSlug}/chapters/${chapterSlug}`
@@ -66,7 +79,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
   // Case 1: No document attached -> Show exercises pager if exercises exist
   if (!hasContent) {
     return (
-      <>
+      <AccessGateProvider accessType={effectiveAccessType} courseSlug={courseSlug}>
         <LessonAnalytics lessonId={lesson.id} courseId={course.id} lessonTitle={lesson.title} />
         {hasExercises ? (
           <ExercisesPager
@@ -99,7 +112,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
             />
           </>
         )}
-      </>
+      </AccessGateProvider>
     )
   }
 
@@ -120,7 +133,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
   )
 
   return (
-    <>
+    <AccessGateProvider accessType={effectiveAccessType} courseSlug={courseSlug}>
       <LessonAnalytics lessonId={lesson.id} courseId={course.id} lessonTitle={lesson.title} />
       <ExerciseWorkspace
         exerciseTitle={lesson.title}
@@ -134,7 +147,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
           />
         }
       />
-    </>
+    </AccessGateProvider>
   )
 }
 

@@ -494,6 +494,10 @@ export interface Course {
    * Whether this course is currently active
    */
   isActive: boolean;
+  /**
+   * Controls whether users must sign in to access course content
+   */
+  accessType: 'free' | 'mandatory' | 'gated';
   categories: (string | Category)[];
   /**
    * AI system prompt for Ask tab chat in this course (uses default if not set)
@@ -1242,6 +1246,10 @@ export interface Lesson {
    * Whether this lesson is currently active
    */
   isActive: boolean;
+  /**
+   * Access control for this lesson. "Inherit" uses the parent course setting.
+   */
+  accessType: 'inherit' | 'free' | 'mandatory' | 'gated';
   /**
    * Show an intro/about page before the lesson starts
    */
@@ -2418,6 +2426,7 @@ export interface CoursesSelect<T extends boolean = true> {
   order?: T;
   status?: T;
   isActive?: T;
+  accessType?: T;
   categories?: T;
   prompt?: T;
   courseContextText?: T;
@@ -2465,6 +2474,7 @@ export interface LessonsSelect<T extends boolean = true> {
   order?: T;
   status?: T;
   isActive?: T;
+  accessType?: T;
   introEnabled?: T;
   introDescription?: T;
   introMedia?: T;
