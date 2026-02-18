@@ -185,10 +185,10 @@ jobs:
           # If no task-id provided, generate a new one
           if [[ -z "$TASK_ID" ]]; then
             echo "No task-id provided, generating new one..."
-            # Generate ID: YYMMDD-nn (e.g., 260218-01)
+            # Generate ID: YYMMDD-auto-N (e.g., 260218-auto-1)
             DATE_PREFIX=$(date +'%y%m%d')
-            RANDOM_SUFFIX=$(shuf -i 1-99 -n 1 | xargs printf '%02d')
-            TASK_ID="${DATE_PREFIX}-${RANDOM_SUFFIX}"
+            COUNTER=$(shuf -i 1-99 -n 1 | xargs printf '%02d')
+            TASK_ID="${DATE_PREFIX}-auto-${COUNTER}"
             echo "Generated new task-id: $TASK_ID"
           fi
 
