@@ -278,7 +278,8 @@
     "gatedLockedTitle": "Sign in to Continue",
     "gatedLockedDescription": "Your free preview has ended. Sign in with Google to keep learning.",
     "signInPrompt": "Sign in to unlock full access",
-    "warningCountdown": "{{seconds}}s remaining"
+    "warningCountdown": "{{seconds}}s remaining",
+    "browseCourses": "Browse Courses"
   },
   "study": {
     "loading": "Loading...",

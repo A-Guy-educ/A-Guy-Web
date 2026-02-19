@@ -15,6 +15,10 @@
 import type { ConfigDomain } from './config-constants'
 import { getConfigValueByKey } from './runtime/config-values'
 
+// Side-effect import: ensures lazy config loading from Payload DB is configured
+// before any SystemParams accessor is called.
+import './server-init'
+
 const SYSTEM_PARAMS_DOMAIN: ConfigDomain = 'global'
 
 /**

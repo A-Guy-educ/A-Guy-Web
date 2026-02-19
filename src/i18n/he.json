@@ -278,7 +278,8 @@
     "gatedLockedTitle": "התחבר כדי להמשיך",
     "gatedLockedDescription": "התצוגה החינמית הסתיימה. התחבר עם Google כדי להמשיך ללמוד.",
     "signInPrompt": "התחבר כדי לפתוח גישה מלאה",
-    "warningCountdown": "{{seconds}} שניות נותרו"
+    "warningCountdown": "{{seconds}} שניות נותרו",
+    "browseCourses": "עיון בקורסים"
   },
   "study": {
     "loading": "טוען...",
