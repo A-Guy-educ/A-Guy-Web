@@ -148,7 +148,12 @@ export default async function LessonPage({ params }: LessonPageProps) {
   )
 
   return (
-    <AccessGateProvider accessType={effectiveAccessType} courseSlug={courseSlug}>
+    <AccessGateProvider
+      accessType={effectiveAccessType}
+      courseSlug={courseSlug}
+      gatedDelayMs={gatedDelayMs}
+      gatedWarningMs={gatedWarningMs}
+    >
       <LessonAnalytics lessonId={lesson.id} courseId={course.id} lessonTitle={lesson.title} />
       <ExerciseWorkspace
         exerciseTitle={lesson.title}
