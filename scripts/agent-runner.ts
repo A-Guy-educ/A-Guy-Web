@@ -5,12 +5,13 @@
  * @ai-summary Agent execution with file watching, timeouts, and retry logic for pipeline stages
  */
 
-import { spawn, type ChildProcess } from 'child_process'
+import type { ChildProcess } from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
 
 import type { OrchestratorInput } from './orchestrator-utils'
 import { buildStagePrompt, SPEC_STAGES } from './stage-prompts'
+import { createRunner, type RunnerBackend } from './runner-backend'
 
 // ============================================================================
 // Configuration
@@ -55,6 +56,8 @@ export interface AgentRunnerOptions {
   env?: NodeJS.ProcessEnv
   /** Working directory */
   cwd?: string
+  /** Runner backend (defaults to auto-detect from GITHUB_ACTIONS env) */
+  backend?: RunnerBackend
 }
 
 export interface AgentRunResult {
@@ -96,6 +99,7 @@ export function runAgentWithFileWatch(
     model = process.env.OPENCODE_MODEL || 'minimax-coding-plan/MiniMax-M2.5',
     env: extraEnv = {},
     cwd = process.cwd(),
+    backend = createRunner(),
   } = options
 
   // Resolve timeout
@@ -107,12 +111,13 @@ export function runAgentWithFileWatch(
       ...process.env,
       ...extraEnv,
       MODEL: model,
-      AGENT: stage,
-      PROMPT: buildStagePrompt(input, stage),
       // Skip husky hooks for spec-only stages (they auto-commit but don't produce code)
       // Impl stages (build, test, verify, pr, etc.) should respect commitlint
       ...(SPEC_STAGES.includes(stage as never) && { SKIP_HOOKS: '1' }),
     }
+
+    // Build the prompt for the stage
+    const prompt = buildStagePrompt(input, stage)
 
     let retries = 0
     let currentChild: ChildProcess | null = null
@@ -120,12 +125,8 @@ export function runAgentWithFileWatch(
     const attemptWithRetry = (): void => {
       console.log(`  Attempt ${retries + 1}/${maxRetries + 1}`)
 
-      // Spawn opencode github run (no CLI flags - env vars control behavior)
-      currentChild = spawn('opencode', ['github', 'run'], {
-        cwd,
-        stdio: 'inherit',
-        env: agentEnv,
-      })
+      // Spawn using the configured backend (local or GitHub)
+      currentChild = backend.spawn(stage, prompt, agentEnv, cwd)
 
       let resolved = false
       let settling = false

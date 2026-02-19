@@ -25,6 +25,10 @@ export interface OrchestratorInput {
   runUrl?: string
   // For comment triggers: raw body to parse
   commentBody?: string
+  // Local mode: use pnpm ocode run instead of opencode github run
+  local?: boolean
+  // Path to task description file (for auto-generating task-id and task.md)
+  file?: string
 }
 
 export interface PipelineStatus {
@@ -298,7 +302,7 @@ export function parseCliArgs(argv: string[]): OrchestratorInput {
         throw new Error(parsed.error || 'Failed to parse comment body')
       }
 
-      // Merge parsed values into input (issueNumber will be merged after all args processed)
+      // Merge parsed values into input (issueNumber will be merged after --issue-number is processed)
       if (parsed.input) {
         input.mode = parsed.input.mode
         input.taskId = parsed.input.taskId
@@ -312,15 +316,33 @@ export function parseCliArgs(argv: string[]): OrchestratorInput {
         }
       }
       i++
+    } else if (arg === '--file' && normalized[i + 1]) {
+      input.file = normalized[i + 1]
+      i++
+    } else if (arg === '--local') {
+      input.local = true
     }
   }
 
-  // If we have a comment-triggered issueNumber and --issue-number was also provided,
-  // --issue-number takes precedence (allows overriding)
-  // This handles the case where --comment-body is processed before --issue-number
+  // Determine local mode: explicitly set or auto-detect from GITHUB_ACTIONS
+  if (input.local === undefined) {
+    input.local = !process.env.GITHUB_ACTIONS
+  }
 
+  // Auto-generate taskId if not provided
   if (!input.taskId) {
-    throw new Error('--task-id is required')
+    if (input.file) {
+      // Generate from filename: --file path/to/feature.md -> 260218-feature
+      const stem = path.basename(input.file, path.extname(input.file))
+      const datePrefix = new Date().toISOString().slice(2, 10).replace(/-/g, '')
+      input.taskId = `${datePrefix}-${stem.replace(/[^a-zA-Z0-9-]/g, '-').toLowerCase()}`
+    } else {
+      // Fallback: auto-generate from date
+      const datePrefix = new Date().toISOString().slice(2, 10).replace(/-/g, '')
+      const counter = Math.floor(Math.random() * 99) + 1
+      input.taskId = `${datePrefix}-auto-${counter.toString().padStart(2, '0')}`
+    }
+    console.log(`Auto-generated task ID: ${input.taskId}`)
   }
 
   if (!validateTaskId(input.taskId)) {
