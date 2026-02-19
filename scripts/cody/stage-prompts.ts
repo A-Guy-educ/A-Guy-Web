@@ -46,9 +46,10 @@ export const stageInstructions: Record<Stage, (taskId: string) => string> = {
 
 Analyze the task description and create a task.json with these exact fields:
 
-- task_type: MUST be one of: spec_only, implement_feature, fix_bug, refactor, docs, ops, research
+- task_type: MUST be one of: implement_feature, fix_bug, refactor, docs, ops, research
   Examples: "Add dark mode" → implement_feature, "Fix login crash" → fix_bug, "Update README" → docs
-  WRONG values (do NOT use): "feature", "bug", "bugfix", "hotfix"
+  WRONG values (do NOT use): "feature", "bug", "bugfix", "hotfix", "spec_only"
+  NOTE: "spec_only" is reserved for manual use only — NEVER choose it. If the task describes a problem or bug, use "fix_bug". If it asks for a change, use "implement_feature".
 - risk_level: MUST be one of: low, medium, high
 - confidence: MUST be a number between 0.0 and 1.0 (e.g., 0.85)
 - primary_domain: MUST be one of: backend, frontend, infra, data, llm, devops, product
