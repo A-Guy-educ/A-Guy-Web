@@ -13,7 +13,10 @@ import {
   extractAnswerFromComment,
   handleClarification,
 } from '../../../../scripts/cody/clarify-workflow'
+import * as codyUtils from '../../../../scripts/cody/cody-utils'
 import type { CodyInput } from '../../../../scripts/cody/cody-utils'
+
+vi.spyOn(codyUtils, 'getLatestIssueComment').mockReturnValue(null)
 
 describe('clarify-workflow', () => {
   let tempDir: string
@@ -131,6 +134,9 @@ describe('clarify-workflow', () => {
     })
 
     it('returns waiting when questions exist and no answer provided', () => {
+      // Mock to return null for issue comment
+      vi.spyOn(codyUtils, 'getLatestIssueComment').mockReturnValue(null)
+
       fs.writeFileSync(
         path.join(tempDir, 'questions.md'),
         '## Questions\n\n1. What is the deadline?',

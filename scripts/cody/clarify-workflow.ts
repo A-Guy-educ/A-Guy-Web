@@ -74,9 +74,13 @@ export type ClarifyResult = 'answered' | 'waiting' | 'no-questions'
  */
 export function handleClarification(input: CodyInput, taskDir: string): ClarifyResult {
   const questionsPath = path.join(taskDir, 'questions.md')
+  const clarifiedPath = path.join(taskDir, 'clarified.md')
 
-  // If questions.md doesn't exist, no clarification needed
+  // If questions.md doesn't exist, no clarification needed - create default clarified.md
   if (!fs.existsSync(questionsPath)) {
+    if (!fs.existsSync(clarifiedPath)) {
+      fs.writeFileSync(clarifiedPath, '# Clarified\n\nUse recommended answers.\n')
+    }
     return 'no-questions'
   }
 
@@ -96,21 +100,18 @@ export function handleClarification(input: CodyInput, taskDir: string): ClarifyR
 
   // If we have an answer, create clarified.md
   if (answer) {
-    const clarifiedPath = path.join(taskDir, 'clarified.md')
     fs.writeFileSync(clarifiedPath, `# Clarified\n\n${answer}\n`)
     return 'answered'
   }
 
   // Check if there are pending questions
-  const clarifiedExists = fs.existsSync(path.join(taskDir, 'clarified.md'))
-  const hasQuestions = !clarifiedExists && checkForQuestions(questionsPath)
+  const hasQuestions = !fs.existsSync(clarifiedPath) && checkForQuestions(questionsPath)
 
   if (hasQuestions) {
     return 'waiting'
   }
 
   // No questions - create default clarified.md
-  const clarifiedPath = path.join(taskDir, 'clarified.md')
   if (!fs.existsSync(clarifiedPath)) {
     fs.writeFileSync(clarifiedPath, '# Clarified\n\nUse recommended answers.\n')
   }
