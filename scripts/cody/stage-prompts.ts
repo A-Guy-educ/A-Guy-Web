@@ -19,7 +19,8 @@ export const SPEC_STAGES = ['taskify', 'spec', 'clarify'] as const
 export type SpecStage = (typeof SPEC_STAGES)[number]
 
 /**
- * All valid stage names in the pipeline (including new split stages)
+ * All valid stage names in the pipeline.
+ * Note: 'test' was removed — tests are now written by build agent via @test-writer subagent (TDD)
  */
 export const ALL_STAGES = [
   'taskify',
@@ -29,10 +30,10 @@ export const ALL_STAGES = [
   'plan-review',
   'build',
   'commit',
-  'test',
   'verify',
   'autofix',
   'auditor',
+  'apply-audit',
   'pr',
 ] as const
 
@@ -42,7 +43,7 @@ export type Stage = (typeof ALL_STAGES)[number]
  * Scripted stages that run directly without an LLM agent.
  * Their prompts in stageInstructions are unused but kept for documentation.
  */
-export const SCRIPTED_STAGES = ['verify', 'pr'] as const
+export const SCRIPTED_STAGES = ['verify', 'commit', 'pr'] as const
 
 // ============================================================================
 // Stage Context — which files each stage needs to read
@@ -64,10 +65,10 @@ export const STAGE_CONTEXT_FILES: Record<Stage, string[]> = {
   'plan-review': ['spec.md', 'plan.md'],
   build: ['spec.md', 'clarified.md', 'plan.md', 'plan-review.md'],
   commit: ['task.json'],
-  test: ['spec.md', 'plan.md', 'build.md'],
   verify: [], // scripted — no LLM prompt needed
   autofix: ['verify.md'],
   auditor: ['task.md', 'spec.md', 'build.md', 'verify.md'],
+  'apply-audit': ['auditor.md'],
   pr: [], // scripted — no LLM prompt needed
 }
 
@@ -97,12 +98,11 @@ export const stageInstructions: Record<Stage, (taskId: string) => string> = {
 
   commit: () => ``,
 
-  test: () => ``,
-
   // Scripted stages — these prompts are never sent to an LLM
   verify: () => ``,
   autofix: () => ``,
   auditor: () => ``,
+  'apply-audit': () => ``,
   pr: () => ``,
 }
 

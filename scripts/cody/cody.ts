@@ -191,7 +191,7 @@ import { runAgentWithFileWatch } from './agent-runner'
 import { STAGE_TIMEOUTS, DEFAULT_TIMEOUT } from './agent-runner'
 import { ensureFeatureBranch } from './git-utils'
 import { createRunner } from './runner-backend'
-import { runVerifyStage, runPrStage } from './scripted-stages'
+import { runVerifyStage, runCommitStage, runPrStage } from './scripted-stages'
 import { preflight } from './preflight'
 import type { RunnerBackend } from './runner-backend'
 
@@ -335,7 +335,9 @@ async function runSpecPipeline(
     }
   }
 
-  const stages = ['taskify', 'spec', 'clarify']
+  // Clarify stage: only run if --clarify flag is set (opt-in)
+  // Default: skip, auto-create clarified.md with "Use recommended answers"
+  const stages = input.clarify ? ['taskify', 'spec', 'clarify'] : ['taskify', 'spec']
 
   for (let i = 0; i < stages.length; i++) {
     const stage = stages[i]
@@ -348,8 +350,8 @@ async function runSpecPipeline(
       continue
     }
 
-    // Skip clarify if spec has no open questions — saves ~60-110s
-    if (stage === 'clarify') {
+    // Skip clarify if spec has no open questions (only when clarify is enabled)
+    if (stage === 'clarify' && input.clarify) {
       const specFile = path.join(taskDir, 'spec.md')
       if (fs.existsSync(specFile)) {
         const specContent = fs.readFileSync(specFile, 'utf-8')
@@ -624,7 +626,7 @@ async function runImplPipeline(
       return
     }
 
-    // Scripted stages: verify and pr run directly, no LLM needed
+    // Scripted stages: verify, commit, and pr run directly, no LLM needed
     if (stage === 'verify') {
       const verifyResult = runVerifyStage(outputFile)
       if (!verifyResult.passed) {
@@ -635,6 +637,16 @@ async function runImplPipeline(
           outputFile: path.basename(outputFile),
         })
       }
+    } else if (stage === 'commit') {
+      const commitResult = runCommitStage(taskDir, outputFile)
+      if (!commitResult.success && !commitResult.message.includes('No changes')) {
+        updateStageStatus(input.taskId, stage, 'failed', { retries: 0 })
+        throw new Error(`Commit failed: ${commitResult.message}`)
+      }
+      updateStageStatus(input.taskId, stage, 'completed', {
+        retries: 0,
+        outputFile: path.basename(outputFile),
+      })
     } else if (stage === 'pr') {
       const prResult = runPrStage(taskDir, outputFile)
       if (!prResult.url) {

@@ -18,6 +18,7 @@ set -euo pipefail
 
 # Default outputs (task_id intentionally omitted — set later after discovery)
 echo "mode=full" >> "$GITHUB_OUTPUT"
+echo "clarify=false" >> "$GITHUB_OUTPUT"
 echo "dry_run=false" >> "$GITHUB_OUTPUT"
 echo "from_stage=" >> "$GITHUB_OUTPUT"
 echo "feedback=" >> "$GITHUB_OUTPUT"
@@ -34,12 +35,13 @@ if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
   fi
   echo "task_id=$DISPATCH_TASK_ID" >> "$GITHUB_OUTPUT"
   echo "mode=${DISPATCH_MODE:-full}" >> "$GITHUB_OUTPUT"
+  echo "clarify=${DISPATCH_CLARIFY:-false}" >> "$GITHUB_OUTPUT"
   echo "dry_run=${DISPATCH_DRY_RUN:-false}" >> "$GITHUB_OUTPUT"
   echo "feedback=${DISPATCH_FEEDBACK:-}" >> "$GITHUB_OUTPUT"
   echo "from_stage=${DISPATCH_FROM_STAGE:-}" >> "$GITHUB_OUTPUT"
   echo "trigger_type=dispatch" >> "$GITHUB_OUTPUT"
   echo "valid=true" >> "$GITHUB_OUTPUT"
-  echo "=== Parsed dispatch: task_id=$DISPATCH_TASK_ID, mode=${DISPATCH_MODE:-full} ==="
+  echo "=== Parsed dispatch: task_id=$DISPATCH_TASK_ID, mode=${DISPATCH_MODE:-full}, clarify=${DISPATCH_CLARIFY:-false} ==="
   exit 0
 fi
 

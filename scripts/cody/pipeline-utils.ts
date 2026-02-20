@@ -354,17 +354,19 @@ export function flattenPipeline(stages: PipelineStage[]): string[] {
  * Implementation pipeline stages with parallel groups.
  *
  * Flow:
- *   architect → plan-review → build → commit → test →
- *   verify (scripted) → [auditor, pr] (parallel)
+ *   architect → plan-review → build → commit(scripted) →
+ *   verify (scripted) → auditor → apply-audit → pr
+ * Note: test-writer subagent is invoked by build agent per plan step (TDD)
  */
 export const IMPL_PIPELINE: PipelineStage[] = [
   'architect',
   'plan-review',
   'build',
   'commit',
-  'test',
   'verify',
-  { parallel: ['auditor', 'pr'] },
+  'auditor',
+  'apply-audit',
+  'pr',
 ]
 
 /**

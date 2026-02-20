@@ -8,7 +8,7 @@
 import { execFileSync, execSync } from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
-import { getDefaultBranch } from './git-utils'
+import { getDefaultBranch, commitAndPush } from './git-utils'
 
 // ============================================================================
 // Verify Stage — run quality gates directly
@@ -84,7 +84,6 @@ interface PrResult {
 function getBranchName(cwd: string): string {
   return execSync('git branch --show-current', { cwd, encoding: 'utf-8' }).trim()
 }
-
 
 function getExistingPr(branch: string, cwd: string): string | null {
   try {
@@ -257,4 +256,56 @@ export function runPrStage(
   const report = `# PR Stage\n\nPR created: ${prUrl}\n\nTitle: ${title}\n`
   fs.writeFileSync(outputFile, report)
   return { created: true, url: prUrl, report }
+}
+
+// ============================================================================
+// Commit Stage — commit and push changes via git-utils
+// ============================================================================
+
+interface CommitResult {
+  success: boolean
+  hash: string
+  branch: string
+  message: string
+  report: string
+}
+
+export function runCommitStage(
+  taskDir: string,
+  outputFile: string,
+  cwd: string = process.cwd(),
+): CommitResult {
+  console.log('\n📦 Committing changes (scripted)...\n')
+
+  // Extract task ID from taskDir path
+  const taskId = path.basename(taskDir)
+
+  const result = commitAndPush(taskId, taskDir, cwd)
+
+  const lines = [`# Commit Stage\n`]
+
+  if (result.success) {
+    lines.push(`✅ **Committed and pushed**\n`)
+    lines.push(`- **Branch:** ${result.branch}`)
+    lines.push(`- **Hash:** ${result.hash}`)
+    console.log(`  ✅ ${result.message}`)
+  } else {
+    lines.push(`⚠️ **Commit status:** ${result.message}\n`)
+    if (result.message.includes('No changes')) {
+      console.log(`  ℹ️ ${result.message}`)
+    } else {
+      console.error(`  ❌ ${result.message}`)
+    }
+  }
+
+  const report = lines.join('\n')
+  fs.writeFileSync(outputFile, report)
+
+  return {
+    success: result.success,
+    hash: result.hash,
+    branch: result.branch,
+    message: result.message,
+    report,
+  }
 }

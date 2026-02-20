@@ -5,26 +5,28 @@ Automated development pipeline for A-Guy project using OpenCode CLI agents.
 ## Pipeline Stages
 
 ```
-Spec Phase:    taskify → spec → clarify
-Impl Phase:    architect → plan-review(gate) → build → commit → test →
-               verify (scripted) → [autofix → re-verify]* → [auditor, pr] (parallel)
+Spec Phase:    taskify → spec → [clarify: opt-in]
+Impl Phase:    architect → plan-review(gate) → build(+TDD) → commit(scripted) →
+               verify(scripted) → auditor → apply-audit → pr(scripted)
 ```
 
-\*Auto-fix loop runs up to 2 times if verify detects lint/type/format errors.
+**Clarify is opt-in** — use `--clarify` flag to enable Q&A loop (default: skip).
+
+**TDD via @test-writer** — build agent invokes test-writer subagent per plan step.
 
 | Agent       | Description                        | Input                        | Output         | Type     |
 | ----------- | ---------------------------------- | ---------------------------- | -------------- | -------- |
 | taskify     | Classify task, produce task.json   | task.md                      | task.json      | agent    |
 | spec        | Requirements definition            | task.md                      | spec.md        | agent    |
-| clarify     | Collect operator Q&A               | task.md, spec.md             | questions.md   | agent    |
+| clarify     | Collect operator Q&A (opt-in)      | task.md, spec.md             | questions.md   | agent    |
 | architect   | Implementation plan                | spec.md, clarified.md        | plan.md        | agent    |
 | plan-review | Review plan against spec (GATE)    | spec.md, plan.md             | plan-review.md | agent    |
-| build       | Write implementation code          | spec.md, plan.md             | build.md       | agent    |
-| commit      | Commit and push changes            | task.json                    | commit.md      | agent    |
-| test        | Write E2E/integration tests        | spec.md, build.md            | test.md        | agent    |
+| build       | Write implementation code + tests  | spec.md, plan.md             | build.md       | agent    |
+| commit      | Commit and push changes            | task.json                    | commit.md      | scripted |
 | verify      | Run quality gates (tsc, lint, fmt) | code                         | verify.md      | scripted |
 | autofix     | Fix lint/type/format errors        | verify.md                    | autofix.md     | agent    |
 | auditor     | Process improvement analysis       | task.md, build.md, verify.md | auditor.md     | agent    |
+| apply-audit | Implement auditor suggestions      | auditor.md                   | apply-audit.md | agent    |
 | pr          | Create pull request via gh CLI     | task files                   | pr.md          | scripted |
 
 ### Stage Types
@@ -32,31 +34,45 @@ Impl Phase:    architect → plan-review(gate) → build → commit → test →
 - **agent**: Runs via LLM agent (opencode github run)
 - **scripted**: Runs directly via script (no LLM needed, faster)
 
-### Parallel Stages
-
-The `auditor` and `pr` stages run **in parallel** since they are independent.
-
 ### Model Routing
 
 Not all stages need an expensive model. Lightweight stages use a faster/cheaper model:
 
 | Model            | Used For                              | Cost    |
 | ---------------- | ------------------------------------- | ------- |
-| MiniMax-M2.5     | architect, build, test                | Default |
+| MiniMax-M2.5     | architect, build                      | Default |
 | Gemini 2.5 Flash | plan-review, commit, auditor, autofix | Fast    |
 
 Override with `OPENCODE_MODEL` env var to force a specific model for all stages.
 
 ## Key Design Decisions
 
+### Clarify Opt-In
+
+The clarify stage is **opt-in** via `--clarify` flag. By default:
+
+- Pipeline auto-creates `clarified.md` with "Use recommended answers."
+- No Q&A loop, fully automated
+
+Use `--clarify` when you want human review of ambiguities.
+
+### TDD via @test-writer Subagent
+
+The build agent invokes the `@test-writer` subagent for each plan step:
+
+1. test-writer writes failing tests (TDD red)
+2. build implements code to make tests pass (TDD green)
+3. Run `pnpm test:unit` to verify
+
+This removes the separate `test` LLM stage while maintaining test coverage.
+
 ### Build / Commit Split
 
-The `build` agent writes code but does NOT commit or push. A separate `commit` agent
-handles git operations. This means:
+The `build` agent writes code but does NOT commit or push. A separate scripted `commit` stage handles git operations. This means:
 
-- If commit format fails (commitlint), only the 3-minute commit agent reruns (not the 30-minute build)
+- If commit fails (commitlint), only the 3-minute scripted commit stage reruns (not the 30-minute build)
 - Build agent focuses solely on code quality
-- Commit agent focuses solely on conventional commit formatting
+- Commit stage uses conventional commit format automatically derived from task.json and task.md
 
 ### Plan Review Gate
 
@@ -80,6 +96,16 @@ When `verify` fails, the pipeline doesn't immediately abort. Instead:
 2. Re-run `verify` (scripted)
 3. If still failing, retry once more (max 2 attempts)
 4. If all attempts exhausted, pipeline fails
+
+### Apply-Audit Stage
+
+After auditor writes `auditor.md`, the `apply-audit` agent:
+
+1. Reads the `## Chosen Improvement` section
+2. Edits the file specified in `Where:` field
+3. Changes are included in the same PR for human review
+
+This automates process improvements instead of creating orphan markdown files.
 
 ### Stage-Specific Context (No .context.md)
 
@@ -111,12 +137,12 @@ Stage outputs are validated after completion:
 
 ## Task Types & Pipelines
 
-| Task Type | Pipeline                                                                                  |
-| --------- | ----------------------------------------------------------------------------------------- |
-| feat      | spec → clarify → architect → plan-review → build → commit → test → verify → [auditor, pr] |
-| fix       | clarify → architect → plan-review → build → commit → test → verify → [auditor, pr]        |
-| refactor  | clarify → architect → plan-review → build → commit → test → verify → [auditor, pr]        |
-| docs      | build → commit → auditor → pr                                                             |
+| Task Type | Pipeline                                                                              |
+| --------- | ------------------------------------------------------------------------------------- |
+| feat      | spec → architect → plan-review → build → commit → verify → auditor → apply-audit → pr |
+| fix       | architect → plan-review → build → commit → verify → auditor → apply-audit → pr        |
+| refactor  | architect → plan-review → build → commit → verify → auditor → apply-audit → pr        |
+| docs      | build → commit → auditor → apply-audit → pr                                           |
 
 ## Task Structure
 
@@ -126,16 +152,16 @@ Stage outputs are validated after completion:
     ├── task.md           # PRD/requirements (YOU write this)
     ├── task.json         # Task classification (taskify agent)
     ├── spec.md           # Detailed spec (spec agent)
-    ├── questions.md      # Clarification questions (clarify agent)
-    ├── clarified.md      # Q&A answers (operator provides)
+    ├── questions.md      # Clarification questions (clarify agent, opt-in)
+    ├── clarified.md      # Q&A answers (operator provides) or "Use recommended answers."
     ├── plan.md           # Implementation plan (architect agent)
     ├── plan-review.md    # Plan review verdict (plan-review agent)
-    ├── build.md          # Build report (build agent)
-    ├── commit.md         # Commit report (commit agent)
-    ├── test.md           # Test report (test agent)
+    ├── build.md          # Build report + test summary (build agent)
+    ├── commit.md         # Commit report (commit — scripted)
     ├── verify.md         # Verification results (verify — scripted)
     ├── autofix.md        # Auto-fix report (autofix agent, if verify fails)
     ├── auditor.md        # Process improvement (auditor agent)
+    ├── apply-audit.md   # Applied audit (apply-audit agent)
     ├── pr.md             # PR summary (pr — scripted)
     └── status.json       # Pipeline status tracking
 ```
@@ -146,16 +172,25 @@ Stage outputs are validated after completion:
 
 ```
 /cody                              # Full pipeline, auto-generate task-id
+/cody --clarify                    # Full pipeline with clarify stage enabled
 /cody spec 260217-user-metrics     # Run spec phase only
 /cody impl 260217-user-metrics     # Run impl phase only
-/cody rerun 260217-user-metrics --feedback "fix TypeScript errors"
+/cody rerun 260217-user-metrics --feedback "fix this"
 /cody status 260217-user-metrics   # Check pipeline status
 ```
+
+### Via GitHub Workflow Dispatch
+
+- `task_id`: Required
+- `mode`: spec, impl, rerun, full, status (default: full)
+- `clarify`: true/false (default: false) — enable clarify stage
+- `dry_run`: true/false (default: false)
 
 ### Via Local CLI
 
 ```bash
 pnpm cody:run --task-id=260217-user-metrics --mode=full --local
+pnpm cody:run --task-id=260217-user-metrics --mode=full --clarify --local
 pnpm cody:run --task-id=260217-user-metrics --mode=impl --local
 pnpm cody:run --task-id=260217-user-metrics --mode=rerun --from=build --feedback="fix this" --local
 ```

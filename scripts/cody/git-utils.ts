@@ -6,6 +6,8 @@
  */
 
 import { execSync } from 'child_process'
+import * as fs from 'fs'
+import * as path from 'path'
 
 // ============================================================================
 // Types
@@ -32,6 +34,20 @@ export const BRANCH_PREFIX_MAP: Record<TaskType, string> = {
   docs: 'docs',
   ops: 'chore',
   research: 'feat',
+}
+
+// ============================================================================
+// Commit Type Map
+// ============================================================================
+
+export const COMMIT_TYPE_MAP: Record<TaskType, string> = {
+  spec_only: 'docs',
+  implement_feature: 'feat',
+  fix_bug: 'fix',
+  refactor: 'refactor',
+  docs: 'docs',
+  ops: 'chore',
+  research: 'chore',
 }
 
 /** Well-known base branches — if the current branch is one of these, create a feature branch */
@@ -156,5 +172,185 @@ export function ensureFeatureBranch(taskId: string, taskType: string, projectDir
     execSync(`git pull origin ${defaultBranch}`, { cwd, stdio: 'inherit' })
     execSync(`git checkout -b ${branchName}`, { cwd, stdio: 'inherit' })
     console.log(`[branch] Created and switched to: ${branchName}`)
+  }
+}
+
+// ============================================================================
+// Commit Utilities
+// ============================================================================
+
+/**
+ * Derive conventional commit type from task type.
+ */
+export function deriveCommitType(taskType: string): string {
+  return COMMIT_TYPE_MAP[taskType as TaskType] || 'feat'
+}
+
+/**
+ * Extract commit subject from task.md content.
+ * Uses first non-empty line after the title.
+ */
+export function extractCommitSubject(taskMdContent: string): string {
+  const lines = taskMdContent.split('\n')
+  let foundTitle = false
+
+  for (const line of lines) {
+    // Skip the # Task title line
+    if (line.match(/^#\s+Task/i)) {
+      foundTitle = true
+      continue
+    }
+    // Skip empty lines
+    if (!line.trim()) continue
+    // First non-empty line after title is the subject
+    if (foundTitle || line.match(/^#/)) {
+      // Clean up the subject: remove leading -, *, numbers, etc.
+      const subject = line.replace(/^[-*\d.]\s*/, '').trim()
+      // Truncate to 72 chars (conventional commit subject max)
+      return subject.length > 72 ? subject.slice(0, 69) + '...' : subject
+    }
+  }
+
+  // Fallback: use first non-empty line
+  const firstNonEmpty = lines.find((l) => l.trim())
+  if (firstNonEmpty) {
+    return firstNonEmpty.replace(/^#\s*/, '').slice(0, 72)
+  }
+
+  return 'implement changes'
+}
+
+/**
+ * Extract commit body from build.md content.
+ * Uses the ## Changes section.
+ */
+export function extractCommitBody(buildMdContent: string): string {
+  const changesMatch = buildMdContent.match(/##\s*Changes\s*\n([\s\S]*?)(?=\n##\s|$)/i)
+
+  if (changesMatch && changesMatch[1]) {
+    // Take first few bullet points as body
+    const bullets = changesMatch[1]
+      .split('\n')
+      .filter((line) => line.trim().match(/^[-*•]/))
+      .slice(0, 5)
+      .map((line) => line.replace(/^[-*•]\s*/, '').trim())
+      .join('. ')
+
+    if (bullets.length > 20) return bullets
+  }
+
+  // Fallback: generic body
+  return 'See build report for details.'
+}
+
+/**
+ * Commit and push changes to the current branch.
+ * Uses conventional commit format.
+ */
+export function commitAndPush(
+  taskId: string,
+  taskDir: string,
+  cwd?: string,
+): {
+  hash: string
+  branch: string
+  success: boolean
+  message: string
+} {
+  const workDir = cwd || process.cwd()
+
+  // Get current branch
+  const branch = execSync('git branch --show-current', {
+    cwd: workDir,
+    encoding: 'utf-8',
+  }).trim()
+
+  // Read task.json for commit type
+  const taskJsonPath = path.join(taskDir, 'task.json')
+  let taskType = 'implement_feature'
+  let commitType = 'feat'
+
+  if (fs.existsSync(taskJsonPath)) {
+    try {
+      const taskJson = JSON.parse(fs.readFileSync(taskJsonPath, 'utf-8'))
+      taskType = taskJson.task_type || taskType
+      commitType = deriveCommitType(taskType)
+    } catch {
+      // Use default
+    }
+  }
+
+  // Read task.md for subject
+  const taskMdPath = path.join(taskDir, 'task.md')
+  let subject = 'implement changes'
+  if (fs.existsSync(taskMdPath)) {
+    const taskMdContent = fs.readFileSync(taskMdPath, 'utf-8')
+    subject = extractCommitSubject(taskMdContent)
+  }
+
+  // Read build.md for body
+  const buildMdPath = path.join(taskDir, 'build.md')
+  let body = 'See build report for details.'
+  if (fs.existsSync(buildMdPath)) {
+    const buildMdContent = fs.readFileSync(buildMdPath, 'utf-8')
+    body = extractCommitBody(buildMdContent)
+  }
+
+  // Build commit message
+  const commitMessage = `${commitType}(${taskId}): ${subject}\n\n${body}`
+
+  try {
+    // Check if there are changes
+    const status = execSync('git status --porcelain', {
+      cwd: workDir,
+      encoding: 'utf-8',
+    }).trim()
+
+    if (!status) {
+      return {
+        hash: '',
+        branch,
+        success: false,
+        message: 'No changes to commit',
+      }
+    }
+
+    // Stage all changes
+    execSync('git add -A', { cwd: workDir, stdio: 'inherit' })
+
+    // Commit
+    execSync(`git commit --no-gpg-sign -m "${commitMessage.replace(/"/g, '\\"')}"`, {
+      cwd: workDir,
+      stdio: 'inherit',
+    })
+
+    // Get commit hash
+    const hash = execSync('git rev-parse HEAD', {
+      cwd: workDir,
+      encoding: 'utf-8',
+    })
+      .trim()
+      .slice(0, 7)
+
+    // Push
+    execSync('git push -u origin HEAD', {
+      cwd: workDir,
+      stdio: 'inherit',
+    })
+
+    return {
+      hash,
+      branch,
+      success: true,
+      message: `Committed and pushed: ${hash} ${subject}`,
+    }
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error)
+    return {
+      hash: '',
+      branch,
+      success: false,
+      message: `Commit failed: ${msg}`,
+    }
   }
 }

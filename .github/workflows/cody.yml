@@ -15,6 +15,11 @@ on:
         required: false
         type: string
         default: 'full'
+      clarify:
+        description: 'Run clarify stage (opt-in Q&A loop, default: skip)'
+        required: false
+        type: boolean
+        default: false
       dry_run:
         description: 'Dry run mode (no actual execution)'
         required: false
@@ -55,6 +60,7 @@ jobs:
     outputs:
       task_id: ${{ steps.parse.outputs.task_id }}
       mode: ${{ steps.parse.outputs.mode }}
+      clarify: ${{ steps.parse.outputs.clarify }}
       dry_run: ${{ steps.parse.outputs.dry_run }}
       from_stage: ${{ steps.parse.outputs.from_stage }}
       feedback: ${{ steps.parse.outputs.feedback }}
@@ -179,6 +185,7 @@ jobs:
           # Parsed inputs from parse job
           TASK_ID: ${{ needs.parse.outputs.task_id }}
           MODE: ${{ needs.parse.outputs.mode }}
+          CLARIFY: ${{ needs.parse.outputs.clarify }}
           DRY_RUN: ${{ needs.parse.outputs.dry_run }}
           FEEDBACK: ${{ needs.parse.outputs.feedback }}
           FROM_STAGE: ${{ needs.parse.outputs.from_stage }}

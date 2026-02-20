@@ -31,14 +31,12 @@ export const DEFAULT_TIMEOUT = 10 * 60_000
 
 /** Stage-specific timeouts in milliseconds */
 export const STAGE_TIMEOUTS: Record<string, number> = {
-  architect: 15 * 60_000,
-  'plan-review': 5 * 60_000,
+  architect: 30 * 60_000,
   build: 30 * 60_000,
-  commit: 3 * 60_000,
-  autofix: 10 * 60_000,
-  test: 10 * 60_000,
+  'plan-review': 10 * 60_000,
   verify: 10 * 60_000,
   auditor: 5 * 60_000,
+  'apply-audit': 5 * 60_000,
   pr: 5 * 60_000,
 }
 
@@ -50,14 +48,15 @@ export const FAST_MODEL = 'google/gemini-2.5-flash'
 
 /**
  * Stage-specific model overrides. Stages not listed here use DEFAULT_MODEL.
- * Lightweight stages (plan-review, commit, auditor) use the fast model
- * since they do simple checks/formatting, not complex code generation.
+ * Lightweight stages (plan-review, auditor, apply-audit, autofix) use the fast model
+ * since they do simple edits/formatting, not complex code generation.
+ * Note: commit and verify are scripted stages (no LLM).
  */
 export const STAGE_MODELS: Record<string, string> = {
   'plan-review': FAST_MODEL,
-  commit: FAST_MODEL,
   autofix: FAST_MODEL,
   auditor: FAST_MODEL,
+  'apply-audit': FAST_MODEL,
 }
 
 /**

@@ -7,6 +7,7 @@ set -euo pipefail
 echo "=== Starting Cody ==="
 echo "Task: $TASK_ID"
 echo "Mode: $MODE"
+echo "Clarify: $CLARIFY"
 echo "Dry run: $DRY_RUN"
 echo "Trigger: $TRIGGER_TYPE"
 
@@ -20,6 +21,12 @@ fi
 DRY_RUN_FLAG=""
 if [[ "$DRY_RUN" == "true" ]]; then
   DRY_RUN_FLAG="--dry-run"
+fi
+
+# Build clarify flag (opt-in to Q&A loop)
+CLARIFY_FLAG=""
+if [[ "$CLARIFY" == "true" ]]; then
+  CLARIFY_FLAG="--clarify"
 fi
 
 # Build comment-body flag (only for comment triggers)
@@ -36,6 +43,7 @@ pnpm cody:run \
   --trigger-type="$TRIGGER_TYPE" \
   ${RUN_ID:+--run-id="$RUN_ID"} \
   ${RUN_URL:+--run-url="$RUN_URL"} \
+  $CLARIFY_FLAG \
   $DRY_RUN_FLAG \
   ${COMMENT_BODY_FLAG:+"$COMMENT_BODY_FLAG"} \
   ${FEEDBACK:+--feedback="$FEEDBACK"} \

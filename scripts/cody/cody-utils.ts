@@ -29,6 +29,8 @@ export interface CodyInput {
   local?: boolean
   // Path to task description file (for auto-generating task-id and task.md)
   file?: string
+  // Opt-in to run clarify stage (default: skip, auto-create clarified.md)
+  clarify?: boolean
 }
 
 export interface CodyPipelineStatus {
@@ -72,9 +74,9 @@ const VALID_STAGES = [
   'build',
   'commit',
   'autofix',
-  'test',
   'verify',
   'auditor',
+  'apply-audit',
   'pr',
 ]
 
@@ -434,6 +436,8 @@ export function parseCliArgs(argv: string[]): CodyInput {
       i++
     } else if (arg === '--local') {
       input.local = true
+    } else if (arg === '--clarify') {
+      input.clarify = true
     }
   }
 
