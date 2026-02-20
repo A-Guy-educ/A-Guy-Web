@@ -219,7 +219,10 @@ describe('Media Cleanup Endpoint', () => {
     })
   })
 
-  describe('Cleanup Logic', () => {
+  // Skip file upload tests if Vercel Blob is not configured
+  const cleanupTests = process.env.BLOB_READ_WRITE_TOKEN ? describe : describe.skip
+
+  cleanupTests('Cleanup Logic', () => {
     it('deletes expired ephemeral media', async () => {
       // Create expired media
       const expiredDate = new Date(Date.now() - 1000 * 60 * 60).toISOString() // 1 hour ago
