@@ -931,10 +931,14 @@ describe('validation helpers', () => {
 
     expect(isValidStage('taskify')).toBe(true)
     expect(isValidStage('spec')).toBe(true)
+    expect(isValidStage('architect')).toBe(true)
+    expect(isValidStage('plan-review')).toBe(true)
     expect(isValidStage('build')).toBe(true)
-    expect(isValidStage('test')).toBe(true)
+    expect(isValidStage('commit')).toBe(true)
     expect(isValidStage('verify')).toBe(true)
     expect(isValidStage('auditor')).toBe(true)
+    expect(isValidStage('apply-audit')).toBe(true)
+    expect(isValidStage('pr')).toBe(true)
   })
 
   it('isValidStage returns false for invalid stages', async () => {
