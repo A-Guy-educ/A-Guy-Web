@@ -574,25 +574,29 @@ export function parseCommentBody(body: string, issueNumber?: number): ParseComme
     mode = subCmd as CodyInput['mode']
   }
 
-  // Extract task-id (first word of remaining)
+  // Extract task-id — ONLY if it matches the task-id pattern (YYMMDD-description)
+  // If it doesn't match, for rerun mode treat remaining text as implicit feedback
+  // For other modes, leave task-id empty (will be auto-discovered from issue)
+  const taskIdPattern = /^[0-9]{6}-[a-zA-Z0-9-]+$/
+  let implicitFeedback: string | undefined
+
   if (taskId) {
-    const taskIdEnd = taskId.indexOf(' ')
-    if (taskIdEnd !== -1) {
-      taskId = taskId.slice(0, taskIdEnd)
+    const firstWord = taskId.split(' ')[0]
+    if (taskIdPattern.test(firstWord)) {
+      // First word is a valid task-id
+      taskId = firstWord
+    } else {
+      // First word is NOT a task-id
+      if (mode === 'rerun') {
+        // For rerun: treat all remaining text as implicit feedback
+        implicitFeedback = taskId
+      }
+      taskId = '' // will be auto-discovered from issue
     }
   }
 
   // Don't auto-generate task-id here — let parseCliArgs handle discovery + fallback generation
   // This allows discoverTaskIdFromIssue to find the task-id from previous bot comments
-
-  // Validate task-id format (skip if empty — parseCliArgs will handle it)
-  if (taskId && !validateTaskId(taskId)) {
-    return {
-      success: false,
-      error: `Invalid task-id format: ${taskId}`,
-      errorComment: `Invalid task ID format: \`${taskId}\`. Expected: \`YYMMDD-description\` (e.g., \`260217-user-metrics\`)`,
-    }
-  }
 
   // Parse remaining options (--feedback, --from, --dry-run)
   // rest contains: for isTaskId case: "options", for explicit mode case: "task-id options"
@@ -647,13 +651,16 @@ export function parseCommentBody(body: string, issueNumber?: number): ParseComme
     }
   }
 
+  // Use implicit feedback if no explicit --feedback was provided (for rerun mode)
+  const finalFeedback = feedback || implicitFeedback
+
   return {
     success: true,
     input: {
       mode,
       taskId,
       dryRun,
-      feedback,
+      feedback: finalFeedback,
       fromStage,
       issueNumber,
       triggerType: 'comment',

@@ -722,8 +722,9 @@ async function runRerunPipeline(
     input.fromStage = 'build'
   }
 
+  // Default feedback if not provided (e.g., from implicit feedback in comment)
   if (!input.feedback) {
-    throw new Error('--feedback is required for rerun mode')
+    input.feedback = 'Rerun requested via /cody rerun'
   }
 
   const taskDir = ensureTaskDir(input.taskId)
