@@ -145,30 +145,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # OpenCode CLI setup — replicated from anomalyco/opencode/github@latest action.yml
-      # We don't use the Action directly because the orchestrator spawns
-      # `opencode github run` multiple times (once per pipeline stage).
-      - name: Get opencode version
-        id: oc-version
-        run: |
-          VERSION=$(curl -sf https://api.github.com/repos/anomalyco/opencode/releases/latest | grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)
-          echo "version=${VERSION:-latest}" >> $GITHUB_OUTPUT
-
-      - name: Cache opencode
-        uses: actions/cache@v4
-        id: oc-cache
-        with:
-          path: ~/.opencode/bin
-          key: opencode-${{ runner.os }}-${{ runner.arch }}-${{ steps.oc-version.outputs.version }}
-
+      # OpenCode CLI setup via npm (more reliable than curl from opencode.ai)
       - name: Install opencode
-        if: steps.oc-cache.outputs.cache-hit != 'true'
-        run: curl -fsSL https://opencode.ai/install | bash
-
-      - name: Add opencode to PATH
-        run: |
-          echo "$HOME/.opencode/bin" >> $GITHUB_PATH
-          $HOME/.opencode/bin/opencode --version
+        run: npm i -g opencode-ai@latest
 
       - name: Run Cody
         env:
@@ -176,8 +155,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
 
           # LLM provider keys (all available)
+          # Note: GOOGLE_GENERATIVE_AI_API_KEY is for Vercel AI SDK (@ai-sdk/google),
+          # GEMINI_API_KEY is for Google's own SDK (@google/generative-ai)
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
           # OpenCode model configuration
