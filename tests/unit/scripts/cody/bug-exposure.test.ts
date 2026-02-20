@@ -28,10 +28,7 @@ import * as path from 'path'
 
 describe('BUG-7: run-cody.sh must call the correct pnpm script', () => {
   it('should call "pnpm cody" not "pnpm cody:run" (which does not exist)', () => {
-    const runCody = fs.readFileSync(
-      path.join(process.cwd(), 'scripts/cody/run-cody.sh'),
-      'utf-8',
-    )
+    const runCody = fs.readFileSync(path.join(process.cwd(), 'scripts/cody/run-cody.sh'), 'utf-8')
     const packageJson = JSON.parse(
       fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf-8'),
     )
@@ -47,10 +44,7 @@ describe('BUG-7: run-cody.sh must call the correct pnpm script', () => {
   })
 
   it('should not reference any undefined pnpm scripts', () => {
-    const runCody = fs.readFileSync(
-      path.join(process.cwd(), 'scripts/cody/run-cody.sh'),
-      'utf-8',
-    )
+    const runCody = fs.readFileSync(path.join(process.cwd(), 'scripts/cody/run-cody.sh'), 'utf-8')
     const packageJson = JSON.parse(
       fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf-8'),
     )
@@ -82,9 +76,7 @@ describe('BUG-2: cody.yml must forward DISPATCH_CLARIFY to parse job', () => {
 
     // The parse step's env block must include DISPATCH_CLARIFY
     // Find the "Parse command inputs" step and check its env block
-    const parseStepMatch = workflow.match(
-      /- name: Parse command inputs[\s\S]*?env:([\s\S]*?)run:/,
-    )
+    const parseStepMatch = workflow.match(/- name: Parse command inputs[\s\S]*?env:([\s\S]*?)run:/)
     expect(parseStepMatch).not.toBeNull()
 
     const envBlock = parseStepMatch![1]
@@ -110,10 +102,7 @@ describe('BUG-2: cody.yml must forward DISPATCH_CLARIFY to parse job', () => {
 
 describe('BUG-4: commitAndPush must not use shell-interpolated commit messages', () => {
   it('should use execFileSync or array args instead of execSync with string interpolation for git commit', () => {
-    const gitUtils = fs.readFileSync(
-      path.join(process.cwd(), 'scripts/cody/git-utils.ts'),
-      'utf-8',
-    )
+    const gitUtils = fs.readFileSync(path.join(process.cwd(), 'scripts/cody/git-utils.ts'), 'utf-8')
 
     // Find the commitAndPush function
     const commitAndPushSection = gitUtils.slice(
@@ -138,10 +127,7 @@ describe('BUG-4: commitAndPush must not use shell-interpolated commit messages',
 
 describe('BUG-5: commitPipelineFiles must not use shell-interpolated commit messages', () => {
   it('should use execFileSync or array args instead of execSync with string interpolation for git commit', () => {
-    const gitUtils = fs.readFileSync(
-      path.join(process.cwd(), 'scripts/cody/git-utils.ts'),
-      'utf-8',
-    )
+    const gitUtils = fs.readFileSync(path.join(process.cwd(), 'scripts/cody/git-utils.ts'), 'utf-8')
 
     // Find the commitPipelineFiles function
     const commitPipelineSection = gitUtils.slice(
@@ -175,9 +161,7 @@ describe('BUG-6: resolveModel should prefer stage-specific models over env OPENC
   it('should use FAST_MODEL for plan-review even when OPENCODE_MODEL is set', async () => {
     vi.stubEnv('OPENCODE_MODEL', 'minimax-coding-plan/MiniMax-M2.5')
 
-    const { resolveModel, FAST_MODEL } = await import(
-      '../../../../scripts/cody/agent-runner'
-    )
+    const { resolveModel, FAST_MODEL } = await import('../../../../scripts/cody/agent-runner')
 
     // EXPOSES BUG: resolveModel returns OPENCODE_MODEL instead of FAST_MODEL
     // because env check comes before stage-specific check
@@ -188,9 +172,7 @@ describe('BUG-6: resolveModel should prefer stage-specific models over env OPENC
   it('should use FAST_MODEL for auditor even when OPENCODE_MODEL is set', async () => {
     vi.stubEnv('OPENCODE_MODEL', 'minimax-coding-plan/MiniMax-M2.5')
 
-    const { resolveModel, FAST_MODEL } = await import(
-      '../../../../scripts/cody/agent-runner'
-    )
+    const { resolveModel, FAST_MODEL } = await import('../../../../scripts/cody/agent-runner')
 
     const model = resolveModel('auditor')
     expect(model).toBe(FAST_MODEL)
@@ -199,9 +181,7 @@ describe('BUG-6: resolveModel should prefer stage-specific models over env OPENC
   it('should use FAST_MODEL for autofix even when OPENCODE_MODEL is set', async () => {
     vi.stubEnv('OPENCODE_MODEL', 'minimax-coding-plan/MiniMax-M2.5')
 
-    const { resolveModel, FAST_MODEL } = await import(
-      '../../../../scripts/cody/agent-runner'
-    )
+    const { resolveModel, FAST_MODEL } = await import('../../../../scripts/cody/agent-runner')
 
     const model = resolveModel('autofix')
     expect(model).toBe(FAST_MODEL)
@@ -210,9 +190,7 @@ describe('BUG-6: resolveModel should prefer stage-specific models over env OPENC
   it('should use FAST_MODEL for apply-audit even when OPENCODE_MODEL is set', async () => {
     vi.stubEnv('OPENCODE_MODEL', 'minimax-coding-plan/MiniMax-M2.5')
 
-    const { resolveModel, FAST_MODEL } = await import(
-      '../../../../scripts/cody/agent-runner'
-    )
+    const { resolveModel, FAST_MODEL } = await import('../../../../scripts/cody/agent-runner')
 
     const model = resolveModel('apply-audit')
     expect(model).toBe(FAST_MODEL)
@@ -268,10 +246,7 @@ describe('BUG-16: ensureFeatureBranch must unstash after checkout in local mode'
   // We can't test the runtime behavior easily here since the function uses real
   // execSync. Instead, verify the source code includes git stash pop.
   it('should call git stash pop after checkout when stash was performed', () => {
-    const gitUtils = fs.readFileSync(
-      path.join(process.cwd(), 'scripts/cody/git-utils.ts'),
-      'utf-8',
-    )
+    const gitUtils = fs.readFileSync(path.join(process.cwd(), 'scripts/cody/git-utils.ts'), 'utf-8')
 
     // Find the ensureFeatureBranch function
     const fnStart = gitUtils.indexOf('export function ensureFeatureBranch')
@@ -299,10 +274,7 @@ describe('BUG-16: ensureFeatureBranch must unstash after checkout in local mode'
 
 describe('BUG-11: run-cody.sh must safely handle COMMENT_BODY with special characters', () => {
   it('should not use bare variable expansion for COMMENT_BODY in the pnpm command', () => {
-    const runCody = fs.readFileSync(
-      path.join(process.cwd(), 'scripts/cody/run-cody.sh'),
-      'utf-8',
-    )
+    const runCody = fs.readFileSync(path.join(process.cwd(), 'scripts/cody/run-cody.sh'), 'utf-8')
 
     // The COMMENT_BODY_FLAG assignment should properly quote the value
     // BAD:  COMMENT_BODY_FLAG="--comment-body=$COMMENT_BODY"
@@ -312,11 +284,13 @@ describe('BUG-11: run-cody.sh must safely handle COMMENT_BODY with special chara
     // At minimum, the COMMENT_BODY should not be embedded directly in the
     // command line. The current approach of --comment-body=$COMMENT_BODY
     // is vulnerable to shell injection when COMMENT_BODY contains $(), ``, etc.
-    
+
     // Check that COMMENT_BODY is not directly interpolated in the command line
     // The safest approach is to pass it via --comment-body-file or environment variable
-    const hasDangerousInterpolation = /COMMENT_BODY_FLAG="--comment-body=\$COMMENT_BODY"/.test(runCody)
-    
+    const hasDangerousInterpolation = /COMMENT_BODY_FLAG="--comment-body=\$COMMENT_BODY"/.test(
+      runCody,
+    )
+
     expect(
       hasDangerousInterpolation,
       'COMMENT_BODY should not be directly interpolated in shell command flag (injection risk)',
@@ -330,10 +304,7 @@ describe('BUG-11: run-cody.sh must safely handle COMMENT_BODY with special chara
 
 describe('BUG-15: commitAndPush should not blindly stage all files', () => {
   it('should not use "git add -A" which can stage secrets/env files', () => {
-    const gitUtils = fs.readFileSync(
-      path.join(process.cwd(), 'scripts/cody/git-utils.ts'),
-      'utf-8',
-    )
+    const gitUtils = fs.readFileSync(path.join(process.cwd(), 'scripts/cody/git-utils.ts'), 'utf-8')
 
     // Find the commitAndPush function specifically
     const fnStart = gitUtils.indexOf('export function commitAndPush')
@@ -341,7 +312,7 @@ describe('BUG-15: commitAndPush should not blindly stage all files', () => {
     const fnBody = gitUtils.slice(fnStart, fnEnd > -1 ? fnEnd : undefined)
 
     // EXPOSES BUG: should use targeted staging, not git add -A
-    const usesAddAll = fnBody.includes("git add -A")
+    const usesAddAll = fnBody.includes('git add -A')
 
     expect(
       usesAddAll,
