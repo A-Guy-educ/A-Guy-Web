@@ -86,6 +86,27 @@ export function ensureFeatureBranch(taskId: string, taskType: string, projectDir
   if (remoteBranchExists) {
     // Branch exists on remote — checkout and track it
     console.log(`[branch] Remote branch exists, checking out: ${branchName}`)
+    // Clean dirty state from previous failed runs before switching
+    // Only run destructive clean in CI — in local mode, abort if working tree is dirty
+    if (process.env.GITHUB_ACTIONS) {
+      try {
+        execSync('git checkout -- .', { cwd, stdio: 'pipe' })
+        execSync('git clean -fd', { cwd, stdio: 'pipe' })
+      } catch {
+        // Ignore — working tree may already be clean
+      }
+    } else {
+      // Local mode: check for uncommitted changes and warn
+      try {
+        const status = execSync('git status --porcelain', { cwd, encoding: 'utf-8' }).trim()
+        if (status) {
+          console.warn('[branch] ⚠ Working tree has uncommitted changes — stashing before checkout')
+          execSync('git stash --include-untracked', { cwd, stdio: 'pipe' })
+        }
+      } catch {
+        // Ignore status check errors
+      }
+    }
     execSync(`git checkout ${branchName}`, { cwd, stdio: 'inherit' })
     execSync(`git pull origin ${branchName}`, { cwd, stdio: 'inherit' })
     console.log(`[branch] Checked out and pulled: ${branchName}`)

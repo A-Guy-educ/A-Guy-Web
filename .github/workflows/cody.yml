@@ -63,6 +63,12 @@ jobs:
       trigger_type: ${{ steps.parse.outputs.trigger_type }}
       comment_body: ${{ steps.parse.outputs.comment_body }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/cody
+          sparse-checkout-cone-mode: true
+
       # For comments: validate safety filters before parsing
       - name: Validate comment trigger safety
         if: github.event_name == 'issue_comment'
@@ -71,29 +77,7 @@ jobs:
           COMMENT_BODY: ${{ github.event.comment.body }}
           AUTHOR: ${{ github.event.comment.user.login }}
           ASSOCIATION: ${{ github.event.comment.author_association }}
-        run: |
-          # Bot filter: ignore comments from known bot accounts
-          if [[ "$AUTHOR" == "github-actions[bot]" ]] || [[ "$AUTHOR" == *"bot"* ]]; then
-            echo "valid=false" >> $GITHUB_OUTPUT
-            echo "reason=bot" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          # Author association: only OWNER, MEMBER, COLLABORATOR
-          if [[ "$ASSOCIATION" != "OWNER" ]] && [[ "$ASSOCIATION" != "MEMBER" ]] && [[ "$ASSOCIATION" != "COLLABORATOR" ]]; then
-            echo "valid=false" >> $GITHUB_OUTPUT
-            echo "reason=unauthorized" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          # Pattern: must match ^/cody (with optional trailing space)
-          if ! echo "$COMMENT_BODY" | grep -qE '^/cody([[:space:]]|$)'; then
-            echo "valid=false" >> $GITHUB_OUTPUT
-            echo "reason=pattern" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          echo "valid=true" >> $GITHUB_OUTPUT
+        run: ./scripts/cody/parse-safety.sh
 
       # Parse command: dispatch inputs forwarded, comment body passed to orchestrator
       - name: Parse command inputs
@@ -111,61 +95,9 @@ jobs:
           # Comment inputs (for orchestrator to parse)
           COMMENT_BODY: ${{ github.event.comment.body }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
-        run: |
-          # Default outputs (task_id intentionally omitted — set later after discovery)
-          echo "mode=full" >> $GITHUB_OUTPUT
-          echo "dry_run=false" >> $GITHUB_OUTPUT
-          echo "from_stage=" >> $GITHUB_OUTPUT
-          echo "feedback=" >> $GITHUB_OUTPUT
-          echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
-          echo "trigger_type=" >> $GITHUB_OUTPUT
-          echo "comment_body=" >> $GITHUB_OUTPUT
-          echo "valid=false" >> $GITHUB_OUTPUT
-
-          # Handle workflow_dispatch
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            if [[ -z "$DISPATCH_TASK_ID" ]]; then
-              echo "=== Error: task_id is required for dispatch ==="
-              exit 0
-            fi
-            echo "task_id=$DISPATCH_TASK_ID" >> $GITHUB_OUTPUT
-            echo "mode=${DISPATCH_MODE:-full}" >> $GITHUB_OUTPUT
-            echo "dry_run=$DISPATCH_DRY_RUN" >> $GITHUB_OUTPUT
-            echo "feedback=$DISPATCH_FEEDBACK" >> $GITHUB_OUTPUT
-            echo "from_stage=$DISPATCH_FROM_STAGE" >> $GITHUB_OUTPUT
-            echo "trigger_type=dispatch" >> $GITHUB_OUTPUT
-            echo "valid=true" >> $GITHUB_OUTPUT
-            echo "=== Parsed dispatch: task_id=$DISPATCH_TASK_ID, mode=${DISPATCH_MODE:-full} ==="
-            exit 0
-          fi
-
-          # Handle issue_comment
-          # Safety check first
-          if [[ "$SAFETY_VALID" != "true" ]]; then
-            echo "=== Safety check failed: $SAFETY_REASON ==="
-            exit 0
-          fi
-
-          # Discover task-id from previous bot comments on the issue
-          # This allows the second /cody call to pick up the same task-id
-          DISCOVERED_TASK_ID=""
-          if [[ -n "$ISSUE_NUMBER" ]]; then
-            DISCOVERED_TASK_ID=$(gh issue view "$ISSUE_NUMBER" --json comments --jq '[.comments[] | select(.author.login == "github-actions[bot]")] | .[].body' 2>/dev/null | grep -oP 'Task created: `\K[0-9]{6}-[a-zA-Z0-9-]+' | head -1 || true)
-            if [[ -n "$DISCOVERED_TASK_ID" ]]; then
-              echo "=== Discovered task-id from issue: $DISCOVERED_TASK_ID ==="
-              echo "task_id=$DISCOVERED_TASK_ID" >> $GITHUB_OUTPUT
-            fi
-          fi
-
-          # Pass raw comment body to orchestrator for parsing
-          # Escape for JSON/GITHUB_OUTPUT (replace newlines, quotes)
-          # Use printf '%s' to avoid echo's trailing newline being captured by jq
-          ESCAPED_BODY=$(printf '%s' "$COMMENT_BODY" | jq -Rs .)
-          echo "comment_body=$ESCAPED_BODY" >> $GITHUB_OUTPUT
-          echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
-          echo "trigger_type=comment" >> $GITHUB_OUTPUT
-          echo "valid=true" >> $GITHUB_OUTPUT
-          echo "=== Passing comment to orchestrator for parsing ==="
+          # GitHub context (needed by script to detect trigger type)
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+        run: ./scripts/cody/parse-inputs.sh
 
   # Job 2: Orchestrate - run the pipeline
   orchestrate:
@@ -190,18 +122,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TASK_ID: ${{ needs.parse.outputs.task_id }}
-        run: |
-          # Try common branch prefixes for the task-id
-          for prefix in feat fix refactor docs chore; do
-            BRANCH="${prefix}/${TASK_ID}"
-            if git rev-parse --verify "origin/${BRANCH}" >/dev/null 2>&1; then
-              echo "=== Found feature branch: $BRANCH ==="
-              git checkout "$BRANCH"
-              git pull origin "$BRANCH"
-              exit 0
-            fi
-          done
-          echo "=== No feature branch found for $TASK_ID, staying on default branch ==="
+        run: ./scripts/cody/checkout-task-branch.sh
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4

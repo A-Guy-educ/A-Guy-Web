@@ -24,6 +24,18 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 // ============================================================================
+// Custom Error Types
+// ============================================================================
+
+/** Thrown by plan-review gate to signal architect should retry */
+class PlanReviewFailError extends Error {
+  constructor() {
+    super('Plan review verdict: FAIL')
+    this.name = 'PlanReviewFailError'
+  }
+}
+
+// ============================================================================
 // Helper Functions
 // ============================================================================
 
@@ -43,7 +55,8 @@ function checkForQuestions(questionsPath: string): boolean {
   // - Lines containing "?" character
   // - Sections like "## Questions" or "### Clarifications Needed"
   const hasNumberedQuestions = /^\d+[.)]\s+/m.test(content)
-  const hasQuestionMarks = /\?/.test(content)
+  // Match ? at end of a sentence (after a word char), not in URLs or code
+  const hasQuestionMarks = /\w\?\s*$/m.test(content)
   const hasQuestionHeader = /^#{1,3}\s*(Questions|Clarifications|Needs Clarification)/m.test(
     content,
   )
@@ -124,8 +137,15 @@ function commitTaskFilesCI(input: CodyInput, taskDir: string): void {
     })
     execSync(`git push -u origin HEAD`, { cwd: process.cwd(), stdio: 'inherit' })
     console.log('[commit] Task files committed and pushed')
-  } catch {
-    console.log('[commit] No changes to commit (or git error)')
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error)
+    // "nothing to commit" is expected (exit code 1 from git commit)
+    if (msg.includes('nothing to commit') || msg.includes('no changes added')) {
+      console.log('[commit] No changes to commit')
+    } else {
+      console.error(`[commit] Git error: ${msg}`)
+      throw new Error(`Failed to commit/push task files: ${msg}`)
+    }
   }
 }
 
@@ -148,10 +168,12 @@ import {
 
 // Import from pipeline-utils (reusing existing logic)
 import {
-  writeAgentContext,
   readTask,
   stageOutputFile,
-  SPEC_EXECUTE_VERIFY_STAGES,
+  IMPL_PIPELINE,
+  ALL_IMPL_STAGE_NAMES,
+  isParallelStage,
+  type PipelineStage,
 } from './pipeline-utils'
 
 // Import from new modules
@@ -316,13 +338,26 @@ async function runSpecPipeline(
       continue
     }
 
+    // Skip clarify if spec has no open questions — saves ~60-110s
+    if (stage === 'clarify') {
+      const specFile = path.join(taskDir, 'spec.md')
+      if (fs.existsSync(specFile)) {
+        const specContent = fs.readFileSync(specFile, 'utf-8')
+        const hasOpenQuestions = /##\s*Open Questions/i.test(specContent)
+        if (!hasOpenQuestions) {
+          console.log(`[${i + 1}/${stages.length}] ${stage} skipped — spec has no Open Questions`)
+          updateStageStatus(input.taskId, stage, 'completed', { retries: 0 })
+          continue
+        }
+      }
+    }
+
     console.log(`[${i + 1}/${stages.length}] Running ${stage}...`)
 
     // Update status
     updateStageStatus(input.taskId, stage, 'running')
 
     // Write context
-    writeAgentContext(taskDir)
 
     if (input.dryRun) {
       updateStageStatus(input.taskId, stage, 'completed', { retries: 0 })
@@ -361,6 +396,23 @@ async function runSpecPipeline(
           error: `Invalid task.json: ${msg}`,
         })
         throw new Error(`Taskify produced invalid task.json: ${msg}`)
+      }
+    }
+
+    // Spec content validation: must contain requirements or acceptance criteria
+    if (stage === 'spec' && fs.existsSync(outputFile)) {
+      const specContent = fs.readFileSync(outputFile, 'utf-8')
+      const hasRequirements = /##\s*(Requirements|Functional|FR-|NFR-)/i.test(specContent)
+      const hasAcceptance = /##\s*Acceptance/i.test(specContent)
+      if (!hasRequirements && !hasAcceptance) {
+        // Delete the bad spec so it can be regenerated
+        fs.unlinkSync(outputFile)
+        updateStageStatus(input.taskId, stage, 'failed', {
+          error: 'Spec missing Requirements or Acceptance Criteria sections',
+        })
+        throw new Error(
+          'Spec is missing ## Requirements or ## Acceptance Criteria — cannot proceed to architect',
+        )
       }
     }
 
@@ -472,12 +524,20 @@ async function runImplPipeline(
     return
   }
 
-  // Determine stages based on task type
-  let stages = [...SPEC_EXECUTE_VERIFY_STAGES]
+  // Build the pipeline stages (with parallel support)
+  let pipeline: PipelineStage[] = [...IMPL_PIPELINE]
 
-  // Skip auditor on reruns
+  // Skip auditor on reruns (filter from parallel groups too)
   if (fs.existsSync(path.join(taskDir, 'rerun-feedback.md'))) {
-    stages = stages.filter((s) => s !== 'auditor')
+    pipeline = pipeline
+      .map((stage) => {
+        if (isParallelStage(stage)) {
+          const filtered = stage.parallel.filter((s) => s !== 'auditor')
+          return filtered.length === 1 ? filtered[0] : { parallel: filtered }
+        }
+        return stage === 'auditor' ? null : stage
+      })
+      .filter((s): s is PipelineStage => s !== null)
   }
 
   // Helper: Commit task files after verify passes (local mode only)
@@ -528,36 +588,30 @@ async function runImplPipeline(
     return summary
   }
 
-  for (let i = 0; i < stages.length; i++) {
-    const stage = stages[i]
+  // Helper: Run a single stage (agent-based or scripted)
+  const runSingleStage = async (stage: string): Promise<void> => {
     const outputFile = stageOutputFile(taskDir, stage)
 
     // Skip if output exists (not a re-run)
     if (fs.existsSync(outputFile)) {
-      console.log(`[${i + 1}/${stages.length}] ${stage} already exists, skipping`)
+      console.log(`  ${stage} already exists, skipping`)
       updateStageStatus(input.taskId, stage, 'completed', { outputFile: path.basename(outputFile) })
-      continue
+      return
     }
 
-    console.log(`[${i + 1}/${stages.length}] Running ${stage}...`)
-
-    // Update status
+    console.log(`  Running ${stage}...`)
     updateStageStatus(input.taskId, stage, 'running')
-
-    // Write context
-    writeAgentContext(taskDir)
-
-    // Set up feature branch before build stage (only in impl pipeline)
+    // Set up feature branch before build stage
     if (stage === 'build' && !input.dryRun) {
-      const taskDef = readTask(taskDir)
-      if (taskDef) {
-        ensureFeatureBranch(input.taskId, taskDef.task_type)
+      const td = readTask(taskDir)
+      if (td) {
+        ensureFeatureBranch(input.taskId, td.task_type)
       }
     }
 
     if (input.dryRun) {
       updateStageStatus(input.taskId, stage, 'completed', { retries: 0 })
-      continue
+      return
     }
 
     // Scripted stages: verify and pr run directly, no LLM needed
@@ -566,7 +620,10 @@ async function runImplPipeline(
       if (!verifyResult.passed) {
         updateStageStatus(input.taskId, stage, 'failed', { retries: 0 })
       } else {
-        updateStageStatus(input.taskId, stage, 'completed', { retries: 0, outputFile: path.basename(outputFile) })
+        updateStageStatus(input.taskId, stage, 'completed', {
+          retries: 0,
+          outputFile: path.basename(outputFile),
+        })
       }
     } else if (stage === 'pr') {
       const prResult = runPrStage(taskDir, outputFile)
@@ -574,9 +631,12 @@ async function runImplPipeline(
         updateStageStatus(input.taskId, stage, 'failed', { retries: 0 })
         throw new Error('PR creation failed')
       }
-      updateStageStatus(input.taskId, stage, 'completed', { retries: 0, outputFile: path.basename(outputFile) })
+      updateStageStatus(input.taskId, stage, 'completed', {
+        retries: 0,
+        outputFile: path.basename(outputFile),
+      })
     } else {
-      // Agent-based stages: architect, build, test, auditor
+      // Agent-based stages
       const timeout = STAGE_TIMEOUTS[stage] ?? DEFAULT_TIMEOUT
       const result = await runAgentWithFileWatch(input, stage, outputFile, timeout, { backend })
 
@@ -596,21 +656,60 @@ async function runImplPipeline(
       })
     }
 
-    // Consume rerun-feedback.md after architect succeeds (prevent re-triggering on retry)
+    // Post-stage hooks
     if (stage === 'architect' && fs.existsSync(path.join(taskDir, 'rerun-feedback.md'))) {
       const consumed = path.join(taskDir, 'rerun-feedback.consumed.md')
       fs.renameSync(path.join(taskDir, 'rerun-feedback.md'), consumed)
       console.log(`   Consumed rerun-feedback.md (archived as rerun-feedback.consumed.md)`)
     }
 
-    // Check verify content for FAIL
+    // Plan-review gate: check verdict and fail pipeline on FAIL
+    if (stage === 'plan-review' && fs.existsSync(outputFile)) {
+      const reviewContent = fs.readFileSync(outputFile, 'utf-8')
+      if (/Verdict:\s*FAIL/i.test(reviewContent)) {
+        console.error(`\n❌ Plan review FAILED for ${input.taskId}`)
+        console.error('  The plan does not meet spec requirements. Looping back to architect.\n')
+
+        // Delete plan.md so architect reruns
+        const planFile = stageOutputFile(taskDir, 'architect')
+        if (fs.existsSync(planFile)) fs.unlinkSync(planFile)
+
+        // Delete plan-review.md so it reruns after new plan
+        fs.unlinkSync(outputFile)
+
+        updateStageStatus(input.taskId, stage, 'failed', { error: 'Plan review verdict: FAIL' })
+        throw new PlanReviewFailError()
+      }
+      console.log('  ✅ Plan review: PASS')
+    }
+
+    // Build content validation: must contain a changes section
+    if (stage === 'build' && fs.existsSync(outputFile)) {
+      const buildContent = fs.readFileSync(outputFile, 'utf-8')
+      const hasChanges = /##\s*(Changes|Files)/i.test(buildContent)
+      if (!hasChanges) {
+        console.warn(
+          '  ⚠️  Build report missing Changes section — agent may not have implemented anything',
+        )
+      }
+    }
+
+    // Quick tsc gate after build: don't commit code that doesn't compile
+    if (stage === 'build' && !input.dryRun) {
+      try {
+        execSync('pnpm -s tsc --noEmit', { cwd: process.cwd(), stdio: 'pipe' })
+        console.log('  ✅ Post-build tsc check passed')
+      } catch {
+        console.error('  ❌ Post-build tsc check failed — code does not compile')
+        throw new Error('Build produced code that does not compile. Fix and re-run.')
+      }
+    }
+
     if (stage === 'verify' && fs.existsSync(outputFile)) {
-      const content = fs.readFileSync(outputFile, 'utf-8')
-      if (/FAIL/i.test(content)) {
-        const summary = extractVerifySummary(content)
-
+      const verifyContent = fs.readFileSync(outputFile, 'utf-8')
+      if (/FAIL/i.test(verifyContent)) {
+        const summary = extractVerifySummary(verifyContent)
         console.error(`\n❌ Verification FAILED for ${input.taskId}`)
-
         if (summary.typeScriptErrors > 0 || summary.testFailures > 0 || summary.lintErrors > 0) {
           console.error('\n📋 Failure Summary:')
           if (summary.typeScriptErrors > 0)
@@ -623,14 +722,158 @@ async function runImplPipeline(
           }
         }
 
-        console.error(`\n📄 Full report: ${outputFile}`)
-        throw new Error('Verification failed')
+        // Auto-fix loop: attempt to fix lint/type/format errors automatically
+        const MAX_AUTOFIX_ATTEMPTS = 2
+        let fixed = false
+
+        for (let attempt = 1; attempt <= MAX_AUTOFIX_ATTEMPTS; attempt++) {
+          console.log(`\n🔧 Auto-fix attempt ${attempt}/${MAX_AUTOFIX_ATTEMPTS}...`)
+
+          // Run autofix agent
+          const autofixOutput = stageOutputFile(taskDir, 'autofix')
+          // Remove previous autofix output if any
+          if (fs.existsSync(autofixOutput)) fs.unlinkSync(autofixOutput)
+
+          updateStageStatus(input.taskId, 'autofix', 'running')
+
+          if (!input.dryRun) {
+            const autofixTimeout = STAGE_TIMEOUTS['autofix'] ?? DEFAULT_TIMEOUT
+            const autofixResult = await runAgentWithFileWatch(
+              input,
+              'autofix',
+              autofixOutput,
+              autofixTimeout,
+              { backend },
+            )
+
+            if (!autofixResult.succeeded) {
+              console.error(`  ❌ Autofix agent failed (attempt ${attempt})`)
+              updateStageStatus(input.taskId, 'autofix', 'failed', {
+                retries: autofixResult.retries,
+              })
+              continue
+            }
+            updateStageStatus(input.taskId, 'autofix', 'completed', {
+              retries: autofixResult.retries,
+              outputFile: path.basename(autofixOutput),
+            })
+          }
+
+          // Re-run verify after autofix
+          console.log('  Re-running verification...')
+          if (fs.existsSync(outputFile)) fs.unlinkSync(outputFile)
+
+          const reVerify = runVerifyStage(outputFile)
+          if (reVerify.passed) {
+            console.log(`  ✅ Verification passed after autofix attempt ${attempt}`)
+            updateStageStatus(input.taskId, 'verify', 'completed', {
+              retries: 0,
+              outputFile: path.basename(outputFile),
+            })
+            fixed = true
+            break
+          } else {
+            console.error(`  ❌ Verification still failing after autofix attempt ${attempt}`)
+            updateStageStatus(input.taskId, 'verify', 'failed', { retries: 0 })
+          }
+        }
+
+        if (!fixed) {
+          console.error(
+            `\n❌ Auto-fix exhausted ${MAX_AUTOFIX_ATTEMPTS} attempts. Pipeline failed.`,
+          )
+          console.error(`📄 Full report: ${outputFile}`)
+          throw new Error('Verification failed after auto-fix attempts')
+        }
+
+        // Commit autofix changes — the commit agent already ran before verify,
+        // so autofix changes would be lost without this explicit commit
+        if (!input.dryRun) {
+          try {
+            execSync('git add -A', { cwd: process.cwd(), stdio: 'inherit' })
+            execSync(`git commit --no-gpg-sign -m "fix: autofix corrections for ${input.taskId}"`, {
+              cwd: process.cwd(),
+              stdio: 'inherit',
+            })
+            execSync('git push -u origin HEAD', { cwd: process.cwd(), stdio: 'inherit' })
+            console.log('  \u2705 Autofix changes committed and pushed')
+          } catch (error: unknown) {
+            const msg = error instanceof Error ? error.message : String(error)
+            if (msg.includes('nothing to commit') || msg.includes('no changes added')) {
+              console.log('  ⚠ No autofix changes to commit')
+            } else {
+              // Push failure means remote won't have the fixes — fail the pipeline
+              console.error(`  ❌ Failed to commit/push autofix changes: ${msg}`)
+              throw new Error('Autofix changes could not be pushed — remote branch is stale')
+            }
+          }
+        }
       }
-      // Commit task files after verify passes
       commitTaskFiles()
     }
 
-    console.log(`✓ ${stage} complete`)
+    console.log(`  ✓ ${stage} complete`)
+  }
+
+  // Execute pipeline stages (sequential with parallel group support)
+  for (let i = 0; i < pipeline.length; i++) {
+    const pipelineStage = pipeline[i]
+
+    if (isParallelStage(pipelineStage)) {
+      // Run parallel stages concurrently
+      const stageNames = pipelineStage.parallel
+      console.log(`[${i + 1}/${pipeline.length}] Running parallel: [${stageNames.join(', ')}]...`)
+      const results = await Promise.allSettled(stageNames.map((s) => runSingleStage(s)))
+      const failures = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected')
+      if (failures.length > 0) {
+        const failedNames = stageNames.filter((_, i) => results[i].status === 'rejected')
+        const errors = failures.map((f) => f.reason?.message || String(f.reason)).join('; ')
+        throw new Error(`Parallel stages [${failedNames.join(', ')}] failed: ${errors}`)
+      }
+      console.log(`✓ parallel group [${stageNames.join(', ')}] complete`)
+    } else {
+      // Run sequential stage
+      console.log(`[${i + 1}/${pipeline.length}] ${pipelineStage}`)
+      try {
+        await runSingleStage(pipelineStage)
+      } catch (err) {
+        // Plan-review retry loop: if plan-review fails, re-run architect + plan-review (max 2 retries)
+        if (err instanceof PlanReviewFailError) {
+          const MAX_PLAN_RETRIES = 2
+          let planFixed = false
+
+          for (let planAttempt = 1; planAttempt <= MAX_PLAN_RETRIES; planAttempt++) {
+            console.log(
+              `\n🔄 Plan review retry ${planAttempt}/${MAX_PLAN_RETRIES}: re-running architect...`,
+            )
+            await runSingleStage('architect')
+
+            console.log(`  Re-running plan-review...`)
+            try {
+              await runSingleStage('plan-review')
+              planFixed = true
+              break
+            } catch (retryErr) {
+              if (retryErr instanceof PlanReviewFailError) {
+                console.error(
+                  `  Plan review still failing (attempt ${planAttempt}/${MAX_PLAN_RETRIES})`,
+                )
+                continue
+              }
+              throw retryErr // Non plan-review error, propagate
+            }
+          }
+
+          if (!planFixed) {
+            throw new Error(
+              `Plan review failed after ${MAX_PLAN_RETRIES} retries — pipeline stopped`,
+            )
+          }
+        } else {
+          throw err // Non plan-review error, propagate
+        }
+      }
+    }
   }
 
   console.log('\n✅ Cody IMPLEMENTATION pipeline complete')
@@ -687,8 +930,8 @@ async function runRerunPipeline(
   console.log(`From stage: ${input.fromStage}\n`)
 
   // Delete stage files from rerun point onwards
-  const fromIndex = SPEC_EXECUTE_VERIFY_STAGES.indexOf(input.fromStage)
-  const stagesToDelete = SPEC_EXECUTE_VERIFY_STAGES.slice(fromIndex)
+  const fromIndex = ALL_IMPL_STAGE_NAMES.indexOf(input.fromStage)
+  const stagesToDelete = ALL_IMPL_STAGE_NAMES.slice(fromIndex)
 
   for (const stage of stagesToDelete) {
     const stageFile = stageOutputFile(taskDir, stage)
@@ -697,9 +940,6 @@ async function runRerunPipeline(
       console.log(`Deleted: ${stage}.md`)
     }
   }
-
-  // Update context
-  writeAgentContext(taskDir)
 
   // Run impl pipeline (it will skip completed stages and re-run from the right point)
   await runImplPipeline(input, status, backend)

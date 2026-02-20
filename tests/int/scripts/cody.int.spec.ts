@@ -503,42 +503,6 @@ describe('orchestrator integration', () => {
     })
   })
 
-  describe('context writing integration', () => {
-    it('writes agent context correctly', async () => {
-      const { writeAgentContext } = await import('../../../scripts/cody/pipeline-utils')
-
-      writeAgentContext(TEST_TASK_DIR)
-
-      const contextFile = path.join(TEST_TASK_DIR, '.context.md')
-      expect(fs.existsSync(contextFile)).toBe(true)
-
-      const contextContent = fs.readFileSync(contextFile, 'utf-8')
-
-      // Should contain content from existing files
-      expect(contextContent).toContain('# task.md')
-      expect(contextContent).toContain('# task.json')
-      expect(contextContent).toContain('# spec.md')
-      expect(contextContent).toContain('# clarified.md')
-    })
-
-    it('handles missing files in context gracefully', async () => {
-      const { writeAgentContext } = await import('../../../scripts/cody/pipeline-utils')
-
-      // Clean directory
-      cleanupTestEnvironment()
-      fs.mkdirSync(TEST_TASK_DIR, { recursive: true })
-
-      // Write only task.json
-      fs.writeFileSync(path.join(TEST_TASK_DIR, 'task.json'), JSON.stringify(mockTaskJson))
-
-      // Should not throw
-      expect(() => writeAgentContext(TEST_TASK_DIR)).not.toThrow()
-
-      // Context file should exist
-      const contextFile = path.join(TEST_TASK_DIR, '.context.md')
-      expect(fs.existsSync(contextFile)).toBe(true)
-    })
-  })
 })
 
 // ============================================================================

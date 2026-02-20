@@ -37,6 +37,8 @@ export interface CodyPipelineStatus {
   pipeline: string
   startedAt: string
   updatedAt: string
+  completedAt?: string
+  totalElapsed?: number
   state: 'running' | 'completed' | 'failed' | 'timeout'
   currentStage: string | null
   stages: Record<string, StageStatus>
@@ -66,7 +68,10 @@ const VALID_STAGES = [
   'spec',
   'clarify',
   'architect',
+  'plan-review',
   'build',
+  'commit',
+  'autofix',
   'test',
   'verify',
   'auditor',
@@ -163,6 +168,13 @@ export function updateStageStatus(
 
   const stageStatus = status.stages[stage]
 
+  // Apply extras (retries, outputFile, error) — works for both new and existing stages
+  if (extras) {
+    if (extras.retries !== undefined) stageStatus.retries = extras.retries
+    if (extras.outputFile !== undefined) stageStatus.outputFile = extras.outputFile
+    if (extras.error !== undefined) stageStatus.error = extras.error
+  }
+
   if (state === 'running') {
     stageStatus.state = 'running'
     stageStatus.startedAt = now
@@ -171,9 +183,6 @@ export function updateStageStatus(
     stageStatus.completedAt = now
     if (stageStatus.startedAt) {
       stageStatus.elapsed = new Date(now).getTime() - new Date(stageStatus.startedAt).getTime()
-    }
-    if (extras?.error) {
-      stageStatus.error = extras.error
     }
   }
 
@@ -186,8 +195,13 @@ export function completeStatus(taskId: string, state: CodyPipelineStatus['state'
   const status = readStatus(taskId)
   if (!status) return
 
+  const now = new Date().toISOString()
   status.state = state
-  status.updatedAt = new Date().toISOString()
+  status.updatedAt = now
+  status.completedAt = now
+  if (status.startedAt) {
+    status.totalElapsed = new Date(now).getTime() - new Date(status.startedAt).getTime()
+  }
   writeStatus(taskId, status)
 }
 
@@ -568,8 +582,15 @@ export function parseCommentBody(body: string, issueNumber?: number): ParseComme
       dryRun = true
       i++
     } else if (opt === '--feedback' && options[i + 1]) {
-      feedback = options[i + 1]
-      i += 2
+      // Capture all remaining words until the next --flag as feedback
+      const feedbackParts: string[] = []
+      let j = i + 1
+      while (j < options.length && !options[j].startsWith('--')) {
+        feedbackParts.push(options[j])
+        j++
+      }
+      feedback = feedbackParts.join(' ')
+      i = j
     } else if (opt === '--from' && options[i + 1]) {
       fromStage = options[i + 1]
       // Validate from stage

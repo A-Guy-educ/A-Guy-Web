@@ -5,7 +5,7 @@
  * @ai-summary Direct script execution for verify and PR stages — no LLM needed for mechanical tasks
  */
 
-import { execSync } from 'child_process'
+import { execFileSync, execSync } from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
 
@@ -44,7 +44,8 @@ export function runVerifyStage(outputFile: string, cwd: string = process.cwd()):
   const gates: GateResult[] = [
     runGate('TypeScript', 'pnpm -s tsc --noEmit', cwd),
     runGate('Lint', 'pnpm -s lint', cwd),
-    runGate('Format', 'pnpm -s format', cwd),
+    runGate('Format', 'pnpm -s format:check', cwd),
+    runGate('Unit Tests', 'pnpm -s test:unit', cwd),
   ]
 
   const allPassed = gates.every((g) => g.passed)
@@ -96,10 +97,14 @@ function getDefaultBranch(cwd: string): string {
 
 function getExistingPr(branch: string, cwd: string): string | null {
   try {
-    const output = execSync(`gh pr list --head "${branch}" --json url --jq '.[0].url'`, {
-      cwd,
-      encoding: 'utf-8',
-    }).trim()
+    const output = execFileSync(
+      'gh',
+      ['pr', 'list', '--head', branch, '--json', 'url', '--jq', '.[0].url'],
+      {
+        cwd,
+        encoding: 'utf-8',
+      },
+    ).trim()
     return output || null
   } catch {
     return null
@@ -122,7 +127,10 @@ function buildPrTitle(taskDir: string, defaultBranch: string, cwd: string): stri
   const taskMdPath = path.join(taskDir, 'task.md')
   let taskDescription = ''
   if (fs.existsSync(taskMdPath)) {
-    taskDescription = fs.readFileSync(taskMdPath, 'utf-8').replace(/^#\s*Task\s*/i, '').trim()
+    taskDescription = fs
+      .readFileSync(taskMdPath, 'utf-8')
+      .replace(/^#\s*Task\s*/i, '')
+      .trim()
   }
 
   // Read task.json for type
@@ -164,13 +172,20 @@ function buildPrTitle(taskDir: string, defaultBranch: string, cwd: string): stri
 function buildPrBody(taskDir: string, defaultBranch: string, cwd: string): string {
   const commits = getCommitSummary(defaultBranch, cwd)
 
-  // Read spec for context
+  // Read spec for context — extract ## Overview section if present
   const specPath = path.join(taskDir, 'spec.md')
   let specSummary = ''
   if (fs.existsSync(specPath)) {
     const spec = fs.readFileSync(specPath, 'utf-8')
-    // Take first 500 chars of spec as summary
-    specSummary = spec.slice(0, 500)
+    // Try to extract the ## Overview section
+    const overviewMatch = spec.match(/##\s*Overview\n([\s\S]*?)(?=\n##\s|$)/)
+    if (overviewMatch) {
+      specSummary = overviewMatch[1].trim()
+    } else {
+      // Fallback: first paragraph (up to first blank line or 500 chars)
+      const firstPara = spec.split(/\n\n/)[0] || ''
+      specSummary = firstPara.slice(0, 500).trim()
+    }
   }
 
   const lines = ['## Summary\n']
@@ -214,7 +229,7 @@ export function runPrStage(
   // Step 2: Push branch
   console.log(`  Pushing branch ${branch}...`)
   try {
-    execSync(`git push -u origin ${branch}`, { cwd, stdio: 'inherit' })
+    execFileSync('git', ['push', '-u', 'origin', branch], { cwd, stdio: 'inherit' })
   } catch {
     console.log('  Push failed (may already be up to date)')
   }
@@ -225,11 +240,12 @@ export function runPrStage(
 
   console.log(`  Title: ${title}`)
 
-  // Step 4: Create PR via gh CLI using stdin for body
+  // Step 4: Create PR via gh CLI — use execFileSync with arg array to prevent injection
   let prUrl = ''
   try {
-    prUrl = execSync(
-      `gh pr create --title "${title.replace(/"/g, '\\"')}" --base "${defaultBranch}" --body-file -`,
+    prUrl = execFileSync(
+      'gh',
+      ['pr', 'create', '--title', title, '--base', defaultBranch, '--body-file', '-'],
       {
         cwd,
         encoding: 'utf-8',
