@@ -18,17 +18,17 @@ describe('GitHubRunner', () => {
     expect(runner.name).toBe('opencode-github')
   })
 
-  it('should call spawn with "opencode" and ["github", "run"]', () => {
+  it('should call spawn with "opencode" and ["run", "--agent", stage, prompt]', () => {
     const runner = new GitHubRunner()
     const env = { PATH: '/usr/bin' } as unknown as NodeJS.ProcessEnv
 
     runner.spawn('spec', 'Write tests', env, '/my/project')
 
     expect(spawn).toHaveBeenCalledOnce()
-    expect(spawn).toHaveBeenCalledWith('opencode', ['github', 'run'], {
+    expect(spawn).toHaveBeenCalledWith('opencode', ['run', '--agent', 'spec', 'Write tests'], {
       cwd: '/my/project',
       stdio: 'inherit',
-      env: { PATH: '/usr/bin', AGENT: 'spec', PROMPT: 'Write tests' },
+      env: { PATH: '/usr/bin' },
     })
   })
 
@@ -40,22 +40,21 @@ describe('GitHubRunner', () => {
 
     expect(spawn).toHaveBeenCalledWith(
       'opencode',
-      ['github', 'run'],
+      ['run', '--agent', 'execute', 'Do the thing'],
       expect.objectContaining({ cwd: '/workspace/repo' }),
     )
   })
 
-  it('should set AGENT and PROMPT env vars from arguments', () => {
+  it('should pass env vars through unchanged', () => {
     const runner = new GitHubRunner()
-    const env = { EXISTING: 'value' } as unknown as NodeJS.ProcessEnv
+    const env = { EXISTING: 'value', MODEL: 'gpt-4' } as unknown as NodeJS.ProcessEnv
 
     runner.spawn('verify', 'Check results', env, '/cwd')
 
     const calledEnv = vi.mocked(spawn).mock.calls[0][2]?.env
     expect(calledEnv).toMatchObject({
       EXISTING: 'value',
-      AGENT: 'verify',
-      PROMPT: 'Check results',
+      MODEL: 'gpt-4',
     })
   })
 })
@@ -70,7 +69,7 @@ describe('LocalRunner', () => {
     expect(runner.name).toBe('opencode-local')
   })
 
-  it('should call spawn with "pnpm" and correct arguments including fullPrompt', () => {
+  it('should call spawn with "pnpm" and --agent flag', () => {
     const runner = new LocalRunner()
     const env = { PATH: '/usr/bin' } as unknown as NodeJS.ProcessEnv
 
@@ -79,22 +78,21 @@ describe('LocalRunner', () => {
     expect(spawn).toHaveBeenCalledOnce()
     expect(spawn).toHaveBeenCalledWith(
       'pnpm',
-      ['ocode', 'run', '--agent', 'spec', 'Execute spec for this task. Write a spec'],
+      ['ocode', 'run', '--agent', 'spec'],
       expect.objectContaining({ cwd: '/my/project', stdio: 'inherit' }),
     )
   })
 
-  it('should construct fullPrompt that includes stage name and original prompt', () => {
+  it('should pass prompt via PROMPT env var', () => {
     const runner = new LocalRunner()
     const env = {} as NodeJS.ProcessEnv
 
     runner.spawn('execute', 'Implement the feature', env, '/cwd')
 
-    const calledArgs = vi.mocked(spawn).mock.calls[0][1]
-    const fullPrompt = calledArgs![calledArgs!.length - 1]
-    expect(fullPrompt).toBe('Execute execute for this task. Implement the feature')
-    expect(fullPrompt).toContain('execute')
-    expect(fullPrompt).toContain('Implement the feature')
+    const calledEnv = vi.mocked(spawn).mock.calls[0][2]?.env
+    expect(calledEnv).toMatchObject({
+      PROMPT: 'Implement the feature',
+    })
   })
 
   it('should pass MODEL env var through', () => {
