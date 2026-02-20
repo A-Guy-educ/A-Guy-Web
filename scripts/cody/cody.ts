@@ -337,7 +337,7 @@ async function runSpecPipeline(
     commitPipelineFiles({
       taskDir,
       taskId: input.taskId,
-      message: `cody: save task files for ${input.taskId}`,
+      message: `ci(cody): save task files for ${input.taskId}\n\nAuto-committed by Cody pipeline`,
       ensureBranch: true,
       cleanDirtyState: true,
       stagingStrategy: 'task-only',
@@ -354,7 +354,7 @@ async function runSpecPipeline(
   commitPipelineFiles({
     taskDir,
     taskId: input.taskId,
-    message: `cody: save task files for ${input.taskId}`,
+    message: `ci(cody): save task files for ${input.taskId}\n\nAuto-committed by Cody pipeline`,
     ensureBranch: true,
     cleanDirtyState: true,
     stagingStrategy: 'task-only',
