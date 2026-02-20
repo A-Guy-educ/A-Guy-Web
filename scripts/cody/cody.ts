@@ -457,7 +457,8 @@ async function runImplPipeline(
 
     // Scripted stages: verify, commit, and pr run directly, no LLM needed
     if (stage === 'verify') {
-      const verifyResult = runVerifyStage(outputFile)
+      const verifyTimeout = STAGE_TIMEOUTS[stage] ?? DEFAULT_TIMEOUT
+      const verifyResult = runVerifyStage(outputFile, undefined, verifyTimeout)
       if (!verifyResult.passed) {
         updateStageStatus(input.taskId, stage, 'failed', { retries: 0 })
       } else {
@@ -737,8 +738,24 @@ async function runRerunPipeline(
   console.log(`Feedback: ${input.feedback}`)
   console.log(`From stage: ${input.fromStage}\n`)
 
+  // Normalize fromStage: handle special sub-stages that aren't in ALL_IMPL_STAGE_NAMES
+  // autofix is a sub-stage of verify, so treat it as starting from verify
+  let normalizedFromStage = input.fromStage
+  if (normalizedFromStage === 'autofix') {
+    console.log('  Note: autofix is a sub-stage of verify, rerunning from verify')
+    normalizedFromStage = 'verify'
+  }
+
   // Delete stage files from rerun point onwards
-  const fromIndex = ALL_IMPL_STAGE_NAMES.indexOf(input.fromStage)
+  let fromIndex = ALL_IMPL_STAGE_NAMES.indexOf(normalizedFromStage)
+  // Handle unknown stages - default to start of pipeline
+  if (fromIndex === -1) {
+    console.log(
+      `  Warning: Unknown stage "${normalizedFromStage}", defaulting to start from architect`,
+    )
+    fromIndex = 0
+    normalizedFromStage = ALL_IMPL_STAGE_NAMES[0]
+  }
   const stagesToDelete = ALL_IMPL_STAGE_NAMES.slice(fromIndex)
 
   for (const stage of stagesToDelete) {
