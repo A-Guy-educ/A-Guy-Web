@@ -6,7 +6,11 @@ vi.mock('child_process', () => ({
   execSync: vi.fn(),
 }))
 
-import { ensureFeatureBranch, getDefaultBranch, BRANCH_PREFIX_MAP } from '../../../../scripts/cody/git-utils'
+import {
+  ensureFeatureBranch,
+  getDefaultBranch,
+  BRANCH_PREFIX_MAP,
+} from '../../../../scripts/cody/git-utils'
 
 // ============================================================================
 // BRANCH_PREFIX_MAP

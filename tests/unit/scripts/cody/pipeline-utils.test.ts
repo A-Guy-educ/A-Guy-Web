@@ -441,9 +441,8 @@ describe('pipeline-utils', () => {
 // ==========================================================================
 describe('pipeline stage definitions', () => {
   it('should export ALL_IMPL_STAGE_NAMES matching IMPL_PIPELINE', async () => {
-    const { ALL_IMPL_STAGE_NAMES, IMPL_PIPELINE, flattenPipeline } = await import(
-      '../../../../scripts/cody/pipeline-utils'
-    )
+    const { ALL_IMPL_STAGE_NAMES, IMPL_PIPELINE, flattenPipeline } =
+      await import('../../../../scripts/cody/pipeline-utils')
     expect(ALL_IMPL_STAGE_NAMES).toEqual(flattenPipeline(IMPL_PIPELINE))
   })
 
@@ -474,9 +473,8 @@ describe('pipeline stage definitions', () => {
   })
 
   it('should flatten parallel groups correctly', async () => {
-    const { flattenPipeline, flattenStage, isParallelStage } = await import(
-      '../../../../scripts/cody/pipeline-utils'
-    )
+    const { flattenPipeline, flattenStage, isParallelStage } =
+      await import('../../../../scripts/cody/pipeline-utils')
 
     // Sequential stage
     expect(flattenStage('build')).toEqual(['build'])

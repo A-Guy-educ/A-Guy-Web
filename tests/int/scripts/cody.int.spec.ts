@@ -505,7 +505,6 @@ describe('orchestrator integration', () => {
       expect(result.errors.some((e) => e.includes('task_type'))).toBe(true)
     })
   })
-
 })
 
 // ============================================================================

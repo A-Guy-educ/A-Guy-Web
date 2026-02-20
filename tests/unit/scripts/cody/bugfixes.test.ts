@@ -41,9 +41,8 @@ describe('BUG-3: Stale pipeline exports removed', () => {
   })
 
   it('should export IMPL_PIPELINE with parallel group', async () => {
-    const { IMPL_PIPELINE, isParallelStage } = await import(
-      '../../../../scripts/cody/pipeline-utils'
-    )
+    const { IMPL_PIPELINE, isParallelStage } =
+      await import('../../../../scripts/cody/pipeline-utils')
     // Last stage should be a parallel group
     const lastStage = IMPL_PIPELINE[IMPL_PIPELINE.length - 1]
     expect(isParallelStage(lastStage)).toBe(true)
@@ -175,10 +174,7 @@ describe('BUG-4: updateStageStatus uses atomic write', () => {
 describe('BUG-5: Autofix uses targeted staging', () => {
   it('should use git add -u instead of git add -A in autofix commit', () => {
     // Read cody.ts and verify the fix
-    const codyContent = fs.readFileSync(
-      path.join(process.cwd(), 'scripts/cody/cody.ts'),
-      'utf-8',
-    )
+    const codyContent = fs.readFileSync(path.join(process.cwd(), 'scripts/cody/cody.ts'), 'utf-8')
 
     // Find the autofix commit code section
     const autofixSection = codyContent.slice(
@@ -187,13 +183,13 @@ describe('BUG-5: Autofix uses targeted staging', () => {
     )
 
     // Extract only actual code lines (execSync calls), not comments
-    const codeLines = autofixSection
-      .split('\n')
-      .filter((line: string) => {
-        const trimmed = line.trim()
-        // Only lines that start with actual code, not comments
-        return trimmed.startsWith('execSync') || trimmed.startsWith('const ') || trimmed.startsWith('let ')
-      })
+    const codeLines = autofixSection.split('\n').filter((line: string) => {
+      const trimmed = line.trim()
+      // Only lines that start with actual code, not comments
+      return (
+        trimmed.startsWith('execSync') || trimmed.startsWith('const ') || trimmed.startsWith('let ')
+      )
+    })
 
     // Verify 'git add -u' is used in code
     const hasAddU = codeLines.some((l: string) => l.includes("'git add -u'"))
@@ -211,10 +207,7 @@ describe('BUG-5: Autofix uses targeted staging', () => {
 
 describe('BUG-6: commitTaskFilesCI dirty state cleanup', () => {
   it('should include git checkout and git clean in commitTaskFilesCI', () => {
-    const codyContent = fs.readFileSync(
-      path.join(process.cwd(), 'scripts/cody/cody.ts'),
-      'utf-8',
-    )
+    const codyContent = fs.readFileSync(path.join(process.cwd(), 'scripts/cody/cody.ts'), 'utf-8')
 
     // Find the commitTaskFilesCI function
     const fnStart = codyContent.indexOf('function commitTaskFilesCI')

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import * as childProcess from 'child_process'
 import * as fs from 'fs'
-import { getDefaultBranch } from "../../../../scripts/cody/git-utils"
+import { getDefaultBranch } from '../../../../scripts/cody/git-utils'
 
 // Mock child_process and fs before importing the module under test
 vi.mock('child_process', () => ({
@@ -16,8 +16,8 @@ vi.mock('fs', () => ({
   mkdirSync: vi.fn(),
 }))
 
-vi.mock("../../../../scripts/cody/git-utils", () => ({
-  getDefaultBranch: vi.fn().mockReturnValue("dev"),
+vi.mock('../../../../scripts/cody/git-utils', () => ({
+  getDefaultBranch: vi.fn().mockReturnValue('dev'),
 }))
 
 import { runVerifyStage, runPrStage } from '../../../../scripts/cody/scripted-stages'
@@ -387,7 +387,6 @@ describe('runPrStage', () => {
       prCreateUrl = 'https://github.com/owner/repo/pull/42',
       pushFails = false,
     } = overrides
-
 
     // Mock getDefaultBranch (imported from git-utils)
     mockGetDefaultBranch.mockReturnValue(defaultBranch)
