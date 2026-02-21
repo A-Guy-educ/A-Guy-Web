@@ -116,6 +116,8 @@ export async function POST(request: NextRequest) {
     const job = {
       ...jobDoc,
       id: jobId, // Add string id for task handler compatibility
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      input: (jobDoc as any).input || {},
     }
 
     // Execute the task synchronously by calling the handler directly

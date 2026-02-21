@@ -16,7 +16,7 @@ import { PDF_MAX_BYTES, TASK_SLUGS } from '@/server/config/constants'
 import { getPdfBufferFromBlob } from '@/server/services/pdf-fetcher'
 import config from '@payload-config'
 import { ObjectId } from 'mongodb'
-import { getPayload, type Payload } from 'payload'
+import { getPayload } from 'payload'
 import { nanoid } from 'nanoid'
 
 import { loadAndRenderAllPages } from '@/server/services/exercise-conversion/v2/pdf-render-service'
@@ -46,7 +46,8 @@ interface V2JobInput {
 
 interface HandlerParams {
   job: { input: V2JobInput; id: string }
-  req: { payload?: Payload }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  req: { payload?: any }
 }
 
 /**
@@ -64,6 +65,7 @@ export const pdfToExercisesV2Task = {
   output: {},
 
   async handler({ job, req }: HandlerParams) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const payload = req.payload ?? (await getPayload({ config }))
     const input = job.input as V2JobInput
     const { lessonId, sourceDocId, tenantId } = input.ctx
@@ -94,7 +96,8 @@ export const pdfToExercisesV2Task = {
       }
 
       // PASS 0: Load PDF, render all pages, get page proxies for text extraction
-      const pdfBuffer = await getPdfBufferFromBlob(sourceDocId, payload, req)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const pdfBuffer = await getPdfBufferFromBlob(sourceDocId, payload, req as any)
 
       if (pdfBuffer.length > PDF_MAX_BYTES) {
         throw { stage: 'PASS0_EXTRACT', code: 'PDF_TOO_LARGE', message: 'PDF too large' }
@@ -156,7 +159,8 @@ export const pdfToExercisesV2Task = {
               i,
               allPagesTextLines[i],
               allPagesTextLines,
-              payload,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              payload as any,
             )
             console.log(
               `[V2] Page ${i + 1}/${pageDataList.length} [COMBO]: ${comboDetection.exercises.length} exercise(s), continues=${comboDetection.continuesFromPrevious}`,
@@ -208,7 +212,9 @@ export const pdfToExercisesV2Task = {
               size: strip.imageBuffer.length,
             },
             overrideAccess: true,
-            req,
+            draft: true,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            req: req as any,
           })
 
           const title = `Exercise ${strip.label}`
@@ -237,7 +243,9 @@ export const pdfToExercisesV2Task = {
               },
             },
             overrideAccess: true,
-            req,
+            draft: true,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            req: req as any,
           })
 
           output.exercisesCreated++
@@ -262,12 +270,14 @@ export const pdfToExercisesV2Task = {
         }
       }
 
-      await updateJobStatus(payload, job.id, 'completed', output)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await updateJobStatus(payload as any, job.id, 'completed', output)
       return output
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       console.error(`[V2] Job ${job.id} failed:`, error)
-      await updateJobStatus(payload, job.id, 'failed', {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await updateJobStatus(payload as any, job.id, 'failed', {
         ...output,
         error: errorMessage,
       })
@@ -365,23 +375,17 @@ async function buildExerciseStrips(
 /**
  * Update job status in MongoDB
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function updateJobStatus(
-  payload: Payload,
+  payload: any,
   jobId: string,
   status: 'completed' | 'failed',
   output?: unknown,
 ): Promise<void> {
-  const db = payload.db as {
-    connection?: {
-      collection: (name: string) => {
-        updateOne: (
-          filter: Record<string, unknown>,
-          update: Record<string, unknown>,
-        ) => Promise<unknown>
-      }
-    }
-  }
-  const coll = db.connection?.collection?.('payload-jobs')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = payload.db as any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const coll = db?.connection?.collection?.('payload-jobs') as any
   if (!coll) {
     console.warn('[V2] Cannot update job status - jobs collection not accessible')
     return

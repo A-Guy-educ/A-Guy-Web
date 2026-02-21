@@ -287,18 +287,24 @@ export async function createGenkitUnifiedAdapter(
             }))
 
             // Ensure first non-system message is 'user'
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             let messages: Array<{
               role: 'system' | 'user' | 'model'
               content: Array<{ text: string }>
             }> = []
-            if (userAssistantMessages.length > 0 && userAssistantMessages[0].role !== 'user') {
+            if (
+              userAssistantMessages.length > 0 &&
+              (userAssistantMessages[0] as any).role !== 'user'
+            ) {
               messages = [
                 systemMessage,
                 { role: 'user' as const, content: [{ text: 'Please continue.' }] },
-                ...userAssistantMessages,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                ...(userAssistantMessages as any),
               ]
             } else {
-              messages = [systemMessage, ...userAssistantMessages]
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              messages = [systemMessage, ...(userAssistantMessages as any)]
             }
 
             const result = await ai.generate({

@@ -6,7 +6,7 @@ import { hashTextSha256 } from '@/server/utils/hash'
 import config from '@payload-config'
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
-import type { Lesson, Tenant } from '@/payload-types'
+import type { Lesson } from '@/payload-types'
 
 type ErrorCode =
   | 'UNAUTHORIZED'
@@ -27,12 +27,6 @@ function errorResponse(
   extra?: object,
 ): NextResponse {
   return NextResponse.json({ error: { code, message }, ...extra }, { status })
-}
-
-interface PromptValidationInput {
-  status: string
-  usage: string
-  tenant: string | Tenant
 }
 
 export async function POST(request: NextRequest) {
@@ -111,8 +105,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate extractor prompt (published, usage, tenant)
-    const extractorTyped = extractorPrompt as unknown as PromptValidationInput
-    validatePromptForUsageAndTenant(extractorTyped, 'extractor', lessonTenantId)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    validatePromptForUsageAndTenant(extractorPrompt as any, 'extractor', lessonTenantId)
 
     // Fetch verifier prompt once
     const verifierPrompt = await payload.findByID({
@@ -132,8 +126,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate verifier prompt (published, usage, tenant)
-    const verifierTyped = verifierPrompt as unknown as PromptValidationInput
-    validatePromptForUsageAndTenant(verifierTyped, 'verifier', lessonTenantId)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    validatePromptForUsageAndTenant(verifierPrompt as any, 'verifier', lessonTenantId)
 
     // ========== Prompt Size Validation (after validation passes) ==========
     // Use byteLength for accurate size check (UTF-8 encoding)

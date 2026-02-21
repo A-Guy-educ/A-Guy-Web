@@ -12,8 +12,10 @@
  * - Only tokenHash is stored in DB (S1)
  * - Cookies are HttpOnly, Secure (prod), SameSite=Lax (S2)
  */
+
+/* eslint-disable @typescript-eslint/no-explicit-any -- Payload collection types */
+
 import { getPayload } from 'payload'
-import type { CollectionConfig } from 'payload'
 import config from '@payload-config'
 import crypto from 'crypto'
 import { logger } from '@/infra/utils/logger'
@@ -146,8 +148,9 @@ export async function createGuestSession(options: {
   const expiresAt = new Date(now)
   expiresAt.setDate(expiresAt.getDate() + guestConfig.sliding_ttl_days)
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const session = await payload.create({
-    collection: 'guest-sessions' as CollectionConfig,
+    collection: 'guest-sessions' as any,
     data: {
       tokenHash,
       tokenVersion: 1,
@@ -171,7 +174,7 @@ export async function getGuestSessionByToken(token: string): Promise<GuestSessio
   const tokenHash = hashToken(token)
 
   const sessions = await payload.find({
-    collection: 'guest-sessions' as CollectionConfig,
+    collection: 'guest-sessions' as any,
     where: {
       and: [{ tokenHash: { equals: tokenHash } }, { status: { equals: 'active' } }],
     },
@@ -195,7 +198,7 @@ export async function updateGuestSessionActivity(
   const payload = await getPayload({ config })
 
   const session = await payload.findByID({
-    collection: 'guest-sessions' as CollectionConfig,
+    collection: 'guest-sessions' as any,
     id: sessionId,
   })
 
@@ -216,7 +219,7 @@ export async function updateGuestSessionActivity(
   }
 
   const updated = await payload.update({
-    collection: 'guest-sessions' as CollectionConfig,
+    collection: 'guest-sessions' as any,
     id: sessionId,
     data: {
       lastActiveAt: now.toISOString(),
@@ -234,7 +237,7 @@ export async function revokeGuestSession(
   const payload = await getPayload({ config })
 
   const updated = await payload.update({
-    collection: 'guest-sessions' as CollectionConfig,
+    collection: 'guest-sessions' as any,
     id: sessionId,
     data: {
       status: 'revoked',
@@ -260,7 +263,7 @@ export async function checkAndIncrementGuestMessageCount(
   const guestConfig = await getGuestChatConfig()
 
   const session = await payload.findByID({
-    collection: 'guest-sessions' as CollectionConfig,
+    collection: 'guest-sessions' as any,
     id: guestSessionId,
   })
 
@@ -281,7 +284,7 @@ export async function checkAndIncrementGuestMessageCount(
   }
 
   await payload.update({
-    collection: 'guest-sessions' as CollectionConfig,
+    collection: 'guest-sessions' as any,
     id: guestSessionId,
     data: {
       messageCount: currentCount + 1,
