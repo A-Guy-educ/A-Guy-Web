@@ -47,8 +47,8 @@ concurrency:
 # Permissions: parse job needs write for error comments, orchestrate job needs more
 permissions:
   issues: write
-  pull-requests: read
-  contents: read
+  pull-requests: rwrited
+  contents: write
 
 jobs:
   # Job 1: Parse trigger, validate inputs, gate execution
