@@ -194,28 +194,40 @@ export function ensureFeatureBranch(taskId: string, taskType: string, projectDir
     // If branch exists locally, checkout and resume work (stages will skip if already completed)
     if (localBranchExists) {
       console.log(`[branch] Local branch exists, resuming: ${branchName}`)
-      // Stash dirty state before switching
-      try {
-        const status = execSync('git status --porcelain', { cwd, encoding: 'utf-8' }).trim()
-        if (status) {
-          console.log('[branch] Stashing uncommitted changes before checkout...')
-          execSync('git stash --include-untracked', { cwd, stdio: 'pipe' })
+      // Stash dirty state before switching (only in local mode, not CI)
+      if (!process.env.GITHUB_ACTIONS) {
+        try {
+          const status = execSync('git status --porcelain', { cwd, encoding: 'utf-8' }).trim()
+          if (status) {
+            console.log('[branch] Stashing uncommitted changes before checkout...')
+            execSync('git stash --include-untracked', { cwd, stdio: 'pipe' })
+          }
+        } catch {
+          /* ignore */
         }
-      } catch {
-        /* ignore */
+      } else {
+        // CI mode: clean instead of stash
+        try {
+          execSync('git checkout -- .', { cwd, stdio: 'pipe' })
+          execSync('git clean -fd', { cwd, stdio: 'pipe' })
+        } catch {
+          // Ignore — working tree may already be clean
+        }
       }
 
       execSync(`git checkout ${branchName}`, { cwd, stdio: 'inherit' })
 
-      // Restore stash
-      try {
-        const stashList = execSync('git stash list', { cwd, encoding: 'utf-8' }).trim()
-        if (stashList) {
-          console.log('[branch] Restoring stashed changes...')
-          execSync('git stash pop', { cwd, stdio: 'inherit' })
+      // Restore stash (only in local mode)
+      if (!process.env.GITHUB_ACTIONS) {
+        try {
+          const stashList = execSync('git stash list', { cwd, encoding: 'utf-8' }).trim()
+          if (stashList) {
+            console.log('[branch] Restoring stashed changes...')
+            execSync('git stash pop', { cwd, stdio: 'inherit' })
+          }
+        } catch {
+          console.warn('[branch] Could not restore stash — may need manual recovery')
         }
-      } catch {
-        console.warn('[branch] Could not restore stash — may need manual recovery')
       }
 
       // Try to push if remote doesn't have it yet

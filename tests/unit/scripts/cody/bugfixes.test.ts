@@ -40,13 +40,13 @@ describe('BUG-3: Stale pipeline exports removed', () => {
     ])
   })
 
-  it('should export IMPL_PIPELINE as sequential stages (no parallel groups)', async () => {
+  it('should export IMPL_PIPELINE with one parallel group', async () => {
     const { IMPL_PIPELINE, isParallelStage } =
       await import('../../../../scripts/cody/pipeline-utils')
-    // All stages should be sequential (strings), not parallel groups
-    for (const stage of IMPL_PIPELINE) {
-      expect(isParallelStage(stage)).toBe(false)
-    }
+    // IMPL_PIPELINE has mostly sequential stages but includes one parallel group: ['verify', 'auditor']
+    // Count how many are parallel
+    const parallelCount = IMPL_PIPELINE.filter((stage) => isParallelStage(stage)).length
+    expect(parallelCount).toBe(1)
     // Last stage should be 'pr'
     const lastStage = IMPL_PIPELINE[IMPL_PIPELINE.length - 1]
     expect(lastStage).toBe('pr')
