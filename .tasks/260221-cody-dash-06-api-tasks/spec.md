@@ -48,11 +48,12 @@ const createTaskSchema = z.object({
   title: z.string().min(1).max(256),
   body: z.string().min(1),
   labels: z.array(z.string()).optional(),
+  assignees: z.array(z.string()).optional(),
   triggerWorkflow: z.boolean().optional().default(false),
   mode: z.enum(['spec', 'impl', 'full']).optional().default('full'),
 })
 ```
-- Create issue: `octokit.issues.create({ owner, repo, title, body, labels })`
+- Create issue: `octokit.issues.create({ owner, repo, title, body, labels, assignees })`
 - If triggerWorkflow:
   - Generate taskId: `YYMMDD-auto-{NN}` format (check existing tasks to find next number)
   - Dispatch workflow: `octokit.actions.createWorkflowDispatch({ owner, repo, workflow_id: 'cody.yml', ref: 'main', inputs: { task_id: taskId, mode } })`

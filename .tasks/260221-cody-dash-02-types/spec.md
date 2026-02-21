@@ -82,6 +82,7 @@ export interface CodyTask {
   taskType?: string
   controlMode?: 'auto' | 'risk-gated' | 'hard-stop'
   previewUrl?: string          // Vercel deploy preview URL (from PR comment)
+  assignees: string[]          // GitHub usernames assigned to the issue
 }
 
 // Column display configuration

@@ -30,7 +30,7 @@ implement_feature
 ### R3: KanbanCard component
 - File: `src/ui/admin/CodyBoard/KanbanCard.tsx`
 - Props: `task: CodyTask`, `onClick: () => void`, `isSelected: boolean`
-- Shows: issue title (truncated), task ID (if exists), stage progress icons (from latest running-status comment), risk badge, task type badge, Vercel preview link (🔗 icon if previewUrl exists, opens in new tab)
+- Shows: issue title (truncated), task ID (if exists), stage progress icons (from latest running-status comment), risk badge, task type badge, Vercel preview link (🔗 icon if previewUrl exists, opens in new tab), assignee avatar(s) (small circles with initials or GitHub avatar)
 - Click handler sets selected task
 - Selected state: blue border highlight
 - Use Card component from `@/ui/web/components/card`

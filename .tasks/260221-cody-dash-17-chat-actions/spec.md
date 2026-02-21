@@ -162,3 +162,25 @@ useCopilotReadable({
 - [ ] Chat knows which task is selected (via readable context)
 - [ ] Write actions call correct API endpoints
 - [ ] `pnpm tsc --noEmit` passes
+
+### R1b: Assign task action
+
+```typescript
+// Assign a user to a task
+useCopilotAction({
+  name: 'assignTask',
+  description: 'Assign a GitHub user to a task',
+  parameters: [
+    { name: 'taskId', type: 'string', required: true },
+    { name: 'username', type: 'string', required: true },
+  ],
+  handler: async ({ taskId, username }) => {
+    const res = await fetch(`/api/cody/tasks/${taskId}/actions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'assign', assignees: [username] }),
+    })
+    return res.json()
+  }
+})
+```

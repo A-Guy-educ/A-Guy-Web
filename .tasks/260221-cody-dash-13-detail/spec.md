@@ -24,7 +24,8 @@ implement_feature
   5. **Actions**: Buttons for approve, reject, rerun, abort (wired in TASK-18)
   6. **Latest Error**: Error message from failure comment (if any)
   7. **Run Link**: Link to GitHub Actions run URL
-  8. **Preview**: Vercel deploy preview link (button, opens in new tab) — shown when task has previewUrl
+  8. **Assignees**: Show assigned users with option to add/remove (calls assign/unassign action)
+  9. **Preview**: Vercel deploy preview link (button, opens in new tab) — shown when task has previewUrl
 
 ### R2: Layout integration
 - Update `src/ui/admin/CodyDashboard/index.tsx`

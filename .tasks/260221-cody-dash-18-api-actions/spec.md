@@ -28,9 +28,10 @@ implement_feature
 - Body validation:
 ```typescript
 const actionSchema = z.object({
-  action: z.enum(['approve', 'reject', 'rerun', 'abort']),
+  action: z.enum(['approve', 'reject', 'rerun', 'abort', 'assign', 'unassign']),
   feedback: z.string().optional(),
   fromStage: z.string().optional(),
+  assignees: z.array(z.string()).optional(),
 })
 ```
 - Actions:
@@ -38,6 +39,8 @@ const actionSchema = z.object({
   - **reject**: Find issue number → `octokit.issues.createComment({ body: '/cody reject' })`
   - **rerun**: `octokit.actions.createWorkflowDispatch({ owner, repo, workflow_id: 'cody.yml', ref: 'main', inputs: { task_id: taskId, mode: 'rerun', feedback, from_stage: fromStage } })`
   - **abort**: Find active workflow run for this taskId → `octokit.actions.cancelWorkflowRun({ owner, repo, run_id })`
+  - **assign**: `octokit.issues.addAssignees({ owner, repo, issue_number, assignees })`
+  - **unassign**: `octokit.issues.removeAssignees({ owner, repo, issue_number, assignees })`
 - Return: `{ success: true, action, message }` or error
 
 ### R3: CreateTaskDialog
@@ -47,6 +50,7 @@ const actionSchema = z.object({
   - Title (text input, required)
   - Description (textarea, required)
   - Labels (multi-select or comma-separated, optional)
+  - Assignees (dropdown of repo collaborators, optional)
   - Mode (select: spec/impl/full, default: full)
   - "Create & Run" checkbox (triggers workflow after creating issue)
 - Submit → POST /api/cody/tasks
