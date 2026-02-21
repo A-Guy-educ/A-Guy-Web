@@ -13,7 +13,7 @@ implement_feature
 
 ### R1: GET /api/cody/tasks/[taskId]
 - File: `src/app/api/cody/tasks/[taskId]/route.ts`
-- Auth: Payload auth, admin required
+- Auth: `requireDashboardAuth(req)` from `@/lib/cody/auth`
 - Finds the issue that has this taskId in its comments:
   1. Search recent issues for one with task-marker containing the taskId
   2. Fetch all comments for that issue
@@ -24,14 +24,16 @@ implement_feature
 
 ### R2: POST /api/cody/tasks/[taskId]/actions
 - File: `src/app/api/cody/tasks/[taskId]/actions/route.ts`
-- Auth: Payload auth, admin required
+- Auth: `requireDashboardAuth(req)` from `@/lib/cody/auth`
 - Body validation:
 ```typescript
 const actionSchema = z.object({
-  action: z.enum(['approve', 'reject', 'rerun', 'abort', 'assign', 'unassign']),
+  action: z.enum(['approve', 'reject', 'rerun', 'abort', 'assign', 'unassign', 'add-label', 'remove-label', 'update-body']),
   feedback: z.string().optional(),
   fromStage: z.string().optional(),
   assignees: z.array(z.string()).optional(),
+  labels: z.array(z.string()).optional(),
+  body: z.string().optional(),
 })
 ```
 - Actions:
@@ -41,6 +43,9 @@ const actionSchema = z.object({
   - **abort**: Find active workflow run for this taskId → `octokit.actions.cancelWorkflowRun({ owner, repo, run_id })`
   - **assign**: `octokit.issues.addAssignees({ owner, repo, issue_number, assignees })`
   - **unassign**: `octokit.issues.removeAssignees({ owner, repo, issue_number, assignees })`
+  - **add-label**: `octokit.issues.addLabels({ owner, repo, issue_number, labels })`
+  - **remove-label**: For each label: `octokit.issues.removeLabel({ owner, repo, issue_number, name: label })`
+  - **update-body**: `octokit.issues.update({ owner, repo, issue_number, body })` — edit the issue description
 - Return: `{ success: true, action, message }` or error
 
 ### R3: CreateTaskDialog

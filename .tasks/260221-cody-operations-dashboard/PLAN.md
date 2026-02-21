@@ -24,7 +24,7 @@ Cross-referencing PLAN v3 with the actual codebase revealed these 12 gaps. All a
 | 9 | **`GH_TOKEN` not in `.env.example`**: Dashboard needs `GH_TOKEN` for server-side API routes. | Low — easy to add | Fixed: Add to `.env.example` in Phase 1. |
 | 10 | **Workflow dispatch requires `workflow_id`**: `octokit.actions.createWorkflowDispatch()` needs the workflow file name, not just inputs. Must pass `workflow_id: 'cody.yml'`. | Low — but would break "create task" action | Fixed: Hardcode `workflow_id: 'cody.yml'` in actions route. |
 | 11 | **CopilotKit Gemini adapter regression**: Issues #3217 (google/undefined), #2929 (message ID "0"). | High — Phase 0 spike must validate | Fixed: Phase 0 includes explicit fallback path to OpenAI. Budget 2 hours max. |
-| 12 | **Auth check pattern**: Plan said `requireAdmin(user)` but actual auth is via Payload's `/api/users/me` endpoint. Server-side API routes need to call `getPayload()` then `payload.auth({ headers })`. | Medium — auth code would be wrong | Fixed: API routes use `payload.auth({ headers: req.headers })` pattern (same as other API routes in the project). |
+| 12 | **Auth check pattern**: Plan said `requireAdmin(user)` but actual auth is via Payload's `/api/users/me` endpoint. Server-side API routes need to call `getPayload()` then `payload.auth({ headers })`. | Medium — auth code would be wrong | Fixed: Decoupled — API routes use own `requireDashboardAuth()` with CODY_DASHBOARD_SECRET (no Payload dependency). |
 
 ---
 
@@ -58,7 +58,7 @@ A **view-only** developer operations dashboard for monitoring Cody (the CI build
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      /cody (route group)                     │
-│         Auth-gated via useCurrentUser(), own <html> layout   │
+│         Auth-gated via CODY_DASHBOARD_SECRET, own <html> layout   │
 │                                                              │
 │  ┌─ Board Switcher ─────────────────────────────────────┐   │
 │  │  [All]  [v2.1]  [v2.2]  [Bugs]                      │   │
@@ -100,7 +100,7 @@ GitHub (single source of truth)
           ▼
   /api/cody/* (Next.js API routes, server-side)
   │   ├── Octokit with process.env.GH_TOKEN
-  │   ├── Payload auth via payload.auth({ headers })
+  │   ├── Dashboard auth via requireDashboardAuth()
   │   ├── task-parser.ts (parses bot comments, sorts by date)
   │   ├── board-mapper.ts (derives kanban columns)
   │   └── In-memory cache (10s TTL for responsiveness)
@@ -124,7 +124,7 @@ GitHub (single source of truth)
 | Middleware | Clear | Only sets locale cookie/header, no blocking |
 | `/api/cody/` | Free | No existing routes |
 | `/api/copilotkit/` | Free | No existing routes |
-| `useCurrentUser()` | Works | Calls `/api/users/me` with cookies, domain-scoped |
+| Auth | Decoupled | Own secret-based auth (CODY_DASHBOARD_SECRET), no Payload dependency |
 | `[slug]` catch-all | Safe | Explicit routes beat dynamic; keep under `/cody/` prefix |
 | Root layout | Required | `(cody)` needs own `<html>`/`<body>` (same pattern as `(frontend)`) |
 
@@ -391,82 +391,93 @@ pnpm add @copilotkit/react-core @copilotkit/react-ui @copilotkit/runtime @octoki
 
 ---
 
+
 ## File Structure
 
 ```
-src/
-├── app/
-│   ├── (cody)/                              # NEW route group (own <html>/<body>)
-│   │   ├── layout.tsx                       # Root layout + auth + CopilotKit provider
-│   │   └── cody/
-│   │       └── page.tsx                     # Dashboard page
-│   │
-│   └── api/
-│       ├── copilotkit/
-│       │   └── route.ts                     # CopilotRuntime + Gemini/OpenAI
-│       └── cody/
-│           ├── boards/
-│           │   └── route.ts                 # GET available boards
-│           ├── tasks/
-│           │   └── route.ts                 # GET tasks, POST create task
-│           ├── tasks/[taskId]/
-│           │   ├── route.ts                 # GET task detail
-│           │   └── actions/
-│           │       └── route.ts             # POST approve/rerun/abort
-│           ├── pipeline/[taskId]/
-│           │   └── route.ts                 # GET pipeline from status.json/comments
-│           ├── prs/
-│           │   └── route.ts                 # GET Cody PRs
-│           └── workflows/
-│               └── route.ts                 # GET active workflow runs
-│
-├── ui/admin/
-│   ├── CodyDashboard/
-│   │   ├── index.tsx                        # Main layout (board + detail + chat)
-│   │   ├── CodyActions.tsx                  # useCopilotAction hooks
-│   │   └── CodyContext.tsx                  # useCopilotReadable hooks
-│   ├── CodyBoard/
-│   │   ├── BoardSwitcher.tsx                # Board tabs (from labels/milestones)
-│   │   ├── KanbanBoard.tsx                  # Horizontal column layout
-│   │   ├── KanbanColumn.tsx                 # Single column with header + cards
-│   │   └── KanbanCard.tsx                   # Task card
-│   ├── CodyTasks/
-│   │   ├── TaskDetail.tsx                   # Expandable detail panel
-│   │   └── CreateTaskDialog.tsx             # Create issue + trigger workflow
-│   ├── CodyPipeline/
-│   │   ├── PipelineStatus.tsx               # Stage progress visualization
-│   │   ├── StageIndicator.tsx               # Single stage indicator
-│   │   └── SupervisorLog.tsx                # Retry timeline
-│   ├── CodyChat/
-│   │   └── CodyChatPanel.tsx                # CopilotChat wrapper
-│   └── CodyShared/
-│       ├── StatusBadge.tsx
-│       ├── RiskBadge.tsx
-│       ├── TaskTypeBadge.tsx
-│       └── types.ts
-│
-├── lib/cody/
-│   ├── github-client.ts                     # Octokit + cache + findTaskBranch()
-│   ├── task-parser.ts                       # Parse bot comments → structured data
-│   ├── board-mapper.ts                      # Derive columns from issue/comment state
-│   ├── types.ts                             # All TypeScript interfaces
-│   └── constants.ts                         # Stage names, column defs, polling intervals
-│
-└── tests/unit/lib/cody/
-    ├── task-parser.test.ts                  # Comment parsing tests
-    └── board-mapper.test.ts                 # Column derivation tests
+# Everything under two directories — portable to standalone repo
+
+src/app/(cody)/                              # Route group (own <html>/<body>)
+├── layout.tsx                               # Root layout + Tailwind + CopilotKit
+├── cody/
+│   ├── page.tsx                             # Dashboard page (auth-gated)
+│   └── login/
+│       └── page.tsx                         # Simple password login
+├── components/                              # Own UI components (NO imports from ui/web)
+│   ├── card.tsx                             # Simple Card (div + border/shadow)
+│   ├── badge.tsx                            # Simple Badge (span + color variants)
+│   ├── button.tsx                           # Simple Button
+│   ├── input.tsx                            # Simple Input
+│   ├── select.tsx                           # Simple Select
+│   └── skeleton.tsx                         # Loading skeleton (animate-pulse)
+├── dashboard/                               # Dashboard components
+│   ├── CodyDashboard.tsx                    # Main layout
+│   ├── CodyActions.tsx                      # useCopilotAction hooks
+│   ├── CodyContext.tsx                      # useCopilotReadable hooks
+│   └── useAdaptivePolling.ts               # Polling hook
+├── board/                                   # Kanban board
+│   ├── BoardSwitcher.tsx
+│   ├── KanbanBoard.tsx
+│   ├── KanbanColumn.tsx
+│   └── KanbanCard.tsx
+├── tasks/                                   # Task management
+│   ├── TaskDetail.tsx
+│   └── CreateTaskDialog.tsx
+├── pipeline/                                # Pipeline visualization
+│   ├── PipelineStatus.tsx
+│   ├── StageIndicator.tsx
+│   └── SupervisorLog.tsx
+├── chat/                                    # Chat panel
+│   └── CodyChatPanel.tsx
+└── shared/                                  # Shared badges + types
+    ├── StatusBadge.tsx
+    ├── RiskBadge.tsx
+    ├── TaskTypeBadge.tsx
+    └── types.ts
+
+src/app/api/cody/                            # API routes (server-side)
+├── auth/route.ts                            # POST login (check CODY_DASHBOARD_SECRET)
+├── boards/route.ts                          # GET boards
+├── tasks/route.ts                           # GET tasks, POST create
+├── tasks/[taskId]/route.ts                  # GET task detail
+├── tasks/[taskId]/actions/route.ts          # POST actions (approve/rerun/assign/etc)
+├── pipeline/[taskId]/route.ts               # GET pipeline status
+├── prs/route.ts                             # GET PRs
+└── workflows/route.ts                       # GET workflow runs
+
+src/app/api/copilotkit/route.ts              # CopilotKit runtime
+
+src/lib/cody/                                # Core library (zero A-Guy imports)
+├── auth.ts                                  # requireDashboardAuth() — secret-based
+├── github-client.ts                         # Octokit + cache + branch discovery
+├── task-parser.ts                           # Parse bot comments
+├── board-mapper.ts                          # Derive kanban columns
+├── types.ts                                 # All TypeScript interfaces
+├── constants.ts                             # Stage names, columns, intervals
+└── utils.ts                                 # cn(), formatDuration()
+
+tests/unit/lib/cody/                         # Unit tests
+├── task-parser.test.ts
+├── board-mapper.test.ts
+└── github-client.test.ts
 ```
+
+### Portability
+
+The dashboard has **zero imports from outside these two directories** (`src/app/(cody)/` and `src/lib/cody/`).
+To extract to a standalone repo: copy both directories + add Next.js + Tailwind config.
+No Payload CMS dependency. No `@payload-config`. No `useCurrentUser()`.
+
 
 ---
 
 ## API Routes (All Server-Side, Auth-Protected)
 
-Every `/api/cody/*` route:
-1. Gets Payload instance: `const payload = await getPayload({ config })`
-2. Authenticates: `const { user } = await payload.auth({ headers: req.headers })`
-3. Checks admin: `if (!user?.roles?.includes('admin')) return 403`
-4. Uses Octokit with `process.env.GH_TOKEN`
-5. Returns JSON
+Every `/api/cody/*` route (decoupled from Payload):
+1. Checks auth: `requireDashboardAuth(req)` from `@/lib/cody/auth`
+2. If unauthorized: returns 401
+3. Uses Octokit with `process.env.GH_TOKEN`
+4. Returns JSON
 
 ### Error Handling Strategy
 
@@ -830,8 +841,8 @@ interface ParsedComment {
 - No i18n, no locale — English only
 
 **page.tsx**:
-- Client component with `useCurrentUser()` hook
-- If not authenticated: redirect to `/admin/login`
+- Client component with own auth check (cody-session cookie)
+- If not authenticated: redirect to `/cody/login`
 - If not admin: show "Access Denied"
 - If admin: render `<CodyDashboard />`
 
@@ -852,7 +863,7 @@ interface ParsedComment {
 **KanbanCard**: Shows task ID, issue title, stage progress icons, risk badge. Click → sets selected task.
 **CodyDashboard**: Top-level layout combining board + detail panel (detail panel is placeholder until TASK-13).
 
-**Reuses**: Card, Badge from `src/ui/web/components/`
+**Own components**: Card, Badge in `src/app/(cody)/components/` (no A-Guy imports)
 
 ---
 
@@ -947,7 +958,7 @@ interface ParsedComment {
 **Files**: `src/app/api/copilotkit/route.ts` (MODIFIED — from spike)
 
 **Upgrades from spike**:
-- Add proper auth check (Payload auth)
+- Add dashboard auth check (requireDashboardAuth)
 - Add system prompt (from Chat System Prompt section)
 - Configure model parameters
 - Error handling for missing API keys

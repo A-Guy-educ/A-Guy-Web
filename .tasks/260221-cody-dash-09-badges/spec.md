@@ -47,7 +47,7 @@ implement_feature
 - Re-export relevant types from `@/lib/cody/types` for convenient access from UI components
 
 ### R5: Use existing Badge component
-- All badges should use Badge from `@/ui/web/components/badge` as the base
+- All badges should use own Badge component from `src/app/(cody)/components/badge.tsx` as the base
 - Apply variant styling via className or custom variant prop
 
 ## Files to Create

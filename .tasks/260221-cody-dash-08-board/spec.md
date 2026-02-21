@@ -33,7 +33,7 @@ implement_feature
 - Shows: issue title (truncated), task ID (if exists), stage progress icons (from latest running-status comment), risk badge, task type badge, Vercel preview link (🔗 icon if previewUrl exists, opens in new tab), assignee avatar(s) (small circles with initials or GitHub avatar)
 - Click handler sets selected task
 - Selected state: blue border highlight
-- Use Card component from `@/ui/web/components/card`
+- Use own Card component in `src/app/(cody)/components/card.tsx` (simple div with border/shadow/padding)
 
 ### R4: Wire to CodyDashboard
 - Update `src/ui/admin/CodyDashboard/index.tsx`
@@ -46,6 +46,7 @@ implement_feature
 - Extract from the task's latest `running-status` comment
 - Show inline: `✅✅🔄⏳⏳` (compact, no labels)
 - If no running status comment, show nothing
+- For done/failed tasks: show total elapsed time (e.g., "4m 32s") from pipelineStatus.totalElapsed
 
 ## Files to Create/Modify
 - `src/ui/admin/CodyBoard/KanbanBoard.tsx` (NEW)
@@ -64,7 +65,7 @@ implement_feature
 - [ ] Uses Tailwind classes only (no SCSS)
 
 ## Notes
-- Reuse Card from `src/ui/web/components/card.tsx`
-- Reuse Badge from `src/ui/web/components/badge.tsx`
-- Use `cn()` from `@/infra/utils/ui` for conditional classes
+- Own Card component: `src/app/(cody)/components/card.tsx` — simple styled div
+- Own Badge component: `src/app/(cody)/components/badge.tsx` — simple span with color variants
+- Use `cn()` from `@/lib/cody/utils` (own copy, no A-Guy imports)
 - No drag-and-drop (V2)

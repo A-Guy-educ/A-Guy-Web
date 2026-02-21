@@ -13,7 +13,7 @@ implement_feature
 
 ### R1: GET /api/cody/pipeline/[taskId]
 - File: `src/app/api/cody/pipeline/[taskId]/route.ts`
-- Auth: Payload auth, admin required
+- Auth: `requireDashboardAuth(req)` from `@/lib/cody/auth`
 - Fetches pipeline status using fallback chain:
   1. Try branch: `findTaskBranch(taskId)` → `getStatusFromBranch(taskId, branch)`
   2. Try artifact: find latest workflow run for taskId → `getStatusFromArtifact(taskId, runId)` (V1: stub returns null)
@@ -22,14 +22,14 @@ implement_feature
 
 ### R2: GET /api/cody/workflows
 - File: `src/app/api/cody/workflows/route.ts`
-- Auth: Payload auth, admin required
+- Auth: `requireDashboardAuth(req)` from `@/lib/cody/auth`
 - Fetch: `octokit.actions.listWorkflowRuns({ owner, repo, workflow_id: 'cody.yml', per_page: 20 })`
 - Return: `{ runs: Array<{ id, status, conclusion, created_at, updated_at, html_url, head_branch }> }`
 - Cache: 10s TTL
 
 ### R3: GET /api/cody/prs
 - File: `src/app/api/cody/prs/route.ts`
-- Auth: Payload auth, admin required
+- Auth: `requireDashboardAuth(req)` from `@/lib/cody/auth`
 - Fetch: `octokit.pulls.list({ owner, repo, state: 'open', per_page: 50 })`
 - Filter: PRs whose head branch matches `{prefix}/{taskId}` pattern (any of 5 prefixes)
 - Return: `{ prs: Array<{ number, title, url, branch, taskId, state, merged }> }`

@@ -24,10 +24,10 @@ implement_feature
 ### R2: Create page with auth gate
 - File: `src/app/(cody)/cody/page.tsx`
 - Client component (`'use client'`)
-- Use `useCurrentUser()` hook from `@/client/hooks/useCurrentUser`
-- Loading state: show Spinner while checking auth
-- Not authenticated: redirect to `/admin/login` (use `window.location.href`)
-- Not admin (`!user.roles?.includes('admin')`): show "Access Denied" message
+- Use own auth check: read `cody-session` cookie, redirect to `/cody/login` if missing
+- Loading state: show spinner while checking auth (simple div with animate-spin)
+- Not authenticated: redirect to `/cody/login`
+- No admin role check needed — CODY_DASHBOARD_SECRET is the only gate
 - Authenticated admin: render `<CopilotKit runtimeUrl="/api/copilotkit">` wrapper around `<CodyDashboard />`
 
 ### R3: CodyDashboard shell
@@ -48,8 +48,8 @@ implement_feature
 
 ## Acceptance Criteria
 - [ ] `/cody` loads in the browser
-- [ ] Unauthenticated users are redirected to `/admin/login`
-- [ ] Non-admin users see "Access Denied"
+- [ ] Unauthenticated users are redirected to `/cody/login`
+- [ ] Wrong password shows error message
 - [ ] Admin users see the CodyDashboard placeholder
 - [ ] Page has its own `<html>` tags (not nested in frontend layout)
 - [ ] Tailwind classes work
@@ -57,5 +57,15 @@ implement_feature
 
 ## Notes
 - Reference `src/app/(frontend)/layout.tsx` for the layout pattern but keep it much simpler
-- `useCurrentUser()` fetches from `/api/users/me` with cookies — works from any route group
+- No Payload dependency — auth is via CODY_DASHBOARD_SECRET cookie set by /cody/login page
 - The CopilotKit provider wraps the entire dashboard so chat can access actions from any component
+
+### R5: Login page
+- File: `src/app/(cody)/cody/login/page.tsx`
+- Simple password input form
+- Submit → POST `/api/cody/auth` with password
+- API checks password against `CODY_DASHBOARD_SECRET` env var
+- If match: sets `cody-session` cookie, returns 200
+- If wrong: returns 401
+- On success: redirect to `/cody`
+- File: `src/app/api/cody/auth/route.ts` — POST handler for login

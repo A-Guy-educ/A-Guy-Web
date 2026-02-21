@@ -13,7 +13,7 @@ implement_feature
 
 ### R1: GET /api/cody/boards
 - File: `src/app/api/cody/boards/route.ts`
-- Auth: Payload auth via `payload.auth({ headers: req.headers })`, require admin role
+- Auth: `requireDashboardAuth(req)` from `@/lib/cody/auth` — checks CODY_DASHBOARD_SECRET cookie/header
 - Fetch labels: `octokit.issues.listLabelsForRepo({ owner, repo })`
 - Fetch milestones: `octokit.issues.listMilestones({ owner, repo, state: 'open' })`
 - Return: `{ boards: [{ id: 'all', name: 'All', type: 'all' }, ...labelBoards, ...milestoneBoards] }`
@@ -67,15 +67,8 @@ All routes use try/catch with the standard error mapping:
 - Zod validation error → 400
 - Other → 500
 
-### R5: Auth pattern
+### R5: Auth pattern (decoupled)
 ```typescript
-import { getPayload } from 'payload'
-import config from '@payload-config'
-
-const payload = await getPayload({ config })
-const { user } = await payload.auth({ headers: req.headers })
-if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-if (!user.roles?.includes('admin')) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 ```
 
 ## Files to Create
@@ -97,7 +90,6 @@ if (!user.roles?.includes('admin')) return NextResponse.json({ error: 'Forbidden
 - [ ] GH_TOKEN not exposed in any response
 
 ## Notes
-- `getPayload({ config })` requires `import config from '@payload-config'` which resolves via tsconfig paths
 - Issues endpoint returns issues AND pull requests by default — filter out PRs with `!issue.pull_request`
 - For closed issues in "done" column: use `state: 'closed'` with `since` parameter (ISO date, 7 days ago)
 - The N+1 problem (fetching comments per issue) is mitigated by the 10s cache TTL

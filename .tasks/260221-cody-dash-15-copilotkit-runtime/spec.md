@@ -13,7 +13,7 @@ implement_feature
 
 ### R1: Upgrade runtime route
 - File: `src/app/api/copilotkit/route.ts` (MODIFIED from spike)
-- Add Payload auth check (same pattern as other /api/cody/ routes)
+- Add dashboard auth check via `requireDashboardAuth(req)` — no Payload dependency
 - Non-admin users get 401/403
 - Configure system prompt (from PLAN.md Chat System Prompt section)
 

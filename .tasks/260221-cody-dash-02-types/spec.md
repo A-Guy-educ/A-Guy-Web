@@ -83,6 +83,7 @@ export interface CodyTask {
   controlMode?: 'auto' | 'risk-gated' | 'hard-stop'
   previewUrl?: string          // Vercel deploy preview URL (from PR comment)
   assignees: string[]          // GitHub usernames assigned to the issue
+  totalElapsed?: number        // Total pipeline duration in ms (from status.json)
 }
 
 // Column display configuration
@@ -150,3 +151,20 @@ export const STAGE_OUTPUT_MAP: Record<string, string> = {
 ## Notes
 - These files have NO dependencies — they can be built first.
 - The `CodyPipelineStatus` and `TaskDefinition` types are copied from the scripts to avoid creating a dependency from the dashboard lib to CI scripts.
+
+### R3: Dashboard auth helper (decoupled from Payload)
+- File: `src/lib/cody/auth.ts`
+- Simple secret-based auth using `CODY_DASHBOARD_SECRET` env var
+- Exports:
+  - `requireDashboardAuth(req: NextRequest): boolean` — checks cookie `cody-session` or `Authorization: Bearer` header
+  - No Payload dependency. No `getPayload()`. No `@payload-config`.
+
+### R4: Own cn() utility
+- File: `src/lib/cody/utils.ts`
+- Copy of `cn()` (clsx + twMerge) — one function, no import from `@/infra/utils/ui`
+```typescript
+import { clsx, type ClassValue } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+export function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)) }
+```
+- Also add `formatDuration(ms: number): string` helper (e.g., 4232 → "4s", 92000 → "1m 32s")

@@ -29,7 +29,9 @@ implement_feature
 - Add to `.env.example`:
 ```
 # Cody Operations Dashboard
+CODY_DASHBOARD_SECRET=
 GH_TOKEN=
+CODY_DASHBOARD_SECRET=
 ```
 
 ### R5: Existing tests

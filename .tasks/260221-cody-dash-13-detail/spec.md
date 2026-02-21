@@ -25,7 +25,10 @@ implement_feature
   6. **Latest Error**: Error message from failure comment (if any)
   7. **Run Link**: Link to GitHub Actions run URL
   8. **Assignees**: Show assigned users with option to add/remove (calls assign/unassign action)
-  9. **Preview**: Vercel deploy preview link (button, opens in new tab) — shown when task has previewUrl
+  9. **Labels**: Show labels as badges with option to add/remove (calls add-label/remove-label action)
+  10. **Edit Description**: Expandable textarea to edit the issue body (calls update-body action, saves on blur or Cmd+Enter)
+  11. **Duration**: Show total elapsed time from status.json (e.g., "Completed in 4m 32s") — visible for done/failed tasks
+  12. **Preview**: Vercel deploy preview link (button, opens in new tab) — shown when task has previewUrl
 
 ### R2: Layout integration
 - Update `src/ui/admin/CodyDashboard/index.tsx`
