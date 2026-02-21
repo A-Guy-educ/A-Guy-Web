@@ -546,8 +546,8 @@ export function commitPipelineFiles(
   }
 
   try {
-    // 1. Optionally ensure feature branch exists (CI mode)
-    if (ensureBranch && isCI) {
+    // 1. Optionally ensure feature branch exists
+    if (ensureBranch) {
       // Read task type from task.json
       const taskJsonPath = path.join(taskDir, 'task.json')
       let taskType = 'implement_feature'
