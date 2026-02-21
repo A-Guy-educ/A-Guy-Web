@@ -6,6 +6,10 @@
 
 set -euo pipefail
 
+# Configure git identity for CI (required for merge commits in GitHub Actions)
+git config --global user.email "cody@github-actions.placeholder"
+git config --global user.name "Cody Pipeline"
+
 # BUG-8 fix: Fetch latest remote refs before checking for branches
 git fetch origin
 
