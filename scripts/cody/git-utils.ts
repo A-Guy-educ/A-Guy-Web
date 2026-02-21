@@ -124,7 +124,7 @@ export function ensureFeatureBranch(taskId: string, taskType: string, projectDir
   // Fetch latest from origin
   execSync('git fetch origin', { cwd, stdio: 'inherit' })
 
-  // Check if branch already exists on remote
+  // Check if branch already exists on remote (original behavior)
   let remoteBranchExists = false
   try {
     execSync(`git rev-parse --verify origin/${branchName}`, {
@@ -178,7 +178,57 @@ export function ensureFeatureBranch(taskId: string, taskType: string, projectDir
     }
     console.log(`[branch] Checked out and pulled: ${branchName}`)
   } else {
-    // Branch doesn't exist — create from the default branch
+    // Branch doesn't exist on remote — check if it exists locally (from previous failed run)
+    let localBranchExists = false
+    try {
+      execSync(`git rev-parse --verify ${branchName}`, {
+        cwd,
+        encoding: 'utf-8',
+        stdio: 'pipe',
+      })
+      localBranchExists = true
+    } catch {
+      localBranchExists = false
+    }
+
+    // If branch exists locally, checkout and resume work (stages will skip if already completed)
+    if (localBranchExists) {
+      console.log(`[branch] Local branch exists, resuming: ${branchName}`)
+      // Stash dirty state before switching
+      try {
+        const status = execSync('git status --porcelain', { cwd, encoding: 'utf-8' }).trim()
+        if (status) {
+          console.log('[branch] Stashing uncommitted changes before checkout...')
+          execSync('git stash --include-untracked', { cwd, stdio: 'pipe' })
+        }
+      } catch {
+        /* ignore */
+      }
+
+      execSync(`git checkout ${branchName}`, { cwd, stdio: 'inherit' })
+
+      // Restore stash
+      try {
+        const stashList = execSync('git stash list', { cwd, encoding: 'utf-8' }).trim()
+        if (stashList) {
+          console.log('[branch] Restoring stashed changes...')
+          execSync('git stash pop', { cwd, stdio: 'inherit' })
+        }
+      } catch {
+        console.warn('[branch] Could not restore stash — may need manual recovery')
+      }
+
+      // Try to push if remote doesn't have it yet
+      try {
+        execSync(`git push origin ${branchName}`, { cwd, stdio: 'inherit' })
+      } catch {
+        // Remote doesn't have it yet - that's fine
+      }
+      console.log(`[branch] Checked out local branch: ${branchName}`)
+      return
+    }
+
+    // Branch doesn't exist locally either — create new from default branch
     const defaultBranch = getDefaultBranch(cwd)
     console.log(`[branch] Creating new branch from ${defaultBranch}: ${branchName}`)
     execSync(`git checkout ${defaultBranch}`, { cwd, stdio: 'inherit' })
