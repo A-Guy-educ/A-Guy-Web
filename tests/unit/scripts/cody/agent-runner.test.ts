@@ -36,6 +36,7 @@ import {
   runAgentWithFileWatch,
   resolveModel,
   MAX_RETRIES,
+  FILE_STABLE_CHECKS,
 } from '../../../../scripts/cody/agent-runner'
 import type { CodyInput } from '../../../../scripts/cody/cody-utils'
 
@@ -78,11 +79,43 @@ describe('resolveModel', () => {
     if (original) process.env.OPENCODE_MODEL = original
     else delete process.env.OPENCODE_MODEL
   })
+
+  // Phase 1.1: Model mismatch fixes
+  it('should use Opus for architect stage', () => {
+    const model = resolveModel('architect')
+    expect(model).toBe('anthropic/claude-opus-4-6')
+  })
+
+  it('should use Gemini Pro for spec stage', () => {
+    const model = resolveModel('spec')
+    expect(model).toBe('google/gemini-3-pro-preview')
+  })
+
+  it('should use Gemini Pro for gap stage', () => {
+    const model = resolveModel('gap')
+    expect(model).toBe('google/gemini-3-pro-preview')
+  })
+
+  it('should use Gemini Pro for clarify stage', () => {
+    const model = resolveModel('clarify')
+    expect(model).toBe('google/gemini-3-pro-preview')
+  })
+
+  it('should use DEFAULT_MODEL for taskify stage', () => {
+    const model = resolveModel('taskify')
+    expect(model).toBe('minimax-coding-plan/MiniMax-M2.5')
+  })
 })
 
 describe('MAX_RETRIES', () => {
   it('should be 2', () => {
     expect(MAX_RETRIES).toBe(2)
+  })
+})
+
+describe('FILE_STABLE_CHECKS', () => {
+  it('should export FILE_STABLE_CHECKS constant equal to 2', () => {
+    expect(FILE_STABLE_CHECKS).toBe(2)
   })
 })
 

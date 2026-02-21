@@ -23,6 +23,9 @@ export const FILE_POLL_INTERVAL = 3_000
 /** Wait 2 seconds after file appears to ensure write is complete */
 export const FILE_SETTLE_DELAY = 2_000
 
+/** Number of consecutive stable size checks before settling (file detection stabilization) */
+export const FILE_STABLE_CHECKS = 2
+
 /** Maximum retry attempts for failed stages */
 export const MAX_RETRIES = 2
 
@@ -49,11 +52,19 @@ export const FAST_MODEL = 'google/gemini-2.5-flash'
 
 /**
  * Stage-specific model overrides. Stages not listed here use DEFAULT_MODEL.
- * Lightweight stages (plan-review, auditor, apply-audit, autofix) use the fast model
- * since they do simple edits/formatting, not complex code generation.
+ *
+ * Model assignments (must match opencode.json for consistency):
+ * - architect: Claude Opus for complex planning
+ * - spec, gap, clarify: Gemini Pro for spec writing
+ * - plan-review, auditor, apply-audit, autofix: FAST_MODEL for lightweight tasks
+ *
  * Note: commit and verify are scripted stages (no LLM).
  */
 export const STAGE_MODELS: Record<string, string> = {
+  architect: 'anthropic/claude-opus-4-6',
+  spec: 'google/gemini-3-pro-preview',
+  gap: 'google/gemini-3-pro-preview',
+  clarify: 'google/gemini-3-pro-preview',
   'plan-review': FAST_MODEL,
   autofix: FAST_MODEL,
   auditor: FAST_MODEL,

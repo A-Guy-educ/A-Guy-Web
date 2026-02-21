@@ -1009,10 +1009,12 @@ describe('getDefaultBranch', () => {
 describe('commitPipelineFiles', () => {
   beforeEach(() => {
     vi.mocked(childProcess.execSync).mockClear()
+    vi.mocked(childProcess.execFileSync).mockClear()
   })
 
   it('should use task-only staging by default', () => {
     vi.mocked(childProcess.execSync).mockReturnValue('')
+    vi.mocked(childProcess.execFileSync).mockReturnValue(Buffer.from(''))
 
     commitPipelineFiles({
       taskDir: '.tasks/260218-test',
@@ -1020,15 +1022,17 @@ describe('commitPipelineFiles', () => {
       message: 'test commit',
     })
 
-    // Should call git add with taskDir
-    expect(childProcess.execSync).toHaveBeenCalledWith(
-      'git add .tasks/260218-test',
+    // Should call git add with taskDir via execFileSync (shell injection fix)
+    expect(childProcess.execFileSync).toHaveBeenCalledWith(
+      'git',
+      ['add', '--', '.tasks/260218-test'],
       expect.objectContaining({ stdio: 'inherit' }),
     )
   })
 
   it('should use tracked+task staging when specified', () => {
     vi.mocked(childProcess.execSync).mockReturnValue('')
+    vi.mocked(childProcess.execFileSync).mockReturnValue(Buffer.from(''))
 
     commitPipelineFiles({
       taskDir: '.tasks/260218-test',
@@ -1038,9 +1042,12 @@ describe('commitPipelineFiles', () => {
     })
 
     // Should call git add -u then git add taskDir
-    const calls = vi.mocked(childProcess.execSync).mock.calls
-    expect(calls.some((c) => c[0] === 'git add -u')).toBe(true)
-    expect(calls.some((c) => String(c[0]).includes('.tasks/260218-test'))).toBe(true)
+    const syncCalls = vi.mocked(childProcess.execSync).mock.calls
+    expect(syncCalls.some((c) => c[0] === 'git add -u')).toBe(true)
+
+    // Task dir should be added via execFileSync
+    const fileSyncCalls = vi.mocked(childProcess.execFileSync).mock.calls
+    expect(fileSyncCalls.some((c) => c[0] === 'git' && c[1]?.[0] === 'add')).toBe(true)
   })
 
   it('should handle nothing to commit gracefully', () => {
@@ -1097,5 +1104,48 @@ describe('commitPipelineFiles', () => {
       'git push -u origin HEAD',
       expect.objectContaining({ stdio: 'inherit' }),
     )
+  })
+})
+
+describe('commitAndPush staging behavior', () => {
+  // Note: commitAndPush is tested here instead of the main test suite
+  // because it requires more complex setup (file system mocking)
+
+  it('should export SAFE_STAGE_DIRS constant', async () => {
+    const { SAFE_STAGE_DIRS } = await import('../../../../scripts/cody/git-utils')
+    expect(SAFE_STAGE_DIRS).toContain('src/')
+    expect(SAFE_STAGE_DIRS).toContain('tests/')
+    expect(SAFE_STAGE_DIRS).toContain('.tasks/')
+  })
+})
+
+// Phase 2.2: Shell injection fix verification
+describe('commitPipelineFiles shell safety', () => {
+  it('should use execFileSync for git add to prevent path injection', async () => {
+    const { commitPipelineFiles } = await import('../../../../scripts/cody/git-utils')
+
+    vi.mocked(childProcess.execSync).mockReturnValue('')
+    vi.mocked(childProcess.execFileSync).mockImplementation(
+      (file: string, args?: readonly string[]) => {
+        // Track calls for verification
+        if (file === 'git' && args?.[0] === 'add') {
+          // This is the call we want to verify
+        }
+        return Buffer.from('')
+      },
+    )
+
+    commitPipelineFiles({
+      taskDir: '/path with spaces/.tasks/test',
+      taskId: 'test',
+      message: 'test commit',
+      stagingStrategy: 'task-only',
+    })
+
+    // Verify execFileSync was used for git add (not execSync with string interpolation)
+    const gitAddCalls = vi
+      .mocked(childProcess.execFileSync)
+      .mock.calls.filter((call) => call[0] === 'git' && call[1]?.[0] === 'add')
+    expect(gitAddCalls.length).toBeGreaterThan(0)
   })
 })

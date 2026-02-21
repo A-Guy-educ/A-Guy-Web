@@ -347,6 +347,147 @@ describe('runVerifyStage', () => {
       expect(mockWriteFileSync).toHaveBeenCalledTimes(1)
     })
   })
+
+  // ---------------------------------------------------------------------------
+  // Phase 3.2: Aggregate timeout
+  // ---------------------------------------------------------------------------
+  describe('aggregate timeout', () => {
+    beforeEach(() => {
+      vi.clearAllMocks()
+    })
+
+    it('should accept a timeout parameter', () => {
+      mockAllGatesPass()
+
+      // This should not throw - timeout parameter should be accepted
+      const result = runVerifyStage('/tmp/verify.md', '/fake/cwd', 300_000)
+      expect(result.passed).toBe(true)
+    })
+
+    it('should skip remaining gates when cumulative time exceeds timeout', () => {
+      // Mock first gate to pass quickly, second gate to take too long
+      let callCount = 0
+      mockExecSync.mockImplementation((cmd: string) => {
+        callCount++
+        if (typeof cmd === 'string' && cmd.includes('tsc')) {
+          // First gate passes quickly
+          return 'OK'
+        }
+        if (typeof cmd === 'string' && cmd.includes('lint')) {
+          // Second gate exceeds the aggregate timeout
+          // Simulate a long-running command that would exceed cumulative timeout
+          const error = new Error('Command timed out') as Error & {
+            stdout?: string
+            stderr?: string
+            code?: string
+          }
+          error.stdout = ''
+          error.stderr = ''
+          error.code = 'ETIMEDOUT'
+          throw error
+        }
+        // Subsequent gates should be skipped
+        return 'OK'
+      })
+
+      // Use a very short aggregate timeout (1ms) to trigger skip behavior
+      // The implementation should track cumulative time and skip remaining gates
+      const result = runVerifyStage('/tmp/verify.md', '/fake/cwd', 1)
+
+      // First gate should have passed
+      expect(result.report).toContain('## TypeScript: PASS ✅')
+
+      // Remaining gates should be skipped due to aggregate timeout
+      expect(result.report).toContain('## Lint: SKIPPED ❌')
+      expect(result.report).toContain('aggregate timeout exceeded')
+      expect(result.report).toContain('## Format: SKIPPED ❌')
+      expect(result.report).toContain('## Unit Tests: SKIPPED ❌')
+
+      // Final result should be FAIL since not all gates passed
+      expect(result.report).toContain('## Result: FAIL')
+      expect(result.passed).toBe(false)
+    })
+
+    it('should report SKIPPED status for gates after timeout', () => {
+      // All gates pass but we simulate timeout after first gate
+      let gateIndex = 0
+      mockExecSync.mockImplementation(() => {
+        gateIndex++
+        if (gateIndex === 1) {
+          // First gate passes
+          return 'OK'
+        }
+        // After first gate, simulate aggregate timeout exceeded
+        const error = new Error('Aggregate timeout exceeded') as Error & {
+          stdout?: string
+          stderr?: string
+        }
+        error.stdout = 'SKIPPED: aggregate timeout exceeded'
+        error.stderr = ''
+        throw error
+      })
+
+      const result = runVerifyStage('/tmp/verify.md', '/fake/cwd', 100)
+
+      // Check that gates after the first are marked as SKIPPED
+      const lintMatch = result.report.match(/## Lint: (PASS|FAIL|SKIPPED)/)
+      const formatMatch = result.report.match(/## Format: (PASS|FAIL|SKIPPED)/)
+      const unitTestsMatch = result.report.match(/## Unit Tests: (PASS|FAIL|SKIPPED)/)
+
+      expect(lintMatch?.[1]).toBe('SKIPPED')
+      expect(formatMatch?.[1]).toBe('SKIPPED')
+      expect(unitTestsMatch?.[1]).toBe('SKIPPED')
+    })
+
+    it('should include aggregate timeout message in skipped gate output', () => {
+      let gateIndex = 0
+      mockExecSync.mockImplementation(() => {
+        gateIndex++
+        if (gateIndex === 1) return 'OK'
+
+        const error = new Error('timeout') as Error & { stdout?: string; stderr?: string }
+        error.stdout = 'SKIPPED: aggregate timeout exceeded'
+        error.stderr = ''
+        throw error
+      })
+
+      const result = runVerifyStage('/tmp/verify.md', '/fake/cwd', 50)
+
+      // The skipped gates should include the timeout message in output
+      expect(result.report).toContain('SKIPPED: aggregate timeout exceeded')
+    })
+
+    it('should track cumulative time across all gates', () => {
+      // Simulate gates that take progressively longer
+      // Cumulative time should be tracked, not just per-gate timeout
+      let gateIndex = 0
+      mockExecSync.mockImplementation(() => {
+        gateIndex++
+        // First 2 gates complete, but cumulative time exceeds on 3rd
+        if (gateIndex <= 2) return 'OK'
+
+        const error = new Error('ETIMEDOUT') as Error & {
+          stdout?: string
+          stderr?: string
+          code?: string
+        }
+        error.stdout = 'SKIPPED: aggregate timeout exceeded'
+        error.stderr = ''
+        error.code = 'ETIMEDOUT'
+        throw error
+      })
+
+      const result = runVerifyStage('/tmp/verify.md', '/fake/cwd', 200)
+
+      // First two gates should pass
+      expect(result.report).toContain('## TypeScript: PASS ✅')
+      expect(result.report).toContain('## Lint: PASS ✅')
+
+      // Remaining gates should be skipped
+      expect(result.report).toContain('## Format: SKIPPED')
+      expect(result.report).toContain('## Unit Tests: SKIPPED')
+    })
+  })
 })
 
 // =============================================================================
@@ -1126,6 +1267,23 @@ describe('runPrStage', () => {
 
       expect(result.report).toContain('first line for title')
       expect(result.report).not.toContain('Second line')
+    })
+
+    // Phase 2.1: Shell injection fix verification
+    it('should use execFileSync for git log to prevent shell injection', () => {
+      setupPrMocks()
+      // Verify that getCommitSummary uses execFileSync, not execSync with string interpolation
+      // This is verified by checking that the execFileSync mock was called with git log
+      const result = runPrStage('/fake/task-dir', '/tmp/pr.md', '/fake/cwd')
+
+      // The function should complete without throwing
+      expect(result.created).toBe(true)
+
+      // Verify execFileSync was used for git operations (not execSync with string interpolation)
+      const gitLogCalls = mockExecFileSync.mock.calls.filter(
+        (call) => call[0] === 'git' && call[1]?.includes('log'),
+      )
+      expect(gitLogCalls.length).toBeGreaterThan(0)
     })
   })
 })

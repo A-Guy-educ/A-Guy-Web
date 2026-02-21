@@ -9,6 +9,8 @@ import { execSync } from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
 
+import { ALL_STAGES } from './stage-prompts'
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -52,6 +54,7 @@ export interface CodyPipelineStatus {
   runUrl?: string
   controlMode?: 'auto' | 'risk-gated' | 'hard-stop'
   gatePoint?: string
+  botCommentId?: number
 }
 
 export interface StageStatus {
@@ -62,6 +65,11 @@ export interface StageStatus {
   retries: number
   outputFile?: string
   error?: string
+  // Token usage for cost tracking (schema only - not populated)
+  tokenUsage?: {
+    input: number
+    output: number
+  }
 }
 
 // ============================================================================
@@ -69,21 +77,9 @@ export interface StageStatus {
 // ============================================================================
 
 const VALID_MODES = ['spec', 'impl', 'rerun', 'full', 'status'] as const
-const VALID_STAGES = [
-  'taskify',
-  'spec',
-  'gap',
-  'clarify',
-  'architect',
-  'plan-review',
-  'build',
-  'commit',
-  'autofix',
-  'verify',
-  'auditor',
-  'apply-audit',
-  'pr',
-]
+
+// VALID_STAGES derived from stage-prompts to avoid duplication
+const VALID_STAGES = [...ALL_STAGES]
 
 export function isValidMode(mode: string): mode is (typeof VALID_MODES)[number] {
   return VALID_MODES.includes(mode as (typeof VALID_MODES)[number])
@@ -124,6 +120,21 @@ export function readStatus(taskId: string): CodyPipelineStatus | null {
   } catch {
     return null
   }
+}
+
+/**
+ * Get the last failed stage from status.json for smart rerun default.
+ * Returns the stage name that most recently failed, or null if none.
+ */
+export function getLastFailedStage(taskId: string): string | null {
+  const status = readStatus(taskId)
+  if (!status?.stages) return null
+
+  const failedStages = Object.entries(status.stages)
+    .filter(([_, s]) => s.state === 'failed' || s.state === 'timeout')
+    .map(([name]) => name)
+
+  return failedStages.length > 0 ? failedStages[failedStages.length - 1] : null
 }
 
 export function writeStatus(taskId: string, status: CodyPipelineStatus): void {
@@ -257,9 +268,27 @@ export function getIssueBody(issueNumber: number): string | null {
   }
 }
 
-export function editComment(_commentId: string, _body: string): void {
-  // TODO: Implement if needed - gh api required for editing comments
-  console.warn('editComment not implemented')
+export function editComment(commentId: string, body: string): void {
+  if (!commentId) return
+
+  try {
+    // Use gh api to patch the comment
+    // Write body to temp file to handle special characters
+    const tempFile = `/tmp/cody-comment-${Date.now()}.txt`
+    fs.writeFileSync(tempFile, body)
+
+    execSync(
+      `gh api repos/OWNER/REPO/issues/comments/${commentId} -X PATCH --field body="@${tempFile}"`,
+      {
+        stdio: 'inherit',
+      },
+    )
+
+    // Clean up temp file
+    fs.unlinkSync(tempFile)
+  } catch (error) {
+    console.error(`Failed to edit comment ${commentId}:`, error)
+  }
 }
 
 /**
@@ -784,6 +813,17 @@ export function formatStatusComment(
   } else if (status.state === 'completed') {
     lines.push(`✅ Cody completed for \`${input.taskId}\`!`)
     lines.push(`Mode: ${input.mode}`)
+
+    // Add per-stage timing for completed pipeline
+    const completedStages = Object.entries(status.stages)
+    if (completedStages.length > 0) {
+      lines.push('')
+      for (const [stage, stageStatus] of completedStages) {
+        const icon = stageStatus.state === 'completed' ? '✅' : '❌'
+        const elapsed = stageStatus.elapsed ? ` (${formatDuration(stageStatus.elapsed)})` : ''
+        lines.push(`  ${icon} ${stage}${elapsed}`)
+      }
+    }
   } else if (status.state === 'failed') {
     lines.push(`❌ Cody failed for \`${input.taskId}\``)
   } else if (status.state === 'timeout') {

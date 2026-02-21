@@ -50,6 +50,9 @@ export const COMMIT_TYPE_MAP: Record<TaskType, string> = {
   research: 'chore',
 }
 
+/** Directories to stage new files from (safe - excludes secrets) */
+export const SAFE_STAGE_DIRS = ['src/', 'tests/', '.tasks/']
+
 /** Well-known base branches — if the current branch is one of these, create a feature branch */
 const BASE_BRANCHES = ['dev', 'main', 'master', '']
 
@@ -404,6 +407,16 @@ export function commitAndPush(
     // Stage tracked changes only (BUG-15 fix: avoid staging secrets/env files with -A)
     execSync('git add -u', { cwd: workDir, stdio: 'inherit' })
 
+    // Also stage new files in safe directories (but NOT .env, secrets, etc.)
+    // This ensures new files created by the build agent are committed
+    for (const dir of SAFE_STAGE_DIRS) {
+      try {
+        execFileSync('git', ['add', '--', dir], { cwd: workDir, stdio: 'pipe' })
+      } catch {
+        // Directory may not exist or have no new files - that's fine
+      }
+    }
+
     // Commit using execFileSync to prevent shell injection (BUG-4 fix)
     execFileSync('git', ['commit', '--no-gpg-sign', '-m', commitMessage], {
       cwd: workDir,
@@ -533,17 +546,35 @@ export function commitPipelineFiles(
     }
 
     // 3. Stage files based on strategy
+    // Use execFileSync to prevent shell injection via taskDir paths
+    // Don't throw on staging errors - silent fail is ok for staging
     switch (stagingStrategy) {
       case 'all':
-        execSync('git add -A', { cwd, stdio: 'inherit' })
+        try {
+          execSync('git add -A', { cwd, stdio: 'inherit' })
+        } catch {
+          // Ignore staging errors
+        }
         break
       case 'tracked+task':
-        execSync('git add -u', { cwd, stdio: 'inherit' })
-        execSync(`git add ${taskDir}`, { cwd, stdio: 'inherit' })
+        try {
+          execSync('git add -u', { cwd, stdio: 'inherit' })
+        } catch {
+          // Ignore
+        }
+        try {
+          execFileSync('git', ['add', '--', taskDir], { cwd, stdio: 'inherit' })
+        } catch {
+          // Ignore
+        }
         break
       case 'task-only':
       default:
-        execSync(`git add ${taskDir}`, { cwd, stdio: 'inherit' })
+        try {
+          execFileSync('git', ['add', '--', taskDir], { cwd, stdio: 'inherit' })
+        } catch {
+          // Ignore staging errors - silent fail is ok
+        }
         break
     }
 

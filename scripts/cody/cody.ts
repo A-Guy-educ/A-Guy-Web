@@ -48,6 +48,7 @@ import {
   formatStatusComment,
   getIssueBody,
   ensureTaskMarkerComment,
+  getLastFailedStage,
   type CodyInput,
 } from './cody-utils'
 
@@ -868,7 +869,7 @@ async function runRerunPipeline(
   }
 
   if (!input.fromStage) {
-    input.fromStage = 'build'
+    input.fromStage = getLastFailedStage(input.taskId) || 'build'
   }
 
   // Default feedback if not provided (e.g., from implicit feedback in comment)
