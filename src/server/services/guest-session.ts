@@ -148,9 +148,8 @@ export async function createGuestSession(options: {
   const expiresAt = new Date(now)
   expiresAt.setDate(expiresAt.getDate() + guestConfig.sliding_ttl_days)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const session = await payload.create({
-    collection: 'guest-sessions' as any,
+    collection: 'guest-sessions' as const,
     data: {
       tokenHash,
       tokenVersion: 1,
@@ -159,14 +158,16 @@ export async function createGuestSession(options: {
       expiresAt: expiresAt.toISOString(),
       hardExpiresAt: hardExpiresAt.toISOString(),
       status: 'active',
+      messageCount: 0,
       ipHash: options.ipHash,
       userAgentHash: options.userAgentHash,
     },
+    draft: false,
   })
 
   logger.info({ sessionId: session.id }, 'Created guest session')
 
-  return { session: session as GuestSessionDoc, token }
+  return { session: session as unknown as GuestSessionDoc, token }
 }
 
 export async function getGuestSessionByToken(token: string): Promise<GuestSessionDoc | null> {
