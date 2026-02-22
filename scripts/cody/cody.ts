@@ -65,6 +65,7 @@ import {
   getIssueBody,
   ensureTaskMarkerComment,
   getLastFailedStage,
+  extractGateCommentBody,
   type CodyInput,
 } from './cody-utils'
 
@@ -416,8 +417,9 @@ async function runSpecPipeline(
 
     // Validate task.json immediately after taskify to catch LLM mistakes early
     if (stage === 'taskify' && fs.existsSync(outputFile)) {
+      let taskDefAfterTaskify: ReturnType<typeof readTask> | undefined
       try {
-        readTask(taskDir) // normalizes + validates; writes back corrected values
+        taskDefAfterTaskify = readTask(taskDir) // normalizes + validates; writes back corrected values
         console.log('  ✓ task.json validated and normalized')
       } catch (error) {
         const msg = error instanceof Error ? error.message : String(error)
@@ -430,12 +432,7 @@ async function runSpecPipeline(
         throw new Error(`Taskify produced invalid task.json: ${msg}`)
       }
 
-      // Input quality skip: read skip_stages for later use in this loop
-
-      const _taskDefForSkip = readTask(taskDir)
-
       // GATE: Hard-stop check - pause after taskify for high-risk tasks
-      const taskDefAfterTaskify = readTask(taskDir)
       if (taskDefAfterTaskify) {
         const controlMode = resolveControlMode(taskDefAfterTaskify, input.controlMode)
         if (controlMode === 'hard-stop') {
@@ -447,25 +444,9 @@ async function runSpecPipeline(
             if (fs.existsSync(gateFilePath)) {
               const gateContent = fs.readFileSync(gateFilePath, 'utf-8')
               if (input.issueNumber) {
-                const { postComment } = await import('./cody-utils')
-                // Extract just the comment part after the header
-                const lines = gateContent.split('\n')
-                let inComment = false
-                const commentLines: string[] = []
-                for (const line of lines) {
-                  if (line.startsWith('---')) {
-                    inComment = false
-                    break
-                  }
-                  if (inComment || (!line.startsWith('## ') && !line.startsWith('|'))) {
-                    commentLines.push(line)
-                  }
-                  if (line.startsWith('## ')) {
-                    inComment = true
-                  }
-                }
-                if (commentLines.length > 0) {
-                  postComment(input.issueNumber, commentLines.join('\n').trim())
+                const commentBody = extractGateCommentBody(gateContent)
+                if (commentBody) {
+                  postComment(input.issueNumber, commentBody)
                 }
               }
             }
@@ -768,13 +749,10 @@ async function runImplPipeline(
             const gateFilePath = path.join(taskDir, 'gate-architect.md')
             if (fs.existsSync(gateFilePath) && input.issueNumber) {
               const gateContent = fs.readFileSync(gateFilePath, 'utf-8')
-              const { postComment } = await import('./cody-utils')
-              // Extract comment section before ---
-              const commentBody = gateContent
-                .split('---')[0]
-                .replace(/^## [^]+\n/, '')
-                .trim()
-              postComment(input.issueNumber, commentBody)
+              const commentBody = extractGateCommentBody(gateContent)
+              if (commentBody) {
+                postComment(input.issueNumber, commentBody)
+              }
             }
             // Commit task files and pause
             commitPipelineFiles({
@@ -970,8 +948,7 @@ async function runRerunPipeline(
   const specPath = path.join(taskDir, 'spec.md')
   if (!fs.existsSync(specPath)) {
     console.log('No spec.md found — falling back to full pipeline')
-    input.mode = 'full'
-    await runFullPipeline(input, status, backend)
+    await runFullPipeline({ ...input, mode: 'full' }, status, backend)
     return
   }
 

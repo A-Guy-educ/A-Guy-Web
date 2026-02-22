@@ -5,7 +5,7 @@
  * @ai-summary CI-specific utilities for the Cody pipeline: comment parsing, GitHub API helpers, status management
  */
 
-import { execSync } from 'child_process'
+import { execSync, execFileSync } from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
 
@@ -269,6 +269,16 @@ export function getIssueBody(issueNumber: number): string | null {
   }
 }
 
+/**
+ * Extract the gate comment body from a gate-*.md file.
+ * The file is written as: `# Gate Request\n\n${formatGateComment(...)}\n`
+ * This function strips the `# Gate Request\n\n` prefix and trims trailing whitespace,
+ * returning the full comment body ready to post to GitHub.
+ */
+export function extractGateCommentBody(fileContent: string): string {
+  return fileContent.replace(/^# Gate Request\n\n/, '').trim()
+}
+
 export function editComment(commentId: string, body: string): void {
   if (!commentId) return
 
@@ -281,11 +291,17 @@ export function editComment(commentId: string, body: string): void {
     // Get the repository from environment
     const repo = process.env.GITHUB_REPOSITORY || 'OWNER/REPO'
 
-    execSync(
-      `gh api repos/${repo}/issues/comments/${commentId} -X PATCH --field body="@${tempFile}"`,
-      {
-        stdio: 'inherit',
-      },
+    execFileSync(
+      'gh',
+      [
+        'api',
+        `repos/${repo}/issues/comments/${commentId}`,
+        '-X',
+        'PATCH',
+        '--field',
+        `body=@${tempFile}`,
+      ],
+      { stdio: 'inherit' },
     )
 
     // Clean up temp file
@@ -302,10 +318,19 @@ export function getLatestIssueComment(issueNumber: number, excludeAuthor?: strin
   if (!issueNumber) return null
 
   try {
-    const exclude = excludeAuthor || 'github-actions[bot]'
+    const exclude = (excludeAuthor || 'github-actions[bot]').replace(/[^a-zA-Z0-9\[\]_\-]/g, '')
     // Get comments, exclude bot and /cody commands, return the latest plain-text answer
-    const output = execSync(
-      `gh issue view ${issueNumber} --json comments --jq '[.comments[] | select(.author.login != "${exclude}" and (.body | startswith("/cody") | not))] | last | .body'`,
+    const output = execFileSync(
+      'gh',
+      [
+        'issue',
+        'view',
+        String(issueNumber),
+        '--json',
+        'comments',
+        '--jq',
+        `[.comments[] | select(.author.login != "${exclude}" and (.body | startswith("/cody") | not))] | last | .body`,
+      ],
       { encoding: 'utf-8' },
     )
     return output.trim() || null
