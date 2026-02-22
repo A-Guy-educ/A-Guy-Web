@@ -65,7 +65,6 @@ export const pdfToExercisesV2Task = {
   output: {},
 
   async handler({ job, req }: HandlerParams) {
-     
     const payload = req.payload ?? (await getPayload({ config }))
     const input = job.input as V2JobInput
     const { lessonId, sourceDocId, tenantId } = input.ctx
@@ -375,15 +374,14 @@ async function buildExerciseStrips(
 /**
  * Update job status in MongoDB
  */
- 
 async function updateJobStatus(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   payload: any,
   jobId: string,
   status: 'completed' | 'failed',
   output?: unknown,
 ): Promise<void> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const db = payload.db as any
+  const db = payload.db
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const coll = db?.connection?.collection?.('payload-jobs') as any
   if (!coll) {
