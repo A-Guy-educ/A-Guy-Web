@@ -935,6 +935,9 @@ describe('supervisor: edge cases', () => {
   })
 
   it('handles JSON parse failure in API response', async () => {
+    // Set API key so the function doesn't short-circuit to fallback
+    vi.stubEnv('MINIMAX_API_KEY', 'test-key')
+
     // The function should handle invalid JSON gracefully - use fallback
     const { analyzeFailureWithFallback } =
       await import('../../../scripts/supervisor/failure-analyzer')
