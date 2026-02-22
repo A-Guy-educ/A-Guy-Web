@@ -28,6 +28,7 @@ describe('apiService', () => {
         'Acknowledgment',
         { exerciseId: 'exercise-123' },
         [],
+        [],
         false,
       )
 

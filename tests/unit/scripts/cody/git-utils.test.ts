@@ -806,9 +806,9 @@ describe('ensureFeatureBranch', () => {
 
   describe('local branch exists (resume from previous run)', () => {
     it('should checkout existing local branch and not create new one', () => {
-      let callCount = 0
+      let _callCount = 0
       mockExecSync.mockImplementation((cmd: string) => {
-        callCount++
+        _callCount++
         // Current branch is dev
         if (typeof cmd === 'string' && cmd.includes('git branch --show-current')) {
           return 'dev\n'

@@ -202,6 +202,22 @@ export const Conversations: CollectionConfig = {
             },
           ],
         },
+        {
+          name: 'chatAssets',
+          type: 'array',
+          maxRows: 5,
+          admin: {
+            description: 'Chat asset attachments (direct-to-Blob uploads, max 5)',
+          },
+          fields: [
+            {
+              name: 'chatAssetId',
+              type: 'relationship',
+              relationTo: 'chat-assets',
+              required: true,
+            },
+          ],
+        },
       ],
     },
 
