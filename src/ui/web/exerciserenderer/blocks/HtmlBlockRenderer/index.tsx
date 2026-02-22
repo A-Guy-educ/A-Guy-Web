@@ -1,6 +1,7 @@
 'use client'
 
-import DOMPurify from 'isomorphic-dompurify'
+import DOMPurify from 'dompurify'
+import { useEffect, useMemo, useState } from 'react'
 
 interface HtmlBlockRendererProps {
   block: {
@@ -65,17 +66,28 @@ const PURIFY_CONFIG = {
   ],
 }
 
-// Force rel="noopener noreferrer" on links with target attribute to prevent tabnapping
-DOMPurify.addHook('afterSanitizeAttributes', (node) => {
-  if (node.tagName === 'A' && node.getAttribute('target')) {
-    node.setAttribute('rel', 'noopener noreferrer')
-  }
-})
-
 export function HtmlBlockRenderer({ block }: HtmlBlockRendererProps) {
-  if (!block.html?.trim()) return null
+  const [isMounted, setIsMounted] = useState(false)
 
-  const cleanHtml = DOMPurify.sanitize(block.html, PURIFY_CONFIG)
+  useEffect(() => {
+    // Force rel="noopener noreferrer" on links with target attribute to prevent tabnapping
+    DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+      if (node.tagName === 'A' && node.getAttribute('target')) {
+        node.setAttribute('rel', 'noopener noreferrer')
+      }
+    })
+    setIsMounted(true)
+    return () => {
+      DOMPurify.removeAllHooks()
+    }
+  }, [])
+
+  const cleanHtml = useMemo(() => {
+    if (!isMounted || !block.html?.trim()) return ''
+    return DOMPurify.sanitize(block.html, PURIFY_CONFIG)
+  }, [isMounted, block.html])
+
+  if (!cleanHtml) return null
 
   return <div className="html-block-content" dangerouslySetInnerHTML={{ __html: cleanHtml }} />
 }

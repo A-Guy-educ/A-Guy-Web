@@ -1,7 +1,7 @@
 'use client'
 
 import type { HtmlBlock } from '@/server/payload/collections/Exercises/types'
-import DOMPurify from 'isomorphic-dompurify'
+import DOMPurify from 'dompurify'
 import dynamic from 'next/dynamic'
 import React, { useMemo, useState } from 'react'
 import 'react-quill-new/dist/quill.snow.css'
