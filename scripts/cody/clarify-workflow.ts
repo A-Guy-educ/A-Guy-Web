@@ -16,7 +16,8 @@ import { checkForQuestions } from './content-validators'
 // ============================================================================
 
 /**
- * Extract task summary from task.md - skip headers and empty lines (UNUSED - see inline logic)
+ * Extract the answer from a GitHub comment body
+ * The comment format is: /cody [command] [task-id] [optional answer text]
  */
 export function extractAnswerFromComment(commentBody: string): string | null {
   // Decode JSON-encoded body if needed (from jq -Rs .)
