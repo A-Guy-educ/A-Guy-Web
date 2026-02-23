@@ -4,14 +4,10 @@ import { parseMathExpression } from '../utils/safeMathEval'
 type GraphSpec = AxisSpecV1['elements']['graphs'][number]
 type PointSpec = AxisSpecV1['elements']['points'][number]
 
-function renderGraphs(board: JXG.Board, graphs: GraphSpec[]): Map<string, (x: number) => number> {
-  const fnMap = new Map<string, (x: number) => number>()
-
+function renderGraphs(board: JXG.Board, graphs: GraphSpec[]): void {
   for (const graph of graphs) {
     const parsed = parseMathExpression(graph.fn)
     if (!parsed.valid) continue
-
-    fnMap.set(graph.id, parsed.evaluate)
 
     const attrs: Record<string, unknown> = {
       strokeWidth: graph.thickness,
@@ -28,8 +24,6 @@ function renderGraphs(board: JXG.Board, graphs: GraphSpec[]): Map<string, (x: nu
       board.create('functiongraph', [parsed.evaluate], attrs)
     }
   }
-
-  return fnMap
 }
 
 function renderAxisPoints(board: JXG.Board, points: PointSpec[]) {

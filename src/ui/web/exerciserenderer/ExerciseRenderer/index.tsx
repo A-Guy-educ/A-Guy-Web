@@ -8,8 +8,7 @@
 
 import React, { useMemo, useRef, useState } from 'react'
 import { cn } from '@/infra/utils/ui'
-import { useTranslations } from '@/ui/web/providers/I18n'
-import { useLocale } from '@/ui/web/providers/I18n'
+import { useTranslations, useLocale } from '@/ui/web/providers/I18n'
 import { Card } from '@/ui/web/components/card'
 import { XCircle } from 'lucide-react'
 import type {

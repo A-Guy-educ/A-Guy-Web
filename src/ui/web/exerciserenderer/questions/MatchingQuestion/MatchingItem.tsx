@@ -59,7 +59,7 @@ export function MatchingItem({
           'border-blue-500 bg-blue-50 dark:bg-blue-500/15 border-[3px] shadow-[0_0_10px_rgba(59,130,246,0.3)]',
         isConnected &&
           !isSelected &&
-          !checkResult(correctState) &&
+          !hasResult(correctState) &&
           'border-blue-400 bg-blue-50 dark:bg-blue-500/10',
         disabled && 'cursor-not-allowed opacity-70',
         correctState === true && 'border-green-500 bg-green-50 dark:bg-green-500/10',
@@ -79,6 +79,6 @@ export function MatchingItem({
   )
 }
 
-function checkResult(state: boolean | null): boolean {
+function hasResult(state: boolean | null): boolean {
   return state !== null
 }

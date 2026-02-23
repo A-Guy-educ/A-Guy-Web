@@ -21,11 +21,11 @@ interface GeometryRendererProps {
 function calculateBoundingBox(spec: GeometrySpecV1): [number, number, number, number] {
   const points = spec.elements.points
   if (points.length === 0) {
-    return [-1, spec.canvas.height + 1, spec.canvas.width + 1, -1]
+    return [-10, 10, 10, -10]
   }
   const xs = points.map((p) => p.x)
   const ys = points.map((p) => p.y)
-  const padding = 50
+  const padding = 2
   return [
     Math.min(...xs) - padding,
     Math.max(...ys) + padding,
