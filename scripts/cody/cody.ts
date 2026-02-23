@@ -74,11 +74,14 @@ import {
 import {
   readTask,
   stageOutputFile,
-  IMPL_PIPELINE,
-  ALL_IMPL_STAGE_NAMES,
   isParallelStage,
+  flattenPipeline,
   type PipelineStage,
   resolveControlMode,
+  resolvePipelineProfile,
+  getSpecStagesForProfile,
+  getImplPipeline,
+  getAllImplStageNames,
 } from './pipeline-utils'
 
 // Import from new modules
@@ -326,7 +329,8 @@ async function runSpecPipeline(
   // Clarify stage: only run if --clarify flag is set (opt-in)
   // Default: skip, auto-create clarified.md with "Use recommended answers"
   // Gap stage runs between spec and clarify to analyze and revise spec
-  const stages = input.clarify ? ['taskify', 'spec', 'gap', 'clarify'] : ['taskify', 'spec', 'gap']
+  // Start with just taskify — remaining stages determined after taskify produces task.json
+  const stages = ['taskify']
 
   // Cache for input_quality skip_stages (populated after taskify runs)
   let skipStages: string[] = []
@@ -472,6 +476,26 @@ async function runSpecPipeline(
           console.log('  ✅ Hard-stop: approved, proceeding...')
         }
       }
+
+      // Resolve pipeline profile from task.json after taskify completes
+      const taskDef = readTask(taskDir)
+      const profile = taskDef ? resolvePipelineProfile(taskDef) : 'standard'
+
+      // Log pipeline profile for observability
+      if (profile === 'lightweight') {
+        console.log(
+          `  ℹ️ Pipeline profile: lightweight (spec promoted by taskify, gap/plan-gap/auditor/apply-audit skipped)`,
+        )
+      } else {
+        console.log(`  ℹ️ Pipeline profile: standard (full pipeline)`)
+      }
+
+      // Determine remaining spec stages based on profile
+      const remainingStages = getSpecStagesForProfile(profile, input.clarify ?? false).filter(
+        (s) => s !== 'taskify',
+      )
+      stages.push(...remainingStages)
+      console.log(`  ℹ️ Spec stages: ${stages.join(' → ')}`)
     }
 
     console.log(`✓ ${stage} complete`)
@@ -571,8 +595,10 @@ async function runImplPipeline(
     return
   }
 
-  // Build the pipeline stages (with parallel support)
-  const pipeline: PipelineStage[] = [...IMPL_PIPELINE]
+  // Resolve pipeline profile and get appropriate pipeline
+  const profile = resolvePipelineProfile(taskDef)
+  const pipeline: PipelineStage[] = getImplPipeline(profile)
+  console.log(`ℹ️ Pipeline profile: ${profile} (${flattenPipeline(pipeline).join(' → ')})`)
 
   // Cache for input_quality skip_stages (populated on first stage check)
   let implSkipStages: string[] = []
@@ -982,6 +1008,12 @@ async function runRerunPipeline(
   console.log(`Feedback: ${input.feedback}`)
   console.log(`From stage: ${input.fromStage}\n`)
 
+  // Resolve pipeline profile for profile-aware rerun
+  const taskDef = readTask(taskDir)
+  const profile = taskDef ? resolvePipelineProfile(taskDef) : 'standard'
+  const stageNames = getAllImplStageNames(profile)
+  console.log(`ℹ️ Pipeline profile: ${profile} (rerun)`)
+
   // Normalize fromStage: handle special sub-stages that aren't in ALL_IMPL_STAGE_NAMES
   // autofix is a sub-stage of verify, so treat it as starting from verify
   let normalizedFromStage = input.fromStage
@@ -991,16 +1023,16 @@ async function runRerunPipeline(
   }
 
   // Delete stage files from rerun point onwards
-  let fromIndex = ALL_IMPL_STAGE_NAMES.indexOf(normalizedFromStage)
+  let fromIndex = stageNames.indexOf(normalizedFromStage)
   // Handle unknown stages - default to start of pipeline
   if (fromIndex === -1) {
     console.log(
       `  Warning: Unknown stage "${normalizedFromStage}", defaulting to start from architect`,
     )
     fromIndex = 0
-    normalizedFromStage = ALL_IMPL_STAGE_NAMES[0]
+    normalizedFromStage = stageNames[0]
   }
-  const stagesToDelete = ALL_IMPL_STAGE_NAMES.slice(fromIndex)
+  const stagesToDelete = stageNames.slice(fromIndex)
 
   for (const stage of stagesToDelete) {
     const stageFile = stageOutputFile(taskDir, stage)
