@@ -128,6 +128,8 @@ function getBranchName(cwd: string): string {
 }
 
 function getExistingPr(branch: string, cwd: string): string | null {
+  // Use GH_PAT if available (for issue_comment triggered workflows where GITHUB_TOKEN may be restricted)
+  const ghToken = process.env.GH_PAT || process.env.GH_TOKEN
   try {
     const output = execFileSync(
       'gh',
@@ -135,6 +137,7 @@ function getExistingPr(branch: string, cwd: string): string | null {
       {
         cwd,
         encoding: 'utf-8',
+        env: { ...process.env, GH_TOKEN: ghToken },
       },
     ).trim()
     return output || null
@@ -301,6 +304,8 @@ export function runPrStage(
   console.log(`  Title: ${title}`)
 
   // Step 4: Create PR via gh CLI — use execFileSync with arg array to prevent injection
+  // Use GH_PAT if available (for issue_comment triggered workflows where GITHUB_TOKEN may be restricted)
+  const ghToken = process.env.GH_PAT || process.env.GH_TOKEN
   let prUrl = ''
   try {
     prUrl = execFileSync(
@@ -311,6 +316,7 @@ export function runPrStage(
         encoding: 'utf-8',
         input: body,
         stdio: ['pipe', 'pipe', 'inherit'],
+        env: { ...process.env, GH_TOKEN: ghToken },
       },
     ).trim()
     console.log(`  ✅ PR created: ${prUrl}`)
