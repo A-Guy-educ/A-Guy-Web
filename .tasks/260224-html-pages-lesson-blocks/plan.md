@@ -4,52 +4,39 @@
 
 Two features are needed to support rich HTML content within lessons:
 
-1. **ContentPages collection** — A new Payload collection storing full HTML content pages (using the existing `HtmlBlock` pattern with the Quill WYSIWYG editor), linked to a lesson.
-2. **Lesson Blocks** — A polymorphic ordered list on the Lesson collection that can contain either an exercise reference **or** a content page reference. The frontend pager (`ExercisesPager`) will be generalized to iterate through these mixed blocks.
+1. **ContentPages collection** — A new, generic Payload collection storing reusable HTML content pages (using the Quill WYSIWYG editor).
+2. **Lesson Blocks** — A polymorphic ordered list on the Lesson collection that serves as the strict playlist for the lesson. It can contain `exerciseRef` blocks and `contentPageRef` blocks.
 
 ### Current State
-- Lessons have exercises linked via a `lesson` relationship on the `Exercises` collection. The `order` field on the exercise determines the sequence.
-- The `ExercisesPager` component pages through exercises only.
-- An `HtmlBlock` Payload block already exists for the `Pages` collection (with full validation, allowed tags, security checks).
-- A `QuillField` WYSIWYG admin component exists and is used for `description` fields on Lessons/Chapters.
-- There is no concept of "lesson blocks" — lesson content is purely exercises.
+- Lessons implicitly fetch exercises that have a matching `lesson` relationship, ordered by an `order` field on the exercise.
+- There is no concept of "lesson blocks".
 
 ### Architecture Decisions
-- **ContentPages** will be a standalone collection so they can be managed independently, but their order and inclusion in a lesson is strictly governed by the lesson's `blocks` array.
-- **Lesson `blocks` field** will be a Payload `blocks` field (ordered array) with two block types: `exerciseRef` and `contentPageRef`. **This is now the sole source of truth for lesson content and ordering.**
-- **NO Backward Compatibility / Deprecation**: The `order` field on `Exercises` will be removed. All lessons MUST use the `blocks` array to define their content and order. The implicit "fetch exercises by lesson ID" fallback is removed.
-- The ContentPages collection will use the **same HTML validation** as the existing HtmlBlock to maintain security consistency.
-- **Slug uniqueness** is scoped to the lesson (not globally unique).
-- **Read access** uses a published-or-authenticated pattern.
-
-### Assumptions
-- A1: The user wants full HTML editing (not Lexical rich-text) — consistent with existing QuillField usage.
-- A2: Content pages are admin-created, student-readable when published.
-- A3: **All existing and new lessons will use the `blocks` field.** The fallback query is not needed.
-- A4: The pager should handle mixed content seamlessly.
-- A5: The `/pages/[pageSlug]` route renders the **full pager** (not standalone), matching how `/exercises/[exerciseSlug]` works.
+- **Generic ContentPages**: ContentPages will NOT be tied to a specific lesson in the database. They act as a shared pool of reusable content (like Media).
+- **Strict Lesson `blocks` field**: The `blocks` array on a Lesson is the SOLE source of truth for what content belongs to that lesson and in what order. 
+- **NO Backward Compatibility / Deprecation**: The `order` field on `Exercises` will be removed. All lessons MUST use the `blocks` array.
+- **Slug uniqueness**: ContentPages will have globally unique slugs.
 
 ---
 
-## Step 1: Create ContentPages Collection
+## Step 1: Create ContentPages Collection (Generic)
 
 **Time estimate**: 20 minutes
 
 **Files to Touch**:
 - `src/server/payload/collections/ContentPages/index.ts` (NEW)
-- `src/server/payload/collections/ContentPages/hooks.ts` (NEW — slug generation + uniqueness)
+- `src/server/payload/collections/ContentPages/hooks.ts` (NEW — slug generation)
 - `src/payload.config.ts` (MODIFIED — add to collections array)
 
 **Exact Behavior**:
 - New collection `content-pages` with fields:
   - `title` (text, required)
-  - `slug` (text, indexed) — URL-friendly identifier, auto-generated from title. Unique within lesson scope.
-  - `lesson` (relationship → lessons, required, indexed)
+  - `slug` (text, unique, indexed) — URL-friendly identifier, globally unique.
   - `htmlContent` (textarea field, required) — Uses `QuillField` admin component.
   - `status` (select: draft/published, default: draft)
   - `isActive` (checkbox, default: true)
   - `tenantField`, `createdByField`
-  - *(Note: No `order` field needed since the Lesson blocks array handles ordering)*
+  - *(Notice: No `lesson` relationship field. It is a standalone, reusable resource.)*
 - Access control: adminOnly for CUD, published-or-authenticated for read.
 
 ---
@@ -80,9 +67,9 @@ Two features are needed to support rich HTML content within lessons:
 - `src/server/payload/collections/Exercises/index.ts` (MODIFIED — remove `order` field)
 
 **Exact Behavior**:
-- **ExerciseRefBlock** & **ContentPageRefBlock**: Standard Payload blocks referencing their respective collections.
-- **Lessons collection**: Add `blocks` field (required: true, minRows: 1). This is now the strict, required way to add content to a lesson.
-- **Exercises collection**: **DELETE the `order` field.** (Lines 76-84 in `Exercises/index.ts`).
+- **Blocks**: Standard Payload blocks referencing their respective collections (`exercises` and `content-pages`).
+- **Lessons collection**: Add `blocks` field (required: true, minRows: 1). This is the strict playlist.
+- **Exercises collection**: **DELETE the `order` field.**
 
 ---
 
@@ -93,15 +80,15 @@ Two features are needed to support rich HTML content within lessons:
 **Files to Touch**:
 - `src/server/repos/queries/contentPages.ts` (NEW)
 - `src/server/repos/queries/lessonBlocks.ts` (NEW)
-- `src/server/repos/queries/exercises.ts` (MODIFIED - remove obsolete order-based queries)
+- `src/server/repos/queries/exercises.ts` (MODIFIED - remove obsolete queries)
 
 **Exact Behavior**:
 - `queryLessonBlocks({ lessonId })`:
   1. Fetch the lesson at depth: 0.
-  2. Batch-resolve the `blocks` array (fetch all referenced exercises and content pages in two bulk queries).
+  2. Batch-resolve the `blocks` array (fetch all referenced exercises and content pages).
   3. Return ordered `LessonBlock[]`.
-  4. *No fallback logic.* If a lesson has no blocks, it has no content.
-- Remove or refactor `queryExercisesByLesson` in `exercises.ts` as it no longer relies on the `order` field and should not be used for lesson rendering.
+- `queryContentPageBySlug({ slug })`: Fetches a generic content page by its global slug.
+- Remove `queryExercisesByLesson` as it no longer relies on the `order` field.
 
 ---
 
@@ -114,7 +101,6 @@ Two features are needed to support rich HTML content within lessons:
 
 **Exact Behavior**:
 - Client component rendering HTML safely via `SafeHtml`.
-- Styled consistently with exercise cards.
 
 ---
 
@@ -127,7 +113,7 @@ Two features are needed to support rich HTML content within lessons:
 - `src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/page.tsx` (MODIFIED)
 
 **Exact Behavior**:
-- Hook and component accept `blocks: LessonBlock[]` instead of `exercises`.
+- Hook and component accept `blocks: LessonBlock[]`.
 - Progress and pagination based entirely on the blocks array.
 - URL syncing uses `/exercises/{slug}` and `/content/{slug}`.
 
@@ -141,7 +127,8 @@ Two features are needed to support rich HTML content within lessons:
 - `src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/content/[pageSlug]/page.tsx` (NEW)
 
 **Exact Behavior**:
-- Route renders the full `LessonPager`. Pager auto-detects current page from URL.
+- Route renders the full `LessonPager`.
+- Security Check: Even though the ContentPage is generic, this route must verify that the requested `pageSlug` actually exists within the specific Lesson's `blocks` array to prevent users from rendering random content pages inside a lesson they don't belong to.
 
 ---
 
