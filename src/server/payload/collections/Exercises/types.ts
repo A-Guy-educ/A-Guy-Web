@@ -242,6 +242,15 @@ export interface HtmlBlock {
 }
 
 // ---------------------------------
+// Media Block (reference to a single media item)
+// ---------------------------------
+export interface MediaBlock {
+  id: string
+  type: 'media'
+  mediaId: string
+}
+
+// ---------------------------------
 // Union Type
 // ---------------------------------
 export type ContentBlock =
@@ -256,6 +265,7 @@ export type ContentBlock =
   | QuestionGeometryBlock
   | QuestionAxisBlock
   | HtmlBlock
+  | MediaBlock
 
 // ---------------------------------
 // Content Container

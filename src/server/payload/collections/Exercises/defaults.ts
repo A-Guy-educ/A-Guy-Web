@@ -10,6 +10,7 @@ import type {
   HtmlBlock,
   InlineRichText,
   LatexBlock,
+  MediaBlock,
   QuestionAxisBlock,
   QuestionFreeResponseBlock,
   QuestionGeometryBlock,
@@ -219,6 +220,12 @@ export const ExerciseBlockDefaults: Record<string, () => ContentBlock> = {
     id: generateId(),
     type: 'html',
     html: '',
+  }),
+
+  media: (): MediaBlock => ({
+    id: generateId(),
+    type: 'media',
+    mediaId: '',
   }),
 
   question_matching: (): QuestionMatchingBlock => ({

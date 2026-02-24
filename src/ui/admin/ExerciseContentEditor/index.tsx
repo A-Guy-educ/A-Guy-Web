@@ -16,6 +16,7 @@ import { FreeResponseEditor } from './editors/FreeResponseEditor'
 import { AxisEditor } from './editors/AxisEditor'
 import { GeometryEditor } from './editors/GeometryEditor'
 import { HtmlBlockEditor } from './editors/HtmlBlockEditor'
+import { MediaBlockEditor } from './editors/MediaBlockEditor'
 import { MatchingEditor } from './editors/MatchingEditor'
 import { SvgEditor } from './editors/SvgEditor'
 import { McqEditor } from './editors/McqEditor'
@@ -228,7 +229,14 @@ export const ExerciseContentEditor: React.FC<{ path: string }> = ({ path }) => {
   // Save media selection
   const handleMediaSave = (mediaIds: string[]) => {
     if (currentBlockForMedia) {
-      handleUpdateBlock(currentBlockForMedia, { mediaIds })
+      const block = blocks.find((b) => b.id === currentBlockForMedia)
+      if (block?.type === 'media') {
+        // Media block: single mediaId
+        handleUpdateBlock(currentBlockForMedia, { mediaId: mediaIds[0] || '' })
+      } else {
+        // Rich text block: array of mediaIds
+        handleUpdateBlock(currentBlockForMedia, { mediaIds })
+      }
     }
   }
 
@@ -456,6 +464,7 @@ function getBlockTypeLabel(block: ContentBlock): string {
   if (block.type === 'html') return 'HTML Block'
   if (block.type === 'question_matching') return 'Matching'
   if (block.type === 'svg') return 'SVG Image'
+  if (block.type === 'media') return 'Media'
   if (block.type === 'question_geometry') return 'Geometry'
   if (block.type === 'question_axis') return 'Axis Graph'
   return block.type
@@ -743,6 +752,7 @@ function BlockList({
       {blocks.map((block, index) => {
         const isRichText = block.type === 'rich_text'
         const isHtml = block.type === 'html'
+        const isMedia = block.type === 'media'
 
         return (
           <div
@@ -789,6 +799,26 @@ function BlockList({
                       onRemoveMedia={onRemoveMedia}
                     />
                   )}
+                </div>
+              </>
+            ) : isMedia ? (
+              <>
+                <ContentBlockHeader
+                  blockId={block.id}
+                  index={index}
+                  blockCount={blocks.length}
+                  onMoveBlock={onMoveBlock}
+                  onDuplicateBlock={onDuplicateBlock}
+                  onDeleteBlock={onDeleteBlock}
+                />
+                <div className="block-content" onClick={() => onSelect(block.id)}>
+                  <MediaBlockEditor
+                    block={
+                      block as import('@/server/payload/collections/Exercises/types').MediaBlock
+                    }
+                    onChange={(updatedBlock) => onUpdateBlock(block.id, updatedBlock)}
+                    onOpenMediaPicker={() => onOpenMediaPicker(block.id)}
+                  />
                 </div>
               </>
             ) : isHtml ? (

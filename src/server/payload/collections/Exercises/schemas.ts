@@ -509,6 +509,17 @@ export const HtmlBlockSchema = z
   .strict()
 
 // ---------------------------------
+// Zod: Media Block (reference to a single media item)
+// ---------------------------------
+export const MediaBlockSchema = z
+  .object({
+    id: z.string().min(1),
+    type: z.literal('media'),
+    mediaId: z.string().min(1),
+  })
+  .strict()
+
+// ---------------------------------
 // Zod: Content union (exported for admin components)
 // ---------------------------------
 export const ContentBlockSchema = z.discriminatedUnion('type', [
@@ -522,6 +533,7 @@ export const ContentBlockSchema = z.discriminatedUnion('type', [
   QuestionGeometryBlockSchema,
   QuestionAxisBlockSchema,
   HtmlBlockSchema,
+  MediaBlockSchema,
 ])
 
 export type ContentBlock = z.infer<typeof ContentBlockSchema>

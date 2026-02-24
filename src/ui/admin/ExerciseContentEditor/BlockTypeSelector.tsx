@@ -12,6 +12,7 @@ import {
   Table as TableIcon,
   Triangle,
   X,
+  Film,
 } from 'lucide-react'
 import React from 'react'
 
@@ -81,6 +82,12 @@ export const BlockTypeSelector: React.FC<BlockTypeSelectorProps> = ({
       label: 'SVG Image',
       description: 'Raw SVG markup with live preview',
       icon: <ImageIcon size={20} />,
+    },
+    {
+      type: 'media',
+      label: 'Media',
+      description: 'Reference to media file (image, video, PDF)',
+      icon: <Film size={20} />,
     },
     {
       type: 'question_geometry',
