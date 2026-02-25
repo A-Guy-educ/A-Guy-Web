@@ -22,6 +22,7 @@ export class AgentHandler implements StageHandler {
     const result = await runAgentWithFileWatch(ctx.input, def.name, outputFile, def.timeout, {
       backend: ctx.backend,
       validateOutput: def.validator,
+      maxRetries: def.maxRetries,
     })
 
     // Map result to StageResult
