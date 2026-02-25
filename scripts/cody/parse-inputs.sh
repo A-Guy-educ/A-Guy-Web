@@ -113,7 +113,7 @@ else
     else
       # Check if the command after @cody is an approval keyword
       for keyword in $APPROVAL_KEYWORDS; do
-        if [[ "$CMD_AFTER_CODY" == "$keyword" ]] || [[ "$CMD_AFTER_CODY" == "$keyword"* ]]; then
+        if [[ "$CMD_AFTER_CODY" == "$keyword" ]]; then
           IS_APPROVAL=true
           echo "=== Detected approval keyword: $keyword ==="
           break
@@ -144,7 +144,10 @@ else
   # Use printf '%s' to avoid echo's trailing newline being captured by jq
   OUTPUT_COMMENT_BODY=$(printf '%s' "${COMMENT_BODY:-}" | jq -Rs .)
   OUTPUT_TRIGGER_TYPE="comment"
-  OUTPUT_VALID="true"
+  # Only set valid=true if not already marked invalid by task-id validation
+  if [[ "$OUTPUT_VALID" != "false" ]]; then
+    OUTPUT_VALID="true"
+  fi
   echo "=== Passing comment to orchestrator for parsing ==="
 fi
 
