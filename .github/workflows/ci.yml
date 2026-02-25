@@ -163,6 +163,8 @@ jobs:
           pnpm build
           echo "=== Build completed ==="
           echo "=== Checking for .next directory ==="
+          pwd
+          ls -la
           if [ -d ".next" ]; then
             echo ".next directory exists"
             ls -la .next/
@@ -177,7 +179,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: next-build
-          path: .next/
+          path: ${{ github.workspace }}/.next/
           retention-days: 1
           if-no-files-found: error
 
