@@ -201,10 +201,24 @@ export function runAgentWithFileWatch(
             if (prefixMatch) {
               detectedFile = path.join(taskDirForPoll, prefixMatch)
             } else {
+              // Debug: Log file detection status
+              if (stableCheckCount === 0) {
+                console.log(
+                  `  🔍 Polling: no output file yet (expected: ${expectedBase}${outputExt})`,
+                )
+              }
               // Reset stable checks if file doesn't exist
               stableCheckCount = 0
               lastFileSize = 0
               return
+            }
+          } else {
+            // Debug: File found
+            const stat = fs.statSync(outputFile)
+            if (stableCheckCount === 0) {
+              console.log(
+                `  🔍 Output file detected: ${expectedBase}${outputExt} (${stat.size} bytes)`,
+              )
             }
           }
 
@@ -294,6 +308,17 @@ export function runAgentWithFileWatch(
             // Retry on ANY failure — exit non-zero OR exit 0 without output file
             retries++
             const reason = code === 0 ? 'no output file' : `exit ${code}`
+
+            // Debug: List files in task directory on failure
+            try {
+              const files = fs.readdirSync(taskDirForPoll)
+              console.log(
+                `  🔍 Debug: Files in ${path.basename(taskDirForPoll)}: ${files.join(', ')}`,
+              )
+            } catch {
+              // Ignore errors
+            }
+
             console.log(`  ⚠ Stage failed (${reason}), retrying (${retries}/${maxRetries})...`)
             if (pollTimer) clearInterval(pollTimer)
             if (timeoutTimer) clearTimeout(timeoutTimer)
@@ -304,6 +329,15 @@ export function runAgentWithFileWatch(
             setTimeout(() => attemptWithRetry(undefined), 2000)
           } else {
             // Exhausted retries without producing output file
+            // Debug: List files in task directory on final failure
+            try {
+              const files = fs.readdirSync(taskDirForPoll)
+              console.log(
+                `  🔍 Debug: Files in ${path.basename(taskDirForPoll)}: ${files.join(', ')}`,
+              )
+            } catch {
+              // Ignore errors
+            }
             console.log(`  ❌ Agent exited ${code} without producing output file`)
             finish({ succeeded: false, timedOut: false })
           }
