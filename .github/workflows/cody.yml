@@ -101,7 +101,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
       # For comments: validate safety filters before parsing
       - name: Validate comment trigger safety
