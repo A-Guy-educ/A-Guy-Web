@@ -20,6 +20,9 @@ import { createRunner, type RunnerBackend } from './runner-backend'
 /** Check for output file every 3 seconds */
 export const FILE_POLL_INTERVAL = 3_000
 
+/** Max polls before giving up (20 minutes = 400 polls * 3s = 20min) */
+export const MAX_POLL_COUNT = 400
+
 /** Number of consecutive stable size checks before settling (file detection stabilization) */
 export const FILE_STABLE_CHECKS = 2
 
@@ -31,9 +34,12 @@ export const DEFAULT_TIMEOUT = 10 * 60_000
 
 /** Stage-specific timeouts in milliseconds */
 export const STAGE_TIMEOUTS: Record<string, number> = {
+  taskify: 10 * 60_000,
+  spec: 15 * 60_000,
+  gap: 15 * 60_000,
+  clarify: 10 * 60_000,
   architect: 30 * 60_000,
   build: 45 * 60_000,
-  gap: 15 * 60_000,
   'plan-gap': 15 * 60_000,
   verify: 10 * 60_000,
   auditor: 5 * 60_000,
@@ -184,9 +190,33 @@ export function runAgentWithFileWatch(
       const taskDirForPoll = path.dirname(outputFile)
       let stableCheckCount = 0
       let lastFileSize = 0
+      let pollCount = 0
 
       pollTimer = setInterval(() => {
         if (settling) return
+
+        pollCount++
+
+        // Fail if we've polled too many times without output (stuck agent)
+        if (pollCount >= MAX_POLL_COUNT) {
+          console.log(
+            `  ❌ Agent stuck: no output after ${pollCount} polls (${(pollCount * FILE_POLL_INTERVAL) / 1000 / 60} minutes)`,
+          )
+          // Try to kill the process
+          if (currentChild && !currentChild.killed) {
+            currentChild.kill('SIGTERM')
+            setTimeout(() => {
+              if (currentChild && !currentChild.killed) currentChild.kill('SIGKILL')
+            }, 5000)
+          }
+          finish({ succeeded: false, timedOut: true })
+          return
+        }
+
+        // Log warning at half-max polls
+        if (pollCount === Math.floor(MAX_POLL_COUNT / 2)) {
+          console.log(`  ⚠️ Agent still running after ${pollCount} polls, no output yet...`)
+        }
 
         try {
           let detectedFile = outputFile
@@ -299,9 +329,11 @@ export function runAgentWithFileWatch(
 
       // Process exit with retry logic
       currentChild.on('exit', (code) => {
+        console.log(`  📡 Process exited with code: ${code}`)
         if (!resolved) {
           // Success only if file was created (not just exit code 0)
           if (fs.existsSync(outputFile)) {
+            console.log(`  📄 Output file exists after exit, waiting for poll to settle...`)
             // Don't finish here - let the poll loop continue to handle validation
             // The finish() will be called after validation completes
           } else if (retries < maxRetries) {
