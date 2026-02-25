@@ -147,6 +147,13 @@ export function runAgentWithFileWatch(
     const attemptWithRetry = (feedback?: string): void => {
       console.log(`  Attempt ${retries + 1}/${maxRetries + 1}`)
 
+      // FIX #2: Delete stale output files before retry to prevent agent confusion
+      // The agent might see old output and think work is already done
+      if (retries > 0 && fs.existsSync(outputFile)) {
+        fs.unlinkSync(outputFile)
+        console.log(`  🗑️ Deleted stale output file before retry`)
+      }
+
       // Calculate remaining timeout (subtract elapsed time from previous attempts)
       const elapsed = Date.now() - startTime
       const remainingTimeout = effectiveTimeout - elapsed
@@ -337,36 +344,47 @@ export function runAgentWithFileWatch(
             // Don't finish here - let the poll loop continue to handle validation
             // The finish() will be called after validation completes
           } else if (retries < maxRetries) {
-            // Retry on ANY failure — exit non-zero OR exit 0 without output file
-            retries++
+            // FIX #1: Add brief delay before retry to handle filesystem flush delays
+            // The agent may have written the file but the write hasn't flushed to disk yet
             const reason = code === 0 ? 'no output file' : `exit ${code}`
+            console.log(`  ⏳ Agent exited but file not found, checking again in 3s...`)
 
-            // BUG-F fix: Add feedback message to help agent understand why it failed
-            const feedbackMsg =
-              code === 0
-                ? `CRITICAL FAILURE: You exited with code 0 but did NOT produce the required output file. You MUST write the output file before exiting. Check that your tool calls are actually writing to the correct path.`
-                : `CRITICAL FAILURE: You exited with code ${code}. Fix the error and ensure you write the output file before exiting.`
+            setTimeout(() => {
+              // Check again after delay
+              if (fs.existsSync(outputFile)) {
+                console.log(`  📄 File appeared after delay - waiting for poll to settle...`)
+              } else {
+                // File still missing - retry with feedback
+                retries++
 
-            // Debug: List files in task directory on failure
-            try {
-              const files = fs.readdirSync(taskDirForPoll)
-              console.log(
-                `  🔍 Debug: Files in ${path.basename(taskDirForPoll)}: ${files.join(', ')}`,
-              )
-            } catch {
-              // Ignore errors
-            }
+                // BUG-F fix: Add feedback message to help agent understand why it failed
+                const feedbackMsg =
+                  code === 0
+                    ? `CRITICAL FAILURE: You exited with code 0 but did NOT produce the required output file. You MUST write the output file before exiting. Check that your tool calls are actually writing to the correct path.`
+                    : `CRITICAL FAILURE: You exited with code ${code}. Fix the error and ensure you write the output file before exiting.`
 
-            console.log(
-              `  ⚠ Stage failed (${reason}), retrying with feedback (${retries}/${maxRetries})...`,
-            )
-            if (pollTimer) clearInterval(pollTimer)
-            if (timeoutTimer) clearTimeout(timeoutTimer)
-            if (currentChild && !currentChild.killed) {
-              currentChild.kill('SIGTERM')
-            }
-            // Retry with feedback about what went wrong
-            setTimeout(() => attemptWithRetry(feedbackMsg), 2000)
+                // Debug: List files in task directory on failure
+                try {
+                  const files = fs.readdirSync(taskDirForPoll)
+                  console.log(
+                    `  🔍 Debug: Files in ${path.basename(taskDirForPoll)}: ${files.join(', ')}`,
+                  )
+                } catch {
+                  // Ignore errors
+                }
+
+                console.log(
+                  `  ⚠ Stage failed (${reason}), retrying with feedback (${retries}/${maxRetries})...`,
+                )
+                if (pollTimer) clearInterval(pollTimer)
+                if (timeoutTimer) clearTimeout(timeoutTimer)
+                if (currentChild && !currentChild.killed) {
+                  currentChild.kill('SIGTERM')
+                }
+                // Retry with feedback about what went wrong
+                setTimeout(() => attemptWithRetry(feedbackMsg), 2000)
+              }
+            }, 3000) // Wait 3 seconds for filesystem to flush
           } else {
             // Exhausted retries without producing output file
             // Debug: List files in task directory on final failure

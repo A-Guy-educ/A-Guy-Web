@@ -52,6 +52,17 @@ if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
 
   # Set output variables for dispatch
   OUTPUT_TASK_ID="$DISPATCH_TASK_ID"
+
+  # FIX #3: Validate task-id format for dispatch
+  if ! [[ "$OUTPUT_TASK_ID" =~ ^[0-9]{6}-[a-zA-Z0-9-]+$ ]]; then
+    echo "=== Error: Invalid task-id format: $OUTPUT_TASK_ID ==="
+    echo "Expected format: YYMMDD-description (e.g., 260225-auto-90)"
+    write_defaults
+    echo "issue_number=" >> "$GITHUB_OUTPUT"
+    echo "valid=false" >> "$GITHUB_OUTPUT"
+    exit 0
+  fi
+
   OUTPUT_MODE="${DISPATCH_MODE:-full}"
   OUTPUT_CLARIFY="${DISPATCH_CLARIFY:-false}"
   OUTPUT_DRY_RUN="${DISPATCH_DRY_RUN:-false}"
@@ -116,6 +127,16 @@ else
       # The pipeline will resume from the last failed stage (or build by default)
       OUTPUT_MODE="rerun"
     fi
+  fi
+
+  # FIX #3: Validate task-id format if set (prevents "Invalid task-id format: TEST" errors)
+  # Format: YYMMDD-description (e.g., 260225-auto-90)
+  if [[ -n "$OUTPUT_TASK_ID" ]] && ! [[ "$OUTPUT_TASK_ID" =~ ^[0-9]{6}-[a-zA-Z0-9-]+$ ]]; then
+    echo "=== Error: Invalid task-id format: $OUTPUT_TASK_ID ==="
+    echo "Expected format: YYMMDD-description (e.g., 260225-auto-90)"
+    # Set default but mark as invalid
+    OUTPUT_TASK_ID=""
+    OUTPUT_VALID="false"
   fi
 
   # Pass raw comment body to orchestrator for parsing

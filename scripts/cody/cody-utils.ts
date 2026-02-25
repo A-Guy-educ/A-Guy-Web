@@ -168,6 +168,47 @@ export function getLastFailedStage(taskId: string): string | null {
 }
 
 /**
+ * Get the last paused stage from status.json.
+ * Used by rerun mode to detect gates that are waiting for approval.
+ * Returns the stage name that has state 'paused', or null if none.
+ */
+export function getLastPausedStage(taskId: string): string | null {
+  const statusFile = path.join(getTaskDir(taskId), 'status.json')
+  if (!fs.existsSync(statusFile)) {
+    return null
+  }
+
+  try {
+    const content = fs.readFileSync(statusFile, 'utf-8')
+    const status = JSON.parse(content) as {
+      version?: number
+      stages?: Record<string, { state: string }>
+    }
+
+    // Check for paused stages in v2 format
+    if (status.version === 2 && status.stages) {
+      const pausedStages = Object.entries(status.stages)
+        .filter(([, s]) => s.state === 'paused')
+        .map(([name]) => name)
+      // Return the last paused stage (most recent)
+      return pausedStages.length > 0 ? pausedStages[pausedStages.length - 1] : null
+    }
+
+    // Fallback to v1 format
+    if (status?.stages) {
+      const pausedStages = Object.entries(status.stages)
+        .filter(([, s]) => s.state === 'paused')
+        .map(([name]) => name)
+      return pausedStages.length > 0 ? pausedStages[pausedStages.length - 1] : null
+    }
+
+    return null
+  } catch {
+    return null
+  }
+}
+
+/**
  * @deprecated Use engine/status.ts loadState/writeState/completeState instead.
  */
 export function writeStatus(taskId: string, status: CodyPipelineStatus): void {
