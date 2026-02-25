@@ -253,13 +253,6 @@ jobs:
           persist-credentials: true
           fetch-depth: 0
 
-      - name: Checkout feature branch if exists
-        if: needs.parse.outputs.task_id != ''
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TASK_ID: ${{ needs.parse.outputs.task_id }}
-        run: pnpm tsx scripts/cody/checkout-task-branch.ts
-
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -273,6 +266,13 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Checkout feature branch if exists
+        if: needs.parse.outputs.task_id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TASK_ID: ${{ needs.parse.outputs.task_id }}
+        run: pnpm tsx scripts/cody/checkout-task-branch.ts
 
       # Configure git identity for commits in CI
       - name: Configure git identity
