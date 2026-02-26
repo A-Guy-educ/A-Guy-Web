@@ -420,6 +420,8 @@
     "editDay": "ערוך",
     "saveEdit": "שמור",
     "cancelEdit": "בטל",
+    "durationLabel": "משך (דקות)",
+    "startTimeLabel": "שעת התחלה",
     "minutesShort": "דק'",
     "activity": {
       "practice": "אימון ממוקד",

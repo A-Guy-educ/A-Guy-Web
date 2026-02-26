@@ -110,7 +110,7 @@ export function DayCard({ day, topics, onToggleStatus, onEdit }: DayCardProps) {
         {/* Duration input */}
         <div className="mb-4">
           <label className="block text-xs font-medium text-slate-600 mb-2">
-            {t('minutesShort')}
+            {t('durationLabel')}
           </label>
           <input
             type="number"
@@ -124,7 +124,7 @@ export function DayCard({ day, topics, onToggleStatus, onEdit }: DayCardProps) {
         {/* Start time input */}
         <div className="mb-4">
           <label className="block text-xs font-medium text-slate-600 mb-2">
-            {t('examDate') /* Using examDate as "Time" label */}
+            {t('startTimeLabel')}
           </label>
           <input
             type="time"
@@ -162,14 +162,6 @@ export function DayCard({ day, topics, onToggleStatus, onEdit }: DayCardProps) {
           : 'border-slate-200 hover:border-slate-300 shadow-sm'
       }`}
     >
-      {/* Completed badge - positioned to not overlap */}
-      {isCompleted && (
-        <div className="absolute top-3 end-16 flex items-center gap-1 text-green-600">
-          <CheckCircle2 className="w-5 h-5" />
-          <span className="text-sm font-medium">{t('completed')}</span>
-        </div>
-      )}
-
       {/* Edit button - only show when not completed */}
       {!isCompleted && onEdit && (
         <button
@@ -195,13 +187,21 @@ export function DayCard({ day, topics, onToggleStatus, onEdit }: DayCardProps) {
             <span className="text-xs text-slate-400 ms-2">{day.userStartTime}</span>
           )}
         </div>
-        <span
-          className={`px-2.5 py-1 text-xs font-semibold rounded-full border ${
-            ACTIVITY_COLORS[day.activityType]
-          }`}
-        >
-          {t(`activity.${day.activityType}`)}
-        </span>
+        <div className="flex items-center gap-1.5">
+          {isCompleted && (
+            <span className="flex items-center gap-1 text-green-600 text-xs font-medium">
+              <CheckCircle2 className="w-4 h-4" />
+              {t('completed')}
+            </span>
+          )}
+          <span
+            className={`px-2.5 py-1 text-xs font-semibold rounded-full border ${
+              ACTIVITY_COLORS[day.activityType]
+            }`}
+          >
+            {t(`activity.${day.activityType}`)}
+          </span>
+        </div>
       </div>
 
       <div className="mb-4">

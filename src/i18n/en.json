@@ -420,6 +420,8 @@
     "editDay": "Edit",
     "saveEdit": "Save",
     "cancelEdit": "Cancel",
+    "durationLabel": "Duration (min)",
+    "startTimeLabel": "Start time",
     "minutesShort": "min",
     "activity": {
       "practice": "Focused Practice",
