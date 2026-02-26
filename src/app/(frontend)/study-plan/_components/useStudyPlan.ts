@@ -9,7 +9,11 @@ interface UseStudyPlanReturn {
   isLoading: boolean
   error: string | null
   generatePlan: (examDate: string, topics: TopicInput[], courseId: string) => Promise<void>
-  markDayComplete: (dayId: string) => Promise<void>
+  toggleDayStatus: (dayId: string) => Promise<void>
+  editDay: (
+    dayId: string,
+    edits: { userTopicIds?: string[]; userDurationMinutes?: number; userStartTime?: string },
+  ) => Promise<void>
 }
 
 export function useStudyPlan(): UseStudyPlanReturn {
@@ -88,47 +92,80 @@ export function useStudyPlan(): UseStudyPlanReturn {
     [gradeLevel],
   )
 
-  const markDayComplete = useCallback(
+  const toggleDayStatus = useCallback(
     async (dayId: string) => {
       if (!plan) return
 
-      // Prevent un-completing: skip if already completed
       const targetDay = plan.days.find((d) => d.dayId === dayId)
-      if (!targetDay || targetDay.status === 'completed') return
+      if (!targetDay) return
+
+      const newStatus = targetDay.status === 'completed' ? 'planned' : 'completed'
 
       // Optimistic update
       const previousPlan = plan
       setPlan({
         ...plan,
-        days: plan.days.map((day) => (day.dayId === dayId ? { ...day, status: 'completed' } : day)),
+        days: plan.days.map((day) => (day.dayId === dayId ? { ...day, status: newStatus } : day)),
       })
 
       try {
         const response = await fetch('/api/study-plan', {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            action: 'markComplete',
+            action: 'toggleStatus',
             dayId,
             courseId: plan.courseId,
             gradeLevel,
           }),
         })
 
-        if (!response.ok) {
-          throw new Error('Failed to mark day complete')
-        }
+        if (!response.ok) throw new Error('Failed to toggle day status')
 
         const data = await response.json()
-
-        if (data.success && data.data) {
-          setPlan(data.data)
-        }
+        if (data.success && data.data) setPlan(data.data)
       } catch (err) {
-        console.error('Error marking day complete:', err)
-        // Revert on failure
+        console.error('Error toggling day status:', err)
+        setPlan(previousPlan)
+        setError(err instanceof Error ? err.message : 'Unknown error')
+      }
+    },
+    [plan, gradeLevel],
+  )
+
+  const editDay = useCallback(
+    async (
+      dayId: string,
+      edits: { userTopicIds?: string[]; userDurationMinutes?: number; userStartTime?: string },
+    ) => {
+      if (!plan) return
+
+      const previousPlan = plan
+      // Optimistic update
+      setPlan({
+        ...plan,
+        days: plan.days.map((day) => (day.dayId === dayId ? { ...day, ...edits } : day)),
+      })
+
+      try {
+        const response = await fetch('/api/study-plan', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'editDay',
+            dayId,
+            courseId: plan.courseId,
+            gradeLevel,
+            ...edits,
+          }),
+        })
+
+        if (!response.ok) throw new Error('Failed to edit day')
+
+        const data = await response.json()
+        if (data.success && data.data) setPlan(data.data)
+      } catch (err) {
+        console.error('Error editing day:', err)
         setPlan(previousPlan)
         setError(err instanceof Error ? err.message : 'Unknown error')
       }
@@ -141,6 +178,7 @@ export function useStudyPlan(): UseStudyPlanReturn {
     isLoading,
     error,
     generatePlan,
-    markDayComplete,
+    toggleDayStatus,
+    editDay,
   }
 }

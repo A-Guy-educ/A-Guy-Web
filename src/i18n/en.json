@@ -414,7 +414,12 @@
     "scheduleTitle": "7-Day Focus Schedule",
     "scheduleSubtitle": "(The countdown)",
     "markComplete": "Mark Complete",
+    "undoComplete": "Mark as Planned",
     "completed": "Completed",
+    "planned": "Planned",
+    "editDay": "Edit",
+    "saveEdit": "Save",
+    "cancelEdit": "Cancel",
     "minutesShort": "min",
     "activity": {
       "practice": "Focused Practice",

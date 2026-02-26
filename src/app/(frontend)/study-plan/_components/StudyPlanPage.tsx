@@ -58,7 +58,7 @@ function TopicRow({ topic, onMasteryChange, onDelete }: TopicRowProps) {
 
 export function StudyPlanPage() {
   const t = useTranslations('studyPlan')
-  const { plan, isLoading, generatePlan, markDayComplete } = useStudyPlan()
+  const { plan, isLoading, generatePlan, toggleDayStatus, editDay } = useStudyPlan()
 
   const userEdited = useRef(false)
   const [examDate, setExamDate] = useState('')
@@ -99,9 +99,9 @@ export function StudyPlanPage() {
 
   const handleMarkComplete = useCallback(
     async (dayId: string) => {
-      await markDayComplete(dayId)
+      await toggleDayStatus(dayId)
     },
-    [markDayComplete],
+    [toggleDayStatus],
   )
 
   // Auto-generate plan when user edits exam date or topics
@@ -211,7 +211,8 @@ export function StudyPlanPage() {
                       key={day.dayId}
                       day={day}
                       topics={topics}
-                      onMarkComplete={() => handleMarkComplete(day.dayId)}
+                      onToggleStatus={() => handleMarkComplete(day.dayId)}
+                      onEdit={(edits) => editDay(day.dayId, edits)}
                     />
                   ))}
                 </div>

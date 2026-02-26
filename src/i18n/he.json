@@ -414,7 +414,12 @@
     "scheduleTitle": "לו\"ז 7 ימי המיקוד",
     "scheduleSubtitle": "(הספירה לאחור)",
     "markComplete": "סיימתי",
+    "undoComplete": "סמן כמתוכנן",
     "completed": "הושלם",
+    "planned": "מתוכנן",
+    "editDay": "ערוך",
+    "saveEdit": "שמור",
+    "cancelEdit": "בטל",
     "minutesShort": "דק'",
     "activity": {
       "practice": "אימון ממוקד",

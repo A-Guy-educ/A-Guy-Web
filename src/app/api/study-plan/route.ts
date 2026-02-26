@@ -12,7 +12,7 @@ import { getPayload } from 'payload'
 import { z } from 'zod'
 
 import type { StudyPlanSnapshot, TopicInput } from '@/lib/study-plan'
-import { generateStudyPlan, mergeStudyPlan } from '@/lib/study-plan'
+import { generateStudyPlan } from '@/lib/study-plan'
 import { queryUserProgressByGrade } from '@/server/repos/queries/userProgress'
 
 // Zod validation schemas
@@ -30,17 +30,32 @@ const GenerateRequestSchema = z.object({
   gradeLevel: z.string().min(1),
 })
 
-const MarkCompleteSchema = z.object({
-  action: z.literal('markComplete'),
+const ToggleStatusSchema = z.object({
+  action: z.literal('toggleStatus'),
   dayId: z.string().min(1),
   courseId: z.string().min(1),
   gradeLevel: z.string().min(1),
 })
 
-const RequestSchema = z.discriminatedUnion('action', [GenerateRequestSchema, MarkCompleteSchema])
+const EditDaySchema = z.object({
+  action: z.literal('editDay'),
+  dayId: z.string().min(1),
+  courseId: z.string().min(1),
+  gradeLevel: z.string().min(1),
+  userTopicIds: z.array(z.string()).optional(),
+  userDurationMinutes: z.number().min(0).optional(),
+  userStartTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+})
+
+const RequestSchema = z.discriminatedUnion('action', [
+  GenerateRequestSchema,
+  ToggleStatusSchema,
+  EditDaySchema,
+])
 
 type GenerateRequest = z.infer<typeof GenerateRequestSchema>
-type MarkCompleteRequest = z.infer<typeof MarkCompleteSchema>
+type ToggleStatusRequest = z.infer<typeof ToggleStatusSchema>
+type EditDayRequest = z.infer<typeof EditDaySchema>
 type RequestBody = z.infer<typeof RequestSchema>
 
 /**
@@ -124,8 +139,10 @@ export async function PUT(request: NextRequest) {
 
     if (action === 'generate') {
       return handleGenerate(payload, user, parsedBody.data as GenerateRequest)
-    } else if (action === 'markComplete') {
-      return handleMarkComplete(payload, user, parsedBody.data as MarkCompleteRequest)
+    } else if (action === 'toggleStatus') {
+      return handleToggleStatus(payload, user, parsedBody.data as ToggleStatusRequest)
+    } else if (action === 'editDay') {
+      return handleEditDay(payload, user, parsedBody.data as EditDayRequest)
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
@@ -162,17 +179,11 @@ async function handleGenerate(
     idGenerator: () => nanoid(),
   }
 
-  let days
-  if (existingPlan?.days && existingPlan.days.length > 0) {
-    // Merge with existing completed days
-    days = mergeStudyPlan(existingPlan.days, generateInput)
-  } else {
-    // Generate fresh plan
-    days = generateStudyPlan(generateInput)
-  }
+  // Regeneration always produces a fresh plan (clears completion + overrides)
+  const days = generateStudyPlan(generateInput)
 
   // Validate all topicIds are string[]
-  const validatedDays = days.map((day) => ({
+  const validatedDays = days.map((day: any) => ({
     ...day,
     topicIds: z.array(z.string()).parse(day.topicIds),
   }))
@@ -225,10 +236,10 @@ async function handleGenerate(
   return NextResponse.json({ success: true, data: newPlan })
 }
 
-async function handleMarkComplete(
+async function handleToggleStatus(
   payload: Awaited<ReturnType<typeof getPayload>>,
   user: { id: string },
-  data: MarkCompleteRequest,
+  data: ToggleStatusRequest,
 ) {
   const { dayId, courseId, gradeLevel } = data
 
@@ -238,40 +249,71 @@ async function handleMarkComplete(
     gradeLevel,
   })
 
-  if (!userProgress) {
-    return NextResponse.json({ error: 'User progress not found' }, { status: 404 })
-  }
-
-  if (!userProgress.studyPlans) {
+  if (!userProgress?.studyPlans) {
     return NextResponse.json({ error: 'Study plan not found' }, { status: 404 })
   }
 
-  // Find the plan
   const planIndex = userProgress.studyPlans.findIndex((p) => p.courseId === courseId)
   if (planIndex < 0) {
     return NextResponse.json({ error: 'Study plan not found' }, { status: 404 })
   }
 
   const plan = userProgress.studyPlans[planIndex]
-  if (!plan) {
-    return NextResponse.json({ error: 'Study plan not found' }, { status: 404 })
-  }
 
-  // Find and update the day
+  // Toggle: if completed → planned, else → completed
   const days = plan.days.map((day) => {
     if (day.dayId === dayId) {
-      return { ...day, status: 'completed' as const }
+      return { ...day, status: day.status === 'completed' ? ('planned' as const) : ('completed' as const) }
     }
     return day
   })
 
-  // Update the plan
-  const updatedPlan: StudyPlanSnapshot = {
-    ...plan,
-    days,
+  const updatedPlan: StudyPlanSnapshot = { ...plan, days }
+  const studyPlans = [...userProgress.studyPlans]
+  studyPlans[planIndex] = updatedPlan
+
+  await payload.update({
+    collection: 'user-progress',
+    id: userProgress.id,
+    data: { studyPlans },
+    overrideAccess: false,
+    user,
+  } as any)
+
+  return NextResponse.json({ success: true, data: updatedPlan })
+}
+
+async function handleEditDay(
+  payload: Awaited<ReturnType<typeof getPayload>>,
+  user: { id: string },
+  data: EditDayRequest,
+) {
+  const { dayId, courseId, gradeLevel, userTopicIds, userDurationMinutes, userStartTime } = data
+
+  const userProgress = await queryUserProgressByGrade({ userId: user.id, gradeLevel })
+  if (!userProgress?.studyPlans) {
+    return NextResponse.json({ error: 'Study plan not found' }, { status: 404 })
   }
 
-  // Update studyPlans array
+  const planIndex = userProgress.studyPlans.findIndex((p) => p.courseId === courseId)
+  if (planIndex < 0) {
+    return NextResponse.json({ error: 'Study plan not found' }, { status: 404 })
+  }
+
+  const plan = userProgress.studyPlans[planIndex]
+  const days = plan.days.map((day) => {
+    if (day.dayId === dayId) {
+      return {
+        ...day,
+        ...(userTopicIds !== undefined && { userTopicIds }),
+        ...(userDurationMinutes !== undefined && { userDurationMinutes }),
+        ...(userStartTime !== undefined && { userStartTime }),
+      }
+    }
+    return day
+  })
+
+  const updatedPlan: StudyPlanSnapshot = { ...plan, days }
   const studyPlans = [...userProgress.studyPlans]
   studyPlans[planIndex] = updatedPlan
 

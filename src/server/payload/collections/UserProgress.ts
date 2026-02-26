@@ -162,6 +162,9 @@ export const UserProgress: CollectionConfig = {
               defaultValue: 'planned',
             },
             { name: 'estimatedDurationMinutes', type: 'number', min: 0, defaultValue: 45 },
+            { name: 'userTopicIds', type: 'json' }, // string[] override
+            { name: 'userDurationMinutes', type: 'number', min: 0 },
+            { name: 'userStartTime', type: 'text' }, // HH:MM
           ],
         },
       ],
