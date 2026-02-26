@@ -136,7 +136,7 @@ export async function createGuestSession(
   expiresAt.setDate(expiresAt.getDate() + guestConfig.sliding_ttl_days)
 
   const session = await payload.create({
-    collection: 'guest-sessions' as const,
+    collection: 'guest-sessions',
     data: {
       tokenHash,
       tokenVersion: 1,
@@ -164,7 +164,7 @@ export async function getGuestSessionByToken(
   const tokenHash = hashToken(token)
 
   const sessions = await payload.find({
-    collection: 'guest-sessions' as const,
+    collection: 'guest-sessions',
     where: {
       and: [{ tokenHash: { equals: tokenHash } }, { status: { equals: 'active' } }],
     },
@@ -187,7 +187,7 @@ export async function updateGuestSessionActivity(
   sessionId: string,
 ): Promise<GuestSessionDoc | null> {
   const session = await payload.findByID({
-    collection: 'guest-sessions' as const,
+    collection: 'guest-sessions',
     id: sessionId,
   })
 
@@ -207,7 +207,7 @@ export async function updateGuestSessionActivity(
   }
 
   const updated = await payload.update({
-    collection: 'guest-sessions' as const,
+    collection: 'guest-sessions',
     id: sessionId,
     data: {
       lastActiveAt: now.toISOString(),
@@ -224,7 +224,7 @@ export async function revokeGuestSession(
   claimedByUser: string,
 ): Promise<GuestSessionDoc | null> {
   const updated = await payload.update({
-    collection: 'guest-sessions' as const,
+    collection: 'guest-sessions',
     id: sessionId,
     data: {
       status: 'revoked',
@@ -250,7 +250,7 @@ export async function checkAndIncrementGuestMessageCount(
   const guestConfig = await getGuestChatConfig()
 
   const session = await payload.findByID({
-    collection: 'guest-sessions' as const,
+    collection: 'guest-sessions',
     id: guestSessionId,
   })
 
@@ -270,7 +270,7 @@ export async function checkAndIncrementGuestMessageCount(
   }
 
   await payload.update({
-    collection: 'guest-sessions' as const,
+    collection: 'guest-sessions',
     id: guestSessionId,
     data: {
       messageCount: currentCount + 1,
