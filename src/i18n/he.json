@@ -445,6 +445,7 @@
       "noTopics": "הוסף לפחות נושא אחד",
       "noExamDate": "בחר תאריך בחינה"
     },
-    "loading": "טוען..."
+    "loading": "טוען...",
+    "generateButton": "בנה תכנית מיקוד"
   }
 }

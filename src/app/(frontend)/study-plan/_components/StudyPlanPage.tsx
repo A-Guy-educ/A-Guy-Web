@@ -5,6 +5,7 @@ import { Calendar, Plus, Trash2, Zap } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import type { MasteryLevel, TopicInput } from '@/lib/study-plan'
+import { Button } from '@/ui/web/components/button'
 import { DayCard } from './DayCard'
 import { EmptyPlanState } from './EmptyPlanState'
 import { useStudyPlan } from './useStudyPlan'
@@ -60,22 +61,24 @@ export function StudyPlanPage() {
   const t = useTranslations('studyPlan')
   const { plan, isLoading, generatePlan, toggleDayStatus, editDay } = useStudyPlan()
 
-  const userEdited = useRef(false)
+  const pendingRegeneration = useRef(false)
   const [examDate, setExamDate] = useState('')
   const [topics, setTopics] = useState<TopicInput[]>([])
   const [newTopic, setNewTopic] = useState('')
+  const [hasGenerated, setHasGenerated] = useState(false)
 
   // Load initial state from plan
   useEffect(() => {
     if (plan) {
       setExamDate(plan.examDate)
       setTopics(plan.topics)
+      setHasGenerated(true)
     }
   }, [plan])
 
   const handleAddTopic = useCallback(() => {
     if (!newTopic.trim()) return
-    userEdited.current = true
+    pendingRegeneration.current = true
 
     const topic: TopicInput = {
       topicId: `topic-${Date.now()}`,
@@ -88,12 +91,12 @@ export function StudyPlanPage() {
   }, [newTopic])
 
   const handleRemoveTopic = useCallback((topicId: string) => {
-    userEdited.current = true
+    pendingRegeneration.current = true
     setTopics((prev) => prev.filter((t) => t.topicId !== topicId))
   }, [])
 
   const handleMasteryChange = useCallback((topicId: string, mastery: MasteryLevel) => {
-    userEdited.current = true
+    pendingRegeneration.current = true
     setTopics((prev) => prev.map((t) => (t.topicId === topicId ? { ...t, mastery } : t)))
   }, [])
 
@@ -104,19 +107,26 @@ export function StudyPlanPage() {
     [toggleDayStatus],
   )
 
-  // Auto-generate plan when user edits exam date or topics
+  const handleGeneratePlan = useCallback(async () => {
+    if (!examDate || topics.length === 0) return
+    await generatePlan(examDate, topics, 'default-course')
+    setHasGenerated(true)
+  }, [examDate, topics, generatePlan])
+
+  // Auto-regenerate plan only after initial explicit generation
   useEffect(() => {
-    if (!userEdited.current) return
+    if (!hasGenerated) return
+    if (!pendingRegeneration.current) return
     if (examDate && topics.length > 0) {
       const timer = setTimeout(() => {
-        userEdited.current = false
+        pendingRegeneration.current = false
         generatePlan(examDate, topics, 'default-course')
       }, 500)
       return () => clearTimeout(timer)
     }
-  }, [examDate, topics, generatePlan])
+  }, [examDate, topics, generatePlan, hasGenerated])
 
-  if (isLoading) {
+  if (isLoading && !hasGenerated) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -126,8 +136,6 @@ export function StudyPlanPage() {
       </div>
     )
   }
-
-  const hasData = examDate && topics.length > 0
 
   return (
     <div className="min-h-screen bg-background py-8 px-4">
@@ -155,7 +163,7 @@ export function StudyPlanPage() {
                 type="date"
                 value={examDate}
                 onChange={(e) => {
-                  userEdited.current = true
+                  pendingRegeneration.current = true
                   setExamDate(e.target.value)
                 }}
                 className="w-full px-4 py-2.5 border border-border rounded-lg text-foreground bg-card focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
@@ -194,11 +202,29 @@ export function StudyPlanPage() {
                 </button>
               </div>
             </div>
+
+            {/* Generate Plan Button */}
+            {!hasGenerated && (
+              <Button
+                onClick={handleGeneratePlan}
+                disabled={!examDate || topics.length === 0 || isLoading}
+                size="lg"
+                className="w-full"
+              >
+                <Zap className="w-5 h-5 me-2" />
+                {t('generateButton')}
+              </Button>
+            )}
           </div>
 
           {/* Main Content */}
           <div className="lg:col-span-2">
-            {hasData && plan ? (
+            {isLoading && hasGenerated ? (
+              <div className="flex flex-col items-center justify-center py-16 px-4 border-2 border-dashed border-border rounded-2xl">
+                <div className="w-8 h-8 border-4 border-border border-t-foreground rounded-full animate-spin mb-4" />
+                <p className="text-muted-foreground">{t('loading')}</p>
+              </div>
+            ) : plan ? (
               <div>
                 <div className="mb-4">
                   <h2 className="text-lg font-semibold text-foreground">{t('scheduleTitle')}</h2>

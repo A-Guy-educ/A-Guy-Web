@@ -445,6 +445,7 @@
       "noTopics": "Add at least one topic",
       "noExamDate": "Select an exam date"
     },
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "generateButton": "Build Focus Plan"
   }
 }
