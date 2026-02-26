@@ -15,6 +15,7 @@ import { readTask } from '../pipeline-utils'
 import { commitPipelineFiles } from '../git-utils'
 import { handleGateApproval } from '../clarify-workflow'
 import { extractGateCommentBody, postComment } from '../github-api'
+import { loadState, updateStage, completeState, writeState } from '../engine/status'
 
 /**
  * Execute a post-action
@@ -92,6 +93,17 @@ export async function executePostAction(
             postComment(ctx.input.issueNumber, commentBody)
           }
         }
+        // Pre-write paused state to status.json BEFORE commit+push,
+        // so the persisted status.json on the branch reflects 'paused' (not 'running').
+        // The state machine will also set paused after PipelinePausedError, but that
+        // only writes locally — the commit here is what the next CI run reads.
+        const currentState = loadState(ctx.taskId)
+        if (currentState) {
+          let pausedState = updateStage(currentState, action.gate, { state: 'paused' })
+          pausedState = completeState(pausedState, 'paused')
+          writeState(ctx.taskId, pausedState)
+        }
+
         // Commit and pause
         commitPipelineFiles({
           taskDir: ctx.taskDir,
