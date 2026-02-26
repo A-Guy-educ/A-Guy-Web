@@ -433,15 +433,9 @@ async function runRerunMode(ctx: PipelineContext): Promise<void> {
             writeState(input.taskId, state)
           }
 
-          // If the paused stage is in the spec phase, switch to full mode
-          // since the rerun pipeline only has impl stages
-          const SPEC_STAGES = ['taskify', 'spec', 'gap', 'clarify']
-          if (SPEC_STAGES.includes(pausedStage)) {
-            console.log(`Spec-phase gate approved — switching to full pipeline`)
-            input.mode = 'full'
-            await runFullMode(ctx)
-            return
-          }
+          // After approving a spec-phase gate, continue with the rerun pipeline
+          // The rerun pipeline already includes both spec and impl stages
+          // No mode switch needed - just continue running
         } else if (gateResult === 'waiting') {
           console.log(`Gate ${pausedStage} still waiting for approval`)
         }
