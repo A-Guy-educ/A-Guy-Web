@@ -51,6 +51,18 @@ export async function executePostAction(
         // Signal engine to rebuild pipeline with new profile (two-phase construction)
         ctx.pipelineNeedsRebuild = true
         console.log(`  ℹ️ Resolved profile: ${ctx.profile}`)
+
+        // Create stub promoted files for stages in skip_stages
+        // The skip condition checks file existence, so we must ensure the file exists
+        const skipStages = taskDef.input_quality?.skip_stages ?? []
+        for (const stage of skipStages) {
+          const outputFile = path.join(ctx.taskDir, `${stage}.md`)
+          if (!fs.existsSync(outputFile)) {
+            const stub = `# ${stage.charAt(0).toUpperCase() + stage.slice(1)} (promoted)\n\nSkipped via input_quality — taskify determined this stage is unnecessary.\nSee task.json input_quality.reasoning for details.\n`
+            fs.writeFileSync(outputFile, stub)
+            console.log(`  ℹ️ Created promoted stub: ${stage}.md`)
+          }
+        }
       }
       break
     }
