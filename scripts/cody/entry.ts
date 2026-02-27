@@ -157,14 +157,28 @@ Examples:
         if (process.env.GITHUB_ACTIONS === 'true' && !input.local) {
           console.error(`  Attempting to commit status.json in CI...`)
           try {
-            const { execSync } = await import('child_process')
+            const { execFileSync } = await import('child_process')
+            const SIGNAL_TIMEOUT = 10_000 // 10s max per git op during shutdown
             // Get the directory where status.json is
-            const taskDir = `./.tasks/${input.taskId}`
-            execSync(`git add ${taskDir}/status.json`, { stdio: 'inherit' })
-            execSync(`git commit -m "ci(cody): save interrupted state for ${input.taskId}"`, {
+            const statusPath = `./.tasks/${input.taskId}/status.json`
+            execFileSync('git', ['add', statusPath], {
               stdio: 'inherit',
+              timeout: SIGNAL_TIMEOUT,
             })
-            execSync(`git push`, { stdio: 'inherit' })
+            execFileSync(
+              'git',
+              [
+                'commit',
+                '--no-gpg-sign',
+                '-m',
+                `ci(cody): save interrupted state for ${input.taskId}`,
+              ],
+              { stdio: 'inherit', timeout: SIGNAL_TIMEOUT },
+            )
+            execFileSync('git', ['push'], {
+              stdio: 'inherit',
+              timeout: SIGNAL_TIMEOUT,
+            })
             console.error(`  ✅ Committed and pushed status.json`)
           } catch (commitErr) {
             console.error(`  ⚠️ Failed to commit/push status.json:`, commitErr)
@@ -449,15 +463,12 @@ async function runRerunMode(ctx: PipelineContext): Promise<void> {
             dryRun: input.dryRun,
           })
 
-          // Mark the paused stage as completed in status
-          const { loadState, writeState } = await import('./engine/status')
+          // Mark the paused stage as completed in status (immutable update)
+          const { loadState, writeState, resumeFromGate } = await import('./engine/status')
           const state = loadState(input.taskId)
-          if (state?.stages?.[pausedStage]) {
-            state.stages[pausedStage].state = 'completed'
-            // Also reset pipeline state from 'paused' to 'running' so state machine continues
-            state.state = 'running'
-            delete state.completedAt
-            writeState(input.taskId, state)
+          if (state) {
+            const resumedState = resumeFromGate(state, pausedStage)
+            writeState(input.taskId, resumedState)
           }
 
           // After approving a spec-phase gate, continue with the rerun pipeline

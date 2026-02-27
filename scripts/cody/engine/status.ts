@@ -257,6 +257,28 @@ export function recoverPipelineState(
 }
 
 /**
+ * Resume pipeline from a gate pause. Immutably marks the gate stage as completed
+ * and resets the pipeline state to 'running' (removing completedAt).
+ *
+ * This replaces direct state mutation that was previously in entry.ts:454-461.
+ */
+export function resumeFromGate(state: PipelineStateV2, gateStageName: string): PipelineStateV2 {
+  // Use updateStage for immutable stage update
+  const updatedState = updateStage(state, gateStageName, {
+    state: 'completed',
+    completedAt: new Date().toISOString(),
+  })
+
+  // Reset pipeline from paused to running, remove completedAt
+  const { completedAt: _, ...rest } = updatedState
+  return {
+    ...rest,
+    state: 'running',
+    updatedAt: new Date().toISOString(),
+  }
+}
+
+/**
  * Reset stages from a given point onwards to pending.
  * Also deletes output files for reset stages (G37).
  */

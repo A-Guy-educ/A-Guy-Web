@@ -351,13 +351,15 @@ export async function executePostAction(
         }
       }
 
-      // Record feedback loop metrics in status.json for observability
+      // Record feedback loop metrics in status.json for observability (immutable update)
       if (completedLoops > 0) {
         const currentState = loadState(ctx.taskId)
         if (currentState && currentState.stages?.build) {
-          currentState.stages.build.feedbackLoops = completedLoops
-          currentState.stages.build.feedbackErrors = Array.from(encounteredErrors)
-          writeState(ctx.taskId, currentState)
+          const updatedState = updateStage(currentState, 'build', {
+            feedbackLoops: completedLoops,
+            feedbackErrors: Array.from(encounteredErrors),
+          })
+          writeState(ctx.taskId, updatedState)
         }
       }
 
