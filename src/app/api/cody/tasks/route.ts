@@ -189,8 +189,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 })
     }
 
-    // Generate task ID prefix if mode is provided
-    const taskIdPrefix = mode ? `[${new Date().toISOString().slice(2, 8).replace('-', '')}-auto-XX] ` : ''
+    // Generate task ID prefix only for pipeline modes (not for bug reports)
+    // Bug reports should keep their original title format
+    const isBugReport = mode === 'bug'
+    const taskIdPrefix = !isBugReport && mode
+      ? `[${new Date().toISOString().slice(2, 8).replace('-', '')}-auto-XX] `
+      : ''
     const fullTitle = title.startsWith('[') ? title : `${taskIdPrefix}${title}`
 
     // Create the issue in GitHub
