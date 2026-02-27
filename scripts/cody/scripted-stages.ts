@@ -9,6 +9,7 @@ import { execFileSync, execSync } from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
 import { getDefaultBranch, commitAndPush } from './git-utils'
+import { postComment } from './github-api'
 
 // ============================================================================
 // Verify Stage — run quality gates directly
@@ -393,6 +394,12 @@ export async function runPrStage(
     const prData = (await response.json()) as { html_url: string }
     prUrl = prData.html_url
     console.log(`  ✅ PR created: ${prUrl}`)
+
+    // Post comment to issue linking to PR
+    if (issueNumber) {
+      postComment(issueNumber, `🎉 PR created: ${prUrl}`)
+      console.log(`  ✅ Commented on issue #${issueNumber}`)
+    }
   } catch (error: unknown) {
     const err = error as { message?: string }
     const msg = err.message || 'Unknown error'
