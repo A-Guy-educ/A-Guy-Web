@@ -156,8 +156,7 @@ export const PipelineStateV2Schema: z.ZodType<PipelineStateV2> = z.object({
         error: z.string().optional(),
         feedbackLoops: z.number().optional(),
         feedbackErrors: z.array(z.string()).optional(),
-      })
-      .strict(),
+      }),
   ),
 })
 

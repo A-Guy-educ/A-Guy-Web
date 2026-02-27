@@ -51,8 +51,8 @@ const TSC_FILE_REGEX = /([^\s:]+\.tsx?)\(\d+,\d+\)/g
 /** Matches vitest FAIL lines like: FAIL tests/unit/foo.test.ts > should work */
 const TEST_FILE_REGEX = /(?:FAIL|❌)\s+(\S+\.(?:test|spec)\.\w+)/g
 
-/** Matches eslint line:col error format */
-const _LINT_ERROR_REGEX = /^\s*\d+:\d+\s+(?:error|warning)/m
+/** Matches eslint file paths from output like: /path/to/src/foo.ts */
+const LINT_FILE_REGEX = /^(\/\S+\.(?:ts|tsx|js|jsx))$/gm
 
 /** Matches prettier [warn] lines with file paths */
 const FORMAT_FILE_REGEX = /\[warn\]\s+(\S+\.\w+)/g
@@ -108,11 +108,12 @@ export function classifyError(rawOutput: string, source: string): ClassifiedErro
     }
 
     case 'lint': {
+      const fileHints = extractUniqueFiles(rawOutput, LINT_FILE_REGEX)
       return {
         category: 'lint_error',
         summary,
         fullOutput: truncatedOutput,
-        fileHints: [],
+        fileHints,
         fixInstructions: FIX_INSTRUCTIONS.lint_error,
       }
     }

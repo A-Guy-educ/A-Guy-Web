@@ -25,7 +25,7 @@ import { stageOutputFile, readTask } from './pipeline-utils'
 import type { PipelineContext } from './engine/types'
 import { runPipeline } from './engine/state-machine'
 import { resolvePipelineForMode, createRebuildCallback } from './engine/pipeline-resolver'
-import { flattenPipelineOrder } from './pipeline/definitions'
+import { flattenPipelineOrder, IMPL_ORDER_STANDARD } from './pipeline/definitions'
 import { stateToV1 } from './engine/status'
 import { PipelinePausedError } from './engine/types'
 import { resolveRerunFromStage } from './rerun-utils'
@@ -456,16 +456,7 @@ async function runRerunMode(ctx: PipelineContext): Promise<void> {
   }
 
   // P3 fix: Back up to architect when feedback provided so plan can be revised
-  const implStageOrder = [
-    'architect',
-    'plan-gap',
-    'build',
-    'commit',
-    'verify',
-    'auditor',
-    'apply-audit',
-    'pr',
-  ]
+  const implStageOrder = flattenPipelineOrder(IMPL_ORDER_STANDARD)
   const resolvedFrom = resolveRerunFromStage(
     input.fromStage || 'build',
     input.feedback,
