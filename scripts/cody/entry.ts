@@ -456,16 +456,7 @@ async function runRerunMode(ctx: PipelineContext): Promise<void> {
   }
 
   // P3 fix: Back up to architect when feedback provided so plan can be revised
-  const implStageOrder = [
-    'architect',
-    'plan-gap',
-    'build',
-    'commit',
-    'verify',
-    'auditor',
-    'apply-audit',
-    'pr',
-  ]
+  const implStageOrder = flattenPipelineOrder(IMPL_ORDER_STANDARD)
   const resolvedFrom = resolveRerunFromStage(
     input.fromStage || 'build',
     input.feedback,
