@@ -292,13 +292,23 @@ export async function executePostAction(
 
       if (failures.length === 0) break // All passed on first try
 
+      // Track feedback loop metrics for status.json observability
+      let completedLoops = 0
+      const encounteredErrors = new Set<string>()
+
       // Autofix feedback loop
+      // Note: No commit/push after autofix here — the pipeline's 'commit' stage
+      // immediately follows 'build' and handles committing all working tree changes.
+      // This differs from scripted-handler.ts (verify autofix) which commits because
+      // it runs after the commit stage.
       for (let attempt = 1; attempt <= action.maxFeedbackLoops; attempt++) {
         console.log(`
 🔧 Build autofix attempt ${attempt}/${action.maxFeedbackLoops}...`)
 
         // Classify errors and write build-errors.md
         const errors = failures.map((f) => classifyError(f.error || '', f.source))
+        errors.forEach((e) => encounteredErrors.add(e.category))
+        completedLoops = attempt
         const markdown = formatErrorsAsMarkdown(errors, attempt, action.maxFeedbackLoops)
         const errorsFile = path.join(ctx.taskDir, 'build-errors.md')
         fs.writeFileSync(errorsFile, markdown)
@@ -338,6 +348,16 @@ export async function executePostAction(
             fs.unlinkSync(errorsFile)
           }
           break
+        }
+      }
+
+      // Record feedback loop metrics in status.json for observability
+      if (completedLoops > 0) {
+        const currentState = loadState(ctx.taskId)
+        if (currentState && currentState.stages?.build) {
+          currentState.stages.build.feedbackLoops = completedLoops
+          currentState.stages.build.feedbackErrors = Array.from(encounteredErrors)
+          writeState(ctx.taskId, currentState)
         }
       }
 
