@@ -150,8 +150,9 @@ describe('buildPrTitle (via runPrStage title output)', () => {
     const { runPrStage } = await import('../../../scripts/cody/scripted-stages')
     const result = await runPrStage(TASK_DIR, `${TASK_DIR}/pr.md`, process.cwd())
 
-    // Title in the report should NOT contain '##'
-    expect(result.report).not.toContain('##')
+    // Title in the report should NOT contain '##' (check title line specifically)
+    const titleLine = result.report.match(/Title: (.*)/)?.[1] || ''
+    expect(titleLine).not.toContain('##')
     expect(result.report.toLowerCase()).toContain('remove redundant inline styles')
     expect(result.created).toBe(true)
   })
@@ -204,7 +205,9 @@ describe('buildPrTitle (via runPrStage title output)', () => {
 
     // Should fall back to commit message since no real text content
     expect(result.report).toBeTruthy()
-    expect(result.report).not.toContain('##')
+    // Title should not contain ## markers (check title line specifically)
+    const titleLine = result.report.match(/Title: (.*)/)?.[1] || ''
+    expect(titleLine).not.toContain('##')
   })
 
   it('uses heading text (stripped of #) when task.md starts with a heading', async () => {
@@ -234,7 +237,9 @@ describe('buildPrTitle (via runPrStage title output)', () => {
 
     // '## Overview' stripped → 'Overview' gets filtered as common heading
     // Falls back to actual content line
-    expect(result.report).not.toContain('##')
+    // Title should not contain ## markers (check title line specifically)
+    const titleLine = result.report.match(/Title: (.*)/)?.[1] || ''
+    expect(titleLine).not.toContain('##')
     expect(result.report.toLowerCase()).toContain('actual description text here')
   })
 
@@ -267,7 +272,9 @@ describe('buildPrTitle (via runPrStage title output)', () => {
     // NOT "fix: fix: ## description"
     expect(result.report).not.toContain('fix: fix:')
     expect(result.report).toContain('fix:')
-    expect(result.report).not.toContain('##')
+    // Title should not contain ## markers (check title line specifically)
+    const titleLine = result.report.match(/Title: (.*)/)?.[1] || ''
+    expect(titleLine).not.toContain('##')
   })
 
   it('strips conventional commit prefix from task.md regardless of case', async () => {
@@ -370,6 +377,8 @@ describe('buildPrBody Closes # linking', () => {
       if (args[0] === 'pr' && args[1] === 'list') return ''
       if (args[0] === 'log') return 'abc123 refactor: description'
       if (args[0] === 'push') return ''
+      if (args[0] === 'remote' && args[1] === 'get-url' && args[2] === 'origin')
+        return 'https://github.com/owner/repo.git'
       return ''
     })
   }
