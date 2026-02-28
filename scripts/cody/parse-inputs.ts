@@ -115,7 +115,7 @@ export function parseDispatchInputs(): ParseOutputs {
     trigger_type: 'dispatch',
     comment_body: '',
     valid: 'true',
-    runner: process.env.DISPATCH_RUNNER || 'github-hosted',
+    runner: process.env.DISPATCH_RUNNER || 'self-hosted',
     version: process.env.DISPATCH_VERSION || process.env.CODY_DEFAULT_VERSION || '',
   }
 
@@ -235,7 +235,7 @@ export function getDefaultOutputs(): ParseOutputs {
     trigger_type: '',
     comment_body: '',
     valid: 'false',
-    runner: 'github-hosted',
+    runner: 'self-hosted',
     version: process.env.CODY_DEFAULT_VERSION || '',
   }
 }

@@ -36,13 +36,13 @@ on:
         type: string
         default: ''
       runner:
-        description: 'Where to run: github-hosted (default) or self-hosted (--local)'
+        description: 'Where to run: self-hosted (default) or github-hosted'
         required: false
         type: choice
         options:
           - github-hosted
           - self-hosted
-        default: 'github-hosted'
+        default: 'self-hosted'
       version:
         description: 'Pipeline version (branch, tag, or commit). Overrides CODY_DEFAULT_VERSION'
         required: false
