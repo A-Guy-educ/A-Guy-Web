@@ -90,10 +90,30 @@ export function initState(ctx: PipelineContext, mode: string): PipelineStateV2 {
     state: 'running',
     cursor: null,
     stages: {},
+    // Persist issue number for dashboard lookups (avoids Compare API)
+    ...(ctx.input.issueNumber ? { issueNumber: ctx.input.issueNumber } : {}),
   }
 
   writeState(ctx.taskId, state)
   return state
+}
+
+/**
+ * Update the branchName in status.json after ensureFeatureBranch derives it.
+ * Called from the build stage preExecute hook.
+ */
+export function setBranchName(
+  taskId: string,
+  state: PipelineStateV2,
+  branchName: string,
+): PipelineStateV2 {
+  const updated: PipelineStateV2 = {
+    ...state,
+    branchName,
+    updatedAt: new Date().toISOString(),
+  }
+  writeState(taskId, updated)
+  return updated
 }
 
 /**
@@ -370,7 +390,7 @@ export function stateToV1(state: PipelineStateV2): CodyPipelineStatus {
     currentStage: state.cursor,
     stages: v1Stages,
     triggeredBy: 'dispatch', // Default, not stored in v2
-    issueNumber: undefined,
+    issueNumber: state.issueNumber,
     runId: undefined,
     runUrl: undefined,
     controlMode: undefined,

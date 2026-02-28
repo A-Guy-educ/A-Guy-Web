@@ -120,6 +120,10 @@ export interface PipelineStateV2 {
   state: 'running' | 'completed' | 'failed' | 'timeout' | 'paused'
   cursor: string | null
   stages: Record<string, StageStateV2>
+  /** GitHub issue number that triggered this pipeline run */
+  issueNumber?: number
+  /** Git branch name created for this task (set after ensureFeatureBranch) */
+  branchName?: string
 }
 
 // Zod schema for PipelineStateV2
@@ -134,6 +138,8 @@ export const PipelineStateV2Schema: z.ZodType<PipelineStateV2> = z.object({
   totalElapsed: z.number().optional(),
   state: z.enum(['running', 'completed', 'failed', 'timeout', 'paused']),
   cursor: z.string().nullable(),
+  issueNumber: z.number().optional(),
+  branchName: z.string().optional(),
   stages: z.record(
     z.string(),
     z.object({

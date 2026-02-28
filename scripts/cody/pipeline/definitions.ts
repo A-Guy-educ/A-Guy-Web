@@ -17,6 +17,8 @@ import type {
 import { STAGE_TIMEOUTS, DEFAULT_TIMEOUT } from '../agent-runner'
 import { ensureFeatureBranch } from '../git-utils'
 import { readTask } from '../pipeline-utils'
+import { setBranchName, loadState } from '../engine/status'
+import { execSync } from 'child_process'
 import {
   createSpecValidator,
   createGapValidator,
@@ -184,6 +186,21 @@ No critical gaps identified. Plan was refined in-place.
         const td = readTask(ctx.taskDir)
         if (td) {
           ensureFeatureBranch(ctx.taskId, td.task_type, undefined, ctx.taskDir)
+
+          // Capture the branch name and persist to status.json for dashboard lookups
+          try {
+            const currentBranch = execSync('git branch --show-current', {
+              encoding: 'utf-8',
+            }).trim()
+            if (currentBranch) {
+              const state = loadState(ctx.taskId)
+              if (state) {
+                setBranchName(ctx.taskId, state, currentBranch)
+              }
+            }
+          } catch {
+            // Non-critical — branch name is a convenience field
+          }
         }
       }
     },
