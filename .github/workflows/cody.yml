@@ -321,6 +321,17 @@ jobs:
 
           echo "Pipeline version: $VERSION_REF"
 
+      # Only inject LLM keys from secrets on GitHub-hosted runners.
+      # On self-hosted runners, OpenCode uses its own locally configured keys.
+      - name: Set LLM keys (GitHub-hosted only)
+        if: needs.parse.outputs.runner != 'self-hosted'
+        run: |
+          echo "MINIMAX_API_KEY=${{ secrets.MINIMAX_API_KEY }}" >> $GITHUB_ENV
+          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> $GITHUB_ENV
+          echo "GOOGLE_GENERATIVE_AI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> $GITHUB_ENV
+          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
+          echo "ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}" >> $GITHUB_ENV
+
       - name: Run Cody
         env:
           # GitHub token for gh CLI (GH_PAT takes precedence for PR creation)
@@ -332,15 +343,6 @@ jobs:
 
           # Database URL for verify stage (unit tests need it)
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'mongodb://localhost:27017/test' }}
-
-          # LLM provider keys (all available)
-          # Note: GOOGLE_GENERATIVE_AI_API_KEY is for Vercel AI SDK (@ai-sdk/google),
-          # GEMINI_API_KEY is for Google's own SDK (@google/generative-ai)
-          MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
           # Parsed inputs from parse job
           TASK_ID: ${{ needs.parse.outputs.task_id }}
