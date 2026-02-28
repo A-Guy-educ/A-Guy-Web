@@ -34,6 +34,7 @@ import { useCodyTasks } from '../hooks'
 import { useBrowserNotifications } from '../hooks/useBrowserNotifications'
 import { useMediaQuery } from '@/server/payload/hooks/useMediaQuery'
 import { RateLimitError, NoTokenError, tasksApi } from '../api'
+import { toast } from 'sonner'
 
 const DATE_FILTERS = [
   { label: 'All time', value: 'all', days: undefined },
@@ -46,7 +47,6 @@ export function CodyDashboard() {
   const [selectedTask, setSelectedTask] = useState<CodyTask | null>(null)
   const [executingTaskId, setExecutingTaskId] = useState<string | null>(null)
   const [mergingTaskId, setMergingTaskId] = useState<string | null>(null)
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showBugDialog, setShowBugDialog] = useState(false)
   const [dateFilter, setDateFilter] = useState<string>('30d')
@@ -130,10 +130,6 @@ export function CodyDashboard() {
   const retryAfter = isRateLimited ? (error as RateLimitError).retryAfter : null
 
   // Execute task handler
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type })
-    setTimeout(() => setToast(null), 3000)
-  }
 
   const handleExecuteTask = async (taskId: string) => {
     const task = tasks.find((t) => t.id === taskId)
@@ -143,10 +139,10 @@ export function CodyDashboard() {
     try {
       await tasksApi.execute(task.issueNumber)
       refetch()
-      showToast('Task started', 'success')
+      toast.success('Task started')
     } catch (err) {
       console.error('Failed to execute task:', err)
-      showToast('Failed to start task', 'error')
+      toast.error('Failed to start task')
     } finally {
       setExecutingTaskId(null)
     }
@@ -158,10 +154,10 @@ export function CodyDashboard() {
     try {
       await tasksApi.abort(task.issueNumber)
       refetch()
-      showToast('Task stopped', 'success')
+      toast.success('Task stopped')
     } catch (err) {
       console.error('Failed to stop task:', err)
-      showToast('Failed to stop task', 'error')
+      toast.error('Failed to stop task')
     } finally {
       setExecutingTaskId(null)
     }
@@ -175,10 +171,10 @@ export function CodyDashboard() {
     try {
       await tasksApi.approveReview(task)
       refetch()
-      showToast('PR merged', 'success')
+      toast.success('PR merged')
     } catch (err) {
       console.error('Failed to merge PR:', err)
-      showToast('Failed to merge PR', 'error')
+      toast.error('Failed to merge PR')
     } finally {
       setMergingTaskId(null)
     }
@@ -349,17 +345,6 @@ export function CodyDashboard() {
             <Menu className="w-5 h-5" />
           </Button>
         </div>
-
-        {/* Toast notification */}
-        {toast && (
-          <div
-            className={`fixed bottom-4 right-4 px-4 py-2 rounded-lg shadow-lg z-50 animate-in fade-in slide-in-from-bottom-2 ${
-              toast.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'
-            }`}
-          >
-            {toast.message}
-          </div>
-        )}
 
         {/* Cody Status Banner */}
         <CodyStatusBanner tasks={tasks} isFetching={isFetching} dataUpdatedAt={dataUpdatedAt} />

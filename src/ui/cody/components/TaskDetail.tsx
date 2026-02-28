@@ -393,8 +393,12 @@ export function TaskDetail({ task, onClose, onRefresh }: TaskDetailProps) {
                   onClick={() => taskActions.execute()}
                   disabled={taskActions.isPending}
                 >
-                  <Zap className="w-4 h-4 mr-1" />
-                  Run
+                  {taskActions.pendingAction === 'execute' ? (
+                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                  ) : (
+                    <Zap className="w-4 h-4 mr-1" />
+                  )}
+                  {taskActions.pendingAction === 'execute' ? 'Starting…' : 'Run'}
                 </Button>
               )}
 
@@ -407,8 +411,12 @@ export function TaskDetail({ task, onClose, onRefresh }: TaskDetailProps) {
                 onClick={() => taskActions.abort()}
                 disabled={taskActions.isPending}
               >
-                <Ban className="w-4 h-4 mr-1" />
-                Stop
+                {taskActions.pendingAction === 'abort' ? (
+                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                ) : (
+                  <Ban className="w-4 h-4 mr-1" />
+                )}
+                {taskActions.pendingAction === 'abort' ? 'Stopping…' : 'Stop'}
               </Button>
             )}
 
@@ -418,20 +426,15 @@ export function TaskDetail({ task, onClose, onRefresh }: TaskDetailProps) {
                 variant="outline"
                 size="sm"
                 className="text-emerald-500 border-emerald-500/30 hover:bg-emerald-500/10"
-                onClick={() => {
-                  // Post approve comment
-                  fetch(`/api/cody/tasks/issue-${task.issueNumber}/actions`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'approve' }),
-                  }).then(() => {
-                    onRefresh?.()
-                    refetch()
-                  })
-                }}
+                onClick={() => taskActions.approveGate()}
+                disabled={taskActions.isPending}
               >
-                <ShieldCheck className="w-4 h-4 mr-1" />
-                Approve
+                {taskActions.pendingAction === 'approve' ? (
+                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                ) : (
+                  <ShieldCheck className="w-4 h-4 mr-1" />
+                )}
+                {taskActions.pendingAction === 'approve' ? 'Approving…' : 'Approve'}
               </Button>
             )}
 
@@ -441,19 +444,15 @@ export function TaskDetail({ task, onClose, onRefresh }: TaskDetailProps) {
                 variant="outline"
                 size="sm"
                 className="text-red-500 border-red-500/30 hover:bg-red-500/10"
-                onClick={() => {
-                  fetch(`/api/cody/tasks/issue-${task.issueNumber}/actions`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'reject' }),
-                  }).then(() => {
-                    onRefresh?.()
-                    refetch()
-                  })
-                }}
+                onClick={() => taskActions.rejectGate()}
+                disabled={taskActions.isPending}
               >
-                <ShieldX className="w-4 h-4 mr-1" />
-                Reject
+                {taskActions.pendingAction === 'reject' ? (
+                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                ) : (
+                  <ShieldX className="w-4 h-4 mr-1" />
+                )}
+                {taskActions.pendingAction === 'reject' ? 'Rejecting…' : 'Reject'}
               </Button>
             )}
 
@@ -466,8 +465,12 @@ export function TaskDetail({ task, onClose, onRefresh }: TaskDetailProps) {
                 onClick={() => taskActions.execute()}
                 disabled={taskActions.isPending}
               >
-                <RotateCcw className="w-4 h-4 mr-1" />
-                Retry
+                {taskActions.pendingAction === 'execute' ? (
+                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                ) : (
+                  <RotateCcw className="w-4 h-4 mr-1" />
+                )}
+                {taskActions.pendingAction === 'execute' ? 'Retrying…' : 'Retry'}
               </Button>
             )}
 
@@ -487,13 +490,21 @@ export function TaskDetail({ task, onClose, onRefresh }: TaskDetailProps) {
             >
               {task.state === 'open' ? (
                 <>
-                  <XCircle className="w-4 h-4 mr-1" />
-                  Close
+                  {taskActions.pendingAction === 'close' ? (
+                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                  ) : (
+                    <XCircle className="w-4 h-4 mr-1" />
+                  )}
+                  {taskActions.pendingAction === 'close' ? 'Closing…' : 'Close'}
                 </>
               ) : (
                 <>
-                  <RotateCcw className="w-4 h-4 mr-1" />
-                  Reopen
+                  {taskActions.pendingAction === 'reopen' ? (
+                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                  ) : (
+                    <RotateCcw className="w-4 h-4 mr-1" />
+                  )}
+                  {taskActions.pendingAction === 'reopen' ? 'Reopening…' : 'Reopen'}
                 </>
               )}
             </Button>

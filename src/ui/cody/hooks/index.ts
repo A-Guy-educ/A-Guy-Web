@@ -7,6 +7,7 @@
 'use client'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { codyApi, RateLimitError, NoTokenError } from '../api'
 import type { CodyTask } from '../types'
 import { POLLING_INTERVALS } from '../constants'
@@ -224,50 +225,88 @@ export interface UseTaskActionsOptions {
   onError?: (error: Error) => void
 }
 
+/**
+ * Hook providing all task action mutations with per-action pending states
+ * and toast notifications for user feedback.
+ */
 export function useTaskActions({ issueNumber, onSuccess, onError }: UseTaskActionsOptions) {
   const queryClient = useQueryClient()
 
+  const handleError = (label: string) => (error: Error) => {
+    toast.error(`Failed to ${label}`, { description: error.message })
+    onError?.(error)
+  }
+
+  const handleSuccess = (label: string) => () => {
+    queryClient.invalidateQueries({ queryKey: ['cody-tasks'] })
+    toast.success(label)
+    onSuccess?.()
+  }
+
   const execute = useMutation({
     mutationFn: () => codyApi.tasks.execute(issueNumber),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cody-tasks'] })
-      onSuccess?.()
-    },
-    onError,
+    onSuccess: handleSuccess('Task started'),
+    onError: handleError('start task'),
   })
 
   const close = useMutation({
     mutationFn: () => codyApi.tasks.close(issueNumber),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cody-tasks'] })
-      onSuccess?.()
-    },
-    onError,
+    onSuccess: handleSuccess('Issue closed'),
+    onError: handleError('close issue'),
   })
 
   const reopen = useMutation({
     mutationFn: () => codyApi.tasks.reopen(issueNumber),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cody-tasks'] })
-      onSuccess?.()
-    },
-    onError,
+    onSuccess: handleSuccess('Issue reopened'),
+    onError: handleError('reopen issue'),
   })
 
   const abort = useMutation({
     mutationFn: () => codyApi.tasks.abort(issueNumber),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cody-tasks'] })
-      onSuccess?.()
-    },
-    onError,
+    onSuccess: handleSuccess('Task stopped'),
+    onError: handleError('stop task'),
   })
+
+  const approveGate = useMutation({
+    mutationFn: () => codyApi.tasks.approveGate(issueNumber),
+    onSuccess: handleSuccess('Gate approved'),
+    onError: handleError('approve gate'),
+  })
+
+  const rejectGate = useMutation({
+    mutationFn: () => codyApi.tasks.rejectGate(issueNumber),
+    onSuccess: handleSuccess('Gate rejected'),
+    onError: handleError('reject gate'),
+  })
+
+  const isPending =
+    execute.isPending ||
+    close.isPending ||
+    reopen.isPending ||
+    abort.isPending ||
+    approveGate.isPending ||
+    rejectGate.isPending
 
   return {
     execute: execute.mutate,
     close: close.mutate,
     reopen: reopen.mutate,
     abort: abort.mutate,
-    isPending: execute.isPending || close.isPending || reopen.isPending || abort.isPending,
+    approveGate: approveGate.mutate,
+    rejectGate: rejectGate.mutate,
+    isPending,
+    pendingAction: execute.isPending
+      ? 'execute'
+      : abort.isPending
+        ? 'abort'
+        : approveGate.isPending
+          ? 'approve'
+          : rejectGate.isPending
+            ? 'reject'
+            : close.isPending
+              ? 'close'
+              : reopen.isPending
+                ? 'reopen'
+                : null,
   }
 }

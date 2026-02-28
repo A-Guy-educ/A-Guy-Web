@@ -146,6 +146,24 @@ export const tasksApi = {
     return handleResponse(res)
   },
 
+  approveGate: async (issueNumber: number): Promise<ActionResponse> => {
+    const res = await fetch(`${API_BASE}/tasks/issue-${issueNumber}/actions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'approve' }),
+    })
+    return handleResponse(res)
+  },
+
+  rejectGate: async (issueNumber: number): Promise<ActionResponse> => {
+    const res = await fetch(`${API_BASE}/tasks/issue-${issueNumber}/actions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'reject' }),
+    })
+    return handleResponse(res)
+  },
+
   comment: async (issueNumber: number, comment: string): Promise<ActionResponse> => {
     const res = await fetch(`${API_BASE}/tasks/issue-${issueNumber}/actions`, {
       method: 'POST',

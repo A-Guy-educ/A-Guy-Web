@@ -11,6 +11,7 @@ import { GeistSans } from 'geist/font/sans'
 import { Assistant } from 'next/font/google'
 
 import { CodyProviders } from './CodyProviders'
+import { Toaster } from '@/ui/web/components/toaster'
 import { defaultTheme, themeLocalStorageKey } from '@/ui/web/providers/Theme/ThemeSelector/types'
 import '@/app/(frontend)/globals.css'
 
@@ -60,6 +61,7 @@ export default function CodyLayout({ children }: { children: React.ReactNode }) 
       <body>
         <CodyProviders>
           <div className="min-h-screen bg-background text-foreground">{children}</div>
+          <Toaster />
         </CodyProviders>
       </body>
     </html>
