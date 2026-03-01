@@ -47,23 +47,7 @@ if (process.env.PAYLOAD_GENERATE_TYPES !== 'true') {
 
   vercelBlobPlugin = vercelBlobStorage({
     addRandomSuffix: true,
-    clientUploads: {
-      access: ({ req, collectionSlug }) => {
-        const user = req.user
-        if (!user || typeof user !== 'object') return false
-
-        // Check if user has role property
-        const hasRole = 'role' in user
-        const role = hasRole ? (user as { role?: string }).role : undefined
-
-        if (!role) return false
-
-        // exercise-assets: any authenticated user (matches collection access: authenticated)
-        if (collectionSlug === 'exercise-assets') return true
-        // media: admin only (matches collection access: adminOnly)
-        return role === 'admin'
-      },
-    },
+    clientUploads: false,
     // Use proxy mode - URLs are /api/media/file/... and static handler proxies to blob
     // This ensures PDF viewer works (same-origin URLs) and backward compatibility
     collections: {
