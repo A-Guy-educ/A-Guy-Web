@@ -65,6 +65,14 @@
     "cody-expert": {
       "model": "minimax-coding-plan/MiniMax-M2.5",
       "description": "Cody pipeline expert - understands pipeline execution, debugging, adding new stages"
+    },
+    "build-manager": {
+      "model": "anthropic/claude-opus-4-6",
+      "description": "Orchestrates build and test-writer agents in parallel, handles retries and verification"
+    },
+    "test-writer": {
+      "model": "minimax-coding-plan/MiniMax-M2.5",
+      "description": "TDD test writer - writes failing tests before implementation"
     }
   },
   "mcp": {

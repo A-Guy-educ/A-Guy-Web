@@ -1,6 +1,6 @@
 ---
 name: test-writer
-description: TDD test writer. Writes failing tests before implementation. Invoked by build agent per plan step.
+description: TDD test writer. Writes failing tests before implementation. Invoked by build-manager per plan step.
 mode: subagent
 tools:
   read: true
