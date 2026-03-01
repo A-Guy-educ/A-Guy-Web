@@ -175,6 +175,8 @@ export interface TaskDefinition {
   scope: string[]
   missing_inputs: Array<{ field: string; question: string }>
   assumptions: string[]
+  /** Questions for the reviewer to answer before approving. Derived from assumptions and task ambiguity. */
+  review_questions?: string[]
   input_quality?: InputQuality
   pipeline_profile?: (typeof VALID_PIPELINE_PROFILES)[number]
   /** Complexity score (1-100) — determines which pipeline stages run */
@@ -280,6 +282,9 @@ export function normalizeTask(raw: Record<string, unknown>): Record<string, unkn
   }
   if (!Array.isArray(data.assumptions)) {
     data.assumptions = []
+  }
+  if (!Array.isArray(data.review_questions)) {
+    data.review_questions = []
   }
 
   // 6. Normalize complexity score
@@ -391,6 +396,20 @@ export function validateTask(raw: unknown): ValidationResult {
 
   if (!Array.isArray(data.assumptions)) {
     errors.push(`Invalid assumptions: must be an array of strings`)
+  }
+
+  // Validate review_questions if present
+  if (data.review_questions !== undefined) {
+    if (!Array.isArray(data.review_questions)) {
+      errors.push(`Invalid review_questions: must be an array of strings`)
+    } else {
+      for (const q of data.review_questions) {
+        if (typeof q !== 'string') {
+          errors.push(`Invalid review_questions entry: must be an array of strings`)
+          break
+        }
+      }
+    }
   }
 
   // Validate input_quality if present
@@ -547,6 +566,7 @@ const DRY_RUN_OUTPUTS: Record<string, (taskId: string) => string> = {
         scope: ['[dry-run] Mock scope item'],
         missing_inputs: [],
         assumptions: ['[dry-run] Mock assumption'],
+        review_questions: [],
       },
       null,
       2,

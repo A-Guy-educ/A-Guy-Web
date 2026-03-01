@@ -32,6 +32,7 @@ You MUST output **valid JSON only** to the output file. No markdown wrappers, no
   "scope": ["string"],
   "missing_inputs": [{ "field": "string", "question": "string" }],
   "assumptions": ["string"],
+  "review_questions": ["string"],
   "complexity": 1-100,
   "complexity_reasoning": "Scope: X. Risk: X. Novelty: X. Cross-domain: X. Ambiguity: X. Dependencies: X. Total: N",
   "input_quality": {
@@ -52,6 +53,33 @@ NOTE: Do NOT include a "pipeline" field — it is auto-derived from task_type.
 - `confidence` MUST be between **0.0 and 1.0**
 - `missing_inputs` MUST almost always be an empty array `[]`. It halts the entire pipeline.
 - ONLY populate `missing_inputs` if the task description is so vague that you cannot even determine the task_type (e.g., "fix the thing" with no context). Implementation details, codebase questions, and technical unknowns are NOT missing inputs — later pipeline stages (spec, architect, build) will discover those from the codebase.
+
+## Review Questions (Gate Guidance)
+
+Generate 1-5 clear questions that the reviewer should answer before approving. These appear in the gate comment to help the reviewer make an informed decision.
+
+**Purpose**: Guide the reviewer to spot potential issues or validate key assumptions.
+
+**When to include questions**:
+- If you're unsure about implementation details and made assumptions
+- If there are multiple valid approaches and the task didn't specify
+- If the task touches sensitive areas (auth, data, etc.) where validation is important
+- If the task scope or impact is unclear
+
+**Good examples**:
+- "Should this feature support SSO in addition to email/password?"
+- "Is it correct that no database schema changes are needed?"
+- "Are there any existing patterns in the codebase we should follow?"
+- "Should this change be applied to all environments or specific ones?"
+
+**When NOT to include**:
+- If the task is crystal clear with no ambiguity
+- If it's a trivial change (docs, config, small fix)
+- For questions the build/architect stage would naturally answer
+
+**Format**: Always phrase as questions the reviewer can answer with yes/no or a specific choice. NOT as open-ended research questions.
+
+**Recommended**: Usually 0-2 questions is enough. Default to an empty array if the task is clear.
 
 ## Task Type Definitions
 
