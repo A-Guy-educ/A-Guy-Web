@@ -233,6 +233,7 @@ No critical gaps identified. Plan was refined in-place.
       }
     },
     postActions: [
+      { type: 'validate-src-changes' },
       { type: 'validate-build-content' },
       {
         type: 'run-quality-with-autofix',

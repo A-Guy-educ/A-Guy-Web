@@ -5,6 +5,8 @@
  * @ai-summary Git handlers for commit and PR stages
  */
 
+import { execSync } from 'child_process'
+
 import type { PipelineContext, StageDefinition, StageResult } from '../engine/types'
 import { runCommitStage, runPrStage } from '../scripted-stages'
 import type { StageHandler } from './handler'
@@ -18,7 +20,17 @@ export class GitCommitHandler implements StageHandler {
 
     const result = runCommitStage(_ctx.taskDir, outputFile)
 
-    if (!result.success && !result.message.includes('No changes')) {
+    if (!result.success) {
+      // "No changes" after a build stage means the build agent didn't implement anything.
+      // This is a safety net — validate-src-changes post-action should catch this first.
+      if (result.message.includes('No changes')) {
+        return {
+          outcome: 'failed',
+          reason:
+            'No changes to commit after build stage — build agent may not have implemented code changes',
+          retries: 0,
+        }
+      }
       return {
         outcome: 'failed',
         reason: result.message,
@@ -39,6 +51,23 @@ export class GitCommitHandler implements StageHandler {
 export class GitPrHandler implements StageHandler {
   async execute(ctx: PipelineContext, _def: StageDefinition): Promise<StageResult> {
     const outputFile = `${ctx.taskDir}/pr.md`
+
+    // Final guard: verify branch has source changes before creating PR
+    try {
+      const diff = execSync('git diff --name-only origin/dev...HEAD', {
+        encoding: 'utf-8',
+      }).trim()
+      const srcChanges = diff.split('\n').filter((f) => f && !f.startsWith('.tasks/'))
+      if (srcChanges.length === 0) {
+        return {
+          outcome: 'failed',
+          reason: 'No source files changed vs base branch — refusing to create empty PR',
+          retries: 0,
+        }
+      }
+    } catch {
+      // Non-blocking — proceed if git check fails (e.g., shallow clone)
+    }
 
     // R5: Pass issueNumber to link PR to the issue
     const result = await runPrStage(ctx.taskDir, outputFile, undefined, ctx.input.issueNumber)

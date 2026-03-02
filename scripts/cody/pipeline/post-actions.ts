@@ -229,6 +229,40 @@ export async function executePostAction(
       break
     }
 
+    case 'validate-src-changes': {
+      if (ctx.input.dryRun) return
+
+      // Check that the build agent actually modified source files, not just .tasks/
+      let diff = ''
+      let untracked = ''
+      try {
+        diff = execSync('git diff --name-only', { encoding: 'utf-8' }).trim()
+      } catch {
+        // git diff can fail if not in a repo
+      }
+      try {
+        untracked = execSync('git ls-files --others --exclude-standard', {
+          encoding: 'utf-8',
+        }).trim()
+      } catch {
+        // Ignore
+      }
+
+      const allChanged = [...diff.split('\n'), ...untracked.split('\n')]
+        .filter(Boolean)
+        .filter((f) => !f.startsWith('.tasks/'))
+
+      if (allChanged.length === 0) {
+        throw new Error(
+          'Build agent wrote build.md but did NOT modify any source files. ' +
+            'The agent must use Edit/Write tools to implement actual code changes, not just document them in build.md.',
+        )
+      }
+
+      console.log(`   ✓ ${allChanged.length} source file(s) changed by build agent`)
+      break
+    }
+
     case 'run-tsc': {
       if (ctx.input.dryRun) return
 

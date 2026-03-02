@@ -241,6 +241,11 @@ export type CommitAuditHistoryAction = {
   type: 'commit-audit-history'
 }
 
+// Validate-src-changes action — ensures build agent modified source files
+export type ValidateSrcChangesAction = {
+  type: 'validate-src-changes'
+}
+
 // Parallel-post-action - runs multiple actions concurrently
 export type ParallelPostAction = {
   type: 'parallel'
@@ -256,6 +261,7 @@ export type PostAction =
   | ArchiveRerunFeedbackAction
   | ValidatePlanExistsAction
   | ValidateBuildContentAction
+  | ValidateSrcChangesAction
   | RunTscAction
   | RunUnitTestsAction
   | RunQualityWithAutofixAction
