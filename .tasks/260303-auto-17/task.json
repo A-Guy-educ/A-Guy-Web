@@ -1,0 +1,34 @@
+{
+  "task_type": "fix_bug",
+  "risk_level": "medium",
+  "confidence": 0.85,
+  "primary_domain": "frontend",
+  "scope": [
+    "Chat component image upload",
+    "Image file upload handling",
+    "AI image recognition integration"
+  ],
+  "missing_inputs": [],
+  "assumptions": [
+    "The issue is in the chat component's image upload functionality",
+    "The AI recognition failure is a consequence of the upload failure",
+    "This affects the student role in production environment"
+  ],
+  "review_questions": [
+    "What is the exact error code/message during image upload?",
+    "Which component handles chat image uploads?",
+    "Is there a file size or type restriction causing the failure?",
+    "Is this a regression or a new feature issue?"
+  ],
+  "complexity": 42,
+  "complexity_reasoning": "Scope: 12 (need to find and fix chat upload component), Risk: 11 (production bug, core feature), Novelty: 5 (bug fix following existing patterns), Cross-domain: 8 (frontend + backend upload service + AI), Ambiguity: 2 (clear reproduction steps), Dependency: 6 (upload service + AI recognition). Total: 44 → rounded to 42",
+  "input_quality": {
+    "level": "good_spec",
+    "skip_stages": [
+      "spec"
+    ],
+    "reasoning": "Task has clear reproduction steps, expected vs actual results, environment details, and reproducible bug (always). Contains all required spec elements: preconditions, steps to reproduce, expected result, actual result."
+  },
+  "pipeline_profile": "standard",
+  "pipeline": "spec_execute_verify"
+}
