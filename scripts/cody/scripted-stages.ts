@@ -449,7 +449,7 @@ export async function runPrStage(
         body,
         head: branch,
         base: defaultBranch,
-        draft: true,
+        draft: false,
       }),
     })
 
