@@ -5,10 +5,11 @@
  * @ai-summary Git handlers for commit and PR stages
  */
 
-import { execSync } from 'child_process'
+import { execFileSync } from 'child_process'
 
 import type { PipelineContext, StageDefinition, StageResult } from '../engine/types'
 import { runCommitStage, runPrStage } from '../scripted-stages'
+import { getDefaultBranch } from '../git-utils'
 import type { StageHandler } from './handler'
 
 /**
@@ -47,14 +48,21 @@ export class GitCommitHandler implements StageHandler {
 
 /**
  * Git PR handler
+ *
+ * H3 FIX: Uses getDefaultBranch() instead of hardcoded 'origin/dev'
+ * to support repos with different default branch names (main, master, etc.)
  */
 export class GitPrHandler implements StageHandler {
   async execute(ctx: PipelineContext, _def: StageDefinition): Promise<StageResult> {
     const outputFile = `${ctx.taskDir}/pr.md`
 
+    // H3 FIX: Get the actual default branch dynamically instead of hardcoding 'dev'
+    const defaultBranch = getDefaultBranch()
+
     // Final guard: verify branch has source changes before creating PR
+    // C4 FIX: Use execFileSync instead of execSync to prevent shell injection
     try {
-      const diff = execSync('git diff --name-only origin/dev...HEAD', {
+      const diff = execFileSync('git', ['diff', '--name-only', `origin/${defaultBranch}...HEAD`], {
         encoding: 'utf-8',
       }).trim()
       const srcChanges = diff.split('\n').filter((f) => f && !f.startsWith('.tasks/'))

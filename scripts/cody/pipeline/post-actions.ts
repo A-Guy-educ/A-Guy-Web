@@ -10,7 +10,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { execSync } from 'child_process'
 
-import type { PipelineContext, PostAction } from '../engine/types'
+import type { PipelineContext, PostAction, PipelineStateV2 } from '../engine/types'
 import { PipelinePausedError } from '../engine/types'
 import { readTask } from '../pipeline-utils'
 import { commitPipelineFiles } from '../git-utils'
@@ -24,7 +24,7 @@ import {
   setClassificationLabels,
   setProfileLabel,
 } from '../github-api'
-import { loadState, updateStage, completeState, writeState } from '../engine/status'
+import { updateStage, completeState, writeState } from '../engine/status'
 import { classifyError, formatErrorsAsMarkdown } from './error-classifier'
 import { runAgentWithFileWatch, STAGE_TIMEOUTS, DEFAULT_TIMEOUT } from '../agent-runner'
 
@@ -34,7 +34,7 @@ import { runAgentWithFileWatch, STAGE_TIMEOUTS, DEFAULT_TIMEOUT } from '../agent
 export async function executePostAction(
   ctx: PipelineContext,
   action: PostAction,
-  _state: unknown,
+  _state: PipelineStateV2 | null,
 ): Promise<void> {
   switch (action.type) {
     case 'validate-task-json': {
@@ -148,7 +148,7 @@ export async function executePostAction(
         // so the persisted status.json on the branch reflects 'paused' (not 'running').
         // The state machine will also set paused after PipelinePausedError, but that
         // only writes locally — the commit here is what the next CI run reads.
-        const currentState = loadState(ctx.taskId)
+        const currentState = _state
         if (currentState) {
           let pausedState = updateStage(currentState, action.gate, { state: 'paused' })
           pausedState = completeState(pausedState, 'paused')
@@ -446,7 +446,7 @@ export async function executePostAction(
 
       // Record feedback loop metrics in status.json for observability (immutable update)
       if (completedLoops > 0) {
-        const currentState = loadState(ctx.taskId)
+        const currentState = _state
         if (currentState && currentState.stages?.build) {
           const updatedState = updateStage(currentState, 'build', {
             feedbackLoops: completedLoops,

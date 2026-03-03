@@ -92,6 +92,9 @@ const VALID_MODES = ['spec', 'impl', 'rerun', 'full', 'status'] as const
 // VALID_STAGES derived from stage-prompts to avoid duplication
 const VALID_STAGES = [...ALL_STAGES]
 
+// Pipeline-ordered stage list for sorting (avoids `as any` cast on readonly tuple)
+const STAGE_ORDER: readonly string[] = ALL_STAGES
+
 export function isValidMode(mode: string): mode is (typeof VALID_MODES)[number] {
   return VALID_MODES.includes(mode as (typeof VALID_MODES)[number])
 }
@@ -160,6 +163,12 @@ export function getLastFailedStage(taskId: string): string | null {
       const failedStages = Object.entries(status.stages)
         .filter(([, s]) => s.state === 'failed' || s.state === 'timeout')
         .map(([name]) => name)
+      // Sort by pipeline order (ALL_STAGES index) to get truly last failed stage
+      failedStages.sort((a, b) => {
+        const idxA = STAGE_ORDER.indexOf(a)
+        const idxB = STAGE_ORDER.indexOf(b)
+        return idxA - idxB
+      })
       return failedStages.length > 0 ? failedStages[failedStages.length - 1] : null
     }
 
@@ -168,6 +177,12 @@ export function getLastFailedStage(taskId: string): string | null {
       const failedStages = Object.entries(status.stages)
         .filter(([, s]) => s.state === 'failed' || s.state === 'timeout')
         .map(([name]) => name)
+      // Sort by pipeline order (ALL_STAGES index) to get truly last failed stage
+      failedStages.sort((a, b) => {
+        const idxA = STAGE_ORDER.indexOf(a)
+        const idxB = STAGE_ORDER.indexOf(b)
+        return idxA - idxB
+      })
       return failedStages.length > 0 ? failedStages[failedStages.length - 1] : null
     }
 
@@ -200,7 +215,13 @@ export function getLastPausedStage(taskId: string): string | null {
       const pausedStages = Object.entries(status.stages)
         .filter(([, s]) => s.state === 'paused')
         .map(([name]) => name)
-      // Return the last paused stage (most recent)
+      // Sort by pipeline order (ALL_STAGES index) to get truly last paused stage
+      pausedStages.sort((a, b) => {
+        const idxA = STAGE_ORDER.indexOf(a)
+        const idxB = STAGE_ORDER.indexOf(b)
+        return idxA - idxB
+      })
+      // Return the last paused stage (most recent in pipeline order)
       return pausedStages.length > 0 ? pausedStages[pausedStages.length - 1] : null
     }
 
@@ -209,6 +230,12 @@ export function getLastPausedStage(taskId: string): string | null {
       const pausedStages = Object.entries(status.stages)
         .filter(([, s]) => s.state === 'paused')
         .map(([name]) => name)
+      // Sort by pipeline order (ALL_STAGES index) to get truly last paused stage
+      pausedStages.sort((a, b) => {
+        const idxA = STAGE_ORDER.indexOf(a)
+        const idxB = STAGE_ORDER.indexOf(b)
+        return idxA - idxB
+      })
       return pausedStages.length > 0 ? pausedStages[pausedStages.length - 1] : null
     }
 

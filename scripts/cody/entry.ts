@@ -21,7 +21,7 @@ import { createRunner } from './runner-backend'
 import { logger, createStageLogger } from './logger'
 import { handleClarification } from './clarify-workflow'
 import { commitPipelineFiles } from './git-utils'
-import { stageOutputFile, readTask } from './pipeline-utils'
+import { readTask } from './pipeline-utils'
 
 import type { PipelineContext } from './engine/types'
 import { runPipeline } from './engine/state-machine'
@@ -575,20 +575,8 @@ async function runRerunMode(ctx: PipelineContext): Promise<void> {
   const { loadState, resetFromStage, writeState } = await import('./engine/status')
   const state = loadState(input.taskId)
   if (state) {
-    // Get stages to delete from
-    const fromIndex = stageOrder.indexOf(fromStage)
-    if (fromIndex >= 0) {
-      const stagesToDelete = stageOrder.slice(fromIndex)
-      for (const stage of stagesToDelete) {
-        const outputFile = stageOutputFile(taskDir, stage)
-        if (fs.existsSync(outputFile)) {
-          fs.unlinkSync(outputFile)
-          logger.info(`Deleted: ${stage}.md`)
-        }
-      }
-    }
-
-    // Reset stages in status
+    // H4 FIX: resetFromStage now handles both state reset AND output file deletion
+    // No need to manually delete files here - that was causing double-delete
     const newState = resetFromStage(state, fromStage, stageOrder, taskDir)
     writeState(input.taskId, newState)
   }

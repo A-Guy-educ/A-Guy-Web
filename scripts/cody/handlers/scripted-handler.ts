@@ -11,16 +11,23 @@ import { runVerifyStage } from '../scripted-stages'
 import { runAgentWithFileWatch } from '../agent-runner'
 import { commitPipelineFiles } from '../git-utils'
 import type { StageHandler } from './handler'
-import { STAGE_TIMEOUTS, DEFAULT_TIMEOUT } from '../agent-runner'
+import { DEFAULT_TIMEOUT } from '../agent-runner'
 
 const MAX_AUTOFIX_ATTEMPTS = 2
 
 /**
  * Scripted verify handler with internal autofix loop
+ *
+ * H2 FIX: Track aggregate timeout across autofix iterations to prevent
+ * pipeline from hanging indefinitely when autofix loops take too long
  */
 export class ScriptedVerifyHandler implements StageHandler {
   async execute(ctx: PipelineContext, def: StageDefinition): Promise<StageResult> {
     const outputFile = `${ctx.taskDir}/${def.name}.md`
+
+    // H2 FIX: Track start time for aggregate timeout
+    const startTime = Date.now()
+    const totalTimeout = def.timeout ?? DEFAULT_TIMEOUT
 
     // Run initial verify
     const verifyResult = runVerifyStage(outputFile, undefined, def.timeout)
@@ -37,7 +44,24 @@ export class ScriptedVerifyHandler implements StageHandler {
     let fixed = false
 
     for (let attempt = 1; attempt <= MAX_AUTOFIX_ATTEMPTS; attempt++) {
-      logger.info(`\n🔧 Auto-fix attempt ${attempt}/${MAX_AUTOFIX_ATTEMPTS}...`)
+      // H2 FIX: Check aggregate timeout before each attempt
+      const elapsed = Date.now() - startTime
+      const remaining = totalTimeout - elapsed
+
+      if (remaining <= 0) {
+        logger.info(
+          `  ⏱️ Aggregate timeout exceeded (${totalTimeout / 1000 / 60} minutes) — stopping autofix loop`,
+        )
+        return {
+          outcome: 'timed_out',
+          reason: `Aggregate timeout exceeded during autofix loop after ${attempt - 1} attempts`,
+          retries: 0,
+        }
+      }
+
+      logger.info(
+        `\n🔧 Auto-fix attempt ${attempt}/${MAX_AUTOFIX_ATTEMPTS} (${(remaining / 1000 / 60).toFixed(1)}m remaining)...`,
+      )
 
       // Remove previous autofix output if any
       const autofixOutput = `${ctx.taskDir}/autofix.md`
@@ -46,19 +70,40 @@ export class ScriptedVerifyHandler implements StageHandler {
         unlinkSync(autofixOutput)
       }
 
-      // Run autofix agent
-      const autofixTimeout = STAGE_TIMEOUTS.autofix ?? DEFAULT_TIMEOUT
+      // Run autofix agent with remaining time
       const autofixResult = await runAgentWithFileWatch(
         ctx.input,
         'autofix',
         autofixOutput,
-        autofixTimeout,
+        remaining, // H2 FIX: Pass remaining time instead of full timeout
         { backend: ctx.backend },
       )
 
       if (!autofixResult.succeeded) {
         logger.error(`  ❌ Autofix agent failed (attempt ${attempt})`)
+        // Check if it was a timeout
+        if (autofixResult.timedOut) {
+          logger.info(`  ⏱️ Autofix timed out, stopping loop`)
+          return {
+            outcome: 'timed_out',
+            reason: `Autofix agent timed out on attempt ${attempt}`,
+            retries: 0,
+          }
+        }
         continue
+      }
+
+      // H2 FIX: Check timeout before re-running verify
+      const elapsedAfter = Date.now() - startTime
+      const remainingAfter = totalTimeout - elapsedAfter
+
+      if (remainingAfter <= 0) {
+        logger.info(`  ⏱️ Aggregate timeout exceeded — stopping before verify re-run`)
+        return {
+          outcome: 'timed_out',
+          reason: `Aggregate timeout exceeded during autofix loop`,
+          retries: 0,
+        }
       }
 
       // Re-run verify after autofix
@@ -67,7 +112,7 @@ export class ScriptedVerifyHandler implements StageHandler {
         unlinkSync(outputFile)
       }
 
-      const reVerify = runVerifyStage(outputFile)
+      const reVerify = runVerifyStage(outputFile, undefined, remainingAfter) // H2 FIX: Pass remaining time
       if (reVerify.passed) {
         logger.info(`  ✅ Verification passed after autofix attempt ${attempt}`)
         fixed = true

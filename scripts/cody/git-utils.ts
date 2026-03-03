@@ -6,7 +6,7 @@
  */
 
 import { logger } from './logger'
-import { execSync, execFileSync } from 'child_process'
+import { execFileSync } from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
 
@@ -137,7 +137,7 @@ export function deriveBranchName(taskDir: string, taskId: string): string {
 export function getDefaultBranch(cwd: string = process.cwd()): string {
   try {
     // Use symbolic-ref which is faster and more reliable than parsing `git remote show origin`
-    const ref = execSync('git symbolic-ref refs/remotes/origin/HEAD', {
+    const ref = execFileSync('git', ['symbolic-ref', 'refs/remotes/origin/HEAD'], {
       cwd,
       encoding: 'utf-8',
       stdio: 'pipe',
@@ -151,7 +151,7 @@ export function getDefaultBranch(cwd: string = process.cwd()): string {
 
   try {
     // Fallback: parse `git remote show origin` output
-    const output = execSync('git remote show origin', {
+    const output = execFileSync('git', ['remote', 'show', 'origin'], {
       cwd,
       encoding: 'utf-8',
       stdio: 'pipe',
@@ -175,11 +175,14 @@ function mergeDefaultBranch(cwd: string): void {
   const defaultBranch = getDefaultBranch(cwd)
   logger.info(`[branch] Merging latest ${defaultBranch} into current branch`)
   try {
-    execSync(`git merge origin/${defaultBranch} --no-edit`, { cwd, stdio: 'inherit' })
+    execFileSync('git', ['merge', `origin/${defaultBranch}`, '--no-edit'], {
+      cwd,
+      stdio: 'inherit',
+    })
   } catch (_error) {
     logger.error(`[branch] Merge conflict detected while merging ${defaultBranch}`)
     logger.info('[branch] Aborting merge')
-    execSync('git merge --abort', { cwd, stdio: 'inherit' })
+    execFileSync('git', ['merge', '--abort'], { cwd, stdio: 'inherit' })
     throw new Error(
       `Merge conflict while merging ${defaultBranch} into feature branch. Please resolve conflicts manually.`,
     )
@@ -203,7 +206,7 @@ export function ensureFeatureBranch(
 ): void {
   const cwd = projectDir || process.cwd()
 
-  const currentBranch = execSync('git branch --show-current', {
+  const currentBranch = execFileSync('git', ['branch', '--show-current'], {
     cwd,
     encoding: 'utf-8',
   }).trim()
@@ -223,12 +226,12 @@ export function ensureFeatureBranch(
   logger.info(`[branch] Ensuring feature branch: ${branchName}`)
 
   // Fetch latest from origin
-  execSync('git fetch origin', { cwd, stdio: 'inherit' })
+  execFileSync('git', ['fetch', 'origin'], { cwd, stdio: 'inherit' })
 
   // Check if branch already exists on remote (original behavior)
   let remoteBranchExists = false
   try {
-    execSync(`git rev-parse --verify origin/${branchName}`, {
+    execFileSync('git', ['rev-parse', '--verify', `origin/${branchName}`], {
       cwd,
       encoding: 'utf-8',
       stdio: 'pipe',
@@ -246,7 +249,7 @@ export function ensureFeatureBranch(
     // (Deleting untracked files could remove agent-created source files before they're committed)
     if (process.env.GITHUB_ACTIONS) {
       try {
-        execSync('git checkout -- .', { cwd, stdio: 'pipe' })
+        execFileSync('git', ['checkout', '--', '.'], { cwd, stdio: 'pipe' })
       } catch {
         // Ignore — working tree may already be clean
       }
@@ -255,17 +258,20 @@ export function ensureFeatureBranch(
       // Track whether we actually stashed to avoid popping unrelated stashes
       let didStash = false
       try {
-        const status = execSync('git status --porcelain', { cwd, encoding: 'utf-8' }).trim()
+        const status = execFileSync('git', ['status', '--porcelain'], {
+          cwd,
+          encoding: 'utf-8',
+        }).trim()
         if (status) {
           logger.warn('[branch] ⚠ Working tree has uncommitted changes — stashing before checkout')
-          execSync('git stash --include-untracked', { cwd, stdio: 'pipe' })
+          execFileSync('git', ['stash', '--include-untracked'], { cwd, stdio: 'pipe' })
           didStash = true
         }
       } catch {
         // Ignore status check errors
       }
-      execSync(`git checkout ${branchName}`, { cwd, stdio: 'inherit' })
-      execSync(`git pull origin ${branchName}`, { cwd, stdio: 'inherit' })
+      execFileSync('git', ['checkout', branchName], { cwd, stdio: 'inherit' })
+      execFileSync('git', ['pull', 'origin', branchName], { cwd, stdio: 'inherit' })
 
       // Merge default branch after pulling feature branch to keep it up-to-date
       mergeDefaultBranch(cwd)
@@ -274,7 +280,7 @@ export function ensureFeatureBranch(
       if (didStash) {
         try {
           logger.info('[branch] Restoring stashed changes...')
-          execSync('git stash pop', { cwd, stdio: 'inherit' })
+          execFileSync('git', ['stash', 'pop'], { cwd, stdio: 'inherit' })
         } catch {
           logger.warn('[branch] ⚠ Could not restore stash — may need manual recovery')
         }
@@ -285,7 +291,7 @@ export function ensureFeatureBranch(
     // Branch doesn't exist on remote — check if it exists locally (from previous failed run)
     let localBranchExists = false
     try {
-      execSync(`git rev-parse --verify ${branchName}`, {
+      execFileSync('git', ['rev-parse', '--verify', branchName], {
         cwd,
         encoding: 'utf-8',
         stdio: 'pipe',
@@ -303,10 +309,13 @@ export function ensureFeatureBranch(
       let didStash = false
       if (!process.env.GITHUB_ACTIONS) {
         try {
-          const status = execSync('git status --porcelain', { cwd, encoding: 'utf-8' }).trim()
+          const status = execFileSync('git', ['status', '--porcelain'], {
+            cwd,
+            encoding: 'utf-8',
+          }).trim()
           if (status) {
             logger.info('[branch] Stashing uncommitted changes before checkout...')
-            execSync('git stash --include-untracked', { cwd, stdio: 'pipe' })
+            execFileSync('git', ['stash', '--include-untracked'], { cwd, stdio: 'pipe' })
             didStash = true
           }
         } catch {
@@ -315,13 +324,13 @@ export function ensureFeatureBranch(
       } else {
         // CI mode: revert tracked files only - don't delete untracked files
         try {
-          execSync('git checkout -- .', { cwd, stdio: 'pipe' })
+          execFileSync('git', ['checkout', '--', '.'], { cwd, stdio: 'pipe' })
         } catch {
           // Ignore — working tree may already be clean
         }
       }
 
-      execSync(`git checkout ${branchName}`, { cwd, stdio: 'inherit' })
+      execFileSync('git', ['checkout', branchName], { cwd, stdio: 'inherit' })
 
       // Merge default branch after checking out local branch to keep it up-to-date
       mergeDefaultBranch(cwd)
@@ -330,7 +339,7 @@ export function ensureFeatureBranch(
       if (didStash) {
         try {
           logger.info('[branch] Restoring stashed changes...')
-          execSync('git stash pop', { cwd, stdio: 'inherit' })
+          execFileSync('git', ['stash', 'pop'], { cwd, stdio: 'inherit' })
         } catch {
           logger.warn('[branch] Could not restore stash — may need manual recovery')
         }
@@ -338,7 +347,7 @@ export function ensureFeatureBranch(
 
       // Try to push if remote doesn't have it yet
       try {
-        execSync(`git push origin ${branchName}`, { cwd, stdio: 'inherit' })
+        execFileSync('git', ['push', '-u', 'origin', branchName], { cwd, stdio: 'inherit' })
       } catch {
         // Remote doesn't have it yet - that's fine
       }
@@ -349,9 +358,9 @@ export function ensureFeatureBranch(
     // Branch doesn't exist locally either — create new from default branch
     const defaultBranch = getDefaultBranch(cwd)
     logger.info(`[branch] Creating new branch from ${defaultBranch}: ${branchName}`)
-    execSync(`git checkout ${defaultBranch}`, { cwd, stdio: 'inherit' })
-    execSync(`git pull origin ${defaultBranch}`, { cwd, stdio: 'inherit' })
-    execSync(`git checkout -b ${branchName}`, { cwd, stdio: 'inherit' })
+    execFileSync('git', ['checkout', defaultBranch], { cwd, stdio: 'inherit' })
+    execFileSync('git', ['pull', 'origin', defaultBranch], { cwd, stdio: 'inherit' })
+    execFileSync('git', ['checkout', '-b', branchName], { cwd, stdio: 'inherit' })
     logger.info(`[branch] Created and switched to: ${branchName}`)
   }
 }
@@ -453,7 +462,7 @@ export function commitAndPush(
   const workDir = cwd || process.cwd()
 
   // Get current branch
-  const branch = execSync('git branch --show-current', {
+  const branch = execFileSync('git', ['branch', '--show-current'], {
     cwd: workDir,
     encoding: 'utf-8',
   }).trim()
@@ -494,7 +503,7 @@ export function commitAndPush(
 
   try {
     // Check if there are changes
-    const status = execSync('git status --porcelain', {
+    const status = execFileSync('git', ['status', '--porcelain'], {
       cwd: workDir,
       encoding: 'utf-8',
     }).trim()
@@ -509,7 +518,7 @@ export function commitAndPush(
     }
 
     // Stage tracked changes (modifications + deletions)
-    execSync('git add -u', { cwd: workDir, stdio: 'inherit' })
+    execFileSync('git', ['add', '-u'], { cwd: workDir, stdio: 'inherit' })
 
     // Stage new files from safe directories only (BUG-15: avoid root-level .env files)
     // Pre-commit hooks (check-secrets, check-no-css) provide additional safety
@@ -525,6 +534,38 @@ export function commitAndPush(
       }
     }
 
+    // H6 FIX: Also stage new root config files that are needed for builds
+    // These are safe config files (not .env) that the project needs
+    const rootConfigPatterns = [
+      'package.json',
+      'pnpm-lock.yaml',
+      'tsconfig.json',
+      /^tsconfig\..*\.json$/,
+      /^next\.config\..+$/,
+      'payload.config.ts',
+      /^tailwind\.config\..+$/,
+      /^postcss\.config\..+$/,
+      /^eslint\.config\..+$/,
+      /^\.prettierrc/,
+      /^jest\.config\..+$/,
+      /^vitest\.config\..+$/,
+    ]
+
+    const rootFiles = fs.readdirSync(workDir)
+    for (const pattern of rootConfigPatterns) {
+      const matches =
+        typeof pattern === 'string'
+          ? rootFiles.filter((f: string) => f === pattern)
+          : rootFiles.filter((f: string) => pattern.test(f))
+      for (const file of matches) {
+        try {
+          execFileSync('git', ['add', '--', file], { cwd: workDir, stdio: 'pipe' })
+        } catch {
+          // File may not be git-addable - that's fine
+        }
+      }
+    }
+
     // Commit using execFileSync to prevent shell injection (BUG-4 fix)
     // Skip husky/commitlint hooks in CI - they run their own quality gates
     const hookSafeEnv = getHookSafeEnv()
@@ -535,7 +576,7 @@ export function commitAndPush(
     })
 
     // Get commit hash
-    const hash = execSync('git rev-parse HEAD', {
+    const hash = execFileSync('git', ['rev-parse', 'HEAD'], {
       cwd: workDir,
       encoding: 'utf-8',
     })
@@ -543,7 +584,7 @@ export function commitAndPush(
       .slice(0, 7)
 
     // Push — use hook-safe env to skip pre-push hooks
-    execSync('git push -u origin HEAD', {
+    execFileSync('git', ['push', '-u', 'origin', 'HEAD'], {
       cwd: workDir,
       stdio: 'inherit',
       env: hookSafeEnv,
@@ -652,7 +693,7 @@ export function commitPipelineFiles(
     // (Deleting untracked files could remove agent-created source files before they're committed)
     if (cleanDirtyState && isCI) {
       try {
-        execSync('git checkout -- .', { cwd, stdio: 'pipe' })
+        execFileSync('git', ['checkout', '--', '.'], { cwd, stdio: 'pipe' })
       } catch {
         // Working tree may already be clean
       }
@@ -664,14 +705,14 @@ export function commitPipelineFiles(
     switch (stagingStrategy) {
       case 'all':
         try {
-          execSync('git add -A', { cwd, stdio: 'inherit' })
+          execFileSync('git', ['add', '-A'], { cwd, stdio: 'inherit' })
         } catch {
           // Ignore staging errors
         }
         break
       case 'tracked+task':
         try {
-          execSync('git add -u', { cwd, stdio: 'inherit' })
+          execFileSync('git', ['add', '-u'], { cwd, stdio: 'inherit' })
         } catch {
           // Ignore
         }
@@ -716,7 +757,11 @@ export function commitPipelineFiles(
     // which may fail on unrelated files and block the pipeline
     let pushed = false
     if (push) {
-      execSync('git push -u origin HEAD', { cwd, stdio: 'inherit', env: hookSafeEnv })
+      execFileSync('git', ['push', '-u', 'origin', 'HEAD'], {
+        cwd,
+        stdio: 'inherit',
+        env: hookSafeEnv,
+      })
       pushed = true
       logger.info(`[commit] Pushed to origin`)
     }
