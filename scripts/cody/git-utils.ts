@@ -5,6 +5,7 @@
  * @ai-summary Git utilities for feature branch creation in Cody scripts
  */
 
+import { logger } from './logger'
 import { execSync, execFileSync } from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -172,12 +173,12 @@ export function getDefaultBranch(cwd: string = process.cwd()): string {
  */
 function mergeDefaultBranch(cwd: string): void {
   const defaultBranch = getDefaultBranch(cwd)
-  console.log(`[branch] Merging latest ${defaultBranch} into current branch`)
+  logger.info(`[branch] Merging latest ${defaultBranch} into current branch`)
   try {
     execSync(`git merge origin/${defaultBranch} --no-edit`, { cwd, stdio: 'inherit' })
   } catch (_error) {
-    console.error(`[branch] Merge conflict detected while merging ${defaultBranch}`)
-    console.log('[branch] Aborting merge')
+    logger.error(`[branch] Merge conflict detected while merging ${defaultBranch}`)
+    logger.info('[branch] Aborting merge')
     execSync('git merge --abort', { cwd, stdio: 'inherit' })
     throw new Error(
       `Merge conflict while merging ${defaultBranch} into feature branch. Please resolve conflicts manually.`,
@@ -209,7 +210,7 @@ export function ensureFeatureBranch(
 
   // Already on a feature branch - don't recreate
   if (!BASE_BRANCHES.includes(currentBranch)) {
-    console.log(`[branch] Already on feature branch: ${currentBranch}`)
+    logger.info(`[branch] Already on feature branch: ${currentBranch}`)
     return
   }
 
@@ -219,7 +220,7 @@ export function ensureFeatureBranch(
   const branchDescription = taskDir ? deriveBranchName(taskDir, taskId) : taskId
   const branchName = `${prefix}/${branchDescription}`
 
-  console.log(`[branch] Ensuring feature branch: ${branchName}`)
+  logger.info(`[branch] Ensuring feature branch: ${branchName}`)
 
   // Fetch latest from origin
   execSync('git fetch origin', { cwd, stdio: 'inherit' })
@@ -239,7 +240,7 @@ export function ensureFeatureBranch(
 
   if (remoteBranchExists) {
     // Branch exists on remote — checkout and track it
-    console.log(`[branch] Remote branch exists, checking out: ${branchName}`)
+    logger.info(`[branch] Remote branch exists, checking out: ${branchName}`)
     // Clean dirty state from previous failed runs before switching
     // Only revert tracked file modifications - don't delete untracked files
     // (Deleting untracked files could remove agent-created source files before they're committed)
@@ -256,7 +257,7 @@ export function ensureFeatureBranch(
       try {
         const status = execSync('git status --porcelain', { cwd, encoding: 'utf-8' }).trim()
         if (status) {
-          console.warn('[branch] ⚠ Working tree has uncommitted changes — stashing before checkout')
+          logger.warn('[branch] ⚠ Working tree has uncommitted changes — stashing before checkout')
           execSync('git stash --include-untracked', { cwd, stdio: 'pipe' })
           didStash = true
         }
@@ -272,14 +273,14 @@ export function ensureFeatureBranch(
       // Restore stashed changes only if we actually stashed something
       if (didStash) {
         try {
-          console.log('[branch] Restoring stashed changes...')
+          logger.info('[branch] Restoring stashed changes...')
           execSync('git stash pop', { cwd, stdio: 'inherit' })
         } catch {
-          console.warn('[branch] ⚠ Could not restore stash — may need manual recovery')
+          logger.warn('[branch] ⚠ Could not restore stash — may need manual recovery')
         }
       }
     }
-    console.log(`[branch] Checked out and pulled: ${branchName}`)
+    logger.info(`[branch] Checked out and pulled: ${branchName}`)
   } else {
     // Branch doesn't exist on remote — check if it exists locally (from previous failed run)
     let localBranchExists = false
@@ -296,7 +297,7 @@ export function ensureFeatureBranch(
 
     // If branch exists locally, checkout and resume work (stages will skip if already completed)
     if (localBranchExists) {
-      console.log(`[branch] Local branch exists, resuming: ${branchName}`)
+      logger.info(`[branch] Local branch exists, resuming: ${branchName}`)
       // Stash dirty state before switching (only in local mode, not CI)
       // Track whether we actually stashed to avoid popping unrelated stashes
       let didStash = false
@@ -304,7 +305,7 @@ export function ensureFeatureBranch(
         try {
           const status = execSync('git status --porcelain', { cwd, encoding: 'utf-8' }).trim()
           if (status) {
-            console.log('[branch] Stashing uncommitted changes before checkout...')
+            logger.info('[branch] Stashing uncommitted changes before checkout...')
             execSync('git stash --include-untracked', { cwd, stdio: 'pipe' })
             didStash = true
           }
@@ -328,10 +329,10 @@ export function ensureFeatureBranch(
       // Restore stashed changes only if we actually stashed something
       if (didStash) {
         try {
-          console.log('[branch] Restoring stashed changes...')
+          logger.info('[branch] Restoring stashed changes...')
           execSync('git stash pop', { cwd, stdio: 'inherit' })
         } catch {
-          console.warn('[branch] Could not restore stash — may need manual recovery')
+          logger.warn('[branch] Could not restore stash — may need manual recovery')
         }
       }
 
@@ -341,17 +342,17 @@ export function ensureFeatureBranch(
       } catch {
         // Remote doesn't have it yet - that's fine
       }
-      console.log(`[branch] Checked out local branch: ${branchName}`)
+      logger.info(`[branch] Checked out local branch: ${branchName}`)
       return
     }
 
     // Branch doesn't exist locally either — create new from default branch
     const defaultBranch = getDefaultBranch(cwd)
-    console.log(`[branch] Creating new branch from ${defaultBranch}: ${branchName}`)
+    logger.info(`[branch] Creating new branch from ${defaultBranch}: ${branchName}`)
     execSync(`git checkout ${defaultBranch}`, { cwd, stdio: 'inherit' })
     execSync(`git pull origin ${defaultBranch}`, { cwd, stdio: 'inherit' })
     execSync(`git checkout -b ${branchName}`, { cwd, stdio: 'inherit' })
-    console.log(`[branch] Created and switched to: ${branchName}`)
+    logger.info(`[branch] Created and switched to: ${branchName}`)
   }
 }
 
@@ -701,7 +702,7 @@ export function commitPipelineFiles(
         env: hookSafeEnv,
       })
       committed = true
-      console.log(`[commit] ${message}`)
+      logger.info(`[commit] ${message}`)
     } catch (commitError: unknown) {
       const commitMsg = commitError instanceof Error ? commitError.message : String(commitError)
       if (commitMsg.includes('nothing to commit') || commitMsg.includes('no changes added')) {
@@ -717,13 +718,13 @@ export function commitPipelineFiles(
     if (push) {
       execSync('git push -u origin HEAD', { cwd, stdio: 'inherit', env: hookSafeEnv })
       pushed = true
-      console.log(`[commit] Pushed to origin`)
+      logger.info(`[commit] Pushed to origin`)
     }
 
     return { success: true, message: 'Committed successfully', committed, pushed }
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : String(error)
-    console.error(`[commit] Error: ${msg}`)
+    logger.error(`[commit] Error: ${msg}`)
     return { success: false, message: msg }
   }
 }

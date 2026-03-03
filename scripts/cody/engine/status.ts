@@ -5,6 +5,7 @@
  * @ai-summary Status.json v2 operations with mandatory Zod validation
  */
 
+import { logger } from '../logger'
 import * as fs from 'fs'
 import * as path from 'path'
 
@@ -44,13 +45,13 @@ export function loadState(taskId: string): PipelineStateV2 | null {
 
     // Validate with Zod schema
     if (!isPipelineStateV2(parsed)) {
-      console.warn(`Status file for ${taskId} is not valid v2 format, ignoring`)
+      logger.warn(`Status file for ${taskId} is not valid v2 format, ignoring`)
       return null
     }
 
     return parsed
   } catch (error) {
-    console.warn(`Failed to load status for ${taskId}:`, error)
+    logger.warn({ err: error }, `Failed to load status for ${taskId}`)
     return null
   }
 }
@@ -196,7 +197,7 @@ export function recoverStaleStages(state: PipelineStateV2): PipelineStateV2 {
         state: 'pending',
         startedAt: undefined,
       }
-      console.log(`⚠️ Recovered stale stage ${name}: running → pending`)
+      logger.info(`⚠️ Recovered stale stage ${name}: running → pending`)
       hasChanges = true
     } else {
       newStages[name] = stage
@@ -263,12 +264,12 @@ export function recoverPipelineState(
 
   // Determine new pipeline state
   if (hasNonAdvisoryFailure) {
-    console.log(`⚠️ Recovered pipeline state: running → failed (non-advisory stage failed)`)
+    logger.info(`⚠️ Recovered pipeline state: running → failed (non-advisory stage failed)`)
     return completeState(state, 'failed')
   }
 
   if (allCompletedOrSkipped) {
-    console.log(`⚠️ Recovered pipeline state: running → completed (all stages done)`)
+    logger.info(`⚠️ Recovered pipeline state: running → completed (all stages done)`)
     return completeState(state, 'completed')
   }
 

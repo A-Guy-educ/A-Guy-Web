@@ -6,6 +6,7 @@
  */
 
 import type { PipelineContext, StageDefinition, StageResult } from '../engine/types'
+import { logger } from '../logger'
 import { runVerifyStage } from '../scripted-stages'
 import { runAgentWithFileWatch } from '../agent-runner'
 import { commitPipelineFiles } from '../git-utils'
@@ -36,7 +37,7 @@ export class ScriptedVerifyHandler implements StageHandler {
     let fixed = false
 
     for (let attempt = 1; attempt <= MAX_AUTOFIX_ATTEMPTS; attempt++) {
-      console.log(`\n🔧 Auto-fix attempt ${attempt}/${MAX_AUTOFIX_ATTEMPTS}...`)
+      logger.info(`\n🔧 Auto-fix attempt ${attempt}/${MAX_AUTOFIX_ATTEMPTS}...`)
 
       // Remove previous autofix output if any
       const autofixOutput = `${ctx.taskDir}/autofix.md`
@@ -56,23 +57,23 @@ export class ScriptedVerifyHandler implements StageHandler {
       )
 
       if (!autofixResult.succeeded) {
-        console.error(`  ❌ Autofix agent failed (attempt ${attempt})`)
+        logger.error(`  ❌ Autofix agent failed (attempt ${attempt})`)
         continue
       }
 
       // Re-run verify after autofix
-      console.log('  Re-running verification...')
+      logger.info('  Re-running verification...')
       if (existsSync(outputFile)) {
         unlinkSync(outputFile)
       }
 
       const reVerify = runVerifyStage(outputFile)
       if (reVerify.passed) {
-        console.log(`  ✅ Verification passed after autofix attempt ${attempt}`)
+        logger.info(`  ✅ Verification passed after autofix attempt ${attempt}`)
         fixed = true
         break
       } else {
-        console.error(`  ❌ Verification still failing after autofix attempt ${attempt}`)
+        logger.error(`  ❌ Verification still failing after autofix attempt ${attempt}`)
       }
     }
 
@@ -95,7 +96,7 @@ export class ScriptedVerifyHandler implements StageHandler {
     })
 
     if (!autofixCommitResult.success && !autofixCommitResult.message.includes('No changes')) {
-      console.error(`  ❌ Failed to commit/push autofix changes: ${autofixCommitResult.message}`)
+      logger.error(`  ❌ Failed to commit/push autofix changes: ${autofixCommitResult.message}`)
       return {
         outcome: 'failed',
         reason: 'Autofix changes could not be pushed',

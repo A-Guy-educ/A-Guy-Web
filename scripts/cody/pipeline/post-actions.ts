@@ -5,6 +5,7 @@
  * @ai-summary Post-stage action runner with inlined implementations
  */
 
+import { logger } from '../logger'
 import * as fs from 'fs'
 import * as path from 'path'
 import { execSync } from 'child_process'
@@ -20,6 +21,8 @@ import {
   addIssueLabel,
   removeIssueLabel,
   GATE_LABELS,
+  setClassificationLabels,
+  setProfileLabel,
 } from '../github-api'
 import { loadState, updateStage, completeState, writeState } from '../engine/status'
 import { classifyError, formatErrorsAsMarkdown } from './error-classifier'
@@ -37,7 +40,7 @@ export async function executePostAction(
     case 'validate-task-json': {
       try {
         readTask(ctx.taskDir)
-        console.log('  ✓ task.json validated')
+        logger.info('  ✓ task.json validated')
       } catch (error) {
         // G13: Delete invalid file so retry can recreate
         const taskJsonPath = path.join(ctx.taskDir, 'task.json')
@@ -50,6 +53,20 @@ export async function executePostAction(
       break
     }
 
+    case 'set-classification-labels': {
+      // Set classification labels from task.json (type, risk, complexity, domain)
+      const taskDef = readTask(ctx.taskDir)
+      if (ctx.input.issueNumber && taskDef) {
+        setClassificationLabels(ctx.input.issueNumber, {
+          task_type: taskDef.task_type,
+          risk_level: taskDef.risk_level,
+          complexity: taskDef.complexity,
+          primary_domain: taskDef.primary_domain,
+        })
+      }
+      break
+    }
+
     case 'resolve-profile': {
       const taskDef = readTask(ctx.taskDir)
       if (taskDef) {
@@ -57,19 +74,23 @@ export async function executePostAction(
         if (ctx.input.complexityOverride !== undefined && taskDef.complexity === undefined) {
           taskDef.complexity = ctx.input.complexityOverride
           taskDef.complexity_reasoning = `Override via --complexity=${ctx.input.complexityOverride}`
-          console.log(`  ℹ️ Applied complexity override: ${ctx.input.complexityOverride}`)
+          logger.info(`  ℹ️ Applied complexity override: ${ctx.input.complexityOverride}`)
         }
         // Update ctx.taskDef so subsequent post-actions can access it
         ctx.taskDef = taskDef
         const { resolvePipelineProfile, getComplexityTier } = await import('../pipeline-utils')
         ctx.profile = resolvePipelineProfile(taskDef)
+        // Set profile label on the issue
+        if (ctx.input.issueNumber) {
+          setProfileLabel(ctx.input.issueNumber, ctx.profile)
+        }
         // Signal engine to rebuild pipeline with new profile (two-phase construction)
         ctx.pipelineNeedsRebuild = true
         if (taskDef.complexity !== undefined) {
           const tier = getComplexityTier(taskDef.complexity)
-          console.log(`  ℹ️ Complexity: ${taskDef.complexity} (${tier}) → profile: ${ctx.profile}`)
+          logger.info(`  ℹ️ Complexity: ${taskDef.complexity} (${tier}) → profile: ${ctx.profile}`)
         } else {
-          console.log(
+          logger.info(
             `  ℹ️ Resolved profile: ${ctx.profile} (no complexity score, using legacy heuristic)`,
           )
         }
@@ -83,7 +104,7 @@ export async function executePostAction(
           if (!fs.existsSync(outputFile)) {
             const stub = buildPromotedStub(stage, ctx.taskDir)
             fs.writeFileSync(outputFile, stub)
-            console.log(`  ℹ️ Created promoted stub: ${stage}.md`)
+            logger.info(`  ℹ️ Created promoted stub: ${stage}.md`)
           }
         }
       }
@@ -100,7 +121,7 @@ export async function executePostAction(
       const { resolveControlMode } = await import('../pipeline-utils')
       const controlMode = resolveControlMode(taskDef, ctx.input.controlMode)
       if (controlMode === 'auto') {
-        console.log(`  ✓ gate ${action.gate} skipped (controlMode: auto)`)
+        logger.info(`  ✓ gate ${action.gate} skipped (controlMode: auto)`)
         break
       }
       const gateResult = handleGateApproval(ctx.input, ctx.taskDir, action.gate, taskDef)
@@ -192,7 +213,7 @@ export async function executePostAction(
       if (fs.existsSync(rerunFeedbackPath)) {
         const consumed = path.join(ctx.taskDir, 'rerun-feedback.consumed.md')
         fs.renameSync(rerunFeedbackPath, consumed)
-        console.log('   Consumed rerun-feedback.md')
+        logger.info('   Consumed rerun-feedback.md')
       }
       break
     }
@@ -259,17 +280,17 @@ export async function executePostAction(
         )
       }
 
-      console.log(`   ✓ ${allChanged.length} source file(s) changed by build agent`)
+      logger.info(`   ✓ ${allChanged.length} source file(s) changed by build agent`)
       break
     }
 
     case 'run-tsc': {
       if (ctx.input.dryRun) return
 
-      console.log('   Running tsc...')
+      logger.info('   Running tsc...')
       try {
         execSync('pnpm -s tsc --noEmit', { stdio: 'inherit' })
-        console.log('   ✓ tsc passed')
+        logger.info('   ✓ tsc passed')
       } catch {
         throw new Error('TypeScript compilation failed')
       }
@@ -279,10 +300,10 @@ export async function executePostAction(
     case 'run-unit-tests': {
       if (ctx.input.dryRun) return
 
-      console.log('   Running unit tests...')
+      logger.info('   Running unit tests...')
       try {
         execSync('pnpm -s test:unit', { stdio: 'inherit' })
-        console.log('   ✓ Unit tests passed')
+        logger.info('   ✓ Unit tests passed')
       } catch (error) {
         // G25: Include output text (3000 chars) for supervisor retry
         const err = error as { stdout?: string; stderr?: string; message?: string }
@@ -331,9 +352,9 @@ export async function executePostAction(
       const runGates = (gates: typeof action.gates): GateResult[] => {
         return gates.map((gate) => {
           try {
-            console.log(`   Running ${gate.name}...`)
+            logger.info(`   Running ${gate.name}...`)
             execSync(gate.command, { stdio: 'pipe' })
-            console.log(`   ✓ ${gate.name} passed`)
+            logger.info(`   ✓ ${gate.name} passed`)
             return { ...gate, passed: true }
           } catch (error) {
             const err = error as {
@@ -352,7 +373,7 @@ export async function executePostAction(
                 : err.stderr
               : ''
             const output = stdout + stderr + (err.message || '')
-            console.log(`   ✗ ${gate.name} failed`)
+            logger.info(`   ✗ ${gate.name} failed`)
             return { ...gate, passed: false, error: output }
           }
         })
@@ -374,7 +395,7 @@ export async function executePostAction(
       // This differs from scripted-handler.ts (verify autofix) which commits because
       // it runs after the commit stage.
       for (let attempt = 1; attempt <= action.maxFeedbackLoops; attempt++) {
-        console.log(`
+        logger.info(`
 🔧 Build autofix attempt ${attempt}/${action.maxFeedbackLoops}...`)
 
         // Classify errors and write build-errors.md
@@ -400,7 +421,7 @@ export async function executePostAction(
         )
 
         if (!autofixResult.succeeded) {
-          console.error(`  ❌ Autofix agent failed (attempt ${attempt})`)
+          logger.error(`  ❌ Autofix agent failed (attempt ${attempt})`)
           continue
         }
 
@@ -414,7 +435,7 @@ export async function executePostAction(
         failures = results.filter((r) => !r.passed)
 
         if (failures.length === 0) {
-          console.log(`  ✅ All quality gates passed after autofix attempt ${attempt}`)
+          logger.info(`  ✅ All quality gates passed after autofix attempt ${attempt}`)
           // Clean up build-errors.md since everything passed
           if (fs.existsSync(errorsFile)) {
             fs.unlinkSync(errorsFile)
@@ -446,7 +467,7 @@ export async function executePostAction(
 
     case 'parallel': {
       const parallelActions = (action as unknown as { actions: PostAction[] }).actions
-      console.log(`   Running ${parallelActions.length} actions in parallel...`)
+      logger.info(`   Running ${parallelActions.length} actions in parallel...`)
 
       const results = await Promise.allSettled(
         parallelActions.map(async (a) => {
@@ -465,12 +486,12 @@ export async function executePostAction(
           .join('; ')
         throw new Error(`Parallel post-actions failed: ${errors}`)
       }
-      console.log(`   ✅ All ${parallelActions.length} parallel actions completed`)
+      logger.info(`   ✅ All ${parallelActions.length} parallel actions completed`)
       break
     }
 
     default:
-      console.warn(`Unknown post-action type: ${(action as PostAction).type}`)
+      logger.warn(`Unknown post-action type: ${(action as PostAction).type}`)
   }
 }
 

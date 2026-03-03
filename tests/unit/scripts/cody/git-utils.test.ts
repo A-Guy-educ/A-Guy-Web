@@ -7,6 +7,24 @@ vi.mock('child_process', () => ({
   execFileSync: vi.fn(),
 }))
 
+// Mock logger
+const mockLogger = vi.hoisted(() => ({
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+  debug: vi.fn(),
+  fatal: vi.fn(),
+  child: vi.fn().mockReturnThis(),
+  trace: vi.fn(),
+  silent: vi.fn(),
+  level: 'info',
+}))
+
+vi.mock('../../../../scripts/cody/logger', () => ({
+  logger: mockLogger,
+  createStageLogger: vi.fn().mockReturnValue(mockLogger),
+}))
+
 import {
   ensureFeatureBranch,
   getDefaultBranch,
@@ -233,14 +251,12 @@ Some task title
 
 describe('ensureFeatureBranch', () => {
   const mockExecSync = vi.mocked(childProcess.execSync)
-  let consoleLogSpy: ReturnType<typeof vi.spyOn>
-  let consoleWarnSpy: ReturnType<typeof vi.spyOn>
   let savedGithubActions: string | undefined
 
   beforeEach(() => {
     vi.clearAllMocks()
-    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    mockLogger.info.mockClear()
+    mockLogger.warn.mockClear()
     savedGithubActions = process.env.GITHUB_ACTIONS
     delete process.env.GITHUB_ACTIONS
 
@@ -276,7 +292,6 @@ describe('ensureFeatureBranch', () => {
     } else {
       delete process.env.GITHUB_ACTIONS
     }
-    consoleWarnSpy.mockRestore()
   })
 
   // --------------------------------------------------------------------------
@@ -300,7 +315,7 @@ describe('ensureFeatureBranch', () => {
         'git branch --show-current',
         expect.objectContaining({ encoding: 'utf-8' }),
       )
-      expect(consoleLogSpy).toHaveBeenCalledWith(
+      expect(mockLogger.info).toHaveBeenCalledWith(
         '[branch] Already on feature branch: feat/260218-existing-task',
       )
     })
@@ -366,7 +381,7 @@ describe('ensureFeatureBranch', () => {
     it('should log that remote branch exists', () => {
       ensureFeatureBranch('260218-my-task', 'implement_feature')
 
-      expect(consoleLogSpy).toHaveBeenCalledWith(
+      expect(mockLogger.info).toHaveBeenCalledWith(
         '[branch] Remote branch exists, checking out: feat/260218-my-task',
       )
     })
@@ -401,7 +416,7 @@ describe('ensureFeatureBranch', () => {
     it('should log that a new branch is being created', () => {
       ensureFeatureBranch('260218-my-task', 'implement_feature')
 
-      expect(consoleLogSpy).toHaveBeenCalledWith(
+      expect(mockLogger.info).toHaveBeenCalledWith(
         '[branch] Creating new branch from dev: feat/260218-my-task',
       )
     })
@@ -755,7 +770,7 @@ describe('ensureFeatureBranch', () => {
 
       ensureFeatureBranch('260218-local-warn', 'implement_feature')
 
-      expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('uncommitted changes'))
+      expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining('uncommitted changes'))
     })
 
     it('should NOT stash if working tree is clean', () => {
