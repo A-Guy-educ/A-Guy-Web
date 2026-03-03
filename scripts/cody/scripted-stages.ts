@@ -473,6 +473,11 @@ export async function runPrStage(
     if (issueNumber) {
       setLifecycleLabel(issueNumber, 'cody:review')
     }
+
+    // Set lifecycle label to review
+    if (issueNumber) {
+      setLifecycleLabel(issueNumber, 'cody:review')
+    }
   } catch (error: unknown) {
     const err = error as { message?: string }
     const msg = err.message || 'Unknown error'
