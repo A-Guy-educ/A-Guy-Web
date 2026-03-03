@@ -57,6 +57,7 @@ vi.mock('../../../../scripts/cody/github-api', () => ({
 
 vi.mock('../../../../scripts/cody/git-utils', () => ({
   commitPipelineFiles: vi.fn(),
+  getDefaultBranch: vi.fn().mockReturnValue('dev'),
 }))
 
 vi.mock('../../../../scripts/cody/engine/status', () => ({
@@ -71,7 +72,7 @@ vi.mock('../../../../scripts/cody/agent-runner', () => ({
   DEFAULT_TIMEOUT: 600000,
 }))
 
-import { execSync } from 'child_process'
+import { execSync, execFileSync } from 'child_process'
 import { executePostAction } from '../../../../scripts/cody/pipeline/post-actions'
 import { GitCommitHandler, GitPrHandler } from '../../../../scripts/cody/handlers/git-handler'
 import { runCommitStage, runPrStage } from '../../../../scripts/cody/scripted-stages'
@@ -244,7 +245,7 @@ describe('GitPrHandler - Source changes validation', () => {
   })
 
   it('should fail when no source files changed vs base branch', async () => {
-    vi.mocked(execSync).mockReturnValue('.tasks/test/build.md\n.tasks/test/plan.md')
+    vi.mocked(execFileSync).mockReturnValue('.tasks/test/build.md\n.tasks/test/plan.md')
 
     const result = await handler.execute(ctx, {
       name: 'pr',
@@ -258,7 +259,7 @@ describe('GitPrHandler - Source changes validation', () => {
   })
 
   it('should proceed when source files exist', async () => {
-    vi.mocked(execSync).mockReturnValue('src/components/MyComponent.tsx\n.tasks/test/build.md')
+    vi.mocked(execFileSync).mockReturnValue('src/components/MyComponent.tsx\n.tasks/test/build.md')
     vi.mocked(runPrStage).mockResolvedValue({
       created: true,
       url: 'https://github.com/test/repo/pull/1',
@@ -277,7 +278,7 @@ describe('GitPrHandler - Source changes validation', () => {
   })
 
   it('should proceed when git check fails (non-blocking)', async () => {
-    vi.mocked(execSync).mockImplementation(() => {
+    vi.mocked(execFileSync).mockImplementation(() => {
       throw new Error('git failed')
     })
     vi.mocked(runPrStage).mockResolvedValue({
