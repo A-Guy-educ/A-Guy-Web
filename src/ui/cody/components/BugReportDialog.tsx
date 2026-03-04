@@ -27,6 +27,7 @@ import {
 } from '@/ui/web/components/select'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { codyApi } from '../api'
+import { useCollaborators } from '../hooks'
 
 interface BugReportDialogProps {
   open: boolean
@@ -58,11 +59,29 @@ export function BugReportDialog({ open, onClose, onCreated }: BugReportDialogPro
   // Reproducibility
   const [reproducibility, setReproducibility] = useState('always')
 
+  // Assignees
+  const [assignees, setAssignees] = useState<string[]>([])
+
+  // Fetch collaborators
+  const { data: collaborators = [] } = useCollaborators()
+
+  // Toggle assignee
+  const toggleAssignee = (login: string) => {
+    setAssignees((prev) =>
+      prev.includes(login) ? prev.filter((a) => a !== login) : [...prev, login],
+    )
+  }
+
   const queryClient = useQueryClient()
 
   const createBug = useMutation({
-    mutationFn: (data: { title: string; body: string; mode: string; labels?: string[] }) =>
-      codyApi.tasks.create(data),
+    mutationFn: (data: {
+      title: string
+      body: string
+      mode: string
+      labels?: string[]
+      assignees?: string[]
+    }) => codyApi.tasks.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cody-tasks'] })
     },
@@ -80,6 +99,7 @@ export function BugReportDialog({ open, onClose, onCreated }: BugReportDialogPro
       setExpectedResult('')
       setActualResult('')
       setReproducibility('always')
+      setAssignees([])
     }
   }, [open])
 
@@ -90,7 +110,7 @@ export function BugReportDialog({ open, onClose, onCreated }: BugReportDialogPro
     const body = formatBugReport()
 
     createBug.mutate(
-      { title, body, mode: 'bug', labels: ['bug'] },
+      { title, body, mode: 'bug', labels: ['bug'], assignees },
       {
         onSuccess: () => {
           onCreated?.()
@@ -178,6 +198,28 @@ export function BugReportDialog({ open, onClose, onCreated }: BugReportDialogPro
               required
             />
             <p className="text-xs text-muted-foreground">Format: [Component] Short description</p>
+          </div>
+
+          {/* Assignees */}
+          <div className="grid gap-2">
+            <Label>Assignees</Label>
+            <div className="flex flex-wrap gap-2">
+              {collaborators.slice(0, 10).map((user) => (
+                <Button
+                  key={user.login}
+                  type="button"
+                  variant={assignees.includes(user.login) ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => toggleAssignee(user.login)}
+                  className="h-8"
+                >
+                  {user.login}
+                </Button>
+              ))}
+            </div>
+            {assignees.length > 0 && (
+              <p className="text-xs text-muted-foreground">Assigned: {assignees.join(', ')}</p>
+            )}
           </div>
 
           {/* Environment */}

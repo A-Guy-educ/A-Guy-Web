@@ -16,6 +16,7 @@ import { PipelineStatus } from './PipelineStatus'
 import { CommentEditor } from './CommentEditor'
 import { CommentList } from './CommentList'
 import { TaskPreviewTab } from './TaskPreviewTab'
+import { AssigneePicker } from './AssigneePicker'
 import { MergeButton } from './MergeButton'
 import { Button } from '@/ui/web/components/button'
 import { Badge } from '@/ui/web/components/badge'
@@ -749,6 +750,18 @@ export function TaskDetail({
               </div>
             ) : (
               <span className="text-xs text-muted-foreground italic">Unassigned</span>
+            )}
+            {/* Add assignee button for open tasks */}
+            {task.state === 'open' && (
+              <AssigneePicker
+                issueNumber={task.issueNumber}
+                currentAssignees={fullDetails?.assignees || []}
+                onChange={() => {
+                  // Refresh both task details AND task list after assignment change
+                  refetch()
+                  onRefresh?.()
+                }}
+              />
             )}
           </div>
 

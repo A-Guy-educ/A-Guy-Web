@@ -35,13 +35,38 @@ const emptyHistory = (): HistoryMap => ({
   'system-architect': [],
 })
 
+const GLOBAL_CHAT_STORAGE_KEY = 'cody-global-chat'
+
+function loadGlobalHistory(): HistoryMap {
+  if (typeof window === 'undefined') return emptyHistory()
+  try {
+    const stored = localStorage.getItem(GLOBAL_CHAT_STORAGE_KEY)
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      return { ...emptyHistory(), ...parsed }
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  return emptyHistory()
+}
+
+function saveGlobalHistory(history: HistoryMap): void {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem(GLOBAL_CHAT_STORAGE_KEY, JSON.stringify(history))
+  } catch {
+    // Ignore storage errors
+  }
+}
+
 interface CodyChatProps {
   selectedTask?: CodyTask | null
 }
 
 export function CodyChat({ selectedTask }: CodyChatProps) {
   // Global (non-task) chat history
-  const [globalHistory, setGlobalHistory] = useState<HistoryMap>(emptyHistory)
+  const [globalHistory, setGlobalHistory] = useState<HistoryMap>(loadGlobalHistory)
 
   // Task-scoped messages (loaded from / saved to API)
   const [taskMessages, setTaskMessages] = useState<Message[]>([])
@@ -146,6 +171,14 @@ export function CodyChat({ selectedTask }: CodyChatProps) {
     }
   }, [taskMessages, isTaskMode, loading, saveTaskChat])
 
+  // Save global chat to localStorage when it changes (debounced)
+  useEffect(() => {
+    if (!isTaskMode && globalHistory && !loading) {
+      const timer = setTimeout(() => saveGlobalHistory(globalHistory), 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [globalHistory, isTaskMode, loading])
+
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [])
@@ -195,6 +228,12 @@ export function CodyChat({ selectedTask }: CodyChatProps) {
     if (messages.length === 0) return
     const confirmed = window.confirm('Clear conversation history?')
     if (!confirmed) return
+
+    // Clear global chat from localStorage when clearing history in non-task mode
+    if (!isTaskMode) {
+      saveGlobalHistory(emptyHistory())
+    }
+
     setMessages([])
     setToolCalls([])
 

@@ -233,6 +233,24 @@ export const tasksApi = {
     })
     return handleResponse(res)
   },
+
+  assign: async (issueNumber: number, assignees: string[]): Promise<ActionResponse> => {
+    const res = await fetch(`${API_BASE}/tasks/issue-${issueNumber}/actions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'assign', assignees }),
+    })
+    return handleResponse(res)
+  },
+
+  unassign: async (issueNumber: number, assignees: string[]): Promise<ActionResponse> => {
+    const res = await fetch(`${API_BASE}/tasks/issue-${issueNumber}/actions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'unassign', assignees }),
+    })
+    return handleResponse(res)
+  },
 }
 
 // ============ PRs API ============

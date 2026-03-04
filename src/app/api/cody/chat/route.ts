@@ -527,7 +527,7 @@ export async function POST(req: NextRequest) {
         return await mcp.tools()
       })()
 
-      const timeoutMs = 5000
+      const timeoutMs = 1000
       const mcpToolsOrEmpty = await Promise.race([
         mcpToolsPromise,
         new Promise<object>((resolve) => setTimeout(() => resolve({}), timeoutMs)),
