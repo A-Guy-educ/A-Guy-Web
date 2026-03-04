@@ -11,6 +11,7 @@ import { z } from 'zod'
 import { logger } from '@/infra/utils/logger/logger'
 import { NextRequest, NextResponse } from 'next/server'
 import { requireDashboardAuth } from '@/ui/cody/auth'
+import { getAgent } from '@/ui/cody/agents'
 import {
   fetchIssue,
   fetchIssues,
@@ -264,7 +265,7 @@ const customTools = {
 }
 
 // System prompt
-const SYSTEM_PROMPT = `You are Cody, an AI assistant for the Cody Operations Dashboard.
+const _SYSTEM_PROMPT = `You are Cody, an AI assistant for the Cody Operations Dashboard.
 
 The dashboard manages software development tasks using an AI-powered pipeline (the "Cody" system). You help users understand:
 
@@ -491,38 +492,58 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { messages = [], taskId, taskData } = body
+    const { messages = [], taskId, taskData, agentId } = body
 
     if (!messages || messages.length === 0) {
       return NextResponse.json({ error: 'Messages are required' }, { status: 400 })
     }
 
-    logger.info({ requestId, messageCount: messages.length, taskId }, 'Chat request received')
+    // Get the agent config (defaults to dashboard-manager)
+    const agent = getAgent(agentId || 'dashboard-manager')
+    logger.info(
+      { requestId, messageCount: messages.length, taskId, agentId: agent.id },
+      'Chat request received',
+    )
 
-    // Build system prompt with optional task context
-    let systemPrompt = SYSTEM_PROMPT
+    // Build system prompt with agent-specific prompt and optional task context
+    let systemPrompt = agent.systemPrompt
     if (taskId) {
       try {
         const taskContext = await buildTaskContext(taskId, taskData)
         if (taskContext) {
-          systemPrompt = `${taskContext}\n\n${SYSTEM_PROMPT}`
+          systemPrompt = `${taskContext}\n\n${agent.systemPrompt}`
         }
       } catch (err) {
         logger.warn({ err, taskId }, 'Failed to load task context')
       }
     }
 
-    // Get GitHub MCP tools (with caching)
+    // Get GitHub MCP tools (with caching) - skip if it times out
     let mcpTools = {}
     try {
-      const mcp = await getMCPClient()
-      mcpTools = await mcp.tools()
-      logger.info(
-        { requestId, mcpToolCount: Object.keys(mcpTools).length },
-        'GitHub MCP tools loaded',
-      )
+      // Wrap MCP tools fetch in a timeout - skip if it takes > 5 seconds
+      const mcpToolsPromise = (async () => {
+        const mcp = await getMCPClient()
+        return await mcp.tools()
+      })()
+
+      const timeoutMs = 5000
+      const mcpToolsOrEmpty = await Promise.race([
+        mcpToolsPromise,
+        new Promise<object>((resolve) => setTimeout(() => resolve({}), timeoutMs)),
+      ])
+
+      if (Object.keys(mcpToolsOrEmpty).length > 0) {
+        mcpTools = mcpToolsOrEmpty
+        logger.info(
+          { requestId, mcpToolCount: Object.keys(mcpTools).length },
+          'GitHub MCP tools loaded',
+        )
+      } else {
+        logger.warn({ requestId }, 'GitHub MCP timed out - using custom tools only')
+      }
     } catch (mcpError) {
-      logger.warn({ err: mcpError, requestId }, 'GitHub MCP unavailable — using custom tools only')
+      logger.warn({ err: mcpError, requestId }, 'GitHub MCP unavailable - using custom tools only')
     }
 
     // Combine MCP tools with custom Cody tools
