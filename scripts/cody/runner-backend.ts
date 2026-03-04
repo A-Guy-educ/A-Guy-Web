@@ -43,9 +43,6 @@ export class GitHubRunner implements RunnerBackend {
       },
     )
   }
-
-  // Debug: log when spawn is called
-  console.error('[DEBUG] GitHubRunner.spawn called for stage:', stage)
 }
 
 // ============================================================================
