@@ -7,7 +7,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server'
 
-import { fetchIssues, fetchWorkflowRuns, fetchOpenPRs, fetchDeploymentPreviews, findTaskBranch, getStatusFromBranch, createIssue, updateIssue } from '@/ui/cody/github-client'
+import { fetchIssues, fetchWorkflowRuns, fetchOpenPRs, fetchDeploymentPreviews, findBranchByIssueNumber, getStatusFromBranch, createIssue, updateIssue } from '@/ui/cody/github-client'
 import type { CodyTask, ColumnId, GitHubIssue, GitHubPR, WorkflowRun } from '@/ui/cody/types'
 
 // Map GitHub issue state to column using agent labels, workflow runs, and PR status
@@ -154,10 +154,11 @@ export async function GET(req: NextRequest) {
 
         // Only fetch branch/pipeline details if requested (expensive: N API calls per issue)
         let pipelineStatus = undefined
-        if (includeDetails && taskId) {
-          const branch = await findTaskBranch(taskId)
+        if (includeDetails && issue.number) {
+          // Find branch by issue number (works with any branch naming convention)
+          const branch = await findBranchByIssueNumber(issue.number)
           if (branch) {
-            const status = await getStatusFromBranch(taskId, branch)
+            const status = await getStatusFromBranch(taskId || `issue-${issue.number}`, branch)
             if (status) pipelineStatus = status
           }
         }

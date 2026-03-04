@@ -19,6 +19,7 @@ import {
   findTaskBranch,
   fetchWorkflowRuns,
   findAssociatedPR,
+  getOctokit,
 } from '@/ui/cody/github-client'
 import { GITHUB_OWNER, GITHUB_REPO } from '@/ui/cody/constants'
 import type {
@@ -305,6 +306,141 @@ The Cody pipeline has these stages:
 - Special: autofix (retry loop)
 `
 
+// ===========================================
+// TASK CONTEXT BUILDER
+// ===========================================
+
+/**
+ * Client-provided task data from the dashboard.
+ */
+interface ClientTaskData {
+  issueNumber: number
+  title: string
+  body: string
+  state: string
+  labels: string[]
+  column: string
+  pipeline?: {
+    state: string
+    currentStage: string | null
+    stages: Record<string, { state: string }>
+  }
+  taskDefinition?: {
+    task_type: string
+    risk_level: string
+    primary_domain: string
+    scope: string[]
+  }
+  associatedPR?: {
+    number: number
+    state: string
+    html_url: string
+  }
+}
+
+/**
+ * Builds task context from client-provided data + branch files.
+ * Uses client data when available to avoid redundant GitHub API calls.
+ */
+async function buildTaskContext(
+  taskId: string,
+  clientData?: ClientTaskData,
+): Promise<string | null> {
+  const octokit = getOctokit()
+  const contextParts: string[] = []
+
+  // Use client-provided data for issue/pipeline when available
+  if (clientData) {
+    contextParts.push(`## Current Task Context`)
+    contextParts.push(`**Task:** #${clientData.issueNumber} - ${clientData.title}`)
+    contextParts.push(`**Status:** ${clientData.state}`)
+    contextParts.push(`**Column:** ${clientData.column}`)
+    if (clientData.labels.length > 0) {
+      contextParts.push(`**Labels:** ${clientData.labels.join(', ')}`)
+    }
+
+    // Include task body/description if available
+    if (clientData.body) {
+      const truncatedBody =
+        clientData.body.length > 1000 ? clientData.body.slice(0, 1000) + '...' : clientData.body
+      contextParts.push(`\n**Description:**\n${truncatedBody}`)
+    }
+
+    // Include task definition
+    if (clientData.taskDefinition) {
+      const td = clientData.taskDefinition
+      contextParts.push(`\n**Task Definition:**`)
+      contextParts.push(`- Type: ${td.task_type}`)
+      contextParts.push(`- Risk: ${td.risk_level}`)
+      contextParts.push(`- Domain: ${td.primary_domain}`)
+      if (td.scope.length > 0) {
+        contextParts.push(`- Scope: ${td.scope.join(', ')}`)
+      }
+    }
+
+    // Include pipeline status
+    if (clientData.pipeline) {
+      contextParts.push(`\n**Pipeline:** ${clientData.pipeline.state}`)
+      const completedStages = Object.entries(clientData.pipeline.stages || {})
+        .filter(([, s]) => s.state === 'completed')
+        .map(([name]) => name)
+      if (completedStages.length > 0) {
+        contextParts.push(`**Completed:** ${completedStages.join(' → ')}`)
+      }
+      if (clientData.pipeline.currentStage) {
+        contextParts.push(`**Current:** ${clientData.pipeline.currentStage}`)
+      }
+    }
+
+    // Include PR info
+    if (clientData.associatedPR) {
+      contextParts.push(
+        `\n**PR:** [#${clientData.associatedPR.number}](${clientData.associatedPR.html_url}) (${clientData.associatedPR.state})`,
+      )
+    }
+  }
+
+  // Find branch for fetching additional files
+  let branch: string | null = null
+  try {
+    branch = await findTaskBranch(taskId)
+  } catch {
+    // Continue without branch files
+  }
+
+  if (!branch) {
+    return contextParts.length > 0 ? contextParts.join('\n\n') : null
+  }
+
+  // Get key files from the branch (only spec.md and plan.md - task.json is in taskDefinition)
+  const keyFiles = ['spec.md', 'plan.md']
+  for (const file of keyFiles) {
+    try {
+      const { data } = await octokit.repos.getContent({
+        owner: GITHUB_OWNER,
+        repo: GITHUB_REPO,
+        path: `.tasks/${taskId}/${file}`,
+        ref: branch,
+      })
+
+      if ('content' in data && data.content) {
+        const fileContent = Buffer.from(data.content, 'base64').toString('utf-8')
+        const truncated =
+          fileContent.length > 2000 ? fileContent.slice(0, 2000) + '...' : fileContent
+        contextParts.push(`\n## ${file}\n\n\`\`\`\n${truncated}\n\`\`\`\n`)
+      }
+    } catch {
+      // File doesn't exist
+    }
+  }
+
+  return contextParts.length > 0 ? contextParts.join('\n\n') : null
+}
+
+// ===========================================
+// API HANDLERS
+// ===========================================
+
 export async function GET(req: NextRequest) {
   try {
     // Check authentication
@@ -342,8 +478,6 @@ export async function POST(req: NextRequest) {
   const requestId = crypto.randomUUID()
 
   try {
-    // Skip auth check for now - open access for testing
-
     // Validate environment
     const githubToken = process.env.GITHUB_TOKEN
     const geminiApiKey = process.env.GEMINI_API_KEY
@@ -357,13 +491,26 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { messages = [] } = body
+    const { messages = [], taskId, taskData } = body
 
     if (!messages || messages.length === 0) {
       return NextResponse.json({ error: 'Messages are required' }, { status: 400 })
     }
 
-    logger.info({ requestId, messageCount: messages.length }, 'Chat request received')
+    logger.info({ requestId, messageCount: messages.length, taskId }, 'Chat request received')
+
+    // Build system prompt with optional task context
+    let systemPrompt = SYSTEM_PROMPT
+    if (taskId) {
+      try {
+        const taskContext = await buildTaskContext(taskId, taskData)
+        if (taskContext) {
+          systemPrompt = `${taskContext}\n\n${SYSTEM_PROMPT}`
+        }
+      } catch (err) {
+        logger.warn({ err, taskId }, 'Failed to load task context')
+      }
+    }
 
     // Get GitHub MCP tools (with caching)
     let mcpTools = {}
@@ -399,9 +546,9 @@ export async function POST(req: NextRequest) {
     const result = streamText({
       model: googleProvider('gemini-3.1-pro-preview'),
       tools: allTools,
-      system: SYSTEM_PROMPT,
+      system: systemPrompt,
       messages: aiMessages,
-      stopWhen: stepCountIs(15), // v6: replaces maxSteps
+      stopWhen: stepCountIs(15),
     })
 
     // Return streaming response using v6 UI message stream

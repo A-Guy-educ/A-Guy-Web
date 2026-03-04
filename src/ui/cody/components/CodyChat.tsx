@@ -2,6 +2,18 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import ReactMarkdown from 'react-markdown'
+import { Globe } from 'lucide-react'
+import { AGENTS, type AgentId } from '../agents'
+import type { CodyTask } from '../types'
+import type { ChatMessage, ChatSession } from '../chat-types'
+
+const AGENT_LIST = Object.values(AGENTS).map(({ id, name, description, icon, capabilities }) => ({
+  id,
+  name,
+  description,
+  icon,
+  capabilities,
+}))
 
 interface Message {
   role: 'user' | 'assistant'
@@ -14,13 +26,125 @@ interface ToolCall {
   arguments: Record<string, unknown>
 }
 
-export function CodyChat() {
-  const [messages, setMessages] = useState<Message[]>([])
+/** Per-agent conversation history keyed by AgentId */
+type HistoryMap = Record<AgentId, Message[]>
+
+const emptyHistory = (): HistoryMap => ({
+  'dashboard-manager': [],
+  'prd-refiner': [],
+  'system-architect': [],
+})
+
+interface CodyChatProps {
+  selectedTask?: CodyTask | null
+}
+
+export function CodyChat({ selectedTask }: CodyChatProps) {
+  // Global (non-task) chat history
+  const [globalHistory, setGlobalHistory] = useState<HistoryMap>(emptyHistory)
+
+  // Task-scoped messages (loaded from / saved to API)
+  const [taskMessages, setTaskMessages] = useState<Message[]>([])
+  const [isLoadingTaskChat, setIsLoadingTaskChat] = useState(false)
+
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [toolCalls, setToolCalls] = useState<ToolCall[]>([])
+  const [selectedAgent, setSelectedAgent] = useState<AgentId>('dashboard-manager')
+  const [showAgentDropdown, setShowAgentDropdown] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Determine if we're in task mode or global mode
+  const isTaskMode = !!selectedTask
+
+  // Current messages — from task or global history
+  const messages = isTaskMode ? taskMessages : globalHistory[selectedAgent]
+
+  const setMessages = useCallback(
+    (updater: Message[] | ((prev: Message[]) => Message[])) => {
+      if (isTaskMode) {
+        // Task mode: update task messages directly
+        setTaskMessages((prev) => (typeof updater === 'function' ? updater(prev) : updater))
+      } else {
+        // Global mode: update agent-specific history
+        setGlobalHistory((prev) => ({
+          ...prev,
+          [selectedAgent]: typeof updater === 'function' ? updater(prev[selectedAgent]) : updater,
+        }))
+      }
+    },
+    [isTaskMode, selectedAgent],
+  )
+
+  // Load task chat when task changes
+  useEffect(() => {
+    if (selectedTask) {
+      // Load chat from API
+      setIsLoadingTaskChat(true)
+      fetch(`/api/cody/chat/load?taskId=${selectedTask.id}`)
+        .then(async (res) => {
+          if (!res.ok) return null
+          const data = await res.json()
+          return data as { sessions: ChatSession[] } | null
+        })
+        .then((data) => {
+          if (data?.sessions) {
+            // Convert dashboard sessions to messages
+            const dashboardSessions = data.sessions.filter((s) => s.stage === 'dashboard')
+            const converted: Message[] = []
+            for (const session of dashboardSessions) {
+              for (const msg of session.messages) {
+                converted.push({
+                  role: msg.role,
+                  content: msg.text,
+                })
+              }
+            }
+            setTaskMessages(converted)
+          }
+        })
+        .catch(console.error)
+        .finally(() => setIsLoadingTaskChat(false))
+    } else {
+      // Clear task messages when no task
+      setTaskMessages([])
+    }
+  }, [selectedTask]) // eslint wants full object; re-runs are guarded by if(selectedTask)
+
+  // Save task chat after each message exchange (debounced)
+  const saveTaskChat = useCallback(async () => {
+    if (!selectedTask || taskMessages.length === 0) return
+
+    try {
+      const messagesForApi: ChatMessage[] = taskMessages.map((m) => ({
+        role: m.role,
+        text: m.content,
+        timestamp: new Date().toISOString(),
+      }))
+
+      await fetch('/api/cody/chat/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          taskId: selectedTask.id,
+          messages: messagesForApi,
+        }),
+      })
+    } catch (err) {
+      console.error('Failed to save chat:', err)
+      // Non-fatal - don't bother user
+    }
+  }, [selectedTask, taskMessages])
+
+  // Save after streaming completes — skip saves while loading to avoid race conditions
+  useEffect(() => {
+    if (isTaskMode && taskMessages.length > 0 && !loading) {
+      const timer = setTimeout(saveTaskChat, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [taskMessages, isTaskMode, loading, saveTaskChat])
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -30,12 +154,62 @@ export function CodyChat() {
     scrollToBottom()
   }, [messages, loading, scrollToBottom])
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowAgentDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
   // Cleanup abort controller on unmount
   useEffect(() => {
     return () => {
       abortControllerRef.current?.abort()
     }
   }, [])
+
+  const currentAgent = AGENT_LIST.find((a) => a.id === selectedAgent) ?? AGENT_LIST[0]
+
+  const handleAgentChange = (agentId: AgentId) => {
+    if (agentId === selectedAgent) {
+      setShowAgentDropdown(false)
+      return
+    }
+
+    // Abort any in-flight request before switching
+    if (loading) {
+      abortControllerRef.current?.abort()
+      setLoading(false)
+    }
+
+    setSelectedAgent(agentId)
+    setShowAgentDropdown(false)
+    setToolCalls([])
+  }
+
+  const handleClearHistory = () => {
+    if (messages.length === 0) return
+    const confirmed = window.confirm('Clear conversation history?')
+    if (!confirmed) return
+    setMessages([])
+    setToolCalls([])
+
+    // If in task mode, also clear the saved chat
+    if (isTaskMode && selectedTask) {
+      fetch('/api/cody/chat/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          taskId: selectedTask.id,
+          messages: [], // Clear by saving empty
+        }),
+      }).catch(console.error)
+    }
+  }
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return
@@ -53,18 +227,78 @@ export function CodyChat() {
     setMessages((prev) => [...prev, { role: 'assistant', content: '', isLoading: true }])
 
     try {
+      // Include task context in request when in task mode
+      const requestBody: {
+        agentId: AgentId
+        messages: Array<{ role: 'user' | 'assistant'; content: string }>
+        taskId?: string
+        taskData?: {
+          issueNumber: number
+          title: string
+          body: string
+          state: string
+          labels: string[]
+          column: string
+          pipeline?: {
+            state: string
+            currentStage: string | null
+            stages: Record<string, { state: string }>
+          }
+          taskDefinition?: {
+            task_type: string
+            risk_level: string
+            primary_domain: string
+            scope: string[]
+          }
+          associatedPR?: {
+            number: number
+            state: string
+            html_url: string
+          }
+        }
+      } = {
+        agentId: selectedAgent,
+        messages: [
+          ...messages.map((m) => ({
+            role: m.role,
+            content: m.content,
+          })),
+          { role: 'user', content: userMessage },
+        ],
+      }
+
+      if (selectedTask) {
+        requestBody.taskId = selectedTask.id
+        // Send task context for the AI to understand the task
+        requestBody.taskData = {
+          issueNumber: selectedTask.issueNumber,
+          title: selectedTask.title,
+          body: selectedTask.body,
+          state: selectedTask.state,
+          labels: selectedTask.labels,
+          column: selectedTask.column,
+          pipeline: selectedTask.pipeline
+            ? {
+                state: selectedTask.pipeline.state,
+                currentStage: selectedTask.pipeline.currentStage,
+                stages: selectedTask.pipeline.stages,
+              }
+            : undefined,
+          taskDefinition: selectedTask.taskDefinition,
+          associatedPR: selectedTask.associatedPR
+            ? {
+                number: selectedTask.associatedPR.number,
+                state: selectedTask.associatedPR.state,
+                html_url: selectedTask.associatedPR.html_url,
+              }
+            : undefined,
+        }
+      }
+
       const response = await fetch('/api/cody/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [
-            ...messages.map((m) => ({
-              role: m.role,
-              content: m.content,
-            })),
-            { role: 'user', content: userMessage },
-          ],
-        }),
+        body: JSON.stringify(requestBody),
         signal: abortControllerRef.current.signal,
       })
 
@@ -87,11 +321,9 @@ export function CodyChat() {
       const parseSSEChunk = (text: string) => {
         const lines = text.split('\n')
         for (const line of lines) {
-          // SSE format: "data: {json}" or "data: [DONE]"
           if (!line.startsWith('data: ')) continue
-          const data = line.slice(6) // Remove "data: " prefix
+          const data = line.slice(6)
 
-          // End of stream
           if (data === '[DONE]') continue
 
           try {
@@ -99,7 +331,6 @@ export function CodyChat() {
 
             switch (parsed.type) {
               case 'text-delta': {
-                // Text content streaming
                 accumulatedContent += parsed.delta
                 setMessages((prev) => {
                   const newMessages = [...prev]
@@ -112,7 +343,6 @@ export function CodyChat() {
                 break
               }
               case 'tool-input-start': {
-                // Tool call starting
                 setToolCalls((prev) => [...prev, { name: parsed.toolName, arguments: {} }])
                 break
               }
@@ -124,8 +354,7 @@ export function CodyChat() {
                 console.error('Stream error:', parsed.errorText)
                 break
               }
-              // Ignore other event types: start, text-start, text-end,
-              // tool-input-delta, tool-input-available, start-step, finish-step, finish
+              // Ignore other event types
             }
           } catch {
             // Skip malformed JSON
@@ -204,43 +433,131 @@ export function CodyChat() {
     })
   }
 
+  // Generate placeholder based on mode
+  const placeholder = isTaskMode
+    ? `Ask about task #${selectedTask?.issueNumber}...`
+    : `Ask ${currentAgent.name}...`
+
   return (
     <div className="flex flex-col h-full border-l bg-background">
-      {/* Header */}
-      <div className="px-4 py-2 border-b bg-muted/50">
-        <h2 className="font-semibold text-sm">Cody Assistant</h2>
-        <p className="text-xs text-muted-foreground">Ask about tasks, code, or pipeline</p>
+      {/* Header with agent and context */}
+      <div className="pl-4 pr-12 md:pr-4 py-3 border-b bg-gradient-to-r from-muted/80 to-muted/40">
+        <div className="flex items-center justify-between">
+          {/* Left: Agent icon + name + message count */}
+          <div className="flex items-center gap-2">
+            <span className="text-xl" role="img" aria-label={currentAgent.name}>
+              {currentAgent.icon}
+            </span>
+            <span className="font-semibold text-sm">{currentAgent.name}</span>
+            {messages.length > 0 && (
+              <span className="ml-1 px-1.5 py-0.5 bg-primary/10 text-primary text-xs rounded-full">
+                {messages.length}
+              </span>
+            )}
+          </div>
+
+          {/* Right: Agent selector dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setShowAgentDropdown(!showAgentDropdown)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-background rounded-md border border-transparent hover:border-border transition-all"
+            >
+              <span>Switch</span>
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+            {showAgentDropdown && (
+              <div className="absolute right-0 top-full mt-1 w-64 bg-background border rounded-lg shadow-xl z-50 overflow-hidden">
+                <div className="px-3 py-2 text-xs font-medium text-muted-foreground border-b">
+                  Select Agent
+                </div>
+                {AGENT_LIST.map((agent) => (
+                  <button
+                    key={agent.id}
+                    onClick={() => handleAgentChange(agent.id)}
+                    className={`w-full text-left px-3 py-2.5 hover:bg-muted/50 flex items-start gap-3 transition-colors ${
+                      agent.id === selectedAgent ? 'bg-primary/5 border-l-2 border-primary' : ''
+                    }`}
+                  >
+                    <span className="text-lg mt-0.5">{agent.icon}</span>
+                    <div>
+                      <div className="font-medium text-sm">{agent.name}</div>
+                      <div className="text-xs text-muted-foreground line-clamp-1">
+                        {agent.description}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Context bar: task or global */}
+        <div className="mt-2">
+          {isTaskMode && selectedTask ? (
+            <div className="flex items-center gap-2 text-xs">
+              <span className="px-1.5 py-0.5 bg-primary text-primary-foreground rounded font-medium">
+                #{selectedTask.issueNumber}
+              </span>
+              <span className="truncate text-muted-foreground">{selectedTask.title}</span>
+            </div>
+          ) : (
+            <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <Globe className="w-3 h-3" />
+              Global chat — not tied to any task
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Messages */}
+      {/* Messages area */}
       <div className="flex-1 overflow-auto p-4 space-y-4">
-        {messages.length === 0 && (
+        {messages.length === 0 && !loading && !isLoadingTaskChat && (
           <div className="text-center text-muted-foreground text-sm py-8">
-            <p className="font-medium">Hi! I can help you with:</p>
-            <ul className="mt-3 text-left text-xs space-y-2">
-              <li className="flex items-start gap-2">
-                <span className="text-primary">•</span>
-                <span>Browse repository files and code</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary">•</span>
-                <span>Search code across the codebase</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary">•</span>
-                <span>List and explain tasks</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary">•</span>
-                <span>Show pipeline status and progress</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary">•</span>
-                <span>View workflow runs and PRs</span>
-              </li>
-            </ul>
+            {isTaskMode ? (
+              <>
+                <p className="font-medium">Chat about this task</p>
+                <p className="text-xs mt-1">Messages will be saved to the task</p>
+              </>
+            ) : (
+              <>
+                <p className="font-medium">Hi! I can help you with:</p>
+                <ul className="mt-3 text-left text-xs space-y-2">
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary">•</span>
+                    <span>Browse repository files and code</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary">•</span>
+                    <span>Search code across the codebase</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary">•</span>
+                    <span>List and explain tasks</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary">•</span>
+                    <span>Show pipeline status and progress</span>
+                  </li>
+                </ul>
+              </>
+            )}
           </div>
         )}
+
+        {isLoadingTaskChat && (
+          <div className="text-center text-muted-foreground text-sm py-8">
+            Loading conversation...
+          </div>
+        )}
+
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div
@@ -283,7 +600,7 @@ export function CodyChat() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
+      {/* Input area */}
       <div className="p-3 border-t">
         <div className="flex gap-2">
           <input
@@ -291,7 +608,7 @@ export function CodyChat() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask about code, tasks, or pipeline..."
+            placeholder={placeholder}
             className="flex-1 px-3 py-2 text-sm rounded-md border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
             disabled={loading}
           />
@@ -312,6 +629,15 @@ export function CodyChat() {
             </button>
           )}
         </div>
+        {/* Clear history link */}
+        {messages.length > 0 && !loading && (
+          <button
+            onClick={handleClearHistory}
+            className="mt-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Clear history
+          </button>
+        )}
       </div>
     </div>
   )

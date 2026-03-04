@@ -70,7 +70,7 @@ function setCache<T>(
 
 let octokitInstance: Octokit | null = null
 
-function getOctokit(): Octokit {
+export function getOctokit(): Octokit {
   if (octokitInstance) {
     return octokitInstance
   }

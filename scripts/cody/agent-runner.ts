@@ -88,6 +88,8 @@ export interface AgentRunResult {
   retries: number
   /** Validation errors from failed content validation attempts */
   validationErrors?: string[]
+  /** Session ID from opencode for chat history capture */
+  sessionId?: string
 }
 
 // ============================================================================
@@ -181,6 +183,20 @@ function findOutputFile(taskDir: string, expectedBase: string, outputExt: string
 }
 
 /**
+ * Parse session ID from opencode JSON event line.
+ * The sessionID appears in the first event (step_start).
+ */
+function extractSessionId(line: string): string | null {
+  try {
+    // Each JSON event is on a single line
+    const event = JSON.parse(line)
+    return event.sessionID || null
+  } catch {
+    return null
+  }
+}
+
+/**
  * Run an OpenCode agent with file watching, timeouts, and optional retry logic.
  *
  * This function spawns the `opencode github run` command and monitors for the
@@ -190,6 +206,7 @@ function findOutputFile(taskDir: string, expectedBase: string, outputExt: string
  * - Retry on failure (configurable)
  * - Process cleanup on completion
  * - Content validation with retry on failure
+ * - Session ID extraction for chat history capture
  *
  * @param input - Orchestrator input with taskId
  * @param stage - The stage to run (e.g., 'build', 'test')
@@ -232,6 +249,8 @@ export function runAgentWithFileWatch(
     const validationErrors: string[] = []
     let currentChild: ChildProcess | null = null
     const startTime = Date.now()
+    // Session ID captured from opencode JSON output
+    let capturedSessionId: string | undefined
 
     const attemptWithRetry = (feedback?: string): void => {
       logger.info(`  Attempt ${retries + 1}/${maxRetries + 1}`)
@@ -247,7 +266,13 @@ export function runAgentWithFileWatch(
       const elapsed = Date.now() - startTime
       const remainingTimeout = effectiveTimeout - elapsed
       if (remainingTimeout <= 0) {
-        resolve({ succeeded: false, timedOut: true, retries, validationErrors })
+        resolve({
+          succeeded: false,
+          timedOut: true,
+          retries,
+          validationErrors,
+          sessionId: capturedSessionId,
+        })
         return
       }
 
@@ -255,16 +280,51 @@ export function runAgentWithFileWatch(
       const prompt = buildStagePrompt(input, stage, feedback)
 
       // Spawn using the configured backend (local or GitHub)
+      // Note: backend now uses --format json and stdio: pipe for stdout
       currentChild = backend.spawn(stage, prompt, agentEnv, cwd)
 
       let resolved = false
       let timeoutTimer: NodeJS.Timeout | null = null
+      let stdoutBuffer = ''
+
+      // Handle stdout - parse for sessionID and tee to process.stdout
+      if (currentChild.stdout) {
+        currentChild.stdout.on('data', (data: Buffer) => {
+          const chunk = data.toString()
+          stdoutBuffer += chunk
+
+          // Process line by line (JSON events are one per line)
+          const lines = stdoutBuffer.split('\n')
+          stdoutBuffer = lines.pop() || '' // Keep incomplete line in buffer
+
+          for (const line of lines) {
+            if (!line.trim()) continue
+
+            // Try to extract sessionID from JSON line
+            if (!capturedSessionId) {
+              const sessionId = extractSessionId(line)
+              if (sessionId) {
+                capturedSessionId = sessionId
+                logger.info(`  🔗 Captured session ID: ${sessionId}`)
+              }
+            }
+
+            // Tee output to process.stdout for CI log visibility
+            process.stdout.write(line + '\n')
+          }
+        })
+      }
 
       const finish = (result: { succeeded: boolean; timedOut: boolean }) => {
         if (resolved) return
         resolved = true
 
         if (timeoutTimer) clearTimeout(timeoutTimer)
+
+        // Flush remaining stdout buffer
+        if (stdoutBuffer.trim() && currentChild?.stdout) {
+          process.stdout.write(stdoutBuffer + '\n')
+        }
 
         // Kill process if still running
         if (currentChild && !currentChild.killed) {
@@ -274,7 +334,7 @@ export function runAgentWithFileWatch(
           }, ms('5s'))
         }
 
-        resolve({ ...result, retries, validationErrors })
+        resolve({ ...result, retries, validationErrors, sessionId: capturedSessionId })
       }
 
       // Parse output file path

@@ -9,7 +9,7 @@
 import { useState, useEffect } from 'react'
 import type { CodyTask } from '../types'
 import { TaskList } from './TaskList'
-import { TaskDetailDialog } from './TaskDetailDialog'
+
 import { CreateTaskDialog } from './CreateTaskDialog'
 import { BugReportDialog } from './BugReportDialog'
 import { CodyChat } from './CodyChat'
@@ -68,7 +68,7 @@ export function CodyDashboard() {
     error,
     refetch,
     dataUpdatedAt,
-  } = useCodyTasks({ days, includeDetails: false })
+  } = useCodyTasks({ days })
 
   // Browser notifications
   const {
@@ -305,115 +305,126 @@ export function CodyDashboard() {
     <div className="flex h-screen bg-background">
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header — action buttons only, no filters */}
-        <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-border">
-          <h1 className="text-lg md:text-xl font-semibold text-foreground">Cody Operations</h1>
+        {/* When a task is selected, TaskDetail takes over the entire left column */}
+        {selectedTask ? (
+          <TaskDetail
+            task={selectedTask}
+            onClose={() => setSelectedTask(null)}
+            onRefresh={refetch}
+            onApproveReview={handleMerge}
+            isMerging={!!(selectedTask && mergingTaskId === selectedTask.id)}
+          />
+        ) : (
+          <>
+            {/* Header — action buttons only, no filters */}
+            <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-border">
+              <h1 className="text-lg md:text-xl font-semibold text-foreground">Cody Operations</h1>
 
-          {/* Desktop controls */}
-          <div className="hidden md:flex items-center gap-3">
-            {/* Notification status */}
-            {notificationsSupported && (
+              {/* Desktop controls */}
+              <div className="hidden md:flex items-center gap-3">
+                {/* Notification status */}
+                {notificationsSupported && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    title={
+                      notificationPermission === 'granted'
+                        ? 'Notifications enabled'
+                        : 'Enable notifications'
+                    }
+                    onClick={() => Notification.requestPermission()}
+                    className={
+                      notificationPermission === 'granted'
+                        ? 'text-green-500'
+                        : 'text-muted-foreground'
+                    }
+                  >
+                    <Bell className="w-4 h-4" />
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  title="Refresh tasks"
+                  onClick={() => refetch()}
+                  disabled={isFetching}
+                  className="gap-1"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+                </Button>
+                <Button
+                  variant="outline"
+                  title="Report a bug"
+                  onClick={() => setShowBugDialog(true)}
+                >
+                  <Bug className="w-4 h-4 mr-2" />
+                  Report Bug
+                </Button>
+                <Button title="Create new task" onClick={() => setShowCreateDialog(true)}>
+                  + New Task
+                </Button>
+              </div>
+
+              {/* Mobile hamburger */}
               <Button
                 variant="ghost"
                 size="sm"
-                title={
-                  notificationPermission === 'granted'
-                    ? 'Notifications enabled'
-                    : 'Enable notifications'
-                }
-                onClick={() => Notification.requestPermission()}
-                className={
-                  notificationPermission === 'granted' ? 'text-green-500' : 'text-muted-foreground'
-                }
+                className="md:hidden"
+                onClick={() => setShowMobileMenu(true)}
               >
-                <Bell className="w-4 h-4" />
+                <Menu className="w-5 h-5" />
               </Button>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              title="Refresh tasks"
-              onClick={() => refetch()}
-              disabled={isFetching}
-              className="gap-1"
-            >
-              <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-            </Button>
-            <Button variant="outline" title="Report a bug" onClick={() => setShowBugDialog(true)}>
-              <Bug className="w-4 h-4 mr-2" />
-              Report Bug
-            </Button>
-            <Button title="Create new task" onClick={() => setShowCreateDialog(true)}>
-              + New Task
-            </Button>
-          </div>
-
-          {/* Mobile hamburger */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="md:hidden"
-            onClick={() => setShowMobileMenu(true)}
-          >
-            <Menu className="w-5 h-5" />
-          </Button>
-        </div>
-
-        {/* Filter Sub-header — desktop only, separate component */}
-        <div className="hidden md:block">
-          <FilterBar
-            dateFilter={dateFilter}
-            onDateFilterChange={setDateFilter}
-            statusFilter={statusFilter}
-            onStatusFilterChange={setStatusFilter}
-            labelFilter={labelFilter}
-            onLabelFilterChange={setLabelFilter}
-            availableLabels={availableLabels}
-            labelCounts={labelCounts}
-            statusCounts={statusCounts}
-            totalCount={totalCount}
-            filteredCount={filteredTasks.length}
-          />
-        </div>
-
-        {/* Environment Toolbar */}
-        <EnvironmentToolbar />
-
-        {/* Cody Status Banner */}
-        <CodyStatusBanner tasks={tasks} isFetching={isFetching} dataUpdatedAt={dataUpdatedAt} />
-
-        {/* Task List */}
-        <div className="flex-1 min-h-0 overflow-y-auto">
-          {isLoading && tasks.length === 0 ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-muted-foreground">Loading...</div>
             </div>
-          ) : (
-            <TaskList
-              tasks={filteredTasks}
-              selectedTask={selectedTask}
-              executingTaskId={executingTaskId}
-              mergingTaskId={mergingTaskId}
-              onTaskSelect={handleTaskSelect}
-              onExecuteTask={handleExecuteTask}
-              onStopTask={handleStopTask}
-              onApproveReview={handleMerge}
-            />
-          )}
-        </div>
-      </div>
 
-      {/* Desktop: Task Detail Dialog — separate component */}
-      <TaskDetailDialog
-        task={selectedTask}
-        open={!!selectedTask}
-        onClose={() => setSelectedTask(null)}
-        onRefresh={refetch}
-      />
+            {/* Filter Sub-header — desktop only, separate component */}
+            <div className="hidden md:block">
+              <FilterBar
+                dateFilter={dateFilter}
+                onDateFilterChange={setDateFilter}
+                statusFilter={statusFilter}
+                onStatusFilterChange={setStatusFilter}
+                labelFilter={labelFilter}
+                onLabelFilterChange={setLabelFilter}
+                availableLabels={availableLabels}
+                labelCounts={labelCounts}
+                statusCounts={statusCounts}
+                totalCount={totalCount}
+                filteredCount={filteredTasks.length}
+              />
+            </div>
+
+            {/* Environment Toolbar */}
+            <EnvironmentToolbar />
+
+            {/* Cody Status Banner */}
+            <CodyStatusBanner tasks={tasks} isFetching={isFetching} dataUpdatedAt={dataUpdatedAt} />
+
+            {/* Task List */}
+            <div className="flex-1 min-h-0 overflow-y-auto">
+              {isLoading && tasks.length === 0 ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-muted-foreground">Loading...</div>
+                </div>
+              ) : (
+                <TaskList
+                  tasks={filteredTasks}
+                  selectedTask={selectedTask}
+                  executingTaskId={executingTaskId}
+                  mergingTaskId={mergingTaskId}
+                  onTaskSelect={handleTaskSelect}
+                  onExecuteTask={handleExecuteTask}
+                  onStopTask={handleStopTask}
+                  onApproveReview={handleMerge}
+                />
+              )}
+            </div>
+          </>
+        )}
+      </div>
 
       {/* Desktop: Chat Panel (right side, always visible) */}
       <div className="hidden md:block w-[400px] border-l border-border">
-        <CodyChat />
+        <CodyChat selectedTask={selectedTask} />
       </div>
 
       {/* Mobile Menu Sheet */}
@@ -528,7 +539,7 @@ export function CodyDashboard() {
               <SheetTitle>Chat with Cody</SheetTitle>
               <SheetDescription>AI assistant chat</SheetDescription>
             </SheetHeader>
-            <CodyChat />
+            <CodyChat selectedTask={selectedTask} />
           </SheetContent>
         </Sheet>
       )}

@@ -52,7 +52,7 @@ function getSmartInterval(tasks: CodyTask[] | undefined): number {
 }
 
 export function useCodyTasks(options: UseCodyTasksOptions = {}) {
-  const { days, includeDetails = false, refetchInterval = 'auto' } = options
+  const { days, includeDetails = true, refetchInterval = 'auto' } = options
 
   return useQuery({
     queryKey: queryKeys.tasks(days, includeDetails),
