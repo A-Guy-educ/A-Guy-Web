@@ -42,6 +42,9 @@ import {
   STABILITY_CHECK_INTERVAL,
   STABILITY_CHECK_COUNT,
   POST_EXIT_DELAY,
+  LLM_TIMEOUT,
+  HEARTBEAT_INTERVAL,
+  DEFAULT_TIMEOUT,
 } from '../../../../scripts/cody/agent-runner'
 import type { CodyInput } from '../../../../scripts/cody/cody-utils'
 
@@ -66,6 +69,24 @@ describe('STABILITY_CHECK_COUNT', () => {
 describe('POST_EXIT_DELAY', () => {
   it('should be 500ms', () => {
     expect(POST_EXIT_DELAY).toBe(500)
+  })
+})
+
+describe('LLM_TIMEOUT', () => {
+  it('should be 3 minutes (180000ms)', () => {
+    expect(LLM_TIMEOUT).toBe(180000)
+  })
+})
+
+describe('HEARTBEAT_INTERVAL', () => {
+  it('should be 30 seconds (30000ms)', () => {
+    expect(HEARTBEAT_INTERVAL).toBe(30000)
+  })
+})
+
+describe('DEFAULT_TIMEOUT', () => {
+  it('should be 10 minutes (600000ms)', () => {
+    expect(DEFAULT_TIMEOUT).toBe(600000)
   })
 })
 

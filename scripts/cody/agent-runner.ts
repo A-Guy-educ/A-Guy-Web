@@ -50,6 +50,12 @@ export const STAGE_TIMEOUTS: Record<string, number> = {
   autofix: ms('5m'),
 }
 
+/** LLM-specific timeout - max time to wait for LLM API response (3 minutes) */
+export const LLM_TIMEOUT = ms('3m')
+
+/** Progress heartbeat interval - log progress every 30 seconds */
+export const HEARTBEAT_INTERVAL = ms('30s')
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -88,8 +94,6 @@ export interface AgentRunResult {
   retries: number
   /** Validation errors from failed content validation attempts */
   validationErrors?: string[]
-  /** Session ID from opencode for chat history capture */
-  sessionId?: string
 }
 
 // ============================================================================
@@ -183,20 +187,6 @@ function findOutputFile(taskDir: string, expectedBase: string, outputExt: string
 }
 
 /**
- * Parse session ID from opencode JSON event line.
- * The sessionID appears in the first event (step_start).
- */
-function extractSessionId(line: string): string | null {
-  try {
-    // Each JSON event is on a single line
-    const event = JSON.parse(line)
-    return event.sessionID || null
-  } catch {
-    return null
-  }
-}
-
-/**
  * Run an OpenCode agent with file watching, timeouts, and optional retry logic.
  *
  * This function spawns the `opencode github run` command and monitors for the
@@ -206,7 +196,6 @@ function extractSessionId(line: string): string | null {
  * - Retry on failure (configurable)
  * - Process cleanup on completion
  * - Content validation with retry on failure
- * - Session ID extraction for chat history capture
  *
  * @param input - Orchestrator input with taskId
  * @param stage - The stage to run (e.g., 'build', 'test')
@@ -249,8 +238,6 @@ export function runAgentWithFileWatch(
     const validationErrors: string[] = []
     let currentChild: ChildProcess | null = null
     const startTime = Date.now()
-    // Session ID captured from opencode JSON output
-    let capturedSessionId: string | undefined
 
     const attemptWithRetry = (feedback?: string): void => {
       logger.info(`  Attempt ${retries + 1}/${maxRetries + 1}`)
@@ -266,13 +253,7 @@ export function runAgentWithFileWatch(
       const elapsed = Date.now() - startTime
       const remainingTimeout = effectiveTimeout - elapsed
       if (remainingTimeout <= 0) {
-        resolve({
-          succeeded: false,
-          timedOut: true,
-          retries,
-          validationErrors,
-          sessionId: capturedSessionId,
-        })
+        resolve({ succeeded: false, timedOut: true, retries, validationErrors })
         return
       }
 
@@ -280,12 +261,12 @@ export function runAgentWithFileWatch(
       const prompt = buildStagePrompt(input, stage, feedback)
 
       // Spawn using the configured backend (local or GitHub)
-      // Note: backend now uses --format json and stdio: pipe for stdout
       currentChild = backend.spawn(stage, prompt, agentEnv, cwd)
 
       let resolved = false
       let timeoutTimer: NodeJS.Timeout | null = null
       let stdoutBuffer = ''
+      let heartbeatTimer: NodeJS.Timeout | null = null
 
       // Handle stdout - parse for sessionID and tee to process.stdout
       if (currentChild.stdout) {
@@ -319,6 +300,8 @@ export function runAgentWithFileWatch(
         if (resolved) return
         resolved = true
 
+        // Clear heartbeat timer
+        if (heartbeatTimer) clearInterval(heartbeatTimer)
         if (timeoutTimer) clearTimeout(timeoutTimer)
 
         // Flush remaining stdout buffer
@@ -334,13 +317,23 @@ export function runAgentWithFileWatch(
           }, ms('5s'))
         }
 
-        resolve({ ...result, retries, validationErrors, sessionId: capturedSessionId })
+        resolve({ ...result, retries, validationErrors })
       }
 
       // Parse output file path
       const outputExt = path.extname(outputFile)
       const expectedBase = path.basename(outputFile, outputExt)
       const taskDirForPoll = path.dirname(outputFile)
+
+      // Progress heartbeat - log progress every 30s to detect hangs
+      const heartbeatStartTime = Date.now()
+      heartbeatTimer = setInterval(() => {
+        const elapsed = Date.now() - heartbeatStartTime
+        const stageLabel = stage || 'unknown'
+        logger.info(
+          `  💓 Still working on stage '${stageLabel}' (${elapsed / 1000 / 60} min elapsed)...`,
+        )
+      }, HEARTBEAT_INTERVAL)
 
       // Timeout (uses remaining time to prevent accumulation across retries)
       timeoutTimer = setTimeout(() => {
