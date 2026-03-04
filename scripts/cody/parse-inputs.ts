@@ -123,6 +123,7 @@ export function parseDispatchInputs(): ParseOutputs {
     valid: 'true',
     runner: process.env.DISPATCH_RUNNER || 'self-hosted',
     version: process.env.DISPATCH_VERSION || process.env.CODY_DEFAULT_VERSION || '',
+    fresh: process.env.FRESH || '',
   }
 
   logger.info(
@@ -159,6 +160,9 @@ export function parseCommentInputs(): ParseOutputs {
     comment_body: JSON.stringify(commentBody),
   }
 
+  // Extract command after @cody or /cody (MUST be before flag detection)
+  const cmdAfterCody = commentBody ? extractCommandAfterCody(commentBody) : ''
+
   // Detect --fresh flag - skip taskId discovery if fresh
   const hasFreshFlag = /--fresh\b/.test(cmdAfterCody)
   if (hasFreshFlag) {
@@ -176,9 +180,7 @@ export function parseCommentInputs(): ParseOutputs {
   }
 
   // Parse command to determine mode and flags
-  if (commentBody) {
-    const cmdAfterCody = extractCommandAfterCody(commentBody)
-
+  if (cmdAfterCody) {
     // Detect --local flag anywhere in the command
     const hasLocalFlag = /--local\b/.test(cmdAfterCody)
     if (hasLocalFlag) {
@@ -206,6 +208,7 @@ export function parseCommentInputs(): ParseOutputs {
       .replace(/--github\b/g, '')
       .replace(/--github-hosted\b/g, '')
       .replace(/--version\s+\S+/g, '')
+      .replace(/--fresh\b/g, '')
       .trim()
 
     if (!cmdWithoutFlags) {
