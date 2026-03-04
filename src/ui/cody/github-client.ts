@@ -5,6 +5,7 @@
  * @ai-summary GitHub API client with caching and manual rate limit handling
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { throttling } from '@octokit/plugin-throttling'
 import { Octokit } from '@octokit/rest'
 import {
   GITHUB_OWNER,
@@ -12,6 +13,7 @@ import {
   WORKFLOW_ID,
   BRANCH_PREFIXES,
   CACHE_TTL,
+  BRANCH_CACHE_TTL,
   TASK_ID_REGEX,
 } from './constants'
 import type {
@@ -70,10 +72,10 @@ function setCache<T>(
 
 let octokitInstance: Octokit | null = null
 
+type ThrottledOctokit = Octokit & ReturnType<typeof throttling>
+
 export function getOctokit(): Octokit {
-  if (octokitInstance) {
-    return octokitInstance
-  }
+  if (octokitInstance) return octokitInstance as ThrottledOctokit
 
   // Prefer CODY_BOT_TOKEN if set (for bot attribution), otherwise fall back to GITHUB_TOKEN
   const token = process.env.CODY_BOT_TOKEN || process.env.GITHUB_TOKEN
@@ -81,12 +83,29 @@ export function getOctokit(): Octokit {
     throw new Error('Neither CODY_BOT_TOKEN nor GITHUB_TOKEN is configured')
   }
 
-  // Create Octokit instance - rate limiting handled manually in API routes
-  octokitInstance = new Octokit({
+  // Create Octokit with throttling plugin - auto-retries on rate limits
+  const MyOctokit = Octokit.plugin(throttling)
+  octokitInstance = new MyOctokit({
     auth: token,
+    throttle: {
+      onRateLimit: (retryAfter, _options, _octokit) => {
+        // Retry once after rate limit, then stop
+        if (_options.request?.headers?.['x-octokit-retry-count'] === 0) {
+          console.warn(`[Cody] Rate limited, retrying after ${retryAfter}s`)
+          return true
+        }
+        console.error(`[Cody] Rate limit hit twice, giving up`)
+        return false
+      },
+      onSecondaryRateLimit: (retryAfter, _options, _octokit) => {
+        // Secondary rate limit - always retry
+        console.warn(`[Cody] Secondary rate limit, retrying after ${retryAfter}s`)
+        return true
+      },
+    },
   })
 
-  return octokitInstance
+  return octokitInstance as ThrottledOctokit
 }
 
 // ============ Branch Discovery ============
@@ -171,7 +190,7 @@ export async function findBranchByIssueNumber(
 
   for (const result of results) {
     if (result.status === 'fulfilled' && result.value) {
-      setCache(cacheKey, CACHE_TTL.pipeline, result.value)
+      setCache(cacheKey, BRANCH_CACHE_TTL, result.value)
       return result.value
     }
   }

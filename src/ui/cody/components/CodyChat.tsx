@@ -602,15 +602,21 @@ export function CodyChat({ selectedTask }: CodyChatProps) {
 
       {/* Input area */}
       <div className="p-3 border-t">
-        <div className="flex gap-2">
-          <input
-            type="text"
+        <div className="flex gap-2 items-end">
+          <textarea
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => {
+              setInput(e.target.value)
+              // Auto-expand height
+              e.target.style.height = 'auto'
+              e.target.style.height = `${Math.min(e.target.scrollHeight, 150)}px`
+            }}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
-            className="flex-1 px-3 py-2 text-sm rounded-md border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+            rows={1}
+            className="flex-1 px-3 py-2 text-sm rounded-md border bg-background focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-hidden"
             disabled={loading}
+            style={{ height: 'auto' }}
           />
           {loading ? (
             <button
