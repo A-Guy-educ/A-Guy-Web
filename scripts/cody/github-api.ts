@@ -546,3 +546,58 @@ export function closeIssue(
     logger.error({ err: error }, `Failed to close issue ${issueNumber}:`)
   }
 }
+
+/**
+ * Close PR associated with an issue and delete the branch
+ * Uses --delete-branch to remove both local and remote branches
+ * Fire-and-forget: errors are logged but never thrown
+ */
+export function closeLinkedPR(issueNumber: number): boolean {
+  if (!issueNumber) return false
+
+  try {
+    // Find PR linked to this issue
+    const listResult = execFileSync(
+      'gh',
+      ['pr', 'list', '--issue', String(issueNumber), '--json', 'number'],
+      { encoding: 'utf-8' },
+    )
+    const prs = JSON.parse(listResult) as { number: number }[]
+
+    if (prs.length === 0) {
+      logger.info(`  No PR found for issue #${issueNumber}`)
+      return false
+    }
+
+    const prNumber = prs[0].number
+
+    // Close PR and delete branch in one command
+    execFileSync('gh', ['pr', 'close', String(prNumber), '--delete-branch'], {
+      stdio: ['inherit', 'inherit', 'inherit'],
+    })
+    logger.info(`  ✅ Closed PR #${prNumber} and deleted branch`)
+    return true
+  } catch (error) {
+    logger.error({ err: error }, `Failed to close PR for issue ${issueNumber}:`)
+    return false
+  }
+}
+
+/**
+ * Close an issue, its associated PR, and delete the branch
+ * This is a convenience function that combines closeIssue and closeLinkedPR
+ * Use this when you want to close an issue and clean up the PR/branch in one action
+ * Fire-and-forget: errors are logged but never thrown
+ */
+export function closeIssueWithCleanup(
+  issueNumber: number,
+  reason: 'completed' | 'not planned' = 'completed',
+): void {
+  if (!issueNumber) return
+
+  // First close the PR and delete the branch
+  closeLinkedPR(issueNumber)
+
+  // Then close the issue
+  closeIssue(issueNumber, reason)
+}
