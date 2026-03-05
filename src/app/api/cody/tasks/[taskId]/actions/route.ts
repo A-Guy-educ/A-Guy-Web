@@ -22,6 +22,7 @@ import {
   findAssociatedPR,
   findTaskBranch,
   deleteBranch,
+  clearCache,
 } from '@/ui/cody/github-client'
 
 const actionSchema = z.object({
@@ -131,6 +132,9 @@ export async function POST(
         // Finally close the issue
         await updateIssue(issueNumber, { state: 'closed' })
 
+        // Clear server-side cache so the next poll reflects the closed state immediately
+        clearCache()
+
         return NextResponse.json({ success: true, message: 'Issue closed (PR closed, branch deleted)' })
       }
 
@@ -141,6 +145,7 @@ export async function POST(
           return NextResponse.json({ error: 'No associated PR found' }, { status: 404 })
         }
         await closePR(pr.number)
+        clearCache()
         return NextResponse.json({ success: true, message: `PR #${pr.number} closed` })
       }
 
@@ -159,8 +164,8 @@ export async function POST(
           await deleteBranch(branchName)
         }
 
-        // Remove agent labels
-        const labelsToRemove = ['agent:done', 'agent:error', 'agent:running', 'hard-stop', 'risk-gated']
+        // Remove lifecycle labels
+        const labelsToRemove = ['cody:done', 'cody:failed', 'cody:building', 'cody:planning', 'cody:review', 'hard-stop', 'risk-gated']
         for (const lbl of labelsToRemove) {
           try {
             await removeLabel(issueNumber, lbl)
@@ -172,6 +177,8 @@ export async function POST(
         // Re-trigger pipeline
         await postComment(issueNumber, '/cody')
 
+        clearCache()
+
         return NextResponse.json({
           success: true,
           message: `Task reset: branch deleted, PR closed, labels removed, pipeline triggered`,
@@ -180,6 +187,7 @@ export async function POST(
 
       case 'reopen': {
         await updateIssue(issueNumber, { state: 'open' })
+        clearCache()
         return NextResponse.json({ success: true, message: 'Issue reopened' })
       }
 
