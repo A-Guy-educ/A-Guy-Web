@@ -7,11 +7,11 @@
       "description": "Building features, refactoring, implementing changes"
     },
     "plan": {
-      "model": "minimax-coding-plan/MiniMax-M2.5",
+      "model": "anthropic/claude-opus-4-6",
       "description": "Planning tasks, architecture design, complex problem solving"
     },
     "architect": {
-      "model": "minimax-coding-plan/MiniMax-M2.5",
+      "model": "anthropic/claude-opus-4-6",
       "description": "Planning tasks, architecture design, complex problem solving"
     },
     "spec": {
@@ -67,7 +67,7 @@
       "description": "Cody pipeline expert - understands pipeline execution, debugging, adding new stages"
     },
     "build-manager": {
-      "model": "minimax-coding-plan/MiniMax-M2.5",
+      "model": "anthropic/claude-opus-4-6",
       "description": "Orchestrates build and test-writer agents in parallel, handles retries and verification"
     },
     "test-writer": {
