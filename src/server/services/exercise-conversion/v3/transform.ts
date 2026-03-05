@@ -346,16 +346,8 @@ export function multiPartToPreviewDraft(extraction: MultiPartExtraction): MultiP
   // Guard against missing subQuestions
   const safeSubQuestions = subQuestions && Array.isArray(subQuestions) ? subQuestions : []
 
-  // Derive title from stem or first sub-question
-  let title: string
-  if (stem?.trim()) {
-    title = stem.length > 80 ? stem.substring(0, 77) + '...' : stem
-  } else if (safeSubQuestions.length > 0 && safeSubQuestions[0]?.prompt?.trim()) {
-    const firstPrompt = safeSubQuestions[0].prompt
-    title = firstPrompt.length > 80 ? firstPrompt.substring(0, 77) + '...' : firstPrompt
-  } else {
-    title = 'Untitled Exercise'
-  }
+  // Title left empty — admin can set manually if needed
+  const title = ''
 
   // Map each sub-question to SubQuestionDraft
   const mappedSubQuestions: SubQuestionDraft[] = safeSubQuestions.map((sq) => {
@@ -531,16 +523,8 @@ export function multiPartToExerciseContent(extraction: MultiPartExtraction): Tra
     }
   }
 
-  // Derive title from stem or first sub-question
-  let title: string
-  if (stem?.trim()) {
-    title = stem.length > 80 ? stem.substring(0, 77) + '...' : stem
-  } else if (safeSubQuestions.length > 0 && safeSubQuestions[0]?.prompt?.trim()) {
-    const firstPrompt = safeSubQuestions[0].prompt
-    title = firstPrompt.length > 80 ? firstPrompt.substring(0, 77) + '...' : firstPrompt
-  } else {
-    title = 'Untitled Exercise'
-  }
+  // Title left empty — admin can set manually if needed
+  const title = ''
 
   // Validate against ContentSchema
   const content: ExerciseContent = { blocks }
