@@ -192,13 +192,44 @@ function findRemoteBranch(taskId: string): string | null {
 }
 
 /**
+ * Find remote branches matching an issue number (without requiring a task ID).
+ * Used when --fresh flag is set and task_id is empty but issue_number is available.
+ */
+function findRemoteBranchByIssueNumber(issueNumber: string): string | null {
+  const remoteBranches = gitExecSilent(['branch', '-r', '--list'])
+  if (!remoteBranches) return null
+
+  const branches = remoteBranches
+    .split('\n')
+    .map((b) => b.trim())
+    .filter((b) => b && !b.includes('->'))
+    .map((b) => b.replace('origin/', ''))
+
+  // Search all prefixes for a branch containing the exact issue number
+  for (const prefix of BRANCH_PREFIXES) {
+    const matches = branches.filter((b) => b.startsWith(`${prefix}/`))
+    const issueMatch = matches.find((b) => {
+      const regex = new RegExp('-' + issueNumber + '(-|\\.|_|$)')
+      return regex.test(b)
+    })
+    if (issueMatch) return issueMatch
+  }
+
+  return null
+}
+
+/**
  * Main entry point
  */
 function main(): void {
   const taskId = process.env.TASK_ID
+  const issueNumber = process.env.ISSUE_NUMBER
+  const fresh = process.env.FRESH === 'true'
 
-  if (!taskId) {
-    logger.error('TASK_ID not set!')
+  // When --fresh is used, task_id may be empty. We can still find the old branch
+  // by issue number to delete it and start clean.
+  if (!taskId && !issueNumber) {
+    logger.error('Neither TASK_ID nor ISSUE_NUMBER set!')
     process.exit(1)
   }
 
@@ -213,9 +244,16 @@ function main(): void {
   logger.info(`=== Default branch: ${defaultBranch} ===`)
 
   // Find feature branch by pattern matching
-  let branch = findRemoteBranch(taskId)
+  let branch: string | null = null
+  if (taskId) {
+    branch = findRemoteBranch(taskId)
+  } else if (issueNumber) {
+    // No task ID (e.g., --fresh mode) — search by issue number
+    logger.info(`=== No task ID, searching by issue number #${issueNumber} ===`)
+    branch = findRemoteBranchByIssueNumber(issueNumber)
+  }
 
-  // Reset branch if --fresh flag is set
+  // Reset branch if --fresh flag is set (deletes old branch)
   branch = resetBranchIfFresh(branch, defaultBranch)
 
   if (branch) {
@@ -233,7 +271,18 @@ function main(): void {
     process.exit(0)
   }
 
-  logger.info(`=== No feature branch found for ${taskId}, staying on default branch ===`)
+  // When --fresh with no task ID, we just deleted the old branch (if found).
+  // The pipeline will generate a new task ID and ensureFeatureBranch() will create a new branch.
+  if (fresh && !taskId) {
+    logger.info(
+      `=== --fresh mode: old branch cleaned up, staying on ${defaultBranch} for new task ===`,
+    )
+    process.exit(0)
+  }
+
+  logger.info(
+    `=== No feature branch found for ${taskId || 'issue #' + issueNumber}, staying on default branch ===`,
+  )
 }
 
 // Run if called directly
