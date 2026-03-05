@@ -19,10 +19,11 @@ function getColumnForIssue(
 ): ColumnId {
   const labelNames = issue.labels.map(l => l.name.toLowerCase())
   
-  // 1. Cody agent labels (highest priority — set by the pipeline itself)
-  if (labelNames.includes('agent:running')) return 'building'
-  if (labelNames.includes('agent:error')) return 'failed'
-  if (labelNames.includes('agent:done')) return 'done'
+  // 1. Cody lifecycle labels (highest priority — set by the pipeline state machine)
+  if (labelNames.includes('cody:planning') || labelNames.includes('cody:building')) return 'building'
+  if (labelNames.includes('cody:failed')) return 'failed'
+  if (labelNames.includes('cody:done')) return 'done'
+  if (labelNames.includes('cody:review')) return 'review'
   
   // 2. Active workflow run takes priority over gate labels
   // This ensures the dashboard shows "Building" even if risk-gated/hard-stop labels

@@ -1282,7 +1282,10 @@ export async function fetchPRCIStatus(
         (run) => run.status === 'in_progress' || run.status === 'queued',
       )
       const allSuccess = checkRuns.check_runs.every(
-        (run) => run.conclusion === 'success' || run.conclusion === 'skipped',
+        (run) =>
+          run.conclusion === 'success' ||
+          run.conclusion === 'skipped' ||
+          run.conclusion === 'cancelled',
       )
 
       if (hasFailure) {

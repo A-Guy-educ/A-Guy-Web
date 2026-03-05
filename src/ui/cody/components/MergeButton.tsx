@@ -42,10 +42,10 @@ export function MergeButton({
   onMerge,
 }: MergeButtonProps) {
   const [showDialog, setShowDialog] = useState(false)
-  const { data, isLoading } = usePRCIStatus(prNumber)
+  const { data, isLoading, isError } = usePRCIStatus(prNumber)
 
   const isMerging = externalIsMerging
-  const ciStatus = data?.ciStatus ?? 'pending'
+  const ciStatus = isError ? 'failure' : (data?.ciStatus ?? 'pending')
   const canMerge = data?.mergeable ?? false
   const config = ciIcons[ciStatus]
   const CIIcon = config.icon

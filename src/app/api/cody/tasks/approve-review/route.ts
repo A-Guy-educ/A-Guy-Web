@@ -50,15 +50,25 @@ export async function POST(req: NextRequest) {
       results.push(`Review note: ${msg}`)
     }
 
-    // 2. Merge the PR (squash)
+    // 2. Merge the PR
+    // Use regular merge for publish PRs (dev→main) to avoid branch divergence
+    // Use squash for feature branches (task→dev)
     try {
+      const { data: prData } = await octokit.pulls.get({
+        owner: OWNER,
+        repo: REPO,
+        pull_number: Number(prNumber),
+      })
+      const isPublishPR = prData.head.ref === 'dev' && prData.base.ref === 'main'
+      const mergeMethod = isPublishPR ? 'merge' : 'squash'
+
       await octokit.pulls.merge({
         owner: OWNER,
         repo: REPO,
         pull_number: Number(prNumber),
-        merge_method: 'squash',
+        merge_method: mergeMethod,
       })
-      results.push(`Merged PR #${prNumber}`)
+      results.push(`Merged PR #${prNumber} (${mergeMethod})`)
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : String(error)
       if (msg.includes('not mergeable') || msg.includes('405')) {
