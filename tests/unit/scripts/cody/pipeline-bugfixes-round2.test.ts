@@ -13,16 +13,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 describe('CRITICAL 1: stdoutBuffer memory cap', () => {
   it('should export MAX_STDOUT_BUFFER_SIZE constant', async () => {
-    const { MAX_STDOUT_BUFFER_SIZE } = await import(
-      '../../../../scripts/cody/agent-runner'
-    )
+    const { MAX_STDOUT_BUFFER_SIZE } = await import('../../../../scripts/cody/agent-runner')
     expect(MAX_STDOUT_BUFFER_SIZE).toBe(1_048_576)
   })
 
   it('should be 1 MB', async () => {
-    const { MAX_STDOUT_BUFFER_SIZE } = await import(
-      '../../../../scripts/cody/agent-runner'
-    )
+    const { MAX_STDOUT_BUFFER_SIZE } = await import('../../../../scripts/cody/agent-runner')
     // 1 MB = 1024 * 1024
     expect(MAX_STDOUT_BUFFER_SIZE).toBe(1024 * 1024)
   })
@@ -39,10 +35,7 @@ describe('CRITICAL 2: JSON log FD leak protection', () => {
     // Since runAgentWithFileWatch spawns child processes, we verify the
     // pattern structurally by reading the source code
     const fs = await import('fs')
-    const source = fs.readFileSync(
-      'scripts/cody/agent-runner.ts',
-      'utf-8',
-    )
+    const source = fs.readFileSync('scripts/cody/agent-runner.ts', 'utf-8')
 
     // Verify cleanup handler registration
     expect(source).toContain("process.on('exit', cleanupFd)")
@@ -60,18 +53,15 @@ describe('CRITICAL 2: JSON log FD leak protection', () => {
 describe('CRITICAL 3: Missing stage definition throws', () => {
   it('should have error + throw pattern (not warn + return) for missing stage', async () => {
     const fs = await import('fs')
-    const source = fs.readFileSync(
-      'scripts/cody/engine/state-machine.ts',
-      'utf-8',
-    )
+    const source = fs.readFileSync('scripts/cody/engine/state-machine.ts', 'utf-8')
 
     // The old pattern was: logger.warn(...) + return state
     // The new pattern is: logger.error(...) + throw new Error(...)
-    expect(source).toContain("logger.error(msg)")
-    expect(source).toContain("throw new Error(msg)")
+    expect(source).toContain('logger.error(msg)')
+    expect(source).toContain('throw new Error(msg)')
     // Should NOT have the old silent return pattern for missing stage
     expect(source).not.toContain(
-      "logger.warn(`Stage ${stageName} not found in pipeline definitions`)",
+      'logger.warn(`Stage ${stageName} not found in pipeline definitions`)',
     )
   })
 })
@@ -128,10 +118,7 @@ describe('HIGH 4: syncSleep replaces busy-wait', () => {
 describe('HIGH 5: fs import hoisted outside loop', () => {
   it('should have static import of existsSync and unlinkSync', async () => {
     const fs = await import('fs')
-    const source = fs.readFileSync(
-      'scripts/cody/handlers/scripted-handler.ts',
-      'utf-8',
-    )
+    const source = fs.readFileSync('scripts/cody/handlers/scripted-handler.ts', 'utf-8')
     // Should have top-level import
     expect(source).toContain("import { existsSync, unlinkSync } from 'fs'")
     // Should NOT have dynamic import inside loop
@@ -173,7 +160,7 @@ describe('HIGH 6: Profile used in full/rerun buildPipeline', () => {
     }
 
     // Build pipeline with lightweight profile
-    const pipeline = buildPipeline('full', 'lightweight', true, ctx)
+    const pipeline = buildPipeline('full', 'lightweight', true, ctx as any)
     const orderNames = pipeline.order.flatMap((step) =>
       typeof step === 'string' ? [step] : (step as { parallel: string[] }).parallel,
     )
@@ -191,9 +178,8 @@ describe('HIGH 6: Profile used in full/rerun buildPipeline', () => {
   })
 
   it('should use SPEC_ORDER_STANDARD for standard profile in full mode', async () => {
-    const { buildPipeline, SPEC_ORDER_STANDARD } = await import(
-      '../../../../scripts/cody/pipeline/definitions'
-    )
+    const { buildPipeline, SPEC_ORDER_STANDARD } =
+      await import('../../../../scripts/cody/pipeline/definitions')
 
     const mockBackend = {
       spawn: vi.fn(),
@@ -218,7 +204,7 @@ describe('HIGH 6: Profile used in full/rerun buildPipeline', () => {
       backend: mockBackend,
     }
 
-    const pipeline = buildPipeline('full', 'standard', true, ctx)
+    const pipeline = buildPipeline('full', 'standard', true, ctx as any)
     const orderNames = pipeline.order.flatMap((step) =>
       typeof step === 'string' ? [step] : (step as { parallel: string[] }).parallel,
     )
@@ -237,14 +223,11 @@ describe('HIGH 6: Profile used in full/rerun buildPipeline', () => {
 describe('HIGH 7: Command injection fix', () => {
   it('should use execFileSync instead of execSync', async () => {
     const fs = await import('fs')
-    const source = fs.readFileSync(
-      'scripts/cody/checkout-task-branch.ts',
-      'utf-8',
-    )
+    const source = fs.readFileSync('scripts/cody/checkout-task-branch.ts', 'utf-8')
     // Should import execFileSync
     expect(source).toContain("import { execFileSync } from 'child_process'")
     // Should NOT import execSync (which was vulnerable)
-    expect(source).not.toContain("import { execSync }")
+    expect(source).not.toContain('import { execSync }')
     // Should NOT use string interpolation with git
     expect(source).not.toContain('execSync(`git ${args.join')
     // Should use execFileSync with array args
@@ -253,10 +236,7 @@ describe('HIGH 7: Command injection fix', () => {
 
   it('configureGitIdentity should use array args', async () => {
     const fs = await import('fs')
-    const source = fs.readFileSync(
-      'scripts/cody/checkout-task-branch.ts',
-      'utf-8',
-    )
+    const source = fs.readFileSync('scripts/cody/checkout-task-branch.ts', 'utf-8')
     // Old pattern: execSync(`git config --global user.email "${GIT_EMAIL}"`)
     expect(source).not.toContain('`git config --global')
     // New pattern: execFileSync('git', ['config', '--global', 'user.email', GIT_EMAIL])
@@ -272,10 +252,7 @@ describe('HIGH 7: Command injection fix', () => {
 describe('HIGH 9: clarify-workflow.ts error handling', () => {
   it('should use safeWriteFile wrapper instead of raw fs.writeFileSync', async () => {
     const fs = await import('fs')
-    const source = fs.readFileSync(
-      'scripts/cody/clarify-workflow.ts',
-      'utf-8',
-    )
+    const source = fs.readFileSync('scripts/cody/clarify-workflow.ts', 'utf-8')
     // Should have safeWriteFile function
     expect(source).toContain('function safeWriteFile')
     // Should import logger
@@ -288,10 +265,7 @@ describe('HIGH 9: clarify-workflow.ts error handling', () => {
 
   it('safeWriteFile should log error and re-throw', async () => {
     const fs = await import('fs')
-    const source = fs.readFileSync(
-      'scripts/cody/clarify-workflow.ts',
-      'utf-8',
-    )
+    const source = fs.readFileSync('scripts/cody/clarify-workflow.ts', 'utf-8')
     // safeWriteFile should have logger.error and throw error
     const funcBlock = source.slice(
       source.indexOf('function safeWriteFile'),
@@ -309,14 +283,11 @@ describe('HIGH 9: clarify-workflow.ts error handling', () => {
 describe('HIGH 10: Parallel stage missing definition throws instead of null cast', () => {
   it('should not have null cast pattern for missing stage definition', async () => {
     const fs = await import('fs')
-    const source = fs.readFileSync(
-      'scripts/cody/engine/state-machine.ts',
-      'utf-8',
-    )
+    const source = fs.readFileSync('scripts/cody/engine/state-machine.ts', 'utf-8')
     // Old pattern: null as unknown as StageResult
     expect(source).not.toContain('null as unknown as StageResult')
     // New pattern: throw StageError
-    expect(source).toContain("throw new StageError")
+    expect(source).toContain('throw new StageError')
   })
 })
 
@@ -327,13 +298,9 @@ describe('HIGH 10: Parallel stage missing definition throws instead of null cast
 describe('MEDIUM 11: Duplicate condition removed', () => {
   it('should not have duplicate Cannot find module condition', async () => {
     const fs = await import('fs')
-    const source = fs.readFileSync(
-      'scripts/cody/pipeline/error-classifier.ts',
-      'utf-8',
-    )
+    const source = fs.readFileSync('scripts/cody/pipeline/error-classifier.ts', 'utf-8')
     // Count occurrences of the condition
-    const matches =
-      source.match(/rawOutput\.includes\('Cannot find module'\)/g) || []
+    const matches = source.match(/rawOutput\.includes\('Cannot find module'\)/g) || []
     // Should appear exactly once (not twice)
     expect(matches.length).toBe(1)
   })
@@ -346,20 +313,14 @@ describe('MEDIUM 11: Duplicate condition removed', () => {
 describe('MEDIUM 12: StageError class', () => {
   it('should have StageError class with stageName property', async () => {
     const fs = await import('fs')
-    const source = fs.readFileSync(
-      'scripts/cody/engine/state-machine.ts',
-      'utf-8',
-    )
+    const source = fs.readFileSync('scripts/cody/engine/state-machine.ts', 'utf-8')
     expect(source).toContain('class StageError extends Error')
     expect(source).toContain('public readonly stageName: string')
   })
 
   it('should use StageError for preExecute errors', async () => {
     const fs = await import('fs')
-    const source = fs.readFileSync(
-      'scripts/cody/engine/state-machine.ts',
-      'utf-8',
-    )
+    const source = fs.readFileSync('scripts/cody/engine/state-machine.ts', 'utf-8')
     // Should not have old pattern: (preError as any).stageName = stageName
     expect(source).not.toContain('(preError as any).stageName')
     // Should not have old pattern: (error as any).stageName = stageName
@@ -369,10 +330,7 @@ describe('MEDIUM 12: StageError class', () => {
 
   it('should detect PipelinePausedError wrapped in StageError', async () => {
     const fs = await import('fs')
-    const source = fs.readFileSync(
-      'scripts/cody/engine/state-machine.ts',
-      'utf-8',
-    )
+    const source = fs.readFileSync('scripts/cody/engine/state-machine.ts', 'utf-8')
     // Should check for PipelinePausedError in StageError.cause
     expect(source).toContain('rejectedErr.cause instanceof PipelinePausedError')
   })

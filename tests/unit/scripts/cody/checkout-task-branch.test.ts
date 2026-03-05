@@ -123,7 +123,11 @@ describe('resetBranchIfFresh', () => {
         cmd: String(c[0]),
         args: (c[1] as string[]) || [],
       }))
-      expect(calls.some((c) => c.cmd === 'git' && c.args.includes('push') && c.args.includes('--delete'))).toBe(true)
+      expect(
+        calls.some(
+          (c) => c.cmd === 'git' && c.args.includes('push') && c.args.includes('--delete'),
+        ),
+      ).toBe(true)
       expect(calls.some((c) => c.cmd === 'git' && c.args.includes('-D'))).toBe(true)
     })
 
@@ -158,7 +162,11 @@ describe('resetBranchIfFresh', () => {
         cmd: String(c[0]),
         args: (c[1] as string[]) || [],
       }))
-      expect(calls.some((c) => c.cmd === 'git' && c.args.includes('push') && c.args.includes('--delete'))).toBe(true)
+      expect(
+        calls.some(
+          (c) => c.cmd === 'git' && c.args.includes('push') && c.args.includes('--delete'),
+        ),
+      ).toBe(true)
       expect(calls.some((c) => c.cmd === 'git' && c.args.includes('-D'))).toBe(true)
     })
 
