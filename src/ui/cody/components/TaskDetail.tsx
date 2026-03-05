@@ -22,6 +22,7 @@ import { Button } from '@/ui/web/components/button'
 import { Badge } from '@/ui/web/components/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/web/components/avatar'
 import { useTaskActions, useTaskDetails, useRetryWithContext } from '../hooks'
+import { useGitHubIdentity } from '../hooks/useGitHubIdentity'
 import {
   GitPullRequest,
   ExternalLink,
@@ -315,11 +316,14 @@ export function TaskDetail({
   onApproveReview,
   isMerging: externalIsMerging,
 }: TaskDetailProps) {
+  const { githubUser } = useGitHubIdentity()
+  const actorLogin = githubUser?.login
+
   const {
     data: details,
     refetch,
     isFetching: isDetailsFetching,
-  } = useTaskDetails(task?.issueNumber ?? null)
+  } = useTaskDetails(task?.issueNumber ?? null, actorLogin)
   const [activeTab, setActiveTab] = useState<'description' | 'comments' | 'changes' | 'docs'>(
     'description',
   )
@@ -352,6 +356,7 @@ export function TaskDetail({
 
   const retryWithContext = useRetryWithContext({
     issueNumber: task?.issueNumber ?? 0,
+    actorLogin,
     onSuccess: () => {
       setRetryContext('')
       setShowRetryContext(false)
@@ -362,6 +367,7 @@ export function TaskDetail({
 
   const taskActions = useTaskActions({
     issueNumber: task?.issueNumber ?? 0,
+    actorLogin,
     onSuccess: () => {
       onRefresh?.()
       refetch()

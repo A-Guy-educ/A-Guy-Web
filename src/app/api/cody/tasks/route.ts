@@ -276,7 +276,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json()
-    const { title, body: issueBody, mode, labels, assignees, attachments } = body
+    const { title, body: issueBody, mode, labels, assignees, attachments, actorLogin } = body
 
     if (!title) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 })
@@ -290,9 +290,10 @@ export async function POST(req: NextRequest) {
     const fullTitle = title.startsWith('[') ? title : `${taskIdPrefix}${title}`
 
     // Create the issue in GitHub
+    const actorNote = actorLogin ? `\n\n---\n_Created by @${actorLogin} via Cody dashboard_` : ''
     const issue = await createIssue({
       title: fullTitle,
-      body: issueBody || '',
+      body: (issueBody || '') + actorNote,
       labels: labels || [],
       assignees: assignees || [],
     })

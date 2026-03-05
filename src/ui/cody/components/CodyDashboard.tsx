@@ -94,7 +94,7 @@ export function CodyDashboard() {
   // Mutations for assign/unassign
   const assignMutation = useMutation({
     mutationFn: ({ issueNumber, assignees }: { issueNumber: number; assignees: string[] }) =>
-      codyApi.tasks.assign(issueNumber, assignees),
+      codyApi.tasks.assign(issueNumber, assignees, githubUser?.login),
     onSuccess: () => {
       // Invalidate tasks to refetch with new assignees
       queryClient.invalidateQueries({ queryKey: ['cody-tasks'] })
@@ -103,7 +103,7 @@ export function CodyDashboard() {
 
   const unassignMutation = useMutation({
     mutationFn: ({ issueNumber, assignees }: { issueNumber: number; assignees: string[] }) =>
-      codyApi.tasks.unassign(issueNumber, assignees),
+      codyApi.tasks.unassign(issueNumber, assignees, githubUser?.login),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cody-tasks'] })
     },
@@ -188,7 +188,7 @@ export function CodyDashboard() {
 
     setExecutingTaskId(taskId)
     try {
-      await tasksApi.execute(task.issueNumber)
+      await tasksApi.execute(task.issueNumber, githubUser?.login)
       refetch()
       toast.success('Task started')
     } catch (err) {
@@ -203,7 +203,7 @@ export function CodyDashboard() {
   const handleStopTask = async (task: CodyTask) => {
     setExecutingTaskId(task.id)
     try {
-      await tasksApi.abort(task.issueNumber)
+      await tasksApi.abort(task.issueNumber, githubUser?.login)
       refetch()
       toast.success('Task stopped')
     } catch (err) {

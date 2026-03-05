@@ -28,6 +28,7 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { codyApi } from '../api'
 import { useCollaborators } from '../hooks'
+import { useGitHubIdentity } from '../hooks/useGitHubIdentity'
 import { X, Upload } from 'lucide-react'
 import { cn } from '@/infra/utils/ui'
 
@@ -86,6 +87,7 @@ export function BugReportDialog({ open, onClose, onCreated }: BugReportDialogPro
     )
   }
 
+  const { githubUser } = useGitHubIdentity()
   const queryClient = useQueryClient()
 
   const createBug = useMutation({
@@ -96,6 +98,7 @@ export function BugReportDialog({ open, onClose, onCreated }: BugReportDialogPro
       labels?: string[]
       assignees?: string[]
       attachments?: Array<{ name: string; content: string }>
+      actorLogin?: string
     }) => codyApi.tasks.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cody-tasks'] })
@@ -198,6 +201,7 @@ export function BugReportDialog({ open, onClose, onCreated }: BugReportDialogPro
         labels: ['bug'],
         assignees,
         attachments: attachments.map((a) => ({ name: a.name, content: a.content })),
+        actorLogin: githubUser?.login,
       },
       {
         onSuccess: () => {

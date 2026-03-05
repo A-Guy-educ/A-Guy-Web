@@ -48,7 +48,13 @@ const actionSchema = z.object({
   assignees: z.array(z.string()).optional(),
   label: z.string().optional(),
   comment: z.string().optional(),
+  actorLogin: z.string().optional(),
 })
+
+/** Format a string with actor attribution */
+function withActor(message: string, actor?: string): string {
+  return actor ? `${message} _(by @${actor})_` : message
+}
 
 export async function POST(
   req: NextRequest,
@@ -59,7 +65,7 @@ export async function POST(
   try {
     const { taskId } = await params
     const body = await req.json()
-    const { action, feedback, fromStage, mode: _mode } = actionSchema.parse(body)
+    const { action, feedback, fromStage, mode: _mode, actorLogin } = actionSchema.parse(body)
 
     // Get issue number from taskId
     const issueNumber = parseInt(taskId.replace('issue-', ''), 10)
@@ -68,15 +74,16 @@ export async function POST(
     }
 
     const { assignees, label, comment } = actionSchema.parse(body)
+    const actor = actorLogin || undefined
 
     switch (action) {
       case 'approve': {
-        await postComment(issueNumber, '/cody approve')
+        await postComment(issueNumber, withActor('/cody approve', actor))
         return NextResponse.json({ success: true, message: 'Gate approved' })
       }
 
       case 'reject': {
-        await postComment(issueNumber, '/cody reject')
+        await postComment(issueNumber, withActor('/cody reject', actor))
         return NextResponse.json({ success: true, message: 'Gate rejected' })
       }
 
@@ -92,7 +99,7 @@ export async function POST(
 
       case 'execute': {
         // Post /cody command to assign issue to Cody
-        await postComment(issueNumber, '/cody')
+        await postComment(issueNumber, withActor('/cody', actor))
         return NextResponse.json({ success: true, message: 'Cody execution triggered' })
       }
 
@@ -106,7 +113,7 @@ export async function POST(
         
         // Post comment regardless of whether we found a running workflow
         // This ensures the issue is marked as stopped even if workflow already finished
-        await postComment(issueNumber, '## 🛑 Operation stopped - Run aborted by user.')
+        await postComment(issueNumber, withActor('## 🛑 Operation stopped - Run aborted by user.', actor))
         
         if (run) {
           await cancelWorkflowRun(run.id)
@@ -131,6 +138,7 @@ export async function POST(
 
         // Finally close the issue
         await updateIssue(issueNumber, { state: 'closed' })
+        if (actor) await postComment(issueNumber, `🔒 Issue closed _(by @${actor})_`)
 
         // Clear server-side cache so the next poll reflects the closed state immediately
         clearCache()
@@ -175,6 +183,7 @@ export async function POST(
         }
 
         // Re-trigger pipeline
+        await postComment(issueNumber, withActor('🔄 Task reset and re-triggered', actor))
         await postComment(issueNumber, '/cody')
 
         clearCache()
@@ -187,6 +196,7 @@ export async function POST(
 
       case 'reopen': {
         await updateIssue(issueNumber, { state: 'open' })
+        if (actor) await postComment(issueNumber, `🔓 Issue reopened _(by @${actor})_`)
         clearCache()
         return NextResponse.json({ success: true, message: 'Issue reopened' })
       }
