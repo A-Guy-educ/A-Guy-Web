@@ -140,12 +140,14 @@ beforeAll(async () => {
   lessonId = lesson.id
 
   // Create a media record (external type to avoid file upload complexity)
+  // Use unique filename to avoid collision with other test files sharing the same DB
+  const mediaFilename = `v3-gate-test-${Date.now()}.pdf`
   const media = await payload.create({
     collection: 'media',
     data: {
       type: 'external',
-      externalUrl: 'https://example.com/test.pdf',
-      filename: 'test.pdf',
+      externalUrl: `https://example.com/${mediaFilename}`,
+      filename: mediaFilename,
       mimeType: 'application/pdf',
       tenant: tenantId,
     } as any,
