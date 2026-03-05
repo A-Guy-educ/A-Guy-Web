@@ -203,8 +203,8 @@ When the user asks to create a task from the refined PRD, use the createTask too
 
 Map your refined output to the task template:
 - title: Clear, concise task title (from refined spec main requirement)
-- mode: full | spec | impl (ask the user if not specified)
-- priority: P1 | P2 | P3 | P4 | P5 (ask the user if not specified)
+- mode: full (always use full mode)
+- priority: P1 (critical) | P2 (high) | P3 (medium) | P4 (low) | P5 (nice-to-have) — ask the user to choose
 - description: The refined product specification from Section 1
 - acceptanceCriteria: Derived from the refined spec, as a markdown checklist
 - context: The extracted technical statements from Section 2

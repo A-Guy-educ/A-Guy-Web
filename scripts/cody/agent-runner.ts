@@ -50,6 +50,12 @@ export const STAGE_TIMEOUTS: Record<string, number> = {
   autofix: ms('5m'),
 }
 
+/** LLM-specific timeout - max time to wait for LLM API response (3 minutes) */
+export const LLM_TIMEOUT = ms('3m')
+
+/** Progress heartbeat interval - log progress every 30 seconds */
+export const HEARTBEAT_INTERVAL = ms('30s')
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -183,16 +189,67 @@ function findOutputFile(taskDir: string, expectedBase: string, outputExt: string
 }
 
 /**
- * Parse session ID from opencode JSON event line.
- * The sessionID appears in the first event (step_start).
+ * Format a JSON event line from opencode into a human-readable log line.
+ * Returns the formatted string, or null to skip (for noisy/unimportant events).
+ * Also extracts sessionID from events when found.
  */
-function extractSessionId(line: string): string | null {
+export function formatJsonEvent(line: string): { display: string | null; sessionId?: string } {
   try {
-    // Each JSON event is on a single line
     const event = JSON.parse(line)
-    return event.sessionID || null
+    const type: string = event.type
+    const sessionId: string | undefined = event.sessionID
+
+    switch (type) {
+      case 'session_start':
+        return { display: `🎯 Session started: ${sessionId?.slice(0, 16) || 'unknown'}`, sessionId }
+
+      case 'step_start':
+        return { display: null, sessionId } // Quiet — step_finish is more useful
+
+      case 'step_finish': {
+        const tokens = event.part?.tokens?.total || 0
+        const cost = event.part?.cost ?? 0
+        const reason = event.part?.reason || ''
+        const cached = event.part?.tokens?.cache?.read || 0
+        const costStr = typeof cost === 'number' && cost > 0 ? ` · $${cost.toFixed(4)}` : ''
+        const cacheStr = cached > 0 ? ` · ${cached} cached` : ''
+        return {
+          display: `  ✅ Step done (${tokens} tok${cacheStr}${costStr}) [${reason}]`,
+          sessionId,
+        }
+      }
+
+      case 'tool_use': {
+        const tool = event.part?.tool || 'unknown'
+        const status = event.part?.state?.status || ''
+        const title = event.part?.state?.title || event.part?.state?.input?.description || ''
+        const exit = event.part?.state?.metadata?.exit
+        const exitStr = exit !== undefined && exit !== 0 ? ` exit=${exit}` : ''
+        const titleStr = title ? `: ${title}` : ''
+        if (status === 'completed') {
+          return { display: `  🔧 ${tool}${titleStr}${exitStr}`, sessionId }
+        }
+        return { display: null, sessionId } // Skip pending/running states
+      }
+
+      case 'text_delta':
+      case 'content':
+        return { display: null, sessionId } // Skip streaming text deltas (too noisy)
+
+      case 'error': {
+        const msg = event.part?.message || event.message || JSON.stringify(event.part)
+        return { display: `  🔴 Error: ${msg}`, sessionId }
+      }
+
+      default:
+        return { display: null, sessionId } // Skip unknown event types
+    }
   } catch {
-    return null
+    // Not valid JSON — might be a plain log line from pino/logger
+    // Show it as-is if it looks meaningful
+    const trimmed = line.trim()
+    if (!trimmed) return { display: null }
+    return { display: trimmed }
   }
 }
 
@@ -206,7 +263,6 @@ function extractSessionId(line: string): string | null {
  * - Retry on failure (configurable)
  * - Process cleanup on completion
  * - Content validation with retry on failure
- * - Session ID extraction for chat history capture
  *
  * @param input - Orchestrator input with taskId
  * @param stage - The stage to run (e.g., 'build', 'test')
@@ -249,8 +305,6 @@ export function runAgentWithFileWatch(
     const validationErrors: string[] = []
     let currentChild: ChildProcess | null = null
     const startTime = Date.now()
-    // Session ID captured from opencode JSON output
-    let capturedSessionId: string | undefined
 
     const attemptWithRetry = (feedback?: string): void => {
       logger.info(`  Attempt ${retries + 1}/${maxRetries + 1}`)
@@ -266,13 +320,7 @@ export function runAgentWithFileWatch(
       const elapsed = Date.now() - startTime
       const remainingTimeout = effectiveTimeout - elapsed
       if (remainingTimeout <= 0) {
-        resolve({
-          succeeded: false,
-          timedOut: true,
-          retries,
-          validationErrors,
-          sessionId: capturedSessionId,
-        })
+        resolve({ succeeded: false, timedOut: true, retries, validationErrors })
         return
       }
 
@@ -280,14 +328,28 @@ export function runAgentWithFileWatch(
       const prompt = buildStagePrompt(input, stage, feedback)
 
       // Spawn using the configured backend (local or GitHub)
-      // Note: backend now uses --format json and stdio: pipe for stdout
       currentChild = backend.spawn(stage, prompt, agentEnv, cwd)
+
+      // Explicitly close stdin to prevent opencode from waiting for input
+      if (currentChild.stdin) {
+        currentChild.stdin.end()
+      }
 
       let resolved = false
       let timeoutTimer: NodeJS.Timeout | null = null
       let stdoutBuffer = ''
+      let heartbeatTimer: NodeJS.Timeout | null = null
+      let extractedSessionId: string | undefined
+      // Write raw JSON events to artifact file for full debugging
+      let jsonLogFd: number | null = null
+      try {
+        const jsonLogPath = path.join(path.dirname(outputFile), `${stage}-events.jsonl`)
+        jsonLogFd = fs.openSync(jsonLogPath, 'w')
+      } catch {
+        // Non-fatal: skip artifact file if can't create
+      }
 
-      // Handle stdout - parse for sessionID and tee to process.stdout
+      // Handle stdout - parse JSON events and display formatted output
       if (currentChild.stdout) {
         currentChild.stdout.on('data', (data: Buffer) => {
           const chunk = data.toString()
@@ -300,17 +362,23 @@ export function runAgentWithFileWatch(
           for (const line of lines) {
             if (!line.trim()) continue
 
-            // Try to extract sessionID from JSON line
-            if (!capturedSessionId) {
-              const sessionId = extractSessionId(line)
-              if (sessionId) {
-                capturedSessionId = sessionId
-                logger.info(`  🔗 Captured session ID: ${sessionId}`)
-              }
+            // Write raw JSON to artifact file for debugging
+            if (jsonLogFd !== null) {
+              fs.writeSync(jsonLogFd, line + '\n')
             }
 
-            // Tee output to process.stdout for CI log visibility
-            process.stdout.write(line + '\n')
+            // Parse and format for human-readable output
+            const result = formatJsonEvent(line)
+
+            // Extract sessionId from first event that has it
+            if (result.sessionId && !extractedSessionId) {
+              extractedSessionId = result.sessionId
+            }
+
+            // Display formatted output
+            if (result.display) {
+              process.stderr.write(result.display + '\n')
+            }
           }
         })
       }
@@ -319,11 +387,22 @@ export function runAgentWithFileWatch(
         if (resolved) return
         resolved = true
 
+        // Clear heartbeat timer
+        if (heartbeatTimer) clearInterval(heartbeatTimer)
         if (timeoutTimer) clearTimeout(timeoutTimer)
 
         // Flush remaining stdout buffer
-        if (stdoutBuffer.trim() && currentChild?.stdout) {
-          process.stdout.write(stdoutBuffer + '\n')
+        if (stdoutBuffer.trim()) {
+          if (jsonLogFd !== null) {
+            fs.writeSync(jsonLogFd, stdoutBuffer + '\n')
+          }
+          const lastResult = formatJsonEvent(stdoutBuffer)
+          if (lastResult.sessionId && !extractedSessionId) {
+            extractedSessionId = lastResult.sessionId
+          }
+          if (lastResult.display) {
+            process.stderr.write(lastResult.display + '\n')
+          }
         }
 
         // Kill process if still running
@@ -334,13 +413,32 @@ export function runAgentWithFileWatch(
           }, ms('5s'))
         }
 
-        resolve({ ...result, retries, validationErrors, sessionId: capturedSessionId })
+        // Close JSON log file descriptor
+        if (jsonLogFd !== null) {
+          try {
+            fs.closeSync(jsonLogFd)
+          } catch {
+            /* ignore */
+          }
+          jsonLogFd = null
+        }
+        resolve({ ...result, retries, validationErrors, sessionId: extractedSessionId })
       }
 
       // Parse output file path
       const outputExt = path.extname(outputFile)
       const expectedBase = path.basename(outputFile, outputExt)
       const taskDirForPoll = path.dirname(outputFile)
+
+      // Progress heartbeat - log progress every 30s to detect hangs
+      const heartbeatStartTime = Date.now()
+      heartbeatTimer = setInterval(() => {
+        const elapsed = Date.now() - heartbeatStartTime
+        const stageLabel = stage || 'unknown'
+        logger.info(
+          `  💓 Still working on stage '${stageLabel}' (${elapsed / 1000 / 60} min elapsed)...`,
+        )
+      }, HEARTBEAT_INTERVAL)
 
       // Timeout (uses remaining time to prevent accumulation across retries)
       timeoutTimer = setTimeout(() => {

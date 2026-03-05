@@ -26,6 +26,12 @@ export class GitHubRunner implements RunnerBackend {
   name = 'opencode-github'
 
   spawn(stage: string, prompt: string, env: NodeJS.ProcessEnv, cwd: string): ChildProcess {
+    console.error(
+      '[DEBUG] GitHubRunner spawn called, stage:',
+      stage,
+      'prompt length:',
+      prompt.length,
+    )
     // Use opencode run --agent instead of opencode github run
     // opencode github run does NOT support --agent flag and ignores AGENT env var
     // opencode run supports --agent which loads correct agent from opencode.json
@@ -37,7 +43,7 @@ export class GitHubRunner implements RunnerBackend {
       {
         cwd,
         // Pipe stdout for JSON parsing (sessionID extraction), inherit stderr
-        stdio: ['pipe', 'pipe', 'inherit'],
+        stdio: ['ignore', 'pipe', 'inherit'], // stdin=ignore prevents opencode blocking on stdin read
         env,
       },
     )
@@ -58,7 +64,7 @@ export class LocalRunner implements RunnerBackend {
     return spawn('pnpm', ['ocode', 'run', '--agent', stage, '--format', 'json', prompt], {
       cwd,
       // Pipe stdout for JSON parsing (sessionID extraction), inherit stderr
-      stdio: ['pipe', 'pipe', 'inherit'],
+      stdio: ['ignore', 'pipe', 'inherit'], // stdin=ignore prevents opencode blocking on stdin read
       env: {
         ...env,
         AGENT: stage,

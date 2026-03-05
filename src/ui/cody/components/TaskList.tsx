@@ -12,6 +12,14 @@ import { getGitHubIssueUrl } from '../constants'
 import { MergeButton } from './MergeButton'
 import type { CodyTask, ColumnId } from '../types'
 import { Button } from '@/ui/web/components/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@/ui/web/components/avatar'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/ui/web/components/select'
 import {
   GitPullRequest,
   ExternalLink,
@@ -28,6 +36,7 @@ import {
   Clock,
   AlertCircle,
   RefreshCw,
+  X,
 } from 'lucide-react'
 
 interface TaskListProps {
@@ -39,6 +48,9 @@ interface TaskListProps {
   onExecuteTask?: (taskId: string) => void
   onStopTask?: (task: CodyTask) => void
   onApproveReview?: (task: CodyTask) => Promise<void>
+  onAssign?: (issueNumber: number, assignees: string[]) => void
+  onUnassign?: (issueNumber: number, assignees: string[]) => void
+  collaborators?: { login: string; avatar_url: string }[]
 }
 
 // Row background tint by status
@@ -103,6 +115,9 @@ export function TaskList({
   onExecuteTask,
   onStopTask,
   onApproveReview,
+  onAssign,
+  onUnassign,
+  collaborators = [],
 }: TaskListProps) {
   const handleTaskClick = useCallback(
     (task: CodyTask) => {
@@ -364,6 +379,35 @@ export function TaskList({
                     </span>
                   )}
 
+                  {/* Assignees */}
+                  {task.assignees && task.assignees.length > 0 && (
+                    <div className="flex items-center gap-1">
+                      {task.assignees.map((assignee) => (
+                        <Avatar key={assignee.login} className="h-5 w-5" title={assignee.login}>
+                          <AvatarImage src={assignee.avatar_url} alt={assignee.login} />
+                          <AvatarFallback className="text-[8px]">
+                            {assignee.login[0]?.toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                      ))}
+                      {onUnassign && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onUnassign(
+                              task.issueNumber,
+                              task.assignees!.map((a) => a.login),
+                            )
+                          }}
+                          className="ml-1 p-0.5 rounded-full hover:bg-zinc-600/50 text-zinc-400 hover:text-zinc-200"
+                          title="Unassign all"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                  )}
+
                   <span className="text-xs text-zinc-500 dark:text-zinc-500 text-zinc-400 shrink-0">
                     {formatRelativeTime(task.updatedAt)}
                   </span>
@@ -394,6 +438,45 @@ export function TaskList({
                     >
                       <ExternalLink className="w-4 h-4" />
                     </a>
+                  )}
+
+                  {/* Assignee Picker */}
+                  {onAssign && collaborators.length > 0 && (
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      className="relative"
+                    >
+                      <Select
+                        onValueChange={(value) => {
+                          onAssign(task.issueNumber, [value])
+                        }}
+                      >
+                        <SelectTrigger className="h-7 w-auto px-2 text-xs gap-1">
+                          <SelectValue placeholder="Assign" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {collaborators
+                            .filter((c) => !task.assignees?.some((a) => a.login === c.login))
+                            .map((collaborator) => (
+                              <SelectItem
+                                key={collaborator.login}
+                                value={collaborator.login}
+                                className="flex items-center gap-2"
+                              >
+                                <Avatar className="h-5 w-5">
+                                  <AvatarImage src={collaborator.avatar_url} />
+                                  <AvatarFallback className="text-[8px]">
+                                    {collaborator.login[0]?.toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                                {collaborator.login}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   )}
 
                   {task.column === 'review' && hasPR && onApproveReview && (
