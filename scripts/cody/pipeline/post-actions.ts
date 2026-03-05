@@ -8,7 +8,7 @@
 import { logger } from '../logger'
 import * as fs from 'fs'
 import * as path from 'path'
-import { execSync } from 'child_process'
+import { execFileSync } from 'child_process'
 
 import type { PipelineContext, PostAction, PipelineStateV2 } from '../engine/types'
 import { PipelinePausedError } from '../engine/types'
@@ -257,16 +257,16 @@ export async function executePostAction(
       let diff = ''
       let untracked = ''
       try {
-        diff = execSync('git diff --name-only', { encoding: 'utf-8' }).trim()
-      } catch {
-        // git diff can fail if not in a repo
+        diff = execFileSync('git', ['diff', '--name-only'], { encoding: 'utf-8' }).trim()
+      } catch (error) {
+        logger.warn({ err: error }, 'git diff failed during src validation')
       }
       try {
-        untracked = execSync('git ls-files --others --exclude-standard', {
+        untracked = execFileSync('git', ['ls-files', '--others', '--exclude-standard'], {
           encoding: 'utf-8',
         }).trim()
-      } catch {
-        // Ignore
+      } catch (error) {
+        logger.warn({ err: error }, 'git ls-files failed during src validation')
       }
 
       const allChanged = [...diff.split('\n'), ...untracked.split('\n')]
@@ -289,7 +289,7 @@ export async function executePostAction(
 
       logger.info('   Running tsc...')
       try {
-        execSync('pnpm -s tsc --noEmit', { stdio: 'inherit' })
+        execFileSync('pnpm', ['-s', 'tsc', '--noEmit'], { stdio: 'inherit' })
         logger.info('   ✓ tsc passed')
       } catch {
         throw new Error('TypeScript compilation failed')
@@ -302,7 +302,7 @@ export async function executePostAction(
 
       logger.info('   Running unit tests...')
       try {
-        execSync('pnpm -s test:unit', { stdio: 'inherit' })
+        execFileSync('pnpm', ['-s', 'test:unit'], { stdio: 'inherit' })
         logger.info('   ✓ Unit tests passed')
       } catch (error) {
         // G25: Include output text (3000 chars) for supervisor retry
@@ -349,11 +349,19 @@ export async function executePostAction(
         error?: string
       }
 
+      // Helper: split a simple shell command into program + args for execFileSync
+      // Only handles space-separated tokens (no quoting/glob/pipes)
+      const parseCommand = (cmd: string): { program: string; args: string[] } => {
+        const parts = cmd.split(/\s+/).filter(Boolean)
+        return { program: parts[0], args: parts.slice(1) }
+      }
+
       const runGates = (gates: typeof action.gates): GateResult[] => {
         return gates.map((gate) => {
           try {
             logger.info(`   Running ${gate.name}...`)
-            execSync(gate.command, { stdio: 'pipe' })
+            const { program, args } = parseCommand(gate.command)
+            execFileSync(program, args, { stdio: 'pipe' })
             logger.info(`   ✓ ${gate.name} passed`)
             return { ...gate, passed: true }
           } catch (error) {

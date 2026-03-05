@@ -31,6 +31,9 @@ export const POST_EXIT_DELAY = 500
 /** Maximum retry attempts for failed stages */
 export const MAX_RETRIES = 2
 
+/** Maximum size of stdout buffer to prevent memory leaks (1 MB) */
+export const MAX_STDOUT_BUFFER_SIZE = 1_048_576
+
 /** Default timeout for stages (10 minutes) */
 export const DEFAULT_TIMEOUT = ms('10m')
 
@@ -349,6 +352,19 @@ export function runAgentWithFileWatch(
         // Non-fatal: skip artifact file if can't create
       }
 
+      // Register cleanup handler to prevent FD leak on unexpected exit
+      const cleanupFd = () => {
+        if (jsonLogFd !== null) {
+          try {
+            fs.closeSync(jsonLogFd)
+          } catch {
+            /* ignore */
+          }
+          jsonLogFd = null
+        }
+      }
+      process.on('exit', cleanupFd)
+
       // Handle stdout - parse JSON events and display formatted output
       if (currentChild.stdout) {
         currentChild.stdout.on('data', (data: Buffer) => {
@@ -379,6 +395,16 @@ export function runAgentWithFileWatch(
             if (result.display) {
               process.stderr.write(result.display + '\n')
             }
+          }
+
+          // Cap buffer size to prevent memory leaks on verbose agents
+          if (stdoutBuffer.length > MAX_STDOUT_BUFFER_SIZE) {
+            // Keep only the last portion, breaking at a newline boundary
+            const lastNewline = stdoutBuffer.lastIndexOf('\n', MAX_STDOUT_BUFFER_SIZE / 2)
+            stdoutBuffer =
+              lastNewline > 0
+                ? stdoutBuffer.slice(lastNewline + 1)
+                : stdoutBuffer.slice(-MAX_STDOUT_BUFFER_SIZE / 2)
           }
         })
       }
@@ -422,6 +448,8 @@ export function runAgentWithFileWatch(
           }
           jsonLogFd = null
         }
+        // Remove exit cleanup handler (FD already closed)
+        process.removeListener('exit', cleanupFd)
         resolve({ ...result, retries, validationErrors, sessionId: extractedSessionId })
       }
 

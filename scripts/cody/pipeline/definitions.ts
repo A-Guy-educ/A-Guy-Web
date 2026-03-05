@@ -424,7 +424,7 @@ export function buildPipeline(
     // Full/rerun mode: include both spec and impl stages
     // This ensures the pipeline survives restarts — all stages are present
     // and the state machine efficiently skips completed ones
-    const specOrder = SPEC_ORDER_STANDARD
+    const specOrder = profile === 'standard' ? SPEC_ORDER_STANDARD : SPEC_ORDER_LIGHTWEIGHT
     const implOrder = profile === 'standard' ? IMPL_ORDER_STANDARD : IMPL_ORDER_LIGHTWEIGHT
     const filteredSpecOrder = clarify ? specOrder : specOrder.filter((s) => s !== 'clarify')
     order = [...filteredSpecOrder, ...implOrder]

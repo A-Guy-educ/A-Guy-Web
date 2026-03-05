@@ -9,6 +9,20 @@ import { logger } from './logger'
 import { execFileSync } from 'child_process'
 
 // ============================================================================
+// Synchronous Sleep Helper
+// ============================================================================
+
+/**
+ * Synchronous sleep using Atomics.wait — blocks thread without busy-looping.
+ * Used for retry delays in synchronous fire-and-forget functions.
+ */
+export function syncSleep(ms: number): void {
+  const buf = new SharedArrayBuffer(4)
+  const arr = new Int32Array(buf)
+  Atomics.wait(arr, 0, 0, ms)
+}
+
+// ============================================================================
 // GitHub API Functions
 // ============================================================================
 
@@ -32,10 +46,7 @@ export function postComment(issueNumber: number, body: string): void {
           `postComment attempt 1 failed for issue ${issueNumber}, retrying...`,
         )
         // Brief synchronous delay before retry (2 seconds)
-        const waitUntil = Date.now() + 2000
-        while (Date.now() < waitUntil) {
-          /* busy wait */
-        }
+        syncSleep(2000)
       } else {
         logger.error(
           { err: error },
@@ -438,10 +449,7 @@ export function setLifecycleLabel(issueNumber: number, label: string): void {
           { err: error },
           `setLifecycleLabel attempt 1 failed for issue ${issueNumber}, retrying...`,
         )
-        const waitUntil = Date.now() + 2000
-        while (Date.now() < waitUntil) {
-          /* busy wait */
-        }
+        syncSleep(2000)
       } else {
         logger.error(
           { err: error },
