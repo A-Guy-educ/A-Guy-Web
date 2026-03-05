@@ -35,7 +35,8 @@ import { MessageSquare, Bug, Menu, RefreshCw, Bell, Globe } from 'lucide-react'
 import { useCodyTasks } from '../hooks'
 import { useBrowserNotifications } from '../hooks/useBrowserNotifications'
 import { useMediaQuery } from '@/server/payload/hooks/useMediaQuery'
-import { RateLimitError, NoTokenError, tasksApi } from '../api'
+import { RateLimitError, NoTokenError, tasksApi, codyApi } from '../api'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { EnvironmentToolbar } from './EnvironmentToolbar'
 import { SITE_URLS } from '../constants'
@@ -69,6 +70,33 @@ export function CodyDashboard() {
     refetch,
     dataUpdatedAt,
   } = useCodyTasks({ days })
+
+  const queryClient = useQueryClient()
+
+  // Fetch collaborators for assignee picker
+  const { data: collaborators = [] } = useQuery({
+    queryKey: ['cody-collaborators'],
+    queryFn: () => codyApi.collaborators.list(),
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  })
+
+  // Mutations for assign/unassign
+  const assignMutation = useMutation({
+    mutationFn: ({ issueNumber, assignees }: { issueNumber: number; assignees: string[] }) =>
+      codyApi.tasks.assign(issueNumber, assignees),
+    onSuccess: () => {
+      // Invalidate tasks to refetch with new assignees
+      queryClient.invalidateQueries({ queryKey: ['cody-tasks'] })
+    },
+  })
+
+  const unassignMutation = useMutation({
+    mutationFn: ({ issueNumber, assignees }: { issueNumber: number; assignees: string[] }) =>
+      codyApi.tasks.unassign(issueNumber, assignees),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cody-tasks'] })
+    },
+  })
 
   // Browser notifications
   const {
@@ -415,6 +443,13 @@ export function CodyDashboard() {
                   onExecuteTask={handleExecuteTask}
                   onStopTask={handleStopTask}
                   onApproveReview={handleMerge}
+                  collaborators={collaborators}
+                  onAssign={(issueNumber, assignees) =>
+                    assignMutation.mutate({ issueNumber, assignees })
+                  }
+                  onUnassign={(issueNumber, assignees) =>
+                    unassignMutation.mutate({ issueNumber, assignees })
+                  }
                 />
               )}
             </div>

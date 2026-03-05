@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import ReactMarkdown from 'react-markdown'
-import { Globe } from 'lucide-react'
+import { Globe, Paperclip, X, Image as ImageIcon, FileText, FileCode } from 'lucide-react'
 import { AGENTS, type AgentId } from '../agents'
 import type { CodyTask } from '../types'
 import type { ChatMessage, ChatSession } from '../chat-types'
@@ -26,6 +26,15 @@ interface ToolCall {
   arguments: Record<string, unknown>
 }
 
+interface Attachment {
+  id: string
+  name: string
+  type: string
+  size: number
+  data: string // base64
+  mimeType: string
+}
+
 /** Per-agent conversation history keyed by AgentId */
 type HistoryMap = Record<AgentId, Message[]>
 
@@ -35,19 +44,70 @@ const emptyHistory = (): HistoryMap => ({
   'system-architect': [],
 })
 
+const GLOBAL_CHAT_STORAGE_KEY = 'cody-global-chat'
+
+function loadGlobalHistory(): HistoryMap {
+  if (typeof window === 'undefined') return emptyHistory()
+  try {
+    const stored = localStorage.getItem(GLOBAL_CHAT_STORAGE_KEY)
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      return { ...emptyHistory(), ...parsed }
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  return emptyHistory()
+}
+
+function saveGlobalHistory(history: HistoryMap): void {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem(GLOBAL_CHAT_STORAGE_KEY, JSON.stringify(history))
+  } catch {
+    // Ignore storage errors
+  }
+}
+
 interface CodyChatProps {
   selectedTask?: CodyTask | null
+}
+
+function getFileIcon(mimeType: string) {
+  if (mimeType.startsWith('image/')) return <ImageIcon className="w-4 h-4" />
+  if (
+    mimeType.includes('javascript') ||
+    mimeType.includes('typescript') ||
+    mimeType.includes('json') ||
+    mimeType.includes('html') ||
+    mimeType.includes('css')
+  ) {
+    return <FileCode className="w-4 h-4" />
+  }
+  return <FileText className="w-4 h-4" />
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
 export function CodyChat({ selectedTask }: CodyChatProps) {
   // Global (non-task) chat history
   const [globalHistory, setGlobalHistory] = useState<HistoryMap>(emptyHistory)
 
+  // Load from localStorage after hydration (client-only)
+  useEffect(() => {
+    setGlobalHistory(loadGlobalHistory())
+  }, [])
+
   // Task-scoped messages (loaded from / saved to API)
   const [taskMessages, setTaskMessages] = useState<Message[]>([])
   const [isLoadingTaskChat, setIsLoadingTaskChat] = useState(false)
 
   const [input, setInput] = useState('')
+  const [attachments, setAttachments] = useState<Attachment[]>([])
   const [loading, setLoading] = useState(false)
   const [toolCalls, setToolCalls] = useState<ToolCall[]>([])
   const [selectedAgent, setSelectedAgent] = useState<AgentId>('dashboard-manager')
@@ -55,6 +115,7 @@ export function CodyChat({ selectedTask }: CodyChatProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Determine if we're in task mode or global mode
   const isTaskMode = !!selectedTask
@@ -146,6 +207,14 @@ export function CodyChat({ selectedTask }: CodyChatProps) {
     }
   }, [taskMessages, isTaskMode, loading, saveTaskChat])
 
+  // Save global chat to localStorage when it changes (debounced)
+  useEffect(() => {
+    if (!isTaskMode && globalHistory && !loading) {
+      const timer = setTimeout(() => saveGlobalHistory(globalHistory), 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [globalHistory, isTaskMode, loading])
+
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [])
@@ -195,6 +264,12 @@ export function CodyChat({ selectedTask }: CodyChatProps) {
     if (messages.length === 0) return
     const confirmed = window.confirm('Clear conversation history?')
     if (!confirmed) return
+
+    // Clear global chat from localStorage when clearing history in non-task mode
+    if (!isTaskMode) {
+      saveGlobalHistory(emptyHistory())
+    }
+
     setMessages([])
     setToolCalls([])
 
@@ -211,12 +286,78 @@ export function CodyChat({ selectedTask }: CodyChatProps) {
     }
   }
 
+  // Handle file selection
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    const MAX_SIZE = 5 * 1024 * 1024 // 5MB
+    const newAttachments: Attachment[] = []
+
+    for (const file of Array.from(files)) {
+      if (file.size > MAX_SIZE) {
+        alert(`File "${file.name}" is too large. Maximum size is 5MB.`)
+        continue
+      }
+
+      try {
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader()
+          reader.onload = () => resolve(reader.result as string)
+          reader.onerror = reject
+          reader.readAsDataURL(file)
+        })
+
+        newAttachments.push({
+          id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          data: dataUrl,
+          mimeType: file.type,
+        })
+      } catch (err) {
+        console.error('Failed to read file:', err)
+        alert(`Failed to read file "${file.name}"`)
+      }
+    }
+
+    setAttachments((prev) => [...prev, ...newAttachments])
+
+    // Reset input so same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const removeAttachment = (id: string) => {
+    setAttachments((prev) => prev.filter((a) => a.id !== id))
+  }
+
   const sendMessage = async () => {
-    if (!input.trim() || loading) return
+    if (!input.trim() && attachments.length === 0) return
 
     const userMessage = input.trim()
     setInput('')
-    setMessages((prev) => [...prev, { role: 'user', content: userMessage }])
+    setAttachments([]) // Clear attachments after sending
+
+    // Build message content - include attachments as data URIs
+    let messageContent = userMessage
+    if (attachments.length > 0) {
+      const attachmentDescriptions = attachments
+        .map((a) => {
+          const sizeStr = formatFileSize(a.size)
+          if (a.mimeType.startsWith('image/')) {
+            return `[Image: ${a.name} (${sizeStr})]\n${a.data}`
+          }
+          return `[File: ${a.name} (${a.mimeType}, ${sizeStr})]\n${a.data}`
+        })
+        .join('\n\n')
+
+      messageContent = attachmentDescriptions + (userMessage ? `\n\n${userMessage}` : '')
+    }
+
+    setMessages((prev) => [...prev, { role: 'user', content: messageContent }])
     setLoading(true)
     setToolCalls([])
 
@@ -256,6 +397,11 @@ export function CodyChat({ selectedTask }: CodyChatProps) {
             html_url: string
           }
         }
+        attachments?: Array<{
+          name: string
+          mimeType: string
+          data: string
+        }>
       } = {
         agentId: selectedAgent,
         messages: [
@@ -263,8 +409,17 @@ export function CodyChat({ selectedTask }: CodyChatProps) {
             role: m.role,
             content: m.content,
           })),
-          { role: 'user', content: userMessage },
+          { role: 'user', content: messageContent },
         ],
+      }
+
+      // Include attachments in request
+      if (attachments.length > 0) {
+        requestBody.attachments = attachments.map((a) => ({
+          name: a.name,
+          mimeType: a.mimeType,
+          data: a.data,
+        }))
       }
 
       if (selectedTask) {
@@ -438,6 +593,8 @@ export function CodyChat({ selectedTask }: CodyChatProps) {
     ? `Ask about task #${selectedTask?.issueNumber}...`
     : `Ask ${currentAgent.name}...`
 
+  const canSend = input.trim() || attachments.length > 0
+
   return (
     <div className="flex flex-col h-full border-l bg-background">
       {/* Header with agent and context */}
@@ -600,17 +757,65 @@ export function CodyChat({ selectedTask }: CodyChatProps) {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Attachments preview */}
+      {attachments.length > 0 && (
+        <div className="px-3 pb-2 flex flex-wrap gap-2">
+          {attachments.map((attachment) => (
+            <div
+              key={attachment.id}
+              className="flex items-center gap-1.5 px-2 py-1 bg-muted rounded-md text-xs"
+            >
+              {getFileIcon(attachment.mimeType)}
+              <span className="max-w-[100px] truncate">{attachment.name}</span>
+              <span className="text-muted-foreground">{formatFileSize(attachment.size)}</span>
+              <button
+                onClick={() => removeAttachment(attachment.id)}
+                className="ml-1 hover:text-destructive"
+                disabled={loading}
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Input area */}
       <div className="p-3 border-t">
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-end">
+          {/* Attachment button */}
           <input
-            type="text"
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*,.txt,.md,.json,.js,.ts,.jsx,.tsx,.html,.css,.scss,.yaml,.yml,.sh"
+            onChange={handleFileSelect}
+            className="hidden"
+            disabled={loading}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={loading}
+            className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+            title="Attach files"
+          >
+            <Paperclip className="w-5 h-5" />
+          </button>
+
+          <textarea
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => {
+              setInput(e.target.value)
+              // Auto-expand height
+              e.target.style.height = 'auto'
+              e.target.style.height = `${Math.min(e.target.scrollHeight, 150)}px`
+            }}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
-            className="flex-1 px-3 py-2 text-sm rounded-md border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+            rows={1}
+            className="flex-1 px-3 py-2 text-sm rounded-md border bg-background focus:outline-none focus:ring-1 focus:ring-primary resize-none overflow-hidden"
             disabled={loading}
+            style={{ height: 'auto' }}
           />
           {loading ? (
             <button
@@ -622,7 +827,7 @@ export function CodyChat({ selectedTask }: CodyChatProps) {
           ) : (
             <button
               onClick={sendMessage}
-              disabled={loading || !input.trim()}
+              disabled={!canSend}
               className="px-3 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
             >
               Send

@@ -248,11 +248,20 @@ export function ensureFeatureBranch(
     // Only revert tracked file modifications - don't delete untracked files
     // (Deleting untracked files could remove agent-created source files before they're committed)
     if (process.env.GITHUB_ACTIONS) {
+      // CI mode: clean dirty tracked files from previous failed runs, then checkout branch
       try {
         execFileSync('git', ['checkout', '--', '.'], { cwd, stdio: 'pipe' })
       } catch {
         // Ignore — working tree may already be clean
       }
+      // BUG FIX: Actually checkout the feature branch in CI mode.
+      // Previously this only cleaned dirty state but never switched branches,
+      // causing commits/pushes to land on dev (which has branch protection).
+      execFileSync('git', ['checkout', branchName], { cwd, stdio: 'inherit' })
+      execFileSync('git', ['pull', 'origin', branchName], { cwd, stdio: 'inherit' })
+
+      // Merge default branch to keep feature branch up-to-date
+      mergeDefaultBranch(cwd)
     } else {
       // Local mode: check for uncommitted changes and stash before checkout
       // Track whether we actually stashed to avoid popping unrelated stashes
