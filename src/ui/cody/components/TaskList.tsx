@@ -385,16 +385,28 @@ export function TaskList({
                       {task.previewUrl && (
                         <span className="hidden sm:contents">
                           <Dot />
-                          <a
-                            href={task.previewUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="inline-flex items-center gap-0.5 text-xs text-emerald-400 hover:text-emerald-300 hover:underline shrink-0"
+                          <SimpleTooltip
+                            content={
+                              <div className="space-y-1">
+                                <p className="text-xs font-semibold">🔗 Preview Available</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Click to open the deployed preview in a new tab
+                                </p>
+                              </div>
+                            }
+                            side="bottom"
                           >
-                            <ExternalLink className="w-3 h-3" />
-                            Preview
-                          </a>
+                            <a
+                              href={task.previewUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex items-center gap-0.5 text-xs text-emerald-400 hover:text-emerald-300 hover:underline shrink-0"
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              Preview
+                            </a>
+                          </SimpleTooltip>
                         </span>
                       )}
                     </div>

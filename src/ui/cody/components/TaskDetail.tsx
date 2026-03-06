@@ -913,16 +913,28 @@ export function TaskDetail({
         </a>
       )}
       {task.previewUrl && (
-        <a
-          href={task.previewUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => e.stopPropagation()}
-          className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors shrink-0"
+        <SimpleTooltip
+          content={
+            <div className="space-y-1">
+              <p className="text-xs font-semibold">🔗 Preview Available</p>
+              <p className="text-xs text-muted-foreground">
+                Click to open the deployed preview in a new tab
+              </p>
+            </div>
+          }
+          side="bottom"
         >
-          <ExternalLink className="w-3 h-3" />
-          Preview
-        </a>
+          <a
+            href={task.previewUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors shrink-0"
+          >
+            <ExternalLink className="w-3 h-3" />
+            Preview
+          </a>
+        </SimpleTooltip>
       )}
     </>
   )
@@ -1321,16 +1333,28 @@ export function TaskDetail({
           </a>
         )}
         {task.previewUrl && (
-          <a
-            href={task.previewUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="h-9 inline-flex items-center gap-1.5 px-3 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors shrink-0"
+          <SimpleTooltip
+            content={
+              <div className="space-y-1">
+                <p className="text-xs font-semibold">🔗 Preview Available</p>
+                <p className="text-xs text-muted-foreground">
+                  Click to open the deployed preview in a new tab
+                </p>
+              </div>
+            }
+            side="bottom"
           >
-            <ExternalLink className="w-3.5 h-3.5" />
-            Preview
-          </a>
+            <a
+              href={task.previewUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="h-9 inline-flex items-center gap-1.5 px-3 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors shrink-0"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              Preview
+            </a>
+          </SimpleTooltip>
         )}
 
         {/* Spacer */}
