@@ -392,7 +392,7 @@ export function CodyDashboard({ initialIssueNumber }: CodyDashboardProps) {
   }
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-background overflow-hidden">
       {/* GitHub identity picker — forced on first visit */}
       <GitHubUserPickerDialog
         open={showIdentityPicker}
