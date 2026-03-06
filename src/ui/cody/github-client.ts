@@ -656,6 +656,8 @@ export async function fetchOpenPRs(): Promise<GitHubPR[]> {
 /**
  * Fetch Vercel preview URLs for a set of PR head SHAs.
  * Strategy: 1 bulk call for recent deployments, then 1 status call per matched deployment.
+ * For SHAs not found in the bulk fetch (older deployments beyond the 30-item window),
+ * falls back to individual SHA-based lookups.
  * Returns a Map of SHA -> preview URL.
  */
 export async function fetchDeploymentPreviews(prShas: string[]): Promise<Map<string, string>> {
@@ -699,6 +701,39 @@ export async function fetchDeploymentPreviews(prShas: string[]): Promise<Map<str
         }
       }),
     )
+
+    // 4. For SHAs not found in bulk fetch (older deployments), look up individually.
+    // The bulk fetch only returns the most recent 30 deployments, so older PRs
+    // won't be found. The individual lookup uses the ?sha= query parameter.
+    const missedShas = prShas.filter((sha) => !result.has(sha))
+    if (missedShas.length > 0) {
+      await Promise.all(
+        missedShas.map(async (sha) => {
+          try {
+            const { data: shaDeployments } = await octokit.repos.listDeployments({
+              owner: GITHUB_OWNER,
+              repo: GITHUB_REPO,
+              sha,
+              environment: 'Preview',
+              per_page: 1,
+            })
+            if (shaDeployments.length > 0) {
+              const { data: statuses } = await octokit.repos.listDeploymentStatuses({
+                owner: GITHUB_OWNER,
+                repo: GITHUB_REPO,
+                deployment_id: shaDeployments[0].id,
+                per_page: 1,
+              })
+              if (statuses.length > 0 && statuses[0].environment_url) {
+                result.set(sha, statuses[0].environment_url)
+              }
+            }
+          } catch {
+            // Skip individual failures
+          }
+        }),
+      )
+    }
   } catch (error) {
     console.error('[Cody] Error fetching deployment previews:', error)
   }

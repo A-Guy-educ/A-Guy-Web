@@ -141,10 +141,10 @@ export async function GET(req: NextRequest) {
       const url = previewUrls.get(pr.head.sha)
       if (url) {
         previewByPrNumber.set(pr.number, url)
-      } else {
-        // Fallback: generate Vercel preview URL from PR number
-        previewByPrNumber.set(pr.number, `https://a-m0beir6hv-aguy.vercel.app/`)
       }
+      // No fallback — showing no preview URL is better than a wrong one.
+      // The fetchDeploymentPreviews function now handles SHA-based lookups
+      // for older deployments that fall outside the bulk fetch window.
     }
 
     // Parse issues into tasks with additional metadata
