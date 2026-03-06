@@ -1320,7 +1320,7 @@ export interface Exercise {
   /**
    * Exercise title (for admin reference)
    */
-  title: string;
+  title?: string | null;
   /**
    * Order of exercise within the lesson (lower numbers appear first)
    */
