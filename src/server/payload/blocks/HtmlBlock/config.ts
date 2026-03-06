@@ -17,7 +17,7 @@ export const HtmlBlock: Block = {
           'Enter HTML content. Links must be relative (/path or #anchor). Allowed attributes: class, id, data-* on all tags; href (required), title, class, id, data-* on <a> tags; colspan, rowspan, scope on table cells; plus safe SVG attributes (e.g., viewBox, fill, stroke, d). No style=, target=, or on*= attributes allowed. The <style> tag is allowed.',
         language: 'html',
         components: {
-          Field: '@/ui/admin/HtmlBlock/Field',
+          Field: '@/ui/admin/QuillField#QuillField',
         },
       },
       validate: (value: string | null | undefined): string | true => {
