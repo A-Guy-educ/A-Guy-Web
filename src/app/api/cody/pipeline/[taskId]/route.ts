@@ -10,7 +10,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/ui/cody/auth'
 import {
   findTaskBranch,
+  findBranchByIssueNumber,
   getStatusFromBranch,
+  findStatusOnBranch,
   getStatusFromArtifact,
   fetchWorkflowRuns,
 } from '@/ui/cody/github-client'
@@ -26,12 +28,30 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ task
     // Try branch status first (for running tasks)
     const branch = await findTaskBranch(taskId)
     if (branch) {
-      const status = await getStatusFromBranch(taskId, branch)
+      let status = await getStatusFromBranch(taskId, branch)
+      // Fallback: discover task ID by scanning .tasks/ directory
+      if (!status) {
+        status = await findStatusOnBranch(branch)
+      }
       if (status) {
         return NextResponse.json({
           status,
           source: 'branch',
         })
+      }
+    }
+
+    // If taskId looks like an issue number, try finding branch by issue number
+    if (/^\d+$/.test(taskId)) {
+      const issueBranch = await findBranchByIssueNumber(parseInt(taskId))
+      if (issueBranch) {
+        const status = await findStatusOnBranch(issueBranch)
+        if (status) {
+          return NextResponse.json({
+            status,
+            source: 'branch',
+          })
+        }
       }
     }
 

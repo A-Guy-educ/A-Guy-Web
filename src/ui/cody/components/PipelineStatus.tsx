@@ -25,6 +25,7 @@ const stageIcons: Record<string, string> = {
   pending: '⏳',
   skipped: '⚪',
   'gate-waiting': '🚫',
+  paused: '⏸️',
   timeout: '⏰',
 }
 

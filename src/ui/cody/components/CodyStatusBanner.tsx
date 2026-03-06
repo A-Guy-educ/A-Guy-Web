@@ -39,10 +39,24 @@ function deriveCodyState(tasks: CodyTask[]): CodyState {
     const elapsed = pipeline?.startedAt
       ? formatElapsed(new Date(pipeline.startedAt))
       : formatRelativeTime(working.updatedAt)
+
+    // Derive current stage: use currentStage if available, otherwise infer from stages data
+    let stage = pipeline?.currentStage ?? null
+    if (!stage && pipeline?.stages) {
+      // Find the highest stage that has been touched
+      for (const [stageName, stageData] of Object.entries(pipeline.stages)) {
+        if (stageData.state !== 'pending') {
+          const idx = ALL_STAGES.indexOf(stageName as (typeof ALL_STAGES)[number])
+          const prevIdx = stage ? ALL_STAGES.indexOf(stage as (typeof ALL_STAGES)[number]) : -1
+          if (idx > prevIdx) stage = stageName
+        }
+      }
+    }
+
     return {
       status: 'working',
       task: working,
-      stage: pipeline?.currentStage ?? null,
+      stage,
       elapsed,
     }
   }
@@ -157,14 +171,16 @@ export function CodyStatusBanner({
             const isCompleted = currentStageIdx > i
             const isCurrent = currentStageIdx === i
             const isPending = currentStageIdx < i
+            const isPaused = isCurrent && state.task.pipeline?.state === 'paused'
 
             return (
               <div key={stage} className="flex items-center gap-1 flex-1">
                 <div
                   className={cn(
-                    'h-1.5 flex-1 rounded-full transition-all',
+                    'h-1.5 flex-1 rounded-full transition-all duration-300',
                     isCompleted && 'bg-blue-500',
-                    isCurrent && 'bg-blue-500 animate-pulse',
+                    isCurrent && !isPaused && 'bg-blue-500 animate-pulse',
+                    isPaused && 'bg-yellow-500',
                     isPending && 'bg-muted',
                   )}
                   title={stageLabels[stage] || stage}
@@ -177,6 +193,9 @@ export function CodyStatusBanner({
           <div className="mt-1.5 text-xs text-muted-foreground">
             Stage:{' '}
             <span className="text-foreground">{stageLabels[state.stage] || state.stage}</span>
+            {state.task.pipeline?.state === 'paused' && (
+              <span className="ml-2 text-yellow-400 font-medium">⏸ Awaiting approval</span>
+            )}
           </div>
         )}
       </div>

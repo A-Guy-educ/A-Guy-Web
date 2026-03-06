@@ -100,6 +100,7 @@ export const STAGE_ICONS = {
   pending: '⏳',
   skipped: '⚪',
   'gate-waiting': '🚫',
+  paused: '⏸️',
   timeout: '⏰',
 } as const
 
