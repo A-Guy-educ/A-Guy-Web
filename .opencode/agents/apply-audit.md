@@ -33,7 +33,7 @@ The following paths are **safe to edit**:
 | `.opencode/agents/*.md` | Agent prompts and definitions                                         |
 | `.agents/skills/**`     | Claude Code skills                                                    |
 | `.agents/commands/**`   | Claude Code commands                                                  |
-| `.ai-docs/**`           | AI documentation indexes and schemas                                  |
+| `.ai-docs/quick-reference/**` | AI quick-reference docs (NOT auto-generated indexes)                  |
 | `AGENTS.md`             | Main agent patterns documentation                                     |
 | `DESIGN_SYSTEM.md`      | UI/UX design system                                                   |
 | `.claude/agents/*.md`   | Claude agent definitions                                              |
@@ -100,6 +100,14 @@ Show files edited and their status in the report.
 ```
 
 **STOP CONDITION**: After you write apply-audit.md, you are DONE.
+
+## Efficiency Rule
+
+- Do not narrate reasoning between tool calls.
+- Do not explain what you are about to do — just do it.
+- Do not summarize what you just did — move to the next action.
+- Keep non-tool-call output to a minimum.
+- Output files must still follow their full required format.
 
 ## Rules
 
