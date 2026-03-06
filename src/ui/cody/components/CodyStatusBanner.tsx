@@ -8,7 +8,7 @@
 
 import { useState, useEffect } from 'react'
 import { cn, formatRelativeTime } from '../utils'
-import { stageLabels, formatElapsed } from '../pipeline-utils'
+import { stageLabels, formatElapsed, getStageProgressTooltip } from '../pipeline-utils'
 import type { CodyTask } from '../types'
 import { ALL_STAGES, getGitHubIssueUrl } from '../constants'
 import { Loader2 } from 'lucide-react'
@@ -146,19 +146,23 @@ export function CodyStatusBanner({
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
               className="text-blue-400 hover:underline font-mono"
+              title={`View issue #${state.task.issueNumber} on GitHub`}
             >
               #{state.task.issueNumber}
             </a>{' '}
             <span className="text-muted-foreground truncate">— {state.task.title}</span>
           </span>
           <RefreshIndicator isFetching={isFetching} dataUpdatedAt={dataUpdatedAt} />
-          <span className="text-xs text-muted-foreground font-mono">{state.elapsed}</span>
+          <span className="text-xs text-muted-foreground font-mono" title="Elapsed time">
+            {state.elapsed}
+          </span>
           {onAbort && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => onAbort(state.task.id)}
               className="h-6 text-xs text-muted-foreground hover:text-destructive"
+              title="Abort this task and stop the pipeline"
             >
               Abort
             </Button>
@@ -183,7 +187,12 @@ export function CodyStatusBanner({
                     isPaused && 'bg-yellow-500',
                     isPending && 'bg-muted',
                   )}
-                  title={stageLabels[stage] || stage}
+                  title={getStageProgressTooltip(
+                    stage,
+                    i,
+                    currentStageIdx,
+                    state.task.pipeline?.state,
+                  )}
                 />
               </div>
             )
@@ -217,13 +226,18 @@ export function CodyStatusBanner({
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
             className="text-yellow-400 hover:underline font-mono"
+            title={`View issue #${state.task.issueNumber} on GitHub`}
           >
             #{state.task.issueNumber}
           </a>{' '}
           <span className="text-muted-foreground">— {state.task.title}</span>
         </span>
         <RefreshIndicator isFetching={isFetching} dataUpdatedAt={dataUpdatedAt} />
-        <Badge variant="outline" className="text-yellow-400 border-yellow-500/30">
+        <Badge
+          variant="outline"
+          className="text-yellow-400 border-yellow-500/30"
+          title="This task is waiting for approval before continuing"
+        >
           Gate
         </Badge>
       </div>
@@ -244,13 +258,16 @@ export function CodyStatusBanner({
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
           className="text-red-400 hover:underline font-mono"
+          title={`View issue #${state.task.issueNumber} on GitHub`}
         >
           #{state.task.issueNumber}
         </a>{' '}
         <span className="text-muted-foreground">— {state.task.title}</span>
       </span>
       <RefreshIndicator isFetching={isFetching} dataUpdatedAt={dataUpdatedAt} />
-      <span className="text-xs text-muted-foreground">{state.failedAgo}</span>
+      <span className="text-xs text-muted-foreground" title="Failed at">
+        {state.failedAgo}
+      </span>
     </div>
   )
 }

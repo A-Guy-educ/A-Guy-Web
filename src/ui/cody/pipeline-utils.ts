@@ -2,11 +2,11 @@
  * @fileType utility
  * @domain cody
  * @pattern pipeline-progress
- * @ai-summary Shared pipeline progress utilities — stage labels, progress calculation, elapsed formatting
+ * @ai-summary Shared pipeline progress utilities — stage labels, progress calculation, elapsed formatting, tooltips
  */
 
 import { ALL_STAGES } from './constants'
-import type { CodyPipelineStatus } from './types'
+import type { CodyPipelineStatus, StageStatus } from './types'
 
 /**
  * Human-readable labels for each pipeline stage
@@ -112,4 +112,49 @@ export function formatElapsed(since: Date): string {
   if (minutes < 60) return `${minutes}m ${seconds % 60}s`
   const hours = Math.floor(minutes / 60)
   return `${hours}h ${minutes % 60}m`
+}
+
+/**
+ * Generate a rich tooltip title for a pipeline stage
+ * Includes stage label, state, elapsed time, and error if present
+ */
+export function getStageTooltip(stage: string, stageData?: StageStatus): string {
+  const label = stageLabels[stage] || stage
+  const state = stageData?.state || 'pending'
+  const elapsed = stageData?.elapsed
+  const error = stageData?.error
+
+  let tooltip = `${label} (${state})`
+  if (elapsed) {
+    tooltip += ` - ${formatElapsed(new Date(Date.now() - elapsed * 1000))}`
+  }
+  if (error) {
+    tooltip += `\nError: ${error}`
+  }
+  return tooltip
+}
+
+/**
+ * Generate tooltip for stage progress bar in status banner
+ * Shows stage info relative to current progress
+ */
+export function getStageProgressTooltip(
+  stage: string,
+  stageIndex: number,
+  currentStageIndex: number,
+  pipelineState?: string,
+): string {
+  const label = stageLabels[stage] || stage
+  const isCompleted = currentStageIndex > stageIndex
+  const isCurrent = currentStageIndex === stageIndex
+  const isPaused = isCurrent && pipelineState === 'paused'
+
+  let status = isCompleted
+    ? '✓ Completed'
+    : currentStageIndex < stageIndex
+      ? '○ Pending'
+      : '● In Progress'
+  if (isPaused) status = '⏸ Paused'
+
+  return `${label}: ${status}`
 }

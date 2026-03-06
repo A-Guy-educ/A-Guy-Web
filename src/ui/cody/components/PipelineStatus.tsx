@@ -7,11 +7,12 @@
 'use client'
 
 import { useState } from 'react'
-import { cn, formatDuration } from '../utils'
+import { cn } from '../utils'
 import type { CodyPipelineStatus, StageStatus } from '../types'
 import { SPEC_STAGES, IMPL_STAGES } from '../constants'
 import { StageErrorDetail } from './StageErrorDetail'
 import { ChevronDown, ChevronRight } from 'lucide-react'
+import { getStageTooltip } from '../pipeline-utils'
 
 interface PipelineStatusProps {
   status: CodyPipelineStatus
@@ -131,7 +132,6 @@ interface StageIndicatorProps {
 function StageIndicator({ stage, data, expandable, expanded, onToggle }: StageIndicatorProps) {
   const state = data?.state || 'pending'
   const icon = stageIcons[state] || '⏳'
-  const elapsed = data?.elapsed
   const isFailed = state === 'failed' || state === 'timeout'
 
   return (
@@ -142,7 +142,7 @@ function StageIndicator({ stage, data, expandable, expanded, onToggle }: StageIn
         isFailed && 'bg-red-500/20 cursor-pointer hover:bg-red-500/30',
         state === 'completed' && 'bg-green-500/20',
       )}
-      title={`${stage}: ${state}${elapsed ? ` (${formatDuration(elapsed)})` : ''}${data?.error ? `\n${data.error}` : ''}`}
+      title={getStageTooltip(stage, data)}
       onClick={expandable ? onToggle : undefined}
     >
       <div className="flex items-center gap-1">

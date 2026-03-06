@@ -10,7 +10,7 @@ import { useState, useEffect } from 'react'
 import { cn } from '../utils'
 import type { CodyTask } from '../types'
 import { ALL_STAGES } from '../constants'
-import { calculatePipelineProgress, stageLabels, formatElapsed } from '../pipeline-utils'
+import { calculatePipelineProgress, formatElapsed, getStageTooltip } from '../pipeline-utils'
 import { Loader2, Timer, Pause, ExternalLink } from 'lucide-react'
 
 interface MiniPipelineProgressProps {
@@ -220,7 +220,7 @@ function BarVariant({
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
             className="text-zinc-500 hover:text-blue-400 transition-colors"
-            title="View workflow run"
+            title="View GitHub Actions workflow run"
           >
             <ExternalLink className="w-2.5 h-2.5" />
           </a>
@@ -305,7 +305,7 @@ function BarVariant({
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
           className="text-zinc-500 hover:text-blue-400 transition-colors"
-          title="View workflow run"
+          title="View GitHub Actions workflow run"
         >
           <ExternalLink className="w-2.5 h-2.5" />
         </a>
@@ -356,7 +356,7 @@ function StageDots({ currentIndex, state }: { currentIndex: number; state: 'runn
                 'bg-yellow-400 shadow-[0_0_4px_rgba(250,204,21,0.5)]',
               isPending && 'bg-zinc-600/60',
             )}
-            title={stageLabels[stage] || stage}
+            title={getStageTooltip(stage)}
           />
         )
       })}
