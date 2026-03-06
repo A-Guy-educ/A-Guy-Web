@@ -626,7 +626,9 @@ export function TaskDetail({
   // --- Shared markdown components ---
   const markdownComponents = {
     p: ({ children }: { children?: React.ReactNode }) => (
-      <p className="mb-3 last:mb-0 text-base text-muted-foreground leading-relaxed">{children}</p>
+      <p className="mb-3 last:mb-0 text-base text-muted-foreground leading-relaxed break-words">
+        {children}
+      </p>
     ),
     a: ({ href, children }: { href?: string; children?: React.ReactNode }) => (
       <a
@@ -649,11 +651,9 @@ export function TaskDetail({
       const isBlock = className?.includes('language-')
       if (isBlock) {
         return (
-          <pre className="bg-muted/50 p-3 rounded-md text-sm overflow-x-auto my-3">
-            <code className={className} {...props}>
-              {children}
-            </code>
-          </pre>
+          <code className={className} {...props}>
+            {children}
+          </code>
         )
       }
       return (
@@ -662,6 +662,11 @@ export function TaskDetail({
         </code>
       )
     },
+    pre: ({ children }: { children?: React.ReactNode }) => (
+      <pre className="bg-muted/50 p-3 rounded-md text-sm overflow-x-auto my-3 max-w-full">
+        {children}
+      </pre>
+    ),
     ul: ({ children }: { children?: React.ReactNode }) => (
       <ul className="list-disc pl-6 space-y-1 text-base text-muted-foreground my-2">{children}</ul>
     ),
@@ -671,7 +676,7 @@ export function TaskDetail({
       </ol>
     ),
     li: ({ children }: { children?: React.ReactNode }) => (
-      <li className="text-base text-muted-foreground leading-relaxed">{children}</li>
+      <li className="text-base text-muted-foreground leading-relaxed break-words">{children}</li>
     ),
     h1: ({ children }: { children?: React.ReactNode }) => (
       <h1 className="text-xl font-bold text-foreground mt-6 mb-2 first:mt-0 border-b border-border pb-1">
@@ -802,8 +807,8 @@ export function TaskDetail({
   const tabContent = (
     <>
       {effectiveTab === 'description' && hasDescription && (
-        <div className="p-5 md:p-6 overflow-y-auto h-full">
-          <div className="max-w-3xl">
+        <div className="p-5 md:p-6 overflow-y-auto overflow-x-hidden h-full">
+          <div className="max-w-3xl min-w-0">
             <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
               {task.body!}
             </ReactMarkdown>
