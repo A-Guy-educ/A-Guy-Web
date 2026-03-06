@@ -1363,67 +1363,57 @@ export async function fetchPRCIStatus(
   const octokit = getOctokit()
 
   try {
-    // 1. Get the PR to find head SHA and mergeable state
+    // 1. Get the PR — GitHub computes mergeable state for us
     const { data: pr } = await octokit.pulls.get({
       owner: GITHUB_OWNER,
       repo: GITHUB_REPO,
       pull_number: prNumber,
     })
 
-    const sha = pr.head.sha
-    // mergeable state no longer checked - just CI status determines mergeability
+    // 2. Map GitHub's mergeable_state to our CI status.
+    //    GitHub's mergeable_state accounts for ALL required checks + branch protection + conflicts.
+    //    See: https://docs.github.com/en/rest/pulls/pulls#get-a-pull-request
+    //    Values: "clean" | "dirty" | "unstable" | "blocked" | "behind" | "unknown"
+    const ghState = pr.mergeable_state
+    let ciStatus: 'pending' | 'success' | 'failure' | 'running'
 
-    // 2. Get check runs for the head SHA
-    const { data: checkRuns } = await octokit.checks.listForRef({
-      owner: GITHUB_OWNER,
-      repo: GITHUB_REPO,
-      ref: sha,
-    })
-
-    // 3. Determine overall CI status — only from actual CI check runs,
-    //    ignoring Cody pipeline runs (parse, orchestrate, create-pr, etc.)
-    const CI_CHECK_NAMES = new Set([
-      'Fast Gate',
-      'Integration Tests',
-      'Build',
-      'Comment on PR with Preview URL',
-      'Validate Preview Deployment',
-    ])
-    const relevantRuns = checkRuns.check_runs.filter((run) => CI_CHECK_NAMES.has(run.name))
-
-    let ciStatus: 'pending' | 'success' | 'failure' | 'running' = 'pending'
-
-    if (relevantRuns.length === 0) {
-      ciStatus = 'pending'
-    } else {
-      const hasFailure = relevantRuns.some(
-        (run) => run.conclusion === 'failure' || run.conclusion === 'timed_out',
-      )
-      const hasRunning = relevantRuns.some(
-        (run) => run.status === 'in_progress' || run.status === 'queued',
-      )
-      const allSuccess = relevantRuns.every(
-        (run) =>
-          run.conclusion === 'success' ||
-          run.conclusion === 'skipped' ||
-          run.conclusion === 'cancelled',
-      )
-
-      if (hasFailure) {
-        ciStatus = 'failure'
-      } else if (hasRunning) {
-        ciStatus = 'running'
-      } else if (allSuccess) {
+    switch (ghState) {
+      case 'clean':
+        // All checks passed, no conflicts, meets branch protection — ready to merge
         ciStatus = 'success'
-      }
+        break
+      case 'unstable':
+        // Some non-required checks failed, but required ones passed — still mergeable
+        ciStatus = 'success'
+        break
+      case 'blocked':
+        // Required checks haven't passed yet or awaiting review — still running or pending
+        ciStatus = 'running'
+        break
+      case 'behind':
+        // Branch is behind base — needs update but may be mergeable
+        ciStatus = 'running'
+        break
+      case 'dirty':
+        // Merge conflicts exist
+        ciStatus = 'failure'
+        break
+      case 'unknown':
+        // GitHub is computing — retry soon
+        ciStatus = 'pending'
+        break
+      default:
+        ciStatus = 'pending'
     }
 
-    // Mergeable when CI passes (applies to all PRs including publish PRs)
-    const mergeable = ciStatus === 'success'
+    // 3. Mergeable = GitHub says it can be merged AND state is clean/unstable
+    //    pr.mergeable checks for conflicts, ghState checks for CI + branch protection
+    const mergeable = pr.mergeable === true && (ghState === 'clean' || ghState === 'unstable')
+
     const result = { ciStatus, mergeable }
 
-    // Short cache — CI status changes frequently
-    setCache(cacheKey, 30_000, result) // 30 seconds
+    // Short cache — 15s to stay responsive while CI runs
+    setCache(cacheKey, 15_000, result)
     return result
   } catch (error) {
     console.error('[Cody] Error fetching PR CI status:', error)
