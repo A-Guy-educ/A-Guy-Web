@@ -20,8 +20,6 @@ export const stageLabels: Record<string, string> = {
   build: 'Building',
   commit: 'Committing',
   verify: 'Verifying',
-  auditor: 'Auditing',
-  'apply-audit': 'Applying Audit',
   pr: 'Creating PR',
   autofix: 'Auto-fixing',
 }
@@ -38,8 +36,6 @@ export const stageMaxDurations: Record<string, number> = {
   build: 45 * 60 * 1000,
   commit: 5 * 60 * 1000,
   verify: 15 * 60 * 1000,
-  auditor: 15 * 60 * 1000,
-  'apply-audit': 10 * 60 * 1000,
   pr: 5 * 60 * 1000,
   autofix: 15 * 60 * 1000,
 }

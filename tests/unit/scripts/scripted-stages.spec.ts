@@ -5,7 +5,6 @@
  * @ai-summary Tests for scripted-stages.ts: buildPrTitle (heading strip), buildPrBody (Closes # link), runPrStage (issueNumber wiring), and audit-history path in STAGE_CONTEXT_FILES
  */
 
-import * as path from 'path'
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // ============================================================================
@@ -92,30 +91,6 @@ function setupFiles(files: Record<string, string>) {
   })
   fsMocks.writeFileSync.mockImplementation(() => undefined)
 }
-
-// ============================================================================
-// Tests: STAGE_CONTEXT_FILES — audit-history path
-// ============================================================================
-
-describe('STAGE_CONTEXT_FILES audit-history path', () => {
-  it('auditor context includes ../audit-history.json (not task-scoped)', async () => {
-    const { STAGE_CONTEXT_FILES } = await import('../../../scripts/cody/stage-prompts')
-
-    expect(STAGE_CONTEXT_FILES.auditor).toContain('../audit-history.json')
-    expect(STAGE_CONTEXT_FILES.auditor).not.toContain('audit-history.json')
-  })
-
-  it('resolves to .tasks/audit-history.json when joined with taskDir', async () => {
-    const { STAGE_CONTEXT_FILES } = await import('../../../scripts/cody/stage-prompts')
-
-    const taskDir = '.tasks/260222-auto-37'
-    const auditEntry = STAGE_CONTEXT_FILES.auditor.find((f) => f.includes('audit-history'))!
-
-    expect(auditEntry).toBeDefined()
-    const resolved = path.normalize(`${taskDir}/${auditEntry}`)
-    expect(resolved).toMatch(/^\.tasks[/\\]audit-history\.json$/)
-  })
-})
 
 // ============================================================================
 // Tests: buildPrTitle — conventional commit prefix deduplication

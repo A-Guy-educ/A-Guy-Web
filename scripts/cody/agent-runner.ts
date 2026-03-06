@@ -47,8 +47,6 @@ export const STAGE_TIMEOUTS: Record<string, number> = {
   build: ms('45m'),
   'plan-gap': ms('15m'),
   verify: ms('10m'),
-  auditor: ms('5m'),
-  'apply-audit': ms('10m'),
   pr: ms('5m'),
   autofix: ms('5m'),
 }

@@ -323,29 +323,6 @@ export async function executePostAction(
       break
     }
 
-    case 'commit-audit-history': {
-      // G18: Skip if localOnly and not in local mode
-      if (!ctx.input.local) {
-        return
-      }
-      if (ctx.input.dryRun) {
-        return
-      }
-
-      const auditHistoryPath = path.join(process.cwd(), '.tasks', 'audit-history.json')
-      if (fs.existsSync(auditHistoryPath)) {
-        commitPipelineFiles({
-          taskDir: '.tasks',
-          taskId: 'audit-history',
-          message: `audit: update audit history from ${ctx.taskId}`,
-          stagingStrategy: 'task-only',
-          push: false,
-          dryRun: ctx.input.dryRun,
-        })
-      }
-      break
-    }
-
     case 'run-quality-with-autofix': {
       if (ctx.input.dryRun) return
 
