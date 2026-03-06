@@ -59,11 +59,6 @@ function resolveFromStage(failedStage: string): string {
     return 'build'
   }
 
-  // Apply-audit failures → rerun from auditor
-  if (failedStage === 'apply-audit') {
-    return 'auditor'
-  }
-
   // Autofix failures → rerun from build
   if (failedStage === 'autofix') {
     return 'build'

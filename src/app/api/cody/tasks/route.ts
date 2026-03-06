@@ -7,7 +7,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server'
 
-import { fetchIssues, fetchWorkflowRuns, fetchOpenPRs, fetchDeploymentPreviews, findBranchByIssueNumber, getStatusFromBranch, createIssue, updateIssue, uploadIssueAttachment } from '@/ui/cody/github-client'
+import { fetchIssues, fetchWorkflowRuns, fetchOpenPRs, fetchDeploymentPreviews, findBranchByIssueNumber, getStatusFromBranch, findStatusOnBranch, createIssue, updateIssue, uploadIssueAttachment } from '@/ui/cody/github-client'
 import type { CodyTask, ColumnId, GitHubIssue, GitHubPR, WorkflowRun } from '@/ui/cody/types'
 
 // Map GitHub issue state to column using agent labels, workflow runs, and PR status
@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const board = searchParams.get('board') || 'all'
   const since = searchParams.get('since') || undefined // ISO date string, e.g., "2026-02-01"
-  const includeDetails = searchParams.get('includeDetails') !== 'false' // whether to fetch PRs/branches
+  // includeDetails param is no longer needed — pipeline data is auto-fetched for active tasks
 
   // Date filter presets
   let sinceDate: string | undefined = since
@@ -154,13 +154,35 @@ export async function GET(req: NextRequest) {
           prsByIssueNumber.get(issue.number) ??
           null
 
-        // Only fetch branch/pipeline details if requested (expensive: N API calls per issue)
+        // Fetch pipeline status for tasks with active workflows or pipeline labels.
+        // Only attempts branch discovery for tasks likely to have pipeline data
+        // (has an active workflow run or cody:building/cody:planning labels).
         let pipelineStatus = undefined
-        if (includeDetails && issue.number) {
-          // Find branch by issue number (works with any branch naming convention)
+        const labelNames = issue.labels.map(l => l.name.toLowerCase())
+        // Fetch pipeline for tasks that are actively building, recently failed, or paused at a gate
+        const isLikelyActive =
+          workflowRun?.status === 'in_progress' ||
+          workflowRun?.status === 'queued' ||
+          labelNames.includes('cody:building') ||
+          labelNames.includes('cody:planning') ||
+          labelNames.includes('cody:failed') ||
+          labelNames.includes('hard-stop') ||
+          labelNames.includes('risk-gated')
+
+        if (isLikelyActive && issue.number) {
           const branch = await findBranchByIssueNumber(issue.number)
           if (branch) {
-            const status = await getStatusFromBranch(taskId || `issue-${issue.number}`, branch)
+            // First try with known taskId from title brackets (fast, exact path)
+            let status: Awaited<ReturnType<typeof getStatusFromBranch>> = null
+            if (taskId) {
+              status = await getStatusFromBranch(taskId, branch)
+            }
+            // Fallback: discover task ID by scanning .tasks/ directory on the branch.
+            // Pipeline generates random task IDs (e.g., 260306-auto-330) that don't
+            // match the issue number, so we need to discover the actual directory.
+            if (!status) {
+              status = await findStatusOnBranch(branch)
+            }
             if (status) pipelineStatus = status
           }
         }
@@ -168,7 +190,6 @@ export async function GET(req: NextRequest) {
         const column = getColumnForIssue(issue, workflowRun ?? undefined, pr ?? null)
 
         // Derive gate type from labels (set by pipeline)
-        const labelNames = issue.labels.map(l => l.name.toLowerCase())
         const gateType = labelNames.includes('hard-stop') 
           ? 'hard-stop' 
           : labelNames.includes('risk-gated')
@@ -276,7 +297,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json()
-    const { title, body: issueBody, mode, labels, assignees, attachments } = body
+    const { title, body: issueBody, mode, labels, assignees, attachments, actorLogin } = body
 
     if (!title) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 })
@@ -290,9 +311,10 @@ export async function POST(req: NextRequest) {
     const fullTitle = title.startsWith('[') ? title : `${taskIdPrefix}${title}`
 
     // Create the issue in GitHub
+    const actorNote = actorLogin ? `\n\n---\n_Created by @${actorLogin} via Cody dashboard_` : ''
     const issue = await createIssue({
       title: fullTitle,
-      body: issueBody || '',
+      body: (issueBody || '') + actorNote,
       labels: labels || [],
       assignees: assignees || [],
     })

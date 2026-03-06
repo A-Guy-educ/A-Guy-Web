@@ -284,7 +284,7 @@ export function initStatus(input: CodyInput): CodyPipelineStatus {
 /**
  * Update stage status with read-modify-write to status.json.
  *
- * Concurrency safety: parallel stages (e.g., auditor + pr) call this from
+ * Concurrency safety: parallel stages (e.g., verify + pr) call this from
  * separate promise callbacks, but Node.js is single-threaded — only one
  * callback runs at a time, so read-modify-write is atomic on the event loop.
  * The atomic writeStatus (write-to-tmp + rename) guards against corruption

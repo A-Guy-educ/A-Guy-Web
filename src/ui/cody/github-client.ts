@@ -201,6 +201,36 @@ export async function findBranchByIssueNumber(
 // ============ Status JSON Access ============
 
 /**
+ * Normalize pipeline status data from v2 format.
+ * - Derives `currentStage` from stages data if not set (finds the running stage)
+ * - Maps `cursor` field to `currentStage` as fallback
+ */
+function normalizePipelineStatus(status: CodyPipelineStatus): CodyPipelineStatus {
+  let currentStage = status.currentStage
+
+  // If currentStage is not set, derive it from stages data
+  if (!currentStage && status.stages) {
+    // Find the stage that is currently running
+    const runningEntry = Object.entries(status.stages).find(([, data]) => data.state === 'running')
+    if (runningEntry) {
+      currentStage = runningEntry[0]
+    }
+    // If no running stage but pipeline is paused, find the paused stage
+    if (!currentStage && status.state === 'paused') {
+      const pausedEntry = Object.entries(status.stages).find(([, data]) => data.state === 'paused')
+      if (pausedEntry) {
+        currentStage = pausedEntry[0]
+      }
+    }
+  }
+
+  return {
+    ...status,
+    currentStage,
+  }
+}
+
+/**
  * Read status.json from a branch
  */
 export async function getStatusFromBranch(
@@ -223,13 +253,59 @@ export async function getStatusFromBranch(
 
     if ('content' in data && data.content) {
       const content = Buffer.from(data.content, 'base64').toString('utf-8')
-      const status = JSON.parse(content) as CodyPipelineStatus
+      const raw = JSON.parse(content) as CodyPipelineStatus
+      const status = normalizePipelineStatus(raw)
       setCache(cacheKey, CACHE_TTL.pipeline, status)
       return status
     }
   } catch (error: any) {
     if (error.status !== 404) {
       console.error('[Cody] Error fetching status from branch:', error)
+    }
+  }
+
+  return null
+}
+
+/**
+ * Discover and read status.json from a branch by scanning the .tasks/ directory.
+ * The pipeline creates task IDs with random counters (e.g., 260306-auto-330) that
+ * don't match the issue number, so we can't guess the task ID from the issue.
+ * Instead, we list .tasks/ on the branch and find the newest YYMMDD-prefixed directory.
+ */
+export async function findStatusOnBranch(branch: string): Promise<CodyPipelineStatus | null> {
+  const cacheKey = `status:discover:${branch}`
+  const cached = getCached<CodyPipelineStatus>(cacheKey)
+  if (cached) return cached
+
+  const octokit = getOctokit()
+
+  try {
+    // List .tasks/ directory on the branch
+    const { data } = await octokit.repos.getContent({
+      owner: GITHUB_OWNER,
+      repo: GITHUB_REPO,
+      path: '.tasks',
+      ref: branch,
+    })
+
+    if (!Array.isArray(data)) return null
+
+    // Find directories matching YYMMDD-* pattern (pipeline task IDs)
+    const taskDirs = data
+      .filter((item: any) => item.type === 'dir' && TASK_ID_REGEX.test(item.name))
+      .map((item: any) => item.name)
+      .sort()
+      .reverse() // Newest first (YYMMDD sorts chronologically)
+
+    // Try the newest task directory first (check up to 3)
+    for (const taskDir of taskDirs.slice(0, 3)) {
+      const status = await getStatusFromBranch(taskDir, branch)
+      if (status) return status
+    }
+  } catch (error: any) {
+    if (error.status !== 404) {
+      console.error('[Cody] Error listing .tasks/ on branch:', error)
     }
   }
 

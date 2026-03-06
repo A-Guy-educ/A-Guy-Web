@@ -288,7 +288,7 @@
       ],
       "relativeUrl": "scripts/cody/README.md",
       "category": "scripts",
-      "wordCount": 553
+      "wordCount": 534
     },
     {
       "path": "scripts/README.md",
@@ -549,7 +549,7 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-03-01T21:02:41.131Z",
+    "generatedAt": "2026-03-06T08:44:56.382Z",
     "totalReadmes": 32,
     "categories": {
       ".claude": 1,
