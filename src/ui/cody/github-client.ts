@@ -1387,8 +1387,15 @@ export async function fetchPRCIStatus(
         ciStatus = 'success'
         break
       case 'blocked':
-        // Required checks haven't passed yet or awaiting review — still running or pending
-        ciStatus = 'running'
+        // GitHub returns 'blocked' when branch protection has required checks that haven't
+        // completed, OR when there's NO branch protection at all (can't evaluate as 'clean').
+        // Since this repo has no branch protection, 'blocked' is the steady state for all PRs.
+        // Fall back to checking actual commit status to determine CI state.
+        if (pr.mergeable === true) {
+          ciStatus = await resolveCommitCIStatus(octokit, pr.head.sha)
+        } else {
+          ciStatus = 'running'
+        }
         break
       case 'behind':
         // Branch is behind base — needs update but may be mergeable
@@ -1406,9 +1413,10 @@ export async function fetchPRCIStatus(
         ciStatus = 'pending'
     }
 
-    // 3. Mergeable = GitHub says it can be merged AND state is clean/unstable
-    //    pr.mergeable checks for conflicts, ghState checks for CI + branch protection
-    const mergeable = pr.mergeable === true && (ghState === 'clean' || ghState === 'unstable')
+    // 3. Mergeable = GitHub says no conflicts AND CI is in a good state
+    const mergeable =
+      pr.mergeable === true &&
+      (ciStatus === 'success' || ghState === 'clean' || ghState === 'unstable')
 
     const result = { ciStatus, mergeable }
 
@@ -1418,5 +1426,63 @@ export async function fetchPRCIStatus(
   } catch (error) {
     console.error('[Cody] Error fetching PR CI status:', error)
     return { ciStatus: 'pending', mergeable: false }
+  }
+}
+
+/**
+ * Check the combined commit status and check runs for a given SHA.
+ * Used as fallback when mergeable_state is 'blocked' (no branch protection configured).
+ */
+async function resolveCommitCIStatus(
+  octokit: Octokit,
+  sha: string,
+): Promise<'pending' | 'success' | 'failure' | 'running'> {
+  try {
+    // Get combined status (covers status API integrations like Vercel)
+    const { data: combinedStatus } = await octokit.repos.getCombinedStatusForRef({
+      owner: GITHUB_OWNER,
+      repo: GITHUB_REPO,
+      ref: sha,
+    })
+
+    // Get check runs (covers GitHub Actions checks)
+    const { data: checkRuns } = await octokit.checks.listForRef({
+      owner: GITHUB_OWNER,
+      repo: GITHUB_REPO,
+      ref: sha,
+      per_page: 100,
+    })
+
+    const hasChecks = combinedStatus.statuses.length > 0 || checkRuns.check_runs.length > 0
+    if (!hasChecks) {
+      // No CI checks at all — consider it ready (nothing to wait for)
+      return 'success'
+    }
+
+    // Check for any failures
+    const statusFailed = combinedStatus.state === 'failure'
+    const checkRunFailed = checkRuns.check_runs.some(
+      (cr) => cr.conclusion === 'failure' || cr.conclusion === 'timed_out',
+    )
+
+    if (statusFailed || checkRunFailed) {
+      return 'failure'
+    }
+
+    // Check if any are still running/pending
+    const statusPending = combinedStatus.state === 'pending'
+    const checkRunPending = checkRuns.check_runs.some(
+      (cr) => cr.status === 'queued' || cr.status === 'in_progress',
+    )
+
+    if (statusPending || checkRunPending) {
+      return 'running'
+    }
+
+    // All passed
+    return 'success'
+  } catch (error) {
+    console.error('[Cody] Error resolving commit CI status:', error)
+    return 'pending'
   }
 }
