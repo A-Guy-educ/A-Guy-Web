@@ -12,14 +12,10 @@ import { apiValidationError } from '@/server/api/responses'
 import { requireAuth } from '@/ui/cody/auth'
 import {
   findTaskBranch,
-<<<<<<< HEAD
-=======
   findBranchByIssueNumber,
   getStatusFromBranch,
   findStatusOnBranch,
->>>>>>> origin/dev
   getStatusFromArtifact,
-  getStatusFromBranch,
   fetchWorkflowRuns,
 } from '@/ui/cody/github-client'
 
