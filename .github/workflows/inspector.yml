@@ -38,7 +38,8 @@ jobs:
       - name: Run Inspector
         run: pnpm tsx scripts/inspector/index.ts
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ github.token }}
+          GH_PAT: ${{ secrets.GH_PAT }}
           REPO: ${{ github.repository }}
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
           WATCHDOG_ISSUE: ${{ vars.WATCHDOG_ISSUE }}

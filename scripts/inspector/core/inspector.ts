@@ -28,7 +28,8 @@ export async function runInspector(config: InspectorConfig): Promise<InspectorRe
 
   // Create GitHub client
   const token = process.env.GH_TOKEN || ''
-  const github = createGitHubClient(repo, token)
+  const patToken = process.env.GH_PAT || undefined
+  const github = createGitHubClient(repo, token, patToken)
 
   // Create logger
   const logger = pino({
