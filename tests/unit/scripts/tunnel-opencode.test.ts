@@ -1,7 +1,7 @@
 /**
  * Unit tests for tunnel-opencode script
  *
- * Validates the migration from ngrok to localtunnel
+ * Validates the tunnel script uses cloudflared
  */
 import fs from 'fs'
 import path from 'path'
@@ -9,7 +9,7 @@ import { describe, expect, it } from 'vitest'
 
 const ROOT = path.resolve(__dirname, '../../..')
 
-describe('tunnel-opencode migration to localtunnel', () => {
+describe('tunnel-opencode with cloudflared', () => {
   describe('package.json', () => {
     const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf-8'))
 
@@ -20,29 +20,21 @@ describe('tunnel-opencode migration to localtunnel', () => {
     it('tunnel:ocode script should delegate to TypeScript file', () => {
       expect(pkg.scripts['tunnel:ocode']).toContain('tunnel-opencode.ts')
     })
-
-    it('should have localtunnel in devDependencies', () => {
-      expect(pkg.devDependencies).toHaveProperty('localtunnel')
-    })
   })
 
   describe('scripts/tunnel-opencode.ts', () => {
     const content = fs.readFileSync(path.join(ROOT, 'scripts/tunnel-opencode.ts'), 'utf-8')
 
-    it('should not import or reference ngrok', () => {
+    it('should not reference ngrok', () => {
       expect(content).not.toContain('ngrok')
     })
 
-    it('should import localtunnel', () => {
-      expect(content).toContain('localtunnel')
+    it('should not reference localtunnel', () => {
+      expect(content).not.toContain('localtunnel')
     })
 
-    it('should use LT_SUBDOMAIN env var', () => {
-      expect(content).toContain('LT_SUBDOMAIN')
-    })
-
-    it('should not reference NGROK_DOMAIN env var', () => {
-      expect(content).not.toContain('NGROK_DOMAIN')
+    it('should use cloudflared', () => {
+      expect(content).toContain('cloudflared')
     })
 
     it('should export isPortInUse for testability', () => {
@@ -53,17 +45,9 @@ describe('tunnel-opencode migration to localtunnel', () => {
       expect(content).toContain('SIGINT')
       expect(content).toContain('SIGTERM')
     })
-  })
 
-  describe('.env.example', () => {
-    const envExample = fs.readFileSync(path.join(ROOT, '.env.example'), 'utf-8')
-
-    it('should include LT_SUBDOMAIN', () => {
-      expect(envExample).toContain('LT_SUBDOMAIN')
-    })
-
-    it('should not reference NGROK_DOMAIN', () => {
-      expect(envExample).not.toContain('NGROK_DOMAIN')
+    it('should display OpenCode credentials', () => {
+      expect(content).toContain('OPENCODE_SERVER_PASSWORD')
     })
   })
 })

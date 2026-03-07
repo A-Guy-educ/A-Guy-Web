@@ -1,19 +1,8 @@
 import 'dotenv/config'
 import { execSync, spawn } from 'child_process'
-import localtunnel from 'localtunnel'
 
 const PORT = 3003
-const SUBDOMAIN = process.env.LT_SUBDOMAIN || undefined
 const PASSWORD = process.env.OPENCODE_SERVER_PASSWORD
-
-console.log(`🚀 Starting OpenCode tunnel on port ${PORT}`)
-if (SUBDOMAIN) {
-  console.log(`🌐 Requested subdomain: ${SUBDOMAIN}`)
-}
-if (PASSWORD) {
-  console.log(`🔒 Password: ${PASSWORD}`)
-}
-console.log('')
 
 export function isPortInUse(port: number): boolean {
   try {
@@ -25,6 +14,9 @@ export function isPortInUse(port: number): boolean {
 }
 
 async function start(): Promise<void> {
+  console.log(`🚀 Starting OpenCode tunnel on port ${PORT}`)
+  console.log('')
+
   if (!isPortInUse(PORT)) {
     console.log(`⚠️  Starting OpenCode on port ${PORT}...`)
     spawn('opencode', ['web', '--port', String(PORT)], {
@@ -36,28 +28,44 @@ async function start(): Promise<void> {
     console.log(`✅ OpenCode already running on port ${PORT}`)
   }
 
-  const tunnel = await localtunnel({ port: PORT, subdomain: SUBDOMAIN })
-
-  console.log(`🌐 Tunnel URL: ${tunnel.url}`)
   if (PASSWORD) {
-    console.log(`🔒 Password: ${PASSWORD}`)
+    console.log(`🔒 OpenCode credentials: opencode / ${PASSWORD}`)
   }
   console.log('')
-  console.log('Press Ctrl+C to stop the tunnel.')
 
-  tunnel.on('close', () => {
-    console.log('🔌 Tunnel closed')
-    process.exit(0)
+  const cf = spawn('cloudflared', ['tunnel', '--url', `http://127.0.0.1:${PORT}`], {
+    stdio: ['ignore', 'pipe', 'pipe'],
   })
 
-  tunnel.on('error', (err: Error) => {
-    console.error('❌ Tunnel error:', err)
+  const handleOutput = (data: Buffer) => {
+    const line = data.toString()
+    const match = line.match(/https:\/\/[^\s]+\.trycloudflare\.com/)
+    if (match) {
+      console.log(`🌐 Tunnel URL: ${match[0]}`)
+      if (PASSWORD) {
+        console.log(`🔒 OpenCode credentials: opencode / ${PASSWORD}`)
+      }
+      console.log('')
+      console.log('Press Ctrl+C to stop the tunnel.')
+    }
+  }
+
+  cf.stdout.on('data', handleOutput)
+  cf.stderr.on('data', handleOutput)
+
+  cf.on('close', (code: number | null) => {
+    console.log('🔌 Tunnel closed')
+    process.exit(code ?? 0)
+  })
+
+  cf.on('error', (err: Error) => {
+    console.error('❌ Failed to start cloudflared:', err.message)
     process.exit(1)
   })
 
   const shutdown = () => {
     console.log('\n🛑 Shutting down tunnel...')
-    tunnel.close()
+    cf.kill()
   }
 
   process.on('SIGINT', shutdown)
