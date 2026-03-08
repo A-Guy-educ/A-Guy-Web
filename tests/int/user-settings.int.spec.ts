@@ -281,13 +281,19 @@ describe.skipIf(!hasDatabaseUrl)('UserSettings Collection', () => {
     })
 
     it('should allow admin to read all settings', async () => {
+      // Hook forces role=student on create, so update role after
       const admin = await payload.create({
         collection: 'users',
         data: {
           email: `settings-admin-${Date.now()}@example.com`,
           password: 'test123456',
-          role: AccountRole.Admin,
         },
+      })
+      await payload.update({
+        collection: 'users',
+        id: admin.id,
+        data: { role: AccountRole.Admin },
+        overrideAccess: true,
       })
 
       try {

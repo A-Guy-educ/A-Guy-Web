@@ -268,14 +268,19 @@ describe.skipIf(!hasDatabaseUrl)('UserProgress Collection', () => {
     })
 
     it('should allow admin to read all progress records', async () => {
-      // Create admin user
+      // Create admin user (hook forces role=student on create, so update after)
       const admin = await payload.create({
         collection: 'users',
         data: {
           email: `progress-admin-${Date.now()}@example.com`,
           password: 'test123456',
-          role: AccountRole.Admin,
         },
+      })
+      await payload.update({
+        collection: 'users',
+        id: admin.id,
+        data: { role: AccountRole.Admin },
+        overrideAccess: true,
       })
 
       try {

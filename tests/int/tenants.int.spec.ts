@@ -27,14 +27,19 @@ beforeAll(async () => {
 
   payload = await getPayload({ config })
 
-  // Create admin user
+  // Create admin user (hook forces role=student on create, so update after)
   const admin = await payload.create({
     collection: 'users',
     data: {
       email: `tenants-admin-${Date.now()}@example.com`,
       password: 'test123456',
-      role: AccountRole.Admin,
     },
+  })
+  await payload.update({
+    collection: 'users',
+    id: admin.id,
+    data: { role: AccountRole.Admin },
+    overrideAccess: true,
   })
   adminUserId = admin.id
 
