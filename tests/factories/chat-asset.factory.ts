@@ -28,11 +28,8 @@ export async function createTestChatAsset(
   payload: Payload,
   input: ChatAssetFactoryInput = {},
 ): Promise<ChatAsset> {
-  return payload.create({
-    collection: 'chat_assets',
-    data: buildChatAssetData(input),
-    overrideAccess: true,
-  })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Test factory: Payload's create() union types are strict
+  return payload.create({ collection: 'chat-assets', data: buildChatAssetData(input) as any, overrideAccess: true })
 }
 
 /** Create an expired chat asset for cleanup testing */

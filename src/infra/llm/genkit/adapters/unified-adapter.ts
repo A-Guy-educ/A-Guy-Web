@@ -166,7 +166,7 @@ export async function createGenkitUnifiedAdapter(
 
       // Get streaming response - Genkit returns { stream: AsyncIterable, response: Promise }
       // Circuit breaker wraps stream initialization to fail fast if provider is down
-      const result = await circuitBreaker.execute(() =>
+      const result = await circuitBreaker.execute(async () =>
         ai.generateStream({
           model: config.model,
           prompt,

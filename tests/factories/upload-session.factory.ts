@@ -27,11 +27,8 @@ export async function createTestUploadSession(
   payload: Payload,
   input: UploadSessionFactoryInput = {},
 ): Promise<UploadSession> {
-  return payload.create({
-    collection: 'upload_sessions',
-    data: buildUploadSessionData(input),
-    overrideAccess: true,
-  })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Test factory: Payload's create() union types are strict
+  return payload.create({ collection: 'upload-sessions', data: buildUploadSessionData(input) as any, overrideAccess: true })
 }
 
 /** Create an expired upload session for cleanup testing */

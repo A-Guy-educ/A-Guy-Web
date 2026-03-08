@@ -27,11 +27,8 @@ export async function createTestMedia(
   input: MediaFactoryInput = {},
 ): Promise<Media> {
   const data = buildMediaData(input)
-  return payload.create({
-    collection: 'media',
-    data,
-    overrideAccess: true,
-  })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Test factory: Payload's create() union types are strict
+  return payload.create({ collection: 'media', data: data as any, overrideAccess: true })
 }
 
 /** Generate a minimal 1x1 JPEG buffer for upload tests */
