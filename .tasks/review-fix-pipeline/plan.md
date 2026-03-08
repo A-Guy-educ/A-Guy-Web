@@ -193,20 +193,85 @@ stages.set('fix', {
 **Add**:
 ```typescript
 // Commit-fix stage - commits the fix changes before verify
+// Mirrors the existing 'commit' stage pattern: type 'git', no postActions.
+// The GitCommitFixHandler (see Step 3c) treats "No changes" as success
+// instead of failure, so the pipeline doesn't crash when fix is skipped.
 stages.set('commit-fix', {
   name: 'commit-fix',
   type: 'git',
   timeout: STAGE_TIMEOUTS['commit-fix'] ?? ms('2m'),
   maxRetries: 0,
-  postActions: [
-    // Reuse the same commit logic as build's commit stage
-    { type: 'commit-task-files', stagingStrategy: 'tracked+task', push: true },
-  ],
+  shouldSkip: (ctx) => {
+    // Skip commit-fix if fix stage was skipped (nothing to commit)
+    const state = loadState(ctx.taskId)
+    if (state?.stages?.fix?.state === 'skipped') {
+      return { shouldSkip: true, reason: 'Fix was skipped, nothing to commit' }
+    }
+    return { shouldSkip: false }
+  },
 })
 ```
 
 **Complexity**: Low
 **Files Modified**: 1
+
+---
+
+## Step 3c: Add GitCommitFixHandler to Handler Registry
+
+**File**: `scripts/cody/handlers/git-handler.ts`
+**Location**: After GitCommitHandler class
+
+**Add**:
+```typescript
+/**
+ * Tolerant commit handler for commit-fix stage.
+ * Treats "No changes" as completed (not failed), since fix stage
+ * may produce no file changes if review found only minor issues
+ * or if the fix was applied but resulted in identical code.
+ */
+export class GitCommitFixHandler implements StageHandler {
+  async execute(ctx: PipelineContext, def: StageDefinition): Promise<StageResult> {
+    const handler = new GitCommitHandler()
+    const result = await handler.execute(ctx, def)
+
+    // Treat "No changes" as success instead of failure
+    if (result.outcome === 'failed' && result.reason?.includes('No changes')) {
+      return { outcome: 'completed', retries: 0 }
+    }
+    return result
+  }
+}
+```
+
+**File**: `scripts/cody/handlers/handler.ts`
+**Location**: In the named handler switch (line 31-38)
+
+**Add case for commit-fix**:
+```typescript
+export function getHandler(stageName: string, stageType: StageType): StageHandler {
+  // Named handlers first - for stages that need special handling
+  switch (stageName) {
+    case 'commit':
+      return new GitCommitHandler()
+    case 'commit-fix':                  // NEW
+      return new GitCommitFixHandler()   // NEW - tolerant of no-changes
+    case 'pr':
+      return new GitPrHandler()
+    case 'verify':
+      return new ScriptedVerifyHandler()
+  }
+  // ... rest unchanged
+}
+```
+
+**Also update import** at top of handler.ts:
+```typescript
+import { GitCommitHandler, GitCommitFixHandler, GitPrHandler } from './git-handler'
+```
+
+**Complexity**: Low
+**Files Modified**: 2 (`git-handler.ts`, `handler.ts`)
 
 ---
 
@@ -260,20 +325,6 @@ export const FIX_ORDER: PipelineStep[] = [
   'commit-fix', // Commit the fixes
   'verify',    // Verify the fixes
   'pr',        // Create PR if verify passes
-]
-```
-
-**Also update IMPL_ORDER_LIGHTWEIGHT**:
-```typescript
-export const IMPL_ORDER_LIGHTWEIGHT: PipelineStep[] = [
-  'architect',
-  'build',
-  'commit',
-  'review',    // NEW
-  'fix',       // NEW
-  'commit',    // NEW
-  'verify',
-  'pr',
 ]
 ```
 
@@ -585,8 +636,10 @@ case 'clear-verify-failures': {
 } else if (result.outcome === 'failed') {
   // VERIFY LOOP: Check if verify failed and we should retry with fix
   if (stageName === 'verify' && !def.advisory) {
-    const fixStageDef = pipeline.stages.get('fix')
-    const maxAttempts = fixStageDef?.maxRetries ?? 2
+    // Read maxFixAttempts from state (set during fix stage init)
+    // We can't use pipeline.stages here because handleStageResult
+    // doesn't receive the pipeline parameter
+    const maxAttempts = state.stages['fix']?.maxFixAttempts ?? 2
     
     // Get current fix attempt from state
     const currentAttempt = state.stages['fix']?.fixAttempt ?? 0
@@ -797,25 +850,22 @@ async function runFixMode(ctx: PipelineContext): Promise<void> {
   }
 
   // Import necessary functions
-  const { loadState, writeState, updateStage, initState, createState } = await import('./engine/status')
-  const { buildPipeline } = await import('./pipeline/definitions')
+  const { loadState, writeState, updateStage, initState } = await import('./engine/status')
+  const { resolvePipelineForMode } = await import('./engine/pipeline-resolver')
   
   // Load existing state or create new one
   let state = loadState(input.taskId)
   
   // If no existing state, create fresh state with FIX_ORDER stages
   if (!state) {
-    // Create new state for fix mode
-    state = createState({
-      taskId: input.taskId,
-      mode: 'fix',
-      pipeline: ctx.profile,
-    })
+    // initState creates a fresh v2 state and writes it to disk
+    state = initState(ctx, 'fix')
     
     // Initialize all FIX_ORDER stages to pending
     for (const stageName of FIX_ORDER) {
       state = updateStage(state, stageName, { state: 'pending', retries: 0 })
     }
+    writeState(input.taskId, state)
   }
   
   // Set fix stage to pending and initialize fix attempt if not set
@@ -835,8 +885,8 @@ async function runFixMode(ctx: PipelineContext): Promise<void> {
   state = { ...state, cursor: 'review', state: 'running' }
   writeState(input.taskId, state)
   
-  // Build pipeline for fix mode (stages only, order from FIX_ORDER)
-  const pipeline = buildPipeline('fix', ctx.profile, false, ctx)
+  // Build pipeline for fix mode - resolvePipelineForMode maps 'fix' to FIX_ORDER
+  const pipeline = resolvePipelineForMode('fix', ctx.profile, false, ctx)
   
   // Run pipeline - it will find the first pending stage (review) and continue
   await runPipeline(ctx, pipeline)
@@ -846,11 +896,10 @@ async function runFixMode(ctx: PipelineContext): Promise<void> {
 ```
 
 **Key fixes from original**:
-1. Uses `FIX_ORDER` (from Step 4) instead of reusing rerun pipeline
-2. Creates new state if none exists, initializes all FIX_ORDER stages to pending
-3. Properly imports `initState` or uses `createState` (whichever exists)
-4. Sets both `fix`, `commit-fix`, `verify`, and `review` stages to pending so they all run
-5. Sets `cursor` and `state: 'running'` to ensure pipeline continues
+1. Uses `resolvePipelineForMode('fix', ...)` which maps to `FIX_ORDER` (Step 14)
+2. Creates new state via `initState(ctx, 'fix')` if none exists
+3. Initializes all FIX_ORDER stages to pending so they all run
+4. Sets `cursor` and `state: 'running'` to ensure pipeline continues
 
 **Complexity**: Medium
 **Files Modified**: 1
@@ -1031,24 +1080,25 @@ The pipeline runner spawns `opencode run --agent <stage>`, which loads the agent
 | 1 | stage-prompts.ts | Add review/fix/commit-fix to ALL_STAGES + context files + instructions | Low |
 | 2 | definitions.ts | Define review stage | Medium |
 | 3 | definitions.ts | Define fix stage + clear-verify-failures postAction | Medium |
-| 3b | definitions.ts | Define commit-fix stage | Low |
+| 3b | definitions.ts | Define commit-fix stage with shouldSkip | Low |
+| 3c | git-handler.ts, handler.ts | Add GitCommitFixHandler (tolerant of no-changes) + register in handler | Low |
 | 4 | definitions.ts | Update IMPL_ORDER + add FIX_ORDER | Low |
 | 5 | agent-runner.ts | Add timeout constants for review, fix, commit-fix | Low |
 | 6 | stage-prompts.ts | Create buildReviewPrompt (optional, used by generic path) | Low |
 | 7 | stage-prompts.ts | Create buildFixPrompt (optional, used by generic path) | Low |
 | 8 | types.ts | Add AnalyzeReviewFindings, ClearVerifyFailures types + StageStateV2 extensions | Low |
 | 9 | post-actions.ts | Implement analyze-review-findings, clear-verify-failures | Medium |
-| 10 | state-machine.ts | Add verify→fix loop logic in handleStageResult | High |
+| 10 | state-machine.ts | Add verify→fix loop logic in handleStageResult (uses state for maxAttempts) | High |
 | 11 | parse-inputs.ts | Add fix to VALID_MODES | Low |
 | 12 | cody-utils.ts | Add fix to CodyInput.mode + fix implicit feedback for fix mode | Low |
-| 13 | entry.ts | Add runFixMode handler with FIX_ORDER | Medium |
+| 13 | entry.ts | Add runFixMode handler using resolvePipelineForMode | Medium |
 | 14 | pipeline-resolver.ts | Handle fix mode with FIX_ORDER | Low |
 | 15 | types.ts | Ensure StageStateV2 has fixAttempt, maxFixAttempts, issuesFound | Low |
-| 16 | handler.ts | No changes needed | - |
+| 16 | handler.ts | Register commit-fix handler (see Step 3c) | Low |
 | 17 | pipeline-utils.ts | Add review/fix/commit-fix to STAGE_COMPLEXITY_THRESHOLDS | Low |
 | 18 | opencode.json | Add review (opus) and fix (MiniMax) agent definitions | Low |
 
-**Total Files Modified**: ~13
+**Total Files Modified**: ~14
 **Total Complexity**: Medium-High
 
 ---
