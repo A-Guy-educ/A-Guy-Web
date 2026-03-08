@@ -288,7 +288,7 @@ describe.skipIf(!hasDatabaseUrl)('UserSettings Collection', () => {
           email: `settings-admin-${Date.now()}@example.com`,
           password: 'test123456',
         },
-      })
+      } as any)
       await payload.update({
         collection: 'users',
         id: admin.id,

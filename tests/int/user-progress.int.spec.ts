@@ -275,7 +275,7 @@ describe.skipIf(!hasDatabaseUrl)('UserProgress Collection', () => {
           email: `progress-admin-${Date.now()}@example.com`,
           password: 'test123456',
         },
-      })
+      } as any)
       await payload.update({
         collection: 'users',
         id: admin.id,
