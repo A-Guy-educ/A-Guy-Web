@@ -170,6 +170,7 @@ export const McqEditor: React.FC<McqEditorProps> = ({ block, onChange }) => {
           hint={block.hint}
           solution={block.solution}
           fullSolution={block.fullSolution}
+          blockId={block.id}
           onChange={(field, value) => onChange({ ...block, [field]: value })}
         />
       </div>

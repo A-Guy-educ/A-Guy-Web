@@ -77,6 +77,7 @@ export const FreeResponseEditor: React.FC<FreeResponseEditorProps> = ({ block, o
           hint={block.hint}
           solution={block.solution}
           fullSolution={block.fullSolution}
+          blockId={block.id}
           onChange={(field, value) => onChange({ ...block, [field]: value })}
         />
       </div>

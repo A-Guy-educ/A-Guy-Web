@@ -295,6 +295,7 @@ export const TableEditor: React.FC<TableEditorProps> = ({ block, onChange }) => 
           hint={block.hint}
           solution={block.solution}
           fullSolution={block.fullSolution}
+          blockId={block.id}
           onChange={(field, value) => onChange({ ...block, [field]: value })}
         />
       </div>
