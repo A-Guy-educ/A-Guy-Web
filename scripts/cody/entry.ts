@@ -278,7 +278,8 @@ Examples:
     const errorMsg = error instanceof Error ? error.message : String(error)
     logger.error({ err: error }, `\n❌ Cody failed: ${errorMsg}`)
 
-    if (input.issueNumber) {
+    // Skip GitHub API calls in local mode
+    if (input.issueNumber && !input.local) {
       // Set lifecycle label to failed for dashboard visibility
       const { setLifecycleLabel } = await import('./github-api')
       setLifecycleLabel(input.issueNumber, 'cody:failed')
@@ -435,9 +436,11 @@ async function runFullMode(ctx: PipelineContext): Promise<void> {
   }
   ctx.profile = profile
 
-  // Run full pipeline - all stages are now included upfront (no rebuild needed)
+  // Run full pipeline - pass rebuild callback for two-phase construction
+  // This ensures profile changes after taskify are reflected in later stages
   const pipeline = resolvePipelineForMode('full', profile, ctx.input.clarify ?? false, ctx)
-  const finalState = await runPipeline(ctx, pipeline)
+  const rebuild = createRebuildCallback('full', ctx.input.clarify ?? false)
+  const finalState = await runPipeline(ctx, pipeline, undefined, rebuild)
 
   // Handle paused state (gate approval required)
   if (finalState.state === 'paused') {
