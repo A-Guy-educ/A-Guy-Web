@@ -8,7 +8,17 @@
 // ============ Pipeline Stages ============
 
 export const SPEC_STAGES = ['taskify', 'spec', 'clarify'] as const
-export const IMPL_STAGES = ['architect', 'plan-review', 'build', 'commit', 'verify', 'pr'] as const
+export const IMPL_STAGES = [
+  'gsd-research',
+  'gsd-plan',
+  'gsd-execute',
+  'commit',
+  'review',
+  'fix',
+  'commit-fix',
+  'verify',
+  'pr',
+] as const
 export const AUTOFIX_STAGE = 'autofix' as const
 
 export type SpecStage = (typeof SPEC_STAGES)[number]
