@@ -49,6 +49,7 @@ interface TaskListProps {
   onExecuteTask?: (taskId: string) => void
   onStopTask?: (task: CodyTask) => void
   onApproveReview?: (task: CodyTask) => Promise<void>
+  onTaskHover?: (task: CodyTask) => void
   onAssign?: (issueNumber: number, assignees: string[]) => void
   onUnassign?: (issueNumber: number, assignees: string[]) => void
   collaborators?: { login: string; avatar_url: string }[]
@@ -127,6 +128,7 @@ export function TaskList({
   onExecuteTask,
   onStopTask,
   onApproveReview,
+  onTaskHover,
   onAssign,
   onUnassign: _onUnassign,
   collaborators = [],
@@ -164,6 +166,7 @@ export function TaskList({
             <div
               key={task.id}
               onClick={() => handleTaskClick(task)}
+              onMouseEnter={() => onTaskHover?.(task)}
               className={cn(
                 'relative cursor-pointer transition-all duration-150',
                 'dark:hover:bg-zinc-800/50 hover:bg-zinc-100',
