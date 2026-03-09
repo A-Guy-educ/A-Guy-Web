@@ -79,57 +79,57 @@ const columnColors: Record<
     bg: 'bg-zinc-500/10',
     text: 'text-zinc-400',
     bar: 'bg-gradient-to-r from-zinc-500 to-zinc-400',
-    pill: 'bg-zinc-500/10 text-zinc-400 ring-1 ring-zinc-500/20',
-    wash: 'from-zinc-500/[0.03]',
+    pill: 'bg-zinc-500/20 text-zinc-300 ring-1 ring-zinc-400/30',
+    wash: 'from-zinc-500/20',
     glow: '',
   },
   building: {
     bg: 'bg-blue-500/10',
     text: 'text-blue-400',
     bar: 'bg-gradient-to-r from-blue-600 to-blue-400',
-    pill: 'bg-blue-500/10 text-blue-400 ring-1 ring-blue-500/20',
-    wash: 'from-blue-500/[0.04]',
-    glow: 'shadow-[0_0_15px_rgba(59,130,246,0.12)]',
+    pill: 'bg-blue-500/20 text-blue-300 ring-1 ring-blue-400/30',
+    wash: 'from-blue-500/25',
+    glow: 'shadow-[0_0_20px_rgba(59,130,246,0.3)]',
   },
   review: {
     bg: 'bg-purple-500/10',
     text: 'text-purple-400',
     bar: 'bg-gradient-to-r from-purple-600 to-purple-400',
-    pill: 'bg-purple-500/10 text-purple-400 ring-1 ring-purple-500/20',
-    wash: 'from-purple-500/[0.04]',
-    glow: 'shadow-[0_0_15px_rgba(168,85,247,0.12)]',
+    pill: 'bg-purple-500/20 text-purple-300 ring-1 ring-purple-400/30',
+    wash: 'from-purple-500/25',
+    glow: 'shadow-[0_0_20px_rgba(168,85,247,0.3)]',
   },
   failed: {
     bg: 'bg-red-500/10',
     text: 'text-red-400',
     bar: 'bg-gradient-to-r from-red-600 to-red-400',
-    pill: 'bg-red-500/10 text-red-400 ring-1 ring-red-500/20',
-    wash: 'from-red-500/[0.04]',
-    glow: 'shadow-[0_0_15px_rgba(239,68,68,0.12)]',
+    pill: 'bg-red-500/20 text-red-300 ring-1 ring-red-400/30',
+    wash: 'from-red-500/25',
+    glow: 'shadow-[0_0_20px_rgba(239,68,68,0.3)]',
   },
   'gate-waiting': {
     bg: 'bg-amber-500/10',
     text: 'text-amber-400',
     bar: 'bg-gradient-to-r from-amber-600 to-amber-400',
-    pill: 'bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20',
-    wash: 'from-amber-500/[0.04]',
-    glow: 'shadow-[0_0_15px_rgba(245,158,11,0.12)]',
+    pill: 'bg-amber-500/20 text-amber-300 ring-1 ring-amber-400/30',
+    wash: 'from-amber-500/25',
+    glow: 'shadow-[0_0_20px_rgba(245,158,11,0.3)]',
   },
   retrying: {
     bg: 'bg-orange-500/10',
     text: 'text-orange-400',
     bar: 'bg-gradient-to-r from-orange-600 to-orange-400',
-    pill: 'bg-orange-500/10 text-orange-400 ring-1 ring-orange-500/20',
-    wash: 'from-orange-500/[0.04]',
-    glow: 'shadow-[0_0_15px_rgba(249,115,22,0.12)]',
+    pill: 'bg-orange-500/20 text-orange-300 ring-1 ring-orange-400/30',
+    wash: 'from-orange-500/25',
+    glow: 'shadow-[0_0_20px_rgba(249,115,22,0.3)]',
   },
   done: {
     bg: 'bg-emerald-500/10',
     text: 'text-emerald-400',
     bar: 'bg-gradient-to-r from-emerald-600 to-emerald-400',
-    pill: 'bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20',
-    wash: 'from-emerald-500/[0.04]',
-    glow: 'shadow-[0_0_15px_rgba(16,185,129,0.12)]',
+    pill: 'bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-400/30',
+    wash: 'from-emerald-500/25',
+    glow: 'shadow-[0_0_20px_rgba(16,185,129,0.3)]',
   },
 }
 
@@ -173,7 +173,7 @@ function TabButton({
         <span
           className={cn(
             'ml-0.5 px-1.5 py-0.5 text-[10px] font-semibold rounded-full tabular-nums',
-            active ? 'bg-primary/10 text-primary' : 'bg-muted/80 text-muted-foreground',
+            active ? 'bg-primary/20 text-primary' : 'bg-white/[0.06] text-muted-foreground',
           )}
         >
           {count}
@@ -195,7 +195,7 @@ function StatusBadge({ column, pipelineState }: { column: ColumnId; pipelineStat
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide uppercase',
+        'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase',
         colors.pill,
         colors.glow,
       )}
@@ -461,7 +461,7 @@ function InlinePipelineTimeline({ pipeline }: { pipeline: CodyPipelineStatus }) 
   const isPaused = pipeline.state === 'paused'
 
   return (
-    <div className="flex items-center gap-3 px-5 py-2.5 border-b border-white/[0.04] bg-muted/5">
+    <div className="flex items-center gap-3 px-5 py-2.5 border-b border-white/10 bg-white/[0.03]">
       {/* Stage dots */}
       <div className="flex items-center gap-1">
         {ALL_STAGES.map((stage, i) => {
@@ -825,7 +825,7 @@ export function TaskDetail({
 
   // --- Tab Bar ---
   const tabBar = (
-    <div className="flex border-b border-white/[0.04] shrink-0 overflow-x-auto">
+    <div className="flex border-b border-white/[0.08] shrink-0 overflow-x-auto bg-black/10">
       {tabs.map(({ key, label, icon, count }) => (
         <TabButton
           key={key}
@@ -843,7 +843,7 @@ export function TaskDetail({
   const tabContent = (
     <>
       {effectiveTab === 'description' && hasDescription && (
-        <div className="p-5 md:p-6 overflow-y-auto overflow-x-hidden h-full">
+        <div className="p-5 md:p-6 overflow-y-auto overflow-x-hidden h-full bg-white/[0.03]">
           <div className="max-w-3xl min-w-0">
             <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
               {task.body!}
@@ -853,17 +853,17 @@ export function TaskDetail({
       )}
       {effectiveTab === 'comments' && (
         <div className="flex flex-col h-full">
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex-1 overflow-y-auto p-4 bg-white/[0.03]">
             <CommentList comments={fullDetails?.comments || []} loading={isDetailsFetching} />
           </div>
-          <div className="shrink-0 border-t border-white/[0.04] p-3 bg-white/[0.01]">
+          <div className="shrink-0 border-t border-white/[0.08] p-3 bg-white/[0.05]">
             <CommentEditor issueNumber={task.issueNumber} onCommentPosted={() => refetch()} />
           </div>
           {retryWithContextBlock}
         </div>
       )}
       {(effectiveTab === 'changes' || effectiveTab === 'docs') && (
-        <div className="p-4 overflow-y-auto h-full">
+        <div className="p-4 overflow-y-auto h-full bg-white/[0.03]">
           <TaskPreviewTab task={task} activeTab={effectiveTab as 'changes' | 'docs'} />
         </div>
       )}
@@ -885,10 +885,10 @@ export function TaskDetail({
 
   // Primary action button colors
   const primaryVariantStyles = {
-    blue: 'bg-blue-500/10 text-blue-400 border-blue-500/20 hover:bg-blue-500/20 shadow-[0_0_10px_rgba(59,130,246,0.08)]',
+    blue: 'bg-blue-500/20 text-blue-300 border-blue-400/30 hover:bg-blue-500/30 shadow-[0_0_12px_rgba(59,130,246,0.2)]',
     yellow:
       'bg-amber-500/10 text-amber-400 border-amber-500/20 hover:bg-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.08)]',
-    red: 'bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.08)]',
+    red: 'bg-red-500/20 text-red-300 border-red-400/30 hover:bg-red-500/30 shadow-[0_0_12px_rgba(239,68,68,0.2)]',
     green:
       'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.08)]',
   }
@@ -901,7 +901,7 @@ export function TaskDetail({
         target="_blank"
         rel="noopener noreferrer"
         onClick={(e) => e.stopPropagation()}
-        className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-lg bg-white/[0.04] text-muted-foreground/70 hover:bg-white/[0.07] hover:text-muted-foreground transition-all duration-150 shrink-0 ring-1 ring-white/[0.04]"
+        className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-white/[0.08] text-zinc-300 hover:bg-white/[0.12] hover:text-white transition-all duration-150 shrink-0 border border-white/[0.1]"
       >
         <Github className="w-3 h-3" />#{task.issueNumber}
       </a>
@@ -911,7 +911,7 @@ export function TaskDetail({
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
-          className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-lg bg-purple-500/[0.08] text-purple-400/80 hover:bg-purple-500/[0.14] hover:text-purple-400 transition-all duration-150 shrink-0 ring-1 ring-purple-500/10"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-purple-500/15 text-purple-300 hover:bg-purple-500/25 hover:text-purple-200 transition-all duration-150 shrink-0 border border-purple-500/20"
         >
           <GitPullRequest className="w-3 h-3" />
           PR #{task.associatedPR.number}
@@ -923,7 +923,7 @@ export function TaskDetail({
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
-          className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-lg bg-white/[0.04] text-muted-foreground/70 hover:bg-white/[0.07] hover:text-muted-foreground transition-all duration-150 shrink-0 ring-1 ring-white/[0.04]"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-white/[0.08] text-zinc-300 hover:bg-white/[0.12] hover:text-white transition-all duration-150 shrink-0 border border-white/[0.1]"
         >
           <Play className="w-3 h-3" />
           Workflow
@@ -946,7 +946,7 @@ export function TaskDetail({
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-lg bg-emerald-500/[0.08] text-emerald-400/80 hover:bg-emerald-500/[0.14] hover:text-emerald-400 transition-all duration-150 shrink-0 ring-1 ring-emerald-500/10"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 hover:text-emerald-200 transition-all duration-150 shrink-0 border border-emerald-500/20"
           >
             <ExternalLink className="w-3 h-3" />
             Preview
@@ -1001,13 +1001,13 @@ export function TaskDetail({
   // --- Mobile Header: app-style with back button ---
   const mobileHeader = (
     <div className="md:hidden shrink-0">
-      {/* Thin accent line */}
-      <div className={cn('h-[2px]', columnColors[task.column].bar)} />
+      {/* Accent line */}
+      <div className={cn('h-1', columnColors[task.column].bar)} />
 
       {/* Header area */}
       <div
         className={cn(
-          'px-3 pt-2.5 pb-3 border-b border-white/[0.04] bg-gradient-to-b to-transparent',
+          'px-3 pt-2.5 pb-3 border-b border-white/[0.08] bg-black/20 bg-gradient-to-b via-50% to-transparent',
           columnColors[task.column].wash,
         )}
       >
@@ -1046,7 +1046,7 @@ export function TaskDetail({
         </div>
 
         {/* Row 2: Title */}
-        <h2 className="text-base font-semibold text-foreground leading-snug tracking-tight pl-1">
+        <h2 className="text-base font-bold text-white leading-snug tracking-tight pl-1">
           {task.title}
         </h2>
 
@@ -1059,13 +1059,13 @@ export function TaskDetail({
   // --- Desktop Header: full multi-row layout ---
   const desktopHeader = (
     <div className="hidden md:block shrink-0">
-      {/* Thin accent line */}
-      <div className={cn('h-[2px]', columnColors[task.column].bar)} />
+      {/* Accent line */}
+      <div className={cn('h-1', columnColors[task.column].bar)} />
 
-      {/* Header content — clean and spacious */}
+      {/* Header — elevated surface */}
       <div
         className={cn(
-          'px-6 pt-5 pb-4 border-b border-white/[0.04] bg-gradient-to-b to-transparent',
+          'px-6 pt-5 pb-4 border-b border-white/[0.08] bg-black/20 bg-gradient-to-b via-50% to-transparent',
           columnColors[task.column].wash,
         )}
       >
@@ -1152,7 +1152,7 @@ export function TaskDetail({
         </div>
 
         {/* Row 2: Title — prominent */}
-        <h2 className="text-lg font-semibold text-foreground leading-snug tracking-tight mb-3">
+        <h2 className="text-xl font-bold text-white leading-tight tracking-tight mb-3">
           {task.title}
         </h2>
 
@@ -1177,14 +1177,14 @@ export function TaskDetail({
   const desktopLayout = (
     <div className="hidden md:flex flex-1 min-h-0 overflow-hidden">
       {/* Left sidebar — refined, integrated */}
-      <div className="w-52 shrink-0 border-r border-white/[0.04] overflow-y-auto">
-        <div className="p-3.5 space-y-4">
+      <div className="w-56 shrink-0 border-r border-white/[0.08] overflow-y-auto bg-black/20">
+        <div className="p-4 space-y-5">
           {/* Assignees section */}
           <div className="space-y-2">
-            <h4 className="text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-widest px-0.5">
+            <h4 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-0.5">
               Assignees
             </h4>
-            <div className="rounded-lg p-2.5 bg-white/[0.02] ring-1 ring-white/[0.04]">
+            <div className="rounded-lg p-3 bg-white/[0.03] border border-white/[0.06]">
               <AssigneePicker
                 issueNumber={task.issueNumber}
                 currentAssignees={fullDetails?.assignees || []}
@@ -1196,14 +1196,14 @@ export function TaskDetail({
           {/* Labels */}
           {task.labels.length > 0 && (
             <div className="space-y-2">
-              <h4 className="text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-widest px-0.5">
+              <h4 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-0.5">
                 Labels
               </h4>
               <div className="flex flex-wrap gap-1 px-0.5">
                 {task.labels.map((label) => (
                   <span
                     key={label}
-                    className="inline-flex px-2 py-0.5 text-[11px] font-medium rounded-md bg-white/[0.04] text-muted-foreground ring-1 ring-white/[0.06]"
+                    className="inline-flex px-2 py-0.5 text-[11px] font-medium rounded-md bg-white/[0.08] text-zinc-300 border border-white/[0.1]"
                   >
                     {label}
                   </span>
@@ -1215,10 +1215,10 @@ export function TaskDetail({
           {/* Pipeline — refined card */}
           {task.pipeline && (
             <div className="space-y-2">
-              <h4 className="text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-widest px-0.5">
+              <h4 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-0.5">
                 Pipeline
               </h4>
-              <div className="rounded-lg p-2.5 bg-white/[0.02] ring-1 ring-white/[0.04]">
+              <div className="rounded-lg p-3 bg-white/[0.03] border border-white/[0.06]">
                 <PipelineStatus status={task.pipeline} />
               </div>
             </div>
@@ -1240,7 +1240,7 @@ export function TaskDetail({
   const mobileLayout = (
     <div className="md:hidden flex-1 flex flex-col min-h-0 overflow-hidden">
       {/* Mobile details panel — expandable */}
-      <div className="shrink-0 border-b border-white/[0.04]">
+      <div className="shrink-0 border-b border-white/10">
         <button
           onClick={() => setShowMobileExtra(!showMobileExtra)}
           className="flex items-center justify-between w-full px-4 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors active:bg-muted/50"
@@ -1310,7 +1310,7 @@ export function TaskDetail({
       <div className="flex-1 min-h-0 overflow-hidden">{tabContent}</div>
 
       {/* Bottom toolbar — single row, always visible */}
-      <div className="shrink-0 border-t border-white/[0.04] bg-card/95 backdrop-blur-sm px-3 py-2 flex items-center gap-1.5 overflow-x-auto">
+      <div className="shrink-0 border-t border-white/10 bg-card px-3 py-2 flex items-center gap-1.5 overflow-x-auto">
         {/* Merge button */}
         {task.column === 'review' && task.associatedPR && onApproveReview && (
           <MergeButton
@@ -1407,7 +1407,7 @@ export function TaskDetail({
   )
 
   return (
-    <div className="h-full flex flex-col bg-card rounded-xl overflow-hidden border border-white/[0.06] shadow-xl shadow-black/20">
+    <div className="h-full flex flex-col bg-card overflow-hidden border border-white/[0.06] shadow-xl shadow-black/20">
       {header}
       {desktopLayout}
       {mobileLayout}

@@ -495,7 +495,7 @@ export function CodyDashboard({ initialIssueNumber }: CodyDashboardProps) {
         ) : (
           <>
             {/* Header — action buttons only, no filters */}
-            <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-border">
+            <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-white/[0.06] bg-black/20">
               <h1 className="text-lg md:text-xl font-semibold text-foreground">Cody Operations</h1>
 
               {/* Desktop controls */}
