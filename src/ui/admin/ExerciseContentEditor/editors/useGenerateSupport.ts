@@ -88,7 +88,7 @@ function applyGenerated(
     value: InlineRichText | undefined,
   ) => void,
 ) {
-  if (generated.hints) {
+  if (generated.hints?.length) {
     const hintText = generated.hints.map((h: string, i: number) => `${i + 1}. ${h}`).join('\n')
     onChange('hint', createRichText(hintText))
   }

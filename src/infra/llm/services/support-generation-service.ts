@@ -74,14 +74,14 @@ function parseLLMResponse(
   const parsed = JSON.parse(cleaned)
   const result: GeneratedSupport = {}
 
-  if (targetFields.includes('hints') && Array.isArray(parsed.hints)) {
-    result.hints = parsed.hints.map(String)
+  if (targetFields.includes('hints')) {
+    result.hints = Array.isArray(parsed.hints) ? parsed.hints.map(String) : []
   }
-  if (targetFields.includes('solution') && parsed.solution) {
-    result.solution = String(parsed.solution)
+  if (targetFields.includes('solution')) {
+    result.solution = parsed.solution ? String(parsed.solution) : ''
   }
-  if (targetFields.includes('fullSolution') && parsed.fullSolution) {
-    result.fullSolution = String(parsed.fullSolution)
+  if (targetFields.includes('fullSolution')) {
+    result.fullSolution = parsed.fullSolution ? String(parsed.fullSolution) : ''
   }
 
   return result
