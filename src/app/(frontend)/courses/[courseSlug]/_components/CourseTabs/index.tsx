@@ -16,27 +16,25 @@ export function CourseTabs({ activeTab, onTabChange }: CourseTabsProps) {
   const t = useTranslations('coursePage.tabs')
 
   return (
-    <div className="bg-background pb-3 pt-2 border-b border-border">
-      <div className="max-w-2xl mx-auto px-4">
-        <div className="bg-muted p-1 rounded-xl flex items-center justify-between">
-          {TABS.map((tab) => {
-            const isActive = activeTab === tab
-            return (
-              <button
-                key={tab}
-                onClick={() => onTabChange(tab)}
-                className={cn(
-                  'flex-1 py-1.5 text-xs md:text-sm rounded-lg transition-all',
-                  isActive
-                    ? 'bg-card text-primary shadow-sm font-bold'
-                    : 'text-muted-foreground font-medium hover:text-foreground',
-                )}
-              >
-                {t(tab)}
-              </button>
-            )
-          })}
-        </div>
+    <div className="py-4">
+      <div className="max-w-lg mx-auto px-4 flex items-center justify-center gap-2">
+        {TABS.map((tab) => {
+          const isActive = activeTab === tab
+          return (
+            <button
+              key={tab}
+              onClick={() => onTabChange(tab)}
+              className={cn(
+                'px-6 py-2 text-sm rounded-full transition-all border',
+                isActive
+                  ? 'border-border bg-card text-primary font-bold shadow-sm'
+                  : 'border-transparent text-muted-foreground hover:text-foreground',
+              )}
+            >
+              {t(tab)}
+            </button>
+          )
+        })}
       </div>
     </div>
   )

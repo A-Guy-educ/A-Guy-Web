@@ -1,6 +1,6 @@
 'use client'
 
-import { Play } from 'lucide-react'
+import { Clock, Play } from 'lucide-react'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
 import { cn } from '@/infra/utils/ui'
 import type { Lesson } from '@/payload-types'
@@ -38,9 +38,9 @@ export function CourseLessonCard({
     <SystemLink
       href={href}
       className={cn(
-        'bg-card rounded-3xl p-6 shadow-card',
+        'bg-card rounded-2xl p-5 shadow-sm',
         'flex items-center justify-between',
-        'border border-transparent hover:border-primary/20',
+        'border border-primary/30',
         'transition-all cursor-pointer active:scale-[0.98]',
       )}
     >
@@ -49,11 +49,24 @@ export function CourseLessonCard({
           {tc('lesson')} {index}
         </span>
         <h3 className="text-lg font-bold text-card-foreground">{lesson.title}</h3>
-        <p className="text-xs text-muted-foreground mt-1">{progressText}</p>
+        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+          {progress === 0 && <Clock className="w-3 h-3" />}
+          {progressText}
+        </p>
       </div>
 
       <div className="relative shrink-0 w-14 h-14">
-        <ProgressCircle percentage={progress} size={56} strokeWidth={3} />
+        <ProgressCircle percentage={progress} size={56} strokeWidth={3}>
+          <text
+            x="50%"
+            y="50%"
+            textAnchor="middle"
+            dy=".3em"
+            className="text-sm font-bold fill-foreground"
+          >
+            {Math.round(progress)}%
+          </text>
+        </ProgressCircle>
         {progress === 0 && (
           <div className="absolute inset-0 flex items-center justify-center">
             <Play className="w-4 h-4 text-muted-foreground fill-current" />

@@ -1,5 +1,6 @@
 'use client'
 
+import { BarChart3, GraduationCap, Sparkles } from 'lucide-react'
 import { useState } from 'react'
 import type { Chapter, Course, Lesson } from '@/payload-types'
 import { useTranslations } from '@/ui/web/providers/I18n'
@@ -29,40 +30,24 @@ export function CoursePageContent({
   const [activeTab, setActiveTab] = useState<CourseTab>('learn')
   const { hasUpcomingExam, daysUntil } = useExamCountdown(course.id)
 
-  const sectionTitle =
-    activeTab === 'learn'
-      ? course.title
-      : activeTab === 'ask'
-        ? t('sectionTitle.ask')
-        : activeTab === 'practice'
-          ? t('sectionTitle.practice')
-          : t('sectionTitle.exams')
-
   return (
     <>
       <CourseAnalytics courseId={course.id} courseTitle={course.title} />
       <CourseTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
-      {/* Grade + Exam reminder */}
-      <div className="w-full bg-card/50 py-4 border-b border-border">
-        <div className="max-w-5xl mx-auto px-6 flex flex-col">
-          <div className="text-center">
-            <span className="text-sm md:text-base font-extrabold text-primary uppercase tracking-[0.3em]">
-              {t('grade')} {course.courseLabel}
-            </span>
-          </div>
+      {/* Centered title area - gradient background */}
+      <div className="w-full py-6 px-6 bg-gradient-to-b from-background to-muted/30">
+        <div className="max-w-5xl mx-auto text-center">
           {hasUpcomingExam && daysUntil !== null && <ExamReminderBubble daysUntil={daysUntil} />}
+          <h1 className="text-3xl md:text-4xl font-black text-foreground mt-4">{course.title}</h1>
+          <p className="text-sm md:text-base font-extrabold text-primary mt-2 uppercase tracking-[0.3em]">
+            {t('grade')} {course.courseLabel}
+          </p>
         </div>
       </div>
 
       {/* Main content */}
-      <main className="container mx-auto px-6 py-10 max-w-5xl">
-        <section className="mb-8 text-right px-2">
-          <h2 className="text-2xl md:text-3xl font-black text-foreground leading-tight">
-            {sectionTitle}
-          </h2>
-        </section>
-
+      <main className="container mx-auto px-6 py-6 max-w-5xl">
         {activeTab === 'learn' && (
           <LearnTab lessons={lessons} chapters={chapters} courseSlug={courseSlug} />
         )}
@@ -72,14 +57,20 @@ export function CoursePageContent({
         {activeTab === 'ask' && <AskTab courseId={course.id} />}
         {activeTab === 'exams' && <ExamsTab courseId={course.id} />}
 
-        {/* Footer */}
-        <div className="mt-16 pt-8 border-t border-border text-center">
-          <div className="flex flex-wrap justify-center gap-4">
-            <button className="text-sm font-bold text-muted-foreground bg-card shadow-card px-8 py-3 rounded-full hover:bg-muted transition-all text-nowrap">
-              {t('viewStats')}
+        {/* Footer actions with divider */}
+        <div className="mt-16 pt-8 border-t border-border">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <button className="flex items-center justify-center gap-2 text-sm font-bold text-foreground bg-card border border-border px-6 py-3 rounded-full hover:bg-muted/50 transition-all">
+              <BarChart3 className="w-4 h-4" />
+              {t('statsAndPerformance')}
             </button>
-            <button className="text-sm font-bold text-primary-foreground bg-primary px-8 py-3 rounded-full shadow-lg hover:opacity-90 transition-all text-nowrap">
-              {t('continueLastPoint')}
+            <button className="flex items-center justify-center gap-2 text-sm font-bold text-primary-foreground bg-primary px-6 py-3 rounded-full shadow-lg hover:opacity-90 transition-all">
+              <GraduationCap className="w-4 h-4" />
+              {t('upcomingExam')}
+            </button>
+            <button className="flex items-center justify-center gap-2 text-sm font-bold text-foreground bg-card border border-border px-6 py-3 rounded-full hover:bg-muted/50 transition-all">
+              <Sparkles className="w-4 h-4" />
+              {t('bagrutTransition')}
             </button>
           </div>
         </div>
