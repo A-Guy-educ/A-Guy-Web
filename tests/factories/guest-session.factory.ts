@@ -12,7 +12,7 @@ import crypto from 'crypto'
 import type { TestDataTracker } from '../helpers/test-data-tracker'
 
 export interface GuestSessionFactoryInput {
-  status?: 'active' | 'expired' | 'revoked'
+  status?: 'active' | 'claiming' | 'revoked'
   expiresAt?: Date
   hardExpiresAt?: Date
   claimedByUser?: string
