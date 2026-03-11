@@ -161,7 +161,10 @@ export function StudyContent({ lessonType = DEFAULT_LESSON_TYPE }: StudyContentP
 
 function ExamReminderBubble({ courseId }: { courseId: string }) {
   const t = useTranslations('coursePage')
-  const { hasUpcomingExam, daysUntil } = useExamCountdown(courseId)
+  // Check both the actual courseId and 'default-course' (used by study-plan page)
+  const courseExam = useExamCountdown(courseId)
+  const fallbackExam = useExamCountdown('default-course')
+  const { hasUpcomingExam, daysUntil } = courseExam.hasUpcomingExam ? courseExam : fallbackExam
 
   if (!hasUpcomingExam || daysUntil === null) return null
 
