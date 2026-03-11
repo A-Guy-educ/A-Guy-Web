@@ -1,21 +1,25 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { BarChart3, Clock, GraduationCap, Sparkles } from 'lucide-react'
-import { getUserProfile } from '@/client/state/localStorage/userProfile'
+import {
+  TAB_COLORS,
+  type CourseTab,
+} from '@/app/(frontend)/courses/[courseSlug]/_components/CourseTabs'
 import { useExamCountdown } from '@/client/hooks/useExamCountdown'
+import { getUserProfile } from '@/client/state/localStorage/userProfile'
+import { SystemLink } from '@/infra/loading/components/SystemLink'
+import { logger } from '@/infra/utils/logger'
+import { cn } from '@/infra/utils/ui'
+import type { Chapter, Lesson } from '@/payload-types'
 import {
   DEFAULT_LESSON_TYPE,
   getEffectiveLessonType,
   type LessonType,
 } from '@/server/constants/lesson-types'
-import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
-import type { Chapter, Lesson } from '@/payload-types'
 import { AccessGateProvider } from '@/ui/web/auth/AccessGateProvider'
-import { SystemLink } from '@/infra/loading/components/SystemLink'
+import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import { ProgressCircle } from '@/ui/web/shared/ProgressCircle'
-import { cn } from '@/infra/utils/ui'
-import { logger } from '@/infra/utils/logger'
+import { BarChart3, Clock, GraduationCap, Sparkles } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 interface ChapterWithLessons extends Chapter {
   lessons: Lesson[]
@@ -42,6 +46,9 @@ export function StudyContent({ lessonType = DEFAULT_LESSON_TYPE }: StudyContentP
   const [chapters, setChapters] = useState<ChapterWithLessons[]>([])
   const [courseInfo, setCourseInfo] = useState<CourseInfo | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+
+  const tabForLessonType: CourseTab = lessonType === 'practice' ? 'practice' : 'learn'
+  const tabColor = TAB_COLORS[tabForLessonType]
 
   useEffect(() => {
     async function loadData() {
@@ -124,6 +131,7 @@ export function StudyContent({ lessonType = DEFAULT_LESSON_TYPE }: StudyContentP
                 index={idx + 1}
                 courseSlug={courseInfo?.courseSlug ?? ''}
                 chapterSlug={lesson._chapterSlug}
+                tabColor={tabColor}
               />
             ))}
           </div>
@@ -188,11 +196,13 @@ function LessonGridCard({
   index,
   courseSlug,
   chapterSlug,
+  tabColor,
 }: {
   lesson: Lesson
   index: number
   courseSlug: string
   chapterSlug: string
+  tabColor?: { border: string; stroke: string }
 }) {
   const t = useTranslations('coursePage')
   const tc = useTranslations('courses')
@@ -215,7 +225,7 @@ function LessonGridCard({
       className={cn(
         'bg-card rounded-2xl p-5 shadow-sm',
         'flex flex-row-reverse items-center justify-between',
-        'border border-primary/30',
+        `border ${tabColor?.border ?? 'border-primary/30'}`,
         'transition-all cursor-pointer active:scale-[0.98]',
       )}
     >
@@ -231,7 +241,12 @@ function LessonGridCard({
       </div>
 
       <div className="relative shrink-0 w-14 h-14">
-        <ProgressCircle percentage={progress} size={56} strokeWidth={3}>
+        <ProgressCircle
+          percentage={progress}
+          size={56}
+          strokeWidth={3}
+          strokeColor={tabColor?.stroke}
+        >
           <text
             x="50%"
             y="50%"

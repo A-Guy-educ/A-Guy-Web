@@ -1,16 +1,17 @@
 'use client'
 
-import { getEffectiveLessonType } from '@/server/constants/lesson-types'
 import type { Chapter, Lesson } from '@/payload-types'
+import { getEffectiveLessonType } from '@/server/constants/lesson-types'
 import { CourseLessonCard } from '../CourseLessonCard'
 
 interface LearnTabProps {
   lessons: Lesson[]
   chapters: Chapter[]
   courseSlug: string
+  tabColor?: { border: string; stroke: string }
 }
 
-export function LearnTab({ lessons, chapters, courseSlug }: LearnTabProps) {
+export function LearnTab({ lessons, chapters, courseSlug, tabColor }: LearnTabProps) {
   const learningLessons = lessons.filter((l) => getEffectiveLessonType(l.type) === 'learning')
 
   if (learningLessons.length === 0) {
@@ -34,6 +35,7 @@ export function LearnTab({ lessons, chapters, courseSlug }: LearnTabProps) {
             index={idx + 1}
             courseSlug={courseSlug}
             chapterSlug={chapterSlug}
+            tabColor={tabColor}
           />
         )
       })}

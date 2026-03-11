@@ -1,16 +1,17 @@
 'use client'
 
-import { getEffectiveLessonType } from '@/server/constants/lesson-types'
 import type { Chapter, Lesson } from '@/payload-types'
+import { getEffectiveLessonType } from '@/server/constants/lesson-types'
 import { CourseLessonCard } from '../CourseLessonCard'
 
 interface PracticeTabProps {
   lessons: Lesson[]
   chapters: Chapter[]
   courseSlug: string
+  tabColor?: { border: string; stroke: string }
 }
 
-export function PracticeTab({ lessons, chapters, courseSlug }: PracticeTabProps) {
+export function PracticeTab({ lessons, chapters, courseSlug, tabColor }: PracticeTabProps) {
   const practiceLessons = lessons.filter((l) => getEffectiveLessonType(l.type) === 'practice')
 
   if (practiceLessons.length === 0) {
@@ -34,6 +35,7 @@ export function PracticeTab({ lessons, chapters, courseSlug }: PracticeTabProps)
             index={idx + 1}
             courseSlug={courseSlug}
             chapterSlug={chapterSlug}
+            tabColor={tabColor}
           />
         )
       })}

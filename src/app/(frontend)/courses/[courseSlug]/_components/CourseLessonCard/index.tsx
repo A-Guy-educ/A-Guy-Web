@@ -12,6 +12,7 @@ interface CourseLessonCardProps {
   index: number
   courseSlug: string
   chapterSlug: string
+  tabColor?: { border: string; stroke: string }
 }
 
 export function CourseLessonCard({
@@ -19,6 +20,7 @@ export function CourseLessonCard({
   index,
   courseSlug,
   chapterSlug,
+  tabColor,
 }: CourseLessonCardProps) {
   const t = useTranslations('coursePage')
   const tc = useTranslations('courses')
@@ -40,7 +42,7 @@ export function CourseLessonCard({
       className={cn(
         'bg-card rounded-2xl p-5 shadow-sm',
         'flex flex-row-reverse items-center justify-between',
-        'border border-primary/30',
+        `border ${tabColor?.border ?? 'border-primary/30'}`,
         'transition-all cursor-pointer active:scale-[0.98]',
       )}
     >
@@ -56,7 +58,12 @@ export function CourseLessonCard({
       </div>
 
       <div className="relative shrink-0 w-14 h-14">
-        <ProgressCircle percentage={progress} size={56} strokeWidth={3}>
+        <ProgressCircle
+          percentage={progress}
+          size={56}
+          strokeWidth={3}
+          strokeColor={tabColor?.stroke}
+        >
           <text
             x="50%"
             y="50%"

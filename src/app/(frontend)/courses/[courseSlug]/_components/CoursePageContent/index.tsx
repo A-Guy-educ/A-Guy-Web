@@ -7,7 +7,7 @@ import { BarChart3, GraduationCap, Sparkles } from 'lucide-react'
 import { useState } from 'react'
 import { AskTab } from '../AskTab'
 import { CourseAnalytics } from '../CourseAnalytics'
-import { CourseTabs, type CourseTab } from '../CourseTabs'
+import { CourseTabs, TAB_COLORS, type CourseTab } from '../CourseTabs'
 import { ExamReminderBubble } from '../ExamReminderBubble'
 import { ExamsTab } from '../ExamsTab'
 import { LearnTab } from '../LearnTab'
@@ -48,10 +48,20 @@ export function CoursePageContent({
       {/* Main content */}
       <main className="container mx-auto px-6 py-6 max-w-5xl">
         {activeTab === 'learn' && (
-          <LearnTab lessons={lessons} chapters={chapters} courseSlug={courseSlug} />
+          <LearnTab
+            lessons={lessons}
+            chapters={chapters}
+            courseSlug={courseSlug}
+            tabColor={TAB_COLORS[activeTab]}
+          />
         )}
         {activeTab === 'practice' && (
-          <PracticeTab lessons={lessons} chapters={chapters} courseSlug={courseSlug} />
+          <PracticeTab
+            lessons={lessons}
+            chapters={chapters}
+            courseSlug={courseSlug}
+            tabColor={TAB_COLORS[activeTab]}
+          />
         )}
         {activeTab === 'ask' && <AskTab courseId={course.id} />}
         {activeTab === 'exams' && <ExamsTab courseId={course.id} />}
