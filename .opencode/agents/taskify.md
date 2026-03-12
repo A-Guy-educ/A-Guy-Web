@@ -260,11 +260,14 @@ Example lightweight task.json:
 
 | Score | Tier | Stages That Run |
 |-------|------|-----------------|
-| 1-9 | Trivial | taskify → build → commit → verify → pr |
+| 1-9 | Trivial | taskify → build → commit → verify → pr (always-run stages only) |
 | 10-19 | Simple | + architect |
-| 20-34 | Moderate | + architect, build |
-| 35-49 | Complex | + spec, gap |
-| 50-100 | Very Complex | + plan-gap, clarify |
+| 20-29 | Moderate | + spec |
+| 30-34 | Moderate+ | + review |
+| 35-39 | Complex | + gap |
+| 40-49 | Complex+ | + plan-gap |
+| 50-59 | Very Complex | (no additional stages at this threshold) |
+| 60-100 | Very Complex+ | + clarify |
 
 ### Scoring Dimensions (6 weighted factors)
 

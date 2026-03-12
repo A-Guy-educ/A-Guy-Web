@@ -6,6 +6,7 @@
  */
 
 import { logger } from './logger'
+import { getComplexityTier } from './pipeline-utils'
 import { execFileSync } from 'child_process'
 
 // ============================================================================
@@ -534,14 +535,16 @@ export function setClassificationLabels(
     }
   }
 
-  // Map complexity to complexity:* label
+  // Map complexity to complexity:* label (uses getComplexityTier for single source of truth)
   if (taskDef.complexity !== undefined) {
+    const tier = getComplexityTier(taskDef.complexity)
     let label: string
-    if (taskDef.complexity <= 30) {
+    if (tier === 'trivial' || tier === 'simple') {
       label = 'complexity:simple'
-    } else if (taskDef.complexity <= 60) {
+    } else if (tier === 'moderate') {
       label = 'complexity:moderate'
     } else {
+      // complex or very_complex
       label = 'complexity:complex'
     }
     labels.push(label)

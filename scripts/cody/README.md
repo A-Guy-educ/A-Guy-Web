@@ -268,7 +268,6 @@ If either fails:
 | `agent-runner.ts`   | runAgentWithFileWatch(), spawns opencode, monitors output    |
 | `runner-backend.ts` | Pluggable backends: GitHubRunner (CI) vs LocalRunner (ocode) |
 | `stage-prompts.ts`  | SPEC_STAGES prompt definitions for each agent stage          |
-| `gsd-bridge.ts`     | Maps complexity score to GSD workflow config                 |
 
 ### Git & GitHub
 

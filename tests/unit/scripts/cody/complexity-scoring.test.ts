@@ -735,3 +735,121 @@ describe('entry.ts impl-mode complexity override', () => {
     expect(taskDef.complexity).toBe(1)
   })
 })
+
+describe('cross-artifact consistency', () => {
+  describe('taskify prompt stage table matches STAGE_COMPLEXITY_THRESHOLDS', () => {
+    const taskifyPath = path.join(process.cwd(), '.opencode', 'agents', 'taskify.md')
+
+    it('should have a row for each non-zero stage threshold', () => {
+      const content = fs.readFileSync(taskifyPath, 'utf-8')
+
+      // Extract table between "## Complexity Score" and "### Scoring Dimensions"
+      const sectionMatch = content.match(
+        /## Complexity Score[\s\S]*?\|[\s\S]*?\|[\s\S]*?\n((?:\|.*\n)+)/,
+      )
+      expect(sectionMatch, 'Could not find complexity table in taskify.md').toBeTruthy()
+
+      const tableRows = sectionMatch![1].trim().split('\n')
+
+      // Get unique non-zero thresholds (excluding docs which is internal-only)
+      const nonZeroThresholds = [
+        ...new Set(
+          Object.entries(STAGE_COMPLEXITY_THRESHOLDS)
+            .filter(([stage, threshold]) => threshold > 0 && stage !== 'docs')
+            .map(([, threshold]) => threshold),
+        ),
+      ].sort((a, b) => a - b)
+
+      // Each threshold should appear as the start of a score range in some row
+      for (const threshold of nonZeroThresholds) {
+        const hasRow = tableRows.some((row) => {
+          // Match patterns like "| 10-19 |" or "| 60-100 |"
+          const rangeMatch = row.match(/\|\s*(\d+)[-–]/)
+          return rangeMatch && parseInt(rangeMatch[1], 10) === threshold
+        })
+        expect(
+          hasRow,
+          `Missing table row starting at threshold ${threshold} (stages: ${Object.entries(
+            STAGE_COMPLEXITY_THRESHOLDS,
+          )
+            .filter(([, t]) => t === threshold)
+            .map(([s]) => s)
+            .join(', ')})`,
+        ).toBe(true)
+      }
+    })
+
+    it('architect should appear in a row starting at score 10', () => {
+      const content = fs.readFileSync(taskifyPath, 'utf-8')
+      // Find the row that starts with score 10
+      const row10 = content.split('\n').find((line) => /\|\s*10[-–]/.test(line) && /\|/.test(line))
+      expect(row10, 'No table row starting at score 10').toBeTruthy()
+      expect(row10!.toLowerCase()).toContain('architect')
+    })
+
+    it('spec should appear in a row starting at score 20, not 35', () => {
+      const content = fs.readFileSync(taskifyPath, 'utf-8')
+      const row20 = content.split('\n').find((line) => /\|\s*20[-–]/.test(line) && /\|/.test(line))
+      expect(row20, 'No table row starting at score 20').toBeTruthy()
+      expect(row20!.toLowerCase()).toContain('spec')
+    })
+
+    it('gap should appear in a row starting at score 35', () => {
+      const content = fs.readFileSync(taskifyPath, 'utf-8')
+      const row35 = content.split('\n').find((line) => /\|\s*35[-–]/.test(line) && /\|/.test(line))
+      expect(row35, 'No table row starting at score 35').toBeTruthy()
+      expect(row35!.toLowerCase()).toContain('gap')
+    })
+
+    it('clarify should appear in a row starting at score 60', () => {
+      const content = fs.readFileSync(taskifyPath, 'utf-8')
+      const row60 = content.split('\n').find((line) => /\|\s*60[-–]/.test(line) && /\|/.test(line))
+      expect(row60, 'No table row starting at score 60').toBeTruthy()
+      expect(row60!.toLowerCase()).toContain('clarify')
+    })
+  })
+
+  describe('resolvePipelineProfile boundary matches STAGE_COMPLEXITY_THRESHOLDS.spec', () => {
+    it('complexity at STAGE_COMPLEXITY_THRESHOLDS.spec - 1 → lightweight', () => {
+      const boundary = STAGE_COMPLEXITY_THRESHOLDS.spec
+      const taskDef = createTaskDef('implement_feature', 'medium', boundary - 1)
+      expect(resolvePipelineProfile(taskDef)).toBe('lightweight')
+    })
+
+    it('complexity at STAGE_COMPLEXITY_THRESHOLDS.spec → standard', () => {
+      const boundary = STAGE_COMPLEXITY_THRESHOLDS.spec
+      const taskDef = createTaskDef('implement_feature', 'medium', boundary)
+      expect(resolvePipelineProfile(taskDef)).toBe('standard')
+    })
+  })
+
+  describe('README file map should not reference non-existent .ts files', () => {
+    const readmePath = path.join(process.cwd(), 'scripts', 'cody', 'README.md')
+
+    it('all .ts files in README file map tables should exist on disk', () => {
+      const content = fs.readFileSync(readmePath, 'utf-8')
+
+      // Extract filenames from markdown table rows like: | `filename.ts` | description |
+      const fileRefs: string[] = []
+      const regex = /\|\s*`([^`]+\.ts)`\s*\|/g
+      let match
+      while ((match = regex.exec(content)) !== null) {
+        fileRefs.push(match[1])
+      }
+
+      expect(fileRefs.length).toBeGreaterThan(0)
+
+      const codyDir = path.join(process.cwd(), 'scripts', 'cody')
+      const missing: string[] = []
+      for (const file of fileRefs) {
+        // Handle paths like "handlers/scripted-handler.ts"
+        const fullPath = path.join(codyDir, file)
+        if (!fs.existsSync(fullPath)) {
+          missing.push(file)
+        }
+      }
+
+      expect(missing, `README references non-existent files: ${missing.join(', ')}`).toEqual([])
+    })
+  })
+})

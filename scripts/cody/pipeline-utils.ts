@@ -77,6 +77,7 @@ export const STAGE_COMPLEXITY_THRESHOLDS: Record<string, number> = {
   fix: 0,
   'commit-fix': 0,
   verify: 0,
+  docs: 15, // Runs for simple+ tasks (complexity >= 10)
   pr: 0,
 }
 
@@ -126,8 +127,8 @@ export function resolveControlMode(taskDef: TaskDefinition, override?: ControlMo
  * Lightweight tasks: simple fixes that skip heavyweight stages (spec, gap, plan-gap)
  *
  * When complexity score is available, derives profile from it:
- *   complexity < 35 → lightweight (no spec/gap needed)
- *   complexity >= 35 → standard (full pipeline)
+ *   complexity < 20 → lightweight (below spec threshold)
+ *   complexity >= 20 → standard (spec and above stages enabled)
  */
 export function resolvePipelineProfile(taskDef: TaskDefinition): PipelineProfile {
   // Agent explicit override always wins
@@ -137,7 +138,7 @@ export function resolvePipelineProfile(taskDef: TaskDefinition): PipelineProfile
 
   // When complexity score is available, derive profile from it
   if (taskDef.complexity !== undefined) {
-    // Threshold 35 = where spec stage kicks in (the dividing line)
+    // Threshold = STAGE_COMPLEXITY_THRESHOLDS.spec (20) — below this is lightweight
     return taskDef.complexity < STAGE_COMPLEXITY_THRESHOLDS.spec ? 'lightweight' : 'standard'
   }
 

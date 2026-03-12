@@ -49,6 +49,7 @@ export const IMPL_ORDER_STANDARD: PipelineStep[] = [
   'fix',
   'commit-fix',
   'verify',
+  'docs',
   'pr',
 ]
 export const IMPL_ORDER_LIGHTWEIGHT: PipelineStep[] = [
@@ -59,11 +60,12 @@ export const IMPL_ORDER_LIGHTWEIGHT: PipelineStep[] = [
   'fix',
   'commit-fix',
   'verify',
+  'docs',
   'pr',
 ]
 
 // Fix-only pipeline order for @cody fix mode
-export const FIX_ORDER: PipelineStep[] = ['review', 'fix', 'commit-fix', 'verify', 'pr']
+export const FIX_ORDER: PipelineStep[] = ['review', 'fix', 'commit-fix', 'verify', 'docs', 'pr']
 
 // ============================================================================
 // Stage Definitions
@@ -365,6 +367,23 @@ No critical gaps identified. Plan was refined in-place.
         push: false,
         ensureBranch: false,
         localOnly: true,
+      },
+    ],
+  })
+
+  // docs stage - updates documentation related to the task changes
+  stages.set('docs', {
+    name: 'docs',
+    type: 'agent',
+    timeout: STAGE_TIMEOUTS.docs ?? DEFAULT_TIMEOUT,
+    maxRetries: 1,
+    minComplexity: STAGE_COMPLEXITY_THRESHOLDS.docs,
+    postActions: [
+      {
+        type: 'commit-task-files',
+        stagingStrategy: 'task-only',
+        push: true,
+        ensureBranch: false,
       },
     ],
   })
