@@ -664,7 +664,7 @@ pnpm test:e2e                  # E2E tests
 ### Full Pipeline Flow
 
 ```
-@cody on issue → taskify → spec → gap → gsd-plan → gsd-execute → commit → review → fix → verify → pr
+@cody on issue → taskify → gap → gsd-plan → gsd-execute → commit → review → fix → verify → pr
 ```
 
 ### Key Debug Files

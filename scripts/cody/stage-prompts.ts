@@ -18,7 +18,7 @@ import { stageOutputFile, getSpecStagesForProfile, getAllImplStageNames } from '
 /**
  * Spec-only stages that don't produce code (skip hooks, as they auto-commit but shouldn't be enforced)
  */
-export const SPEC_STAGES = ['taskify', 'spec', 'gap', 'clarify'] as const
+export const SPEC_STAGES = ['taskify', 'gap', 'clarify'] as const
 
 export type SpecStage = (typeof SPEC_STAGES)[number]
 
@@ -28,7 +28,6 @@ export type SpecStage = (typeof SPEC_STAGES)[number]
  */
 export const ALL_STAGES = [
   'taskify',
-  'spec',
   'gap',
   'clarify',
   'architect',
@@ -69,8 +68,7 @@ export const SCRIPTED_STAGES = ['verify', 'commit', 'commit-fix', 'pr'] as const
  */
 export const STAGE_CONTEXT_FILES: Record<Stage, string[]> = {
   taskify: ['task.md'],
-  spec: ['task.md', 'task.json'],
-  gap: ['spec.md', 'task.json'],
+  gap: ['task.md', 'task.json'],
   clarify: ['task.md', 'spec.md'],
   architect: ['spec.md', 'clarified.md', 'rerun-feedback.md'],
   'plan-gap': ['spec.md', 'plan.md', 'task.json'],
@@ -109,11 +107,6 @@ const specOnlyInstructionTemplate = (taskDir: string) =>
 
 export const stageInstructions: Record<Stage, (taskId: string) => string> = {
   taskify: (taskId) => {
-    const taskDir = path.join(process.cwd(), '.tasks', taskId)
-    return specOnlyInstructionTemplate(taskDir)
-  },
-
-  spec: (taskId) => {
     const taskDir = path.join(process.cwd(), '.tasks', taskId)
     return specOnlyInstructionTemplate(taskDir)
   },

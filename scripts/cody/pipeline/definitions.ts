@@ -20,7 +20,6 @@ import { readTask } from '../pipeline-utils'
 import { setBranchName, loadState } from '../engine/status'
 import { execFileSync } from 'child_process'
 import {
-  createSpecValidator,
   createGapValidator,
   createPlanGapValidator,
   createBuildValidator,
@@ -39,7 +38,7 @@ import { STAGE_COMPLEXITY_THRESHOLDS } from '../pipeline-utils'
 // Pipeline Orders
 // ============================================================================
 
-export const SPEC_ORDER_STANDARD: string[] = ['taskify', 'spec', 'gap', 'clarify']
+export const SPEC_ORDER_STANDARD: string[] = ['taskify', 'gap', 'clarify']
 export const SPEC_ORDER_LIGHTWEIGHT: string[] = ['taskify', 'clarify']
 export const IMPL_ORDER_STANDARD: PipelineStep[] = [
   'architect',
@@ -100,22 +99,7 @@ function createStageDefinitions(ctx: PipelineContext): Map<string, StageDefiniti
     ],
   })
 
-  // spec stage
-  stages.set('spec', {
-    name: 'spec',
-    type: 'agent',
-    timeout: STAGE_TIMEOUTS.spec ?? DEFAULT_TIMEOUT,
-    maxRetries: 1,
-    minComplexity: STAGE_COMPLEXITY_THRESHOLDS.spec,
-    shouldSkip: (ctx) => {
-      const complexitySkip = skipIfBelowComplexity(ctx, 'spec')
-      if (complexitySkip.shouldSkip) return complexitySkip
-      return skipIfInputQuality(ctx, 'spec')
-    },
-    validator: createSpecValidator(ctx),
-  })
-
-  // gap stage
+  // gap stage (also writes spec.md — spec stage was merged into gap)
   stages.set('gap', {
     name: 'gap',
     type: 'agent',

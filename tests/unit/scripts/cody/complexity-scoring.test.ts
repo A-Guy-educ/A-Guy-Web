@@ -90,7 +90,6 @@ describe('complexity scoring constants', () => {
   it('all required stages have thresholds defined', () => {
     const requiredStages = [
       'taskify',
-      'spec',
       'gap',
       'clarify',
       'architect',
@@ -115,7 +114,6 @@ describe('complexity scoring constants', () => {
   })
 
   it('optional stages have thresholds > 0', () => {
-    expect(STAGE_COMPLEXITY_THRESHOLDS.spec).toBeGreaterThan(0)
     expect(STAGE_COMPLEXITY_THRESHOLDS.gap).toBeGreaterThan(0)
     expect(STAGE_COMPLEXITY_THRESHOLDS.clarify).toBeGreaterThan(0)
     expect(STAGE_COMPLEXITY_THRESHOLDS.architect).toBeGreaterThan(0)
@@ -123,9 +121,8 @@ describe('complexity scoring constants', () => {
   })
 
   it('thresholds increase monotonically for core stages', () => {
-    // architect (10) < spec (20) < gap (35) < plan-gap (40) < clarify (60)
-    expect(STAGE_COMPLEXITY_THRESHOLDS.architect).toBeLessThan(STAGE_COMPLEXITY_THRESHOLDS.spec)
-    expect(STAGE_COMPLEXITY_THRESHOLDS.spec).toBeLessThan(STAGE_COMPLEXITY_THRESHOLDS.gap)
+    // architect (10) < gap (35) < plan-gap (40) < clarify (60)
+    expect(STAGE_COMPLEXITY_THRESHOLDS.architect).toBeLessThan(STAGE_COMPLEXITY_THRESHOLDS.gap)
     expect(STAGE_COMPLEXITY_THRESHOLDS.gap).toBeLessThan(STAGE_COMPLEXITY_THRESHOLDS['plan-gap'])
     expect(STAGE_COMPLEXITY_THRESHOLDS['plan-gap']).toBeLessThan(
       STAGE_COMPLEXITY_THRESHOLDS.clarify,
@@ -187,16 +184,14 @@ describe('getStagesForComplexity', () => {
     expect(stages).not.toContain('gap')
   })
 
-  it('moderate (score 25) → + spec', () => {
+  it('moderate (score 25) → architect + review only (no spec)', () => {
     const stages = getStagesForComplexity(25)
     expect(stages).toContain('architect')
-    expect(stages).toContain('spec')
     expect(stages).not.toContain('gap')
   })
 
-  it('complex (score 40) → + spec, gap, plan-gap', () => {
+  it('complex (score 40) → + gap, plan-gap (no spec)', () => {
     const stages = getStagesForComplexity(40)
-    expect(stages).toContain('spec')
     expect(stages).toContain('gap')
     expect(stages).toContain('architect')
     expect(stages).toContain('plan-gap')
@@ -205,7 +200,6 @@ describe('getStagesForComplexity', () => {
 
   it('very_complex (score 75) → all stages', () => {
     const stages = getStagesForComplexity(75)
-    expect(stages).toContain('spec')
     expect(stages).toContain('gap')
     expect(stages).toContain('clarify')
     expect(stages).toContain('architect')
@@ -376,14 +370,11 @@ describe('readTask with complexity', () => {
 })
 
 describe('resolvePipelineProfile with complexity', () => {
-  it('complexity < 20 → lightweight', () => {
-    const taskDef = createTaskDef('implement_feature', 'medium', 15)
-    expect(resolvePipelineProfile(taskDef)).toBe('lightweight')
-  })
-
-  it('complexity >= 20 → standard', () => {
-    const taskDef = createTaskDef('implement_feature', 'medium', 20)
-    expect(resolvePipelineProfile(taskDef)).toBe('standard')
+  it('complexity < 35 → lightweight', () => {
+    expect(resolvePipelineProfile(createTaskDef('fix_bug', 'low', 5))).toBe('lightweight')
+    expect(resolvePipelineProfile(createTaskDef('implement_feature', 'medium', 34))).toBe(
+      'lightweight',
+    )
   })
 
   it('complexity 100 → standard', () => {
@@ -439,21 +430,21 @@ describe('skipIfBelowComplexity', () => {
 
   it('no complexity → does not skip (backward compat)', () => {
     const ctx = createCtx()
-    const result = skipIfBelowComplexity(ctx, 'spec')
+    const result = skipIfBelowComplexity(ctx, 'gap')
     expect(result.shouldSkip).toBe(false)
   })
 
-  it('complexity 5, stage spec (threshold 20) → skips', () => {
+  it('complexity 5, stage gap (threshold 35) → skips', () => {
     const ctx = createCtx(5)
-    const result = skipIfBelowComplexity(ctx, 'spec')
+    const result = skipIfBelowComplexity(ctx, 'gap')
     expect(result.shouldSkip).toBe(true)
     expect(result.reason).toContain('Complexity 5')
     expect(result.reason).toContain('trivial')
   })
 
-  it('complexity 40, stage spec (threshold 20) → does not skip', () => {
+  it('complexity 40, stage gap (threshold 35) → does not skip', () => {
     const ctx = createCtx(40)
-    const result = skipIfBelowComplexity(ctx, 'spec')
+    const result = skipIfBelowComplexity(ctx, 'gap')
     expect(result.shouldSkip).toBe(false)
   })
 
@@ -502,16 +493,17 @@ describe('end-to-end complexity pipeline routing', () => {
     expect(stages).not.toContain('gap')
   })
 
-  it('moderate feature (score 28) → adds spec but not gap', () => {
+  it('moderate feature (score 28) → lightweight profile, no gap (spec merged into gap)', () => {
     const stages = getStagesForComplexity(28)
     expect(stages).toContain('architect')
-    expect(stages).toContain('spec')
     expect(stages).not.toContain('gap')
+    expect(resolvePipelineProfile(createTaskDef('implement_feature', 'medium', 28))).toBe(
+      'lightweight',
+    )
   })
 
-  it('complex task (score 42) → full spec + architect + gap + plan-gap', () => {
+  it('complex task (score 42) → architect + gap + plan-gap', () => {
     const stages = getStagesForComplexity(42)
-    expect(stages).toContain('spec')
     expect(stages).toContain('gap')
     expect(stages).toContain('architect')
     expect(stages).toContain('plan-gap')
@@ -520,7 +512,6 @@ describe('end-to-end complexity pipeline routing', () => {
 
   it('very complex task (score 72) → full pipeline including plan-gap and clarify', () => {
     const stages = getStagesForComplexity(72)
-    expect(stages).toContain('spec')
     expect(stages).toContain('gap')
     expect(stages).toContain('clarify')
     expect(stages).toContain('architect')
@@ -599,27 +590,23 @@ describe('definitions.ts skip chain integration', () => {
     }
   }
 
-  it('spec stage shouldSkip checks complexity FIRST (score 5 → skip without checking input_quality)', () => {
+  it('gap stage shouldSkip checks complexity FIRST (score 5 → skip)', () => {
     const ctx = createPipelineCtx(5)
     const pipeline = buildPipeline('full', 'standard', true, ctx)
-    const specStage = pipeline.stages.get('spec')!
-    expect(specStage.shouldSkip).toBeDefined()
+    const gapStage = pipeline.stages.get('gap')!
+    expect(gapStage.shouldSkip).toBeDefined()
 
-    const result = specStage.shouldSkip!(ctx)
+    const result = gapStage.shouldSkip!(ctx)
     expect(result.shouldSkip).toBe(true)
     expect(result.reason).toContain('Complexity 5')
   })
 
-  it('spec stage falls through to input_quality when complexity passes (score 40)', () => {
+  it('gap stage passes complexity check when score meets threshold (score 40)', () => {
     const ctx = createPipelineCtx(40)
-    // Add input_quality skip for spec (but file won't exist, so it won't skip)
-    ctx.taskDef!.input_quality = { level: 'good_spec', skip_stages: ['spec'], reasoning: '' }
     const pipeline = buildPipeline('full', 'standard', true, ctx)
-    const specStage = pipeline.stages.get('spec')!
+    const gapStage = pipeline.stages.get('gap')!
 
-    const result = specStage.shouldSkip!(ctx)
-    // Complexity passes (40 >= 35), falls through to input_quality check
-    // input_quality would skip if file exists, but /tmp/test-chain/spec.md doesn't exist
+    const result = gapStage.shouldSkip!(ctx)
     expect(result.shouldSkip).toBe(false)
   })
 
@@ -669,7 +656,7 @@ describe('definitions.ts skip chain integration', () => {
     const pipeline = buildPipeline('full', 'standard', true, ctx)
 
     // All optional stages should NOT be skipped by complexity
-    for (const stageName of ['spec', 'gap', 'clarify', 'architect', 'plan-gap']) {
+    for (const stageName of ['gap', 'clarify', 'architect', 'plan-gap']) {
       const stage = pipeline.stages.get(stageName)!
       if (stage.shouldSkip) {
         const result = stage.shouldSkip(ctx)
@@ -787,11 +774,21 @@ describe('cross-artifact consistency', () => {
       expect(row10!.toLowerCase()).toContain('architect')
     })
 
-    it('spec should appear in a row starting at score 20, not 35', () => {
+    it('spec stage should NOT appear in taskify prompt (merged into gap)', () => {
       const content = fs.readFileSync(taskifyPath, 'utf-8')
-      const row20 = content.split('\n').find((line) => /\|\s*20[-–]/.test(line) && /\|/.test(line))
-      expect(row20, 'No table row starting at score 20').toBeTruthy()
-      expect(row20!.toLowerCase()).toContain('spec')
+      // Extract the complexity table section
+      const tableSection =
+        content.match(/## Complexity Score[\s\S]*?### Scoring Dimensions/)?.[0] ?? ''
+      // spec should not be listed as a separate stage in the table
+      const tableLines = tableSection
+        .split('\n')
+        .filter((l) => l.startsWith('|') && !l.includes('---'))
+      const stageColumnTexts = tableLines.map((l) => l.toLowerCase())
+      // No row should have '+ spec' as a stage activation
+      const hasSpecStage = stageColumnTexts.some((l) => /\+\s*spec\b/.test(l))
+      expect(hasSpecStage, 'spec should not appear as a separate stage in complexity table').toBe(
+        false,
+      )
     })
 
     it('gap should appear in a row starting at score 35', () => {
@@ -809,15 +806,15 @@ describe('cross-artifact consistency', () => {
     })
   })
 
-  describe('resolvePipelineProfile boundary matches STAGE_COMPLEXITY_THRESHOLDS.spec', () => {
-    it('complexity at STAGE_COMPLEXITY_THRESHOLDS.spec - 1 → lightweight', () => {
-      const boundary = STAGE_COMPLEXITY_THRESHOLDS.spec
+  describe('resolvePipelineProfile boundary matches STAGE_COMPLEXITY_THRESHOLDS.gap', () => {
+    it('complexity at STAGE_COMPLEXITY_THRESHOLDS.gap - 1 → lightweight', () => {
+      const boundary = STAGE_COMPLEXITY_THRESHOLDS.gap
       const taskDef = createTaskDef('implement_feature', 'medium', boundary - 1)
       expect(resolvePipelineProfile(taskDef)).toBe('lightweight')
     })
 
-    it('complexity at STAGE_COMPLEXITY_THRESHOLDS.spec → standard', () => {
-      const boundary = STAGE_COMPLEXITY_THRESHOLDS.spec
+    it('complexity at STAGE_COMPLEXITY_THRESHOLDS.gap → standard', () => {
+      const boundary = STAGE_COMPLEXITY_THRESHOLDS.gap
       const taskDef = createTaskDef('implement_feature', 'medium', boundary)
       expect(resolvePipelineProfile(taskDef)).toBe('standard')
     })

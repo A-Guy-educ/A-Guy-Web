@@ -15,7 +15,7 @@ Cody is a 3-layer system:
 ├──────────────────────────────────────────────────────────────────┤
 │  2. ENGINE LAYER — State machine (scripts/cody/)                 │
 │     Entry: entry.ts → state-machine.ts loop                      │
-│     Stages: taskify → spec → gap → gsd-plan → gsd-execute → pr  │
+│     Stages: taskify → gap → gsd-plan → gsd-execute → pr         │
 │     Output: code changes, PRs, status.json                       │
 ├──────────────────────────────────────────────────────────────────┤
 │  3. DASHBOARD LAYER — Next.js UI (src/ui/cody/, src/app/api/cody)│
@@ -64,7 +64,7 @@ Output:
 
 | Mode    | Stages                                                                      |
 | ------- | --------------------------------------------------------------------------- |
-| `spec`  | taskify → spec → gap → clarify                                              |
+| `spec`  | taskify → gap → clarify                                                     |
 | `impl`  | gsd-research → gsd-plan → gsd-execute → commit → review → fix → verify → pr |
 | `full`  | spec + impl (two-phase, with pipeline rebuild after taskify)                |
 | `rerun` | Resume from last failure/pause point                                        |
@@ -72,7 +72,7 @@ Output:
 
 ## Two-Phase Execution (Full Mode)
 
-1. **Phase 1**: Spec stages run (taskify → spec → gap)
+1. **Phase 1**: Spec stages run (taskify → gap)
 2. **After taskify**: `resolve-profile` post-action sets `ctx.pipelineNeedsRebuild = true`
 3. **Rebuild**: `rebuildPipelineAfterTaskify()` returns full pipeline with BOTH completed + pending stages
 4. **Phase 2**: Engine skips completed spec stages, continues with impl stages
@@ -81,8 +81,8 @@ Output:
 
 ## Profiles
 
-- `standard`: Full pipeline (includes spec, gap, gsd-research)
-- `lightweight`: Skips spec, gap, gsd-research (for simple bug fixes, refactors)
+- `standard`: Full pipeline (includes gap, gsd-research)
+- `lightweight`: Skips gap, gsd-research (for simple bug fixes, refactors)
 
 Profile resolved in `resolve-profile` post-action based on:
 

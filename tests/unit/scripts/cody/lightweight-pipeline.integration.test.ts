@@ -219,20 +219,20 @@ describe('standard pipeline integration', () => {
   })
 
   describe('getSpecStagesForProfile for standard', () => {
-    it('returns taskify, spec, gap when clarify is false', async () => {
+    it('returns taskify, gap when clarify is false', async () => {
       const { getSpecStagesForProfile } = await import('../../../../scripts/cody/pipeline-utils')
 
       const stages = getSpecStagesForProfile('standard', false)
 
-      expect(stages).toEqual(['taskify', 'spec', 'gap'])
+      expect(stages).toEqual(['taskify', 'gap'])
     })
 
-    it('returns taskify, spec, gap, clarify when clarify is true', async () => {
+    it('returns taskify, gap, clarify when clarify is true', async () => {
       const { getSpecStagesForProfile } = await import('../../../../scripts/cody/pipeline-utils')
 
       const stages = getSpecStagesForProfile('standard', true)
 
-      expect(stages).toEqual(['taskify', 'spec', 'gap', 'clarify'])
+      expect(stages).toEqual(['taskify', 'gap', 'clarify'])
     })
   })
 
@@ -341,7 +341,7 @@ describe('end-to-end pipeline selection', () => {
 
     // Step 2: Get spec stages
     const specStages = getSpecStagesForProfile(profile, false)
-    expect(specStages).toEqual(['taskify', 'spec', 'gap'])
+    expect(specStages).toEqual(['taskify', 'gap'])
 
     // Step 3: Get impl pipeline
     const implPipeline = getImplPipeline(profile)
@@ -362,8 +362,7 @@ describe('end-to-end pipeline selection', () => {
     expect(lightweightSpecStages).not.toContain('spec')
     expect(lightweightSpecStages).not.toContain('gap')
 
-    // Standard should have spec and gap
-    expect(standardSpecStages).toContain('spec')
+    // Standard should have gap (spec merged into gap)
     expect(standardSpecStages).toContain('gap')
   })
 
@@ -419,7 +418,6 @@ describe('rebuildPipelineAfterTaskify', () => {
 
     // Should contain spec stages (completed from first phase)
     expect(flatOrder).toContain('taskify')
-    expect(flatOrder).toContain('spec')
     expect(flatOrder).toContain('gap')
 
     // Should also contain impl stages (to run after taskify)

@@ -36,7 +36,7 @@ export const VALID_INPUT_QUALITY_LEVELS = [
 export const NON_SKIPPABLE_STAGES = ['gap', 'plan-gap', 'build', 'commit', 'verify', 'pr'] as const
 
 // Stages that CAN be skipped when input quality is high
-export const SKIPPABLE_STAGES = ['spec', 'architect'] as const
+export const SKIPPABLE_STAGES = ['architect'] as const
 
 export interface InputQuality {
   level: (typeof VALID_INPUT_QUALITY_LEVELS)[number]
@@ -58,15 +58,13 @@ export const COMPLEXITY_MAX = 100
  * Tiers (stages activate at their individual thresholds, not all at tier boundary):
  *   1-9:   "Trivial"      → taskify, build, commit, fix, commit-fix, verify, pr
  *   10-19: "Simple"        → + architect (10)
- *   20-34: "Moderate"      → + spec (20)
  *   30+:   "Moderate+"     → + review (30)
- *   35-39: "Complex"       → + gap (35)
+ *   35-39: "Complex"       → + gap (35) — gap now writes spec.md + gap.md
  *   40-49: "Complex"       → + plan-gap (40)
  *   60+:   "Very Complex"  → + clarify (60)
  */
 export const STAGE_COMPLEXITY_THRESHOLDS: Record<string, number> = {
   taskify: 0,
-  spec: 20,
   gap: 35,
   clarify: 60,
   architect: 10,
@@ -124,11 +122,11 @@ export function resolveControlMode(taskDef: TaskDefinition, override?: ControlMo
 }
 
 /**
- * Lightweight tasks: simple fixes that skip heavyweight stages (spec, gap, plan-gap)
+ * Lightweight tasks: simple fixes that skip heavyweight stages (gap, plan-gap)
  *
  * When complexity score is available, derives profile from it:
- *   complexity < 20 → lightweight (below spec threshold)
- *   complexity >= 20 → standard (spec and above stages enabled)
+ *   complexity < 35 → lightweight (below gap threshold)
+ *   complexity >= 35 → standard (gap and above stages enabled)
  */
 export function resolvePipelineProfile(taskDef: TaskDefinition): PipelineProfile {
   // Agent explicit override always wins
@@ -138,8 +136,8 @@ export function resolvePipelineProfile(taskDef: TaskDefinition): PipelineProfile
 
   // When complexity score is available, derive profile from it
   if (taskDef.complexity !== undefined) {
-    // Threshold = STAGE_COMPLEXITY_THRESHOLDS.spec (20) — below this is lightweight
-    return taskDef.complexity < STAGE_COMPLEXITY_THRESHOLDS.spec ? 'lightweight' : 'standard'
+    // Threshold = STAGE_COMPLEXITY_THRESHOLDS.gap (35) — below this is lightweight
+    return taskDef.complexity < STAGE_COMPLEXITY_THRESHOLDS.gap ? 'lightweight' : 'standard'
   }
 
   // Fallback: legacy heuristic for tasks without complexity score
@@ -781,7 +779,7 @@ export function stageOutputFile(taskDir: string, stage: string): string {
 
 // --- Pipeline stage definitions ---
 
-export const SPEC_ONLY_STAGES = ['spec', 'gap', 'clarify']
+export const SPEC_ONLY_STAGES = ['gap', 'clarify']
 
 // NOTE: SPEC_EXECUTE_VERIFY_STAGES and ALL_IMPL_STAGES were removed (stale).
 // Use IMPL_PIPELINE and ALL_IMPL_STAGE_NAMES instead (defined below).
@@ -935,8 +933,8 @@ export function getAllImplStageNames(profile: 'lightweight' | 'standard'): strin
 /**
  * Get spec pipeline stages for the given profile.
  *
- * Standard: taskify → spec → gap [+ clarify]
- * Lightweight: taskify (spec skipped via input_quality, gap dropped)
+ * Standard: taskify → gap [+ clarify]  (gap writes both spec.md and gap.md)
+ * Lightweight: taskify only (gap dropped)
  */
 export function getSpecStagesForProfile(
   profile: 'lightweight' | 'standard',
@@ -944,11 +942,10 @@ export function getSpecStagesForProfile(
 ): string[] {
   if (profile === 'lightweight') {
     // Lightweight: only taskify runs in spec phase
-    // spec is skipped via input_quality (taskify promotes spec.md)
     // gap is dropped entirely
     return clarify ? ['taskify', 'clarify'] : ['taskify']
   }
 
-  // Standard: taskify → spec → gap [+ clarify]
-  return clarify ? ['taskify', 'spec', 'gap', 'clarify'] : ['taskify', 'spec', 'gap']
+  // Standard: taskify → gap [+ clarify]
+  return clarify ? ['taskify', 'gap', 'clarify'] : ['taskify', 'gap']
 }

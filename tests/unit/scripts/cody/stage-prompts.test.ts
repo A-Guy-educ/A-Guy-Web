@@ -34,8 +34,8 @@ describe('stage-prompts', () => {
   // ===========================================================================
 
   describe('SPEC_STAGES', () => {
-    it('should contain taskify, spec, gap, clarify', () => {
-      expect([...SPEC_STAGES]).toEqual(['taskify', 'spec', 'gap', 'clarify'])
+    it('should contain taskify, gap, clarify (spec merged into gap)', () => {
+      expect([...SPEC_STAGES]).toEqual(['taskify', 'gap', 'clarify'])
     })
   })
 
@@ -49,7 +49,7 @@ describe('stage-prompts', () => {
     it('should contain all stages including gap, plan-gap, commit, autofix', () => {
       const stages = [...ALL_STAGES]
       expect(stages).toContain('taskify')
-      expect(stages).toContain('spec')
+      expect(stages).not.toContain('spec') // spec merged into gap
       expect(stages).toContain('gap')
       expect(stages).toContain('clarify')
       expect(stages).toContain('architect')
@@ -63,7 +63,7 @@ describe('stage-prompts', () => {
       expect(stages).toContain('autofix')
       expect(stages).toContain('docs')
       expect(stages).toContain('pr')
-      expect(stages).toHaveLength(15)
+      expect(stages).toHaveLength(14)
     })
   })
 
@@ -74,8 +74,7 @@ describe('stage-prompts', () => {
   describe('STAGE_CONTEXT_FILES', () => {
     it('should map stages to their correct file lists', () => {
       expect(STAGE_CONTEXT_FILES.taskify).toEqual(['task.md'])
-      expect(STAGE_CONTEXT_FILES.spec).toEqual(['task.md', 'task.json'])
-      expect(STAGE_CONTEXT_FILES.gap).toEqual(['spec.md', 'task.json'])
+      expect(STAGE_CONTEXT_FILES.gap).toEqual(['task.md', 'task.json'])
       expect(STAGE_CONTEXT_FILES.clarify).toEqual(['task.md', 'spec.md'])
       expect(STAGE_CONTEXT_FILES.architect).toEqual([
         'spec.md',
@@ -135,16 +134,16 @@ describe('stage-prompts', () => {
   // ===========================================================================
 
   describe('getSpecStages', () => {
-    it('should return taskify, spec, gap for default standard profile (clarify not included)', () => {
-      expect(getSpecStages()).toEqual(['taskify', 'spec', 'gap'])
+    it('should return taskify, gap for default standard profile (clarify not included)', () => {
+      expect(getSpecStages()).toEqual(['taskify', 'gap'])
     })
 
     it('should return only taskify for lightweight profile', () => {
       expect(getSpecStages('lightweight')).toEqual(['taskify'])
     })
 
-    it('should return taskify, spec, gap for standard profile (no clarify)', () => {
-      expect(getSpecStages('standard')).toEqual(['taskify', 'spec', 'gap'])
+    it('should return taskify, gap for standard profile (no clarify)', () => {
+      expect(getSpecStages('standard')).toEqual(['taskify', 'gap'])
     })
   })
 

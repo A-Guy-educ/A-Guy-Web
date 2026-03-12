@@ -596,7 +596,7 @@ describe('gap stage in stage-prompts', () => {
   it('should have gap context files in stage-prompts', async () => {
     const { STAGE_CONTEXT_FILES } = await import('../../../../scripts/cody/stage-prompts')
     expect(STAGE_CONTEXT_FILES).toHaveProperty('gap')
-    expect(STAGE_CONTEXT_FILES.gap).toContain('spec.md')
+    expect(STAGE_CONTEXT_FILES.gap).toContain('task.md')
     expect(STAGE_CONTEXT_FILES.gap).toContain('task.json')
   })
 })
@@ -1084,10 +1084,10 @@ describe('getSpecStagesForProfile', () => {
     expect(stages).toEqual(['taskify'])
   })
 
-  it('standard without clarify returns taskify, spec, gap', async () => {
+  it('standard without clarify returns taskify, gap', async () => {
     const { getSpecStagesForProfile } = await import('../../../../scripts/cody/pipeline-utils')
     const stages = getSpecStagesForProfile('standard', false)
-    expect(stages).toEqual(['taskify', 'spec', 'gap'])
+    expect(stages).toEqual(['taskify', 'gap'])
   })
 
   it('lightweight with clarify returns taskify + clarify', async () => {

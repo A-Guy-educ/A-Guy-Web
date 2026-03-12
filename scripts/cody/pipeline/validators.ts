@@ -17,26 +17,9 @@ import {
 } from '../content-validators'
 
 /**
- * Create a validator for the spec stage
- */
-export function createSpecValidator(
-  _ctx: PipelineContext,
-): (outputFile: string) => ValidationResult {
-  return (outputFile: string) => {
-    const content = fs.readFileSync(outputFile, 'utf-8')
-    if (validateSpecContent(content)) {
-      return { valid: true }
-    }
-    return {
-      valid: false,
-      error: 'spec.md must contain ## Requirements or ## Acceptance Criteria sections',
-    }
-  }
-}
-
-/**
  * Create a validator for the gap stage.
- * Validates gap.md format AND checks spec.md wasn't corrupted.
+ * Gap now writes BOTH spec.md and gap.md (spec stage was merged into gap).
+ * Validates gap.md format AND ensures spec.md exists with proper structure.
  */
 export function createGapValidator(ctx: PipelineContext): (outputFile: string) => ValidationResult {
   return (outputFile: string) => {
@@ -49,18 +32,24 @@ export function createGapValidator(ctx: PipelineContext): (outputFile: string) =
       }
     }
 
-    // Also validate spec wasn't corrupted by gap agent
+    // Validate spec.md was created by gap agent with proper structure
     const specFile = path.join(ctx.taskDir, 'spec.md')
-    if (fs.existsSync(specFile)) {
-      const specContent = fs.readFileSync(specFile, 'utf-8')
-      if (!validateSpecContent(specContent)) {
-        return {
-          valid: false,
-          error:
-            'gap agent corrupted spec.md - it must keep ## Requirements or ## Acceptance Criteria sections',
-        }
+    if (!fs.existsSync(specFile)) {
+      return {
+        valid: false,
+        error:
+          'gap agent must write spec.md with ## Requirements or ## Acceptance Criteria sections',
       }
     }
+
+    const specContent = fs.readFileSync(specFile, 'utf-8')
+    if (!validateSpecContent(specContent)) {
+      return {
+        valid: false,
+        error: 'spec.md must contain ## Requirements or ## Acceptance Criteria sections',
+      }
+    }
+
     return { valid: true }
   }
 }
