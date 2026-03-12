@@ -1017,7 +1017,7 @@ describe('getImplPipeline', () => {
   it('returns full pipeline for standard profile', async () => {
     const { getImplPipeline } = await import('../../../../scripts/cody/pipeline-utils')
     const pipeline = getImplPipeline('standard')
-    // Standard pipeline should have 9 entries (with review/fix/commit-fix)
+    // Standard pipeline should have 9 entries (with review/fix/commit (second))
     expect(pipeline).toHaveLength(9)
   })
 
@@ -1025,7 +1025,7 @@ describe('getImplPipeline', () => {
     const { getImplPipeline, flattenPipeline } =
       await import('../../../../scripts/cody/pipeline-utils')
     const pipeline = getImplPipeline('lightweight')
-    // Lightweight should have 8 entries (with review/fix/commit-fix)
+    // Lightweight should have 8 entries (with review/fix/commit (second))
     expect(pipeline).toHaveLength(8)
     const flatNames = flattenPipeline(pipeline)
     expect(flatNames).toEqual([
@@ -1034,7 +1034,7 @@ describe('getImplPipeline', () => {
       'commit',
       'review',
       'fix',
-      'commit-fix',
+      'commit',
       'verify',
       'pr',
     ])
@@ -1070,7 +1070,7 @@ describe('getAllImplStageNames', () => {
       'commit',
       'review',
       'fix',
-      'commit-fix',
+      'commit',
       'verify',
       'pr',
     ])

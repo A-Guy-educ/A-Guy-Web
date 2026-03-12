@@ -68,7 +68,7 @@ Output:
 | `impl`  | gsd-research → gsd-plan → gsd-execute → commit → review → fix → verify → pr |
 | `full`  | spec + impl (two-phase, with pipeline rebuild after taskify)                |
 | `rerun` | Resume from last failure/pause point                                        |
-| `fix`   | review → fix → commit-fix → verify → pr (targeted fix mode)                 |
+| `fix`   | review → fix → commit → verify → pr (targeted fix mode)                     |
 
 ## Two-Phase Execution (Full Mode)
 
@@ -114,7 +114,7 @@ Profile resolved in `resolve-profile` post-action based on:
 | commit       | git      | staged files      | commit hash  | —                                                                   |
 | review       | agent    | code diff         | review.md    | analyze-review-findings, commit                                     |
 | fix          | agent    | review.md         | code fixes   | commit, clear-verify-failures                                       |
-| commit-fix   | git      | fix changes       | commit hash  | —                                                                   |
+| commit       | git      | fix changes       | commit hash  | —                                                                   |
 | verify       | scripted | code              | test results | commit (local only)                                                 |
 | pr           | git      | all               | PR URL       | —                                                                   |
 

@@ -41,7 +41,7 @@ describe('stage-prompts', () => {
 
   describe('SCRIPTED_STAGES', () => {
     it('should contain verify, commit, pr', () => {
-      expect([...SCRIPTED_STAGES]).toEqual(['verify', 'commit', 'commit-fix', 'pr'])
+      expect([...SCRIPTED_STAGES]).toEqual(['verify', 'commit', 'pr'])
     })
   })
 
@@ -59,11 +59,10 @@ describe('stage-prompts', () => {
       expect(stages).toContain('verify')
       expect(stages).toContain('review')
       expect(stages).toContain('fix')
-      expect(stages).toContain('commit-fix')
       expect(stages).toContain('autofix')
       expect(stages).toContain('docs')
       expect(stages).toContain('pr')
-      expect(stages).toHaveLength(14)
+      expect(stages).toHaveLength(13)
     })
   })
 
@@ -110,7 +109,6 @@ describe('stage-prompts', () => {
         'spec.md',
         'clarified.md',
       ])
-      expect(STAGE_CONTEXT_FILES['commit-fix']).toEqual(['fix-summary.md', 'verify-failures.md'])
     })
 
     it('should include build-errors.md in autofix context for build stage feedback', () => {
@@ -156,7 +154,7 @@ describe('stage-prompts', () => {
         'commit',
         'review',
         'fix',
-        'commit-fix',
+        'commit',
         'verify',
         'pr',
       ])
@@ -169,7 +167,7 @@ describe('stage-prompts', () => {
         'commit',
         'review',
         'fix',
-        'commit-fix',
+        'commit',
         'verify',
         'pr',
       ])
@@ -183,7 +181,7 @@ describe('stage-prompts', () => {
         'commit',
         'review',
         'fix',
-        'commit-fix',
+        'commit',
         'verify',
         'pr',
       ])

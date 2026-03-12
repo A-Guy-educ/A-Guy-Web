@@ -699,8 +699,7 @@ async function runFixMode(ctx: PipelineContext): Promise<void> {
     maxFixAttempts: 2,
   })
 
-  // Also ensure commit-fix and verify are pending
-  state = updStage(state, 'commit-fix', { state: 'pending' })
+  // Also ensure verify is pending
   state = updStage(state, 'verify', { state: 'pending' })
   state = updStage(state, 'review', { state: 'pending' })
 

@@ -56,7 +56,7 @@ export const COMPLEXITY_MAX = 100
  * Stages with threshold 0 always run. Higher thresholds = only complex tasks.
  *
  * Tiers (stages activate at their individual thresholds, not all at tier boundary):
- *   1-9:   "Trivial"      → taskify, build, commit, fix, commit-fix, verify, pr
+ *   1-9:   "Trivial"      → taskify, build, commit, fix, verify, pr
  *   10-19: "Simple"        → + architect (10)
  *   30+:   "Moderate+"     → + review (30)
  *   35-39: "Complex"       → + gap (35) — gap now writes spec.md + gap.md
@@ -73,7 +73,6 @@ export const STAGE_COMPLEXITY_THRESHOLDS: Record<string, number> = {
   commit: 0,
   review: 30,
   fix: 0,
-  'commit-fix': 0,
   verify: 0,
   docs: 15, // Runs for simple+ tasks (complexity >= 10)
   pr: 0,
@@ -880,7 +879,7 @@ export const IMPL_PIPELINE: PipelineStage[] = [
   'commit',
   'review',
   'fix',
-  'commit-fix',
+  'commit',
   'verify',
   'pr',
 ]
@@ -906,7 +905,7 @@ export const LIGHTWEIGHT_IMPL_PIPELINE: PipelineStage[] = [
   'commit',
   'review',
   'fix',
-  'commit-fix',
+  'commit',
   'verify',
   'pr',
 ]

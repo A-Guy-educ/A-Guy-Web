@@ -138,7 +138,7 @@ Write to: `.tasks/<taskId>/fix-summary.md`
 ## Rules
 
 - Do NOT create branches — the pipeline already did that
-- Do NOT commit or push — the commit-fix stage handles that
+- Do NOT commit or push — the commit stage handles that
 - Do NOT run `git add`, `git commit`, or `git push`
 - Do NOT expand scope — fix ONLY what was reported
 - Do NOT refactor or improve code beyond the specific issues

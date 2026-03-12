@@ -109,7 +109,7 @@ describe('lightweight pipeline integration', () => {
 
       const pipeline = getImplPipeline('lightweight')
 
-      // Should be: architect, build, commit, review, fix, commit-fix, verify, pr (8 stages)
+      // Should be: architect, build, commit, review, fix, commit, verify, pr (8 stages)
       expect(pipeline).toHaveLength(8)
     })
 
@@ -126,7 +126,7 @@ describe('lightweight pipeline integration', () => {
         'commit',
         'review',
         'fix',
-        'commit-fix',
+        'commit',
         'verify',
         'pr',
       ])
@@ -163,7 +163,7 @@ describe('lightweight pipeline integration', () => {
       expect(flatNames).toHaveLength(8)
     })
 
-    it('contains architect, build, commit, review, fix, commit-fix, verify, pr', async () => {
+    it('contains architect, build, commit, review, fix, commit, verify, pr', async () => {
       const { LIGHTWEIGHT_IMPL_PIPELINE, flattenPipeline } =
         await import('../../../../scripts/cody/pipeline-utils')
 
@@ -174,7 +174,7 @@ describe('lightweight pipeline integration', () => {
       expect(flatNames).toContain('commit')
       expect(flatNames).toContain('review')
       expect(flatNames).toContain('fix')
-      expect(flatNames).toContain('commit-fix')
+      expect(flatNames).toContain('commit')
       expect(flatNames).toContain('verify')
       expect(flatNames).toContain('pr')
     })
@@ -278,7 +278,7 @@ describe('standard pipeline integration', () => {
 
       const flatNames = flattenPipeline(IMPL_PIPELINE)
 
-      // Should be: architect, plan-gap, build, commit, review, fix, commit-fix, verify, pr (9 stages)
+      // Should be: architect, plan-gap, build, commit, review, fix, commit, verify, pr (9 stages)
       expect(flatNames).toHaveLength(9)
     })
 
@@ -313,14 +313,14 @@ describe('end-to-end pipeline selection', () => {
     const implPipeline = getImplPipeline(profile)
     const implStages = flattenPipeline(implPipeline)
 
-    // Should be: architect, build, commit, review, fix, commit-fix, verify, pr
+    // Should be: architect, build, commit, review, fix, commit, verify, pr
     expect(implStages).toEqual([
       'architect',
       'build',
       'commit',
       'review',
       'fix',
-      'commit-fix',
+      'commit',
       'verify',
       'pr',
     ])

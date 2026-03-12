@@ -355,6 +355,7 @@
         "src/ui/cody/components/CommentEditor.tsx",
         "src/ui/cody/components/CommentList.tsx",
         "src/ui/cody/components/CreateTaskDialog.tsx",
+        "src/ui/cody/components/FilterBar.tsx",
         "src/ui/cody/components/MergeApprovalDialog.tsx",
         "src/ui/cody/components/MergeButton.tsx",
         "src/ui/cody/components/MiniPipelineProgress.tsx",
@@ -4550,8 +4551,8 @@
       "path": "src/ui/cody/components/FilterBar.tsx",
       "type": "component",
       "domain": "cody",
-      "patterns": ["filter-bar", "client-component"],
-      "aiSummary": "Dedicated filter sub-header bar for Cody dashboard with date, status, and label filters",
+      "patterns": ["filter-bar", "tailwind-component", "client-component"],
+      "aiSummary": "Dedicated filter sub-header bar for Cody dashboard with view toggle, date, status, and label filters",
       "dependencies": []
     },
     "src/ui/cody/components/GitHubUserPickerDialog.tsx": {
@@ -5713,7 +5714,7 @@
     }
   },
   "metadata": {
-    "generatedAt": "2026-03-12T14:03:15.946Z",
+    "generatedAt": "2026-03-12T19:57:07.036Z",
     "totalFiles": 507,
     "totalPatterns": 169
   }

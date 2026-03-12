@@ -36,7 +36,6 @@ export const ALL_STAGES = [
   'commit',
   'review',
   'fix',
-  'commit-fix',
   'verify',
   'autofix',
   'docs',
@@ -49,7 +48,7 @@ export type Stage = (typeof ALL_STAGES)[number]
  * Scripted stages that run directly without an LLM agent.
  * Their prompts in stageInstructions are unused but kept for documentation.
  */
-export const SCRIPTED_STAGES = ['verify', 'commit', 'commit-fix', 'pr'] as const
+export const SCRIPTED_STAGES = ['verify', 'commit', 'pr'] as const
 
 // ============================================================================
 // Stage Context — which files each stage needs to read
@@ -85,7 +84,6 @@ export const STAGE_CONTEXT_FILES: Record<Stage, string[]> = {
     'spec.md',
     'clarified.md',
   ],
-  'commit-fix': ['fix-summary.md', 'verify-failures.md'],
   verify: [], // scripted — no LLM prompt needed
   autofix: ['verify.md', 'build-errors.md'],
   docs: ['build.md', 'task.json', 'review.md'],
@@ -161,8 +159,6 @@ For fix_bug tasks: follow the SCIENTIFIC DEBUG PROTOCOL in your agent instructio
 Hypothesis first, reproduction test second, minimal fix third.
 
 Write fix-summary.md summarizing what you changed.`,
-
-  'commit-fix': () => ``,
 
   // Scripted stages — these prompts are never sent to an LLM
   verify: () => ``,

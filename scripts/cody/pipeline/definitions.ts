@@ -47,7 +47,7 @@ export const IMPL_ORDER_STANDARD: PipelineStep[] = [
   'commit',
   'review',
   'fix',
-  'commit-fix',
+  'commit',
   'verify',
   'docs',
   'pr',
@@ -58,14 +58,14 @@ export const IMPL_ORDER_LIGHTWEIGHT: PipelineStep[] = [
   'commit',
   'review',
   'fix',
-  'commit-fix',
+  'commit',
   'verify',
   'docs',
   'pr',
 ]
 
 // Fix-only pipeline order for @cody fix mode
-export const FIX_ORDER: PipelineStep[] = ['review', 'fix', 'commit-fix', 'verify', 'docs', 'pr']
+export const FIX_ORDER: PipelineStep[] = ['review', 'fix', 'commit', 'verify', 'docs', 'pr']
 
 // ============================================================================
 // Stage Definitions
@@ -312,21 +312,6 @@ No critical gaps identified. Plan was refined in-place.
       },
       { type: 'clear-verify-failures' },
     ],
-  })
-
-  // commit-fix stage - commits the fix changes before verify
-  stages.set('commit-fix', {
-    name: 'commit-fix',
-    type: 'git',
-    timeout: STAGE_TIMEOUTS['commit-fix'] ?? DEFAULT_TIMEOUT,
-    maxRetries: 0,
-    shouldSkip: (ctx) => {
-      const state = loadState(ctx.taskId)
-      if (state?.stages?.fix?.state === 'skipped') {
-        return { shouldSkip: true, reason: 'Fix was skipped, nothing to commit' }
-      }
-      return { shouldSkip: false }
-    },
   })
 
   // commit stage

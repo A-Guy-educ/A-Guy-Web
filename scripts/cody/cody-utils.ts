@@ -66,6 +66,8 @@ export interface CodyPipelineStatus {
   controlMode?: 'auto' | 'risk-gated' | 'hard-stop'
   gatePoint?: string
   botCommentId?: number
+  /** Total accumulated cost across all stages in USD */
+  totalCost?: number
 }
 
 export interface StageStatus {
@@ -77,11 +79,13 @@ export interface StageStatus {
   outputFile?: string
   skipped?: string // Reason for skip (e.g., 'input_quality')
   error?: string
-  // Token usage for cost tracking (schema only - not populated)
+  // Token usage for cost tracking
   tokenUsage?: {
     input: number
     output: number
   }
+  /** Cost in USD */
+  cost?: number
 }
 
 // ============================================================================
@@ -1028,14 +1032,37 @@ export function formatStatusComment(
     lines.push(`✅ Cody completed for \`${input.taskId}\`!`)
     lines.push(`Mode: ${input.mode}`)
 
-    // Add per-stage timing for completed pipeline
+    // Add per-stage table with timing and cost
     const completedStages = Object.entries(status.stages)
+    const hasCostData = completedStages.some(([, s]) => s.cost !== undefined && s.cost > 0)
+
     if (completedStages.length > 0) {
       lines.push('')
-      for (const [stage, stageStatus] of completedStages) {
-        const icon = stageStatus.state === 'completed' ? '✅' : '❌'
-        const elapsed = stageStatus.elapsed ? ` (${formatDuration(stageStatus.elapsed)})` : ''
-        lines.push(`  ${icon} ${stage}${elapsed}`)
+      if (hasCostData) {
+        // Full table with cost column
+        lines.push('| Stage | Status | Duration | Cost |')
+        lines.push('|-------|--------|----------|------|')
+        for (const [stage, stageStatus] of completedStages) {
+          const icon =
+            stageStatus.state === 'completed' ? '✅' : stageStatus.state === 'skipped' ? '⏭️' : '❌'
+          const elapsed = stageStatus.elapsed ? formatDuration(stageStatus.elapsed) : '—'
+          const cost =
+            stageStatus.cost !== undefined && stageStatus.cost > 0
+              ? `$${stageStatus.cost.toFixed(4)}`
+              : '—'
+          lines.push(`| ${stage} | ${icon} | ${elapsed} | ${cost} |`)
+        }
+        // Total row
+        if (status.totalCost !== undefined && status.totalCost > 0) {
+          lines.push(`| **Total** | | | **$${status.totalCost.toFixed(4)}** |`)
+        }
+      } else {
+        // Simple list without cost (backward compat)
+        for (const [stage, stageStatus] of completedStages) {
+          const icon = stageStatus.state === 'completed' ? '✅' : '❌'
+          const elapsed = stageStatus.elapsed ? ` (${formatDuration(stageStatus.elapsed)})` : ''
+          lines.push(`  ${icon} ${stage}${elapsed}`)
+        }
       }
     }
   } else if (status.state === 'paused') {

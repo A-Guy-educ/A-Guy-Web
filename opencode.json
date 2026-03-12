@@ -14,10 +14,6 @@
       "model": "anthropic/claude-opus-4-6",
       "description": "Planning tasks, architecture design, complex problem solving"
     },
-    "spec": {
-      "model": "openai/gpt-5.2",
-      "description": "Spec writing, API design, documentation"
-    },
     "clarify": {
       "model": "openai/gpt-5.2",
       "description": "Collects operator questions and answers"
@@ -78,10 +74,6 @@
     "fix": {
       "model": "minimax-coding-plan/MiniMax-M2.5",
       "description": "Targeted fixes for issues found by review or verify stages"
-    },
-    "commit-fix": {
-      "model": "minimax-coding-plan/MiniMax-M2.5",
-      "description": "Commits fix changes after the fix stage"
     }
   },
   "mcp": {

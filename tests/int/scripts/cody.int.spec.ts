@@ -470,7 +470,7 @@ describe('orchestrator integration', () => {
       expect(ALL_IMPL_STAGE_NAMES).toContain('pr')
       expect(ALL_IMPL_STAGE_NAMES).toContain('review')
       expect(ALL_IMPL_STAGE_NAMES).toContain('fix')
-      expect(ALL_IMPL_STAGE_NAMES).toContain('commit-fix')
+      expect(ALL_IMPL_STAGE_NAMES).toContain('commit')
       expect(ALL_IMPL_STAGE_NAMES).toHaveLength(9)
     })
 

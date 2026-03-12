@@ -31,7 +31,7 @@ export function resolvePipelineForMode(
       // Rerun needs BOTH spec and impl stages to support resuming from any stage
       return buildPipeline('rerun', profile, clarify, ctx)
     case 'fix': {
-      // Fix mode uses FIX_ORDER (review → fix → commit-fix → verify → pr)
+      // Fix mode uses FIX_ORDER (review → fix → commit → verify → pr)
       const fixPipeline = buildPipeline('full', profile, clarify, ctx)
       return { stages: fixPipeline.stages, order: FIX_ORDER }
     }
