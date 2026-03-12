@@ -44,6 +44,20 @@ You do NOT write code. You **DO edit plan.md** to fix gaps.
 - Are the proposed changes consistent with project patterns?
 - Is the scope reasonable (not over-engineered)?
 
+### Reuse Validation (CRITICAL)
+
+Check that the plan leverages existing project code instead of reinventing:
+
+- **Access control**: Does the plan create new access functions? Check if `src/server/payload/access/` already has what's needed (adminOnly, authenticated, authenticatedOrPublished, publishedAndActive, etc.)
+- **Hooks**: Does the plan create new hooks? Check `src/server/payload/hooks/` for existing ones.
+- **Utilities**: Does the plan create new helpers? Check `src/infra/utils/` first.
+- **Validation**: Does the plan create new schemas? Check `src/infra/utils/validation/common-schemas.ts`.
+- **Components**: Does the plan create new UI components? Check if shadcn/ui or existing components in `src/ui/` work.
+
+If the plan creates something that already exists:
+1. **Edit plan.md** to replace "Create new X" with "Reuse existing X from `<path>`"
+2. Document in plan-gap.md under a `## Reuse Corrections` section
+
 ### Feasibility Assessment (NEW — CRITICAL)
 
 Go beyond "does the plan cover the spec" and ask "can this plan actually be executed?":

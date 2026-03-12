@@ -142,6 +142,35 @@ Before writing ANY code or tests, you MUST read existing files to understand the
 
 **NEVER assume** an export exists without checking. Always verify first.
 
+### 1.1b CRITICAL: Search Before Creating (DRY Principle)
+
+Before creating ANY new file (utility, helper, hook, access control, component), you MUST search for existing code first:
+
+1. **Access control**: Check `src/server/payload/access/` — functions like `adminOnly`, `authenticated`, `authenticatedOrPublished`, `publishedAndActive` already exist. NEVER recreate these.
+2. **Hooks**: Check `src/server/payload/hooks/` — `populatePublishedAt`, `validateLocaleUniqueness`, etc.
+3. **Validation schemas**: Check `src/infra/utils/validation/common-schemas.ts` for reusable Zod schemas.
+4. **Utilities**: Search `src/infra/utils/` before writing helpers for dates, URLs, logging, deep merge, etc.
+5. **UI components**: Check `src/ui/` — both shadcn components and feature components in `src/ui/web/`.
+6. **Test helpers**: Check `src/infra/utils/test/` for existing test utilities.
+
+**Rules:**
+- If existing code does 80%+ of what you need → **extend it**, don't create a parallel version
+- If you create a new utility, place it where similar utilities live (not in the feature directory)
+- NEVER duplicate access control functions — import from `src/server/payload/access/`
+- NEVER duplicate validation helpers — import from `src/infra/utils/validation/`
+- NEVER create a new logger — import from `src/infra/utils/logger`
+- Copy-pasted blocks > 5 lines → extract into a shared function
+
+### 1.1c Code Quality Standards
+
+- **No `any` types** — use proper TypeScript types. Import from `@/payload-types` for generated types.
+- **Small functions** — max ~50 lines. Extract helpers with clear names.
+- **Named constants** — `const MAX_RETRIES = 3` not magic `3`.
+- **Early returns** — guard clause pattern. Max 3 levels of nesting.
+- **Descriptive names** — `fetchUserProgress()` not `getData()`. Verb-noun for functions.
+- **Error handling** — every async op needs try/catch. No silent failures.
+- **Immutability** — `{ ...obj, key: value }` not `obj.key = value`.
+
 ### 1.2 CRITICAL: Using the Edit Tool
 
 When using the Edit tool to modify existing files:

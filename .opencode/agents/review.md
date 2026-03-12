@@ -44,6 +44,36 @@ You are the **Reviewer**. Your job is to review generated code for quality, secu
 - Performance concerns (N+1 queries, missing indexes)
 - Import ordering / dead code
 
+### Reuse & Quality Violations (NEW — Check These)
+
+Look specifically for these reuse and quality violations:
+
+**Reuse violations (flag as Major):**
+- New access control function when `src/server/payload/access/` already has one that works (adminOnly, authenticated, authenticatedOrPublished, publishedAndActive, etc.)
+- New utility function that duplicates existing code in `src/infra/utils/`
+- New validation schema when `src/infra/utils/validation/common-schemas.ts` has it
+- New hook that replicates logic in `src/server/payload/hooks/`
+- New UI component when a shadcn/ui component or existing component would work
+- Copy-pasted code blocks (>5 lines) that should be extracted into shared functions
+
+**Quality violations (flag by severity):**
+- Critical: `any` types hiding real type errors, missing error handling on async
+- Major: Functions >50 lines without extraction, magic numbers/strings, deep nesting (>3 levels)
+- Minor: Inconsistent naming, unused imports
+
+**Add this table to your report under `## Reuse & Quality`:**
+
+| Check | Status | Notes |
+|-------|--------|-------|
+| No duplicated access control | ✅/❌ | |
+| No duplicated utilities | ✅/❌ | |
+| No duplicated validation schemas | ✅/❌ | |
+| Existing UI components used where possible | ✅/❌ | |
+| No `any` type escapes | ✅/❌ | |
+| Functions reasonably sized (<50 lines) | ✅/❌ | |
+| No magic numbers/strings | ✅/❌ | |
+| Error handling on all async ops | ✅/❌ | |
+
 ## Goal-Backward Spec Satisfaction Check (CRITICAL)
 
 This is the most important part of your review. Quality gates (tsc, lint, test) can all pass while the spec is NOT satisfied. You are the last line of defense.

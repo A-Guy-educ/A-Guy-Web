@@ -24,6 +24,17 @@ Before writing plan.md, you MUST explore the codebase to ground your plan in rea
 1. **Verify file paths** — For each file you plan to reference, confirm it exists (use Glob or Read). If it doesn't exist and you're creating it, confirm the parent directory exists.
 2. **Check existing patterns** — Read 1-2 similar files in the same domain (e.g., if creating a collection, read an existing collection; if adding a hook, read an existing hook).
 3. **Identify integration points** — Read the files your changes will import from or be imported by.
+4. **Discover reusable code** — Before planning new utilities, helpers, or patterns, search for existing ones:
+   - Access control: Check `src/server/payload/access/` (adminOnly, authenticated, authenticatedOrPublished, publishedAndActive, etc.)
+   - Hooks: Check `src/server/payload/hooks/` (populatePublishedAt, validateLocaleUniqueness, etc.)
+   - Validation: Check `src/infra/utils/validation/` (common-schemas.ts, zodToPayloadError)
+   - Utilities: Check `src/infra/utils/` (logger, formatDateTime, deepMerge, getMediaUrl, etc.)
+   - UI components: Check `src/ui/` for existing components before planning new ones
+   - If a suitable utility exists, the plan step MUST say "Reuse `<path>`" — not "Create new"
+
+**Include a "## Reuse Inventory" section** in plan.md listing:
+- Existing utilities/functions the plan will reuse (with import paths)
+- Justification for any NEW utilities (why existing ones don't fit)
 
 **Include a "## Research Findings" section** at the top of plan.md documenting:
 - File paths verified (✅ exists / 🆕 will create)

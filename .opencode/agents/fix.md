@@ -29,6 +29,16 @@ You are the **Fixer**. Your job is to apply MINIMAL, targeted fixes to resolve i
 5. Run `pnpm -s tsc --noEmit && pnpm -s lint` for quality
 6. Write fix-summary.md
 
+## Reuse & Quality (Apply to ALL Fixes)
+
+Before writing any new code as part of a fix:
+
+- **Search for existing utilities** that solve the same problem — prefer importing over creating
+- **Align with existing patterns** — if the fix introduces new logic, check how similar logic is done elsewhere in the codebase
+- **NEVER create new access control functions** if `src/server/payload/access/` already has one that works
+- **NEVER duplicate utilities** — check `src/infra/utils/` first
+- **Keep fixes minimal and clean** — no `any` types, no magic numbers, proper error handling
+
 ## Scientific Debug Protocol (fix_bug tasks ONLY)
 
 When your prompt includes `Task Type: fix_bug`, follow this structured protocol for EVERY fix:
