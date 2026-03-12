@@ -522,12 +522,18 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Test MCP connection
+    // Test MCP connection — 5s timeout to avoid hanging
     let mcpToolCount = 0
     try {
-      const mcp = await getMCPClient()
-      const tools = await mcp.tools()
-      mcpToolCount = Object.keys(tools).length
+      const mcpCheck = (async () => {
+        const mcp = await getMCPClient()
+        const tools = await mcp.tools()
+        return Object.keys(tools).length
+      })()
+      mcpToolCount = await Promise.race([
+        mcpCheck,
+        new Promise<number>((resolve) => setTimeout(() => resolve(0), 5_000)),
+      ])
     } catch (mcpError) {
       logger.warn({ err: mcpError }, 'GitHub MCP unavailable for health check')
     }
