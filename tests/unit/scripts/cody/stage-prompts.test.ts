@@ -61,8 +61,9 @@ describe('stage-prompts', () => {
       expect(stages).toContain('fix')
       expect(stages).toContain('commit-fix')
       expect(stages).toContain('autofix')
+      expect(stages).toContain('docs')
       expect(stages).toContain('pr')
-      expect(stages).toHaveLength(14)
+      expect(stages).toHaveLength(15)
     })
   })
 
@@ -206,7 +207,7 @@ describe('stage-prompts', () => {
       }
     })
 
-    it('should return empty strings for non-spec stages (except build, review, fix)', () => {
+    it('should return empty strings for non-spec stages (except build, review, fix, docs)', () => {
       const nonSpecStages = ALL_STAGES.filter(
         (s) => !SPEC_STAGES.includes(s as (typeof SPEC_STAGES)[number]),
       )
@@ -219,6 +220,8 @@ describe('stage-prompts', () => {
           expect(instruction).toContain('CODE REVIEW')
         } else if (stage === 'fix') {
           expect(instruction).toContain('TARGETED FIX STAGE')
+        } else if (stage === 'docs') {
+          expect(instruction).toContain('DOCUMENTATION STAGE')
         } else {
           expect(instruction).toBe('')
         }
