@@ -1,8 +1,9 @@
 'use client'
 
-import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import type { GeometrySpecV1 } from '@/infra/contracts/graphics/geometry.v1'
+import { DEFAULT_TEXT_COLOR, sizeScaleToPixels } from '@/infra/contracts/graphics/textColors'
 import type { JXGBoard, JXGElement } from 'jsxgraph'
+import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { JSXGraphBoard } from '../shared/JSXGraphBoard'
 
 interface PointUpdate {
@@ -20,6 +21,7 @@ interface GeometryCanvasProps {
   onPointMoved?: (name: string, x: number, y: number) => void
   onMultiPointMoved?: (updates: PointUpdate[]) => void
   onCanvasClick?: (x: number, y: number) => void
+  onTextMoved?: (index: number, x: number, y: number) => void
 }
 
 const DISPLAY_WIDTH = 420
@@ -36,6 +38,7 @@ export const GeometryCanvas: React.FC<GeometryCanvasProps> = ({
   onPointMoved,
   onMultiPointMoved,
   onCanvasClick,
+  onTextMoved,
 }) => {
   const boardRef = useRef<JXGBoard | null>(null)
   const isSyncingRef = useRef(false)
@@ -45,10 +48,12 @@ export const GeometryCanvas: React.FC<GeometryCanvasProps> = ({
   const onCanvasClickRef = useRef(onCanvasClick)
   const onPointMovedRef = useRef(onPointMoved)
   const onMultiPointMovedRef = useRef(onMultiPointMoved)
+  const onTextMovedRef = useRef(onTextMoved)
   modeRef.current = interactionMode
   onCanvasClickRef.current = onCanvasClick
   onPointMovedRef.current = onPointMoved
   onMultiPointMovedRef.current = onMultiPointMoved
+  onTextMovedRef.current = onTextMoved
 
   const syncToBoard = useCallback(() => {
     const board = boardRef.current
@@ -75,6 +80,7 @@ export const GeometryCanvas: React.FC<GeometryCanvasProps> = ({
         isDraggingRef,
         onMultiPointMovedRef,
       )
+      syncTexts(board, geometry, newIds, elementsRef, isSyncingRef, isDraggingRef, onTextMovedRef)
 
       for (const oldId of existingIds) {
         if (!newIds.has(oldId)) {
@@ -407,4 +413,68 @@ function addPolygonDragHandlers(
   polygon.on('up', () => {
     isDraggingRef.current = false
   })
+}
+
+function syncTexts(
+  board: JXGBoard,
+  geometry: GeometrySpecV1,
+  newIds: Set<string>,
+  elementsRef: React.MutableRefObject<Map<string, JXGElement>>,
+  isSyncingRef: React.MutableRefObject<boolean>,
+  isDraggingRef: React.MutableRefObject<boolean>,
+  onTextMovedRef: React.RefObject<((index: number, x: number, y: number) => void) | undefined>,
+) {
+  const texts = geometry.elements.texts || []
+  for (let i = 0; i < texts.length; i++) {
+    const text = texts[i]
+    const elemId = `text-${i}`
+    newIds.add(elemId)
+
+    let x = text.place?.x ?? 0
+    let y = text.place?.y ?? 0
+
+    if (text.on?.from && text.on?.to) {
+      const fromEl = elementsRef.current.get(`point-${text.on.from}`)
+      const toEl = elementsRef.current.get(`point-${text.on.to}`)
+      if (fromEl && toEl) {
+        const f = fromEl as unknown as { X: () => number; Y: () => number }
+        const t = toEl as unknown as { X: () => number; Y: () => number }
+        x = (f.X() + t.X()) / 2
+        y = (f.Y() + t.Y()) / 2
+      }
+    }
+
+    // Always remove and recreate — JSXGraph text elements don't support moveTo or
+    // reliable in-place attribute updates. This matches the syncLineLabels pattern.
+    const existing = elementsRef.current.get(elemId)
+    if (existing) {
+      board.removeObject(existing)
+      elementsRef.current.delete(elemId)
+    }
+
+    const color = text.color ?? DEFAULT_TEXT_COLOR
+    const fontSize =
+      text.sizeScale !== undefined ? sizeScaleToPixels(text.sizeScale) : (text.fontSize ?? 14)
+
+    const el = board.create('text', [x, y, text.value], {
+      fontSize,
+      strokeColor: color,
+      color,
+      anchorX: 'middle',
+      anchorY: 'middle',
+      fixed: false,
+      highlight: true,
+    })
+
+    el.on('drag', () => {
+      if (isSyncingRef.current) return
+      isDraggingRef.current = true
+      const textEl = el as unknown as { X: () => number; Y: () => number }
+      onTextMovedRef.current?.(i, round1(textEl.X()), round1(textEl.Y()))
+    })
+    el.on('up', () => {
+      isDraggingRef.current = false
+    })
+    elementsRef.current.set(elemId, el)
+  }
 }

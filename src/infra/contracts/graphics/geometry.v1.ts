@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { ColorStringSchema, PositionEnumSchema } from '../primitives'
-import { InteractionToolSchema, EvaluationModeSchema } from './interaction.base'
+import { EvaluationModeSchema, InteractionToolSchema } from './interaction.base'
 
 /**
  * GeometrySpecV1 - Declarative JSON specification for Euclidean geometry
@@ -120,6 +120,8 @@ const TextSchema = z.object({
     .optional(),
   position: PositionEnumSchema.optional(),
   fontSize: z.number().positive().optional(),
+  color: ColorStringSchema.optional(),
+  sizeScale: z.number().int().min(0).max(10).optional(),
 })
 
 /** Equal segment marker (array of segments that are equal to each other) */

@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useCallback, useState } from 'react'
 import type { GeometrySpecV1 } from '@/infra/contracts/graphics/geometry.v1'
+import React, { useCallback, useState } from 'react'
 import { GeometryCanvas } from './GeometryCanvas'
 import { GeometryToolbar, type GeometryMode } from './GeometryToolbar'
 
@@ -18,6 +18,7 @@ interface GeometryCanvasWithToolbarProps {
   onMultiPointMoved?: (updates: PointUpdate[]) => void
   onPointAdded: (x: number, y: number) => void
   onGridToggle: (showGrid: boolean) => void
+  onTextMoved?: (index: number, x: number, y: number) => void
 }
 
 export const GeometryCanvasWithToolbar: React.FC<GeometryCanvasWithToolbarProps> = ({
@@ -27,6 +28,7 @@ export const GeometryCanvasWithToolbar: React.FC<GeometryCanvasWithToolbarProps>
   onMultiPointMoved,
   onPointAdded,
   onGridToggle,
+  onTextMoved,
 }) => {
   const [mode, setMode] = useState<GeometryMode>('move')
   const showGrid = geometry.canvas.grid ?? false
@@ -58,6 +60,7 @@ export const GeometryCanvasWithToolbar: React.FC<GeometryCanvasWithToolbarProps>
         onPointMoved={onPointMoved}
         onMultiPointMoved={onMultiPointMoved}
         onCanvasClick={handleCanvasClick}
+        onTextMoved={onTextMoved}
       />
       {mode === 'addPoint' && (
         <div className="geo-canvas-hint">Click on the canvas to place a point</div>

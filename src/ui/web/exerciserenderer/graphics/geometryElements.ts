@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { GeometrySpecV1 } from '@/infra/contracts'
+import { DEFAULT_TEXT_COLOR, sizeScaleToPixels } from '@/infra/contracts/graphics/textColors'
 
 type PointSpec = GeometrySpecV1['elements']['points'][number]
 type LineSpec = GeometrySpecV1['elements']['lines'][number]
@@ -201,8 +202,12 @@ export function renderGeometrySpec(board: JXG.Board, spec: GeometrySpecV1): void
         }
       }
 
+      const color = text.color ?? DEFAULT_TEXT_COLOR
       board.create('text', [x, y, text.value], {
-        fontSize: text.fontSize ?? 14,
+        fontSize:
+          text.sizeScale !== undefined ? sizeScaleToPixels(text.sizeScale) : (text.fontSize ?? 14),
+        strokeColor: color,
+        color,
         anchorX: 'middle',
         anchorY: 'middle',
       })
