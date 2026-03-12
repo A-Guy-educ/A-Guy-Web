@@ -8,7 +8,7 @@ export type CourseTab = 'learn' | 'practice' | 'ask' | 'exams'
 export const TAB_COLORS: Record<CourseTab, { text: string; stroke: string }> = {
   learn: { text: '#2563eb', stroke: '#2563eb' },
   practice: { text: '#b91c1c', stroke: '#b91c1c' },
-  exams: { text: '#059669', stroke: '#059669' },
+  exams: { text: '#10b981', stroke: '#10b981' },
   ask: { text: '#8b5cf6', stroke: '#8b5cf6' },
 }
 

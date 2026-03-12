@@ -1,5 +1,5 @@
-import typography from '@tailwindcss/typography'
 import tailwindcssAnimate from 'tailwindcss-animate'
+import typography from '@tailwindcss/typography'
 import designTokens from './tailwind.tokens.mjs'
 
 /** @type {import('tailwindcss').Config} */
