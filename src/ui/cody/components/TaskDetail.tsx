@@ -17,7 +17,6 @@ import { calculatePipelineProgress, stageLabels, formatElapsed } from '../pipeli
 import { PipelineStatus } from './PipelineStatus'
 import { CommentEditor } from './CommentEditor'
 import { CommentList } from './CommentList'
-import { TaskPreviewTab } from './TaskPreviewTab'
 import { AssigneePicker, type AssigneeChangeEvent } from './AssigneePicker'
 import { MergeButton } from './MergeButton'
 import { SimpleTooltip } from './SimpleTooltip'
@@ -49,11 +48,10 @@ import {
   Info,
   FileText,
   MessageSquare,
-  GitBranch,
-  BookOpen,
   MoreHorizontal,
   Timer,
   ArrowLeft,
+  Eye,
 } from 'lucide-react'
 
 interface TaskDetailProps {
@@ -62,6 +60,7 @@ interface TaskDetailProps {
   task: CodyTask | null
   onClose?: () => void
   onRefresh?: () => void
+  onOpenPreview?: () => void
 }
 
 interface FullTaskDetails extends CodyTask {
@@ -542,6 +541,7 @@ export function TaskDetail({
   onRefresh,
   onApproveReview,
   isMerging: externalIsMerging,
+  onOpenPreview,
 }: TaskDetailProps) {
   const { githubUser } = useGitHubIdentity()
   const actorLogin = githubUser?.login
@@ -557,9 +557,7 @@ export function TaskDetail({
     refetch,
     isFetching: isDetailsFetching,
   } = useTaskDetails(task?.issueNumber ?? null, actorLogin)
-  const [activeTab, setActiveTab] = useState<'description' | 'comments' | 'changes' | 'docs'>(
-    'description',
-  )
+  const [activeTab, setActiveTab] = useState<'description' | 'comments'>('description')
   const [retryContext, setRetryContext] = useState('')
   const [showRetryContext, setShowRetryContext] = useState(false)
   const [showMobileExtra, setShowMobileExtra] = useState(false)
@@ -638,7 +636,6 @@ export function TaskDetail({
 
   const hasDescription = task.body && task.body.trim().length > 0
   const commentsCount = fullDetails?.comments?.length || 0
-  const hasPR = !!task.associatedPR
   const showPipelineTimeline =
     task.pipeline &&
     (task.pipeline.state === 'running' || task.pipeline.state === 'paused') &&
@@ -815,8 +812,6 @@ export function TaskDetail({
       ? [{ key: 'description' as const, label: 'Description', icon: FileText }]
       : []),
     { key: 'comments' as const, label: 'Comments', icon: MessageSquare, count: commentsCount },
-    ...(hasPR ? [{ key: 'changes' as const, label: 'Changes', icon: GitBranch }] : []),
-    ...(hasPR ? [{ key: 'docs' as const, label: 'Docs', icon: BookOpen }] : []),
   ]
 
   // Compute effective tab: if current tab was removed (e.g. no PR → no Changes/Docs), fallback
@@ -860,11 +855,6 @@ export function TaskDetail({
             <CommentEditor issueNumber={task.issueNumber} onCommentPosted={() => refetch()} />
           </div>
           {retryWithContextBlock}
-        </div>
-      )}
-      {(effectiveTab === 'changes' || effectiveTab === 'docs') && (
-        <div className="p-4 overflow-y-auto h-full bg-white/[0.03]">
-          <TaskPreviewTab task={task} activeTab={effectiveTab as 'changes' | 'docs'} />
         </div>
       )}
     </>
@@ -928,29 +918,17 @@ export function TaskDetail({
           Workflow
         </a>
       )}
-      {task.previewUrl && (
-        <SimpleTooltip
-          content={
-            <div className="space-y-1">
-              <p className="text-xs font-semibold">🔗 Preview Available</p>
-              <p className="text-xs text-muted-foreground">
-                Click to open the deployed preview in a new tab
-              </p>
-            </div>
-          }
-          side="bottom"
+      {task.associatedPR && onOpenPreview && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            onOpenPreview()
+          }}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 hover:text-emerald-200 transition-all duration-150 shrink-0 border border-emerald-500/20 cursor-pointer"
         >
-          <a
-            href={task.previewUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 hover:text-emerald-200 transition-all duration-150 shrink-0 border border-emerald-500/20"
-          >
-            <ExternalLink className="w-3 h-3" />
-            Preview
-          </a>
-        </SimpleTooltip>
+          <Eye className="w-3 h-3" />
+          Preview
+        </button>
       )}
     </>
   )

@@ -17,6 +17,7 @@ import { CodyChat } from './CodyChat'
 import { CodyStatusBanner } from './CodyStatusBanner'
 import { FilterBar, ViewToggle, DATE_FILTERS, STATUS_FILTERS, type ViewMode } from './FilterBar'
 import { TaskDetail } from './TaskDetail'
+import { PreviewModal } from './PreviewModal'
 import { Button } from '@/ui/web/components/button'
 import {
   Select,
@@ -63,6 +64,7 @@ export function CodyDashboard({ initialIssueNumber }: CodyDashboardProps) {
   const [showMobileMenu, setShowMobileMenu] = useState(false)
   const [showMobileDetail, setShowMobileDetail] = useState(false)
   const [showMobileChat, setShowMobileChat] = useState(false)
+  const [showPreview, setShowPreview] = useState(false)
 
   // md breakpoint = 768px — below this is "mobile"
   const isDesktop = useMediaQuery('(min-width: 768px)')
@@ -311,6 +313,24 @@ export function CodyDashboard({ initialIssueNumber }: CodyDashboardProps) {
     return match ? parseInt(match[1], 10) : null
   }
 
+  // Helper: check if URL is a preview URL
+  const isPreviewUrl = () => /\/cody\/\d+\/preview/.test(window.location.pathname)
+
+  // Open preview modal with URL sync
+  const handleOpenPreview = useCallback((task: CodyTask) => {
+    setSelectedIssueNumber(task.issueNumber)
+    setShowPreview(true)
+    window.history.pushState(null, '', `/cody/${task.issueNumber}/preview`)
+  }, [])
+
+  // Close preview modal with URL sync
+  const handleClosePreview = useCallback(() => {
+    setShowPreview(false)
+    if (selectedIssueNumber) {
+      window.history.pushState(null, '', `/cody/${selectedIssueNumber}`)
+    }
+  }, [selectedIssueNumber])
+
   // Task selection — uses pushState for browser history support
   const handleTaskSelect = useCallback(
     (task: CodyTask | null) => {
@@ -331,6 +351,17 @@ export function CodyDashboard({ initialIssueNumber }: CodyDashboardProps) {
 
   // Auto-select task from URL on initial load
   useEffect(() => {
+    // Check for preview URL on initial load
+    if (isPreviewUrl()) {
+      const issueNum = getIssueFromUrl()
+      if (issueNum) {
+        setSelectedIssueNumber(issueNum)
+        setShowPreview(true)
+        initialIssueRef.current = undefined
+        return
+      }
+    }
+
     const issueNum = initialIssueRef.current
     if (!issueNum || selectedIssueNumber) return
     if (tasks.length === 0) return
@@ -348,6 +379,15 @@ export function CodyDashboard({ initialIssueNumber }: CodyDashboardProps) {
   // Browser back/forward — listen to popstate and sync selected task
   useEffect(() => {
     const handlePopState = () => {
+      if (isPreviewUrl()) {
+        const issueNum = getIssueFromUrl()
+        if (issueNum) {
+          setSelectedIssueNumber(issueNum)
+          setShowPreview(true)
+        }
+        return
+      }
+      setShowPreview(false)
       const issueNum = getIssueFromUrl()
       if (issueNum) {
         const match = tasks.find((t) => t.issueNumber === issueNum)
@@ -479,6 +519,15 @@ export function CodyDashboard({ initialIssueNumber }: CodyDashboardProps) {
         isLoading={collaboratorsLoading}
         onSelect={setGitHubUser}
       />
+      {/* Preview Modal — full-screen overlay */}
+      {showPreview && selectedTask && (
+        <PreviewModal
+          task={selectedTask}
+          onClose={handleClosePreview}
+          onMerge={() => handleMerge(selectedTask)}
+          isMerging={!!(mergingTaskId === selectedTask.id)}
+        />
+      )}
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* When a task is selected, TaskDetail takes over the entire left column */}
@@ -489,6 +538,7 @@ export function CodyDashboard({ initialIssueNumber }: CodyDashboardProps) {
             onRefresh={refetch}
             onApproveReview={handleMerge}
             isMerging={!!(selectedTask && mergingTaskId === selectedTask.id)}
+            onOpenPreview={() => selectedTask && handleOpenPreview(selectedTask)}
           />
         ) : (
           <>
@@ -626,6 +676,7 @@ export function CodyDashboard({ initialIssueNumber }: CodyDashboardProps) {
                   onUnassign={(issueNumber, assignees) =>
                     unassignMutation.mutate({ issueNumber, assignees })
                   }
+                  onOpenPreview={handleOpenPreview}
                 />
               )}
             </div>

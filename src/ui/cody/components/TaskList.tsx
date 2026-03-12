@@ -9,7 +9,6 @@
 import { useCallback } from 'react'
 import { cn, formatRelativeTime } from '../utils'
 import { getGitHubIssueUrl } from '../constants'
-import { MergeButton } from './MergeButton'
 import { MiniPipelineProgress } from './MiniPipelineProgress'
 import { SimpleTooltip } from './SimpleTooltip'
 import { StatusTooltipContent, SubStatusTooltipContent } from './tooltip-content'
@@ -25,7 +24,6 @@ import {
 } from '@/ui/web/components/select'
 import {
   GitPullRequest,
-  ExternalLink,
   Play,
   Square,
   Bot,
@@ -38,6 +36,7 @@ import {
   Clock,
   AlertCircle,
   RefreshCw,
+  Eye,
 } from 'lucide-react'
 
 interface TaskListProps {
@@ -53,6 +52,7 @@ interface TaskListProps {
   onAssign?: (issueNumber: number, assignees: string[]) => void
   onUnassign?: (issueNumber: number, assignees: string[]) => void
   collaborators?: { login: string; avatar_url: string }[]
+  onOpenPreview?: (task: CodyTask) => void
 }
 
 // ── Status colors — single source of truth ──
@@ -122,14 +122,15 @@ export function TaskList({
   tasks,
   selectedTask,
   executingTaskId,
-  mergingTaskId,
+  mergingTaskId: _mergingTaskId,
   onTaskSelect,
   onExecuteTask,
   onStopTask,
-  onApproveReview,
+  onApproveReview: _onApproveReview,
   onTaskHover,
   onAssign,
   onUnassign: _onUnassign,
+  onOpenPreview,
   collaborators = [],
 }: TaskListProps) {
   const handleTaskClick = useCallback(
@@ -155,7 +156,6 @@ export function TaskList({
         const isSelected = task.id === selectedTask?.id
         const canExecute = task.state === 'open' && onExecuteTask
         const isExecuting = executingTaskId === task.id
-        const isMerging = mergingTaskId === task.id
         const hasPR = !!task.associatedPR
         const isHardStop = task.column === 'gate-waiting' && task.gateType === 'hard-stop'
         const isActive = task.column === 'building' || task.column === 'retrying'
@@ -311,23 +311,6 @@ export function TaskList({
                       </a>
                     </SimpleTooltip>
                   )}
-
-                  {task.previewUrl && (
-                    <span className="hidden sm:contents">
-                      <SimpleTooltip content="Open deployed preview" side="bottom">
-                        <a
-                          href={task.previewUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors font-medium"
-                        >
-                          <ExternalLink className="w-3 h-3" />
-                          Preview
-                        </a>
-                      </SimpleTooltip>
-                    </span>
-                  )}
                 </div>
               </div>
 
@@ -338,20 +321,20 @@ export function TaskList({
                   'opacity-100',
                 )}
               >
-                {task.column === 'review' && hasPR && onApproveReview && (
-                  <div
-                    onClick={(e) => e.stopPropagation()}
-                    onMouseDown={(e) => e.stopPropagation()}
-                    onPointerDown={(e) => e.stopPropagation()}
-                  >
-                    <MergeButton
-                      prNumber={task.associatedPR!.number}
-                      prTitle={task.associatedPR!.title}
-                      branchName={task.associatedPR!.head.ref}
-                      isMerging={isMerging}
-                      onMerge={() => onApproveReview(task)}
-                    />
-                  </div>
+                {hasPR && onOpenPreview && (
+                  <SimpleTooltip content="Open PR preview" side="bottom">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onOpenPreview(task)
+                      }}
+                      className="h-7 w-7 p-0 text-emerald-400 hover:bg-emerald-500/20"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                    </Button>
+                  </SimpleTooltip>
                 )}
 
                 {(task.column === 'building' &&

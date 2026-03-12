@@ -199,19 +199,22 @@
         "src/ui/cody/components/CreateTaskDialog.tsx",
         "src/ui/cody/components/EnvironmentToolbar.tsx",
         "src/ui/cody/components/FilterBar.tsx",
+        "src/ui/cody/components/FixRequestDialog.tsx",
         "src/ui/cody/components/GitHubUserPickerDialog.tsx",
         "src/ui/cody/components/LabelPicker.tsx",
         "src/ui/cody/components/MarkdownViewer.tsx",
         "src/ui/cody/components/MergeApprovalDialog.tsx",
         "src/ui/cody/components/MergeButton.tsx",
         "src/ui/cody/components/MiniPipelineProgress.tsx",
+        "src/ui/cody/components/PRCommentList.tsx",
         "src/ui/cody/components/PipelineStatus.tsx",
+        "src/ui/cody/components/PreviewActions.tsx",
+        "src/ui/cody/components/PreviewModal.tsx",
         "src/ui/cody/components/SimpleTooltip.tsx",
         "src/ui/cody/components/StageErrorDetail.tsx",
         "src/ui/cody/components/TaskDetail.tsx",
         "src/ui/cody/components/TaskDetailDialog.tsx",
         "src/ui/cody/components/TaskList.tsx",
-        "src/ui/cody/components/TaskPreviewTab.tsx",
         "src/ui/cody/hooks/index.ts",
         "src/ui/cody/hooks/useBrowserNotifications.ts",
         "src/ui/cody/hooks/useGitHubIdentity.ts",
@@ -311,7 +314,11 @@
     "dashboard-page": {
       "pattern": "dashboard-page",
       "description": "No description available",
-      "files": ["src/app/(cody)/cody/[issueNumber]/page.tsx", "src/app/(cody)/cody/page.tsx"]
+      "files": [
+        "src/app/(cody)/cody/[issueNumber]/page.tsx",
+        "src/app/(cody)/cody/[issueNumber]/preview/page.tsx",
+        "src/app/(cody)/cody/page.tsx"
+      ]
     },
     "next-error-boundary": {
       "pattern": "next-error-boundary",
@@ -360,6 +367,8 @@
         "src/ui/cody/components/MergeButton.tsx",
         "src/ui/cody/components/MiniPipelineProgress.tsx",
         "src/ui/cody/components/PipelineStatus.tsx",
+        "src/ui/cody/components/PreviewActions.tsx",
+        "src/ui/cody/components/PreviewModal.tsx",
         "src/ui/cody/components/RiskBadge.tsx",
         "src/ui/cody/components/StatusBadge.tsx",
         "src/ui/cody/components/TaskDetail.tsx",
@@ -574,6 +583,7 @@
         "src/app/api/cody/chat/save/route.ts",
         "src/app/api/cody/collaborators/route.ts",
         "src/app/api/cody/pipeline/[taskId]/route.ts",
+        "src/app/api/cody/prs/comments/route.ts",
         "src/app/api/cody/prs/files/route.ts",
         "src/app/api/cody/prs/route.ts",
         "src/app/api/cody/prs/status/route.ts",
@@ -614,6 +624,7 @@
         "src/app/api/blob/upload-token/route.ts",
         "src/app/api/cody/chat/route.ts",
         "src/app/api/cody/chat/save/route.ts",
+        "src/app/api/cody/prs/comments/route.ts",
         "src/app/api/cody/tasks/[taskId]/actions/route.ts",
         "src/app/api/cody/tasks/approve/route.ts",
         "src/app/api/exercises/convert/queue-v2/route.ts",
@@ -662,6 +673,11 @@
       "pattern": "pipeline-api",
       "description": "No description available",
       "files": ["src/app/api/cody/pipeline/[taskId]/route.ts"]
+    },
+    "prs-comments-api": {
+      "pattern": "prs-comments-api",
+      "description": "No description available",
+      "files": ["src/app/api/cody/prs/comments/route.ts"]
     },
     "pr-files-api": {
       "pattern": "pr-files-api",
@@ -1445,6 +1461,11 @@
       "description": "No description available",
       "files": ["src/ui/cody/components/FilterBar.tsx"]
     },
+    "fix-request-dialog": {
+      "pattern": "fix-request-dialog",
+      "description": "No description available",
+      "files": ["src/ui/cody/components/FixRequestDialog.tsx"]
+    },
     "github-identity-picker": {
       "pattern": "github-identity-picker",
       "description": "No description available",
@@ -1475,10 +1496,25 @@
       "description": "No description available",
       "files": ["src/ui/cody/components/MiniPipelineProgress.tsx", "src/ui/cody/pipeline-utils.ts"]
     },
+    "pr-comment-list": {
+      "pattern": "pr-comment-list",
+      "description": "No description available",
+      "files": ["src/ui/cody/components/PRCommentList.tsx"]
+    },
     "pipeline-status": {
       "pattern": "pipeline-status",
       "description": "No description available",
       "files": ["src/ui/cody/components/PipelineStatus.tsx"]
+    },
+    "preview-actions": {
+      "pattern": "preview-actions",
+      "description": "No description available",
+      "files": ["src/ui/cody/components/PreviewActions.tsx"]
+    },
+    "preview-modal": {
+      "pattern": "preview-modal",
+      "description": "No description available",
+      "files": ["src/ui/cody/components/PreviewModal.tsx"]
     },
     "badge": {
       "pattern": "badge",
@@ -1513,11 +1549,6 @@
       "pattern": "task-list",
       "description": "No description available",
       "files": ["src/ui/cody/components/TaskList.tsx"]
-    },
-    "task-preview-tab": {
-      "pattern": "task-preview-tab",
-      "description": "No description available",
-      "files": ["src/ui/cody/components/TaskPreviewTab.tsx"]
     },
     "tooltip-content": {
       "pattern": "tooltip-content",
@@ -1613,6 +1644,14 @@
       "domain": "cody",
       "patterns": ["dashboard-page"],
       "aiSummary": "Cody dashboard with a specific task pre-selected via URL",
+      "dependencies": ["next/navigation", "next"]
+    },
+    "src/app/(cody)/cody/[issueNumber]/preview/page.tsx": {
+      "path": "src/app/(cody)/cody/[issueNumber]/preview/page.tsx",
+      "type": "page",
+      "domain": "cody",
+      "patterns": ["dashboard-page"],
+      "aiSummary": "Cody dashboard with preview modal pre-opened via URL /cody/[n]/preview",
       "dependencies": ["next/navigation", "next"]
     },
     "src/app/(cody)/cody/error.tsx": {
@@ -2396,6 +2435,14 @@
       "patterns": ["pipeline-api", "api-endpoint"],
       "aiSummary": "API route to fetch pipeline status for a task",
       "dependencies": ["next/server"]
+    },
+    "src/app/api/cody/prs/comments/route.ts": {
+      "path": "src/app/api/cody/prs/comments/route.ts",
+      "type": "api-endpoint",
+      "domain": "cody",
+      "patterns": ["prs-comments-api", "api-endpoint", "validated-endpoint"],
+      "aiSummary": "API route to fetch and post PR comments",
+      "dependencies": ["next/server", "zod"]
     },
     "src/app/api/cody/prs/files/route.ts": {
       "path": "src/app/api/cody/prs/files/route.ts",
@@ -4555,6 +4602,14 @@
       "aiSummary": "Dedicated filter sub-header bar for Cody dashboard with view toggle, date, status, and label filters",
       "dependencies": []
     },
+    "src/ui/cody/components/FixRequestDialog.tsx": {
+      "path": "src/ui/cody/components/FixRequestDialog.tsx",
+      "type": "component",
+      "domain": "cody",
+      "patterns": ["fix-request-dialog", "client-component"],
+      "aiSummary": "Dialog with markdown editor to request fixes on a PR via @cody fix",
+      "dependencies": ["react", "lucide-react", "react-markdown", "remark-gfm"]
+    },
     "src/ui/cody/components/GitHubUserPickerDialog.tsx": {
       "path": "src/ui/cody/components/GitHubUserPickerDialog.tsx",
       "type": "component",
@@ -4603,6 +4658,14 @@
       "aiSummary": "Compact pipeline progress indicator with two variants: \"inline\" (dot-separated text for metadata line) and \"bar\" (full progress bar for dedicated row)",
       "dependencies": ["react", "lucide-react"]
     },
+    "src/ui/cody/components/PRCommentList.tsx": {
+      "path": "src/ui/cody/components/PRCommentList.tsx",
+      "type": "component",
+      "domain": "cody",
+      "patterns": ["pr-comment-list", "client-component"],
+      "aiSummary": "Renders PR comments with markdown and author avatars",
+      "dependencies": ["react", "lucide-react"]
+    },
     "src/ui/cody/components/PipelineStatus.tsx": {
       "path": "src/ui/cody/components/PipelineStatus.tsx",
       "type": "component",
@@ -4610,6 +4673,22 @@
       "patterns": ["pipeline-status", "tailwind-component", "client-component"],
       "aiSummary": "Vertical stepper pipeline status for narrow sidebar",
       "dependencies": ["react", "lucide-react"]
+    },
+    "src/ui/cody/components/PreviewActions.tsx": {
+      "path": "src/ui/cody/components/PreviewActions.tsx",
+      "type": "component",
+      "domain": "cody",
+      "patterns": ["preview-actions", "tailwind-component", "client-component"],
+      "aiSummary": "Sticky action bar for Preview: Merge, Cancel PR, Fix",
+      "dependencies": ["react", "lucide-react", "sonner"]
+    },
+    "src/ui/cody/components/PreviewModal.tsx": {
+      "path": "src/ui/cody/components/PreviewModal.tsx",
+      "type": "component",
+      "domain": "cody",
+      "patterns": ["preview-modal", "tailwind-component", "client-component"],
+      "aiSummary": "Full-screen modal overlay showing PR preview: iframe, changes, docs, comments, actions",
+      "dependencies": ["react"]
     },
     "src/ui/cody/components/RiskBadge.tsx": {
       "path": "src/ui/cody/components/RiskBadge.tsx",
@@ -4666,14 +4745,6 @@
       "patterns": ["task-list", "tailwind-component", "client-component"],
       "aiSummary": "Three-zone task list: color bar | title + inline metadata + assignees | actions. Pipeline progress gets its own row only when active.",
       "dependencies": ["react"]
-    },
-    "src/ui/cody/components/TaskPreviewTab.tsx": {
-      "path": "src/ui/cody/components/TaskPreviewTab.tsx",
-      "type": "component",
-      "domain": "cody",
-      "patterns": ["task-preview-tab", "client-component"],
-      "aiSummary": "Changes tab links to GitHub diffs; Docs tab opens markdown in a modal dialog",
-      "dependencies": ["react", "lucide-react"]
     },
     "src/ui/cody/components/TaskTypeBadge.tsx": {
       "path": "src/ui/cody/components/TaskTypeBadge.tsx",
@@ -5714,8 +5785,8 @@
     }
   },
   "metadata": {
-    "generatedAt": "2026-03-12T20:15:04.419Z",
-    "totalFiles": 507,
-    "totalPatterns": 169
+    "generatedAt": "2026-03-12T21:28:06.797Z",
+    "totalFiles": 512,
+    "totalPatterns": 173
   }
 }
