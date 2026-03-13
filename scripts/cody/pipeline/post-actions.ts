@@ -371,6 +371,11 @@ export async function executePostAction(
               : ''
             const output = stdout + stderr + (err.message || '')
             logger.info(`   ✗ ${gate.name} failed`)
+            // Log truncated error output for CI debugging (full output goes to build-errors.md)
+            const truncated = output.slice(-2000).trim()
+            if (truncated) {
+              logger.info(`   Error output (last 2000 chars):\n${truncated}`)
+            }
             return { ...gate, passed: false, error: output }
           }
         })
