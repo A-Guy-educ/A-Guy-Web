@@ -4,15 +4,15 @@
   "mode": "full",
   "pipeline": "spec_execute_verify",
   "startedAt": "2026-03-13T18:11:04.627Z",
-  "updatedAt": "2026-03-13T18:13:12.259Z",
-  "state": "paused",
-  "cursor": null,
+  "updatedAt": "2026-03-13T18:26:11.492Z",
+  "state": "running",
+  "cursor": "gap",
   "stages": {
     "taskify": {
-      "state": "paused",
+      "state": "completed",
       "retries": 0,
       "startedAt": "2026-03-13T18:11:06.197Z",
-      "completedAt": "2026-03-13T18:13:06.389Z",
+      "completedAt": "2026-03-13T18:16:52.018Z",
       "outputFile": "taskify.md",
       "tokenUsage": {
         "input": 10849,
@@ -20,8 +20,40 @@
         "cacheRead": 443643
       },
       "sessionId": "ses_3179ad9c8ffeBA8V5eHMQUANG1"
+    },
+    "gap": {
+      "state": "completed",
+      "retries": 0,
+      "startedAt": "2026-03-13T18:16:52.028Z",
+      "completedAt": "2026-03-13T18:21:39.952Z",
+      "outputFile": "gap.md",
+      "tokenUsage": {
+        "input": 50785,
+        "output": 6141,
+        "cacheRead": 1959463
+      },
+      "sessionId": "ses_317959046ffeugcqV9TpmPW3BI"
+    },
+    "architect": {
+      "state": "completed",
+      "retries": 0,
+      "startedAt": "2026-03-13T18:21:39.955Z",
+      "completedAt": "2026-03-13T18:26:09.600Z",
+      "outputFile": "architect.md",
+      "tokenUsage": {
+        "input": 17,
+        "output": 15006,
+        "cacheRead": 1534371
+      },
+      "cost": 1.8821392499999996,
+      "sessionId": "ses_317913140ffeuYJkPhAXVXXod4"
+    },
+    "plan-gap": {
+      "state": "skipped",
+      "retries": 0,
+      "skipped": "Complexity 43 (complex) below threshold 50 for plan-gap"
     }
   },
   "issueNumber": 779,
-  "completedAt": "2026-03-13T18:13:12.259Z"
+  "branchName": "feat/260313-auto-779-control-layout-of-graph-and-accomp"
 }

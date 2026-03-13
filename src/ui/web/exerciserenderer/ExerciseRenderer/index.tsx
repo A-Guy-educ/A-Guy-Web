@@ -31,6 +31,7 @@ import { RichTextRenderer } from '../blocks/RichTextRenderer'
 import { SvgRenderer } from '../blocks/SvgRenderer'
 import { GeometryRenderer } from '../blocks/GeometryRenderer'
 import { AxisRenderer } from '../blocks/AxisRenderer'
+import { GraphWithPrompt } from '../blocks/GraphWithPrompt'
 import { TrueFalseQuestion } from '../questions/TrueFalseQuestion'
 import { McqQuestion } from '../questions/McqQuestion'
 import { FreeResponseQuestion } from '../questions/FreeResponseQuestion'
@@ -320,19 +321,48 @@ export function ExerciseRenderer({
             let questionIndex = 0
             return content.blocks.map((block) => {
               // Geometry/Axis — media-only display blocks (type not in ContentBlock union)
-              const b = block as ContentBlock & { geometry?: unknown; axis?: unknown }
+              const b = block as ContentBlock & {
+                geometry?: unknown
+                axis?: unknown
+                layout?: string
+                prompt?: unknown
+              }
               if (b.type === ('question_geometry' as string)) {
                 return (
-                  <div key={b.id}>
+                  <GraphWithPrompt
+                    key={b.id}
+                    blockId={b.id}
+                    layout={
+                      (b.layout as 'textAbove' | 'textBelow' | 'textLeft' | 'textRight') ||
+                      'textRight'
+                    }
+                    prompt={
+                      b.prompt as
+                        | import('@/server/payload/collections/Exercises/types').InlineRichText
+                        | undefined
+                    }
+                  >
                     <GeometryRenderer blockId={b.id} spec={b.geometry as GeometrySpecV1} />
-                  </div>
+                  </GraphWithPrompt>
                 )
               }
               if (b.type === ('question_axis' as string)) {
                 return (
-                  <div key={b.id}>
+                  <GraphWithPrompt
+                    key={b.id}
+                    blockId={b.id}
+                    layout={
+                      (b.layout as 'textAbove' | 'textBelow' | 'textLeft' | 'textRight') ||
+                      'textRight'
+                    }
+                    prompt={
+                      b.prompt as
+                        | import('@/server/payload/collections/Exercises/types').InlineRichText
+                        | undefined
+                    }
+                  >
                     <AxisRenderer blockId={b.id} spec={b.axis as AxisSpecV1} />
-                  </div>
+                  </GraphWithPrompt>
                 )
               }
 

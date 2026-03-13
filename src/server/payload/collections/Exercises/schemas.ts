@@ -396,6 +396,13 @@ const QuestionAnswerSchema = z.discriminatedUnion('kind', [
 ])
 
 // ---------------------------------
+// Zod: Graph Layout Enum
+// ---------------------------------
+const GraphLayoutSchema = z
+  .enum(['textAbove', 'textBelow', 'textLeft', 'textRight'])
+  .default('textRight')
+
+// ---------------------------------
 // Zod: Question Geometry Block Schema
 // ---------------------------------
 export const QuestionGeometryBlockSchema = z
@@ -403,6 +410,7 @@ export const QuestionGeometryBlockSchema = z
     id: z.string().min(1),
     type: z.literal('question_geometry'),
     prompt: InlineRichTextSchema,
+    layout: GraphLayoutSchema,
     geometry: GeometrySpecV1Schema,
     answer: QuestionAnswerSchema.optional(),
     hint: InlineRichTextSchema.optional(),
@@ -419,6 +427,7 @@ export const QuestionAxisBlockSchema = z
     id: z.string().min(1),
     type: z.literal('question_axis'),
     prompt: InlineRichTextSchema,
+    layout: GraphLayoutSchema,
     axis: AxisSpecV1Schema,
     answer: QuestionAnswerSchema.optional(),
     hint: InlineRichTextSchema.optional(),

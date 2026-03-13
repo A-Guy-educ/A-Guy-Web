@@ -205,12 +205,18 @@ export type QuestionAnswer =
   | { kind: 'function'; acceptedExpressions: string[] }
 
 // ---------------------------------
+// Graph Layout Type (for geometry and axis blocks)
+// ---------------------------------
+export type GraphLayout = 'textAbove' | 'textBelow' | 'textLeft' | 'textRight'
+
+// ---------------------------------
 // Question Geometry Block
 // ---------------------------------
 export interface QuestionGeometryBlock {
   id: string
   type: 'question_geometry'
   prompt: InlineRichText
+  layout?: GraphLayout
   geometry: GeometrySpecV1
   answer?: QuestionAnswer
   hint?: InlineRichText
@@ -225,6 +231,7 @@ export interface QuestionAxisBlock {
   id: string
   type: 'question_axis'
   prompt: InlineRichText
+  layout?: GraphLayout
   axis: AxisSpecV1
   answer?: QuestionAnswer
   hint?: InlineRichText
