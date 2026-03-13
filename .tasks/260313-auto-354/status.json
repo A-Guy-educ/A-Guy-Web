@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "taskId": "260313-auto-354",
+  "mode": "full",
+  "pipeline": "spec_execute_verify",
+  "startedAt": "2026-03-13T15:37:13.098Z",
+  "updatedAt": "2026-03-13T15:38:38.761Z",
+  "state": "paused",
+  "cursor": null,
+  "stages": {
+    "taskify": {
+      "state": "paused",
+      "retries": 0,
+      "startedAt": "2026-03-13T15:37:14.160Z",
+      "completedAt": "2026-03-13T15:38:33.891Z",
+      "outputFile": "taskify.md",
+      "tokenUsage": {
+        "input": 4043,
+        "output": 2219,
+        "cacheRead": 223145
+      },
+      "sessionId": "ses_31827bbb1ffe4hoMS3I9F93tV7"
+    }
+  },
+  "issueNumber": 781,
+  "completedAt": "2026-03-13T15:38:38.761Z"
+}
