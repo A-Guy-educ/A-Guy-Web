@@ -256,6 +256,15 @@ export function formatJsonEvent(line: string): {
         return { display: null, sessionId } // Skip pending/running states
       }
 
+      case 'text': {
+        // Agent reasoning — complete thought blocks (not char-by-char deltas)
+        // Typically 6-17 per stage, ~100-200 chars each — not noisy
+        const text = (event.part?.text || '').trim()
+        if (!text) return { display: null, sessionId }
+        const truncated = text.length > 300 ? text.slice(0, 297) + '...' : text
+        return { display: `  💭 ${truncated}`, sessionId }
+      }
+
       case 'text_delta':
       case 'content':
         return { display: null, sessionId } // Skip streaming text deltas (too noisy)

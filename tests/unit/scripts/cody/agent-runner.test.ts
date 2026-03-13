@@ -261,6 +261,42 @@ describe('formatJsonEvent', () => {
     expect(result.display).toBe('  🔧 bash: Run failing script exit=1')
   })
 
+  it('should format text events with agent reasoning', () => {
+    const line = JSON.stringify({
+      type: 'text',
+      timestamp: 1772694000000,
+      sessionID: 'ses_abc',
+      part: { text: 'Let me read the key files I need to modify' },
+    })
+    const result = formatJsonEvent(line)
+    expect(result.display).toBe('  💭 Let me read the key files I need to modify')
+    expect(result.sessionId).toBe('ses_abc')
+  })
+
+  it('should truncate long text events at 300 chars', () => {
+    const longText = 'A'.repeat(350)
+    const line = JSON.stringify({
+      type: 'text',
+      timestamp: 1772694000000,
+      sessionID: 'ses_abc',
+      part: { text: longText },
+    })
+    const result = formatJsonEvent(line)
+    expect(result.display).toBe('  💭 ' + 'A'.repeat(297) + '...')
+  })
+
+  it('should return null display for empty text events', () => {
+    const line = JSON.stringify({
+      type: 'text',
+      timestamp: 1772694000000,
+      sessionID: 'ses_abc',
+      part: { text: '   ' },
+    })
+    const result = formatJsonEvent(line)
+    expect(result.display).toBeNull()
+    expect(result.sessionId).toBe('ses_abc')
+  })
+
   it('should return null display for text_delta events', () => {
     const line = JSON.stringify({
       type: 'text_delta',
