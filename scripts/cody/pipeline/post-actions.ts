@@ -174,6 +174,15 @@ export async function executePostAction(
           removeIssueLabel(ctx.input.issueNumber, GATE_LABELS.HARD_STOP)
           removeIssueLabel(ctx.input.issueNumber, GATE_LABELS.RISK_GATED)
         }
+        // Record gate rejection actor event
+        if (ctx.actor && _state) {
+          appendActorEvent(ctx.taskId, _state, {
+            action: 'gate-rejected',
+            actor: ctx.actor,
+            timestamp: new Date().toISOString(),
+            stage: action.gate,
+          })
+        }
         throw new Error(`Task rejected at ${action.gate} gate`)
       }
       // Approved - remove gate label so dashboard shows it's no longer waiting
