@@ -202,7 +202,6 @@
         "src/ui/cody/components/ErrorBoundary.tsx",
         "src/ui/cody/components/FilterBar.tsx",
         "src/ui/cody/components/FixRequestDialog.tsx",
-        "src/ui/cody/components/GitHubUserPickerDialog.tsx",
         "src/ui/cody/components/LabelPicker.tsx",
         "src/ui/cody/components/MarkdownViewer.tsx",
         "src/ui/cody/components/MergeApprovalDialog.tsx",
@@ -596,6 +595,8 @@
         "src/app/api/agent/message/persist/route.ts",
         "src/app/api/agent/reset-chat/route.ts",
         "src/app/api/chapters/by-grade/route.ts",
+        "src/app/api/cody/auth/logout/route.ts",
+        "src/app/api/cody/auth/me/route.ts",
         "src/app/api/cody/auth/route.ts",
         "src/app/api/cody/boards/route.ts",
         "src/app/api/cody/chat/load/route.ts",
@@ -625,12 +626,15 @@
         "src/app/api/exercises/convert/runner/route.ts",
         "src/app/api/exercises/import/route.ts",
         "src/app/api/jobs/run-immediate/route.ts",
+        "src/app/api/oauth/github/callback/route.ts",
+        "src/app/api/oauth/github/route.ts",
         "src/app/api/oauth/google/callback/oauth_callback_helpers.ts",
         "src/app/api/oauth/google/callback/route.ts",
         "src/app/api/oauth/google/route.ts",
         "src/app/api/pdfjs-viewer/route.ts",
         "src/app/api/prompts/for-conversion/route.ts",
         "src/app/api/study-plan/route.ts",
+        "src/infra/auth/cody_session.ts",
         "src/infra/auth/oauth_cookies.ts",
         "src/infra/auth/oauth_state.ts",
         "src/server/api/responses.ts",
@@ -664,7 +668,11 @@
     "auth-api": {
       "pattern": "auth-api",
       "description": "No description available",
-      "files": ["src/app/api/cody/auth/route.ts"]
+      "files": [
+        "src/app/api/cody/auth/logout/route.ts",
+        "src/app/api/cody/auth/me/route.ts",
+        "src/app/api/cody/auth/route.ts"
+      ]
     },
     "boards-api": {
       "pattern": "boards-api",
@@ -789,9 +797,12 @@
       "pattern": "oauth",
       "description": "No description available",
       "files": [
+        "src/app/api/oauth/github/callback/route.ts",
+        "src/app/api/oauth/github/route.ts",
         "src/app/api/oauth/google/callback/oauth_callback_helpers.ts",
         "src/app/api/oauth/google/callback/route.ts",
         "src/app/api/oauth/google/route.ts",
+        "src/infra/auth/cody_session.ts",
         "src/infra/auth/oauth_constants.ts",
         "src/infra/auth/oauth_cookies.ts",
         "src/infra/auth/oauth_logger.ts",
@@ -1508,11 +1519,6 @@
       "description": "No description available",
       "files": ["src/ui/cody/components/FixRequestDialog.tsx"]
     },
-    "github-identity-picker": {
-      "pattern": "github-identity-picker",
-      "description": "No description available",
-      "files": ["src/ui/cody/components/GitHubUserPickerDialog.tsx"]
-    },
     "label-picker": {
       "pattern": "label-picker",
       "description": "No description available",
@@ -1775,8 +1781,8 @@
       "type": "page",
       "domain": "cody",
       "patterns": ["dashboard-page"],
-      "aiSummary": "Main Cody dashboard page with Kanban board and AI chat",
-      "dependencies": ["next/navigation"]
+      "aiSummary": "Main Cody dashboard page. Auth gate: GitHub OAuth session (any repo collaborator).",
+      "dependencies": ["next/headers", "next/navigation"]
     },
     "src/app/(cody)/layout.tsx": {
       "path": "src/app/(cody)/layout.tsx",
@@ -2488,6 +2494,22 @@
       "aiSummary": "",
       "dependencies": ["payload", "zod", "@payload-config"]
     },
+    "src/app/api/cody/auth/logout/route.ts": {
+      "path": "src/app/api/cody/auth/logout/route.ts",
+      "type": "api-route",
+      "domain": "cody",
+      "patterns": ["auth-api", "api-endpoint"],
+      "aiSummary": "Clears the Cody GitHub session cookie (logout).",
+      "dependencies": ["next/server"]
+    },
+    "src/app/api/cody/auth/me/route.ts": {
+      "path": "src/app/api/cody/auth/me/route.ts",
+      "type": "api-route",
+      "domain": "cody",
+      "patterns": ["auth-api", "api-endpoint"],
+      "aiSummary": "Returns the current GitHub identity from the Cody session cookie.",
+      "dependencies": ["next/server"]
+    },
     "src/app/api/cody/auth/route.ts": {
       "path": "src/app/api/cody/auth/route.ts",
       "type": "api-endpoint",
@@ -2750,6 +2772,22 @@
       "aiSummary": "",
       "dependencies": ["@payload-config", "mongodb", "next/server", "payload"]
     },
+    "src/app/api/oauth/github/callback/route.ts": {
+      "path": "src/app/api/oauth/github/callback/route.ts",
+      "type": "api-route",
+      "domain": "auth",
+      "patterns": ["oauth", "api-endpoint"],
+      "aiSummary": "Handles GitHub OAuth callback for the Cody Operations Dashboard.",
+      "dependencies": ["next/server"]
+    },
+    "src/app/api/oauth/github/route.ts": {
+      "path": "src/app/api/oauth/github/route.ts",
+      "type": "api-route",
+      "domain": "auth",
+      "patterns": ["oauth", "api-endpoint"],
+      "aiSummary": "Initiates GitHub OAuth flow for the Cody Operations Dashboard.",
+      "dependencies": ["next/server"]
+    },
     "src/app/api/oauth/google/callback/oauth_callback_helpers.ts": {
       "path": "src/app/api/oauth/google/callback/oauth_callback_helpers.ts",
       "type": "utility",
@@ -2933,6 +2971,14 @@
       "patterns": ["authenticated-endpoint"],
       "aiSummary": "",
       "dependencies": []
+    },
+    "src/infra/auth/cody_session.ts": {
+      "path": "src/infra/auth/cody_session.ts",
+      "type": "utility",
+      "domain": "auth",
+      "patterns": ["oauth", "api-endpoint"],
+      "aiSummary": "Standalone GitHub identity session for the Cody Operations Dashboard.",
+      "dependencies": ["jose", "next/server"]
     },
     "src/infra/auth/oauth_constants.ts": {
       "path": "src/infra/auth/oauth_constants.ts",
@@ -4619,7 +4665,7 @@
       "type": "utility",
       "domain": "cody",
       "patterns": ["auth", "api-endpoint", "authenticated-endpoint"],
-      "aiSummary": "Dashboard authentication middleware using Payload",
+      "aiSummary": "Dashboard authentication middleware.",
       "dependencies": ["next/server", "payload", "@payload-config"]
     },
     "src/ui/cody/chat-types.ts": {
@@ -4749,14 +4795,6 @@
       "patterns": ["fix-request-dialog", "client-component"],
       "aiSummary": "Dialog with markdown editor to request fixes on a PR via @cody fix",
       "dependencies": ["react", "lucide-react", "react-markdown", "remark-gfm"]
-    },
-    "src/ui/cody/components/GitHubUserPickerDialog.tsx": {
-      "path": "src/ui/cody/components/GitHubUserPickerDialog.tsx",
-      "type": "component",
-      "domain": "cody",
-      "patterns": ["github-identity-picker", "client-component"],
-      "aiSummary": "Forced modal dialog for selecting your GitHub identity on first visit",
-      "dependencies": ["react", "lucide-react"]
     },
     "src/ui/cody/components/LabelPicker.tsx": {
       "path": "src/ui/cody/components/LabelPicker.tsx",
@@ -4947,8 +4985,8 @@
       "type": "hook",
       "domain": "cody",
       "patterns": ["github-identity", "client-component"],
-      "aiSummary": "Hook to read/write the selected GitHub identity from localStorage",
-      "dependencies": ["react"]
+      "aiSummary": "Hook to read the authenticated GitHub identity from the Cody session cookie.",
+      "dependencies": ["react", "@tanstack/react-query"]
     },
     "src/ui/cody/hooks/usePRCIStatus.ts": {
       "path": "src/ui/cody/hooks/usePRCIStatus.ts",
@@ -5957,8 +5995,8 @@
     }
   },
   "metadata": {
-    "generatedAt": "2026-03-13T21:00:01.120Z",
-    "totalFiles": 527,
-    "totalPatterns": 180
+    "generatedAt": "2026-03-14T10:10:35.332Z",
+    "totalFiles": 531,
+    "totalPatterns": 179
   }
 }
