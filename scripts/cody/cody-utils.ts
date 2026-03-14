@@ -399,6 +399,7 @@ export {
   discoverTaskIdFromIssue,
   extractGateCommentBody,
   ensureTaskMarkerComment,
+  getLinkedIssueFromPR,
 } from './github-api'
 
 // ============================================================================

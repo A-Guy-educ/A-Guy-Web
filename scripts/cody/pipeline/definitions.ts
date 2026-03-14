@@ -66,6 +66,21 @@ export const IMPL_ORDER_LIGHTWEIGHT: PipelineStep[] = [
 // Fix-only pipeline order for @cody fix mode
 export const FIX_ORDER: PipelineStep[] = ['review', 'fix', 'commit', 'verify', 'pr']
 
+// Full pipeline order for fix mode — runs the full impl pipeline with taskify prepended
+// This gives the agent proper planning (architect, plan-gap) with previous run as context
+export const FIX_FULL_ORDER: PipelineStep[] = [
+  'taskify',
+  'architect',
+  'plan-gap',
+  { parallel: ['test', 'build'] },
+  'commit',
+  'review',
+  'fix',
+  'commit',
+  'verify',
+  'pr',
+]
+
 // ============================================================================
 // Stage Definitions
 // ============================================================================
