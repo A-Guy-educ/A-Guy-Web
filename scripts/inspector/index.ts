@@ -20,6 +20,7 @@ import { failureMinerPlugin } from './plugins/cody/failure-miner/index'
 import { knowledgeGardenerPlugin } from './plugins/cody/knowledge-gardener/index'
 import { securityScannerPlugin } from './plugins/project/security-scanner/index'
 import { apiSurfaceAuditorPlugin } from './plugins/project/api-surface/index'
+import { queueManagerPlugin } from './plugins/cody/queue-manager/index'
 import type { InspectorConfig } from './core/types'
 
 const logger = pino({ level: 'info' })
@@ -64,6 +65,7 @@ async function main(): Promise<void> {
 
   // Register plugins
   registry.register(healthCheckPlugin)
+  registry.register(queueManagerPlugin)
   registry.register(failureAnalysisPlugin)
   registry.register(auditPlugin)
   registry.register(deferredStagesPlugin)

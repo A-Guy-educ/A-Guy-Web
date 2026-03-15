@@ -18,7 +18,7 @@ import { cn } from '../utils'
 import { Search, ArrowUp, ArrowDown } from 'lucide-react'
 import type { SortField, SortDirection } from '../types'
 
-export type ViewMode = 'running' | 'backlog'
+export type ViewMode = 'running' | 'backlog' | 'queue'
 
 const SORT_OPTIONS = [
   { label: 'Updated', value: 'updatedAt' },
@@ -66,6 +66,7 @@ export interface FilterBarProps {
   filteredCount: number
   runningCount: number
   backlogCount: number
+  queueCount?: number
   searchQuery?: string
   onSearchChange?: (value: string) => void
   sortField?: SortField
@@ -80,17 +81,19 @@ export interface FilterBarHandle {
 
 export { DATE_FILTERS, STATUS_FILTERS }
 
-/** Pill-style toggle between Running and Backlog views */
+/** Pill-style toggle between Running, Backlog, and Queue views */
 export function ViewToggle({
   viewMode,
   onViewModeChange,
   runningCount,
   backlogCount,
+  queueCount,
 }: {
   viewMode: ViewMode
   onViewModeChange: (mode: ViewMode) => void
   runningCount: number
   backlogCount: number
+  queueCount?: number
 }) {
   return (
     <div className="inline-flex items-center rounded-md bg-white/[0.04] p-0.5 gap-0.5">
@@ -118,6 +121,20 @@ export function ViewToggle({
       >
         Backlog ({backlogCount})
       </button>
+      {queueCount !== undefined && (
+        <button
+          type="button"
+          onClick={() => onViewModeChange('queue')}
+          className={cn(
+            'px-3 py-1 rounded text-xs font-medium transition-colors',
+            viewMode === 'queue'
+              ? 'bg-purple-600 text-white shadow-sm'
+              : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.06]',
+          )}
+        >
+          Queue ({queueCount})
+        </button>
+      )}
     </div>
   )
 }
@@ -139,6 +156,7 @@ export const FilterBar = forwardRef<FilterBarHandle, FilterBarProps>(function Fi
     filteredCount,
     runningCount,
     backlogCount,
+    queueCount,
     searchQuery = '',
     onSearchChange,
     sortField = 'updatedAt',
@@ -164,6 +182,7 @@ export const FilterBar = forwardRef<FilterBarHandle, FilterBarProps>(function Fi
         onViewModeChange={onViewModeChange}
         runningCount={runningCount}
         backlogCount={backlogCount}
+        queueCount={queueCount}
       />
 
       {/* Search input */}

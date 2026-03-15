@@ -61,10 +61,17 @@ export interface ViewModeFilterOptions {
  * - 'backlog' view: only tasks in 'open' column
  * Status and label filters apply within the selected view.
  */
+
+// Queue labels
+export const QUEUE_LABELS = ['cody:queued', 'cody:queue-active', 'cody:queue-failed'] as const
+
 export function filterTasksByView(tasks: CodyTask[], options: ViewModeFilterOptions): CodyTask[] {
   const { viewMode, statusFilter, labelFilter } = options
   return tasks.filter((task) => {
     // View mode filter — primary split
+    if (viewMode === 'queue') {
+      return task.labels.some((l) => QUEUE_LABELS.includes(l as (typeof QUEUE_LABELS)[number]))
+    }
     if (viewMode === 'backlog' && task.column !== 'open') return false
     if (viewMode === 'running' && task.column === 'open') return false
     // Status filter
@@ -82,11 +89,16 @@ export function filterTasksByView(tasks: CodyTask[], options: ViewModeFilterOpti
 export function getViewModeCounts(tasks: CodyTask[]): {
   runningCount: number
   backlogCount: number
+  queueCount: number
 } {
   const backlogCount = tasks.filter((t) => t.column === 'open').length
+  const queueCount = tasks.filter((t) =>
+    t.labels.some((l) => QUEUE_LABELS.includes(l as (typeof QUEUE_LABELS)[number])),
+  ).length
   return {
     backlogCount,
     runningCount: tasks.length - backlogCount,
+    queueCount,
   }
 }
 

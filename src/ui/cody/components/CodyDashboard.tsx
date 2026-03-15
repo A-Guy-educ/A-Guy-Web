@@ -10,6 +10,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import type { CodyTask, SortField } from '../types'
 import { filterTasksByView, getViewModeCounts, sortTasks } from '../utils'
 import { TaskList } from './TaskList'
+import { QueueView } from './QueueView'
 
 import { CreateTaskDialog } from './CreateTaskDialog'
 import { EditTaskDialog } from './EditTaskDialog'
@@ -95,7 +96,7 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     if (typeof window === 'undefined') return 'running'
     const v = new URLSearchParams(window.location.search).get('view')
-    return (v === 'backlog' ? 'backlog' : 'running') as ViewMode
+    return (['backlog', 'queue'].includes(v ?? '') ? v : 'running') as ViewMode
   })
   const [showMobileMenu, setShowMobileMenu] = useState(false)
   const [showMobileDetail, setShowMobileDetail] = useState(false)
@@ -145,7 +146,7 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
     error,
     refetch,
     dataUpdatedAt,
-  } = useCodyTasks({ days, viewMode })
+  } = useCodyTasks({ days, viewMode: viewMode === 'queue' ? 'running' : viewMode })
 
   const queryClient = useQueryClient()
 
@@ -376,7 +377,7 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
   const totalCount = tasks.length
 
   // View mode counts — backlog = open column, running = everything else
-  const { runningCount, backlogCount } = getViewModeCounts(tasks)
+  const { runningCount, backlogCount, queueCount } = getViewModeCounts(tasks)
 
   // Filter tasks by view mode, then by status and label (combined with AND logic)
   const baseFilteredTasks = filterTasksByView(tasks, { viewMode, statusFilter, labelFilter })
@@ -869,6 +870,7 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
                   filteredCount={filteredTasks.length}
                   runningCount={runningCount}
                   backlogCount={backlogCount}
+                  queueCount={queueCount}
                   searchQuery={searchQuery}
                   onSearchChange={handleSearchChange}
                   sortField={sortField as SortField}
@@ -917,6 +919,19 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
                   <div className="flex items-center justify-center h-full">
                     <div className="text-muted-foreground">Loading...</div>
                   </div>
+                ) : viewMode === 'queue' ? (
+                  <QueueView
+                    tasks={filteredTasks}
+                    onTaskSelect={handleTaskSelect}
+                    onRemoveFromQueue={(issueNumber) => {
+                      tasksApi.removeFromQueue(issueNumber, githubUser?.login).then(() => {
+                        toast.success('Removed from queue')
+                        refetch()
+                      })
+                    }}
+                    onRetry={(taskId) => handleExecuteTask(taskId)}
+                    selectedTask={selectedTask}
+                  />
                 ) : (
                   <TaskList
                     tasks={filteredTasks}

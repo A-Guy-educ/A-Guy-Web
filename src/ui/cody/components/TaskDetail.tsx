@@ -54,6 +54,8 @@ import {
   Eye,
   Pencil,
   Copy,
+  ListPlus,
+  ListMinus,
 } from 'lucide-react'
 
 interface TaskDetailProps {
@@ -322,6 +324,31 @@ function getOverflowActions(
       },
       pendingKey: 'reject',
       destructive: true,
+    })
+  }
+
+  // Queue: Add to Queue (only if task has no queue-related labels)
+  const queueLabels = ['cody:queued', 'cody:queue-active', 'cody:queue-failed']
+  const hasQueueLabel = task.labels.some((l) => queueLabels.includes(l))
+
+  if (!hasQueueLabel && task.state === 'open') {
+    actions.push({
+      icon: ListPlus,
+      label: 'Add to Queue',
+      pendingLabel: 'Adding…',
+      onClick: () => taskActions.addToQueue(),
+      pendingKey: 'add-to-queue',
+    })
+  }
+
+  // Queue: Remove from Queue (only if task is queued but not active)
+  if (task.labels.includes('cody:queued')) {
+    actions.push({
+      icon: ListMinus,
+      label: 'Remove from Queue',
+      pendingLabel: 'Removing…',
+      onClick: () => taskActions.removeFromQueue(),
+      pendingKey: 'remove-from-queue',
     })
   }
 

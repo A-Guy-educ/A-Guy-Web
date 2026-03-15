@@ -341,6 +341,32 @@ export const tasksApi = {
     })
     return handleResponse(res)
   },
+
+  addToQueue: async (issueNumber: number, actorLogin?: string): Promise<ActionResponse> => {
+    const res = await fetch(`${API_BASE}/tasks/issue-${issueNumber}/actions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'add-label',
+        label: 'cody:queued',
+        ...(actorLogin && { actorLogin }),
+      }),
+    })
+    return handleResponse(res)
+  },
+
+  removeFromQueue: async (issueNumber: number, actorLogin?: string): Promise<ActionResponse> => {
+    const res = await fetch(`${API_BASE}/tasks/issue-${issueNumber}/actions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'remove-label',
+        label: 'cody:queued',
+        ...(actorLogin && { actorLogin }),
+      }),
+    })
+    return handleResponse(res)
+  },
 }
 
 // ============ PRs API ============
