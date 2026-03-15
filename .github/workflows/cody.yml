@@ -292,7 +292,6 @@ jobs:
     permissions:
       id-token: write # OpenCode GitHub App OIDC
       contents: write # Branch/commit operations
-      workflows: write # Push changes to workflow files
       pull-requests: write # Create PRs, post comments
       issues: write # Post status comments
     steps:
