@@ -17,7 +17,7 @@ interface CourseTabsProps {
   onTabChange: (tab: CourseTab) => void
 }
 
-const TABS: CourseTab[] = ['learn', 'practice', 'ask', 'exams']
+const TABS: CourseTab[] = ['learn', 'practice', 'exams', 'ask']
 
 export function CourseTabs({ activeTab, onTabChange }: CourseTabsProps) {
   const t = useTranslations('coursePage.tabs')
@@ -32,12 +32,12 @@ export function CourseTabs({ activeTab, onTabChange }: CourseTabsProps) {
               key={tab}
               onClick={() => onTabChange(tab)}
               className={cn(
-                'flex-1 px-6 py-2 text-sm rounded-full transition-all',
-                isActive
-                  ? 'bg-card font-bold shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground',
+                'flex-1 px-6 py-2 text-sm rounded-full transition-all font-semibold',
+                isActive ? 'shadow-md' : 'text-muted-foreground hover:text-foreground',
               )}
-              style={isActive ? { color: TAB_COLORS[tab].text } : undefined}
+              style={
+                isActive ? { backgroundColor: TAB_COLORS[tab].stroke, color: 'white' } : undefined
+              }
             >
               {t(tab)}
             </button>

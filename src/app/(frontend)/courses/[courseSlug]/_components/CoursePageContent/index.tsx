@@ -1,9 +1,9 @@
 'use client'
 
 import { useExamCountdown } from '@/client/hooks/useExamCountdown'
+import { SystemLink } from '@/infra/loading/components/SystemLink'
 import type { Chapter, Course, Lesson } from '@/payload-types'
 import { useTranslations } from '@/ui/web/providers/I18n'
-import { SystemLink } from '@/infra/loading/components/SystemLink'
 import { BarChart3, GraduationCap, Sparkles } from 'lucide-react'
 import { useState } from 'react'
 import { AskTab } from '../AskTab'
@@ -32,7 +32,12 @@ export function CoursePageContent({
   const { hasUpcomingExam, daysUntil } = useExamCountdown(course.id)
 
   return (
-    <>
+    <div
+      className="min-h-screen"
+      style={{
+        background: 'linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%)',
+      }}
+    >
       <CourseAnalytics courseId={course.id} courseTitle={course.title} />
       <CourseTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
@@ -92,6 +97,6 @@ export function CoursePageContent({
           </div>
         </div>
       </main>
-    </>
+    </div>
   )
 }
