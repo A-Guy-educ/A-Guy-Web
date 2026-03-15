@@ -6,12 +6,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
  * @fileType unit-test
  * @domain admin, exercise-conversion
  * @pattern custom-hook, data-fetching
- * @ai-summary Tests for useExtractorPrompts hook
+ * @ai-summary Tests for useConversionPrompts hook
  */
 
-import { useExtractorPrompts } from '@/ui/admin/exercise-conversion/hooks/useExtractorPrompts'
+import { useConversionPrompts } from '@/ui/admin/exercise-conversion/hooks/useConversionPrompts'
 
-describe('useExtractorPrompts', () => {
+describe('useConversionPrompts', () => {
   const mockPromptsResponse = {
     extractors: [
       { id: 'ext-1', title: 'Extractor 1', promptKey: 'ext1', usage: 'extractor' },
@@ -28,14 +28,14 @@ describe('useExtractorPrompts', () => {
     cleanup()
   })
 
-  it('fetches extractor prompts on mount', async () => {
+  it('fetches prompts on mount', async () => {
     const fetchSpy = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => mockPromptsResponse,
     })
     global.fetch = fetchSpy
 
-    const { result } = renderHook(() => useExtractorPrompts('lesson-1'))
+    const { result } = renderHook(() => useConversionPrompts('lesson-1'))
 
     // Initially loading should be true
     expect(result.current.isLoading).toBe(true)
@@ -53,37 +53,45 @@ describe('useExtractorPrompts', () => {
       credentials: 'include',
     })
 
-    // Verify only extractor prompts are returned (not verifiers)
+    // Verify extractor prompts are returned
     expect(result.current.extractorPrompts).toHaveLength(2)
     expect(result.current.extractorPrompts[0].id).toBe('ext-1')
     expect(result.current.extractorPrompts[1].id).toBe('ext-2')
+
+    // Verify verifier prompts are returned
+    expect(result.current.verifierPrompts).toHaveLength(1)
+    expect(result.current.verifierPrompts[0].id).toBe('ver-1')
 
     // Verify no error
     expect(result.current.error).toBeNull()
   })
 
-  it('filters out verifier prompts from response', async () => {
+  it('returns both extractors and verifiers separately', async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => mockPromptsResponse,
     })
 
-    const { result } = renderHook(() => useExtractorPrompts('lesson-1'))
+    const { result } = renderHook(() => useConversionPrompts('lesson-1'))
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false)
     })
 
-    // Verify no verifier prompts are included
-    const titles = result.current.extractorPrompts.map((p) => p.title)
-    expect(titles).not.toContain('Verifier 1')
+    const extractorTitles = result.current.extractorPrompts.map((p) => p.title)
+    const verifierTitles = result.current.verifierPrompts.map((p) => p.title)
+
+    expect(extractorTitles).toContain('Extractor 1')
+    expect(extractorTitles).not.toContain('Verifier 1')
+    expect(verifierTitles).toContain('Verifier 1')
+    expect(verifierTitles).not.toContain('Extractor 1')
   })
 
   it('handles fetch error and exposes retry', async () => {
     const fetchSpy = vi.fn().mockRejectedValue(new Error('Network error'))
     global.fetch = fetchSpy
 
-    const { result } = renderHook(() => useExtractorPrompts('lesson-1'))
+    const { result } = renderHook(() => useConversionPrompts('lesson-1'))
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false)
@@ -92,6 +100,7 @@ describe('useExtractorPrompts', () => {
     // Verify error state
     expect(result.current.error).toBe('Failed to load prompts')
     expect(result.current.extractorPrompts).toHaveLength(0)
+    expect(result.current.verifierPrompts).toHaveLength(0)
 
     // Verify retry function exists
     expect(typeof result.current.retry).toBe('function')
@@ -107,7 +116,7 @@ describe('useExtractorPrompts', () => {
       })
     global.fetch = fetchSpy
 
-    const { result } = renderHook(() => useExtractorPrompts('lesson-1'))
+    const { result } = renderHook(() => useConversionPrompts('lesson-1'))
 
     // Wait for initial error
     await waitFor(() => {
@@ -125,21 +134,23 @@ describe('useExtractorPrompts', () => {
     })
 
     expect(result.current.extractorPrompts).toHaveLength(2)
+    expect(result.current.verifierPrompts).toHaveLength(1)
   })
 
-  it('handles empty extractors array', async () => {
+  it('handles empty arrays', async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ extractors: [], verifiers: [] }),
     })
 
-    const { result } = renderHook(() => useExtractorPrompts('lesson-1'))
+    const { result } = renderHook(() => useConversionPrompts('lesson-1'))
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false)
     })
 
     expect(result.current.extractorPrompts).toHaveLength(0)
+    expect(result.current.verifierPrompts).toHaveLength(0)
     expect(result.current.error).toBeNull()
   })
 
@@ -149,7 +160,7 @@ describe('useExtractorPrompts', () => {
       status: 500,
     })
 
-    const { result } = renderHook(() => useExtractorPrompts('lesson-1'))
+    const { result } = renderHook(() => useConversionPrompts('lesson-1'))
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false)
@@ -157,5 +168,6 @@ describe('useExtractorPrompts', () => {
 
     expect(result.current.error).toBe('Failed to load prompts')
     expect(result.current.extractorPrompts).toHaveLength(0)
+    expect(result.current.verifierPrompts).toHaveLength(0)
   })
 })

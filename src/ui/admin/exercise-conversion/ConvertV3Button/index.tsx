@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useExtractorPrompts } from '../hooks/useExtractorPrompts'
+import { useConversionPrompts } from '../hooks/useConversionPrompts'
 
 interface ConvertV3ButtonProps {
   lessonId: string
@@ -37,7 +37,7 @@ export function ConvertV3Button({ lessonId, mediaId }: ConvertV3ButtonProps) {
     isLoading: isLoadingPrompts,
     error: promptsError,
     retry,
-  } = useExtractorPrompts(isExpanded ? lessonId : '')
+  } = useConversionPrompts(isExpanded ? lessonId : '')
 
   const handleExpand = () => {
     setIsExpanded(true)

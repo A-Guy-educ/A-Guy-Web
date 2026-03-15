@@ -9,30 +9,33 @@ export interface PromptOption {
   id: string
   title: string
   promptKey: string
+  type: string
   usage: string
 }
 
 /**
- * Result from the useExtractorPrompts hook
+ * Result from the useConversionPrompts hook
  */
-export interface UseExtractorPromptsResult {
+export interface UseConversionPromptsResult {
   extractorPrompts: PromptOption[]
+  verifierPrompts: PromptOption[]
   isLoading: boolean
   error: string | null
   retry: () => void
 }
 
 /**
- * Custom hook to fetch extractor prompts for exercise conversion.
+ * Custom hook to fetch conversion prompts (extractors and verifiers).
  *
- * Fetches prompts from /api/prompts/for-conversion and filters to return only
- * extractor prompts (not verifiers).
+ * Fetches prompts from /api/prompts/for-conversion and returns both
+ * extractor and verifier prompt lists.
  *
- * @param lessonId - The ID of the lesson to fetch prompts for
- * @returns Object containing extractor prompts, loading state, error state, and retry function
+ * @param lessonId - The ID of the lesson to fetch prompts for (empty string skips fetch)
+ * @returns Object containing prompt lists, loading state, error state, and retry function
  */
-export function useExtractorPrompts(lessonId: string): UseExtractorPromptsResult {
+export function useConversionPrompts(lessonId: string): UseConversionPromptsResult {
   const [extractorPrompts, setExtractorPrompts] = useState<PromptOption[]>([])
+  const [verifierPrompts, setVerifierPrompts] = useState<PromptOption[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -56,12 +59,12 @@ export function useExtractorPrompts(lessonId: string): UseExtractorPromptsResult
 
       const data = await response.json()
 
-      // Filter to only return extractors (not verifiers)
-      // This ensures V3 conversion uses only extractor prompts
       setExtractorPrompts(data.extractors || [])
+      setVerifierPrompts(data.verifiers || [])
     } catch {
       setError('Failed to load prompts')
       setExtractorPrompts([])
+      setVerifierPrompts([])
     } finally {
       setIsLoading(false)
     }
@@ -80,6 +83,7 @@ export function useExtractorPrompts(lessonId: string): UseExtractorPromptsResult
 
   return {
     extractorPrompts,
+    verifierPrompts,
     isLoading,
     error,
     retry,
