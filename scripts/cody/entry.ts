@@ -127,8 +127,8 @@ async function ensureTaskMd(ctx: PipelineContext): Promise<void> {
 /**
  * Main entry point
  */
-async function main(): Promise<void> {
-  const args = process.argv.slice(2)
+export async function main(cliArgs?: string[]): Promise<void> {
+  const args = cliArgs ?? process.argv.slice(2)
 
   // Handle --help early
   if (args.includes('--help') || args.includes('-h')) {
@@ -986,9 +986,13 @@ async function runStatusMode(ctx: PipelineContext): Promise<void> {
   }
 }
 
-// Run main
-main().catch((err) => {
-  const fatalErr = err instanceof Error ? err.message : String(err)
-  logger.error({ err }, `Fatal error: ${fatalErr}`)
-  process.exit(1)
-})
+// Run main — skip auto-invocation when imported as a module (e.g., canary tests)
+const isDirectExecution =
+  process.argv[1]?.endsWith('entry.ts') || process.argv[1]?.endsWith('entry')
+if (isDirectExecution) {
+  main().catch((err) => {
+    const fatalErr = err instanceof Error ? err.message : String(err)
+    logger.error({ err }, `Fatal error: ${fatalErr}`)
+    process.exit(1)
+  })
+}
