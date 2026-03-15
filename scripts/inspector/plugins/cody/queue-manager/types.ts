@@ -73,6 +73,8 @@ export interface GateReviewResult {
 // Constants
 // ============================================================================
 
+// MAX_RETRIES = 2 for autonomous queue processing (fail fast, move to next task).
+// Failure-analysis uses MAX_RETRIES = 3 for human-initiated tasks.
 export const MAX_RETRIES = 2
 export const STARTUP_GRACE_PERIOD_MS = 10 * 60 * 1000 // 10 minutes
 

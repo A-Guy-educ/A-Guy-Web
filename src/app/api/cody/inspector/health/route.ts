@@ -27,7 +27,7 @@ function getInspectorState(): Record<string, unknown> {
         },
       ).trim()
       if (output) {
-        return JSON.parse(Buffer.from(output, 'base64').toString('utf-8'))
+        return JSON.parse(output)
       }
     } catch {
       // Fall through to local file
@@ -35,7 +35,7 @@ function getInspectorState(): Record<string, unknown> {
   }
 
   // Local file fallback
-  const statePath = path.join(process.cwd(), '.inspector-state.json')
+  const statePath = path.join(process.cwd(), '.inspector/state.json')
   if (fs.existsSync(statePath)) {
     try {
       return JSON.parse(fs.readFileSync(statePath, 'utf-8'))
