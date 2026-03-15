@@ -508,8 +508,8 @@ export function TaskList({
                   </div>
                 )}
 
-                {/* Edit button */}
-                {onEditTask && (
+                {/* Edit button — only for backlog items */}
+                {onEditTask && task.column === 'open' && (
                   <SimpleTooltip content="Edit task" side="bottom">
                     <Button
                       variant="ghost"

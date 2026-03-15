@@ -1163,8 +1163,8 @@ export function TaskDetail({
 
             <span className="w-px h-5 bg-white/[0.06] mx-0.5" />
 
-            {/* Edit button */}
-            {onEditTask && task && (
+            {/* Edit button — only for backlog items */}
+            {onEditTask && task && task.column === 'open' && (
               <SimpleTooltip content="Edit task" side="bottom">
                 <Button
                   variant="ghost"

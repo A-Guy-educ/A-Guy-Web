@@ -411,7 +411,7 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
     onRefresh: () => refetch(),
     onNewTask: () => setShowCreateDialog(true),
     onEdit: () => {
-      if (selectedTask) setEditingTask(selectedTask)
+      if (selectedTask && selectedTask.column === 'open') setEditingTask(selectedTask)
     },
     onOpenPreview: () => {
       if (selectedTask?.associatedPR) setShowPreview(true)
