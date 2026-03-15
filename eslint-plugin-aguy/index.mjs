@@ -4,7 +4,7 @@
  * Enforces code patterns and best practices specific to the A-Guy platform.
  *
  * Usage in eslint.config.mjs:
- * import aguyPlugin from './eslint-plugin-aguy/index.js'
+ * import aguyPlugin from './eslint-plugin-aguy/index.mjs'
  *
  * export default [
  *   {
@@ -18,16 +18,14 @@
  * ]
  */
 
-/* eslint-disable @typescript-eslint/no-require-imports */
-// This is a CommonJS file that must use require() for compatibility
-const requireCollectionAccess = require('./rules/require-collection-access.js')
-const noNestedMetadata = require('./rules/no-nested-metadata.js')
-const tailwindOnlyComponents = require('./rules/tailwind-only-components.js')
-const requireAuthEndpoints = require('./rules/require-auth-endpoints.js')
-const fileLocation = require('./rules/file-location.js')
-/* eslint-enable @typescript-eslint/no-require-imports */
+import requireCollectionAccess from './rules/require-collection-access.mjs'
+import noNestedMetadata from './rules/no-nested-metadata.mjs'
+import tailwindOnlyComponents from './rules/tailwind-only-components.mjs'
+import requireAuthEndpoints from './rules/require-auth-endpoints.mjs'
+import fileLocation from './rules/file-location.mjs'
+import noExecSync from './rules/no-exec-sync.mjs'
 
-module.exports = {
+const plugin = {
   meta: {
     name: 'eslint-plugin-aguy',
     version: '1.0.0',
@@ -38,5 +36,7 @@ module.exports = {
     'tailwind-only-components': tailwindOnlyComponents,
     'require-auth-endpoints': requireAuthEndpoints,
     'file-location': fileLocation,
+    'no-exec-sync': noExecSync,
   },
 }
+export default plugin

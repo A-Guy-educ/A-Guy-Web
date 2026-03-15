@@ -39,7 +39,6 @@ vi.mock('../../../../scripts/cody/pipeline-utils', () => ({
   resolveControlMode: vi.fn(() => 'risk-gated'),
   stageOutputFile: vi.fn((taskDir: string, stage: string) => `${taskDir}/${stage}.md`),
   getComplexityTier: vi.fn(() => 'moderate'),
-  STAGE_COMPLEXITY_THRESHOLDS: {},
 }))
 
 vi.mock('../../../../scripts/cody/clarify-workflow', () => ({
@@ -68,7 +67,6 @@ vi.mock('../../../../scripts/cody/engine/status', () => ({
 
 vi.mock('../../../../scripts/cody/agent-runner', () => ({
   runAgentWithFileWatch: vi.fn(),
-  STAGE_TIMEOUTS: {},
   DEFAULT_TIMEOUT: 600000,
 }))
 

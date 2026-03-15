@@ -24,7 +24,7 @@
  * }
  */
 
-module.exports = {
+const rule = {
   meta: {
     type: 'problem',
     docs: {
@@ -99,3 +99,4 @@ module.exports = {
     }
   },
 }
+export default rule

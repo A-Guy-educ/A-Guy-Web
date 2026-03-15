@@ -38,11 +38,21 @@ export const NON_SKIPPABLE_STAGES = ['gap', 'plan-gap', 'build', 'commit', 'veri
 // Stages that CAN be skipped when input quality is high
 export const SKIPPABLE_STAGES = ['architect'] as const
 
+// NOTE: STAGE_COMPLEXITY_THRESHOLDS moved to stages/registry.ts
+// Use getStageComplexityThreshold() from registry instead.
+
 export interface InputQuality {
   level: (typeof VALID_INPUT_QUALITY_LEVELS)[number]
   skip_stages: string[]
   reasoning: string
 }
+
+import {
+  getStageComplexityThreshold,
+  STAGE_REGISTRY,
+  STAGE_NAMES,
+  stageOutputFile as _stageOutputFile,
+} from './stages/registry'
 
 // --- Complexity scoring: determines which pipeline stages run ---
 // Each stage has a minComplexity threshold. If a task's complexity score
@@ -50,34 +60,6 @@ export interface InputQuality {
 
 export const COMPLEXITY_MIN = 1
 export const COMPLEXITY_MAX = 100
-
-/**
- * Minimum complexity score required for each pipeline stage.
- * Stages with threshold 0 always run. Higher thresholds = only complex tasks.
- *
- * Tiers (stages activate at their individual thresholds, not all at tier boundary):
- *   1-9:   "Trivial"      → taskify, build, commit, fix, verify, pr
- *   10-19: "Simple"        → + architect (10)
- *   30+:   "Moderate+"     → + review (30)
- *   35-39: "Complex"       → + gap (35) — gap now writes spec.md + gap.md
- *   50+:   "Very Complex"  → + plan-gap (50) — architect self-reviews for simpler tasks
- *   60+:   "Very Complex"  → + clarify (60)
- */
-export const STAGE_COMPLEXITY_THRESHOLDS: Record<string, number> = {
-  taskify: 0,
-  gap: 35,
-  clarify: 60,
-  architect: 10,
-  'plan-gap': 50, // Raised: architect now self-reviews; plan-gap only runs on very complex tasks
-  test: 0,
-  build: 0,
-  commit: 0,
-  review: 30,
-  fix: 0,
-  verify: 0,
-  docs: 30, // Runs for moderate+ tasks (complexity >= 30) — deferred to nightly inspector
-  pr: 0,
-}
 
 /** Named complexity tiers for display/logging */
 export type ComplexityTier = 'trivial' | 'simple' | 'moderate' | 'complex' | 'very_complex'
@@ -95,9 +77,7 @@ export function getComplexityTier(score: number): ComplexityTier {
  * Useful for logging and debugging.
  */
 export function getStagesForComplexity(score: number): string[] {
-  return Object.entries(STAGE_COMPLEXITY_THRESHOLDS)
-    .filter(([, threshold]) => score >= threshold)
-    .map(([stage]) => stage)
+  return STAGE_NAMES.filter((stage) => score >= STAGE_REGISTRY[stage].complexityThreshold)
 }
 
 // --- Control mode: determines pipeline autonomy level ---
@@ -136,8 +116,8 @@ export function resolvePipelineProfile(taskDef: TaskDefinition): PipelineProfile
 
   // When complexity score is available, derive profile from it
   if (taskDef.complexity !== undefined) {
-    // Threshold = STAGE_COMPLEXITY_THRESHOLDS.gap (35) — below this is lightweight
-    return taskDef.complexity < STAGE_COMPLEXITY_THRESHOLDS.gap ? 'lightweight' : 'standard'
+    // Threshold = gap complexity threshold (35) — below this is lightweight
+    return taskDef.complexity < getStageComplexityThreshold('gap') ? 'lightweight' : 'standard'
   }
 
   // Fallback: legacy heuristic for tasks without complexity score
@@ -760,30 +740,12 @@ export function readTask(taskDir: string): TaskDefinition | null {
   return raw as TaskDefinition
 }
 
-// --- Stage output file mapping ---
-
-const STAGE_OUTPUT_MAP: Record<string, string> = {
-  taskify: 'task.json',
-  gap: 'gap.md',
-  clarify: 'questions.md',
-  architect: 'plan.md',
-  'plan-gap': 'plan-gap.md',
-  commit: 'commit.md',
-  autofix: 'autofix.md',
-  test: 'test.md',
-}
-
-export function stageOutputFile(taskDir: string, stage: string): string {
-  const filename = STAGE_OUTPUT_MAP[stage] || `${stage}.md`
-  return path.join(taskDir, filename)
-}
+// Re-export stageOutputFile from registry for backward compatibility
+export { stageOutputFile } from './stages/registry'
 
 // --- Pipeline stage definitions ---
 
 export const SPEC_ONLY_STAGES = ['gap', 'clarify']
-
-// NOTE: SPEC_EXECUTE_VERIFY_STAGES and ALL_IMPL_STAGES were removed (stale).
-// Use IMPL_PIPELINE and ALL_IMPL_STAGE_NAMES instead (defined below).
 
 // --- Dry-run support ---
 
@@ -803,7 +765,6 @@ const DRY_RUN_OUTPUTS: Record<string, (taskId: string) => string> = {
       null,
       2,
     ),
-  spec: (taskId) => `# Spec (dry-run)\n\nMock spec for ${taskId}.\n`,
   gap: (taskId) => `# Gap Analysis (dry-run)\n\nNo gaps identified for ${taskId}.\n`,
   clarify: (taskId) => `# Questions (dry-run)\n\n1. Mock question for ${taskId}?\n`,
   architect: (taskId) => `# Plan (dry-run)\n\nMock plan for ${taskId}.\n`,
@@ -825,7 +786,7 @@ Mock PR output for ${taskId}.
 }
 
 export function writeDryRunOutput(taskDir: string, stage: string, taskId: string): void {
-  const outputFile = stageOutputFile(taskDir, stage)
+  const outputFile = _stageOutputFile(taskDir, stage)
   const generator = DRY_RUN_OUTPUTS[stage]
   const content = generator ? generator(taskId) : `# ${stage} (dry-run)\n\nMock output.\n`
   fs.writeFileSync(outputFile, content)
@@ -864,91 +825,5 @@ export function flattenPipeline(stages: PipelineStage[]): string[] {
   return stages.flatMap(flattenStage)
 }
 
-// --- New pipeline stage definitions (with parallel support) ---
-
-/**
- * Implementation pipeline stages with parallel groups.
- *
- * Flow:
- *   architect → plan-gap → build → commit(scripted) →
- *   verify (scripted) → pr
- * Note: test-writer subagent is invoked by build agent per plan step (TDD)
- * Note: docs is deferred to nightly inspector (Knowledge Gardener plugin); reflect removed
- */
-export const IMPL_PIPELINE: PipelineStage[] = [
-  'architect',
-  'plan-gap',
-  { parallel: ['test', 'build'] },
-  'commit',
-  'review',
-  'fix',
-  'commit',
-  'verify',
-  'pr',
-]
-
-/**
- * Flat list of all impl stage names (for validation, rerun, etc.)
- */
-export const ALL_IMPL_STAGE_NAMES = flattenPipeline(IMPL_PIPELINE)
-
-// --- Lightweight pipeline variants ---
-
-/**
- * Lightweight implementation pipeline stages.
- *
- * Flow:
- *   architect → build → commit → verify → pr
- *
- * Skipped: plan-gap (saves 1-2 LLM calls)
- * Note: docs + reflect are deferred to inspector (deferred-stages plugin)
- */
-export const LIGHTWEIGHT_IMPL_PIPELINE: PipelineStage[] = [
-  'architect',
-  { parallel: ['test', 'build'] },
-  'commit',
-  'review',
-  'fix',
-  'commit',
-  'verify',
-  'pr',
-]
-
-/**
- * Flat list of lightweight impl stage names (for validation, rerun, etc.)
- */
-export const ALL_LIGHTWEIGHT_IMPL_STAGE_NAMES = flattenPipeline(LIGHTWEIGHT_IMPL_PIPELINE)
-
-/**
- * Get the implementation pipeline for the given profile.
- */
-export function getImplPipeline(profile: 'lightweight' | 'standard'): PipelineStage[] {
-  return profile === 'lightweight' ? LIGHTWEIGHT_IMPL_PIPELINE : IMPL_PIPELINE
-}
-
-/**
- * Get all flattened stage names for the given profile.
- */
-export function getAllImplStageNames(profile: 'lightweight' | 'standard'): string[] {
-  return profile === 'lightweight' ? ALL_LIGHTWEIGHT_IMPL_STAGE_NAMES : ALL_IMPL_STAGE_NAMES
-}
-
-/**
- * Get spec pipeline stages for the given profile.
- *
- * Standard: taskify → gap [+ clarify]  (gap writes both spec.md and gap.md)
- * Lightweight: taskify only (gap dropped)
- */
-export function getSpecStagesForProfile(
-  profile: 'lightweight' | 'standard',
-  clarify: boolean,
-): string[] {
-  if (profile === 'lightweight') {
-    // Lightweight: only taskify runs in spec phase
-    // gap is dropped entirely
-    return clarify ? ['taskify', 'clarify'] : ['taskify']
-  }
-
-  // Standard: taskify → gap [+ clarify]
-  return clarify ? ['taskify', 'gap', 'clarify'] : ['taskify', 'gap']
-}
+// --- Pipeline stage definitions moved to stages/registry.ts ---
+// Use IMPL_ORDER_STANDARD, IMPL_ORDER_LIGHTWEIGHT, etc. from registry.

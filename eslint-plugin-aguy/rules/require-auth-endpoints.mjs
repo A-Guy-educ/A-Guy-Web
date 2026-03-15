@@ -17,7 +17,7 @@
  * }
  */
 
-module.exports = {
+const rule = {
   meta: {
     type: 'problem',
     docs: {
@@ -40,6 +40,23 @@ module.exports = {
       return {}
     }
 
+    /**
+     * Check if a function body contains an authentication check.
+     * Simple heuristic: look for payload.auth or req.user checks in the source text.
+     */
+    function checkForAuthInBody(body) {
+      const sourceCode = context.getSourceCode()
+      const text = sourceCode.getText(body)
+
+      return (
+        text.includes('payload.auth') ||
+        text.includes('req.user') ||
+        text.includes('getPayload') ||
+        text.includes('// public endpoint') ||
+        text.includes('// no auth required')
+      )
+    }
+
     return {
       // Check exported async functions (GET, POST, PUT, DELETE, PATCH)
       ExportNamedDeclaration(node) {
@@ -56,7 +73,7 @@ module.exports = {
             const functionBody = node.declaration.body
 
             if (functionBody && functionBody.type === 'BlockStatement') {
-              const hasAuthCheck = this.checkForAuthInBody(functionBody)
+              const hasAuthCheck = checkForAuthInBody(functionBody)
 
               if (!hasAuthCheck) {
                 context.report({
@@ -73,17 +90,5 @@ module.exports = {
       },
     }
   },
-
-  checkForAuthInBody(body) {
-    // Simple heuristic: look for payload.auth or req.user checks
-    const sourceCode = body.range ? body.parent.getSourceCode().getText(body) : ''
-
-    return (
-      sourceCode.includes('payload.auth') ||
-      sourceCode.includes('req.user') ||
-      sourceCode.includes('getPayload') ||
-      sourceCode.includes('// public endpoint') ||
-      sourceCode.includes('// no auth required')
-    )
-  },
 }
+export default rule

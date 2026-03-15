@@ -453,8 +453,10 @@ describe('orchestrator integration', () => {
 
   describe('pipeline stage integration', () => {
     it('defines correct stages for spec and impl pipelines', async () => {
-      const { SPEC_ONLY_STAGES, ALL_IMPL_STAGE_NAMES } =
-        await import('../../../scripts/cody/pipeline-utils')
+      const { SPEC_ONLY_STAGES } = await import('../../../scripts/cody/pipeline-utils')
+      const { flattenTypedPipeline, IMPL_ORDER_STANDARD } =
+        await import('../../../scripts/cody/stages/registry')
+      const ALL_IMPL_STAGE_NAMES = flattenTypedPipeline(IMPL_ORDER_STANDARD)
 
       // Spec-only stages are the stages between taskify and impl (gap, clarify)
       // Note: 'spec' was renamed to 'taskify' and is NOT in SPEC_ONLY_STAGES
@@ -750,7 +752,9 @@ describe('gap stage integration', () => {
   })
 
   it('does not include gap in impl stages', async () => {
-    const { ALL_IMPL_STAGE_NAMES } = await import('../../../scripts/cody/pipeline-utils')
+    const { flattenTypedPipeline: flatten, IMPL_ORDER_STANDARD: implOrder } =
+      await import('../../../scripts/cody/stages/registry')
+    const ALL_IMPL_STAGE_NAMES = flatten(implOrder)
     // Gap should be a spec stage, not impl
     expect(ALL_IMPL_STAGE_NAMES).not.toContain('gap')
   })

@@ -26,7 +26,8 @@ import {
 } from '../github-api'
 import { updateStage, completeState, writeState, appendActorEvent } from '../engine/status'
 import { classifyError, formatErrorsAsMarkdown } from './error-classifier'
-import { runAgentWithFileWatch, STAGE_TIMEOUTS, DEFAULT_TIMEOUT } from '../agent-runner'
+import { runAgentWithFileWatch } from '../agent-runner'
+import { getStageTimeout } from '../stages/registry'
 
 /**
  * Execute a post-action
@@ -425,7 +426,7 @@ export async function executePostAction(
 
         // Re-invoke the build agent — it has spec, plan, and wrote the code
         const buildOutput = path.join(ctx.taskDir, 'build.md')
-        const buildTimeout = STAGE_TIMEOUTS.build ?? DEFAULT_TIMEOUT
+        const buildTimeout = getStageTimeout('build')
         let buildResult: { succeeded: boolean } | undefined
         try {
           buildResult = await runAgentWithFileWatch(ctx.input, 'build', buildOutput, buildTimeout, {

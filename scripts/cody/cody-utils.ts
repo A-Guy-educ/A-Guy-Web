@@ -11,7 +11,7 @@ import * as path from 'path'
 import { Command } from 'commander'
 import { randomInt } from 'crypto'
 
-import { ALL_STAGES } from './stage-prompts'
+import { STAGE_NAMES } from './stages/registry'
 import { discoverTaskIdFromIssue } from './github-api'
 
 // ============================================================================
@@ -113,11 +113,12 @@ export interface StageStatus {
 
 const VALID_MODES = ['spec', 'impl', 'rerun', 'fix', 'full', 'status'] as const
 
-// VALID_STAGES derived from stage-prompts to avoid duplication
-const VALID_STAGES = [...ALL_STAGES]
+// VALID_STAGES derived from registry to avoid duplication
+// Note: includes 'autofix' for backward compat with comment parsing validation
+const VALID_STAGES = [...STAGE_NAMES, 'autofix' as const]
 
 // Pipeline-ordered stage list for sorting (avoids `as any` cast on readonly tuple)
-const STAGE_ORDER: readonly string[] = ALL_STAGES
+const STAGE_ORDER: readonly string[] = STAGE_NAMES
 
 export function isValidMode(mode: string): mode is (typeof VALID_MODES)[number] {
   return VALID_MODES.includes(mode as (typeof VALID_MODES)[number])

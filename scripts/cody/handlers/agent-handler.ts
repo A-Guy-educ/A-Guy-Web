@@ -11,7 +11,7 @@ import * as path from 'path'
 
 import type { PipelineContext, StageDefinition, StageResult } from '../engine/types'
 import { runAgentWithFileWatch } from '../agent-runner'
-import { stageOutputFile } from '../pipeline-utils'
+import { stageOutputFile } from '../stages/registry'
 import { appendSession } from '../chat-history'
 import type { StageHandler } from './handler'
 
