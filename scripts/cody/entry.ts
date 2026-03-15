@@ -825,7 +825,7 @@ async function runFixMode(ctx: PipelineContext): Promise<void> {
   }
 
   // Set initial cursor to first stage in the fix pipeline
-  const firstFixStage = fixStages[0] || 'fix'
+  const firstFixStage = (fixStages[0] || 'fix') as import('./stages/registry').StageName
   state = { ...state, cursor: firstFixStage, state: 'running' }
   writeSt2(input.taskId, state)
 

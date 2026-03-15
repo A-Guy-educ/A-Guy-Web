@@ -61,24 +61,6 @@ export const MAX_STDOUT_BUFFER_SIZE = 1_048_576
 /** Default timeout for stages (10 minutes) */
 export const DEFAULT_TIMEOUT = ms('10m')
 
-/** Stage-specific timeouts in milliseconds */
-export const STAGE_TIMEOUTS: Record<string, number> = {
-  taskify: ms('10m'),
-  spec: ms('15m'),
-  gap: ms('15m'),
-  clarify: ms('10m'),
-  architect: ms('30m'),
-  build: ms('45m'),
-  'plan-gap': ms('15m'),
-  test: ms('20m'),
-  review: ms('15m'),
-  fix: ms('20m'),
-  verify: ms('10m'),
-  docs: ms('10m'),
-  pr: ms('5m'),
-  autofix: ms('15m'),
-}
-
 /** LLM-specific timeout - max time to wait for LLM API response (3 minutes) */
 export const LLM_TIMEOUT = ms('3m')
 
@@ -360,8 +342,8 @@ export function runAgentWithFileWatch(
     dataDir,
   } = options
 
-  // Resolve timeout
-  const effectiveTimeout = timeout ?? STAGE_TIMEOUTS[stage] ?? DEFAULT_TIMEOUT
+  // Resolve timeout — stage-specific timeouts are now passed from StageDefinition
+  const effectiveTimeout = timeout ?? DEFAULT_TIMEOUT
 
   return new Promise((resolve) => {
     // Build environment for the agent

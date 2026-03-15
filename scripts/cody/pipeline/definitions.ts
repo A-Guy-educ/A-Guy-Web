@@ -14,7 +14,15 @@ import type {
   StageDefinition,
   PipelineStep,
 } from '../engine/types'
-import { STAGE_TIMEOUTS, DEFAULT_TIMEOUT } from '../agent-runner'
+import {
+  type StageName,
+  getStageTimeout,
+  getStageComplexityThreshold,
+  SPEC_ORDER_STANDARD,
+  SPEC_ORDER_LIGHTWEIGHT,
+  IMPL_ORDER_STANDARD,
+  IMPL_ORDER_LIGHTWEIGHT,
+} from '../stages/registry'
 import { ensureFeatureBranch } from '../git-utils'
 import { readTask } from '../pipeline-utils'
 import { setBranchName, loadState } from '../engine/status'
@@ -33,38 +41,16 @@ import {
   skipIfSpecOnly,
   skipIfBelowComplexity,
 } from './skip-conditions'
-import { STAGE_COMPLEXITY_THRESHOLDS } from '../pipeline-utils'
 
-// ============================================================================
-// Pipeline Orders
-// ============================================================================
-
-export const SPEC_ORDER_STANDARD: string[] = ['taskify', 'gap', 'clarify']
-export const SPEC_ORDER_LIGHTWEIGHT: string[] = ['taskify', 'clarify']
-export const IMPL_ORDER_STANDARD: PipelineStep[] = [
-  'architect',
-  'plan-gap',
-  { parallel: ['test', 'build'] },
-  'commit',
-  'review',
-  'fix',
-  'commit',
-  'verify',
-  'pr',
-]
-export const IMPL_ORDER_LIGHTWEIGHT: PipelineStep[] = [
-  'architect',
-  { parallel: ['test', 'build'] },
-  'commit',
-  'review',
-  'fix',
-  'commit',
-  'verify',
-  'pr',
-]
-
-// Fix-only pipeline order for @cody fix mode
-export const FIX_ORDER: PipelineStep[] = ['review', 'fix', 'commit', 'verify', 'pr']
+// Re-export pipeline order arrays from registry for backward compatibility
+export {
+  SPEC_ORDER_STANDARD,
+  SPEC_ORDER_LIGHTWEIGHT,
+  IMPL_ORDER_STANDARD,
+  IMPL_ORDER_LIGHTWEIGHT,
+  FIX_ORDER,
+  FIX_FULL_ORDER,
+} from '../stages/registry'
 
 // ============================================================================
 // Stage Definitions
@@ -73,14 +59,14 @@ export const FIX_ORDER: PipelineStep[] = ['review', 'fix', 'commit', 'verify', '
 /**
  * Create all stage definitions
  */
-function createStageDefinitions(ctx: PipelineContext): Map<string, StageDefinition> {
-  const stages = new Map<string, StageDefinition>()
+function createStageDefinitions(ctx: PipelineContext): Map<StageName, StageDefinition> {
+  const stages = new Map<StageName, StageDefinition>()
 
   // taskify stage
   stages.set('taskify', {
     name: 'taskify',
     type: 'agent',
-    timeout: STAGE_TIMEOUTS.taskify ?? DEFAULT_TIMEOUT,
+    timeout: getStageTimeout('taskify'),
     maxRetries: 2, // BUG-F fix: increased from 1 to 2 for better resilience
     postActions: [
       { type: 'validate-task-json' },
@@ -102,9 +88,9 @@ function createStageDefinitions(ctx: PipelineContext): Map<string, StageDefiniti
   stages.set('gap', {
     name: 'gap',
     type: 'agent',
-    timeout: STAGE_TIMEOUTS.gap ?? DEFAULT_TIMEOUT,
+    timeout: getStageTimeout('gap'),
     maxRetries: 1,
-    minComplexity: STAGE_COMPLEXITY_THRESHOLDS.gap,
+    minComplexity: getStageComplexityThreshold('gap'),
     shouldSkip: (ctx) => {
       const complexitySkip = skipIfBelowComplexity(ctx, 'gap')
       if (complexitySkip.shouldSkip) return complexitySkip
@@ -117,9 +103,9 @@ function createStageDefinitions(ctx: PipelineContext): Map<string, StageDefiniti
   stages.set('clarify', {
     name: 'clarify',
     type: 'agent',
-    timeout: STAGE_TIMEOUTS.clarify ?? DEFAULT_TIMEOUT,
+    timeout: getStageTimeout('clarify'),
     maxRetries: 1,
-    minComplexity: STAGE_COMPLEXITY_THRESHOLDS.clarify,
+    minComplexity: getStageComplexityThreshold('clarify'),
     shouldSkip: (ctx) => {
       // First check complexity threshold
       const complexitySkip = skipIfBelowComplexity(ctx, 'clarify')
@@ -143,9 +129,9 @@ function createStageDefinitions(ctx: PipelineContext): Map<string, StageDefiniti
   stages.set('architect', {
     name: 'architect',
     type: 'agent',
-    timeout: STAGE_TIMEOUTS.architect ?? DEFAULT_TIMEOUT,
+    timeout: getStageTimeout('architect'),
     maxRetries: 1,
-    minComplexity: STAGE_COMPLEXITY_THRESHOLDS.architect,
+    minComplexity: getStageComplexityThreshold('architect'),
     shouldSkip: (ctx) => {
       const complexitySkip = skipIfBelowComplexity(ctx, 'architect')
       if (complexitySkip.shouldSkip) return complexitySkip
@@ -161,9 +147,9 @@ function createStageDefinitions(ctx: PipelineContext): Map<string, StageDefiniti
   stages.set('plan-gap', {
     name: 'plan-gap',
     type: 'agent',
-    timeout: STAGE_TIMEOUTS['plan-gap'] ?? DEFAULT_TIMEOUT,
+    timeout: getStageTimeout('plan-gap'),
     maxRetries: 1,
-    minComplexity: STAGE_COMPLEXITY_THRESHOLDS['plan-gap'],
+    minComplexity: getStageComplexityThreshold('plan-gap'),
     shouldSkip: (ctx) => {
       const complexitySkip = skipIfBelowComplexity(ctx, 'plan-gap')
       if (complexitySkip.shouldSkip) return complexitySkip
@@ -200,9 +186,9 @@ No critical gaps identified. Plan was refined in-place.
   stages.set('test', {
     name: 'test',
     type: 'agent',
-    timeout: STAGE_TIMEOUTS.test ?? DEFAULT_TIMEOUT,
+    timeout: getStageTimeout('test'),
     maxRetries: 1,
-    minComplexity: STAGE_COMPLEXITY_THRESHOLDS.test,
+    minComplexity: getStageComplexityThreshold('test'),
     shouldSkip: (ctx) => skipIfInputQuality(ctx, 'test'),
     validator: createTestValidator(),
   })
@@ -210,9 +196,9 @@ No critical gaps identified. Plan was refined in-place.
   stages.set('build', {
     name: 'build',
     type: 'agent',
-    timeout: STAGE_TIMEOUTS.build ?? DEFAULT_TIMEOUT,
+    timeout: getStageTimeout('build'),
     maxRetries: 1,
-    minComplexity: STAGE_COMPLEXITY_THRESHOLDS.build,
+    minComplexity: getStageComplexityThreshold('build'),
     shouldSkip: (ctx) => skipIfInputQuality(ctx, 'build'),
     preExecute: async (ctx) => {
       if (!ctx.input.dryRun) {
@@ -270,9 +256,9 @@ No critical gaps identified. Plan was refined in-place.
   stages.set('review', {
     name: 'review',
     type: 'agent',
-    timeout: STAGE_TIMEOUTS.review ?? DEFAULT_TIMEOUT,
+    timeout: getStageTimeout('review'),
     maxRetries: 0,
-    minComplexity: STAGE_COMPLEXITY_THRESHOLDS.review,
+    minComplexity: getStageComplexityThreshold('review'),
     shouldSkip: (ctx) => {
       const complexitySkip = skipIfBelowComplexity(ctx, 'review')
       if (complexitySkip.shouldSkip) return complexitySkip
@@ -288,7 +274,7 @@ No critical gaps identified. Plan was refined in-place.
   stages.set('fix', {
     name: 'fix',
     type: 'agent',
-    timeout: STAGE_TIMEOUTS.fix ?? DEFAULT_TIMEOUT,
+    timeout: getStageTimeout('fix'),
     maxRetries: 2,
     shouldSkip: (ctx) => {
       // In fix mode, never skip — user explicitly requested fixes
@@ -327,7 +313,7 @@ No critical gaps identified. Plan was refined in-place.
   stages.set('commit', {
     name: 'commit',
     type: 'git',
-    timeout: STAGE_TIMEOUTS.commit ?? DEFAULT_TIMEOUT,
+    timeout: getStageTimeout('commit'),
     maxRetries: 0,
   })
 
@@ -335,7 +321,7 @@ No critical gaps identified. Plan was refined in-place.
   stages.set('verify', {
     name: 'verify',
     type: 'scripted',
-    timeout: STAGE_TIMEOUTS.verify ?? DEFAULT_TIMEOUT,
+    timeout: getStageTimeout('verify'),
     maxRetries: 0,
     postActions: [
       // LOCAL-ONLY commit of task files after verify completes (G18)
@@ -356,9 +342,9 @@ No critical gaps identified. Plan was refined in-place.
   stages.set('docs', {
     name: 'docs',
     type: 'agent',
-    timeout: STAGE_TIMEOUTS.docs ?? DEFAULT_TIMEOUT,
+    timeout: getStageTimeout('docs'),
     maxRetries: 1,
-    minComplexity: STAGE_COMPLEXITY_THRESHOLDS.docs,
+    minComplexity: getStageComplexityThreshold('docs'),
     shouldSkip: (ctx) => {
       const complexitySkip = skipIfBelowComplexity(ctx, 'docs')
       if (complexitySkip.shouldSkip) return complexitySkip
@@ -379,7 +365,7 @@ No critical gaps identified. Plan was refined in-place.
   stages.set('pr', {
     name: 'pr',
     type: 'git',
-    timeout: STAGE_TIMEOUTS.pr ?? DEFAULT_TIMEOUT,
+    timeout: getStageTimeout('pr'),
     maxRetries: 0,
   })
 

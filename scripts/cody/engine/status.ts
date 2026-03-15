@@ -17,7 +17,7 @@ import {
 } from './types'
 
 // C3 FIX: Import stageOutputFile for correct path resolution in resetFromStage
-import { stageOutputFile } from '../pipeline-utils'
+import { stageOutputFile } from '../stages/registry'
 
 // ============================================================================
 // Status File Operations
@@ -390,7 +390,7 @@ export function resetFromStage(
     ...state,
     stages: newStages,
     state: 'running',
-    cursor: fromStage,
+    cursor: fromStage as import('../stages/registry').StageName,
     updatedAt: now,
   }
 }

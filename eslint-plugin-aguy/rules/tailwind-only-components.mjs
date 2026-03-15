@@ -11,7 +11,7 @@
  * className="bg-primary text-white"
  */
 
-module.exports = {
+const rule = {
   meta: {
     type: 'problem',
     docs: {
@@ -58,3 +58,4 @@ module.exports = {
     }
   },
 }
+export default rule

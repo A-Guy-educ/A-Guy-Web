@@ -14,6 +14,7 @@ import type {
   StageResult,
   PipelineStep,
 } from './types'
+import type { StageName } from '../stages/registry'
 import { logger, ciGroup, ciGroupEnd } from '../logger'
 import { PipelinePausedError } from './types'
 import {
@@ -152,7 +153,7 @@ export async function runPipeline(
     const prevState: PipelineStateV2 | null = state
 
     // Handle parallel vs sequential
-    const step = nextStep as string | { parallel: string[] }
+    const step = nextStep as StageName | { parallel: StageName[] }
     if (step && typeof step === 'object' && 'parallel' in step) {
       state = await executeParallelStep(ctx, pipeline, state, step.parallel)
     } else if (step && typeof step === 'string') {
@@ -227,7 +228,7 @@ async function executeSingleStep(
   ctx: PipelineContext,
   pipeline: PipelineDefinition,
   state: PipelineStateV2,
-  stageName: string,
+  stageName: StageName,
 ): Promise<PipelineStateV2> {
   const def = pipeline.stages.get(stageName)
   if (!def) {
@@ -316,7 +317,7 @@ async function executeParallelStep(
   ctx: PipelineContext,
   pipeline: PipelineDefinition,
   state: PipelineStateV2,
-  stageNames: string[],
+  stageNames: StageName[],
 ): Promise<PipelineStateV2> {
   logger.info(`  Running parallel: [${stageNames.join(', ')}]...`)
 
@@ -424,7 +425,7 @@ async function executeParallelStep(
           : (((reason as Record<string, unknown>)?.stageName as string) ?? 'unknown')
       const message = reason instanceof Error ? reason.message : String(reason)
       // R7: Use dynamic advisory lookup from pipeline definition
-      const isAdvisory = pipeline.stages.get(name)?.advisory === true
+      const isAdvisory = pipeline.stages.get(name as StageName)?.advisory === true
       if (isAdvisory) {
         // R2: Mark advisory rejected stage as failed in state
         state = updateStage(state, name, { state: 'failed', error: message })

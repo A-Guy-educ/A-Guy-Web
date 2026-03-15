@@ -13,7 +13,6 @@ vi.mock('child_process', () => ({
 const mockRunAgent = vi.fn()
 vi.mock('../../../../../scripts/cody/agent-runner', () => ({
   runAgentWithFileWatch: (...args: unknown[]) => mockRunAgent(...args),
-  STAGE_TIMEOUTS: { autofix: 300000 },
   DEFAULT_TIMEOUT: 600000,
 }))
 

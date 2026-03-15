@@ -26,7 +26,7 @@ import {
 } from '../github-api'
 import { updateStage, completeState, writeState } from '../engine/status'
 import { classifyError, formatErrorsAsMarkdown } from './error-classifier'
-import { runAgentWithFileWatch, STAGE_TIMEOUTS, DEFAULT_TIMEOUT } from '../agent-runner'
+import { runAgentWithFileWatch, DEFAULT_TIMEOUT } from '../agent-runner'
 
 /**
  * Execute a post-action
@@ -413,7 +413,8 @@ export async function executePostAction(
         if (fs.existsSync(autofixOutput)) {
           fs.unlinkSync(autofixOutput)
         }
-        const autofixTimeout = STAGE_TIMEOUTS.autofix ?? DEFAULT_TIMEOUT
+        // autofix is not a formal pipeline stage — use default timeout (15m was previous value)
+        const autofixTimeout = DEFAULT_TIMEOUT
         let autofixResult: { succeeded: boolean } | undefined
         try {
           autofixResult = await runAgentWithFileWatch(

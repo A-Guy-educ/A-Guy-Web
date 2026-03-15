@@ -7,8 +7,6 @@
  * @version 1.0.0
  */
 
-'use strict'
-
 /**
  * Creates an ESLint rule that enforces proper file location for React components.
  *
@@ -19,7 +17,7 @@
  *
  * @returns {import('eslint').Rule.RuleModule}
  */
-module.exports = {
+const rule = {
   meta: {
     name: 'file-location',
     version: '1.0.0',
@@ -143,14 +141,14 @@ module.exports = {
           // Check if it's a React component
           if (isReactComponent(sourceCode.getText())) {
             const destination = getMigrationDestination(filePath)
-            const suggestion = suggestMigration
+            const suggest = suggestMigration
               ? [
                   {
                     desc: `Migrate to ${destination}`,
                     fix(fixer) {
                       // Calculate the relative path from project root
                       const projectRoot = filePath.substring(0, filePath.indexOf('src/'))
-                      const newPath = `${projectRoot}${destination}`
+                      const _newPath = `${projectRoot}${destination}`
                       return fixer.replaceText(
                         node.range,
                         `// TODO: Migrate this file to ${destination}\n${sourceCode.getText()}`,
@@ -182,3 +180,4 @@ module.exports = {
     }
   },
 }
+export default rule

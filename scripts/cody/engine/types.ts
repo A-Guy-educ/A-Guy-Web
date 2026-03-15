@@ -6,6 +6,7 @@
  */
 
 import { z } from 'zod'
+import type { StageName } from '../stages/registry'
 
 // ============================================================================
 // Stage Types
@@ -48,7 +49,7 @@ export type { ValidationResult }
 export type StagePreExecute = (ctx: PipelineContext) => Promise<void>
 
 export interface StageDefinition {
-  name: string
+  name: StageName
   type: StageType
   timeout: number
   maxRetries: number
@@ -74,10 +75,10 @@ export interface StageDefinition {
 // Pipeline Definition
 // ============================================================================
 
-export type PipelineStep = string | { parallel: string[] }
+export type PipelineStep = StageName | { parallel: StageName[] }
 
 export interface PipelineDefinition {
-  stages: Map<string, StageDefinition>
+  stages: Map<StageName, StageDefinition>
   order: PipelineStep[]
 }
 
@@ -152,7 +153,7 @@ export interface PipelineStateV2 {
   completedAt?: string
   totalElapsed?: number
   state: 'running' | 'completed' | 'failed' | 'timeout' | 'paused'
-  cursor: string | null
+  cursor: StageName | null
   stages: Record<string, StageStateV2>
   /** GitHub issue number that triggered this pipeline run */
   issueNumber?: number
@@ -163,7 +164,8 @@ export interface PipelineStateV2 {
 }
 
 // Zod schema for PipelineStateV2
-export const PipelineStateV2Schema: z.ZodType<PipelineStateV2> = z.object({
+// Note: Uses z.string() for cursor (not StageName) for backward compat with existing status.json files
+export const PipelineStateV2Schema = z.object({
   version: z.literal(2),
   taskId: z.string(),
   mode: z.string(),
