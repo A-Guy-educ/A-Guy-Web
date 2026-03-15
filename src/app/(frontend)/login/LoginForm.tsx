@@ -47,13 +47,7 @@ function LoginFormContent() {
       <CardHeader className="pb-3">
         {/* Logo */}
         <div className="flex flex-col items-center gap-1">
-          <Image
-            src={telescopeSvg}
-            alt="A-Guy"
-            className="h-24 w-auto"
-            width={224}
-            height={204}
-          />
+          <Image src={telescopeSvg} alt="A-Guy" className="h-24 w-auto" width={224} height={204} />
           <p className="text-primary font-semibold">{t('heroSubtitle')}</p>
         </div>
         {/* Section label with decorative line */}
@@ -64,7 +58,10 @@ function LoginFormContent() {
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Google SSO Button */}
-        <GoogleLoginButton returnTo={returnTo} className="w-full h-14 rounded-xl text-base font-semibold" />
+        <GoogleLoginButton
+          returnTo={returnTo}
+          className="w-full h-14 rounded-xl text-base font-semibold"
+        />
 
         {/* Registration Link - appears below Google button when password is disabled */}
         {!passwordEnabled && (
@@ -131,8 +128,8 @@ function LoginFormContent() {
               </SystemLink>
               <p className="text-sm text-muted-foreground text-center">
                 {t('secureAccess')}
-              <br />
-              {t('oneClickEntry')}
+                <br />
+                {t('oneClickEntry')}
               </p>
             </div>
           </>

@@ -9,10 +9,7 @@ interface GoogleLoginButtonProps {
   className?: string
 }
 
-export function GoogleLoginButton({
-  returnTo = '/',
-  className,
-}: GoogleLoginButtonProps) {
+export function GoogleLoginButton({ returnTo = '/', className }: GoogleLoginButtonProps) {
   const t = useTranslations('auth.oauth')
   const [isNavigating, setIsNavigating] = useState(false)
 
