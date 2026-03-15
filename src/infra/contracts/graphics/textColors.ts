@@ -1,9 +1,8 @@
 /**
- * Text color palette and size scale utilities for geometry text elements.
+ * Color and size utilities for geometry elements.
  * Shared between admin editor and student renderer.
  *
- * Colors are read from the design system CSS variables (globals.css) at runtime.
- * --text-highlight-1 through --text-highlight-8, plus --foreground.
+ * All colors are read from the design system CSS variables (globals.css) at runtime.
  */
 
 /** Convert an HSL string like "220 9% 11%" to a hex color */
@@ -24,7 +23,7 @@ function hslStringToHex(hslStr: string): string {
 }
 
 /** Read a CSS variable from :root and convert its HSL value to hex */
-function cssVarToHex(varName: string): string {
+export function cssVarToHex(varName: string): string {
   const value = getComputedStyle(document.documentElement).getPropertyValue(varName).trim()
   return hslStringToHex(value)
 }
@@ -42,7 +41,7 @@ const PALETTE_VARS = [
   { label: 'Pink', cssVar: '--text-highlight-7' },
 ] as const
 
-/** Color palette for text elements, resolved from CSS theme variables. */
+/** Color palette for text/point elements, resolved from CSS theme variables. */
 export function getTextColorPalette(): ReadonlyArray<{ label: string; hex: string }> {
   return PALETTE_VARS.map(({ label, cssVar }) => ({
     label,
@@ -50,9 +49,24 @@ export function getTextColorPalette(): ReadonlyArray<{ label: string; hex: strin
   }))
 }
 
-/** Default text color resolved from --foreground CSS variable */
+/** Default foreground color resolved from --foreground CSS variable */
 export function getDefaultTextColor(): string {
   return cssVarToHex('--foreground')
+}
+
+/** Default angle color resolved from --text-highlight-5 (blue) CSS variable */
+export function getDefaultAngleColor(): string {
+  return cssVarToHex('--text-highlight-5')
+}
+
+/** Default canvas background resolved from --card CSS variable */
+export function getDefaultCanvasBackground(): string {
+  return cssVarToHex('--card')
+}
+
+/** Default shape fill resolved from --muted CSS variable */
+export function getDefaultShapeFill(): string {
+  return cssVarToHex('--muted')
 }
 
 /** Size scale (0-10) to pixel mapping */

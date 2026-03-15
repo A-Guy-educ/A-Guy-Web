@@ -1,7 +1,12 @@
 'use client'
 
 import type { GeometrySpecV1 } from '@/infra/contracts/graphics/geometry.v1'
-import { getDefaultTextColor, sizeScaleToPixels } from '@/infra/contracts/graphics/textColors'
+import {
+  getDefaultAngleColor,
+  getDefaultCanvasBackground,
+  getDefaultTextColor,
+  sizeScaleToPixels,
+} from '@/infra/contracts/graphics/textColors'
 import type { JXGBoard, JXGElement } from 'jsxgraph'
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { JSXGraphBoard } from '../shared/JSXGraphBoard'
@@ -162,7 +167,7 @@ export const GeometryCanvas: React.FC<GeometryCanvasProps> = ({
   return (
     <div
       className={`geo-canvas-wrap geo-canvas-wrap--${interactionMode}`}
-      style={{ background: canvas.background || '#ffffff' }}
+      style={{ background: canvas.background || getDefaultCanvasBackground() }}
     >
       <JSXGraphBoard
         id={id}
@@ -199,7 +204,7 @@ function syncPoints(
     newIds.add(elemId)
     const existing = elementsRef.current.get(elemId)
 
-    const pointColor = point.color ?? '#000000'
+    const pointColor = point.color ?? getDefaultTextColor()
     const pointSize = point.size ?? 4
     const labelPos = mapLabelPosition(point.position)
 
@@ -280,14 +285,14 @@ function syncSegments(
     const existing = elementsRef.current.get(elemId)
     if (existing) {
       existing.setAttribute({
-        strokeColor: line.color || '#000000',
+        strokeColor: line.color || getDefaultTextColor(),
         strokeWidth: line.thickness || 2,
         dash: line.style === 'dashed' ? 2 : 0,
       })
       continue
     }
     const el = board.create('segment', [fromEl, toEl], {
-      strokeColor: line.color || '#000000',
+      strokeColor: line.color || getDefaultTextColor(),
       strokeWidth: line.thickness || 2,
       dash: line.style === 'dashed' ? 2 : 0,
       fixed: true,
@@ -361,7 +366,7 @@ function syncCircles(
     const existing = elementsRef.current.get(elemId)
     if (existing) {
       existing.setAttribute({
-        strokeColor: circle.color || '#000000',
+        strokeColor: circle.color || getDefaultTextColor(),
         dash: circle.style === 'dashed' ? 2 : 0,
       })
       continue
@@ -370,7 +375,7 @@ function syncCircles(
       ? [centerEl, elementsRef.current.get(`point-${circle.through}`) || centerEl]
       : [centerEl, circle.radius || 50]
     const el = board.create('circle', parents, {
-      strokeColor: circle.color || '#000000',
+      strokeColor: circle.color || getDefaultTextColor(),
       dash: circle.style === 'dashed' ? 2 : 0,
       fixed: true,
     })
@@ -397,8 +402,8 @@ function syncAngles(
     const existing = elementsRef.current.get(elemId)
     if (existing) {
       existing.setAttribute({
-        strokeColor: angle.color || '#3366cc',
-        fillColor: angle.color || '#3366cc',
+        strokeColor: angle.color || getDefaultAngleColor(),
+        fillColor: angle.color || getDefaultAngleColor(),
         radius: angle.arcRadius || 30,
       })
       continue
@@ -408,8 +413,8 @@ function syncAngles(
     const el = board.create('angle', [ray1El, centerEl, ray2El], {
       radius: angle.arcRadius || 30,
       orthoType: isSquare ? 'square' : 'sector',
-      strokeColor: angle.color || '#3366cc',
-      fillColor: angle.color || '#3366cc',
+      strokeColor: angle.color || getDefaultAngleColor(),
+      fillColor: angle.color || getDefaultAngleColor(),
       fillOpacity: 0.15,
       strokeWidth: 2,
       fixed: true,
@@ -439,7 +444,7 @@ function syncPolygons(
     const ptEls = tri.points.map((name) => elementsRef.current.get(`point-${name}`)).filter(Boolean)
     if (ptEls.length < 3) continue
     const el = board.create('polygon', ptEls, {
-      borders: { strokeColor: tri.color || '#000000', strokeWidth: tri.thickness || 2 },
+      borders: { strokeColor: tri.color || getDefaultTextColor(), strokeWidth: tri.thickness || 2 },
       fillColor: tri.fill || 'transparent',
       fillOpacity: tri.fill ? 0.3 : 0,
       hasInnerPoints: true,
@@ -459,7 +464,10 @@ function syncPolygons(
       .filter(Boolean)
     if (ptEls.length < 4) continue
     const el = board.create('polygon', ptEls, {
-      borders: { strokeColor: rect.color || '#000000', strokeWidth: rect.thickness || 2 },
+      borders: {
+        strokeColor: rect.color || getDefaultTextColor(),
+        strokeWidth: rect.thickness || 2,
+      },
       fillColor: rect.fill || 'transparent',
       fillOpacity: rect.fill ? 0.3 : 0,
       hasInnerPoints: true,

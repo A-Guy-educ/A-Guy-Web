@@ -2,7 +2,11 @@
 
 import React from 'react'
 import type { GeometrySpecV1 } from '@/infra/contracts/graphics/geometry.v1'
-import { getDefaultTextColor, getTextColorPalette } from '@/infra/contracts/graphics/textColors'
+import {
+  cssVarToHex,
+  getDefaultTextColor,
+  getTextColorPalette,
+} from '@/infra/contracts/graphics/textColors'
 import { Plus, Trash2 } from 'lucide-react'
 
 type GeoPoint = GeometrySpecV1['elements']['points'][number]
@@ -148,15 +152,17 @@ export const PointsPanel: React.FC<PointsPanelProps> = ({ points, onChange }) =>
                         height: 20,
                         padding: 0,
                         fontSize: 11,
-                        border: '1px solid #ccc',
+                        border: `1px solid ${cssVarToHex('--border')}`,
                         borderRadius: 3,
                         cursor: 'pointer',
                         background:
                           (point.position ?? DEFAULT_POINT_POSITION) === cell.pos
-                            ? '#3b82f6'
-                            : '#f5f5f5',
+                            ? cssVarToHex('--primary')
+                            : cssVarToHex('--muted'),
                         color:
-                          (point.position ?? DEFAULT_POINT_POSITION) === cell.pos ? '#fff' : '#333',
+                          (point.position ?? DEFAULT_POINT_POSITION) === cell.pos
+                            ? cssVarToHex('--primary-foreground')
+                            : cssVarToHex('--foreground'),
                       }}
                     >
                       {cell.arrow}
