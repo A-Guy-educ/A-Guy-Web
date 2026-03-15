@@ -171,7 +171,7 @@ export function getDefaultBranch(cwd: string = process.cwd()): string {
  * This keeps the feature branch up-to-date with the latest changes from dev.
  * If a merge conflict occurs, aborts the merge and throws an error.
  */
-function mergeDefaultBranch(cwd: string): void {
+export function mergeDefaultBranch(cwd: string): void {
   const defaultBranch = getDefaultBranch(cwd)
   logger.info(`[branch] Merging latest ${defaultBranch} into current branch`)
   try {
@@ -383,6 +383,41 @@ export function ensureFeatureBranch(
 // Helper to get environment with hooks disabled for CI
 function getHookSafeEnv(): NodeJS.ProcessEnv {
   return { ...process.env, HUSKY: '0', SKIP_HOOKS: '1' }
+}
+
+/**
+ * Push to origin with automatic pull-rebase-retry on rejection.
+ * Handles the case where the remote branch has been updated by a previous
+ * pipeline run (e.g., gate approval pushed new commits before rerun started).
+ *
+ * @returns true if push succeeded, false if it failed even after rebase
+ */
+export function pushWithRebase(cwd: string, env?: NodeJS.ProcessEnv): boolean {
+  const pushEnv = env || getHookSafeEnv()
+  const pushOpts = { cwd, stdio: 'inherit' as const, env: pushEnv, timeout: 120_000 }
+
+  try {
+    execFileSync('git', ['push', '-u', 'origin', 'HEAD'], pushOpts)
+    return true
+  } catch {
+    // Push rejected — remote has new commits. Pull with rebase and retry.
+    logger.info('[push] Push rejected, pulling with rebase...')
+    try {
+      execFileSync('git', ['pull', '--rebase', 'origin', 'HEAD'], {
+        cwd,
+        stdio: 'inherit',
+        timeout: 120_000,
+        env: pushEnv,
+      })
+      execFileSync('git', ['push', '-u', 'origin', 'HEAD'], pushOpts)
+      logger.info('[push] Push succeeded after rebase')
+      return true
+    } catch (rebaseError: unknown) {
+      const msg = rebaseError instanceof Error ? rebaseError.message : String(rebaseError)
+      logger.error(`[push] Push failed after rebase: ${msg}`)
+      return false
+    }
+  }
 }
 
 /**
@@ -608,12 +643,16 @@ export function commitAndPush(
       .trim()
       .slice(0, 7)
 
-    // Push — use hook-safe env to skip pre-push hooks
-    execFileSync('git', ['push', '-u', 'origin', 'HEAD'], {
-      cwd: workDir,
-      stdio: 'inherit',
-      env: hookSafeEnv,
-    })
+    // Push with automatic rebase-retry on rejection (fixes rejected pushes on reruns)
+    const pushed = pushWithRebase(workDir, hookSafeEnv)
+    if (!pushed) {
+      return {
+        hash,
+        branch,
+        success: false,
+        message: `Committed (${hash}) but push failed after rebase`,
+      }
+    }
 
     return {
       hash,
@@ -638,6 +677,32 @@ export function commitAndPush(
 
 export type StagingStrategy = 'task-only' | 'tracked+task' | 'all'
 
+/**
+ * Files that are always excluded from task-only commits (internal state markers).
+ * NOTE: OpenCode runtime file patterns here must be kept in sync with
+ * the .gitignore entries under "OpenCode runtime files (per-task isolated data dirs)".
+ */
+const TASK_FILES_ALWAYS_EXCLUDE = [
+  'gate-*.md',
+  'rerun-feedback.consumed.md',
+  // OpenCode runtime files (only opencode.db is committed for session reuse)
+  'opencode-data/opencode/opencode.db-wal',
+  'opencode-data/opencode/opencode.db-shm',
+  'opencode-data/opencode/snapshot/',
+  'opencode-data/opencode/logs/',
+  'opencode-data/opencode/auth.json',
+  'opencode-data/opencode/bin/',
+  'opencode-data/opencode/tool-output/',
+  'opencode-data/opencode/storage/',
+  'opencode-data/opencode/worktree/',
+]
+
+/**
+ * Debug artifacts — only committed when the pipeline fails (black box data).
+ * On success these add noise to PRs; on failure they're essential for diagnosis.
+ */
+const TASK_FILES_DEBUG_ONLY = ['*-events.jsonl', '*-stderr.log']
+
 export interface CommitPipelineFilesOptions {
   /** Task directory path */
   taskDir: string
@@ -659,6 +724,8 @@ export interface CommitPipelineFilesOptions {
   isCI?: boolean
   /** Whether this is a dry run */
   dryRun?: boolean
+  /** Whether the pipeline has failed — includes debug artifacts (*-events.jsonl, *-stderr.log) */
+  pipelineFailed?: boolean
 }
 
 export interface CommitPipelineFilesResult {
@@ -689,6 +756,7 @@ export function commitPipelineFiles(
     cwd = process.cwd(),
     isCI = false,
     dryRun = false,
+    pipelineFailed = false,
   } = options
 
   // Skip in dry-run mode
@@ -757,6 +825,25 @@ export function commitPipelineFiles(
         break
     }
 
+    // 3b. Unstage excluded task artifacts to keep PRs clean
+    // Always exclude gate markers; only include debug artifacts on failure
+    if (stagingStrategy === 'task-only' || stagingStrategy === 'tracked+task') {
+      const excludePatterns = [
+        ...TASK_FILES_ALWAYS_EXCLUDE,
+        ...(!pipelineFailed ? TASK_FILES_DEBUG_ONLY : []),
+      ]
+      for (const pattern of excludePatterns) {
+        try {
+          execFileSync('git', ['reset', 'HEAD', '--', path.join(taskDir, pattern)], {
+            cwd,
+            stdio: 'pipe',
+          })
+        } catch {
+          // Pattern may not match any staged files — that's fine
+        }
+      }
+    }
+
     // 4. Commit using execFileSync to prevent shell injection (BUG-5 fix)
     // Skip husky/commitlint hooks in CI - they run their own quality gates
     const hookSafeEnv = getHookSafeEnv()
@@ -777,18 +864,17 @@ export function commitPipelineFiles(
       throw commitError
     }
 
-    // 5. Optionally push
+    // 5. Optionally push (with rebase-retry on rejection)
     // Use hook-safe env to skip pre-push hooks (e.g., Prettier/verify)
     // which may fail on unrelated files and block the pipeline
     let pushed = false
     if (push) {
-      execFileSync('git', ['push', '-u', 'origin', 'HEAD'], {
-        cwd,
-        stdio: 'inherit',
-        env: hookSafeEnv,
-      })
-      pushed = true
-      logger.info(`[commit] Pushed to origin`)
+      pushed = pushWithRebase(cwd, hookSafeEnv)
+      if (pushed) {
+        logger.info(`[commit] Pushed to origin`)
+      } else {
+        logger.error(`[commit] Push failed — remote may have diverged`)
+      }
     }
 
     return { success: true, message: 'Committed successfully', committed, pushed }

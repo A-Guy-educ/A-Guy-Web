@@ -6,12 +6,12 @@
  */
 import { createMCPClient } from '@ai-sdk/mcp'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
-import { streamText, tool, stepCountIs } from 'ai'
+import { streamText, tool, stepCountIs, type ToolSet } from 'ai'
 import { z } from 'zod'
 import { logger } from '@/infra/utils/logger/logger'
 import { NextRequest, NextResponse } from 'next/server'
 import { requireDashboardAuth } from '@/ui/cody/auth'
-import { getAgent } from '@/ui/cody/agents'
+import { getAgent, type ToolScope } from '@/ui/cody/agents'
 import {
   fetchIssue,
   fetchIssues,
@@ -23,6 +23,8 @@ import {
   getOctokit,
 } from '@/ui/cody/github-client'
 import { GITHUB_OWNER, GITHUB_REPO } from '@/ui/cody/constants'
+import { isRemoteEnabled } from '@/ui/cody/remote-config'
+import { REMOTE_SYSTEM_PROMPT_EXTENSION } from '@/ui/cody/agents'
 import type {
   CodyTask,
   CodyPipelineStatus,
@@ -34,23 +36,35 @@ import type {
 // Use Node.js runtime
 export const runtime = 'nodejs'
 
-// Cache the MCP client to avoid recreating it on every request
-let mcpClientPromise: ReturnType<typeof createMCPClient> | null = null
+// Cache the MCP client — retry on failure instead of caching rejections
+let mcpClient: Awaited<ReturnType<typeof createMCPClient>> | null = null
+let mcpClientPending: ReturnType<typeof createMCPClient> | null = null
 
 async function getMCPClient() {
-  if (mcpClientPromise) return mcpClientPromise
+  // Return cached client if already initialized
+  if (mcpClient) return mcpClient
 
-  mcpClientPromise = createMCPClient({
+  // Deduplicate concurrent initialization attempts
+  if (mcpClientPending) return mcpClientPending
+
+  mcpClientPending = createMCPClient({
     transport: {
       type: 'http',
       url: 'https://api.githubcopilot.com/mcp/',
       headers: {
-        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        Authorization: `Bearer ${process.env.GH_PAT || process.env.GITHUB_TOKEN}`,
       },
     },
   })
 
-  return mcpClientPromise
+  try {
+    mcpClient = await mcpClientPending
+    return mcpClient
+  } catch (error) {
+    // Clear pending so next request retries instead of replaying the same error
+    mcpClientPending = null
+    throw error
+  }
 }
 
 // Attachment from request
@@ -272,6 +286,39 @@ const customTools = {
 }
 
 // ===========================================
+// TOOL SCOPE FILTER
+// ===========================================
+
+/**
+ * Filter tools based on the agent's toolScope configuration.
+ * - 'all': MCP tools + all custom Cody tools
+ * - 'mcp-only': MCP tools only (repo browsing)
+ * - 'mcp-and-task-create': MCP tools + createTask custom tool
+ */
+function filterToolsByScope(
+  scope: ToolScope,
+  mcpTools: Record<string, unknown>,
+  codyTools: typeof customTools,
+) {
+  switch (scope) {
+    case 'all':
+      return { ...mcpTools, ...codyTools }
+    case 'mcp-only':
+      return { ...mcpTools }
+    case 'mcp-and-task-create': {
+      // Include MCP tools + only createTask from custom tools (if it exists)
+      const filtered = { ...mcpTools }
+      if ('createTask' in codyTools) {
+        ;(filtered as Record<string, unknown>).createTask = codyTools.createTask
+      }
+      return filtered
+    }
+    default:
+      return { ...mcpTools, ...codyTools }
+  }
+}
+
+// ===========================================
 // TASK CONTEXT BUILDER
 // ===========================================
 
@@ -466,6 +513,63 @@ function processAttachments(attachments?: Attachment[]) {
 }
 
 // ===========================================
+// REMOTE TOOLS BUILDER
+// ===========================================
+
+/**
+ * Builds the four remote dev tools for users with a configured remote environment.
+ * The tools proxy through /api/cody/remote/exec on the Vercel side.
+ * This is only called when isRemoteEnabled(actorLogin) is true.
+ */
+function buildRemoteTools(actorLogin: string): ToolSet {
+  const proxyAction = async (action: string, payload: Record<string, unknown>) => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL || ''}/api/cody/remote/exec`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ actorLogin, action, payload }),
+    })
+    return res.json()
+  }
+
+  return {
+    remoteExec: tool({
+      description:
+        'Execute a shell command on the remote Mac dev environment. Use for running build commands, tests, checking processes, etc.',
+      inputSchema: z.object({
+        command: z.string().describe('Shell command to execute'),
+        cwd: z.string().optional().describe('Working directory (must be within allowed roots)'),
+      }),
+      execute: async ({ command, cwd }) => proxyAction('exec', { command, cwd }),
+    }),
+
+    remoteRead: tool({
+      description: 'Read a file from the remote Mac dev environment.',
+      inputSchema: z.object({
+        path: z.string().describe('Absolute path to the file to read'),
+      }),
+      execute: async ({ path }) => proxyAction('read', { path }),
+    }),
+
+    remoteWrite: tool({
+      description: 'Write content to a file on the remote Mac dev environment.',
+      inputSchema: z.object({
+        path: z.string().describe('Absolute path to the file to write'),
+        content: z.string().describe('Content to write to the file'),
+      }),
+      execute: async ({ path, content }) => proxyAction('write', { path, content }),
+    }),
+
+    remoteLs: tool({
+      description: 'List directory contents on the remote Mac dev environment.',
+      inputSchema: z.object({
+        path: z.string().describe('Absolute path to the directory to list'),
+      }),
+      execute: async ({ path }) => proxyAction('ls', { path }),
+    }),
+  } as ToolSet
+}
+
+// ===========================================
 // API HANDLERS
 // ===========================================
 
@@ -477,12 +581,18 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Test MCP connection
+    // Test MCP connection — 5s timeout to avoid hanging
     let mcpToolCount = 0
     try {
-      const mcp = await getMCPClient()
-      const tools = await mcp.tools()
-      mcpToolCount = Object.keys(tools).length
+      const mcpCheck = (async () => {
+        const mcp = await getMCPClient()
+        const tools = await mcp.tools()
+        return Object.keys(tools).length
+      })()
+      mcpToolCount = await Promise.race([
+        mcpCheck,
+        new Promise<number>((resolve) => setTimeout(() => resolve(0), 5_000)),
+      ])
     } catch (mcpError) {
       logger.warn({ err: mcpError }, 'GitHub MCP unavailable for health check')
     }
@@ -507,11 +617,14 @@ export async function POST(req: NextRequest) {
 
   try {
     // Validate environment
-    const githubToken = process.env.GITHUB_TOKEN
+    const githubToken = process.env.GH_PAT || process.env.GITHUB_TOKEN
     const geminiApiKey = process.env.GEMINI_API_KEY
 
     if (!githubToken) {
-      return NextResponse.json({ error: 'GITHUB_TOKEN is not configured' }, { status: 503 })
+      return NextResponse.json(
+        { error: 'GitHub token is not configured (set GH_PAT or GITHUB_TOKEN)' },
+        { status: 503 },
+      )
     }
 
     if (!geminiApiKey) {
@@ -519,7 +632,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { messages = [], taskId, taskData, agentId, attachments } = body
+    const { messages = [], taskId, taskData, agentId, attachments, actorLogin } = body
 
     if (!messages || messages.length === 0) {
       return NextResponse.json({ error: 'Messages are required' }, { status: 400 })
@@ -551,19 +664,18 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Get GitHub MCP tools (with caching) - skip if it times out
-    let mcpTools = {}
+    // Get GitHub MCP tools — 5s timeout to allow initial handshake, skip on failure
+    let mcpTools = {} as Record<string, unknown>
     try {
-      // Wrap MCP tools fetch in a timeout - skip if it takes > 5 seconds
       const mcpToolsPromise = (async () => {
         const mcp = await getMCPClient()
         return await mcp.tools()
       })()
 
-      const timeoutMs = 1000
+      const timeoutMs = 5_000
       const mcpToolsOrEmpty = await Promise.race([
         mcpToolsPromise,
-        new Promise<object>((resolve) => setTimeout(() => resolve({}), timeoutMs)),
+        new Promise<Record<string, never>>((resolve) => setTimeout(() => resolve({}), timeoutMs)),
       ])
 
       if (Object.keys(mcpToolsOrEmpty).length > 0) {
@@ -573,16 +685,21 @@ export async function POST(req: NextRequest) {
           'GitHub MCP tools loaded',
         )
       } else {
-        logger.warn({ requestId }, 'GitHub MCP timed out - using custom tools only')
+        logger.warn({ requestId }, 'GitHub MCP timed out after 5s - using custom tools only')
       }
     } catch (mcpError) {
       logger.warn({ err: mcpError, requestId }, 'GitHub MCP unavailable - using custom tools only')
     }
 
-    // Combine MCP tools with custom Cody tools
-    const allTools = {
-      ...mcpTools,
-      ...customTools,
+    // Filter tools based on agent's toolScope
+    let allTools = filterToolsByScope(agent.toolScope, mcpTools, customTools) as ToolSet
+
+    // Inject remote tools if this user has a remote dev environment configured
+    if (actorLogin && isRemoteEnabled(actorLogin)) {
+      const remoteTools = buildRemoteTools(actorLogin)
+      allTools = { ...allTools, ...remoteTools }
+      // Extend system prompt with remote tool instructions
+      systemPrompt = systemPrompt + REMOTE_SYSTEM_PROMPT_EXTENSION
     }
 
     // Convert messages to AI SDK format, handling attachments
