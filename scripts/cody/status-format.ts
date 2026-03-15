@@ -107,7 +107,9 @@ export function formatStatusComment(
 }
 
 export async function formatStatusCommentV2(input: CodyInput, stateV2: unknown): Promise<string> {
+  if (!stateV2 || typeof stateV2 !== 'object') {
+    return `❌ Invalid pipeline state for \`${input.taskId}\``
+  }
   const { stateToV1 } = await import('./engine/status')
-  const v1Status = stateV2 as Parameters<typeof stateToV1>[0]
-  return formatStatusComment(input, stateToV1(v1Status))
+  return formatStatusComment(input, stateToV1(stateV2 as Parameters<typeof stateToV1>[0]))
 }

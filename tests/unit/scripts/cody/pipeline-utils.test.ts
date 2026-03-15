@@ -964,14 +964,13 @@ describe('pipeline_profile validation', () => {
       expect(result.valid).toBe(true)
     })
 
-    it('rejects invalid pipeline_profile: turbo', () => {
+    it('accepts valid pipeline_profile: turbo', () => {
       const task = {
         ...VALID_TASK_NO_PROFILE,
         pipeline_profile: 'turbo',
       }
       const result = validateTask(task)
-      expect(result.valid).toBe(false)
-      expect(result.errors[0]).toContain('pipeline_profile')
+      expect(result.valid).toBe(true)
     })
 
     it('rejects invalid pipeline_profile: fast', () => {

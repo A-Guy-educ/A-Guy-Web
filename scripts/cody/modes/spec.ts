@@ -14,7 +14,7 @@ import { resolvePipelineForMode } from '../engine/pipeline-resolver'
 import { logger } from '../logger'
 import { commitPipelineFiles } from '../git-utils'
 
-import { ensureTaskMd } from '../entry'
+import { ensureTaskMd } from '../task-setup'
 import { handleClarification } from '../clarify-workflow'
 import { postComment } from '../github-api'
 

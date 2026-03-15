@@ -20,7 +20,7 @@ export const VALID_TASK_TYPES = [
 export const VALID_PIPELINES = ['spec_only', 'spec_execute_verify'] as const
 const VALID_RISK_LEVELS = ['low', 'medium', 'high'] as const
 const VALID_DOMAINS = ['backend', 'frontend', 'infra', 'data', 'llm', 'devops', 'product'] as const
-export const VALID_PIPELINE_PROFILES = ['lightweight', 'standard'] as const
+export const VALID_PIPELINE_PROFILES = ['lightweight', 'standard', 'turbo'] as const
 
 export type TaskType = (typeof VALID_TASK_TYPES)[number]
 export type Pipeline = (typeof VALID_PIPELINES)[number]

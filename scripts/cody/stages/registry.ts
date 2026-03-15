@@ -280,6 +280,12 @@ export const IMPL_ORDER_LIGHTWEIGHT: TypedPipelineStep[] = [
   'pr',
 ]
 
+/** Turbo spec order — minimal: just taskify (no gap/clarify) */
+export const SPEC_ORDER_TURBO: StageName[] = ['taskify']
+
+/** Turbo impl order — minimal: build→commit→verify→pr (no architect/review/fix) */
+export const IMPL_ORDER_TURBO: TypedPipelineStep[] = ['build', 'commit', 'verify', 'pr']
+
 /** Fix-only pipeline order for @cody fix mode */
 export const FIX_ORDER: TypedPipelineStep[] = ['review', 'fix', 'verify', 'pr']
 

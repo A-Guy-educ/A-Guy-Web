@@ -184,7 +184,7 @@ export async function runFixMode(ctx: PipelineContext): Promise<void> {
   // Set initial cursor to taskify
   state = {
     ...state,
-    cursor: 'taskify' as import('../stages/registry').StageName,
+    cursor: 'taskify',
     state: 'running',
   }
   writeSt2(originalTaskId, state)

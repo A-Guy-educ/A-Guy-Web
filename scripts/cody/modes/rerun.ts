@@ -8,6 +8,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 import type { PipelineContext } from '../engine/types'
+import type { StageName } from '../stages/registry'
 import { runPipeline } from '../engine/state-machine'
 import { resolvePipelineForMode } from '../engine/pipeline-resolver'
 import { logger } from '../logger'
@@ -197,7 +198,7 @@ export async function runRerunMode(ctx: PipelineContext): Promise<void> {
 
   // Fix 5: Validate fromStage exists in the resolved pipeline order
   let fromStage = input.fromStage || 'build'
-  if (!stageOrder.includes(fromStage)) {
+  if (!stageOrder.includes(fromStage as StageName)) {
     const fallback = findNearestEarlierStage(fromStage, stageOrder)
     logger.warn(
       `Stage "${fromStage}" not in pipeline (valid: ${stageOrder.join(', ')}). Falling back to "${fallback}".`,

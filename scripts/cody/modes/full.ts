@@ -11,7 +11,7 @@ import { resolvePipelineForMode, createRebuildCallback } from '../engine/pipelin
 import { logger } from '../logger'
 import { readTask } from '../pipeline-utils'
 
-import { ensureTaskMd } from '../entry'
+import { ensureTaskMd } from '../task-setup'
 
 export async function runFullMode(ctx: PipelineContext): Promise<void> {
   logger.info('Running FULL Cody pipeline (spec + impl)...\n')
@@ -31,7 +31,7 @@ export async function runFullMode(ctx: PipelineContext): Promise<void> {
 
   // FIX #5: Resolve profile from task.json instead of hardcoding 'standard'
   // This ensures the correct profile (lightweight vs standard) is used
-  let profile: 'standard' | 'lightweight' = 'standard'
+  let profile: 'standard' | 'lightweight' | 'turbo' = 'standard'
   try {
     const taskDef = readTask(ctx.taskDir)
     if (taskDef) {

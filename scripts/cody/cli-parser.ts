@@ -11,7 +11,7 @@ import { randomInt } from 'crypto'
 import * as path from 'path'
 
 import type { CodyInput } from './cody-utils'
-import { isValidMode, isValidStage, validateTaskId, VALID_MODES, VALID_STAGES } from './cody-utils'
+import { isValidMode, isValidStage, validateTaskId, VALID_MODES, VALID_STAGES } from './validation'
 import { discoverTaskIdFromIssue } from './github-api'
 import { logger } from './logger'
 

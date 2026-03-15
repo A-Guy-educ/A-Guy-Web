@@ -11,14 +11,12 @@
 import { config as loadEnv } from 'dotenv'
 loadEnv({ path: '.env' })
 
-import * as fs from 'fs'
 import ms from 'ms'
-import * as path from 'path'
 
 import { parseCliArgs, validateAuth, ensureTaskDir } from './cody-utils'
 import { preflight } from './preflight'
 import { createRunner } from './runner-backend'
-import { logger, createStageLogger } from './logger'
+import { logger } from './logger'
 import { commitPipelineFiles } from './git-utils'
 
 import type { PipelineContext } from './engine/types'
@@ -34,6 +32,9 @@ import {
   runFixMode,
   runStatusMode,
 } from './modes'
+
+// Re-export for backward compatibility (canonical source: ./task-setup)
+export { ensureTaskMd } from './task-setup'
 import type { OpenCodeServer } from './opencode-server'
 import { ensureTaskMarkerComment, postComment } from './github-api'
 
@@ -126,52 +127,6 @@ async function shutdownOpenCodeServer(taskDir?: string): Promise<void> {
 }
 
 // ============================================================================
-// Shared Helpers
-// ============================================================================
-
-/**
- * R4: Extract task.md preparation logic into a shared helper.
- * Ensures task.md exists before pipeline runs (needed for taskify agent).
- */
-export async function ensureTaskMd(ctx: PipelineContext): Promise<void> {
-  const { input, taskDir } = ctx
-  const taskMdPath = path.join(taskDir, 'task.md')
-
-  // --file flag has priority
-  if (input.file) {
-    const resolvedFile = path.resolve(input.file)
-    if (!fs.existsSync(resolvedFile)) {
-      throw new Error(`File not found: ${resolvedFile}`)
-    }
-    const content = fs.readFileSync(resolvedFile, 'utf-8').trim()
-    if (!content) {
-      throw new Error(`File is empty: ${resolvedFile}`)
-    }
-    fs.writeFileSync(taskMdPath, `# Task\n\n${content}\n`)
-    logger.info(`Created task.md from ${resolvedFile}`)
-    return
-  }
-
-  // Create task.md from issue body if it doesn't exist
-  if (!fs.existsSync(taskMdPath)) {
-    if (input.issueNumber) {
-      const { getIssue } = await import('./github-api')
-      logger.info('task.md not found, fetching issue body to create it...')
-      const { body: issueBody, title: issueTitle } = getIssue(input.issueNumber)
-      if (issueBody) {
-        const titleSection = issueTitle ? `## Issue Title\n\n${issueTitle}\n` : ''
-        fs.writeFileSync(taskMdPath, `# Task\n\n${titleSection}${issueBody}\n`)
-        logger.info(`Created task.md from issue #${input.issueNumber}`)
-      } else {
-        throw new Error(
-          `task.md not found in .tasks/${input.taskId}/ and issue #${input.issueNumber} has no body. Create it first.`,
-        )
-      }
-    } else {
-      throw new Error(`task.md not found in .tasks/${input.taskId}/. Create it first.`)
-    }
-  }
-}
 
 /**
  * Main entry point
@@ -219,7 +174,6 @@ Examples:
   const input = parseCliArgs(args)
 
   // Create a child logger with task context
-  const _stageLogger = createStageLogger('main', input.taskId)
 
   // R9: Shutdown guard to prevent double-execution on SIGTERM/SIGINT
   let shuttingDown = false
@@ -459,10 +413,6 @@ Examples:
   // that keep the Node event loop alive.
   process.exit(0)
 }
-
-/**
- * Spec mode setup
- */
 
 // Run main — skip auto-invocation when imported as a module (e.g., canary tests)
 const isDirectExecution =

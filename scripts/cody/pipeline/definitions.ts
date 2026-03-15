@@ -22,6 +22,8 @@ import {
   SPEC_ORDER_LIGHTWEIGHT,
   IMPL_ORDER_STANDARD,
   IMPL_ORDER_LIGHTWEIGHT,
+  SPEC_ORDER_TURBO,
+  IMPL_ORDER_TURBO,
 } from '../stages/registry'
 import { ensureFeatureBranch } from '../git-utils'
 import { readTask } from '../pipeline-utils'
@@ -48,6 +50,8 @@ export {
   SPEC_ORDER_LIGHTWEIGHT,
   IMPL_ORDER_STANDARD,
   IMPL_ORDER_LIGHTWEIGHT,
+  SPEC_ORDER_TURBO,
+  IMPL_ORDER_TURBO,
   FIX_ORDER,
   FIX_FULL_ORDER,
 } from '../stages/registry'
@@ -421,20 +425,40 @@ export function buildPipeline(
 
   if (mode === 'spec') {
     // Spec stages only
-    const specOrder = profile === 'standard' ? SPEC_ORDER_STANDARD : SPEC_ORDER_LIGHTWEIGHT
+    const specOrder =
+      profile === 'standard'
+        ? SPEC_ORDER_STANDARD
+        : profile === 'turbo'
+          ? SPEC_ORDER_TURBO
+          : SPEC_ORDER_LIGHTWEIGHT
     // If clarify is disabled, remove it from the spec order
     const filteredSpecOrder = clarify ? specOrder : specOrder.filter((s) => s !== 'clarify')
     order = [...filteredSpecOrder]
   } else if (mode === 'impl') {
     // Implementation stages only
-    const implOrder = profile === 'standard' ? IMPL_ORDER_STANDARD : IMPL_ORDER_LIGHTWEIGHT
+    const implOrder =
+      profile === 'standard'
+        ? IMPL_ORDER_STANDARD
+        : profile === 'turbo'
+          ? IMPL_ORDER_TURBO
+          : IMPL_ORDER_LIGHTWEIGHT
     order = [...implOrder]
   } else if (mode === 'full' || mode === 'rerun') {
     // Full/rerun mode: include both spec and impl stages
     // This ensures the pipeline survives restarts — all stages are present
     // and the state machine efficiently skips completed ones
-    const specOrder = profile === 'standard' ? SPEC_ORDER_STANDARD : SPEC_ORDER_LIGHTWEIGHT
-    const implOrder = profile === 'standard' ? IMPL_ORDER_STANDARD : IMPL_ORDER_LIGHTWEIGHT
+    const specOrder =
+      profile === 'standard'
+        ? SPEC_ORDER_STANDARD
+        : profile === 'turbo'
+          ? SPEC_ORDER_TURBO
+          : SPEC_ORDER_LIGHTWEIGHT
+    const implOrder =
+      profile === 'standard'
+        ? IMPL_ORDER_STANDARD
+        : profile === 'turbo'
+          ? IMPL_ORDER_TURBO
+          : IMPL_ORDER_LIGHTWEIGHT
     const filteredSpecOrder = clarify ? specOrder : specOrder.filter((s) => s !== 'clarify')
     order = [...filteredSpecOrder, ...implOrder]
   }
@@ -445,8 +469,8 @@ export function buildPipeline(
 /**
  * Flatten pipeline order (including parallel stages) into a flat array of stage names
  */
-export function flattenPipelineOrder(order: PipelineStep[]): string[] {
-  const result: string[] = []
+export function flattenPipelineOrder(order: PipelineStep[]): StageName[] {
+  const result: StageName[] = []
   for (const step of order) {
     if (typeof step === 'string') {
       result.push(step)

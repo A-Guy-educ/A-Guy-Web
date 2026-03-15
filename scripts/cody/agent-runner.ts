@@ -14,6 +14,7 @@ import type { CodyInput } from './cody-utils'
 import { buildStagePrompt } from './stage-prompts'
 import { createRunner, type RunnerBackend } from './runner-backend'
 import { logger } from './logger'
+import { STDERR_TAIL_LINES } from './config/constants'
 
 // ============================================================================
 // Model Resolution
@@ -417,7 +418,7 @@ export function runAgentWithFileWatch(
       // Stderr capture for failure debugging
       let stderrLineCount = 0
       const stderrTailLines: string[] = [] // Rolling buffer of last N lines
-      const STDERR_TAIL_SIZE = 50
+      const STDERR_TAIL_SIZE = STDERR_TAIL_LINES
       let stderrLogFd: number | null = null
       try {
         const stderrLogPath = path.join(path.dirname(outputFile), `${stage}-stderr.log`)
