@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "taskId": "260315-auto-789",
+  "mode": "full",
+  "pipeline": "spec_execute_verify",
+  "startedAt": "2026-03-15T20:48:09.869Z",
+  "updatedAt": "2026-03-15T20:48:11.106Z",
+  "state": "running",
+  "cursor": null,
+  "stages": {
+    "taskify": {
+      "state": "running",
+      "retries": 0,
+      "startedAt": "2026-03-15T20:48:11.106Z"
+    }
+  },
+  "issueNumber": 841,
+  "triggeredBy": "aguyaharonyair",
+  "issueCreator": "aguyaharonyair",
+  "actorHistory": [
+    {
+      "action": "pipeline-triggered",
+      "actor": "aguyaharonyair",
+      "timestamp": "2026-03-15T20:48:09.869Z"
+    }
+  ]
+}
