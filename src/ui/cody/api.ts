@@ -122,6 +122,31 @@ export const tasksApi = {
     return handleResponse(res)
   },
 
+  update: async (
+    issueNumber: number,
+    data: {
+      title?: string
+      body?: string
+      labels?: string[]
+      assignees?: string[]
+      actorLogin?: string
+    },
+  ): Promise<ActionResponse> => {
+    const res = await fetch(`${API_BASE}/tasks/issue-${issueNumber}/actions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'update',
+        title: data.title,
+        body: data.body,
+        labels: data.labels,
+        assignees: data.assignees,
+        ...(data.actorLogin && { actorLogin: data.actorLogin }),
+      }),
+    })
+    return handleResponse(res)
+  },
+
   execute: async (issueNumber: number, actorLogin?: string): Promise<ActionResponse> => {
     const res = await fetch(`${API_BASE}/tasks/issue-${issueNumber}/actions`, {
       method: 'POST',

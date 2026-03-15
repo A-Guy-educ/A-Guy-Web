@@ -46,13 +46,17 @@ const actionSchema = z.object({
     'fix',
     'approve-ui',
     'approve-pr',
+    'update',
   ]),
   feedback: z.string().optional(),
   fromStage: z.string().optional(),
   mode: z.string().optional(),
   assignees: z.array(z.string()).optional(),
   label: z.string().optional(),
+  labels: z.array(z.string()).optional(),
   comment: z.string().optional(),
+  title: z.string().optional(),
+  body: z.string().optional(),
   actorLogin: z.string().optional(),
 })
 
@@ -333,6 +337,27 @@ ${comment}`,
         await postComment(issueNumber, withActor('✅ PR approved', actor))
         clearCache()
         return NextResponse.json({ success: true, message: 'PR approved' })
+      }
+
+      case 'update': {
+        const updates: { title?: string; body?: string; labels?: string[]; assignees?: string[] } =
+          {}
+        const parsed = actionSchema.parse(body)
+        const { title, body: issueBody, labels, assignees } = parsed
+
+        if (title) updates.title = title
+        if (issueBody !== undefined) updates.body = issueBody
+        if (labels) updates.labels = labels
+        if (assignees) updates.assignees = assignees
+
+        if (Object.keys(updates).length === 0) {
+          return NextResponse.json({ error: 'No fields to update' }, { status: 400 })
+        }
+
+        await updateIssue(issueNumber, updates)
+        if (actor) await postComment(issueNumber, `📝 Issue updated _(by @${actor})_`)
+        clearCache()
+        return NextResponse.json({ success: true, message: 'Issue updated' })
       }
 
       default:

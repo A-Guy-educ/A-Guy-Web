@@ -6,6 +6,7 @@
  */
 'use client'
 
+import { forwardRef, useImperativeHandle, useRef } from 'react'
 import {
   Select,
   SelectContent,
@@ -14,9 +15,22 @@ import {
   SelectValue,
 } from '@/ui/web/components/select'
 import { cn } from '../utils'
-import { Search } from 'lucide-react'
+import { Search, ArrowUp, ArrowDown } from 'lucide-react'
+import type { SortField, SortDirection } from '../types'
 
 export type ViewMode = 'running' | 'backlog'
+
+const SORT_OPTIONS = [
+  { label: 'Updated', value: 'updatedAt' },
+  { label: 'Created', value: 'createdAt' },
+  { label: 'Issue #', value: 'issueNumber' },
+  { label: 'Status', value: 'column' },
+  { label: 'Risk', value: 'riskLevel' },
+  { label: 'Progress', value: 'pipelineProgress' },
+  { label: 'Assignee', value: 'assignee' },
+  { label: 'Title', value: 'title' },
+  { label: 'Label', value: 'label' },
+] as const
 
 const DATE_FILTERS = [
   { label: 'All time', value: 'all', days: undefined },
@@ -54,6 +68,14 @@ export interface FilterBarProps {
   backlogCount: number
   searchQuery?: string
   onSearchChange?: (value: string) => void
+  sortField?: SortField
+  onSortFieldChange?: (field: SortField) => void
+  sortDirection?: SortDirection
+  onSortDirectionChange?: (direction: SortDirection) => void
+}
+
+export interface FilterBarHandle {
+  focusSearch: () => void
 }
 
 export { DATE_FILTERS, STATUS_FILTERS }
@@ -100,25 +122,40 @@ export function ViewToggle({
   )
 }
 
-export function FilterBar({
-  viewMode,
-  onViewModeChange,
-  dateFilter,
-  onDateFilterChange,
-  statusFilter,
-  onStatusFilterChange,
-  labelFilter,
-  onLabelFilterChange,
-  availableLabels,
-  labelCounts,
-  statusCounts,
-  totalCount,
-  filteredCount,
-  runningCount,
-  backlogCount,
-  searchQuery = '',
-  onSearchChange,
-}: FilterBarProps) {
+export const FilterBar = forwardRef<FilterBarHandle, FilterBarProps>(function FilterBar(
+  {
+    viewMode,
+    onViewModeChange,
+    dateFilter,
+    onDateFilterChange,
+    statusFilter,
+    onStatusFilterChange,
+    labelFilter,
+    onLabelFilterChange,
+    availableLabels,
+    labelCounts,
+    statusCounts,
+    totalCount,
+    filteredCount,
+    runningCount,
+    backlogCount,
+    searchQuery = '',
+    onSearchChange,
+    sortField = 'updatedAt',
+    onSortFieldChange,
+    sortDirection = 'desc',
+    onSortDirectionChange,
+  },
+  ref,
+) {
+  const searchInputRef = useRef<HTMLInputElement>(null)
+
+  useImperativeHandle(ref, () => ({
+    focusSearch: () => {
+      searchInputRef.current?.focus()
+    },
+  }))
+
   return (
     <div className="flex items-center gap-3 px-4 md:px-6 py-2 border-b border-white/[0.06] bg-white/[0.02]">
       {/* View toggle — Running / Backlog */}
@@ -134,6 +171,7 @@ export function FilterBar({
         <div className="relative flex items-center">
           <Search className="absolute left-2.5 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
           <input
+            ref={searchInputRef}
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
@@ -186,10 +224,40 @@ export function FilterBar({
         </SelectContent>
       </Select>
 
+      {/* Sort control */}
+      {onSortFieldChange && onSortDirectionChange && (
+        <>
+          <Select value={sortField} onValueChange={(v) => onSortFieldChange(v as SortField)}>
+            <SelectTrigger className="w-full md:w-32">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              {SORT_OPTIONS.map((s) => (
+                <SelectItem key={s.value} value={s.value}>
+                  {s.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <button
+            type="button"
+            onClick={() => onSortDirectionChange(sortDirection === 'asc' ? 'desc' : 'asc')}
+            className="h-8 w-8 rounded-md border border-white/[0.08] bg-white/[0.04] flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-white/[0.06] transition-colors"
+            title={sortDirection === 'asc' ? 'Ascending' : 'Descending'}
+          >
+            {sortDirection === 'asc' ? (
+              <ArrowUp className="w-3.5 h-3.5" />
+            ) : (
+              <ArrowDown className="w-3.5 h-3.5" />
+            )}
+          </button>
+        </>
+      )}
+
       {/* Task count indicator */}
       <span className="text-xs text-muted-foreground ml-auto">
         {filteredCount} of {totalCount} tasks
       </span>
     </div>
   )
-}
+})

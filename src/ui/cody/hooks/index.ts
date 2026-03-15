@@ -208,6 +208,26 @@ export function useCreateTask() {
   })
 }
 
+// ============ useUpdateTask ============
+
+export function useUpdateTask(issueNumber: number) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: {
+      title?: string
+      body?: string
+      labels?: string[]
+      assignees?: string[]
+      actorLogin?: string
+    }) => codyApi.tasks.update(issueNumber, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cody-tasks'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.taskDetails(issueNumber) })
+    },
+  })
+}
+
 // ============ usePostComment ============
 
 export function usePostComment(issueNumber: number, actorLogin?: string) {

@@ -189,6 +189,7 @@
         "src/ui/admin/shared/ErrorDisplay.tsx",
         "src/ui/cody/components/AddCommentDialog.tsx",
         "src/ui/cody/components/AssigneePicker.tsx",
+        "src/ui/cody/components/BranchCleanupDialog.tsx",
         "src/ui/cody/components/BugReportDialog.tsx",
         "src/ui/cody/components/CIStatusBadge.tsx",
         "src/ui/cody/components/CodyChat.tsx",
@@ -199,10 +200,12 @@
         "src/ui/cody/components/CommentList.tsx",
         "src/ui/cody/components/ConfirmDialog.tsx",
         "src/ui/cody/components/CreateTaskDialog.tsx",
+        "src/ui/cody/components/EditTaskDialog.tsx",
         "src/ui/cody/components/EnvironmentToolbar.tsx",
         "src/ui/cody/components/ErrorBoundary.tsx",
         "src/ui/cody/components/FilterBar.tsx",
         "src/ui/cody/components/FixRequestDialog.tsx",
+        "src/ui/cody/components/KeyboardShortcutsDialog.tsx",
         "src/ui/cody/components/LabelPicker.tsx",
         "src/ui/cody/components/MarkdownViewer.tsx",
         "src/ui/cody/components/MergeApprovalDialog.tsx",
@@ -221,6 +224,7 @@
         "src/ui/cody/hooks/index.ts",
         "src/ui/cody/hooks/useBrowserNotifications.ts",
         "src/ui/cody/hooks/useGitHubIdentity.ts",
+        "src/ui/cody/hooks/useKeyboardShortcuts.ts",
         "src/ui/cody/hooks/usePRCIStatus.ts",
         "src/ui/cody/hooks/usePublish.ts",
         "src/ui/cody/hooks/useRemoteStatus.ts",
@@ -373,6 +377,7 @@
         "src/server/payload/blocks/Banner/Component.tsx",
         "src/server/payload/blocks/Content/Component.tsx",
         "src/server/payload/blocks/MediaBlock/Component.tsx",
+        "src/ui/cody/components/BranchCleanupDialog.tsx",
         "src/ui/cody/components/BugReportDialog.tsx",
         "src/ui/cody/components/CIStatusBadge.tsx",
         "src/ui/cody/components/CodyStatusBanner.tsx",
@@ -380,6 +385,7 @@
         "src/ui/cody/components/CommentList.tsx",
         "src/ui/cody/components/ConfirmDialog.tsx",
         "src/ui/cody/components/CreateTaskDialog.tsx",
+        "src/ui/cody/components/EditTaskDialog.tsx",
         "src/ui/cody/components/FilterBar.tsx",
         "src/ui/cody/components/MergeApprovalDialog.tsx",
         "src/ui/cody/components/MergeButton.tsx",
@@ -606,10 +612,12 @@
         "src/app/api/cody/auth/me/route.ts",
         "src/app/api/cody/auth/route.ts",
         "src/app/api/cody/boards/route.ts",
+        "src/app/api/cody/branches/route.ts",
         "src/app/api/cody/chat/load/route.ts",
         "src/app/api/cody/chat/route.ts",
         "src/app/api/cody/chat/save/route.ts",
         "src/app/api/cody/collaborators/route.ts",
+        "src/app/api/cody/inspector/health/route.ts",
         "src/app/api/cody/pipeline/[taskId]/route.ts",
         "src/app/api/cody/prs/comments/route.ts",
         "src/app/api/cody/prs/files/route.ts",
@@ -656,6 +664,7 @@
       "files": [
         "src/app/api/agent/message/persist/route.ts",
         "src/app/api/blob/upload-token/route.ts",
+        "src/app/api/cody/branches/route.ts",
         "src/app/api/cody/chat/route.ts",
         "src/app/api/cody/chat/save/route.ts",
         "src/app/api/cody/prs/comments/route.ts",
@@ -687,6 +696,11 @@
       "description": "No description available",
       "files": ["src/app/api/cody/boards/route.ts"]
     },
+    "branches-api": {
+      "pattern": "branches-api",
+      "description": "No description available",
+      "files": ["src/app/api/cody/branches/route.ts"]
+    },
     "chat-load-api": {
       "pattern": "chat-load-api",
       "description": "No description available",
@@ -706,6 +720,11 @@
       "pattern": "collaborators-api",
       "description": "No description available",
       "files": ["src/app/api/cody/collaborators/route.ts"]
+    },
+    "inspector-health-api": {
+      "pattern": "inspector-health-api",
+      "description": "No description available",
+      "files": ["src/app/api/cody/inspector/health/route.ts"]
     },
     "pipeline-api": {
       "pattern": "pipeline-api",
@@ -1478,6 +1497,11 @@
       "description": "No description available",
       "files": ["src/ui/cody/components/AssigneePicker.tsx"]
     },
+    "branch-cleanup-dialog": {
+      "pattern": "branch-cleanup-dialog",
+      "description": "No description available",
+      "files": ["src/ui/cody/components/BranchCleanupDialog.tsx"]
+    },
     "bug-report-dialog": {
       "pattern": "bug-report-dialog",
       "description": "No description available",
@@ -1523,6 +1547,11 @@
       "description": "No description available",
       "files": ["src/ui/cody/components/CreateTaskDialog.tsx"]
     },
+    "edit-task-dialog": {
+      "pattern": "edit-task-dialog",
+      "description": "No description available",
+      "files": ["src/ui/cody/components/EditTaskDialog.tsx"]
+    },
     "environment-toolbar": {
       "pattern": "environment-toolbar",
       "description": "No description available",
@@ -1542,6 +1571,11 @@
       "pattern": "fix-request-dialog",
       "description": "No description available",
       "files": ["src/ui/cody/components/FixRequestDialog.tsx"]
+    },
+    "keyboard-shortcuts-dialog": {
+      "pattern": "keyboard-shortcuts-dialog",
+      "description": "No description available",
+      "files": ["src/ui/cody/components/KeyboardShortcutsDialog.tsx"]
     },
     "label-picker": {
       "pattern": "label-picker",
@@ -1651,6 +1685,11 @@
       "pattern": "github-identity",
       "description": "No description available",
       "files": ["src/ui/cody/hooks/useGitHubIdentity.ts"]
+    },
+    "keyboard-shortcuts": {
+      "pattern": "keyboard-shortcuts",
+      "description": "No description available",
+      "files": ["src/ui/cody/hooks/useKeyboardShortcuts.ts"]
     },
     "usePRCIStatus": {
       "pattern": "usePRCIStatus",
@@ -2550,6 +2589,14 @@
       "aiSummary": "API route to fetch boards (labels + milestones)",
       "dependencies": ["next/server"]
     },
+    "src/app/api/cody/branches/route.ts": {
+      "path": "src/app/api/cody/branches/route.ts",
+      "type": "endpoint",
+      "domain": "cody",
+      "patterns": ["branches-api", "api-endpoint", "validated-endpoint"],
+      "aiSummary": "API route for listing and deleting branches from GitHub",
+      "dependencies": ["next/server", "zod"]
+    },
     "src/app/api/cody/chat/load/route.ts": {
       "path": "src/app/api/cody/chat/load/route.ts",
       "type": "api-endpoint",
@@ -2581,6 +2628,14 @@
       "patterns": ["collaborators-api", "api-endpoint"],
       "aiSummary": "API route to fetch repository collaborators for assignee picker",
       "dependencies": ["next/server"]
+    },
+    "src/app/api/cody/inspector/health/route.ts": {
+      "path": "src/app/api/cody/inspector/health/route.ts",
+      "type": "api-endpoint",
+      "domain": "cody",
+      "patterns": ["inspector-health-api", "api-endpoint"],
+      "aiSummary": "API route to fetch inspector health status and metrics",
+      "dependencies": ["next/server", "child_process", "fs", "path"]
     },
     "src/app/api/cody/pipeline/[taskId]/route.ts": {
       "path": "src/app/api/cody/pipeline/[taskId]/route.ts",
@@ -4734,6 +4789,14 @@
       "aiSummary": "Inline assignee management with cached collaborators, loading states, and remove buttons",
       "dependencies": ["react", "lucide-react"]
     },
+    "src/ui/cody/components/BranchCleanupDialog.tsx": {
+      "path": "src/ui/cody/components/BranchCleanupDialog.tsx",
+      "type": "component",
+      "domain": "cody",
+      "patterns": ["branch-cleanup-dialog", "tailwind-component", "client-component"],
+      "aiSummary": "Dialog to view and delete branches associated with closed/done tasks",
+      "dependencies": ["react", "lucide-react", "@tanstack/react-query", "sonner"]
+    },
     "src/ui/cody/components/BugReportDialog.tsx": {
       "path": "src/ui/cody/components/BugReportDialog.tsx",
       "type": "component",
@@ -4814,6 +4877,14 @@
       "aiSummary": "Dialog to create new tasks with useCreateTask hook",
       "dependencies": ["react", "next/image", "react-markdown"]
     },
+    "src/ui/cody/components/EditTaskDialog.tsx": {
+      "path": "src/ui/cody/components/EditTaskDialog.tsx",
+      "type": "component",
+      "domain": "cody",
+      "patterns": ["edit-task-dialog", "tailwind-component", "client-component"],
+      "aiSummary": "Dialog to edit existing tasks with title, description, labels, and assignees",
+      "dependencies": ["react", "react-markdown"]
+    },
     "src/ui/cody/components/EnvironmentToolbar.tsx": {
       "path": "src/ui/cody/components/EnvironmentToolbar.tsx",
       "type": "component",
@@ -4836,7 +4907,7 @@
       "domain": "cody",
       "patterns": ["filter-bar", "tailwind-component", "client-component"],
       "aiSummary": "Dedicated filter sub-header bar for Cody dashboard with view toggle, date, status, and label filters",
-      "dependencies": ["lucide-react"]
+      "dependencies": ["react", "lucide-react"]
     },
     "src/ui/cody/components/FixRequestDialog.tsx": {
       "path": "src/ui/cody/components/FixRequestDialog.tsx",
@@ -4845,6 +4916,14 @@
       "patterns": ["fix-request-dialog", "client-component"],
       "aiSummary": "Dialog with markdown editor to request fixes on a PR via @cody fix",
       "dependencies": ["react", "lucide-react", "react-markdown", "remark-gfm"]
+    },
+    "src/ui/cody/components/KeyboardShortcutsDialog.tsx": {
+      "path": "src/ui/cody/components/KeyboardShortcutsDialog.tsx",
+      "type": "component",
+      "domain": "cody",
+      "patterns": ["keyboard-shortcuts-dialog", "client-component"],
+      "aiSummary": "Dialog showing keyboard shortcuts available in Cody dashboard",
+      "dependencies": []
     },
     "src/ui/cody/components/LabelPicker.tsx": {
       "path": "src/ui/cody/components/LabelPicker.tsx",
@@ -4908,7 +4987,7 @@
       "domain": "cody",
       "patterns": ["preview-actions", "tailwind-component", "client-component"],
       "aiSummary": "Sticky action bar for Preview: Approve UI, Approve PR, Merge, Fix, Cancel PR",
-      "dependencies": ["react", "sonner"]
+      "dependencies": ["react", "lucide-react", "sonner"]
     },
     "src/ui/cody/components/PreviewModal.tsx": {
       "path": "src/ui/cody/components/PreviewModal.tsx",
@@ -5037,6 +5116,14 @@
       "patterns": ["github-identity", "client-component"],
       "aiSummary": "Hook to read the authenticated GitHub identity from the Cody session cookie.",
       "dependencies": ["react", "@tanstack/react-query"]
+    },
+    "src/ui/cody/hooks/useKeyboardShortcuts.ts": {
+      "path": "src/ui/cody/hooks/useKeyboardShortcuts.ts",
+      "type": "hook",
+      "domain": "cody",
+      "patterns": ["keyboard-shortcuts", "client-component"],
+      "aiSummary": "Hook for keyboard navigation shortcuts in Cody dashboard",
+      "dependencies": ["react"]
     },
     "src/ui/cody/hooks/usePRCIStatus.ts": {
       "path": "src/ui/cody/hooks/usePRCIStatus.ts",
@@ -6061,8 +6148,8 @@
     }
   },
   "metadata": {
-    "generatedAt": "2026-03-15T19:25:16.217Z",
-    "totalFiles": 537,
-    "totalPatterns": 182
+    "generatedAt": "2026-03-15T21:22:14.457Z",
+    "totalFiles": 543,
+    "totalPatterns": 188
   }
 }
