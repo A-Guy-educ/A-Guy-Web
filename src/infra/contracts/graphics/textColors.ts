@@ -2,35 +2,64 @@
  * Text color palette and size scale utilities for geometry text elements.
  * Shared between admin editor and student renderer.
  *
- * Colors are derived from the design system CSS variables (globals.css).
+ * Colors are read from the design system CSS variables (globals.css) at runtime.
  * --text-highlight-1 through --text-highlight-8, plus --foreground.
- * Hex values are pre-computed from the HSL definitions for canvas rendering.
  */
 
-/**
- * Predefined color palette for text elements, matching the design system
- * text-highlight variables defined in globals.css.
- */
-export const TEXT_COLOR_PALETTE = [
-  { label: 'Black', hex: '#1a1b1f' }, // --foreground: 220 9% 11%
-  { label: 'Gray', hex: '#6a707c' }, // --text-highlight-8: 220 8% 45%
-  { label: 'Red', hex: '#dc2828' }, // --text-highlight-1: 0 72% 51%
-  { label: 'Orange', hex: '#f97415' }, // --text-highlight-2: 25 95% 53%
-  { label: 'Yellow', hex: '#e7b008' }, // --text-highlight-3: 45 93% 47%
-  { label: 'Green', hex: '#21c45d' }, // --text-highlight-4: 142 71% 45%
-  { label: 'Blue', hex: '#3c83f6' }, // --text-highlight-5: 217 91% 60%
-  { label: 'Purple', hex: '#a855f7' }, // --text-highlight-6: 271 91% 65%
-  { label: 'Pink', hex: '#ec4699' }, // --text-highlight-7: 330 81% 60%
+/** Convert an HSL string like "220 9% 11%" to a hex color */
+function hslStringToHex(hslStr: string): string {
+  const parts = hslStr.trim().split(/\s+/)
+  const h = parseFloat(parts[0])
+  const s = parseFloat(parts[1]) / 100
+  const l = parseFloat(parts[2]) / 100
+  const a = s * Math.min(l, 1 - l)
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12
+    const val = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1)
+    return Math.round(255 * val)
+      .toString(16)
+      .padStart(2, '0')
+  }
+  return `#${f(0)}${f(8)}${f(4)}`
+}
+
+/** Read a CSS variable from :root and convert its HSL value to hex */
+function cssVarToHex(varName: string): string {
+  const value = getComputedStyle(document.documentElement).getPropertyValue(varName).trim()
+  return hslStringToHex(value)
+}
+
+/** Palette definition referencing CSS variable names */
+const PALETTE_VARS = [
+  { label: 'Black', cssVar: '--foreground' },
+  { label: 'Gray', cssVar: '--text-highlight-8' },
+  { label: 'Red', cssVar: '--text-highlight-1' },
+  { label: 'Orange', cssVar: '--text-highlight-2' },
+  { label: 'Yellow', cssVar: '--text-highlight-3' },
+  { label: 'Green', cssVar: '--text-highlight-4' },
+  { label: 'Blue', cssVar: '--text-highlight-5' },
+  { label: 'Purple', cssVar: '--text-highlight-6' },
+  { label: 'Pink', cssVar: '--text-highlight-7' },
 ] as const
+
+/** Color palette for text elements, resolved from CSS theme variables. */
+export function getTextColorPalette(): ReadonlyArray<{ label: string; hex: string }> {
+  return PALETTE_VARS.map(({ label, cssVar }) => ({
+    label,
+    hex: cssVarToHex(cssVar),
+  }))
+}
+
+/** Default text color resolved from --foreground CSS variable */
+export function getDefaultTextColor(): string {
+  return cssVarToHex('--foreground')
+}
 
 /** Size scale (0-10) to pixel mapping */
 const SIZE_SCALE_PX = [8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24] as const
 
 /** Default size scale value */
 export const DEFAULT_TEXT_SIZE_SCALE = 5
-
-/** Default text color (--foreground) */
-export const DEFAULT_TEXT_COLOR = '#1a1b1f'
 
 /**
  * Convert size scale (0-10) to pixel value.

@@ -2,9 +2,9 @@
 
 import type { GeometrySpecV1 } from '@/infra/contracts/graphics/geometry.v1'
 import {
-  DEFAULT_TEXT_COLOR,
+  getDefaultTextColor,
   DEFAULT_TEXT_SIZE_SCALE,
-  TEXT_COLOR_PALETTE,
+  getTextColorPalette,
 } from '@/infra/contracts/graphics/textColors'
 import { Plus, Trash2 } from 'lucide-react'
 import React from 'react'
@@ -21,7 +21,7 @@ export const TextsPanel: React.FC<TextsPanelProps> = ({ texts, onChange }) => {
     const newText: GeoText = {
       value: 'Label',
       place: { x: 100, y: 100 },
-      color: DEFAULT_TEXT_COLOR,
+      color: getDefaultTextColor(),
       sizeScale: DEFAULT_TEXT_SIZE_SCALE,
     }
     onChange([...texts, newText])
@@ -52,11 +52,11 @@ export const TextsPanel: React.FC<TextsPanelProps> = ({ texts, onChange }) => {
             <div className="panel-field">
               <span className="panel-field-label">Color</span>
               <div className="color-swatches-row">
-                {TEXT_COLOR_PALETTE.map((colorOption) => (
+                {getTextColorPalette().map((colorOption) => (
                   <button
                     key={colorOption.hex}
                     type="button"
-                    className={`color-swatch ${text.color === colorOption.hex || (!text.color && colorOption.hex === DEFAULT_TEXT_COLOR) ? 'color-swatch--selected' : ''}`}
+                    className={`color-swatch ${text.color === colorOption.hex || (!text.color && colorOption.hex === getDefaultTextColor()) ? 'color-swatch--selected' : ''}`}
                     style={{ backgroundColor: colorOption.hex }}
                     title={colorOption.label}
                     onClick={() => handleUpdate(index, { color: colorOption.hex })}

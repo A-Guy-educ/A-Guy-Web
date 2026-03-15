@@ -1,7 +1,7 @@
 'use client'
 
 import type { GeometrySpecV1 } from '@/infra/contracts/graphics/geometry.v1'
-import { DEFAULT_TEXT_COLOR, sizeScaleToPixels } from '@/infra/contracts/graphics/textColors'
+import { getDefaultTextColor, sizeScaleToPixels } from '@/infra/contracts/graphics/textColors'
 import type { JXGBoard, JXGElement } from 'jsxgraph'
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { JSXGraphBoard } from '../shared/JSXGraphBoard'
@@ -530,7 +530,7 @@ function syncTexts(
       elementsRef.current.delete(elemId)
     }
 
-    const color = text.color ?? DEFAULT_TEXT_COLOR
+    const color = text.color ?? getDefaultTextColor()
     const fontSize =
       text.sizeScale !== undefined ? sizeScaleToPixels(text.sizeScale) : (text.fontSize ?? 14)
 
