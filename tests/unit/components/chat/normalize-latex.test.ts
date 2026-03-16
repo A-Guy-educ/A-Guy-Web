@@ -323,4 +323,44 @@ describe('normalizeLatexDelimiters', () => {
       expect(result).toContain('c + d')
     })
   })
+
+  describe('inline $ spacing for remarkMath detection', () => {
+    it('adds space before $ when preceded by Hebrew text', () => {
+      const input = 'ההיקף$s$של'
+      const result = normalizeLatexDelimiters(input)
+      expect(result).toContain(' $s$ ')
+    })
+
+    it('adds space after $ when followed by Hebrew text', () => {
+      const input = '$x$נתון'
+      const result = normalizeLatexDelimiters(input)
+      expect(result).toContain('$x$ ')
+    })
+
+    it('preserves existing spaces around $', () => {
+      const input = 'text $x$ more'
+      const result = normalizeLatexDelimiters(input)
+      expect(result).toBe('text $x$ more')
+    })
+
+    it('does not add space before $ after punctuation', () => {
+      const input = 'value,$x$ here'
+      const result = normalizeLatexDelimiters(input)
+      // comma is not a word char so no space needed before, but after $x$ before "here"
+      expect(result).toContain('$x$')
+    })
+
+    it('does not add space after $ before punctuation', () => {
+      const input = '$x$, and $y$.'
+      const result = normalizeLatexDelimiters(input)
+      expect(result).toBe('$x$, and $y$.')
+    })
+
+    it('handles multiple inline math with Hebrew between', () => {
+      const input = "מצאו$f(x)$וגם$f'(x)$חיובית"
+      const result = normalizeLatexDelimiters(input)
+      expect(result).toContain(' $f(x)$ ')
+      expect(result).toContain(" $f'(x)$ ")
+    })
+  })
 })

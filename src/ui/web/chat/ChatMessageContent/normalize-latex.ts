@@ -51,6 +51,14 @@ export function normalizeLatexDelimiters(content: string): string {
   // and escapes the $ so they render as plain text instead of broken math.
   result = escapeMismatchedDollarSigns(result)
 
+  // Ensure spaces around inline $...$ when adjacent to non-ASCII characters (e.g. Hebrew).
+  // remarkMath requires certain boundary conditions around $ delimiters — Hebrew characters
+  // directly touching $ (like "ההיקף$s$של") prevent detection. Adding spaces fixes this.
+  // Only targets non-ASCII characters (Hebrew, Arabic, etc.) adjacent to $.
+  result = result
+    .replace(/([\u0590-\u05FF\uFB1D-\uFB4F\u0600-\u06FF])(\$[^$\n]+?\$)/g, '$1 $2')
+    .replace(/(\$[^$\n]+?\$)([\u0590-\u05FF\uFB1D-\uFB4F\u0600-\u06FF])/g, '$1 $2')
+
   // Safety net: wrap undelimited LaTeX commands in $...$
   // Matches sequences starting with a known LaTeX command that aren't already inside $ delimiters.
   // Works by splitting on existing $/$$ regions and only processing non-math segments.
