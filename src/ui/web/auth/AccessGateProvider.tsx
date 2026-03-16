@@ -176,7 +176,7 @@ function PaidContentModal({
       if (data.success) {
         setShowSuccess(true)
         setTimeout(() => {
-          router.refresh()
+          window.location.reload()
         }, 2000)
         return
       }

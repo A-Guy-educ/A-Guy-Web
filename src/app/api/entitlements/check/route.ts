@@ -26,6 +26,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'courseId required' }, { status: 400 })
   }
 
+  // Admins always have access
+  if ('role' in user && user.role === 'admin') {
+    return NextResponse.json({ hasAccess: true })
+  }
+
   const hasAccess = await hasEntitlement({
     payload,
     userId: user.id,
