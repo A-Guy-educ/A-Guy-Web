@@ -194,9 +194,7 @@ function PaidContentModal({
           </DialogDescription>
         </DialogHeader>
         <div className="mt-4 flex flex-col items-center gap-4">
-          {!isAuthenticated && (
-            <GoogleLoginButton returnTo={pathname} variant="default" className="w-full" />
-          )}
+          {!isAuthenticated && <GoogleLoginButton returnTo={pathname} className="w-full" />}
           {isAuthenticated && (
             <div className="w-full space-y-3">
               <div className="relative">
