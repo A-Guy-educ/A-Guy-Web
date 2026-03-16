@@ -24,8 +24,8 @@ const saveChatSchema = z.object({
 })
 
 export async function POST(req: NextRequest) {
-  const authError = await requireCodyAuth(req)
-  if (authError) return authError
+  const authResult = await requireCodyAuth(req)
+  if (authResult instanceof NextResponse) return authResult
 
   try {
     const body = await req.json()
