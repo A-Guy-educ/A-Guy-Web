@@ -13,7 +13,7 @@ describe('normalizeLatexDelimiters', () => {
 
     it('converts full block math expression', () => {
       const input = '\\[ f(x) = \\frac{a}{b} \\]'
-      const expected = '\n$$\n f(x) = \\frac{a}{b} \n$$\n'
+      const expected = '\n\n$$\nf(x) = \\frac{a}{b}\n$$\n\n'
       expect(normalizeLatexDelimiters(input)).toBe(expected)
     })
 
@@ -21,7 +21,7 @@ describe('normalizeLatexDelimiters', () => {
       const input =
         '\\[ f(x) = \\frac{1}{\\sigma\\sqrt{2\\pi}} e^{-\\frac{1}{2}\\left(\\frac{x-\\mu}{\\sigma}\\right)^2} \\]'
       const expected =
-        '\n$$\n f(x) = \\frac{1}{\\sigma\\sqrt{2\\pi}} e^{-\\frac{1}{2}\\left(\\frac{x-\\mu}{\\sigma}\\right)^2} \n$$\n'
+        '\n\n$$\nf(x) = \\frac{1}{\\sigma\\sqrt{2\\pi}} e^{-\\frac{1}{2}\\left(\\frac{x-\\mu}{\\sigma}\\right)^2}\n$$\n\n'
       expect(normalizeLatexDelimiters(input)).toBe(expected)
     })
   })
@@ -45,13 +45,13 @@ describe('normalizeLatexDelimiters', () => {
   describe('mixed content', () => {
     it('converts inline as $ and block as $$', () => {
       const input = 'Inline \\(a+b\\) and block:\n\\[ x^2 \\]'
-      const expected = 'Inline $a+b$ and block:\n\n$$\n x^2 \n$$\n'
+      const expected = 'Inline $a+b$ and block:\n\n\n$$\nx^2\n$$\n\n'
       expect(normalizeLatexDelimiters(input)).toBe(expected)
     })
 
     it('preserves Hebrew text', () => {
       const input = 'הנוסחה היא \\[ f(x) = x^2 \\]'
-      const expected = 'הנוסחה היא \n$$\n f(x) = x^2 \n$$\n'
+      const expected = 'הנוסחה היא \n\n$$\nf(x) = x^2\n$$\n\n'
       expect(normalizeLatexDelimiters(input)).toBe(expected)
     })
   })
@@ -62,9 +62,11 @@ describe('normalizeLatexDelimiters', () => {
       expect(normalizeLatexDelimiters(input)).toBe(input)
     })
 
-    it('leaves $$...$$ unchanged', () => {
+    it('ensures $$...$$ has newlines for remark-math', () => {
       const input = '$$\\frac{a}{b}$$'
-      expect(normalizeLatexDelimiters(input)).toBe(input)
+      const result = normalizeLatexDelimiters(input)
+      expect(result).toContain('$$')
+      expect(result).toContain('\\frac{a}{b}')
     })
 
     it('leaves plain text unchanged', () => {
@@ -85,7 +87,7 @@ describe('normalizeLatexDelimiters', () => {
 
     it('converts full JSON-escaped block math expression', () => {
       const input = '\\\\[ f(x) = x^2 \\\\]'
-      const expected = '\n$$\n f(x) = x^2 \n$$\n'
+      const expected = '\n\n$$\nf(x) = x^2\n$$\n\n'
       expect(normalizeLatexDelimiters(input)).toBe(expected)
     })
 
@@ -136,7 +138,7 @@ describe('normalizeLatexDelimiters', () => {
       const input =
         '\\\\\\[ f(x) \\= \\\\frac{1}{\\\\sigma\\\\sqrt{2\\\\pi}} e^{-\\\\frac{1}{2}\\\\left(\\\\frac{x-\\\\mu}{\\\\sigma}\\\\right)^2} \\\\\\]'
       const expected =
-        '\n$$\n f(x) = \\frac{1}{\\sigma\\sqrt{2\\pi}} e^{-\\frac{1}{2}\\left(\\frac{x-\\mu}{\\sigma}\\right)^2} \n$$\n'
+        '\n\n$$\nf(x) = \\frac{1}{\\sigma\\sqrt{2\\pi}} e^{-\\frac{1}{2}\\left(\\frac{x-\\mu}{\\sigma}\\right)^2}\n$$\n\n'
       expect(normalizeLatexDelimiters(input)).toBe(expected)
     })
   })
@@ -153,7 +155,7 @@ describe('normalizeLatexDelimiters', () => {
 
     it('handles multiple block expressions', () => {
       const input = '\\[ a \\] and \\[ b \\]'
-      const expected = '\n$$\n a \n$$\n and \n$$\n b \n$$\n'
+      const expected = '\n\n$$\na\n$$\n\n and \n\n$$\nb\n$$\n\n'
       expect(normalizeLatexDelimiters(input)).toBe(expected)
     })
   })
@@ -263,7 +265,9 @@ describe('normalizeLatexDelimiters', () => {
     it('does NOT double-wrap block math', () => {
       const input = '$$\\frac{a}{b}$$'
       const result = normalizeLatexDelimiters(input)
-      expect(result).toBe(input)
+      // Should contain the math content with $$ delimiters, not wrapped again in $
+      expect(result).toContain('\\frac{a}{b}')
+      expect(result).not.toMatch(/\$\$\$/) // no triple $
     })
 
     it('wraps complex expression with subscripts', () => {
@@ -283,6 +287,40 @@ describe('normalizeLatexDelimiters', () => {
     it('leaves plain text without LaTeX commands unchanged', () => {
       const input = 'no math here, just text'
       expect(normalizeLatexDelimiters(input)).toBe(input)
+    })
+  })
+
+  describe('inline $$ normalization (block math must be on own line)', () => {
+    it('adds newlines around inline $$ delimiters', () => {
+      const input = 'text $$\\frac{a}{b}$$ more'
+      const result = normalizeLatexDelimiters(input)
+      expect(result).toContain('text')
+      expect(result).toContain('\n$$\n')
+      expect(result).toContain('\\frac{a}{b}')
+      expect(result).toContain('more')
+    })
+
+    it('preserves $$ already on their own lines', () => {
+      const input = 'text\n$$\n\\frac{a}{b}\n$$\nmore'
+      const result = normalizeLatexDelimiters(input)
+      expect(result).toContain('\\frac{a}{b}')
+      expect(result).toContain('$$')
+    })
+
+    it('handles Hebrew text with inline $$ from PDF context', () => {
+      const input = 'הגרף שלה חותך את ציר $$\\frac{8-4x}{(x-1)^2}$$ בנקודה'
+      const result = normalizeLatexDelimiters(input)
+      expect(result).toContain('\n$$\n')
+      expect(result).toContain('הגרף שלה חותך את ציר')
+      expect(result).toContain('בנקודה')
+    })
+
+    it('handles multiple inline $$ in one line', () => {
+      const input = 'given $$a + b$$ and $$c + d$$ values'
+      const result = normalizeLatexDelimiters(input)
+      expect(result).toContain('\n$$\n')
+      expect(result).toContain('a + b')
+      expect(result).toContain('c + d')
     })
   })
 })

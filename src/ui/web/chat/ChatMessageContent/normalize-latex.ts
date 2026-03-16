@@ -39,6 +39,11 @@ export function normalizeLatexDelimiters(content: string): string {
     // Remove escaped equals: \= → =
     .replace(/\\=/g, '=')
 
+  // Ensure $$ block math delimiters are on their own lines (required by remark-math).
+  // LLMs sometimes output $$...$$ inline with text, which breaks block math detection.
+  // Match complete $$...$$ pairs and ensure newlines around them.
+  result = result.replace(/\$\$([\s\S]*?)\$\$/g, (_, expr) => `\n$$\n${expr.trim()}\n$$\n`)
+
   // Safety net: wrap undelimited LaTeX commands in $...$
   // Matches sequences starting with a known LaTeX command that aren't already inside $ delimiters.
   // Works by splitting on existing $/$$ regions and only processing non-math segments.
