@@ -44,6 +44,13 @@ export class NoTokenError extends Error {
   }
 }
 
+export class SessionExpiredError extends Error {
+  constructor(message = 'Your session has expired. Please log in again.') {
+    super(message)
+    this.name = 'SessionExpiredError'
+  }
+}
+
 export class ApiError extends Error {
   status: number
   data: unknown
@@ -76,14 +83,9 @@ export async function handleResponse<T>(res: Response): Promise<T> {
     if (data.error === 'no_token') {
       throw new NoTokenError(data.message)
     }
-    // Session expired — redirect to re-authenticate instead of showing token error
-    if (typeof window !== 'undefined') {
-      const returnTo = encodeURIComponent(window.location.pathname)
-      window.location.href = `/api/oauth/github?returnTo=${returnTo}`
-      // Throw to stop further processing while redirect happens
-      throw new ApiError(data.message || 'Session expired', 401, data)
-    }
-    throw new ApiError(data.message || 'Not authenticated', 401, data)
+    // Session expired — throw SessionExpiredError so the UI can show a login prompt.
+    // Do NOT redirect here — that causes infinite redirect loops.
+    throw new SessionExpiredError(data.message || 'Your session has expired. Please log in again.')
   }
 
   if (!res.ok) {
