@@ -61,7 +61,15 @@ describe('createGitHubClient', () => {
 
       expect(mockExecFileSync).toHaveBeenCalledWith(
         'gh',
-        expect.arrayContaining(['issue', 'add-label', '42', '--repo', 'owner/repo', 'bug']),
+        expect.arrayContaining([
+          'issue',
+          'edit',
+          '42',
+          '--repo',
+          'owner/repo',
+          '--add-label',
+          'bug',
+        ]),
         expect.any(Object),
       )
     })
@@ -75,7 +83,15 @@ describe('createGitHubClient', () => {
 
       expect(mockExecFileSync).toHaveBeenCalledWith(
         'gh',
-        expect.arrayContaining(['issue', 'remove-label', '42', '--repo', 'owner/repo', 'bug']),
+        expect.arrayContaining([
+          'issue',
+          'edit',
+          '42',
+          '--repo',
+          'owner/repo',
+          '--remove-label',
+          'bug',
+        ]),
         expect.any(Object),
       )
     })

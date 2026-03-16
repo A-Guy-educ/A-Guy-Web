@@ -46,6 +46,13 @@ function createActivateAction(
     dedupKey: `queue-activate:${task.taskId}`,
     dedupWindowMinutes: 15,
     execute: async (execCtx: InspectorContext) => {
+      // FIX #5: Trigger workflow FIRST — if this throws, state is not yet mutated
+      execCtx.github.triggerWorkflow('cody.yml', {
+        task_id: task.taskId,
+        mode: 'full',
+      })
+
+      // Workflow dispatched successfully — now update labels and state
       activateTask(execCtx, task)
 
       let state = getQueueState(execCtx)
@@ -56,11 +63,6 @@ function createActivateAction(
         activeStartedAt: new Date().toISOString(),
       }
       saveQueueState(execCtx, state)
-
-      execCtx.github.triggerWorkflow('cody.yml', {
-        task_id: task.taskId,
-        mode: 'full',
-      })
 
       execCtx.github.postComment(
         task.issueNumber,
@@ -133,6 +135,12 @@ function createCompleteAction(task: QueuedTask, _ctx: InspectorContext): ActionR
       const nextTask = queued.length > 0 ? queued[0] : null
 
       if (nextTask) {
+        // FIX #5: Trigger workflow FIRST — if this throws, we still completed the current task
+        execCtx.github.triggerWorkflow('cody.yml', {
+          task_id: nextTask.taskId,
+          mode: 'full',
+        })
+
         activateTask(execCtx, nextTask)
         const newState: typeof state = {
           ...state,
@@ -141,11 +149,6 @@ function createCompleteAction(task: QueuedTask, _ctx: InspectorContext): ActionR
           activeStartedAt: new Date().toISOString(),
         }
         saveQueueState(execCtx, newState)
-
-        execCtx.github.triggerWorkflow('cody.yml', {
-          task_id: nextTask.taskId,
-          mode: 'full',
-        })
 
         execCtx.github.postComment(
           task.issueNumber,
@@ -178,6 +181,22 @@ function advanceQueue(ctx: InspectorContext, state: QueueState): void {
   if (queued.length === 0) return
 
   const nextTask = queued[0]
+
+  // FIX #5: Trigger workflow FIRST — if this throws, queue state is clean (no active task)
+  // and the next cycle will pick up the queued task again
+  try {
+    ctx.github.triggerWorkflow('cody.yml', {
+      task_id: nextTask.taskId,
+      mode: 'full',
+    })
+  } catch (error) {
+    ctx.log.error(
+      { taskId: nextTask.taskId, error: String(error) },
+      'Failed to trigger workflow for next queue task — will retry next cycle',
+    )
+    return
+  }
+
   activateTask(ctx, nextTask)
 
   const newState: QueueState = {
@@ -187,11 +206,6 @@ function advanceQueue(ctx: InspectorContext, state: QueueState): void {
     activeStartedAt: new Date().toISOString(),
   }
   saveQueueState(ctx, newState)
-
-  ctx.github.triggerWorkflow('cody.yml', {
-    task_id: nextTask.taskId,
-    mode: 'full',
-  })
 
   ctx.github.postComment(
     nextTask.issueNumber,

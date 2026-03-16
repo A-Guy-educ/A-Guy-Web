@@ -2,7 +2,7 @@
  * @fileType utility
  * @domain inspector
  * @pattern github-client
- * @ai-summary Thin wrapper around github-api.ts, conforming to GitHubClient interface
+ * @ai-summary Thin wrapper around gh CLI, conforming to GitHubClient interface
  */
 
 import { execFileSync } from 'child_process'
@@ -11,7 +11,7 @@ import * as fs from 'fs'
 import type { GitHubClient, IssueInfo, IssueComment, WorkflowRun } from '../core/types'
 
 /**
- * Create a GitHub client wrapper around scripts/cody/github-api.ts functions.
+ * Create a GitHub client wrapper around the gh CLI.
  */
 export function createGitHubClient(repo: string, token: string, patToken?: string): GitHubClient {
   const gh = (args: string[], input?: string): string => {
@@ -59,7 +59,9 @@ export function createGitHubClient(repo: string, token: string, patToken?: strin
         query,
         '--paginate',
         '--jq',
-        '[.[] | select(.state == "open") | {number: .number, title: .title, labels: [.labels[].name], updatedAt: .updated_at}]',
+        // FIX #4: Exclude pull requests — GitHub /issues API returns both issues and PRs.
+        // PRs have a .pull_request field; issues do not.
+        '[.[] | select(.state == "open") | select(.pull_request == null) | {number: .number, title: .title, labels: [.labels[].name], updatedAt: .updated_at}]',
       ])
 
       if (!output) return []
@@ -79,6 +81,7 @@ export function createGitHubClient(repo: string, token: string, patToken?: strin
       return arrays.flat()
     },
 
+    // FIX #2: Wrap triggerWorkflow in try/catch so it doesn't crash the action mid-execution.
     triggerWorkflow(workflow: string, inputs: Record<string, string>): void {
       const args = ['workflow', 'run', workflow]
       for (const [key, value] of Object.entries(inputs)) {
@@ -88,19 +91,26 @@ export function createGitHubClient(repo: string, token: string, patToken?: strin
 
       // Workflow dispatch requires a PAT — github.token cannot trigger other workflows
       const dispatchToken = patToken || token
-      execFileSync('gh', args, {
-        encoding: 'utf-8',
-        stdio: ['pipe', 'pipe', 'inherit'],
-        env: { ...process.env, GH_TOKEN: dispatchToken },
-      })
+      try {
+        execFileSync('gh', args, {
+          encoding: 'utf-8',
+          stdio: ['pipe', 'pipe', 'pipe'],
+          env: { ...process.env, GH_TOKEN: dispatchToken },
+        })
+      } catch (error) {
+        const err = error as NodeJS.ErrnoException & { stderr?: string }
+        const msg = err.stderr || err.message || String(error)
+        throw new Error(`Workflow dispatch failed for ${workflow}: ${msg}`)
+      }
     },
 
+    // FIX #1: Use `gh issue edit --add-label` instead of non-existent `gh issue add-label`
     addLabel(issueNumber: number, label: string): void {
-      gh(['issue', 'add-label', String(issueNumber), '--repo', repo, label])
+      gh(['issue', 'edit', String(issueNumber), '--repo', repo, '--add-label', label])
     },
 
     removeLabel(issueNumber: number, label: string): void {
-      gh(['issue', 'remove-label', String(issueNumber), '--repo', repo, label])
+      gh(['issue', 'edit', String(issueNumber), '--repo', repo, '--remove-label', label])
     },
 
     setLifecycleLabel(issueNumber: number, label: string): void {
@@ -118,8 +128,8 @@ export function createGitHubClient(repo: string, token: string, patToken?: strin
       this.addLabel(issueNumber, label)
     },
 
-    closeIssue(issueNumber: number, _reason = 'not planned'): void {
-      gh(['issue', 'close', String(issueNumber), `--repo=${repo}`])
+    closeIssue(issueNumber: number, reason = 'not planned'): void {
+      gh(['issue', 'close', String(issueNumber), `--repo=${repo}`, '--reason', reason])
     },
 
     getIssueComments(issueNumber: number): IssueComment[] {
@@ -204,7 +214,6 @@ export function createGitHubClient(repo: string, token: string, patToken?: strin
 
 /**
  * Read task files from the .tasks directory.
- * Uses the same logic as cody-utils.ts getTaskDir().
  */
 export function readTaskFile(taskId: string, filename: string): string {
   const taskDir = getTaskDir(taskId)
