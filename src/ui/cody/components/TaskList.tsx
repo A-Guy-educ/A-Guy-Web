@@ -178,7 +178,7 @@ export function TaskList({
   }
 
   return (
-    <div className="divide-y divide-white/[0.06]">
+    <div className="divide-y divide-white/[0.06]" role="listbox" aria-label="Tasks">
       {tasks.map((task, index) => {
         const isSelected = task.id === selectedTask?.id
         const isFocused = index === focusedIndex
@@ -200,8 +200,17 @@ export function TaskList({
         return (
           <div
             key={task.id}
+            role="option"
+            aria-selected={isSelected}
+            tabIndex={0}
             onClick={() => handleTaskClick(task)}
             onMouseEnter={() => onTaskHover?.(task)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                handleTaskClick(task)
+              }
+            }}
             className={cn(
               'group relative cursor-pointer transition-colors duration-100 border-l-2 border-l-transparent',
               'hover:bg-white/[0.04]',

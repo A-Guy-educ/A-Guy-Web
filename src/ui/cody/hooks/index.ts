@@ -13,6 +13,10 @@ import type { CodyTask } from '../types'
 import type { ViewMode } from '../components/FilterBar'
 import { POLLING_INTERVALS } from '../constants'
 
+// Re-export new hooks
+export { useDashboardFilters } from './useDashboardFilters'
+export { useDashboardRouter } from './useDashboardRouter'
+
 // Query keys
 export const queryKeys = {
   tasks: (days?: number, includeDetails?: boolean) => ['cody-tasks', days, includeDetails] as const,

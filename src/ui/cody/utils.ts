@@ -5,12 +5,8 @@
  * @ai-summary Utility functions for Cody dashboard
  */
 
-/**
- * Simple className merger (minimal version for cody dashboard)
- */
-export function cn(...classes: (string | undefined | null | false)[]): string {
-  return classes.filter(Boolean).join(' ')
-}
+// Re-export cn from infra/utils/ui (uses tailwind-merge for proper class merging)
+export { cn } from '@/infra/utils/ui'
 
 /**
  * Format duration in ms to human readable

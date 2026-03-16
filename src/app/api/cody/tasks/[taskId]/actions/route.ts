@@ -7,7 +7,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { requireCodyAuth } from '@/ui/cody/auth'
+import { requireCodyAuth, verifyActorLogin } from '@/ui/cody/auth'
 
 import {
   postComment,
@@ -26,6 +26,7 @@ import {
   clearCache,
   getOctokit,
 } from '@/ui/cody/github-client'
+import { GITHUB_OWNER, GITHUB_REPO } from '@/ui/cody/constants'
 
 const actionSchema = z.object({
   action: z.enum([
@@ -74,6 +75,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tas
     const body = await req.json()
     const { action, feedback, fromStage, mode: _mode, actorLogin } = actionSchema.parse(body)
 
+    // Verify actorLogin matches the authenticated session (prevents impersonation)
+    const actorResult = await verifyActorLogin(req, actorLogin)
+    if (actorResult instanceof NextResponse) return actorResult
+    const { identity } = actorResult
+
+    // Use verified identity's login for attribution
+    const actor = identity.login
+
     // Get issue number from taskId
     const issueNumber = parseInt(taskId.replace('issue-', ''), 10)
     if (isNaN(issueNumber)) {
@@ -81,7 +90,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tas
     }
 
     const { assignees, label, comment } = actionSchema.parse(body)
-    const actor = actorLogin || undefined
 
     switch (action) {
       case 'approve': {
@@ -315,15 +323,13 @@ ${comment}`,
         }
         // Use shared getOctokit (supports both CODY_BOT_TOKEN and GITHUB_TOKEN)
         const octokit = getOctokit()
-        const OWNER = 'A-Guy-educ'
-        const REPO = 'A-Guy'
         try {
           await octokit.pulls.createReview({
-            owner: OWNER,
-            repo: REPO,
+            owner: GITHUB_OWNER,
+            repo: GITHUB_REPO,
             pull_number: associatedPR.number,
             event: 'APPROVE',
-            body: `✅ PR approved${actor ? ` by @${actor}` : ''} via Cody dashboard.`,
+            body: `✅ PR approved by @${actor} via Cody dashboard.`,
           })
         } catch (error: unknown) {
           // May fail if already approved - that's ok

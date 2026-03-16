@@ -195,6 +195,7 @@ export const FilterBar = forwardRef<FilterBarHandle, FilterBarProps>(function Fi
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search tasks…"
+            aria-label="Search tasks"
             className="h-8 pl-8 pr-3 text-xs rounded-md bg-white/[0.04] border border-white/[0.08] text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-white/20 w-40"
           />
         </div>
