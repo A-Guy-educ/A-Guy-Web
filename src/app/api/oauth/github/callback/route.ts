@@ -6,7 +6,7 @@
  * @pattern oauth
  * @ai-summary Handles GitHub OAuth callback for the Cody Operations Dashboard.
  *   Exchanges code for access token, fetches user profile, verifies the user is
- *   a repo collaborator (using the user's own token with repo scope), then issues
+ *   a repo collaborator (using bot token — admin access required for this endpoint), then issues
  *   a signed JWT session cookie with the encrypted access token embedded.
  */
 
@@ -120,13 +120,25 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     return res
   }
 
-  // STEP 4: Verify user is a repo collaborator (using user's own token with repo scope)
+  // STEP 4: Verify user is a repo collaborator
+  // Uses bot token for this check — the /collaborators/{username} endpoint requires admin
+  // access, which regular collaborators don't have even with repo scope.
+  const botToken = process.env.CODY_BOT_TOKEN || process.env.GITHUB_TOKEN
+  if (!botToken) {
+    logger.error(
+      { correlationId, event: 'github_oauth_no_bot_token' },
+      'No CODY_BOT_TOKEN or GITHUB_TOKEN for collaborator check',
+    )
+    res.headers.set('Location', new URL('/cody?error=not_configured', req.url).toString())
+    return res
+  }
+
   try {
     const collabResponse = await fetch(
       `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/collaborators/${userinfo.login}`,
       {
         headers: {
-          Authorization: `Bearer ${userAccessToken}`,
+          Authorization: `Bearer ${botToken}`,
           Accept: 'application/vnd.github+json',
           'X-GitHub-Api-Version': '2022-11-28',
         },
