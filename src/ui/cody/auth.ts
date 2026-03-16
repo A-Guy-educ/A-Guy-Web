@@ -135,15 +135,11 @@ export async function verifyActorLogin(
     return { identity }
   }
 
-  // Verify the supplied actorLogin matches the authenticated user
-  // Allow exact match OR prefixed match (e.g., "john" matches "johndoe" for convenience)
+  // Verify the supplied actorLogin matches the authenticated user (exact match, case-insensitive)
   const normalizedSupplied = suppliedLogin.toLowerCase()
   const normalizedIdentity = identity.login.toLowerCase()
 
-  if (
-    normalizedSupplied !== normalizedIdentity &&
-    !normalizedIdentity.startsWith(normalizedSupplied + '-')
-  ) {
+  if (normalizedSupplied !== normalizedIdentity) {
     logger.warn(
       {
         suppliedLogin,

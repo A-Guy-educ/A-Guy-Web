@@ -136,9 +136,18 @@ export function getOctokit(): Octokit {
         return false
       },
       onSecondaryRateLimit: (retryAfter, _options, _octokit) => {
-        // Secondary rate limit - always retry
-        console.warn(`[Cody] Secondary rate limit, retrying after ${retryAfter}s`)
-        return true
+        // Secondary rate limit (abuse detection) — retry up to 2 times, then stop to avoid token ban
+        const retryCount = (_options.request?.retryCount as number) ?? 0
+        if (retryCount < 2) {
+          console.warn(
+            `[Cody] Secondary rate limit, retrying after ${retryAfter}s (attempt ${retryCount + 1}/2)`,
+          )
+          return true
+        }
+        console.error(
+          `[Cody] Secondary rate limit hit ${retryCount + 1} times, giving up to avoid token ban`,
+        )
+        return false
       },
     },
   })

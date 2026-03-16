@@ -7,7 +7,7 @@
 import { createMCPClient } from '@ai-sdk/mcp'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { streamText, tool, stepCountIs, type ToolSet } from 'ai'
-import { spawn } from 'child_process'
+import { spawn, type ChildProcess } from 'child_process'
 import * as net from 'net'
 import { z } from 'zod'
 import { logger } from '@/infra/utils/logger/logger'
@@ -43,6 +43,7 @@ let mcpClient: Awaited<ReturnType<typeof createMCPClient>> | null = null
 let mcpClientPending: ReturnType<typeof createMCPClient> | null = null
 
 // Figma MCP client
+let figmaMcpProcessRef: ChildProcess | null = null
 let figmaMcpClient: Awaited<ReturnType<typeof createMCPClient>> | null = null
 let figmaMcpPending: ReturnType<typeof createMCPClient> | null = null
 
@@ -73,6 +74,22 @@ async function getMCPClient() {
   }
 }
 
+function cleanupFigmaMCPProcess() {
+  if (figmaMcpProcessRef) {
+    try {
+      figmaMcpProcessRef.kill()
+    } catch {
+      // Process may already be dead
+    }
+    figmaMcpProcessRef = null
+  }
+}
+
+// Cleanup Figma MCP child process on server shutdown
+process.on('beforeExit', cleanupFigmaMCPProcess)
+process.on('SIGTERM', cleanupFigmaMCPProcess)
+process.on('SIGINT', cleanupFigmaMCPProcess)
+
 async function getFigmaMCPClient() {
   // Skip if no Figma API key configured
   if (!process.env.FIGMA_API_KEY) return null
@@ -87,25 +104,20 @@ async function getFigmaMCPClient() {
   // Use a random available port
   const port = 3_000 + Math.floor(Math.random() * 1000)
 
-  const figmaMcpProcess = spawn(
-    'npx',
-    [
-      '-y',
-      'figma-developer-mcp',
-      `--figma-api-key=${process.env.FIGMA_API_KEY}`,
-      '--port',
-      port.toString(),
-    ],
-    {
-      stdio: ['ignore', 'pipe', 'pipe'],
-      detached: false,
-    },
-  )
+  // SECURITY: Pass API key via env vars, not CLI args (CLI args visible via `ps aux`)
+  const figmaMcpProcess = spawn('npx', ['-y', 'figma-developer-mcp', '--port', port.toString()], {
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: { ...process.env, FIGMA_API_KEY: process.env.FIGMA_API_KEY },
+    detached: false,
+  })
+
+  // Track process for cleanup on shutdown
+  figmaMcpProcessRef = figmaMcpProcess
 
   // Wait for server to be ready (check if port is listening)
   await new Promise<void>((resolve, reject) => {
     const timeout = setTimeout(() => {
-      figmaMcpProcess.kill()
+      cleanupFigmaMCPProcess()
       reject(new Error('Figma MCP server startup timeout'))
     }, 10_000)
 
@@ -118,7 +130,7 @@ async function getFigmaMCPClient() {
         resolve()
       })
       client.on('error', () => {
-        // Server not ready yet, keep waiting
+        client.destroy()
       })
     }, 200)
   })
@@ -135,7 +147,7 @@ async function getFigmaMCPClient() {
     return figmaMcpClient
   } catch (error) {
     figmaMcpPending = null
-    figmaMcpProcess.kill()
+    cleanupFigmaMCPProcess()
     throw error
   }
 }

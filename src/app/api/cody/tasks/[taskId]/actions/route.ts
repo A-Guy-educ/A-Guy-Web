@@ -24,7 +24,10 @@ import {
   findAssociatedPRByIssueNumber,
   findTaskBranch,
   deleteBranch,
-  clearCache,
+  invalidateTaskCache,
+  invalidatePRCache,
+  invalidateBoardCache,
+  invalidateBranchCache,
   getOctokit,
 } from '@/ui/cody/github-client'
 import { GITHUB_OWNER, GITHUB_REPO } from '@/ui/cody/constants'
@@ -192,7 +195,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tas
           await postComment(issueNumber, closeMsg, userOctokit ?? undefined)
         }
 
-        clearCache()
+        invalidateTaskCache()
+        invalidatePRCache()
+        invalidateBranchCache()
 
         return NextResponse.json({
           success: true,
@@ -206,7 +211,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tas
           return NextResponse.json({ error: 'No associated PR found' }, { status: 404 })
         }
         await closePR(pr.number, userOctokit ?? undefined)
-        clearCache()
+        invalidateTaskCache()
+        invalidatePRCache()
         return NextResponse.json({ success: true, message: `PR #${pr.number} closed` })
       }
 
@@ -251,7 +257,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tas
         await postWithAttribution(issueNumber, '🔄 Task reset and re-triggered', actor, userOctokit)
         await postComment(issueNumber, '/cody', userOctokit ?? undefined)
 
-        clearCache()
+        invalidateTaskCache()
+        invalidatePRCache()
+        invalidateBranchCache()
+        invalidateBoardCache()
 
         return NextResponse.json({
           success: true,
@@ -265,7 +274,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tas
           const reopenMsg = userOctokit ? '🔓 Issue reopened' : `🔓 Issue reopened _(by @${actor})_`
           await postComment(issueNumber, reopenMsg, userOctokit ?? undefined)
         }
-        clearCache()
+        invalidateTaskCache()
         return NextResponse.json({ success: true, message: 'Issue reopened' })
       }
 
@@ -290,7 +299,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tas
           return NextResponse.json({ error: 'Assignees are required' }, { status: 400 })
         }
         await addAssignees(issueNumber, assignees, userOctokit ?? undefined)
-        clearCache()
+        invalidateTaskCache()
         return NextResponse.json({ success: true, message: `Assigned to ${assignees.join(', ')}` })
       }
 
@@ -299,7 +308,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tas
           return NextResponse.json({ error: 'Assignees are required' }, { status: 400 })
         }
         await removeAssignees(issueNumber, assignees, userOctokit ?? undefined)
-        clearCache()
+        invalidateTaskCache()
         return NextResponse.json({ success: true, message: `Unassigned ${assignees.join(', ')}` })
       }
 
@@ -322,14 +331,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tas
         const fixMessage = `@cody fix\n\n${comment}`
         const fixBody = userOctokit ? fixMessage : withActor(fixMessage, actor)
         await postComment(associatedPR.number, fixBody, userOctokit ?? undefined)
-        clearCache()
+        invalidateTaskCache()
+        invalidatePRCache()
         return NextResponse.json({ success: true, message: 'Fix requested on PR' })
       }
 
       case 'approve-ui': {
         await addLabels(issueNumber, ['ui-approved'], userOctokit ?? undefined)
         await postWithAttribution(issueNumber, '✅ Preview UI approved', actor, userOctokit)
-        clearCache()
+        invalidateTaskCache()
         return NextResponse.json({ success: true, message: 'Preview UI approved' })
       }
 
@@ -356,7 +366,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tas
         }
         await addLabels(issueNumber, ['pr-approved'], userOctokit ?? undefined)
         await postWithAttribution(issueNumber, '✅ PR approved', actor, userOctokit)
-        clearCache()
+        invalidateTaskCache()
+        invalidatePRCache()
         return NextResponse.json({ success: true, message: 'PR approved' })
       }
 
@@ -380,7 +391,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tas
           const updateMsg = userOctokit ? '📝 Issue updated' : `📝 Issue updated _(by @${actor})_`
           await postComment(issueNumber, updateMsg, userOctokit ?? undefined)
         }
-        clearCache()
+        invalidateTaskCache()
         return NextResponse.json({ success: true, message: 'Issue updated' })
       }
 
