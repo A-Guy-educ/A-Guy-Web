@@ -113,10 +113,16 @@ export async function runPipeline(
     state = recoverPipelineState(state, flatOrder, advisoryStages)
     writeState(ctx.taskId, state)
 
-    // Step 4: FIX - If previous state was failed and we're now recovering, update label
-    // This handles reruns where the pipeline state was 'failed' but the GitHub label still shows cody:failed
+    // Step 4: If pipeline was previously failed, check if any stages were reset to pending
+    // (which means a rerun is happening). Only update the label if we're actually restarting.
+    // R2-FIX #5: Don't blindly set 'building' — verify we have pending work to do first.
     if (state.state === 'failed' && ctx.input.issueNumber) {
-      setLifecycleLabel(ctx.input.issueNumber, 'cody:building')
+      const hasPendingStages = Object.values(state.stages).some(
+        (s) => s.state === 'pending' || s.state === 'running',
+      )
+      if (hasPendingStages) {
+        setLifecycleLabel(ctx.input.issueNumber, 'cody:building')
+      }
     }
 
     // Step 5: Handle paused pipeline with no paused stages (gate was approved)

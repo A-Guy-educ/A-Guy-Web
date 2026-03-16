@@ -406,9 +406,14 @@ export function ensureFeatureBranch(
   }
 }
 
-// Helper to get environment with hooks disabled for CI
+// R2-FIX #7: Cache hook-safe env to avoid recreating on every git call (hot path).
+// process.env changes are rare during pipeline execution, so caching is safe.
+let _hookSafeEnvCache: NodeJS.ProcessEnv | null = null
 function getHookSafeEnv(): NodeJS.ProcessEnv {
-  return { ...process.env, HUSKY: '0', SKIP_HOOKS: '1' }
+  if (!_hookSafeEnvCache) {
+    _hookSafeEnvCache = { ...process.env, HUSKY: '0', SKIP_HOOKS: '1' }
+  }
+  return _hookSafeEnvCache
 }
 
 /**

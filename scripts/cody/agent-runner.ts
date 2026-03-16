@@ -257,6 +257,9 @@ async function nudgeSession(
     }
 
     // Timeout
+    // R2-FIX #12: Use the smaller of NUDGE_TIMEOUT and remaining stage timeout.
+    // Without this, a stuck nudge could cause the stage to exceed its overall timeout.
+    const nudgeTimeoutMs = NUDGE_TIMEOUT * 1000
     const timer = setTimeout(() => {
       logger.info(`  🔔 Nudge timed out after ${NUDGE_TIMEOUT}s`)
       try {
@@ -265,7 +268,7 @@ async function nudgeSession(
         /* ignore */
       }
       resolve(null)
-    }, NUDGE_TIMEOUT * 1000)
+    }, nudgeTimeoutMs)
 
     nudgeChild.on('exit', async (nudgeCode) => {
       clearTimeout(timer)
@@ -738,16 +741,27 @@ export function runAgentWithFileWatch(
           // try a lightweight continuation before burning a full retry.
           // The agent still has all context — it just forgot to write the file.
           if (code === 0 && serverUrl && extractedSessionId) {
-            const nudgedFile = await nudgeSession(
-              backend,
-              effectiveAgent,
-              outputFile,
-              agentEnv,
-              cwd,
-              serverUrl,
-              extractedSessionId,
-              dataDir,
-            )
+            // R2-FIX #12: Skip nudge if insufficient time remaining (need at least 30s)
+            const nudgeElapsed = Date.now() - startTime
+            const nudgeRemaining = effectiveTimeout - nudgeElapsed
+            if (nudgeRemaining < 30_000) {
+              logger.info(
+                `  🔔 Skipping nudge — only ${Math.round(nudgeRemaining / 1000)}s remaining`,
+              )
+            }
+            const nudgedFile =
+              nudgeRemaining >= 30_000
+                ? await nudgeSession(
+                    backend,
+                    effectiveAgent,
+                    outputFile,
+                    agentEnv,
+                    cwd,
+                    serverUrl,
+                    extractedSessionId,
+                    dataDir,
+                  )
+                : null
             if (nudgedFile) {
               // Nudge succeeded — continue to file stability check
               // Re-assign detectedFile by jumping to the stability check below
