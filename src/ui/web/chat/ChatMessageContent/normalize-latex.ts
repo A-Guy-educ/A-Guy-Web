@@ -44,12 +44,47 @@ export function normalizeLatexDelimiters(content: string): string {
   // Match complete $$...$$ pairs and ensure newlines around them.
   result = result.replace(/\$\$([\s\S]*?)\$\$/g, (_, expr) => `\n$$\n${expr.trim()}\n$$\n`)
 
+  // Escape mismatched $ pairs that contain Hebrew text (RTL chars).
+  // When the LLM misuses $ delimiters, remarkMath may pair them incorrectly,
+  // creating expressions that contain Hebrew text. KaTeX can't parse Hebrew,
+  // so it shows red error text. This step finds $...$ pairs with Hebrew inside
+  // and escapes the $ so they render as plain text instead of broken math.
+  result = escapeMismatchedDollarSigns(result)
+
   // Safety net: wrap undelimited LaTeX commands in $...$
   // Matches sequences starting with a known LaTeX command that aren't already inside $ delimiters.
   // Works by splitting on existing $/$$ regions and only processing non-math segments.
   result = wrapUndelimitedLatex(result)
 
   return result
+}
+
+/**
+ * Hebrew character range for detecting mismatched $ delimiters.
+ * Matches any Hebrew letter (U+0590–U+05FF) or Hebrew presentation form (U+FB1D–U+FB4F).
+ */
+const HEBREW_REGEX = /[\u0590-\u05FF\uFB1D-\uFB4F]/
+
+/**
+ * Escapes $ signs that are part of mismatched pairs containing Hebrew text.
+ *
+ * When the LLM uses $ for math but mismatches them, remarkMath may pair
+ * a $ with the wrong closing $, creating a huge "expression" with Hebrew
+ * text inside. KaTeX can't parse Hebrew, producing red error text.
+ *
+ * This function finds $...$ pairs where the content contains Hebrew characters
+ * and escapes the $ so the text renders as plain text instead.
+ * Legitimate math like $\frac{a}{b}$ won't contain Hebrew, so this is safe.
+ */
+function escapeMismatchedDollarSigns(content: string): string {
+  // Match $...$ pairs (not $$) — non-greedy, single line only
+  return content.replace(/\$([^$\n]+?)\$/g, (match, inner) => {
+    // If the content between $ contains Hebrew characters, it's not valid math
+    if (HEBREW_REGEX.test(inner)) {
+      return `\\$${inner}\\$`
+    }
+    return match
+  })
 }
 
 /**
