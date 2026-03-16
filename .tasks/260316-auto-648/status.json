@@ -4,15 +4,15 @@
   "mode": "full",
   "pipeline": "spec_execute_verify",
   "startedAt": "2026-03-16T17:17:56.064Z",
-  "updatedAt": "2026-03-16T17:21:06.595Z",
-  "state": "paused",
-  "cursor": null,
+  "updatedAt": "2026-03-16T18:48:51.513Z",
+  "state": "failed",
+  "cursor": "gap",
   "stages": {
     "taskify": {
-      "state": "paused",
+      "state": "completed",
       "retries": 0,
       "startedAt": "2026-03-16T17:17:57.448Z",
-      "completedAt": "2026-03-16T17:21:00.469Z",
+      "completedAt": "2026-03-16T18:08:42.423Z",
       "elapsed": 183,
       "outputFile": "taskify.md",
       "tokenUsage": {
@@ -21,6 +21,57 @@
         "cacheRead": 191712
       },
       "sessionId": "ses_308586855ffeJZnXPphPx22xea"
+    },
+    "gap": {
+      "state": "completed",
+      "retries": 0,
+      "startedAt": "2026-03-16T18:08:43.843Z",
+      "completedAt": "2026-03-16T18:14:34.559Z",
+      "elapsed": 351,
+      "outputFile": "gap.md",
+      "tokenUsage": {
+        "input": 42525,
+        "output": 7658,
+        "cacheRead": 1658080
+      },
+      "sessionId": "ses_30829f29bffeuzF5OYJ2yXw5E5"
+    },
+    "architect": {
+      "state": "completed",
+      "retries": 0,
+      "startedAt": "2026-03-16T18:14:34.562Z",
+      "completedAt": "2026-03-16T18:21:00.752Z",
+      "elapsed": 386,
+      "outputFile": "architect.md",
+      "tokenUsage": {
+        "input": 27,
+        "output": 19213,
+        "cacheRead": 2728101
+      },
+      "cost": 2.677398,
+      "sessionId": "ses_308249b1effeb8P0VC762VlCok"
+    },
+    "plan-gap": {
+      "state": "completed",
+      "retries": 0,
+      "startedAt": "2026-03-16T18:21:03.369Z",
+      "completedAt": "2026-03-16T18:24:42.719Z",
+      "elapsed": 219,
+      "outputFile": "plan-gap.md",
+      "tokenUsage": {
+        "input": 33,
+        "output": 8013,
+        "cacheRead": 4809787
+      },
+      "cost": 3.6648835000000006,
+      "sessionId": "ses_3081eaec2ffeIU7zup0Sq1rsRV"
+    },
+    "build": {
+      "state": "failed",
+      "retries": 0,
+      "startedAt": "2026-03-16T18:24:42.722Z",
+      "elapsed": 1447,
+      "error": "Agent \"build\" failed. Artifacts: build-stderr.log, build-events.jsonl"
     }
   },
   "issueNumber": 822,
@@ -33,5 +84,6 @@
       "timestamp": "2026-03-16T17:17:56.064Z"
     }
   ],
-  "completedAt": "2026-03-16T17:21:06.595Z"
+  "completedAt": "2026-03-16T18:48:51.513Z",
+  "totalCost": 6.3422815
 }

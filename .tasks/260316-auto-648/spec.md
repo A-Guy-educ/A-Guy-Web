@@ -62,22 +62,30 @@ Implement Critical and High Priority items from the QA audit. The audit identifi
    - api/cody/tasks/approve-review
 
 7. **CI Coverage Enforcement**
-   - Add --coverage flag to test:unit in ci.yml
+   - Add --coverage flag to test:unit in ci.yml (e.g., `pnpm test:unit -- --coverage`)
    - Upload coverage report as artifact
-   - Add coverage config to vitest.config.unit.mts
+   - NOTE: vitest.config.unit.mts already has coverage config (provider: 'v8', thresholds, reporters) - no changes needed there
 
 8. **Web Vitals Tracking**
    - Add Sentry.browserTracingIntegration() in instrumentation-client.ts
 
 ## Acceptance Criteria
 
-1. Security headers visible in browser devtools for all routes
-2. Frontend error boundary captures errors and shows localized error UI
-3. Env validation runs at startup with clear error messages for missing required vars
-4. E2E tests run and pass with cherry-picked tests
-5. All Cody routes report errors to Sentry
-6. 6 non-Cody routes report errors to Sentry
-7. 4 high-traffic routes use withApiHandler with Zod + Sentry
-8. Remaining routes have Zod validation schemas
-9. CI runs with coverage and uploads artifacts
-10. Web vitals captured in Sentry
+- [ ] Phase 1 Critical items implemented:
+  - [ ] Security headers added to next.config.js with split CSP
+  - [ ] Frontend error.tsx created with Sentry + locale support
+  - [ ] Env validation created and hooked into instrumentation
+  - [ ] E2E tests cherry-picked successfully
+- [ ] Phase 2 Sentry Coverage:
+  - [ ] Cody error utility (src/ui/cody/github-error-handler.ts) enhanced with Sentry
+  - [ ] 6 non-Cody routes use captureAndRespond
+  - [ ] 4 high-traffic routes migrated to withApiHandler
+- [ ] Phase 3 Infrastructure:
+  - [ ] Zod schemas added to remaining routes
+  - [ ] CI workflow includes --coverage flag in test:unit step
+  - [ ] vitest.config.unit.mts already has coverage config (no changes needed)
+  - [ ] Web Vitals tracking enabled in instrumentation-client.ts
+- [ ] Verification passes:
+  - [ ] `pnpm -s tsc --noEmit` passes
+  - [ ] `pnpm vitest run --config vitest.config.unit.mts` passes
+  - [ ] `pnpm lint` passes
