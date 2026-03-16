@@ -99,6 +99,7 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
     return (['backlog', 'queue'].includes(v ?? '') ? v : 'running') as ViewMode
   })
   const [showMobileMenu, setShowMobileMenu] = useState(false)
+  const [showUserDropdown, setShowUserDropdown] = useState(false)
   const [showMobileDetail, setShowMobileDetail] = useState(false)
   const [showMobileChat, setShowMobileChat] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
@@ -755,15 +756,12 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
 
                 {/* Desktop controls */}
                 <div className="hidden md:flex items-center gap-3">
-                  {/* GitHub identity badge */}
+                  {/* GitHub identity badge with dropdown */}
                   {githubUser && (
-                    <SimpleTooltip
-                      content={`Logged in as @${githubUser.login} — click to log out`}
-                      side="bottom"
-                    >
+                    <div className="relative">
                       <button
                         type="button"
-                        onClick={clearGitHubUser}
+                        onClick={() => setShowUserDropdown((prev) => !prev)}
                         className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-accent transition-colors"
                       >
                         <Avatar className="h-5 w-5">
@@ -772,7 +770,21 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
                         </Avatar>
                         <span className="text-xs text-muted-foreground">@{githubUser.login}</span>
                       </button>
-                    </SimpleTooltip>
+                      {showUserDropdown && (
+                        <div className="absolute top-full right-0 mt-1 w-36 py-1 bg-popover border rounded-md shadow-lg z-50">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              clearGitHubUser()
+                              setShowUserDropdown(false)
+                            }}
+                            className="w-full px-3 py-1.5 text-left text-sm hover:bg-accent"
+                          >
+                            Sign out
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   )}
 
                   {/* Notification status */}
@@ -1025,7 +1037,7 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
                   </Avatar>
                   <div className="flex flex-col items-start">
                     <span className="text-sm font-medium">@{githubUser.login}</span>
-                    <span className="text-xs text-muted-foreground">Tap to switch</span>
+                    <span className="text-xs text-muted-foreground">Tap to sign out</span>
                   </div>
                 </button>
               )}
