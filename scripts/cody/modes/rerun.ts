@@ -212,16 +212,20 @@ export async function runRerunMode(ctx: PipelineContext): Promise<void> {
   const stageOrder = flattenPipelineOrder(pipeline.order)
 
   // P3 fix: Back up to architect when feedback provided so plan can be revised
-  const resolvedFrom = resolveRerunFromStage(input.fromStage || 'build', input.feedback, stageOrder)
-  if (resolvedFrom !== input.fromStage) {
-    logger.info(
-      `  \u2139\ufe0f Feedback provided \u2014 backing up from ${input.fromStage} to ${resolvedFrom} for plan revision`,
-    )
-    input.fromStage = resolvedFrom
+  // BUT: Don't back up if fromStage was explicitly provided (via CLI --from or pipeline-fixer)
+  // This prevents pipeline-fixer retries from unnecessarily re-running architect
+  let resolvedFrom = input.fromStage || 'build'
+  if (!fromStageExplicitlyProvided && input.feedback) {
+    resolvedFrom = resolveRerunFromStage(resolvedFrom, input.feedback, stageOrder)
+    if (resolvedFrom !== input.fromStage) {
+      logger.info(
+        `  ℹ️ Feedback provided — backing up from ${input.fromStage} to ${resolvedFrom} for plan revision`,
+      )
+    }
   }
 
   // Fix 5: Validate fromStage exists in the resolved pipeline order
-  let fromStage = input.fromStage || 'build'
+  let fromStage = resolvedFrom
   if (!stageOrder.includes(fromStage as StageName)) {
     const fallback = findNearestEarlierStage(fromStage, stageOrder)
     logger.warn(
