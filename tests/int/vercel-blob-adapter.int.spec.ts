@@ -17,9 +17,9 @@ import {
 import { describe, expect, it } from 'vitest'
 
 // Check token validity - skip entire describe block if no valid token
+// Real Vercel tokens are 60+ chars
 const token = process.env.BLOB_READ_WRITE_TOKEN
-const shouldRun =
-  token && token !== '' && token !== 'mock-token-for-testing' && token.startsWith('vercel_blob_rw_')
+const shouldRun = token && token.length > 60 && token.startsWith('vercel_blob_rw_')
 
 // Only run tests if we have a valid token
 if (shouldRun) {
