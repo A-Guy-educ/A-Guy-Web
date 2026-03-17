@@ -4,10 +4,25 @@
   "mode": "full",
   "pipeline": "spec_execute_verify",
   "startedAt": "2026-03-17T15:27:28.096Z",
-  "updatedAt": "2026-03-17T15:27:28.096Z",
-  "state": "running",
+  "updatedAt": "2026-03-17T15:29:00.717Z",
+  "state": "paused",
   "cursor": null,
-  "stages": {},
+  "stages": {
+    "taskify": {
+      "state": "paused",
+      "retries": 0,
+      "startedAt": "2026-03-17T15:27:30.313Z",
+      "completedAt": "2026-03-17T15:28:51.515Z",
+      "elapsed": 81,
+      "outputFile": "taskify.md",
+      "tokenUsage": {
+        "input": 5778,
+        "output": 1543,
+        "cacheRead": 150984
+      },
+      "sessionId": "ses_30397302cffeWJFicq3WKva61u"
+    }
+  },
   "issueNumber": 822,
   "triggeredBy": "aguyaharonyair",
   "issueCreator": "aguyaharonyair",
@@ -17,5 +32,6 @@
       "actor": "aguyaharonyair",
       "timestamp": "2026-03-17T15:27:28.096Z"
     }
-  ]
+  ],
+  "completedAt": "2026-03-17T15:29:00.717Z"
 }

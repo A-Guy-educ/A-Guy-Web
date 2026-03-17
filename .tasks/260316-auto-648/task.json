@@ -2,37 +2,36 @@
   "task_type": "implement_feature",
   "risk_level": "high",
   "confidence": 0.95,
-  "primary_domain": "infra",
+  "primary_domain": "devops",
   "scope": [
-    "next.config.js - Add security headers with split CSP",
-    "src/app/(frontend)/error.tsx - Create frontend error boundary",
-    "src/infra/config/env-validation.ts - Create env validation",
-    "instrumentation.ts - Hook in env validation",
-    "src/infra/instrumentation-client.ts - Add browserTracingIntegration",
-    "vitest.config.unit.mts - Add coverage config",
-    ".github/workflows/ci.yml - Add coverage enforcement",
-    "Cody API error utility - Add Sentry.captureException",
-    "6 non-Cody API routes - Add captureAndRespond",
-    "4 high-traffic routes - Migrate to withApiHandler",
-    "4 remaining POST routes - Add Zod validation",
-    "E2E tests - Cherry-pick from feat/pre-launch-e2e-verification"
+    "Security headers in next.config.js",
+    "Frontend error boundary",
+    "Env variable validation",
+    "E2E test cherry-pick",
+    "Sentry integration in API routes",
+    "Zod validation in API routes",
+    "CI coverage enforcement",
+    "Web Vitals tracking"
   ],
   "missing_inputs": [],
   "assumptions": [
-    "Cherry-pick commit 9631fe7b will succeed or conflicts can be resolved manually",
-    "handleCodyApiError utility exists and can be enhanced",
-    "withApiHandler utility exists for route migration",
-    "Current test coverage baseline can be measured for thresholds"
+    "Cherry-pick commit 9631fe7b will apply cleanly or have resolvable conflicts",
+    "handleCodyApiError utility exists and can be found in codebase",
+    "withApiHandler utility exists for API route migration"
   ],
   "review_questions": [
-    "The admin CSP uses unsafe-eval and unsafe-inline which reduces security. Is this acceptable given Payload admin requirements?"
+    "Is working directly on dev branch approved (no feature branch)?",
+    "Should E2E tests be committed even though they're on a diverged branch?",
+    "Are permissive coverage thresholds acceptable initially?"
   ],
-  "complexity": 60,
-  "complexity_reasoning": "Scope: 20+ files across 3 phases (18 pts). Risk: security headers + env validation + CI changes (14 pts). Novelty: follows existing patterns in codebase (8 pts). Cross-domain: frontend + backend + infra + devops (12 pts). Ambiguity: clear spec with file paths (2 pts). Dependencies: interconnected changes across phases (6 pts). Total: 60",
+  "complexity": 65,
+  "complexity_reasoning": "Scope: 20+ files across 3 phases. Risk: Security headers, CI/CD changes, Sentry integration (HIGH). Novelty: Following existing patterns (8). Cross-domain: Frontend + Backend + DevOps + Infra (12). Ambiguity: Clear spec with file paths (2). Dependencies: Multi-phase implementation (8). Total: 65",
   "input_quality": {
     "level": "detailed_plan",
-    "skip_stages": [],
-    "reasoning": "Input contains 3 phases with clear implementation steps, file paths for each change, verification commands, and decisions made section. Matches detailed_plan criteria."
+    "skip_stages": [
+      "architect"
+    ],
+    "reasoning": "Input contains step-by-step phases with specific file paths and implementation details. Phase 1-3 structure with clear deliverables. Promoted spec.md not needed - task already has detailed plan structure."
   },
   "pipeline_profile": "standard",
   "pipeline": "spec_execute_verify"
