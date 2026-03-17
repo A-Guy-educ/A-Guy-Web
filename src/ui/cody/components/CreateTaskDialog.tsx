@@ -43,6 +43,7 @@ import {
   Info,
 } from 'lucide-react'
 import { cn } from '@/infra/utils/ui'
+import { PRIORITY_LEVELS, PRIORITY_META, type PriorityLevel } from '../constants'
 
 interface CreateTaskDialogProps {
   open: boolean
@@ -65,7 +66,6 @@ interface AttachmentFile {
 
 type TaskCategory = 'feature' | 'enhancement' | 'refactor' | 'docs' | 'chore'
 type TaskScope = 'frontend' | 'backend' | 'fullstack' | 'infra' | 'ci-cd'
-type TaskPriority = 'high' | 'medium' | 'low'
 
 const CATEGORY_META: Record<
   TaskCategory,
@@ -111,18 +111,12 @@ const SCOPE_OPTIONS: { value: TaskScope; label: string }[] = [
   { value: 'ci-cd', label: 'CI / CD' },
 ]
 
-const PRIORITY_OPTIONS: { value: TaskPriority; label: string; badge: string }[] = [
-  { value: 'high', label: 'High', badge: '🔴' },
-  { value: 'medium', label: 'Medium', badge: '🟡' },
-  { value: 'low', label: 'Low', badge: '🟢' },
-]
-
 export function CreateTaskDialog({ open, onClose, onCreated, initialData }: CreateTaskDialogProps) {
   // --- Form state ---
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState<TaskCategory>('feature')
   const [scope, setScope] = useState<TaskScope>('fullstack')
-  const [priority, setPriority] = useState<TaskPriority>('medium')
+  const [priority, setPriority] = useState<PriorityLevel>('P2')
   const [mode, setMode] = useState('full')
 
   // Structured description fields
@@ -162,7 +156,7 @@ export function CreateTaskDialog({ open, onClose, onCreated, initialData }: Crea
       setTitle('')
       setCategory('feature')
       setScope('fullstack')
-      setPriority('medium')
+      setPriority('P2')
       setMode('full')
       setSummary('')
       setRequirements('')
@@ -249,14 +243,14 @@ export function CreateTaskDialog({ open, onClose, onCreated, initialData }: Crea
   const formatBody = (): string => {
     const catMeta = CATEGORY_META[category]
     const scopeLabel = SCOPE_OPTIONS.find((s) => s.value === scope)?.label ?? scope
-    const prioLabel = PRIORITY_OPTIONS.find((p) => p.value === priority)
+    const prioMeta = PRIORITY_META[priority]
 
     let body = `# ${catMeta.label}: ${title}\n\n`
 
     body += `| | |\n|---|---|\n`
     body += `| **Category** | ${catMeta.label} |\n`
     body += `| **Scope** | ${scopeLabel} |\n`
-    body += `| **Priority** | ${prioLabel?.badge ?? ''} ${prioLabel?.label ?? priority} |\n\n`
+    body += `| **Priority** | ${prioMeta.badge} ${priority} — ${prioMeta.label} |\n\n`
 
     body += '## Summary\n'
     body += `${summary || '_No summary provided_'}\n\n`
@@ -304,7 +298,7 @@ export function CreateTaskDialog({ open, onClose, onCreated, initialData }: Crea
     e.preventDefault()
 
     const body = formatBody()
-    const autoLabels = [...labels]
+    const autoLabels = [...labels, `priority:${priority}`]
     // Auto-add category label if not already present
     if (!autoLabels.includes(category)) {
       autoLabels.push(category)
@@ -476,14 +470,14 @@ export function CreateTaskDialog({ open, onClose, onCreated, initialData }: Crea
             </div>
             <div className="grid gap-2">
               <Label htmlFor="task-priority">Priority</Label>
-              <Select value={priority} onValueChange={(v) => setPriority(v as TaskPriority)}>
+              <Select value={priority} onValueChange={(v) => setPriority(v as PriorityLevel)}>
                 <SelectTrigger id="task-priority">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {PRIORITY_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.badge} {opt.label}
+                  {PRIORITY_LEVELS.map((level) => (
+                    <SelectItem key={level} value={level}>
+                      {PRIORITY_META[level].badge} {level} — {PRIORITY_META[level].label}
                     </SelectItem>
                   ))}
                 </SelectContent>
