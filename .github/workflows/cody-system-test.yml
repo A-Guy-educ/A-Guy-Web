@@ -36,6 +36,11 @@ jobs:
         with:
           app-id: 3116827
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          permission-contents: write
+          permission-issues: write
+          permission-pull-requests: write
+          permission-actions: write
 
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -90,9 +95,11 @@ jobs:
               .agent["plan-gap"].model = "anthropic/claude-opus-4-6"' opencode.json > tmp.json
           mv tmp.json opencode.json
 
-          # Commit
+          # Commit (skip hooks - this is a temp branch)
           git add opencode.json
-          git commit -m "chore: system test model override" || true
+          git commit --no-verify -m "chore(system-test): Model override for system test run $RUN_ID
+
+          Temporary branch with cheap models for automated testing." || true
           git push -u origin "$BRANCH" --force
 
           echo "version_branch=$BRANCH" >> $GITHUB_OUTPUT
