@@ -42,7 +42,6 @@ import {
   Bug,
   Menu,
   RefreshCw,
-  Bell,
   Globe,
   AlertCircle,
   X as XIcon,
@@ -53,6 +52,8 @@ import {
 import { useCodyTasks, queryKeys } from '../hooks'
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
 import { useBrowserNotifications } from '../hooks/useBrowserNotifications'
+import { useNotificationStore } from '../notifications/useNotificationStore'
+import { NotificationCenter } from '../notifications/NotificationCenter'
 import { useMediaQuery } from '@/server/payload/hooks/useMediaQuery'
 import { RateLimitError, NoTokenError, SessionExpiredError, tasksApi, codyApi } from '../api'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -303,13 +304,15 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
     [queryClient],
   )
 
-  // Browser notifications
+  // Notification system
+  const notificationStore = useNotificationStore()
+
   const {
     checkTaskChanges,
     permission: notificationPermission,
     isSupported: notificationsSupported,
     requestPermission,
-  } = useBrowserNotifications()
+  } = useBrowserNotifications({ store: notificationStore })
 
   // Check for task changes when tasks update
   useEffect(() => {
@@ -788,39 +791,13 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
                     </div>
                   )}
 
-                  {/* Notification status */}
-                  {notificationsSupported && (
-                    <SimpleTooltip
-                      content={
-                        notificationPermission === 'granted'
-                          ? `Notifications enabled (${notificationPermission})`
-                          : notificationPermission === 'denied'
-                            ? `Notifications blocked (${notificationPermission}) - check browser settings`
-                            : `Enable notifications (${notificationPermission})`
-                      }
-                      side="bottom"
-                    >
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={requestPermission}
-                        aria-label={
-                          notificationPermission === 'granted'
-                            ? 'Notifications enabled'
-                            : 'Enable notifications'
-                        }
-                        className={
-                          notificationPermission === 'granted'
-                            ? 'text-green-500'
-                            : notificationPermission === 'denied'
-                              ? 'text-red-500'
-                              : 'text-muted-foreground'
-                        }
-                      >
-                        <Bell className="w-4 h-4" />
-                      </Button>
-                    </SimpleTooltip>
-                  )}
+                  {/* Notification center */}
+                  <NotificationCenter
+                    store={notificationStore}
+                    browserPermission={notificationPermission}
+                    isSupported={notificationsSupported}
+                    onRequestPermission={requestPermission}
+                  />
 
                   {/* Theme toggle */}
                   <SimpleTooltip

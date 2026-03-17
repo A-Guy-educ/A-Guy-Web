@@ -239,6 +239,9 @@
         "src/ui/cody/hooks/useRemoteStatus.ts",
         "src/ui/cody/hooks/useSpeechRecognition.ts",
         "src/ui/cody/hooks/useVoiceChat.ts",
+        "src/ui/cody/notifications/NotificationCenter.tsx",
+        "src/ui/cody/notifications/NotificationPreferences.tsx",
+        "src/ui/cody/notifications/useNotificationStore.ts",
         "src/ui/web/AdminBar/index.tsx",
         "src/ui/web/Card/index.tsx",
         "src/ui/web/CommandPalette.tsx",
@@ -415,6 +418,8 @@
         "src/ui/cody/components/VoiceButton.tsx",
         "src/ui/cody/components/VoiceChatOverlay.tsx",
         "src/ui/cody/components/WorkflowRunsPopover.tsx",
+        "src/ui/cody/notifications/NotificationCenter.tsx",
+        "src/ui/cody/notifications/NotificationPreferences.tsx",
         "src/ui/web/AdminBar/index.tsx",
         "src/ui/web/Card/index.tsx",
         "src/ui/web/CollectionArchive/index.tsx",
@@ -1777,6 +1782,17 @@
       "pattern": "state-machine",
       "description": "No description available",
       "files": ["src/ui/cody/hooks/useVoiceChat.ts"]
+    },
+    "notification-system": {
+      "pattern": "notification-system",
+      "description": "No description available",
+      "files": [
+        "src/ui/cody/notifications/NotificationCenter.tsx",
+        "src/ui/cody/notifications/NotificationPreferences.tsx",
+        "src/ui/cody/notifications/sounds.ts",
+        "src/ui/cody/notifications/types.ts",
+        "src/ui/cody/notifications/useNotificationStore.ts"
+      ]
     },
     "config": {
       "pattern": "config",
@@ -5236,7 +5252,7 @@
       "type": "component",
       "domain": "cody",
       "patterns": ["voice-ui", "tailwind-component", "client-component"],
-      "aiSummary": "Full-screen voice conversation overlay with state indicators and controls",
+      "aiSummary": "Voice conversation overlay scoped to the chat panel (not full-screen)",
       "dependencies": ["react", "lucide-react"]
     },
     "src/ui/cody/components/WorkflowRunsPopover.tsx": {
@@ -5365,6 +5381,46 @@
       "domain": "cody",
       "patterns": ["state-machine", "client-component"],
       "aiSummary": "Orchestrates full voice conversation: LISTEN → PROCESS → SPEAK → LISTEN",
+      "dependencies": ["react"]
+    },
+    "src/ui/cody/notifications/NotificationCenter.tsx": {
+      "path": "src/ui/cody/notifications/NotificationCenter.tsx",
+      "type": "component",
+      "domain": "cody",
+      "patterns": ["notification-system", "tailwind-component", "client-component"],
+      "aiSummary": "Dropdown notification center with unread badge, history, and preferences",
+      "dependencies": ["react", "lucide-react"]
+    },
+    "src/ui/cody/notifications/NotificationPreferences.tsx": {
+      "path": "src/ui/cody/notifications/NotificationPreferences.tsx",
+      "type": "component",
+      "domain": "cody",
+      "patterns": ["notification-system", "tailwind-component", "client-component"],
+      "aiSummary": "Settings panel for notification preferences (per-type toggles, sound, browser)",
+      "dependencies": ["lucide-react"]
+    },
+    "src/ui/cody/notifications/sounds.ts": {
+      "path": "src/ui/cody/notifications/sounds.ts",
+      "type": "utility",
+      "domain": "cody",
+      "patterns": ["notification-system"],
+      "aiSummary": "Web Audio API notification sounds — distinct per priority level",
+      "dependencies": []
+    },
+    "src/ui/cody/notifications/types.ts": {
+      "path": "src/ui/cody/notifications/types.ts",
+      "type": "types",
+      "domain": "cody",
+      "patterns": ["notification-system"],
+      "aiSummary": "Notification type definitions for the Cody dashboard notification center",
+      "dependencies": []
+    },
+    "src/ui/cody/notifications/useNotificationStore.ts": {
+      "path": "src/ui/cody/notifications/useNotificationStore.ts",
+      "type": "hook",
+      "domain": "cody",
+      "patterns": ["notification-system", "client-component"],
+      "aiSummary": "localStorage-backed notification history (max 50) with read/unread tracking",
       "dependencies": ["react"]
     },
     "src/ui/cody/pipeline-utils.ts": {
@@ -6382,8 +6438,8 @@
     }
   },
   "metadata": {
-    "generatedAt": "2026-03-16T21:19:58.965Z",
-    "totalFiles": 561,
-    "totalPatterns": 199
+    "generatedAt": "2026-03-17T09:46:39.504Z",
+    "totalFiles": 566,
+    "totalPatterns": 200
   }
 }
