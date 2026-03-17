@@ -140,7 +140,9 @@ export async function POST(request: Request): Promise<Response> {
     })
 
     return Response.json(result)
-  } catch {
+  } catch (error) {
+    console.error('[upload-token] Error:', error instanceof Error ? error.message : error)
+    console.error('[upload-token] Stack:', error instanceof Error ? error.stack : 'N/A')
     return Response.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
