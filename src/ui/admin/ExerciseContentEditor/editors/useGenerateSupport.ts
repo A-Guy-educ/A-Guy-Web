@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import type { InlineRichText } from '@/server/payload/collections/Exercises/types'
+import { createInlineRichText } from '@/server/payload/endpoints/exercises/generate-support/support-block-utils'
 import type { SupportFields } from './HintSolutionPanel'
 
 interface UseGenerateSupportOptions {
@@ -15,15 +15,6 @@ interface UseGenerateSupportReturn {
   isGenerating: boolean
   generateError: string | null
   handleGenerate: (overwrite: boolean) => Promise<void>
-}
-
-function createRichText(value: string): InlineRichText {
-  return {
-    type: 'rich_text',
-    format: 'md-math-v1',
-    value,
-    mediaIds: [],
-  }
 }
 
 export function useGenerateSupport({
@@ -88,19 +79,19 @@ function buildSupportFields(generated: any, overwrite: boolean): SupportFields {
 
   if (generated.hints?.length) {
     const hintText = generated.hints.map((h: string, i: number) => `${i + 1}. ${h}`).join('\n')
-    fields.hint = createRichText(hintText)
+    fields.hint = createInlineRichText(hintText)
   } else if (overwrite) {
     fields.hint = undefined
   }
 
   if (generated.solution) {
-    fields.solution = createRichText(generated.solution)
+    fields.solution = createInlineRichText(generated.solution)
   } else if (overwrite) {
     fields.solution = undefined
   }
 
   if (generated.fullSolution) {
-    fields.fullSolution = createRichText(generated.fullSolution)
+    fields.fullSolution = createInlineRichText(generated.fullSolution)
   } else if (overwrite) {
     fields.fullSolution = undefined
   }

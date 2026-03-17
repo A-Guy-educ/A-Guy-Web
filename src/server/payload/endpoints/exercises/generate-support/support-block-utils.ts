@@ -28,7 +28,7 @@ export function hasExistingSupport(block: ContentBlock): boolean {
   return Boolean(b.hint?.value || b.solution?.value || b.fullSolution?.value)
 }
 
-function createInlineRichText(value: string): InlineRichText {
+export function createInlineRichText(value: string): InlineRichText {
   return {
     type: 'rich_text',
     format: 'md-math-v1',

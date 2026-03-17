@@ -2,6 +2,7 @@
 
 import React from 'react'
 import type { InlineRichText } from '@/server/payload/collections/Exercises/types'
+import { createInlineRichText } from '@/server/payload/endpoints/exercises/generate-support/support-block-utils'
 import { useDocumentInfo } from '@payloadcms/ui'
 import { CollapsibleSection } from '../../shared/CollapsibleSection'
 import { InlineRichTextEditor } from './InlineRichTextEditor'
@@ -21,15 +22,6 @@ interface HintSolutionPanelProps {
   blockId: string
   onChange: (field: 'hint' | 'solution' | 'fullSolution', value: InlineRichText | undefined) => void
   onBatchChange: (fields: SupportFields) => void
-}
-
-function createDefaultInlineRichText(): InlineRichText {
-  return {
-    type: 'rich_text',
-    format: 'md-math-v1',
-    value: '',
-    mediaIds: [],
-  }
 }
 
 export const HintSolutionPanel: React.FC<HintSolutionPanelProps> = ({
@@ -132,7 +124,7 @@ const HintSolutionField: React.FC<{
         <button
           type="button"
           className="hint-solution-enable-btn"
-          onClick={() => onChange(createDefaultInlineRichText())}
+          onClick={() => onChange(createInlineRichText(''))}
         >
           <Plus size={14} />
           <span>Add {label}</span>
