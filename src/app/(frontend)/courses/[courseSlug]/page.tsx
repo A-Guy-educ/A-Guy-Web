@@ -15,6 +15,8 @@ import { stripHtml } from '@/utils/strip-html'
 import { CoursePageContent } from './_components/CoursePageContent'
 import configPromise from '@payload-config'
 
+export const dynamic = 'force-dynamic'
+
 interface CoursePageProps {
   params: Promise<{
     courseSlug: string

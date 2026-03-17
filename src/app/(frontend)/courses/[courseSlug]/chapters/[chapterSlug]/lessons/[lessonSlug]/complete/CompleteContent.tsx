@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { Button } from '@/ui/web/components/button'
@@ -9,31 +8,10 @@ import { Sparkles } from 'lucide-react'
 
 interface CompleteContentProps {
   backUrl: string
-  lessonId?: string
-  lessonTitle?: string
 }
 
-export function CompleteContent({ backUrl, lessonId, lessonTitle }: CompleteContentProps) {
+export function CompleteContent({ backUrl }: CompleteContentProps) {
   const t = useTranslations('courses')
-  const tracked = useRef(false)
-
-  useEffect(() => {
-    if (!lessonId || tracked.current) return
-    tracked.current = true
-
-    fetch('/api/stats/track-activity', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        eventType: 'lesson_completed',
-        lessonId,
-        lessonTitle,
-      }),
-    }).catch(() => {
-      // fail silently - stats tracking should not block UX
-    })
-  }, [lessonId, lessonTitle])
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

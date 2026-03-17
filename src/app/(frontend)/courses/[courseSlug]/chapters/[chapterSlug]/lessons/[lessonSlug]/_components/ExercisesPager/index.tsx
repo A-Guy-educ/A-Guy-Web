@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import type { Exercise, Media as MediaType } from '@/payload-types'
 import { Button } from '@/ui/web/components/button'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
@@ -57,13 +57,14 @@ export function ExercisesPager({
     totalExercises,
   } = useExercisesPager({ exercises, courseSlug, chapterSlug, lessonSlug, hasAboutPage })
 
-  // Track exercise completion when reaching the outro page
+  // Store per-exercise question results from ExerciseRenderer
+  const exerciseResults = useRef<Record<string, { totalQuestions: number; correctCount: number }>>({})
   const trackedExercises = useRef(new Set<string>())
   const prevExerciseIndex = useRef<number | undefined>(undefined)
+  const trackedLessonCompletion = useRef(false)
 
+  // Track exercise completion when navigating away from an exercise
   useEffect(() => {
-    // When navigating away from an exercise (to next exercise or outro),
-    // track the previous exercise as completed
     if (
       prevExerciseIndex.current !== undefined &&
       prevExerciseIndex.current !== pageState.exerciseIndex
@@ -71,6 +72,10 @@ export function ExercisesPager({
       const prevExercise = exercises[prevExerciseIndex.current]
       if (prevExercise && !trackedExercises.current.has(prevExercise.id)) {
         trackedExercises.current.add(prevExercise.id)
+        const results = exerciseResults.current[prevExercise.id]
+        const totalQuestions = results?.totalQuestions || 1
+        const correctCount = results?.correctCount || 0
+        const score = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0
         fetch('/api/stats/track-activity', {
           method: 'POST',
           credentials: 'include',
@@ -80,9 +85,9 @@ export function ExercisesPager({
             exerciseId: prevExercise.id,
             exerciseTitle: prevExercise.title || '',
             lessonId,
-            score: 100, // Default - individual question scoring happens in validate-answer
-            totalQuestions: 1,
-            correctCount: 1,
+            score,
+            totalQuestions,
+            correctCount,
           }),
         }).catch(() => {
           // fail silently
@@ -92,11 +97,39 @@ export function ExercisesPager({
     prevExerciseIndex.current = pageState.exerciseIndex
   }, [pageState.exerciseIndex, exercises, lessonId])
 
+  // Track lesson completion when reaching the outro page
+  useEffect(() => {
+    if (pageState.type === 'outro' && !trackedLessonCompletion.current) {
+      trackedLessonCompletion.current = true
+      fetch('/api/stats/track-activity', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventType: 'lesson_completed',
+          lessonId,
+          lessonTitle,
+        }),
+      }).catch(() => {
+        // fail silently
+      })
+    }
+  }, [pageState.type, lessonId, lessonTitle])
+
   const introMediaObj = introMedia && typeof introMedia === 'object' ? introMedia : null
 
   const exerciseOrdinal = getExerciseOrdinal()
   const currentExercise =
     typeof pageState.exerciseIndex === 'number' ? exercises[pageState.exerciseIndex] : null
+
+  const handleExerciseResultsChange = useCallback(
+    (results: { totalQuestions: number; correctCount: number }) => {
+      if (currentExercise) {
+        exerciseResults.current[currentExercise.id] = results
+      }
+    },
+    [currentExercise],
+  )
 
   if (pageState.type === 'exercise' && currentExercise) {
     return (
@@ -137,6 +170,7 @@ export function ExercisesPager({
                     mediaMap={mediaMap}
                     lessonId={lessonId}
                     exerciseId={currentExercise.id}
+                    onResultsChange={handleExerciseResultsChange}
                   />
                 </div>
               </div>

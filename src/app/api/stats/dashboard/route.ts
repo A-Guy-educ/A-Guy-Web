@@ -212,6 +212,9 @@ export async function GET(req: Request) {
   const exerciseRecords = filteredRecords.filter(
     (r: ProgressRecord) => r.recordType === 'exercise' && r.score !== null && r.score !== undefined,
   )
+  const allExerciseRecords = filteredRecords.filter(
+    (r: ProgressRecord) => r.recordType === 'exercise',
+  )
 
   // Total Progress: average completion percentage across lesson records
   const totalProgress =
@@ -250,13 +253,13 @@ export async function GET(req: Request) {
   const practiceSuccessRate =
     practiceAttempted > 0 ? Math.round((practiceCompleted / practiceAttempted) * 100) : 0
 
-  // Exams: filter lesson records that belong to exam-type lessons
-  const examLessonRecords = lessonRecords.filter((r: ProgressRecord) => {
-    const lessonType = lessonTypeMap.get(r.recordId)
-    return lessonType === 'exam'
+  // Exams: average exercise scores for exercises belonging to exam-type lessons
+  const examExerciseRecords = allExerciseRecords.filter((r: ProgressRecord) => {
+    const parentLessonId = exerciseToLesson.get(r.recordId)
+    if (!parentLessonId) return false
+    return lessonTypeMap.get(parentLessonId) === 'exam'
   })
-  // For exams, use the average score of exam-type lesson records
-  const examRecordsWithScores = examLessonRecords.filter(
+  const examRecordsWithScores = examExerciseRecords.filter(
     (r: ProgressRecord) => r.score !== null && r.score !== undefined,
   )
   const examAvgScore =
@@ -314,9 +317,6 @@ export async function GET(req: Request) {
   }
 
   // Include exercise records - map exercise→lesson→chapter
-  const allExerciseRecords = filteredRecords.filter(
-    (r: ProgressRecord) => r.recordType === 'exercise',
-  )
   for (const record of allExerciseRecords) {
     const lessonId = exerciseToLesson.get(record.recordId)
     if (!lessonId) continue

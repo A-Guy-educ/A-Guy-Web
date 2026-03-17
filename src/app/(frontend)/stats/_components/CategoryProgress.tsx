@@ -57,7 +57,7 @@ export function CategoryProgress({ data }: CategoryProgressProps) {
       color: TAB_COLORS.ask.text,
       title: t('categoryAsk'),
       value: `${data.ask.questionsAsked} ${t('questionsAsked')}, ${data.ask.conversations} ${t('conversationsStarted')}`,
-      progress: Math.min(data.ask.conversations * 10, 100), // Approximate
+      progress: Math.min(Math.round((data.ask.questionsAsked / 20) * 100), 100),
     },
   ]
 
