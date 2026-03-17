@@ -15,9 +15,14 @@ import {
 import { isVercelBlobUrl } from '@/infra/blob/vercel-blob-adapter'
 import { getMediaBlobAdapter } from '@/infra/blob/vercel-blob-adapter'
 
-const finalizeSchema = z.object({
-  uploadSessionId: z.string().min(1),
-})
+const finalizeSchema = z
+  .object({
+    uploadSessionId: z.string().min(1).optional(),
+    blobUrl: z.string().url().optional(),
+  })
+  .refine((data) => data.uploadSessionId || data.blobUrl, {
+    message: 'Either uploadSessionId or blobUrl is required',
+  })
 
 export async function POST(request: Request): Promise<Response> {
   try {
@@ -43,14 +48,26 @@ export async function POST(request: Request): Promise<Response> {
       )
     }
 
-    const { uploadSessionId } = validated.data
+    const { uploadSessionId, blobUrl } = validated.data
 
-    const session = await payload.findByID({
-      collection: 'upload-sessions',
-      id: uploadSessionId,
-      depth: 0,
-      overrideAccess: true,
-    })
+    let session
+    if (uploadSessionId) {
+      session = await payload.findByID({
+        collection: 'upload-sessions',
+        id: uploadSessionId,
+        depth: 0,
+        overrideAccess: true,
+      })
+    } else if (blobUrl) {
+      const results = await payload.find({
+        collection: 'upload-sessions',
+        where: { blobUrl: { equals: blobUrl } },
+        limit: 1,
+        depth: 0,
+        overrideAccess: true,
+      })
+      session = results.docs[0] || null
+    }
 
     if (!session) {
       return Response.json({ error: 'Upload session not found' }, { status: 404 })
