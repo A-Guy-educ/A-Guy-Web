@@ -74,9 +74,13 @@ Add Zod schemas to:
 - api/cody/tasks/approve-review
 
 ### 7. CI Coverage Enforcement
-- Add --coverage flags to test:unit
-- Upload coverage report as artifact
-- Add coverage config to vitest.config.unit.mts
+
+- Add `--coverage` flag to `pnpm test:unit` step in `.github/workflows/ci.yml`
+- Add coverage artifact upload (retention-days: 7)
+- **Note**: `vitest.config.unit.mts` already has complete coverage config with:
+  - provider: 'v8'
+  - reporter: ['text', 'html', 'lcov']
+  - thresholds: statements: 30, branches: 25, functions: 30
 
 ### 8. Web Vitals Tracking
 Add Sentry.browserTracingIntegration() to instrumentation-client.ts

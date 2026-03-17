@@ -2317,6 +2317,155 @@
           "timestamp": "2026-03-17T20:35:45.442Z"
         }
       ]
+    },
+    {
+      "stage": "gap",
+      "sessionId": "ses_30272da7cffewMw1kBiuNj2xFk",
+      "startedAt": "2026-03-17T20:46:51.779Z",
+      "messages": [
+        {
+          "role": "user",
+          "stage": "gap",
+          "text": "\"CRITICAL: This is a SPEC-ONLY pipeline. DO NOT create branches, commits, or pull requests. DO NOT modify any code files. Only read from and write to the /home/runner/work/A-Guy/A-Guy/.tasks/260316-auto-648/ directory.\n\nTask ID: 260316-auto-648\n\n\nRead these files for context:\n- /home/runner/work/A-Guy/A-Guy/.tasks/260316-auto-648/task.md\n- /home/runner/work/A-Guy/A-Guy/.tasks/260316-auto-648/task.json\n\nWrite your output to /home/runner/work/A-Guy/A-Guy/.tasks/260316-auto-648/gap.md\"",
+          "tools": [],
+          "timestamp": "2026-03-17T20:46:51.818Z",
+          "model": "{\"providerID\":\"minimax-coding-plan\",\"modelID\":\"MiniMax-M2.5\"}"
+        },
+        {
+          "role": "assistant",
+          "stage": "gap",
+          "text": "",
+          "tools": [
+            "read",
+            "read"
+          ],
+          "timestamp": "2026-03-17T20:46:51.941Z"
+        },
+        {
+          "role": "assistant",
+          "stage": "gap",
+          "text": "Now let me explore the codebase to understand existing patterns and find gaps. I'll start by examining the relevant files mentioned in the task.",
+          "tools": [
+            "read",
+            "glob",
+            "glob"
+          ],
+          "timestamp": "2026-03-17T20:47:29.931Z"
+        },
+        {
+          "role": "assistant",
+          "stage": "gap",
+          "text": "",
+          "tools": [
+            "read",
+            "read",
+            "glob"
+          ],
+          "timestamp": "2026-03-17T20:47:41.367Z"
+        },
+        {
+          "role": "assistant",
+          "stage": "gap",
+          "text": "",
+          "tools": [
+            "read",
+            "grep",
+            "grep"
+          ],
+          "timestamp": "2026-03-17T20:47:47.696Z"
+        },
+        {
+          "role": "assistant",
+          "stage": "gap",
+          "text": "Let me check more files to understand the current state:",
+          "tools": [
+            "glob",
+            "read",
+            "glob"
+          ],
+          "timestamp": "2026-03-17T20:47:55.178Z"
+        },
+        {
+          "role": "assistant",
+          "stage": "gap",
+          "text": "",
+          "tools": [
+            "read",
+            "grep"
+          ],
+          "timestamp": "2026-03-17T20:48:05.892Z"
+        },
+        {
+          "role": "assistant",
+          "stage": "gap",
+          "text": "",
+          "tools": [
+            "read"
+          ],
+          "timestamp": "2026-03-17T20:48:11.915Z"
+        },
+        {
+          "role": "assistant",
+          "stage": "gap",
+          "text": "",
+          "tools": [
+            "grep"
+          ],
+          "timestamp": "2026-03-17T20:48:17.237Z"
+        },
+        {
+          "role": "assistant",
+          "stage": "gap",
+          "text": "",
+          "tools": [
+            "read"
+          ],
+          "timestamp": "2026-03-17T20:48:22.172Z"
+        },
+        {
+          "role": "assistant",
+          "stage": "gap",
+          "text": "Now I have a complete understanding. Let me write the spec and gap analysis.",
+          "tools": [
+            "write"
+          ],
+          "timestamp": "2026-03-17T20:48:53.888Z"
+        },
+        {
+          "role": "assistant",
+          "stage": "gap",
+          "text": "",
+          "tools": [
+            "read"
+          ],
+          "timestamp": "2026-03-17T20:49:17.576Z"
+        },
+        {
+          "role": "assistant",
+          "stage": "gap",
+          "text": "",
+          "tools": [
+            "write"
+          ],
+          "timestamp": "2026-03-17T20:49:21.802Z"
+        },
+        {
+          "role": "assistant",
+          "stage": "gap",
+          "text": "",
+          "tools": [
+            "edit"
+          ],
+          "timestamp": "2026-03-17T20:49:40.262Z"
+        },
+        {
+          "role": "assistant",
+          "stage": "gap",
+          "text": "I've completed the gap analysis for task 260316-auto-648. Here's the summary:\n\n## Summary\n\n**Gaps Found: 2**\n**Spec Revised: Yes**\n\n### Key Findings:\n\n1. **Vitest Coverage Config Already Exists** (Medium severity)\n   - The task says to add coverage config to `vitest.config.unit.mts`, but it already exists with:\n     - provider: 'v8'\n     - reporters: ['text', 'html', 'lcov']\n     - thresholds: statements: 30, branches: 25, functions: 30\n   - **What needs to be done**: Add `--coverage` flag to CI workflow's `test:unit` step\n\n2. **Browser Tracing Integration Missing** (High severity)\n   - `src/infra/instrumentation-client.ts` has `replayIntegration` but not `browserTracingIntegration`\n   - This is correctly identified in the spec - no change needed\n\n### All Other Items Verified:\n\n| Item | Status |\n|------|--------|\n| Security headers in next.config.js | ✅ Missing - needs headers() function |\n| Frontend error.tsx | ✅ Doesn't exist - needs creation |\n| Env validation | ✅ Doesn't exist - needs creation |\n| handleCodyApiError | ✅ Has console.error, needs Sentry |\n| 6 non-Cody routes | ✅ Need captureAndRespond |\n| 4 routes to migrate | ✅ Don't use withApiHandler |\n| Routes needing Zod | ✅ Use manual field checks |\n| CI coverage | ✅ Config exists, needs --coverage flag |\n\nThe spec has been updated to clarify the vitest config situation, and gap.md documents all findings.",
+          "tools": [],
+          "timestamp": "2026-03-17T20:49:47.383Z"
+        }
+      ]
     }
   ]
 }

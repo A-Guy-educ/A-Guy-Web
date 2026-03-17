@@ -4,15 +4,15 @@
   "mode": "full",
   "pipeline": "spec_execute_verify",
   "startedAt": "2026-03-17T20:33:21.677Z",
-  "updatedAt": "2026-03-17T20:36:19.777Z",
-  "state": "paused",
-  "cursor": null,
+  "updatedAt": "2026-03-17T20:53:18.132Z",
+  "state": "failed",
+  "cursor": "gap",
   "stages": {
     "taskify": {
-      "state": "paused",
+      "state": "completed",
       "retries": 0,
       "startedAt": "2026-03-17T20:33:23.431Z",
-      "completedAt": "2026-03-17T20:36:12.502Z",
+      "completedAt": "2026-03-17T20:46:47.233Z",
       "elapsed": 169,
       "outputFile": "taskify.md",
       "tokenUsage": {
@@ -21,6 +21,27 @@
         "cacheRead": 279076
       },
       "sessionId": "ses_3027f212affe0RQkjbyL0v9saY"
+    },
+    "gap": {
+      "state": "completed",
+      "retries": 0,
+      "startedAt": "2026-03-17T20:46:48.608Z",
+      "completedAt": "2026-03-17T20:50:12.937Z",
+      "elapsed": 204,
+      "outputFile": "gap.md",
+      "tokenUsage": {
+        "input": 56536,
+        "output": 4414,
+        "cacheRead": 862753
+      },
+      "sessionId": "ses_30272da7cffewMw1kBiuNj2xFk"
+    },
+    "architect": {
+      "state": "failed",
+      "retries": 0,
+      "startedAt": "2026-03-17T20:50:12.939Z",
+      "elapsed": 184,
+      "error": "Agent \"architect\" failed. Artifacts: architect-stderr.log, architect-events.jsonl"
     }
   },
   "issueNumber": 822,
@@ -33,5 +54,5 @@
       "timestamp": "2026-03-17T20:33:21.677Z"
     }
   ],
-  "completedAt": "2026-03-17T20:36:19.777Z"
+  "completedAt": "2026-03-17T20:53:18.132Z"
 }
