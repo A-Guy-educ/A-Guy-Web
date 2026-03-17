@@ -62,8 +62,12 @@ export const scenario02: Scenario = {
       ctx.log.info('Dispatching pipeline with complexity=65...')
       workflowDispatchTime = new Date().toISOString()
 
-      // Generate task ID
-      taskId = `systest-${ctx.runId}`
+      // Generate task ID in YYMMDD-description format (required by parse-inputs)
+      const now = new Date()
+      const yy = String(now.getFullYear()).slice(-2)
+      const mm = String(now.getMonth() + 1).padStart(2, '0')
+      const dd = String(now.getDate()).padStart(2, '0')
+      taskId = `${yy}${mm}${dd}-systest-${ctx.runId}`
 
       // Use gh workflow run to dispatch
       execFileSync(
