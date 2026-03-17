@@ -24,9 +24,10 @@ import {
   setClassificationLabels,
   setProfileLabel,
 } from '../github-api'
-import { updateStage, completeState, writeState } from '../engine/status'
+import { updateStage, completeState, writeState, appendActorEvent } from '../engine/status'
 import { classifyError, formatErrorsAsMarkdown } from './error-classifier'
-import { runAgentWithFileWatch, STAGE_TIMEOUTS, DEFAULT_TIMEOUT } from '../agent-runner'
+import { runAgentWithFileWatch } from '../agent-runner'
+import { getStageTimeout } from '../stages/registry'
 
 /**
  * Execute a post-action
@@ -89,6 +90,15 @@ export async function executePostAction(
         if (taskDef.complexity !== undefined) {
           const tier = getComplexityTier(taskDef.complexity)
           logger.info(`  ℹ️ Complexity: ${taskDef.complexity} (${tier}) → profile: ${ctx.profile}`)
+
+          // R2-FIX #6: Warn when complexity seems mismatched with profile.
+          // A lightweight profile with high complexity may skip important stages.
+          if (ctx.profile === 'lightweight' && taskDef.complexity >= 35) {
+            logger.warn(
+              `  ⚠️ Profile/complexity mismatch: lightweight profile with complexity ${taskDef.complexity} (complex tier). ` +
+                `Some stages may be unexpectedly skipped. Consider overriding with --profile=standard.`,
+            )
+          }
         } else {
           logger.info(
             `  ℹ️ Resolved profile: ${ctx.profile} (no complexity score, using legacy heuristic)`,
@@ -174,12 +184,30 @@ export async function executePostAction(
           removeIssueLabel(ctx.input.issueNumber, GATE_LABELS.HARD_STOP)
           removeIssueLabel(ctx.input.issueNumber, GATE_LABELS.RISK_GATED)
         }
+        // Record gate rejection actor event
+        if (ctx.actor && _state) {
+          appendActorEvent(ctx.taskId, _state, {
+            action: 'gate-rejected',
+            actor: ctx.actor,
+            timestamp: new Date().toISOString(),
+            stage: action.gate,
+          })
+        }
         throw new Error(`Task rejected at ${action.gate} gate`)
       }
       // Approved - remove gate label so dashboard shows it's no longer waiting
       if (ctx.input.issueNumber) {
         removeIssueLabel(ctx.input.issueNumber, GATE_LABELS.HARD_STOP)
         removeIssueLabel(ctx.input.issueNumber, GATE_LABELS.RISK_GATED)
+      }
+      // Record gate approval actor event
+      if (ctx.actor && _state) {
+        appendActorEvent(ctx.taskId, _state, {
+          action: 'gate-approved',
+          actor: ctx.actor,
+          timestamp: new Date().toISOString(),
+          stage: action.gate,
+        })
       }
       break
     }
@@ -256,17 +284,26 @@ export async function executePostAction(
       // Check that the build agent actually modified source files, not just .tasks/
       let diff = ''
       let untracked = ''
+      let gitFailed = false
       try {
         diff = execFileSync('git', ['diff', '--name-only'], { encoding: 'utf-8' }).trim()
       } catch (error) {
-        logger.warn({ err: error }, 'git diff failed during src validation')
+        logger.error({ err: error }, 'git diff failed during src validation')
+        gitFailed = true
       }
       try {
         untracked = execFileSync('git', ['ls-files', '--others', '--exclude-standard'], {
           encoding: 'utf-8',
         }).trim()
       } catch (error) {
-        logger.warn({ err: error }, 'git ls-files failed during src validation')
+        logger.error({ err: error }, 'git ls-files failed during src validation')
+        gitFailed = true
+      }
+
+      if (gitFailed) {
+        throw new Error(
+          'validate-src-changes: git commands failed — cannot verify source changes. Check git state.',
+        )
       }
 
       const allChanged = [...diff.split('\n'), ...untracked.split('\n')]
@@ -335,7 +372,6 @@ export async function executePostAction(
       }
 
       // Helper: split a simple shell command into program + args for execFileSync
-      // Only handles space-separated tokens (no quoting/glob/pipes)
       const parseCommand = (cmd: string): { program: string; args: string[] } => {
         const parts = cmd.split(/\s+/).filter(Boolean)
         return { program: parts[0], args: parts.slice(1) }
@@ -371,6 +407,10 @@ export async function executePostAction(
               : ''
             const output = stdout + stderr + (err.message || '')
             logger.info(`   ✗ ${gate.name} failed`)
+            const truncated = output.slice(-2000).trim()
+            if (truncated) {
+              logger.info(`   Error output (last 2000 chars):\n${truncated}`)
+            }
             return { ...gate, passed: false, error: output }
           }
         })
@@ -386,16 +426,15 @@ export async function executePostAction(
       let completedLoops = 0
       const encounteredErrors = new Set<string>()
 
-      // Autofix feedback loop
-      // Note: No commit/push after autofix here — the pipeline's 'commit' stage
-      // immediately follows 'build' and handles committing all working tree changes.
-      // This differs from scripted-handler.ts (verify autofix) which commits because
-      // it runs after the commit stage.
+      // Build agent feedback loop — the build agent wrote the code, so it fixes
+      // ALL failures (tsc, lint, format, tests). No separate autofix agent needed
+      // here because the build agent has full context (spec, plan, code intent).
       for (let attempt = 1; attempt <= action.maxFeedbackLoops; attempt++) {
-        logger.info(`
-🔧 Build autofix attempt ${attempt}/${action.maxFeedbackLoops}...`)
+        logger.info(
+          `\n🔧 Build agent fix attempt ${attempt}/${action.maxFeedbackLoops} (${failures.map((f) => f.name).join(', ')})...`,
+        )
 
-        // Classify errors and write build-errors.md
+        // Classify errors and write build-errors.md for the build agent to read
         const errors = failures.map((f) => classifyError(f.error || '', f.source))
         errors.forEach((e) => encounteredErrors.add(e.category))
         completedLoops = attempt
@@ -403,54 +442,39 @@ export async function executePostAction(
         const errorsFile = path.join(ctx.taskDir, 'build-errors.md')
         fs.writeFileSync(errorsFile, markdown)
 
-        // Run autofix agent
-        const autofixOutput = path.join(ctx.taskDir, 'autofix.md')
-        if (fs.existsSync(autofixOutput)) {
-          fs.unlinkSync(autofixOutput)
-        }
-        const autofixTimeout = STAGE_TIMEOUTS.autofix ?? DEFAULT_TIMEOUT
-        let autofixResult: { succeeded: boolean } | undefined
+        // Re-invoke the build agent — it has spec, plan, and wrote the code
+        const buildOutput = path.join(ctx.taskDir, 'build.md')
+        const buildTimeout = getStageTimeout('build')
+        let buildResult: { succeeded: boolean } | undefined
         try {
-          autofixResult = await runAgentWithFileWatch(
-            ctx.input,
-            'autofix',
-            autofixOutput,
-            autofixTimeout,
-            { backend: ctx.backend },
-          )
+          buildResult = await runAgentWithFileWatch(ctx.input, 'build', buildOutput, buildTimeout, {
+            backend: ctx.backend,
+          })
         } catch (agentError) {
           logger.error(
             { err: agentError },
-            `  ❌ Autofix agent threw exception (attempt ${attempt}/${action.maxFeedbackLoops})`,
+            `  ❌ Build agent threw exception (fix attempt ${attempt}/${action.maxFeedbackLoops})`,
           )
-          continue // Treat as failed attempt, not pipeline crash
-        }
-
-        if (!autofixResult?.succeeded) {
-          logger.error(`  ❌ Autofix agent failed (attempt ${attempt})`)
           continue
         }
 
-        // Re-run ONLY failed gates
-        const failedGateSpecs = failures.map((f) => ({
-          name: f.name,
-          command: f.command,
-          source: f.source,
-        }))
-        results = runGates(failedGateSpecs)
+        if (!buildResult?.succeeded) {
+          logger.error(`  ❌ Build agent failed (fix attempt ${attempt})`)
+          continue
+        }
+
+        // Re-run ALL gates after build agent changes
+        results = runGates(action.gates)
         failures = results.filter((r) => !r.passed)
 
         if (failures.length === 0) {
-          logger.info(`  ✅ All quality gates passed after autofix attempt ${attempt}`)
-          // Clean up build-errors.md since everything passed
-          if (fs.existsSync(errorsFile)) {
-            fs.unlinkSync(errorsFile)
-          }
+          logger.info(`  ✅ All quality gates passed after build agent fix attempt ${attempt}`)
+          if (fs.existsSync(errorsFile)) fs.unlinkSync(errorsFile)
           break
         }
       }
 
-      // Record feedback loop metrics in status.json for observability (immutable update)
+      // Record feedback loop metrics in status.json for observability
       if (completedLoops > 0) {
         const currentState = _state
         if (currentState && currentState.stages?.build) {
@@ -463,14 +487,11 @@ export async function executePostAction(
       }
 
       if (failures.length > 0) {
-        // Clean up orphaned build-errors.md before throwing
         const errorsFile = path.join(ctx.taskDir, 'build-errors.md')
-        if (fs.existsSync(errorsFile)) {
-          fs.unlinkSync(errorsFile)
-        }
+        if (fs.existsSync(errorsFile)) fs.unlinkSync(errorsFile)
         const failedNames = failures.map((f) => f.name).join(', ')
         throw new Error(
-          `Quality gates failed after ${action.maxFeedbackLoops} autofix attempts: ${failedNames}`,
+          `Quality gates failed after ${action.maxFeedbackLoops} build agent fix attempts: ${failedNames}`,
         )
       }
       break
@@ -484,17 +505,60 @@ export async function executePostAction(
 
       if (fs.existsSync(reviewPath)) {
         const reviewContent = fs.readFileSync(reviewPath, 'utf-8')
+        const contentLower = reviewContent.toLowerCase()
 
-        // Parse review findings
-        const criticalMatch = reviewContent.match(/Critical:\s*(\d+)/)
-        const majorMatch = reviewContent.match(/Major:\s*(\d+)/)
-        const fixRequiredMatch = reviewContent.match(/Fix Required.*\[\s*x\s*\]\s*Yes/i)
+        // Parse review findings with multiple robust patterns
+        // Pattern 1: "Critical: N" or "Critical Issues: N" or "**Critical**: N"
+        const criticalPatterns = [/critical[^:]*:\s*(\d+)/i, /(\d+)[ \t]+critical/i]
+        // Pattern 2: "Major: N" or "Major Issues: N" or "**Major**: N"
+        const majorPatterns = [/major[^:]*:\s*(\d+)/i, /(\d+)[ \t]+major/i]
+        // Pattern 3: "Minor: N"
+        const minorPatterns = [/minor[^:]*:\s*(\d+)/i, /(\d+)[ \t]+minor/i]
 
-        reviewSummary.critical = parseInt(criticalMatch?.[1] || '0')
-        reviewSummary.major = parseInt(majorMatch?.[1] || '0')
+        for (const pat of criticalPatterns) {
+          const match = reviewContent.match(pat)
+          if (match) {
+            reviewSummary.critical = Math.max(reviewSummary.critical, parseInt(match[1]))
+          }
+        }
+        for (const pat of majorPatterns) {
+          const match = reviewContent.match(pat)
+          if (match) {
+            reviewSummary.major = Math.max(reviewSummary.major, parseInt(match[1]))
+          }
+        }
+        for (const pat of minorPatterns) {
+          const match = reviewContent.match(pat)
+          if (match) {
+            reviewSummary.minor = Math.max(reviewSummary.minor, parseInt(match[1]))
+          }
+        }
+
+        // Check for explicit fix-required indicators
+        const fixRequiredMatch =
+          reviewContent.match(/fix\s*required[^\n]*\[\s*x\s*\]/i) ||
+          reviewContent.match(/\[\s*x\s*\][^\n]*fix\s*required/i) ||
+          reviewContent.match(/fix\s*required[^\n]*yes/i)
+
+        // Also check for issue-indicating keywords as fallback
+        const hasIssueKeywords =
+          contentLower.includes('must fix') ||
+          contentLower.includes('needs fix') ||
+          contentLower.includes('should fix') ||
+          contentLower.includes('bug found') ||
+          contentLower.includes('security issue') ||
+          contentLower.includes('vulnerability')
 
         fixNeeded =
-          reviewSummary.critical > 0 || reviewSummary.major > 0 || fixRequiredMatch !== null
+          reviewSummary.critical > 0 ||
+          reviewSummary.major > 0 ||
+          fixRequiredMatch !== null ||
+          hasIssueKeywords
+      }
+
+      // In fix mode, always set fixNeeded to true — user explicitly asked for fixes
+      if (ctx.input.mode === 'fix') {
+        fixNeeded = true
       }
 
       // Update state to track findings
@@ -510,6 +574,39 @@ export async function executePostAction(
       logger.info(
         `  Review findings: ${reviewSummary.critical} critical, ${reviewSummary.major} major, fixNeeded=${fixNeeded}`,
       )
+      break
+    }
+
+    case 'run-mechanical-autofix': {
+      // Run lint:fix + format:fix deterministically — no LLM needed for mechanical fixes.
+      // This prevents trivial format/lint failures from reaching verify stage.
+      if (ctx.input.dryRun) return
+
+      logger.info('  🔧 Running mechanical auto-fix (lint:fix + format:fix)...')
+
+      try {
+        execFileSync('pnpm', ['lint:fix'], {
+          stdio: 'pipe',
+          timeout: 2 * 60 * 1000, // 2 minutes
+          maxBuffer: 10 * 1024 * 1024,
+        })
+        logger.info('   ✓ lint:fix completed')
+      } catch {
+        logger.info('   ✗ lint:fix had errors (some may need manual fix)')
+      }
+
+      try {
+        execFileSync('pnpm', ['format:fix'], {
+          stdio: 'pipe',
+          timeout: 2 * 60 * 1000, // 2 minutes
+          maxBuffer: 10 * 1024 * 1024,
+        })
+        logger.info('   ✓ format:fix completed')
+      } catch {
+        logger.info('   ✗ format:fix had errors (some may need manual fix)')
+      }
+
+      logger.info('  ✅ Mechanical auto-fix complete')
       break
     }
 
@@ -560,7 +657,9 @@ export async function executePostAction(
     }
 
     default:
-      logger.warn(`Unknown post-action type: ${(action as PostAction).type}`)
+      throw new Error(
+        `Unknown post-action type: "${(action as PostAction).type}". This is a configuration bug.`,
+      )
   }
 }
 

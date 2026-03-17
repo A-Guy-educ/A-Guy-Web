@@ -4,11 +4,14 @@ import { EmptyLessonPlaceholder } from './_components/EmptyLessonPlaceholder'
 import type { Media } from '@/payload-types'
 import { SystemParams } from '@/infra/config/system-params'
 import { resolveAccessType } from '@/server/constants/access-types'
+import { getSystemLocale } from '@/i18n/server-locale'
+import { isValidContentLocale } from '@/server/payload/fields/contentLocale'
 import { queryCourseBySlug } from '@/server/repos/queries/courses'
 import { queryExercisesByLesson } from '@/server/repos/queries/exercises'
 import { queryLessonBySlug } from '@/server/repos/queries/lessons'
 import { queryMediaByIds } from '@/server/repos/queries/media'
 import { isAuthenticatedServer } from '@/server/utils/access-gate-server'
+import { checkPaidAccess } from '@/server/utils/check-paid-access'
 import { AccessGateProvider } from '@/ui/web/auth/AccessGateProvider'
 import { ChatInterface } from '@/ui/web/chat'
 import { extractAllMediaIds } from '@/ui/web/exerciserenderer/utils/extractMediaIds'
@@ -29,9 +32,11 @@ interface LessonPageProps {
 
 export default async function LessonPage({ params }: LessonPageProps) {
   const { courseSlug, chapterSlug, lessonSlug } = await params
+  const locale = await getSystemLocale()
+  const contentLocale = isValidContentLocale(locale) ? locale : undefined
 
   const [course, lesson] = await Promise.all([
-    queryCourseBySlug({ slug: courseSlug }),
+    queryCourseBySlug({ slug: courseSlug, locale: contentLocale }),
     queryLessonBySlug({ slug: lessonSlug }),
   ])
 
@@ -73,6 +78,26 @@ export default async function LessonPage({ params }: LessonPageProps) {
         <div className="min-h-screen" />
       </AccessGateProvider>
     )
+  }
+
+  // Server-side block: for paid mode, check entitlement
+  if (effectiveAccessType === 'paid') {
+    const { requiresEntitlement, isAuthenticated } = await checkPaidAccess(course.id)
+
+    if (requiresEntitlement) {
+      return (
+        <AccessGateProvider
+          accessType={effectiveAccessType}
+          courseSlug={courseSlug}
+          gatedDelayMs={gatedDelayMs}
+          gatedWarningMs={gatedWarningMs}
+          requiresEntitlement={true}
+          isAuthenticated={isAuthenticated}
+        >
+          <div className="min-h-screen" />
+        </AccessGateProvider>
+      )
+    }
   }
 
   const exercises = await queryExercisesByLesson({ lessonId: lesson.id })
@@ -144,9 +169,9 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
   // Case 2: Document exists -> Keep existing behavior with ExerciseWorkspace
   const primaryContent = (
-    <div className="w-full h-full flex flex-col">
+    <div className="w-full h-full flex flex-col min-h-0">
       {validFiles.map((file, index) => (
-        <div key={file.id} className="w-full h-full flex-shrink-0">
+        <div key={file.id} className="w-full flex-1 min-h-0">
           {index > 0 && (
             <div className="h-0.5 my-8 flex-shrink-0 bg-gradient-to-r from-transparent via-border to-transparent" />
           )}
@@ -184,9 +209,11 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
 export async function generateMetadata({ params }: LessonPageProps) {
   const { courseSlug, chapterSlug, lessonSlug } = await params
+  const locale = await getSystemLocale()
+  const contentLocale = isValidContentLocale(locale) ? locale : undefined
 
   const [course, lesson] = await Promise.all([
-    queryCourseBySlug({ slug: courseSlug }),
+    queryCourseBySlug({ slug: courseSlug, locale: contentLocale }),
     queryLessonBySlug({ slug: lessonSlug }),
   ])
 

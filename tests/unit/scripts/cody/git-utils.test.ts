@@ -38,6 +38,7 @@ import {
   BRANCH_PREFIX_MAP,
   commitPipelineFiles,
   deriveBranchName,
+  pushWithRebase,
 } from '../../../../scripts/cody/git-utils'
 
 // ============================================================================
@@ -1548,5 +1549,364 @@ describe('commitPipelineFiles shell safety', () => {
 
     // Verify execFileSync was called with correct arguments (not a shell string)
     expect(childProcess.execFileSync).toHaveBeenCalled()
+  })
+})
+
+// ============================================================================
+// commitPipelineFiles — task artifact exclusion
+// ============================================================================
+
+describe('commitPipelineFiles artifact exclusion', () => {
+  const mockExecFileSync = vi.mocked(childProcess.execFileSync)
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockExecFileSync.mockReturnValue(Buffer.from(''))
+  })
+
+  // Helper to extract git reset HEAD calls
+  const getResetCalls = () =>
+    mockExecFileSync.mock.calls
+      .filter((c) => c[0] === 'git' && (c[1] as string[])?.[0] === 'reset')
+      .map((c) => (c[1] as string[]).join(' '))
+
+  describe('on successful pipeline (pipelineFailed=false, default)', () => {
+    it('should unstage gate markers (always excluded)', () => {
+      commitPipelineFiles({
+        taskDir: '.tasks/260218-test',
+        taskId: '260218-test',
+        message: 'test commit',
+        stagingStrategy: 'task-only',
+      })
+
+      const resets = getResetCalls()
+      // Should unstage gate-*.md
+      expect(resets.some((r) => r.includes('gate-*.md'))).toBe(true)
+      // Should unstage rerun-feedback.consumed.md
+      expect(resets.some((r) => r.includes('rerun-feedback.consumed.md'))).toBe(true)
+    })
+
+    it('should unstage debug artifacts on success (noise reduction)', () => {
+      commitPipelineFiles({
+        taskDir: '.tasks/260218-test',
+        taskId: '260218-test',
+        message: 'test commit',
+        stagingStrategy: 'task-only',
+      })
+
+      const resets = getResetCalls()
+      // Should unstage *-events.jsonl
+      expect(resets.some((r) => r.includes('*-events.jsonl'))).toBe(true)
+      // Should unstage *-stderr.log
+      expect(resets.some((r) => r.includes('*-stderr.log'))).toBe(true)
+    })
+
+    it('should unstage patterns with correct taskDir path prefix', () => {
+      commitPipelineFiles({
+        taskDir: '.tasks/260218-test',
+        taskId: '260218-test',
+        message: 'test commit',
+        stagingStrategy: 'task-only',
+      })
+
+      const resets = getResetCalls()
+      // All reset patterns should include the taskDir prefix
+      for (const reset of resets) {
+        expect(reset).toContain('.tasks/260218-test')
+      }
+    })
+
+    it('should also unstage excluded files with tracked+task strategy', () => {
+      commitPipelineFiles({
+        taskDir: '.tasks/260218-test',
+        taskId: '260218-test',
+        message: 'test commit',
+        stagingStrategy: 'tracked+task',
+      })
+
+      const resets = getResetCalls()
+      // Should still unstage gate markers and debug artifacts
+      expect(resets.some((r) => r.includes('gate-*.md'))).toBe(true)
+      expect(resets.some((r) => r.includes('*-events.jsonl'))).toBe(true)
+    })
+
+    it('should NOT unstage excluded files with "all" strategy', () => {
+      commitPipelineFiles({
+        taskDir: '.tasks/260218-test',
+        taskId: '260218-test',
+        message: 'test commit',
+        stagingStrategy: 'all',
+      })
+
+      const resets = getResetCalls()
+      // "all" strategy does not run unstage logic
+      expect(resets).toHaveLength(0)
+    })
+  })
+
+  describe('on failed pipeline (pipelineFailed=true)', () => {
+    it('should still unstage gate markers (always excluded)', () => {
+      commitPipelineFiles({
+        taskDir: '.tasks/260218-test',
+        taskId: '260218-test',
+        message: 'test commit',
+        stagingStrategy: 'task-only',
+        pipelineFailed: true,
+      })
+
+      const resets = getResetCalls()
+      expect(resets.some((r) => r.includes('gate-*.md'))).toBe(true)
+      expect(resets.some((r) => r.includes('rerun-feedback.consumed.md'))).toBe(true)
+    })
+
+    it('should NOT unstage debug artifacts (needed for post-mortem)', () => {
+      commitPipelineFiles({
+        taskDir: '.tasks/260218-test',
+        taskId: '260218-test',
+        message: 'test commit',
+        stagingStrategy: 'task-only',
+        pipelineFailed: true,
+      })
+
+      const resets = getResetCalls()
+      // Debug artifacts should NOT be unstaged on failure
+      expect(resets.some((r) => r.includes('*-events.jsonl'))).toBe(false)
+      expect(resets.some((r) => r.includes('*-stderr.log'))).toBe(false)
+    })
+
+    it('should have fewer reset calls than success path', () => {
+      // Success path
+      commitPipelineFiles({
+        taskDir: '.tasks/260218-success',
+        taskId: '260218-success',
+        message: 'success commit',
+        stagingStrategy: 'task-only',
+        pipelineFailed: false,
+      })
+      const successResets = getResetCalls()
+
+      vi.clearAllMocks()
+      mockExecFileSync.mockReturnValue(Buffer.from(''))
+
+      // Failure path
+      commitPipelineFiles({
+        taskDir: '.tasks/260218-failure',
+        taskId: '260218-failure',
+        message: 'failure commit',
+        stagingStrategy: 'task-only',
+        pipelineFailed: true,
+      })
+      const failureResets = getResetCalls()
+
+      // Failure path should have fewer resets (no debug artifact exclusions)
+      expect(failureResets.length).toBeLessThan(successResets.length)
+    })
+  })
+
+  describe('resilience', () => {
+    it('should not fail if git reset throws for a pattern (no matching files)', () => {
+      mockExecFileSync.mockImplementation(((file: string, args?: readonly string[]) => {
+        const cmd = (args || []).join(' ')
+        // Make git reset throw for all patterns (simulating no matching files)
+        if (file === 'git' && cmd.startsWith('reset HEAD')) {
+          throw new Error('fatal: pathspec did not match any file(s) known to git')
+        }
+        return Buffer.from('')
+      }) as typeof mockExecFileSync)
+
+      // Should not throw
+      const result = commitPipelineFiles({
+        taskDir: '.tasks/260218-test',
+        taskId: '260218-test',
+        message: 'test commit',
+        stagingStrategy: 'task-only',
+      })
+
+      // The commit itself may fail (because our mock throws on commit too),
+      // but the function should handle reset errors gracefully
+      expect(result).toBeDefined()
+    })
+
+    it('should proceed to commit after reset errors', () => {
+      let commitCalled = false
+      mockExecFileSync.mockImplementation(((file: string, args?: readonly string[]) => {
+        const cmd = (args || []).join(' ')
+        // Reset throws
+        if (file === 'git' && cmd.startsWith('reset HEAD')) {
+          throw new Error('no matching files')
+        }
+        // Track commit call
+        if (file === 'git' && cmd.startsWith('commit')) {
+          commitCalled = true
+        }
+        return Buffer.from('')
+      }) as typeof mockExecFileSync)
+
+      commitPipelineFiles({
+        taskDir: '.tasks/260218-test',
+        taskId: '260218-test',
+        message: 'test commit',
+        stagingStrategy: 'task-only',
+      })
+
+      expect(commitCalled).toBe(true)
+    })
+  })
+})
+
+// ============================================================================
+// pushWithRebase — pull-rebase-retry on push rejection
+// ============================================================================
+
+describe('pushWithRebase', () => {
+  beforeEach(() => {
+    vi.mocked(childProcess.execFileSync).mockClear()
+  })
+
+  it('should succeed on first push attempt', () => {
+    vi.mocked(childProcess.execFileSync).mockReturnValue(Buffer.from(''))
+
+    const result = pushWithRebase('/test/cwd')
+
+    expect(result).toBe(true)
+    // Should have called push once
+    expect(childProcess.execFileSync).toHaveBeenCalledWith(
+      'git',
+      ['push', '-u', 'origin', 'HEAD'],
+      expect.objectContaining({ cwd: '/test/cwd' }),
+    )
+    // Should NOT have called pull --rebase
+    const calls = vi.mocked(childProcess.execFileSync).mock.calls
+    const pullCalls = calls.filter((c) => c[0] === 'git' && c[1]?.includes('pull'))
+    expect(pullCalls).toHaveLength(0)
+  })
+
+  it('should pull-rebase-retry when first push is rejected', () => {
+    let pushCount = 0
+    vi.mocked(childProcess.execFileSync).mockImplementation((cmd, args) => {
+      if (cmd === 'git' && args?.[0] === 'push') {
+        pushCount++
+        if (pushCount === 1) {
+          throw new Error('failed to push some refs')
+        }
+      }
+      return Buffer.from('')
+    })
+
+    const result = pushWithRebase('/test/cwd')
+
+    expect(result).toBe(true)
+
+    const calls = vi.mocked(childProcess.execFileSync).mock.calls
+    // Should have called push twice (first rejected, then succeeded)
+    const pushCalls = calls.filter((c) => c[0] === 'git' && c[1]?.[0] === 'push')
+    expect(pushCalls).toHaveLength(2)
+
+    // Should have called pull --rebase in between
+    const pullCalls = calls.filter(
+      (c) => c[0] === 'git' && c[1]?.[0] === 'pull' && c[1]?.includes('--rebase'),
+    )
+    expect(pullCalls).toHaveLength(1)
+  })
+
+  it('should return false when push fails even after rebase', () => {
+    vi.mocked(childProcess.execFileSync).mockImplementation((cmd, args) => {
+      if (cmd === 'git' && args?.[0] === 'push') {
+        throw new Error('failed to push some refs')
+      }
+      return Buffer.from('')
+    })
+
+    const result = pushWithRebase('/test/cwd')
+
+    expect(result).toBe(false)
+  })
+
+  it('should return false when rebase itself fails (e.g., conflict)', () => {
+    vi.mocked(childProcess.execFileSync).mockImplementation((cmd, args) => {
+      if (cmd === 'git' && args?.[0] === 'push') {
+        throw new Error('failed to push some refs')
+      }
+      if (cmd === 'git' && args?.[0] === 'pull') {
+        throw new Error('CONFLICT: merge conflict in src/file.ts')
+      }
+      return Buffer.from('')
+    })
+
+    const result = pushWithRebase('/test/cwd')
+
+    expect(result).toBe(false)
+  })
+
+  it('should use provided env for all git commands', () => {
+    vi.mocked(childProcess.execFileSync).mockReturnValue(Buffer.from(''))
+    const customEnv = { ...process.env, HUSKY: '0', CUSTOM: 'true' }
+
+    pushWithRebase('/test/cwd', customEnv)
+
+    expect(childProcess.execFileSync).toHaveBeenCalledWith(
+      'git',
+      ['push', '-u', 'origin', 'HEAD'],
+      expect.objectContaining({ env: customEnv }),
+    )
+  })
+})
+
+// ============================================================================
+// commitPipelineFiles — push-rebase integration
+// ============================================================================
+
+describe('commitPipelineFiles push-rebase integration', () => {
+  beforeEach(() => {
+    vi.mocked(childProcess.execFileSync).mockClear()
+    vi.mocked(childProcess.execSync).mockClear()
+  })
+
+  it('should retry push with rebase when remote has diverged', () => {
+    let pushCount = 0
+    vi.mocked(childProcess.execFileSync).mockImplementation((cmd, args) => {
+      if (cmd === 'git' && args?.[0] === 'push') {
+        pushCount++
+        if (pushCount === 1) {
+          throw new Error('Updates were rejected because the remote contains work')
+        }
+      }
+      return Buffer.from('')
+    })
+
+    const result = commitPipelineFiles({
+      taskDir: '.tasks/260218-test',
+      taskId: '260218-test',
+      message: 'ci(cody): commit task files',
+      push: true,
+    })
+
+    // Should succeed — rebase + retry push worked
+    expect(result.success).toBe(true)
+    expect(result.pushed).toBe(true)
+  })
+
+  it('should report push failure but still return committed=true', () => {
+    vi.mocked(childProcess.execFileSync).mockImplementation((cmd, args) => {
+      if (cmd === 'git' && args?.[0] === 'push') {
+        throw new Error('failed to push some refs')
+      }
+      if (cmd === 'git' && args?.[0] === 'pull') {
+        throw new Error('CONFLICT')
+      }
+      return Buffer.from('')
+    })
+
+    const result = commitPipelineFiles({
+      taskDir: '.tasks/260218-test',
+      taskId: '260218-test',
+      message: 'ci(cody): commit task files',
+      push: true,
+    })
+
+    // Commit succeeded but push failed
+    expect(result.success).toBe(true)
+    expect(result.committed).toBe(true)
+    expect(result.pushed).toBe(false)
   })
 })

@@ -9,7 +9,6 @@
 import { useCallback } from 'react'
 import { cn, formatRelativeTime } from '../utils'
 import { getGitHubIssueUrl } from '../constants'
-import { MergeButton } from './MergeButton'
 import { MiniPipelineProgress } from './MiniPipelineProgress'
 import { SimpleTooltip } from './SimpleTooltip'
 import { StatusTooltipContent, SubStatusTooltipContent } from './tooltip-content'
@@ -25,7 +24,6 @@ import {
 } from '@/ui/web/components/select'
 import {
   GitPullRequest,
-  ExternalLink,
   Play,
   Square,
   Bot,
@@ -38,6 +36,11 @@ import {
   Clock,
   AlertCircle,
   RefreshCw,
+  Eye,
+  Inbox,
+  Pencil,
+  Copy,
+  ListPlus,
 } from 'lucide-react'
 
 interface TaskListProps {
@@ -45,35 +48,72 @@ interface TaskListProps {
   selectedTask?: CodyTask | null
   executingTaskId?: string | null
   mergingTaskId?: string | null
+  focusedIndex?: number
   onTaskSelect?: (task: CodyTask | null) => void
   onExecuteTask?: (taskId: string) => void
   onStopTask?: (task: CodyTask) => void
   onApproveReview?: (task: CodyTask) => Promise<void>
+  onTaskHover?: (task: CodyTask) => void
   onAssign?: (issueNumber: number, assignees: string[]) => void
   onUnassign?: (issueNumber: number, assignees: string[]) => void
   collaborators?: { login: string; avatar_url: string }[]
+  onOpenPreview?: (task: CodyTask) => void
+  onCreateTask?: () => void
+  onEditTask?: (task: CodyTask) => void
+  onDuplicate?: (task: CodyTask) => void
+  onToggleQueue?: (task: CodyTask) => void
 }
 
-// ── Status bar colors ──
-const barColor: Record<ColumnId, string> = {
-  open: 'bg-zinc-400',
-  building: 'bg-blue-500',
-  review: 'bg-purple-500',
-  failed: 'bg-red-500',
-  'gate-waiting': 'bg-yellow-500',
-  retrying: 'bg-orange-500',
-  done: 'bg-emerald-500',
+// ── Status colors — single source of truth ──
+const statusColors: Record<ColumnId, { dot: string; text: string; bg: string; border: string }> = {
+  open: { dot: 'bg-zinc-500', text: 'text-zinc-400', bg: '', border: '' },
+  building: {
+    dot: 'bg-blue-500',
+    text: 'text-blue-400',
+    bg: 'bg-blue-500/[0.04]',
+    border: 'border-l-blue-500/50',
+  },
+  review: {
+    dot: 'bg-purple-500',
+    text: 'text-purple-400',
+    bg: 'bg-purple-500/[0.04]',
+    border: 'border-l-purple-500/50',
+  },
+  failed: {
+    dot: 'bg-red-500',
+    text: 'text-red-400',
+    bg: 'bg-red-500/[0.05]',
+    border: 'border-l-red-500/50',
+  },
+  'gate-waiting': {
+    dot: 'bg-amber-500',
+    text: 'text-amber-400',
+    bg: 'bg-amber-500/[0.04]',
+    border: 'border-l-amber-500/50',
+  },
+  retrying: {
+    dot: 'bg-orange-500',
+    text: 'text-orange-400',
+    bg: 'bg-orange-500/[0.04]',
+    border: 'border-l-orange-500/50',
+  },
+  done: {
+    dot: 'bg-emerald-500',
+    text: 'text-emerald-400',
+    bg: 'bg-emerald-500/[0.03]',
+    border: 'border-l-emerald-500/50',
+  },
 }
 
-// ── Status icon for the left bar area ──
+// ── Status icon ──
 const statusIcon: Record<ColumnId, React.ReactNode> = {
-  open: <CircleDot className="w-5 h-5 text-zinc-400" />,
-  building: <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />,
-  review: <GitPullRequest className="w-5 h-5 text-purple-500" />,
-  failed: <XCircle className="w-5 h-5 text-red-500" />,
-  'gate-waiting': <AlertTriangle className="w-5 h-5 text-yellow-500" />,
-  retrying: <RotateCcw className="w-5 h-5 text-orange-500" />,
-  done: <CheckCircle2 className="w-5 h-5 text-emerald-500" />,
+  open: <CircleDot className="w-[18px] h-[18px] text-zinc-500" />,
+  building: <Loader2 className="w-[18px] h-[18px] text-blue-400 animate-spin" />,
+  review: <GitPullRequest className="w-[18px] h-[18px] text-purple-400" />,
+  failed: <XCircle className="w-[18px] h-[18px] text-red-400" />,
+  'gate-waiting': <AlertTriangle className="w-[18px] h-[18px] text-amber-400" />,
+  retrying: <RotateCcw className="w-[18px] h-[18px] text-orange-400" />,
+  done: <CheckCircle2 className="w-[18px] h-[18px] text-emerald-400" />,
 }
 
 // ── Status label text ──
@@ -82,53 +122,29 @@ const statusLabel: Record<ColumnId, string> = {
   building: 'Building',
   review: 'In Review',
   failed: 'Failed',
-  'gate-waiting': 'Gate',
+  'gate-waiting': 'Needs Approval',
   retrying: 'Retrying',
   done: 'Done',
-}
-
-// ── Issue number color by column ──
-const issueNumberColor: Record<ColumnId, string> = {
-  open: 'dark:text-zinc-500 text-zinc-500',
-  building: 'text-blue-400',
-  review: 'text-purple-400',
-  failed: 'text-red-400',
-  'gate-waiting': 'text-yellow-400',
-  retrying: 'text-orange-400',
-  done: 'text-emerald-400',
-}
-
-// ── Row tint by status ──
-const rowTint: Record<ColumnId, string> = {
-  open: '',
-  building: 'bg-blue-500/[0.03]',
-  review: 'bg-purple-500/[0.03]',
-  failed: 'bg-red-500/[0.04]',
-  'gate-waiting': 'bg-yellow-500/[0.03]',
-  retrying: 'bg-orange-500/[0.03]',
-  done: 'bg-emerald-500/[0.03]',
-}
-
-/** Dot separator between inline metadata items */
-function Dot() {
-  return (
-    <span className="text-zinc-600 text-xs select-none" aria-hidden>
-      ·
-    </span>
-  )
 }
 
 export function TaskList({
   tasks,
   selectedTask,
   executingTaskId,
-  mergingTaskId,
+  mergingTaskId: _mergingTaskId,
   onTaskSelect,
   onExecuteTask,
   onStopTask,
-  onApproveReview,
+  onApproveReview: _onApproveReview,
+  onTaskHover,
   onAssign,
   onUnassign: _onUnassign,
+  focusedIndex,
+  onOpenPreview,
+  onCreateTask,
+  onEditTask,
+  onDuplicate,
+  onToggleQueue,
   collaborators = [],
 }: TaskListProps) {
   const handleTaskClick = useCallback(
@@ -142,392 +158,459 @@ export function TaskList({
 
   if (tasks.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-muted-foreground">No tasks found</p>
+      <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-6">
+        <div className="w-14 h-14 rounded-2xl bg-white/[0.03] ring-1 ring-white/[0.06] flex items-center justify-center">
+          <Inbox className="w-6 h-6 text-muted-foreground/40" />
+        </div>
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-foreground">No tasks found</p>
+          <p className="text-xs text-muted-foreground">
+            Tasks you create or that are assigned to Cody will appear here.
+          </p>
+        </div>
+        {onCreateTask && (
+          <Button size="sm" onClick={onCreateTask}>
+            + New Task
+          </Button>
+        )}
       </div>
     )
   }
 
   return (
-    <div>
-      <div className="divide-y divide-border/50">
-        {tasks.map((task) => {
-          const isSelected = task.id === selectedTask?.id
-          const canExecute = task.state === 'open' && onExecuteTask
-          const isExecuting = executingTaskId === task.id
-          const isMerging = mergingTaskId === task.id
-          const hasPR = !!task.associatedPR
-          const isHardStop = task.column === 'gate-waiting' && task.gateType === 'hard-stop'
-          const isActive = task.column === 'building' || task.column === 'retrying'
+    <div className="divide-y divide-white/[0.06]" role="listbox" aria-label="Tasks">
+      {tasks.map((task, index) => {
+        const isSelected = task.id === selectedTask?.id
+        const isFocused = index === focusedIndex
+        const canExecute = task.state === 'open' && onExecuteTask
+        const isExecuting = executingTaskId === task.id
+        const hasPR = !!task.associatedPR
+        const isHardStop = task.column === 'gate-waiting' && task.gateType === 'hard-stop'
+        // gate-waiting tasks also show pipeline progress (they're paused mid-pipeline)
+        const isActive =
+          task.column === 'building' || task.column === 'retrying' || task.column === 'gate-waiting'
+        const colors = statusColors[task.column]
+        const gateLabel =
+          task.column === 'gate-waiting' && task.gateType === 'hard-stop'
+            ? 'Hard Stop'
+            : task.column === 'gate-waiting' && task.gateType === 'risk-gated'
+              ? 'Risk Gated'
+              : statusLabel[task.column]
 
-          return (
-            <div
-              key={task.id}
-              onClick={() => handleTaskClick(task)}
-              className={cn(
-                'relative cursor-pointer transition-all duration-150',
-                'dark:hover:bg-zinc-800/50 hover:bg-zinc-100',
-                rowTint[task.column],
-                isSelected && 'dark:bg-zinc-800 bg-white',
-                isHardStop && 'ring-2 ring-red-500/40 ring-inset',
-              )}
-            >
-              {/* ═══ Layout: stacked on mobile, inline on desktop ═══ */}
-              <div className="flex">
-                {/* ── Zone 1: Color bar + status icon ── */}
-                <div className="flex items-start shrink-0 pl-0 pt-2 sm:pt-3">
-                  <div
-                    className={cn(
-                      'w-[3px] self-stretch rounded-r',
-                      isHardStop ? 'bg-red-500 animate-pulse' : barColor[task.column],
-                    )}
-                  />
-                  <div className="px-2 sm:px-3">{statusIcon[task.column]}</div>
+        return (
+          <div
+            key={task.id}
+            role="option"
+            aria-selected={isSelected}
+            tabIndex={0}
+            onClick={() => handleTaskClick(task)}
+            onMouseEnter={() => onTaskHover?.(task)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                handleTaskClick(task)
+              }
+            }}
+            className={cn(
+              'group relative cursor-pointer transition-colors duration-100 border-l-2 border-l-transparent',
+              'hover:bg-white/[0.04]',
+              colors.bg,
+              isSelected && cn('bg-white/[0.06] border-l-2', colors.border),
+              isFocused && 'ring-1 ring-blue-500/40 bg-blue-500/5',
+              isHardStop && 'ring-1 ring-red-500/30 ring-inset',
+            )}
+          >
+            {/* Main row */}
+            <div className="flex items-center gap-3 px-4 py-3">
+              {/* Status icon */}
+              <div className="shrink-0">{statusIcon[task.column]}</div>
+
+              {/* Content — title + meta */}
+              <div
+                className={cn(
+                  'flex-1 min-w-0',
+                  task.column === 'done' &&
+                    !isSelected &&
+                    'opacity-50 group-hover:opacity-80 transition-opacity',
+                )}
+              >
+                {/* Title row */}
+                <div className="flex items-center gap-2.5">
+                  <h3 className="text-[15px] font-medium text-zinc-100 truncate flex-1">
+                    {task.title}
+                  </h3>
+
+                  {/* Assignee avatars + triggered-by actor */}
+                  <div className="hidden sm:flex items-center -space-x-1.5 shrink-0">
+                    {task.assignees &&
+                      task.assignees.map((assignee) => (
+                        <SimpleTooltip
+                          key={assignee.login}
+                          content={`Assignee: @${assignee.login}`}
+                          side="bottom"
+                        >
+                          <span className="inline-block">
+                            <Avatar className="h-5 w-5 ring-2 ring-[#0d1117]">
+                              <AvatarImage src={assignee.avatar_url} alt={assignee.login} />
+                              <AvatarFallback className="text-[8px] bg-zinc-800 text-zinc-400">
+                                {assignee.login[0]?.toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                          </span>
+                        </SimpleTooltip>
+                      ))}
+                    {task.pipeline?.triggeredByLogin &&
+                      !task.assignees?.some((a) => a.login === task.pipeline?.triggeredByLogin) && (
+                        <SimpleTooltip
+                          content={`Triggered by @${task.pipeline.triggeredByLogin}`}
+                          side="bottom"
+                        >
+                          <span className="inline-block">
+                            <Avatar className="h-5 w-5 ring-2 ring-[#0d1117] opacity-60">
+                              <AvatarImage
+                                src={`https://github.com/${task.pipeline.triggeredByLogin}.png?size=40`}
+                                alt={task.pipeline.triggeredByLogin}
+                              />
+                              <AvatarFallback className="text-[8px] bg-zinc-700 text-zinc-400">
+                                {task.pipeline.triggeredByLogin[0]?.toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                          </span>
+                        </SimpleTooltip>
+                      )}
+                    {task.pipeline?.issueCreator &&
+                      task.pipeline.issueCreator !== task.pipeline?.triggeredByLogin && (
+                        <SimpleTooltip
+                          content={`Issue owner @${task.pipeline.issueCreator}`}
+                          side="bottom"
+                        >
+                          <span className="inline-block">
+                            <Avatar className="h-5 w-5 ring-2 ring-[#0d1117] opacity-80">
+                              <AvatarImage
+                                src={`https://github.com/${task.pipeline.issueCreator}.png?size=40`}
+                                alt={task.pipeline.issueCreator}
+                              />
+                              <AvatarFallback className="text-[8px] bg-blue-900 text-blue-200">
+                                {task.pipeline.issueCreator[0]?.toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                          </span>
+                        </SimpleTooltip>
+                      )}
+                  </div>
                 </div>
 
-                {/* ── Zone 2 + 3 wrapper: stacks on mobile, inline on sm+ ── */}
-                <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center">
-                  {/* ── Zone 2: Content (title line + metadata line) ── */}
-                  <div className="flex-1 min-w-0 py-2 sm:py-3.5 pr-2">
-                    {/* Title line: title + assignee avatars */}
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-sm sm:text-base font-medium dark:text-zinc-100 text-zinc-900 truncate flex-1">
-                        {task.title}
-                      </h3>
+                {/* Meta row */}
+                <div className="flex items-center gap-2 mt-1 text-xs text-zinc-500">
+                  <SimpleTooltip content="View issue on GitHub" side="bottom">
+                    <a
+                      href={getGitHubIssueUrl(task.issueNumber)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className={cn('font-mono font-semibold hover:underline', colors.text)}
+                    >
+                      #{task.issueNumber}
+                    </a>
+                  </SimpleTooltip>
 
-                      {/* Assignee avatars — right-aligned on title line */}
-                      {task.assignees && task.assignees.length > 0 && (
-                        <div className="flex items-center -space-x-1 shrink-0">
-                          {task.assignees.map((assignee) => (
-                            <SimpleTooltip
-                              key={assignee.login}
-                              content={assignee.login}
-                              side="bottom"
-                            >
-                              <span className="inline-block">
-                                <Avatar className="h-6 w-6 ring-2 ring-zinc-900">
-                                  <AvatarImage src={assignee.avatar_url} alt={assignee.login} />
-                                  <AvatarFallback className="text-[8px]">
-                                    {assignee.login[0]?.toUpperCase()}
-                                  </AvatarFallback>
-                                </Avatar>
-                              </span>
-                            </SimpleTooltip>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                  <SimpleTooltip
+                    content={<StatusTooltipContent column={task.column} gateType={task.gateType} />}
+                    side="bottom"
+                  >
+                    <span className={cn('font-medium cursor-default', colors.text)}>
+                      {gateLabel}
+                    </span>
+                  </SimpleTooltip>
 
-                    {/* Metadata line: #issue · Status · Pipeline · Time · Labels */}
-                    <div className="flex items-center gap-1.5 sm:gap-2 mt-0.5 sm:mt-1 flex-nowrap sm:flex-wrap overflow-hidden sm:overflow-visible">
-                      {/* Issue number — colored by status */}
-                      <SimpleTooltip content="View issue on GitHub" side="bottom">
-                        <a
-                          href={getGitHubIssueUrl(task.issueNumber)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className={cn(
-                            'text-sm font-mono font-semibold hover:underline shrink-0',
-                            issueNumberColor[task.column],
-                          )}
-                        >
-                          #{task.issueNumber}
-                        </a>
-                      </SimpleTooltip>
-
-                      <Dot />
-
-                      {/* Status label — plain text, no pill */}
-                      <SimpleTooltip
-                        content={
-                          <StatusTooltipContent column={task.column} gateType={task.gateType} />
-                        }
-                        side="bottom"
-                      >
-                        <span
-                          className={cn(
-                            'text-sm font-medium shrink-0 cursor-default',
-                            task.column === 'open' && 'dark:text-zinc-400 text-zinc-500',
-                            task.column === 'building' && 'text-blue-400',
-                            task.column === 'review' && 'text-purple-400',
-                            task.column === 'failed' && 'text-red-400',
-                            task.column === 'gate-waiting' && 'text-yellow-400',
-                            task.column === 'retrying' && 'text-orange-400',
-                            task.column === 'done' && 'text-emerald-400',
-                          )}
-                        >
-                          {/* Gate-specific labels */}
-                          {task.column === 'gate-waiting' && task.gateType === 'hard-stop'
-                            ? 'Hard Stop'
-                            : task.column === 'gate-waiting' && task.gateType === 'risk-gated'
-                              ? 'Risk Gated'
-                              : statusLabel[task.column]}
-                        </span>
-                      </SimpleTooltip>
-
-                      {/* CODY badge — compact */}
-                      {task.isCodyAssigned && (
-                        <>
-                          <Dot />
-                          <SimpleTooltip content="Assigned to Cody AI agent" side="bottom">
-                            <span className="shrink-0 inline-flex items-center gap-0.5 text-xs font-bold text-blue-400 cursor-default">
-                              <Bot className="w-3 h-3" />
-                              CODY
-                            </span>
-                          </SimpleTooltip>
-                        </>
-                      )}
-
-                      {/* Pipeline progress inline (for active tasks without their own row) */}
-                      {isActive && (
-                        <>
-                          <Dot />
-                          <MiniPipelineProgress task={task} variant="inline" />
-                        </>
-                      )}
-
-                      {/* Sub-status badges — inline text, no pills */}
-                      {task.isTimeout && (
-                        <>
-                          <Dot />
-                          <SimpleTooltip
-                            content={<SubStatusTooltipContent type="timeout" />}
-                            side="bottom"
-                          >
-                            <span className="shrink-0 hidden sm:inline-flex items-center gap-0.5 text-xs font-semibold text-orange-400 cursor-default">
-                              <Clock className="w-3 h-3" />
-                              Timeout
-                            </span>
-                          </SimpleTooltip>
-                        </>
-                      )}
-                      {task.isExhausted && (
-                        <>
-                          <Dot />
-                          <SimpleTooltip
-                            content={<SubStatusTooltipContent type="exhausted" />}
-                            side="bottom"
-                          >
-                            <span className="shrink-0 hidden sm:inline-flex items-center gap-0.5 text-xs font-semibold text-red-400 cursor-default">
-                              <RefreshCw className="w-3 h-3" />
-                              Exhausted
-                            </span>
-                          </SimpleTooltip>
-                        </>
-                      )}
-                      {task.isSupervisorError && (
-                        <>
-                          <Dot />
-                          <SimpleTooltip
-                            content={<SubStatusTooltipContent type="error" />}
-                            side="bottom"
-                          >
-                            <span className="shrink-0 hidden sm:inline-flex items-center gap-0.5 text-xs font-semibold text-red-400 cursor-default">
-                              <AlertCircle className="w-3 h-3" />
-                              Error
-                            </span>
-                          </SimpleTooltip>
-                        </>
-                      )}
-                      {task.clarifyWaiting && (
-                        <>
-                          <Dot />
-                          <SimpleTooltip
-                            content={<SubStatusTooltipContent type="needs-answer" />}
-                            side="bottom"
-                          >
-                            <span className="shrink-0 hidden sm:inline-flex items-center gap-0.5 text-xs font-semibold text-blue-400 cursor-default">
-                              <AlertCircle className="w-3 h-3" />
-                              Needs Answer
-                            </span>
-                          </SimpleTooltip>
-                        </>
-                      )}
-
-                      {/* Time */}
-                      <Dot />
-                      <span className="text-xs text-zinc-500 shrink-0">
-                        {formatRelativeTime(task.updatedAt)}
+                  {task.isCodyAssigned && (
+                    <SimpleTooltip content="Assigned to Cody AI agent" side="bottom">
+                      <span className="inline-flex items-center gap-0.5 font-bold text-blue-400 cursor-default">
+                        <Bot className="w-3 h-3" />
+                        CODY
                       </span>
+                    </SimpleTooltip>
+                  )}
 
-                      {/* First label */}
-                      {task.labels.length > 0 && (
-                        <span className="hidden sm:contents">
-                          <Dot />
-                          <span className="text-xs px-1.5 py-0 rounded dark:bg-zinc-700/50 dark:text-zinc-400 bg-zinc-200 text-zinc-600 truncate max-w-20">
-                            {task.labels[0]}
-                          </span>
+                  {/* Priority badge */}
+                  {task.labels
+                    .filter((l) => l.startsWith('priority:'))
+                    .map((priorityLabel) => {
+                      const priority = priorityLabel.replace('priority:', '')
+                      const colors: Record<string, string> = {
+                        P0: 'bg-red-500/20 text-red-400 border-red-500/30',
+                        P1: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+                        P2: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+                        P3: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30',
+                      }
+                      return (
+                        <span
+                          key={priorityLabel}
+                          className={cn(
+                            'inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold border',
+                            colors[priority] || 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30',
+                          )}
+                        >
+                          {priority}
                         </span>
-                      )}
+                      )
+                    })}
 
-                      {/* PR link — inline */}
-                      {hasPR && (
-                        <>
-                          <Dot />
-                          <SimpleTooltip content="Open PR in GitHub" side="bottom">
-                            <a
-                              href={task.associatedPR!.html_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className="inline-flex items-center gap-0.5 text-xs dark:text-purple-400 dark:hover:text-purple-300 text-purple-700 hover:text-purple-800 hover:underline shrink-0"
-                            >
-                              <GitPullRequest className="w-3 h-3" />
-                              PR
-                            </a>
-                          </SimpleTooltip>
-                        </>
-                      )}
+                  {/* Active pipeline progress — inline dots + stage label */}
+                  {isActive && <MiniPipelineProgress task={task} variant="inline" />}
 
-                      {/* Preview link — inline */}
-                      {task.previewUrl && (
-                        <span className="hidden sm:contents">
-                          <Dot />
-                          <SimpleTooltip
-                            content={
-                              <div className="space-y-1">
-                                <p className="text-xs font-semibold">🔗 Preview Available</p>
-                                <p className="text-xs text-muted-foreground">
-                                  Click to open the deployed preview in a new tab
-                                </p>
-                              </div>
-                            }
-                            side="bottom"
-                          >
-                            <a
-                              href={task.previewUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className="inline-flex items-center gap-0.5 text-xs text-emerald-400 hover:text-emerald-300 hover:underline shrink-0"
-                            >
-                              <ExternalLink className="w-3 h-3" />
-                              Preview
-                            </a>
-                          </SimpleTooltip>
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                  {/* Non-pipeline sub-statuses (only shown when NOT active pipeline) */}
+                  {!isActive && task.isTimeout && (
+                    <SimpleTooltip
+                      content={<SubStatusTooltipContent type="timeout" />}
+                      side="bottom"
+                    >
+                      <span className="inline-flex items-center gap-0.5 font-semibold text-orange-400 cursor-default">
+                        <Clock className="w-3 h-3" />
+                        Timeout
+                      </span>
+                    </SimpleTooltip>
+                  )}
+                  {!isActive && task.isExhausted && (
+                    <SimpleTooltip
+                      content={<SubStatusTooltipContent type="exhausted" />}
+                      side="bottom"
+                    >
+                      <span className="inline-flex items-center gap-0.5 font-semibold text-red-400 cursor-default">
+                        <RefreshCw className="w-3 h-3" />
+                        Exhausted
+                      </span>
+                    </SimpleTooltip>
+                  )}
+                  {!isActive && task.isSupervisorError && (
+                    <SimpleTooltip content={<SubStatusTooltipContent type="error" />} side="bottom">
+                      <span className="inline-flex items-center gap-0.5 font-semibold text-red-400 cursor-default">
+                        <AlertCircle className="w-3 h-3" />
+                        Error
+                      </span>
+                    </SimpleTooltip>
+                  )}
+                  {task.clarifyWaiting && (
+                    <SimpleTooltip
+                      content={<SubStatusTooltipContent type="needs-answer" />}
+                      side="bottom"
+                    >
+                      <span className="hidden sm:inline-flex items-center gap-0.5 font-semibold text-blue-400 cursor-default">
+                        <AlertCircle className="w-3 h-3" />
+                        Needs Answer
+                      </span>
+                    </SimpleTooltip>
+                  )}
 
-                  {/* ── Zone 3: Actions ── */}
-                  <div className="hidden sm:flex items-center gap-1.5 shrink-0 pr-3 sm:pl-2 sm:pb-0">
-                    {/* Merge button */}
-                    {task.column === 'review' && hasPR && onApproveReview && (
-                      <div
+                  <span className="text-zinc-600">{formatRelativeTime(task.updatedAt)}</span>
+
+                  {task.labels.length > 0 && (
+                    <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 text-[10px] font-medium truncate max-w-24">
+                      {task.labels[0]}
+                    </span>
+                  )}
+
+                  {hasPR && (
+                    <SimpleTooltip content="Open PR in GitHub" side="bottom">
+                      <a
+                        href={task.associatedPR!.html_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        onMouseDown={(e) => e.stopPropagation()}
-                        onPointerDown={(e) => e.stopPropagation()}
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 transition-colors font-medium"
                       >
-                        <MergeButton
-                          prNumber={task.associatedPR!.number}
-                          prTitle={task.associatedPR!.title}
-                          branchName={task.associatedPR!.head.ref}
-                          isMerging={isMerging}
-                          onMerge={() => onApproveReview(task)}
-                        />
-                      </div>
-                    )}
+                        <GitPullRequest className="w-3 h-3" />
+                        PR
+                      </a>
+                    </SimpleTooltip>
+                  )}
+                </div>
+              </div>
 
-                    {/* Run / Stop button */}
-                    {(task.column === 'building' &&
-                      task.workflowRun?.status === 'in_progress' &&
-                      onStopTask) ||
-                    (canExecute && onExecuteTask) ? (
+              {/* Actions */}
+              <div className="hidden sm:flex items-center gap-1 shrink-0">
+                {hasPR && onOpenPreview && (
+                  <SimpleTooltip content="Open PR preview" side="bottom">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onOpenPreview(task)
+                      }}
+                      aria-label="Open PR preview"
+                      className="h-7 w-7 p-0 text-emerald-400 hover:bg-emerald-500/20"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                    </Button>
+                  </SimpleTooltip>
+                )}
+
+                {(task.column === 'building' &&
+                  task.workflowRun?.status === 'in_progress' &&
+                  onStopTask) ||
+                (canExecute && onExecuteTask) ? (
+                  <SimpleTooltip
+                    content={task.column === 'building' ? 'Stop running task' : 'Run task'}
+                    side="bottom"
+                  >
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={isExecuting}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (task.column === 'building') onStopTask?.(task)
+                        else if (canExecute) onExecuteTask?.(task.id)
+                      }}
+                      aria-label={task.column === 'building' ? 'Stop task' : 'Run task'}
+                      className={cn(
+                        'h-7 w-7 p-0 cursor-pointer disabled:opacity-50',
+                        task.column === 'building'
+                          ? 'text-red-400 hover:bg-red-500/20'
+                          : 'text-zinc-400 hover:bg-white/[0.08]',
+                      )}
+                    >
+                      {isExecuting ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : task.column === 'building' ? (
+                        <Square className="w-3.5 h-3.5" />
+                      ) : (
+                        <Play className="w-3.5 h-3.5" />
+                      )}
+                    </Button>
+                  </SimpleTooltip>
+                ) : null}
+
+                {onAssign && collaborators.length > 0 && (
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className="relative"
+                  >
+                    <Select
+                      onValueChange={(value) => {
+                        onAssign(task.issueNumber, [value])
+                      }}
+                    >
+                      <SelectTrigger className="h-7 w-auto px-2 text-xs gap-1 border-white/[0.06] bg-transparent hover:bg-white/[0.06]">
+                        <SelectValue placeholder="Assign" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {collaborators
+                          .filter((c) => !task.assignees?.some((a) => a.login === c.login))
+                          .map((collaborator) => (
+                            <SelectItem
+                              key={collaborator.login}
+                              value={collaborator.login}
+                              className="flex items-center gap-2"
+                            >
+                              <Avatar className="h-5 w-5">
+                                <AvatarImage src={collaborator.avatar_url} />
+                                <AvatarFallback className="text-[8px]">
+                                  {collaborator.login[0]?.toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              {collaborator.login}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* Edit button — only for backlog items */}
+                {onEditTask && task.column === 'open' && (
+                  <SimpleTooltip content="Edit task" side="bottom">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onEditTask(task)
+                      }}
+                      aria-label="Edit task"
+                      className="h-7 w-7 p-0 text-muted-foreground/50 hover:text-foreground hover:bg-white/[0.06]"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Button>
+                  </SimpleTooltip>
+                )}
+
+                {/* Duplicate button */}
+                {onDuplicate && (
+                  <SimpleTooltip content="Duplicate task" side="bottom">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onDuplicate(task)
+                      }}
+                      aria-label="Duplicate task"
+                      className="h-7 w-7 p-0 text-muted-foreground/50 hover:text-foreground hover:bg-white/[0.06]"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                    </Button>
+                  </SimpleTooltip>
+                )}
+
+                {/* Queue toggle */}
+                {onToggleQueue &&
+                  (() => {
+                    const isQueued = task.labels.includes('cody:queued')
+                    const isQueueActive = task.labels.includes('cody:queue-active')
+                    const isQueueFailed = task.labels.includes('cody:queue-failed')
+                    // Hide if task is actively being processed or already failed in queue
+                    if (isQueueActive) return null
+                    return (
                       <SimpleTooltip
                         content={
-                          task.column === 'building'
-                            ? 'Stop running task'
-                            : 'Start running this task'
+                          isQueued
+                            ? 'Remove from queue'
+                            : isQueueFailed
+                              ? 'Re-add to queue'
+                              : 'Add to queue'
                         }
                         side="bottom"
                       >
                         <Button
                           variant="ghost"
                           size="sm"
-                          disabled={isExecuting}
                           onClick={(e) => {
                             e.stopPropagation()
-                            if (task.column === 'building') {
-                              onStopTask?.(task)
-                            } else if (canExecute) {
-                              onExecuteTask?.(task.id)
-                            }
+                            onToggleQueue(task)
                           }}
+                          aria-label={isQueued ? 'Remove from queue' : 'Add to queue'}
                           className={cn(
-                            'h-8 text-sm px-2.5 gap-1.5 cursor-pointer disabled:opacity-50',
-                            task.column === 'building'
-                              ? 'text-red-400 bg-red-500/10 hover:bg-red-500/30'
-                              : 'text-blue-400 bg-blue-500/10 hover:bg-blue-500/30',
+                            'h-7 w-7 p-0 transition-colors',
+                            isQueued
+                              ? 'text-purple-400 bg-purple-500/15 hover:bg-purple-500/25'
+                              : isQueueFailed
+                                ? 'text-red-400/60 hover:text-purple-400 hover:bg-purple-500/15'
+                                : 'text-muted-foreground/50 hover:text-purple-400 hover:bg-purple-500/15',
                           )}
                         >
-                          {isExecuting ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : task.column === 'building' ? (
-                            <Square className="w-4 h-4" />
-                          ) : (
-                            <Play className="w-4 h-4" />
-                          )}
+                          <ListPlus className="w-3.5 h-3.5" />
                         </Button>
                       </SimpleTooltip>
-                    ) : null}
-
-                    {/* Assign picker */}
-                    {onAssign && collaborators.length > 0 && (
-                      <div
-                        onClick={(e) => e.stopPropagation()}
-                        onMouseDown={(e) => e.stopPropagation()}
-                        onPointerDown={(e) => e.stopPropagation()}
-                        className="relative"
-                      >
-                        <Select
-                          onValueChange={(value) => {
-                            onAssign(task.issueNumber, [value])
-                          }}
-                        >
-                          <SelectTrigger className="h-8 w-auto px-3 text-sm gap-1.5">
-                            <SelectValue placeholder="Assign" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {collaborators
-                              .filter((c) => !task.assignees?.some((a) => a.login === c.login))
-                              .map((collaborator) => (
-                                <SelectItem
-                                  key={collaborator.login}
-                                  value={collaborator.login}
-                                  className="flex items-center gap-2"
-                                >
-                                  <Avatar className="h-5 w-5">
-                                    <AvatarImage src={collaborator.avatar_url} />
-                                    <AvatarFallback className="text-[8px]">
-                                      {collaborator.login[0]?.toUpperCase()}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  {collaborator.login}
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                    )
+                  })()}
               </div>
-
-              {/* ═══ Pipeline progress row — only for active (building/retrying) tasks with rich data ═══ */}
-              {isActive &&
-                task.pipeline &&
-                (task.pipeline.currentStage ||
-                  Object.keys(task.pipeline.stages || {}).length > 0) && (
-                  <div className="hidden sm:block pb-2 pl-10 sm:pl-12 pr-3">
-                    <MiniPipelineProgress task={task} variant="bar" />
-                  </div>
-                )}
             </div>
-          )
-        })}
-      </div>
+
+            {/* Pipeline progress row — shown for building, retrying, and gate-waiting tasks.
+                Gate-waiting tasks show paused state (yellow dots) so the user can see
+                exactly where in the pipeline approval was requested. */}
+            {isActive && (
+              <div className="pb-3 px-4 pl-[52px] sm:block hidden">
+                <MiniPipelineProgress task={task} variant="bar" />
+              </div>
+            )}
+          </div>
+        )
+      })}
     </div>
   )
 }

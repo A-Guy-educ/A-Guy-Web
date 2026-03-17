@@ -8,7 +8,12 @@
 
 import { useState, useEffect } from 'react'
 import { cn, formatRelativeTime } from '../utils'
-import { stageLabels, formatElapsed, getStageProgressTooltip } from '../pipeline-utils'
+import {
+  stageLabels,
+  formatElapsed,
+  getStageProgressTooltip,
+  calculatePipelineProgress,
+} from '../pipeline-utils'
 import type { CodyTask } from '../types'
 import { ALL_STAGES, getGitHubIssueUrl } from '../constants'
 import { Loader2 } from 'lucide-react'
@@ -40,18 +45,10 @@ function deriveCodyState(tasks: CodyTask[]): CodyState {
       ? formatElapsed(new Date(pipeline.startedAt))
       : formatRelativeTime(working.updatedAt)
 
-    // Derive current stage: use currentStage if available, otherwise infer from stages data
-    let stage = pipeline?.currentStage ?? null
-    if (!stage && pipeline?.stages) {
-      // Find the highest stage that has been touched
-      for (const [stageName, stageData] of Object.entries(pipeline.stages)) {
-        if (stageData.state !== 'pending') {
-          const idx = ALL_STAGES.indexOf(stageName as (typeof ALL_STAGES)[number])
-          const prevIdx = stage ? ALL_STAGES.indexOf(stage as (typeof ALL_STAGES)[number]) : -1
-          if (idx > prevIdx) stage = stageName
-        }
-      }
-    }
+    // Use pipeline.currentStage as the authoritative source.
+    // Only fall back to scanning stages data if currentStage is null — this avoids
+    // showing a stale stage from a previous run when the pipeline has just restarted.
+    const stage: string | null = pipeline?.currentStage ?? null
 
     return {
       status: 'working',
@@ -112,7 +109,7 @@ export function CodyStatusBanner({
 
   if (state.status === 'idle') {
     return (
-      <div className="flex items-center gap-3 px-6 py-3 border-b border-border bg-muted/30">
+      <div className="flex items-center gap-3 px-6 py-3 border-b border-white/[0.06] bg-white/[0.02]">
         <span className="relative flex h-2.5 w-2.5">
           <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
         </span>
@@ -126,12 +123,16 @@ export function CodyStatusBanner({
   }
 
   if (state.status === 'working') {
-    const currentStageIdx = state.stage
-      ? ALL_STAGES.indexOf(state.stage as (typeof ALL_STAGES)[number])
-      : -1
+    // Use calculatePipelineProgress for consistent stage index derivation.
+    // Falls back to -1 when pipeline data is not yet available.
+    const currentStageIdx = state.task.pipeline
+      ? calculatePipelineProgress(state.task.pipeline).currentStageIndex
+      : state.stage
+        ? ALL_STAGES.indexOf(state.stage as (typeof ALL_STAGES)[number])
+        : -1
 
     return (
-      <div className="px-6 py-4 border-b border-border bg-blue-500/5">
+      <div className="px-6 py-4 border-b border-white/[0.06] bg-blue-500/[0.06]">
         {/* Top row: status + issue info */}
         <div className="flex items-center gap-3 mb-3">
           <span className="relative flex h-2.5 w-2.5">
@@ -213,13 +214,13 @@ export function CodyStatusBanner({
 
   if (state.status === 'gate-waiting') {
     return (
-      <div className="flex items-center gap-3 px-6 py-3 border-b border-border bg-yellow-500/5">
+      <div className="flex items-center gap-3 px-6 py-3 border-b border-white/[0.06] bg-amber-500/[0.06]">
         <span className="relative flex h-2.5 w-2.5">
           <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75" />
           <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-yellow-500" />
         </span>
         <span className="text-sm">
-          <span className="text-yellow-400 font-medium">Waiting for approval</span> on{' '}
+          <span className="text-yellow-400 font-medium">Approval needed</span> on{' '}
           <a
             href={getGitHubIssueUrl(state.task.issueNumber)}
             target="_blank"
@@ -246,7 +247,7 @@ export function CodyStatusBanner({
 
   // failed
   return (
-    <div className="flex items-center gap-3 px-6 py-3 border-b border-border bg-destructive/5">
+    <div className="flex items-center gap-3 px-6 py-3 border-b border-white/[0.06] bg-red-500/[0.06]">
       <span className="relative flex h-2.5 w-2.5">
         <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
       </span>

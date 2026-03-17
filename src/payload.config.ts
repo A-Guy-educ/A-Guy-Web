@@ -5,6 +5,7 @@ import sharp from 'sharp'
 import { fileURLToPath } from 'url'
 
 import { getServerSideURL } from '@/infra/utils/getURL'
+import { AccessCodes } from '@/server/payload/collections/AccessCodes'
 import { Categories } from '@/server/payload/collections/Categories'
 import { Chapters } from '@/server/payload/collections/Chapters'
 import { ChatAssets } from '@/server/payload/collections/ChatAssets'
@@ -166,12 +167,17 @@ export default buildConfig({
     UploadSessions,
     Posts,
     PricingPlans,
+    AccessCodes,
     MCPAuditLogs,
   ],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
   plugins,
-  secret: process.env.PAYLOAD_SECRET,
+  secret:
+    process.env.PAYLOAD_SECRET ||
+    (() => {
+      throw new Error('PAYLOAD_SECRET env var is required')
+    })(),
   sharp,
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),

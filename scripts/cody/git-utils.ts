@@ -9,6 +9,8 @@ import { logger } from './logger'
 import { execFileSync } from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
+// FIX #9: Import status functions to persist branch name early
+import { setBranchName, loadState } from './engine/status'
 
 // ============================================================================
 // Types
@@ -120,7 +122,12 @@ export function deriveBranchName(taskDir: string, taskId: string): string {
       .slice(0, maxTitleLength) // max chars for title portion
 
     return `${datePrefix}${issuePart}-${sanitized}`
-  } catch {
+  } catch (deriveErr) {
+    // FIX #7: Log when branch name derivation falls back to taskId
+    logger.warn(
+      { err: deriveErr },
+      `[branch] Branch name derivation failed, falling back to: ${taskId}`,
+    )
     return taskId
   }
 }
@@ -171,7 +178,93 @@ export function getDefaultBranch(cwd: string = process.cwd()): string {
  * This keeps the feature branch up-to-date with the latest changes from dev.
  * If a merge conflict occurs, aborts the merge and throws an error.
  */
-function mergeDefaultBranch(cwd: string): void {
+/**
+ * Find and checkout a remote branch matching the given task ID.
+ * Used by rerun mode to ensure task files are available before reading them.
+ * Unlike ensureFeatureBranch, this doesn't need taskType — it searches all
+ * remote branches for the task ID pattern.
+ *
+ * @returns true if a branch was found and checked out, false if not found
+ */
+export function checkoutTaskBranch(taskId: string, taskDir?: string): boolean {
+  const cwd = process.cwd()
+  const currentBranch = execFileSync('git', ['branch', '--show-current'], {
+    cwd,
+    encoding: 'utf-8',
+  }).trim()
+
+  // Already on a feature branch — don't switch
+  if (!BASE_BRANCHES.includes(currentBranch)) {
+    logger.info(`[branch] Already on feature branch: ${currentBranch}`)
+    return true
+  }
+
+  // Fetch latest
+  try {
+    execFileSync('git', ['fetch', 'origin'], { cwd, stdio: 'inherit', timeout: 120_000 })
+  } catch (fetchErr) {
+    logger.warn({ err: fetchErr }, '[branch] git fetch failed')
+    return false
+  }
+
+  // Search remote branches for one containing the task ID
+  let remoteBranches: string[]
+  try {
+    const output = execFileSync('git', ['branch', '-r', '--list', `origin/*${taskId}*`], {
+      cwd,
+      encoding: 'utf-8',
+      stdio: 'pipe',
+    }).trim()
+    remoteBranches = output
+      .split('\n')
+      .map((b) => b.trim().replace('origin/', ''))
+      .filter(Boolean)
+  } catch {
+    remoteBranches = []
+  }
+
+  if (remoteBranches.length === 0) {
+    logger.info(`[branch] No remote branch found matching task ID: ${taskId}`)
+    return false
+  }
+
+  // Use the first match (there should only be one branch per task)
+  const branchName = remoteBranches[0]
+  logger.info(`[branch] Found task branch: ${branchName} (for rerun of ${taskId})`)
+
+  try {
+    // Clean dirty state in CI before switching
+    if (process.env.GITHUB_ACTIONS) {
+      try {
+        execFileSync('git', ['checkout', '--', '.'], { cwd, stdio: 'pipe' })
+      } catch {
+        // Working tree may already be clean
+      }
+    }
+
+    execFileSync('git', ['checkout', branchName], { cwd, stdio: 'inherit' })
+    execFileSync('git', ['pull', 'origin', branchName], { cwd, stdio: 'inherit' })
+    mergeDefaultBranch(cwd)
+
+    // Persist branch name to status.json
+    try {
+      const existingState = loadState(taskDir ? path.basename(taskDir) : taskId)
+      if (existingState) {
+        setBranchName(taskDir ? path.basename(taskDir) : taskId, existingState, branchName)
+      }
+    } catch {
+      // Non-critical
+    }
+
+    logger.info(`[branch] Checked out task branch: ${branchName}`)
+    return true
+  } catch (checkoutErr) {
+    logger.error({ err: checkoutErr }, `[branch] Failed to checkout task branch: ${branchName}`)
+    return false
+  }
+}
+
+export function mergeDefaultBranch(cwd: string): void {
   const defaultBranch = getDefaultBranch(cwd)
   logger.info(`[branch] Merging latest ${defaultBranch} into current branch`)
   try {
@@ -184,9 +277,15 @@ function mergeDefaultBranch(cwd: string): void {
     logger.info('[branch] Aborting merge')
     try {
       execFileSync('git', ['merge', '--abort'], { cwd, stdio: 'inherit' })
-    } catch {
-      // merge --abort can fail if merge state was corrupted; fall back to hard reset
-      logger.warn('[branch] merge --abort failed, falling back to git reset --hard HEAD')
+    } catch (abortError) {
+      // FIX #6: Log the abort error before falling back to hard reset.
+      // merge --abort can fail if merge state was corrupted; hard reset discards ALL
+      // uncommitted changes (not just conflicts), which is a last resort.
+      const abortMsg = abortError instanceof Error ? abortError.message : String(abortError)
+      logger.warn(
+        `[branch] merge --abort failed (${abortMsg}), falling back to git reset --hard HEAD`,
+      )
+      logger.warn('[branch] \u26a0\ufe0f Hard reset will discard ALL uncommitted changes')
       execFileSync('git', ['reset', '--hard', 'HEAD'], { cwd, stdio: 'inherit' })
     }
     throw new Error(
@@ -301,6 +400,19 @@ export function ensureFeatureBranch(
         }
       }
     }
+    // FIX #9: Persist branch name to status.json immediately after checkout,
+    // not just in build stage preExecute. This ensures the dashboard can find the
+    // branch even for stages that run before build (e.g., gap, architect).
+    try {
+      const taskIdFromDir = taskDir ? path.basename(taskDir) : taskId
+      const existingState = loadState(taskIdFromDir)
+      if (existingState) {
+        setBranchName(taskIdFromDir, existingState, branchName)
+        logger.info(`[branch] Persisted branch name to status.json: ${branchName}`)
+      }
+    } catch {
+      // Non-critical - branch name will be captured in build stage preExecute as fallback
+    }
     logger.info(`[branch] Checked out and pulled: ${branchName}`)
   } else {
     // Branch doesn't exist on remote — check if it exists locally (from previous failed run)
@@ -380,9 +492,49 @@ export function ensureFeatureBranch(
   }
 }
 
-// Helper to get environment with hooks disabled for CI
+// R2-FIX #7: Cache hook-safe env to avoid recreating on every git call (hot path).
+// process.env changes are rare during pipeline execution, so caching is safe.
+let _hookSafeEnvCache: NodeJS.ProcessEnv | null = null
 function getHookSafeEnv(): NodeJS.ProcessEnv {
-  return { ...process.env, HUSKY: '0', SKIP_HOOKS: '1' }
+  if (!_hookSafeEnvCache) {
+    _hookSafeEnvCache = { ...process.env, HUSKY: '0', SKIP_HOOKS: '1' }
+  }
+  return _hookSafeEnvCache
+}
+
+/**
+ * Push to origin with automatic pull-rebase-retry on rejection.
+ * Handles the case where the remote branch has been updated by a previous
+ * pipeline run (e.g., gate approval pushed new commits before rerun started).
+ *
+ * @returns true if push succeeded, false if it failed even after rebase
+ */
+export function pushWithRebase(cwd: string, env?: NodeJS.ProcessEnv): boolean {
+  const pushEnv = env || getHookSafeEnv()
+  const pushOpts = { cwd, stdio: 'inherit' as const, env: pushEnv, timeout: 120_000 }
+
+  try {
+    execFileSync('git', ['push', '-u', 'origin', 'HEAD'], pushOpts)
+    return true
+  } catch {
+    // Push rejected — remote has new commits. Pull with rebase and retry.
+    logger.info('[push] Push rejected, pulling with rebase...')
+    try {
+      execFileSync('git', ['pull', '--rebase', 'origin', 'HEAD'], {
+        cwd,
+        stdio: 'inherit',
+        timeout: 120_000,
+        env: pushEnv,
+      })
+      execFileSync('git', ['push', '-u', 'origin', 'HEAD'], pushOpts)
+      logger.info('[push] Push succeeded after rebase')
+      return true
+    } catch (rebaseError: unknown) {
+      const msg = rebaseError instanceof Error ? rebaseError.message : String(rebaseError)
+      logger.error(`[push] Push failed after rebase: ${msg}`)
+      return false
+    }
+  }
 }
 
 /**
@@ -608,12 +760,16 @@ export function commitAndPush(
       .trim()
       .slice(0, 7)
 
-    // Push — use hook-safe env to skip pre-push hooks
-    execFileSync('git', ['push', '-u', 'origin', 'HEAD'], {
-      cwd: workDir,
-      stdio: 'inherit',
-      env: hookSafeEnv,
-    })
+    // Push with automatic rebase-retry on rejection (fixes rejected pushes on reruns)
+    const pushed = pushWithRebase(workDir, hookSafeEnv)
+    if (!pushed) {
+      return {
+        hash,
+        branch,
+        success: false,
+        message: `Committed (${hash}) but push failed after rebase`,
+      }
+    }
 
     return {
       hash,
@@ -638,6 +794,32 @@ export function commitAndPush(
 
 export type StagingStrategy = 'task-only' | 'tracked+task' | 'all'
 
+/**
+ * Files that are always excluded from task-only commits (internal state markers).
+ * NOTE: OpenCode runtime file patterns here must be kept in sync with
+ * the .gitignore entries under "OpenCode runtime files (per-task isolated data dirs)".
+ */
+const TASK_FILES_ALWAYS_EXCLUDE = [
+  'gate-*.md',
+  'rerun-feedback.consumed.md',
+  // OpenCode runtime files (only opencode.db is committed for session reuse)
+  'opencode-data/opencode/opencode.db-wal',
+  'opencode-data/opencode/opencode.db-shm',
+  'opencode-data/opencode/snapshot/',
+  'opencode-data/opencode/logs/',
+  'opencode-data/opencode/auth.json',
+  'opencode-data/opencode/bin/',
+  'opencode-data/opencode/tool-output/',
+  'opencode-data/opencode/storage/',
+  'opencode-data/opencode/worktree/',
+]
+
+/**
+ * Debug artifacts — only committed when the pipeline fails (black box data).
+ * On success these add noise to PRs; on failure they're essential for diagnosis.
+ */
+const TASK_FILES_DEBUG_ONLY = ['*-events.jsonl', '*-stderr.log']
+
 export interface CommitPipelineFilesOptions {
   /** Task directory path */
   taskDir: string
@@ -659,6 +841,8 @@ export interface CommitPipelineFilesOptions {
   isCI?: boolean
   /** Whether this is a dry run */
   dryRun?: boolean
+  /** Whether the pipeline has failed — includes debug artifacts (*-events.jsonl, *-stderr.log) */
+  pipelineFailed?: boolean
 }
 
 export interface CommitPipelineFilesResult {
@@ -689,6 +873,7 @@ export function commitPipelineFiles(
     cwd = process.cwd(),
     isCI = false,
     dryRun = false,
+    pipelineFailed = false,
   } = options
 
   // Skip in dry-run mode
@@ -731,30 +916,52 @@ export function commitPipelineFiles(
       case 'all':
         try {
           execFileSync('git', ['add', '-A'], { cwd, stdio: 'inherit' })
-        } catch {
-          // Ignore staging errors
+        } catch (stageErr) {
+          // FIX #7: Log staging errors instead of silently swallowing them
+          logger.warn({ err: stageErr }, '[commit] git add -A failed (non-fatal)')
         }
         break
       case 'tracked+task':
         try {
           execFileSync('git', ['add', '-u'], { cwd, stdio: 'inherit' })
-        } catch {
-          // Ignore
+        } catch (stageErr) {
+          // FIX #7: Log instead of silent swallow
+          logger.warn({ err: stageErr }, '[commit] git add -u failed (non-fatal)')
         }
         try {
           execFileSync('git', ['add', '--', taskDir], { cwd, stdio: 'inherit' })
-        } catch {
-          // Ignore
+        } catch (stageErr) {
+          logger.warn({ err: stageErr }, '[commit] git add task dir failed (non-fatal)')
         }
         break
       case 'task-only':
       default:
         try {
           execFileSync('git', ['add', '--', taskDir], { cwd, stdio: 'inherit' })
-        } catch {
-          // Ignore staging errors - silent fail is ok
+        } catch (stageErr) {
+          // FIX #7: Log instead of silent swallow
+          logger.warn({ err: stageErr }, '[commit] git add task-only failed (non-fatal)')
         }
         break
+    }
+
+    // 3b. Unstage excluded task artifacts to keep PRs clean
+    // Always exclude gate markers; only include debug artifacts on failure
+    if (stagingStrategy === 'task-only' || stagingStrategy === 'tracked+task') {
+      const excludePatterns = [
+        ...TASK_FILES_ALWAYS_EXCLUDE,
+        ...(!pipelineFailed ? TASK_FILES_DEBUG_ONLY : []),
+      ]
+      for (const pattern of excludePatterns) {
+        try {
+          execFileSync('git', ['reset', 'HEAD', '--', path.join(taskDir, pattern)], {
+            cwd,
+            stdio: 'pipe',
+          })
+        } catch {
+          // Pattern may not match any staged files — that's fine
+        }
+      }
     }
 
     // 4. Commit using execFileSync to prevent shell injection (BUG-5 fix)
@@ -777,18 +984,17 @@ export function commitPipelineFiles(
       throw commitError
     }
 
-    // 5. Optionally push
+    // 5. Optionally push (with rebase-retry on rejection)
     // Use hook-safe env to skip pre-push hooks (e.g., Prettier/verify)
     // which may fail on unrelated files and block the pipeline
     let pushed = false
     if (push) {
-      execFileSync('git', ['push', '-u', 'origin', 'HEAD'], {
-        cwd,
-        stdio: 'inherit',
-        env: hookSafeEnv,
-      })
-      pushed = true
-      logger.info(`[commit] Pushed to origin`)
+      pushed = pushWithRebase(cwd, hookSafeEnv)
+      if (pushed) {
+        logger.info(`[commit] Pushed to origin`)
+      } else {
+        logger.error(`[commit] Push failed — remote may have diverged`)
+      }
     }
 
     return { success: true, message: 'Committed successfully', committed, pushed }

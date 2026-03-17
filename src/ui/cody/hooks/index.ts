@@ -8,9 +8,14 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { codyApi, RateLimitError, NoTokenError } from '../api'
+import { codyApi, RateLimitError, NoTokenError, SessionExpiredError } from '../api'
 import type { CodyTask } from '../types'
+import type { ViewMode } from '../components/FilterBar'
 import { POLLING_INTERVALS } from '../constants'
+
+// Re-export new hooks
+export { useDashboardFilters } from './useDashboardFilters'
+export { useDashboardRouter } from './useDashboardRouter'
 
 // Query keys
 export const queryKeys = {
@@ -18,6 +23,7 @@ export const queryKeys = {
   taskDetails: (issueNumber: number) => ['cody-task', issueNumber] as const,
   boards: ['cody-boards'] as const,
   collaborators: ['cody-collaborators'] as const,
+  workflowRuns: ['cody-workflow-runs'] as const,
 }
 
 // ============ useCodyTasks ============
@@ -26,23 +32,35 @@ export interface UseCodyTasksOptions {
   days?: number
   includeDetails?: boolean
   /**
+   * Current view mode — 'running' or 'backlog'.
+   * When 'backlog', polling slows to 120s since backlog tasks change rarely.
+   */
+  viewMode?: ViewMode
+  /**
    * Auto-refresh interval based on task state.
-   * - 'auto': Uses smart polling based on running tasks
-   * - 'idle': 30s interval when no tasks are running
-   * - 'board': 10s interval when tasks are on board
-   * - 'active': 5s interval when viewing active task
+   * - 'auto': Uses smart polling based on running tasks and view mode
+   * - 'idle': 60s interval when no tasks are running
+   * - 'board': 30s interval when tasks are on board
+   * - 'active': 15s interval when viewing active task
    * - false: Disable auto-refresh
    */
   refetchInterval?: 'auto' | 'idle' | 'board' | 'active' | false
 }
 
 /**
- * Determine polling interval based on current task data.
- * - Active tasks (building/retrying/gate-waiting): poll every 10s
- * - All idle: poll every 30s
+ * Determine polling interval based on current task data and view mode.
+ * - Backlog view: poll every 120s (tasks change rarely)
+ * - Running view with active tasks (building/retrying/gate-waiting): poll every 30s
+ * - Running view, all idle: poll every 60s
  */
-function getSmartInterval(tasks: CodyTask[] | undefined): number {
+export function getSmartInterval(
+  tasks: CodyTask[] | undefined,
+  viewMode: ViewMode = 'running',
+): number {
   if (!tasks || tasks.length === 0) return POLLING_INTERVALS.idle
+
+  // Backlog view — slow polling since these tasks change rarely
+  if (viewMode === 'backlog') return POLLING_INTERVALS.backlog
 
   const hasActive = tasks.some(
     (t) => t.column === 'building' || t.column === 'retrying' || t.column === 'gate-waiting',
@@ -52,7 +70,7 @@ function getSmartInterval(tasks: CodyTask[] | undefined): number {
 }
 
 export function useCodyTasks(options: UseCodyTasksOptions = {}) {
-  const { days, includeDetails = false, refetchInterval = 'auto' } = options
+  const { days, includeDetails = false, viewMode = 'running', refetchInterval = 'auto' } = options
 
   return useQuery({
     queryKey: queryKeys.tasks(days, includeDetails),
@@ -60,18 +78,24 @@ export function useCodyTasks(options: UseCodyTasksOptions = {}) {
     refetchInterval: (query): number | false => {
       if (refetchInterval === false) return false
 
+      // Stop polling when session expired or no token — user must re-authenticate
+      if (query.state.error instanceof SessionExpiredError) return false
+      if (query.state.error instanceof NoTokenError) return false
+
       // Smart auto mode: inspect data to decide interval
       if (refetchInterval === 'auto') {
-        return getSmartInterval(query.state.data)
+        return getSmartInterval(query.state.data, viewMode)
       }
 
       return POLLING_INTERVALS[refetchInterval]
     },
     refetchIntervalInBackground: false, // Don't poll when tab is hidden
-    refetchOnWindowFocus: true, // Refresh immediately when user tabs back
+    refetchOnWindowFocus: 'always', // Refresh when user tabs back (even if not stale)
+    staleTime: 30_000, // 30s — prevents rapid re-fetches from invalidations; polling handles freshness
     retry: (failureCount, error) => {
       if (error instanceof RateLimitError) return false
       if (error instanceof NoTokenError) return false
+      if (error instanceof SessionExpiredError) return false
       return failureCount < 3
     },
   })
@@ -106,15 +130,15 @@ export function useTaskDetails(issueNumber: number | null, actorLogin?: string) 
     queryKey: queryKeys.taskDetails(issueNumber ?? -1),
     queryFn: () => codyApi.tasks.get(issueNumber!),
     enabled: !!issueNumber,
-    staleTime: 5 * 1000, // 5 seconds - reduced for faster assignee updates
+    staleTime: 60_000, // 60s — assignee updates are reflected via list polling; detail is fetched on select
   })
 
-  // Mutations for task actions
+  // Mutations for task actions — only invalidate the detail query, not the task list.
+  // The task list refreshes via polling; double-invalidation wastes API quota.
   const executeMutation = useMutation({
     mutationFn: () => codyApi.tasks.execute(issueNumber!, actorLogin),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.taskDetails(issueNumber!) })
-      queryClient.invalidateQueries({ queryKey: ['cody-tasks'] })
     },
   })
 
@@ -122,7 +146,6 @@ export function useTaskDetails(issueNumber: number | null, actorLogin?: string) 
     mutationFn: () => codyApi.tasks.close(issueNumber!, actorLogin),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.taskDetails(issueNumber!) })
-      queryClient.invalidateQueries({ queryKey: ['cody-tasks'] })
     },
   })
 
@@ -130,7 +153,6 @@ export function useTaskDetails(issueNumber: number | null, actorLogin?: string) 
     mutationFn: () => codyApi.tasks.reopen(issueNumber!, actorLogin),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.taskDetails(issueNumber!) })
-      queryClient.invalidateQueries({ queryKey: ['cody-tasks'] })
     },
   })
 
@@ -138,7 +160,6 @@ export function useTaskDetails(issueNumber: number | null, actorLogin?: string) 
     mutationFn: () => codyApi.tasks.abort(issueNumber!, actorLogin),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.taskDetails(issueNumber!) })
-      queryClient.invalidateQueries({ queryKey: ['cody-tasks'] })
     },
   })
 
@@ -153,6 +174,26 @@ export function useTaskDetails(issueNumber: number | null, actorLogin?: string) 
     isReopening: reopenMutation.isPending,
     isAborting: abortMutation.isPending,
   }
+}
+
+// ============ useWorkflowRuns ============
+
+/**
+ * Fetches all workflow runs and optionally filters them by task title.
+ * The /api/cody/workflows endpoint returns up to 20 runs (no per-task filter server-side),
+ * so we filter client-side by matching display_title against the provided taskTitle.
+ */
+export function useWorkflowRuns(taskTitle?: string) {
+  return useQuery({
+    queryKey: queryKeys.workflowRuns,
+    queryFn: () => codyApi.workflows.list(),
+    select: (runs) => {
+      if (!taskTitle) return runs
+      return runs.filter((run) => run.display_title === taskTitle)
+    },
+    staleTime: 30_000,
+    enabled: !!taskTitle,
+  })
 }
 
 // ============ useCreateTask ============
@@ -172,6 +213,26 @@ export function useCreateTask() {
     }) => codyApi.tasks.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cody-tasks'] })
+    },
+  })
+}
+
+// ============ useUpdateTask ============
+
+export function useUpdateTask(issueNumber: number) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: {
+      title?: string
+      body?: string
+      labels?: string[]
+      assignees?: string[]
+      actorLogin?: string
+    }) => codyApi.tasks.update(issueNumber, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cody-tasks'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.taskDetails(issueNumber) })
     },
   })
 }
@@ -248,7 +309,9 @@ export function useTaskActions({
   }
 
   const handleSuccess = (label: string) => () => {
-    queryClient.invalidateQueries({ queryKey: ['cody-tasks'] })
+    // Only invalidate the specific task detail — task list refreshes via polling.
+    // This prevents mutations from triggering 3+ GitHub API calls per action.
+    queryClient.invalidateQueries({ queryKey: queryKeys.taskDetails(issueNumber) })
     toast.success(label)
     onSuccess?.()
   }
@@ -301,6 +364,18 @@ export function useTaskActions({
     onError: handleError('reject gate'),
   })
 
+  const approveUI = useMutation({
+    mutationFn: () => codyApi.tasks.approveUI(issueNumber, actorLogin),
+    onSuccess: handleSuccess('Preview UI approved'),
+    onError: handleError('approve UI'),
+  })
+
+  const approvePR = useMutation({
+    mutationFn: () => codyApi.tasks.approvePR(issueNumber, actorLogin),
+    onSuccess: handleSuccess('PR approved'),
+    onError: handleError('approve PR'),
+  })
+
   const assign = useMutation({
     mutationFn: (assignees: string[]) => codyApi.tasks.assign(issueNumber, assignees, actorLogin),
     onSuccess: handleSuccess('User(s) assigned'),
@@ -313,6 +388,18 @@ export function useTaskActions({
     onError: handleError('unassign user'),
   })
 
+  const addToQueue = useMutation({
+    mutationFn: () => codyApi.tasks.addToQueue(issueNumber, actorLogin),
+    onSuccess: handleSuccess('Added to queue'),
+    onError: handleError('add to queue'),
+  })
+
+  const removeFromQueue = useMutation({
+    mutationFn: () => codyApi.tasks.removeFromQueue(issueNumber, actorLogin),
+    onSuccess: handleSuccess('Removed from queue'),
+    onError: handleError('remove from queue'),
+  })
+
   const isPending =
     execute.isPending ||
     close.isPending ||
@@ -322,8 +409,12 @@ export function useTaskActions({
     abort.isPending ||
     approveGate.isPending ||
     rejectGate.isPending ||
+    approveUI.isPending ||
+    approvePR.isPending ||
     assign.isPending ||
-    unassign.isPending
+    unassign.isPending ||
+    addToQueue.isPending ||
+    removeFromQueue.isPending
 
   return {
     execute: execute.mutate,
@@ -334,8 +425,12 @@ export function useTaskActions({
     abort: abort.mutate,
     approveGate: approveGate.mutate,
     rejectGate: rejectGate.mutate,
+    approveUI: approveUI.mutate,
+    approvePR: approvePR.mutate,
     assign: assign.mutate,
     unassign: unassign.mutate,
+    addToQueue: addToQueue.mutate,
+    removeFromQueue: removeFromQueue.mutate,
     isPending,
     pendingAction: execute.isPending
       ? 'execute'
@@ -345,14 +440,22 @@ export function useTaskActions({
           ? 'approve'
           : rejectGate.isPending
             ? 'reject'
-            : close.isPending
-              ? 'close'
-              : closePR.isPending
-                ? 'close-pr'
-                : reset.isPending
-                  ? 'reset'
-                  : reopen.isPending
-                    ? 'reopen'
-                    : null,
+            : approveUI.isPending
+              ? 'approve-ui'
+              : approvePR.isPending
+                ? 'approve-pr'
+                : close.isPending
+                  ? 'close'
+                  : closePR.isPending
+                    ? 'close-pr'
+                    : reset.isPending
+                      ? 'reset'
+                      : reopen.isPending
+                        ? 'reopen'
+                        : addToQueue.isPending
+                          ? 'add-to-queue'
+                          : removeFromQueue.isPending
+                            ? 'remove-from-queue'
+                            : null,
   }
 }

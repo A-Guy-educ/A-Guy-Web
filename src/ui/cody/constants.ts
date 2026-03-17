@@ -7,8 +7,17 @@
 
 // ============ Pipeline Stages ============
 
-export const SPEC_STAGES = ['taskify', 'spec', 'clarify'] as const
-export const IMPL_STAGES = ['architect', 'plan-review', 'build', 'commit', 'verify', 'pr'] as const
+export const SPEC_STAGES = ['taskify', 'gap', 'clarify'] as const
+export const IMPL_STAGES = [
+  'architect',
+  'plan-gap',
+  'build',
+  'commit',
+  'review',
+  'fix',
+  'verify',
+  'pr',
+] as const
 export const AUTOFIX_STAGE = 'autofix' as const
 
 export type SpecStage = (typeof SPEC_STAGES)[number]
@@ -40,7 +49,7 @@ export const COLUMN_DEFS: Record<ColumnId, ColumnDef> = {
   building: { id: 'building', label: 'Building', color: 'blue', order: 1 },
   review: { id: 'review', label: 'Review', color: 'purple', order: 2 },
   failed: { id: 'failed', label: 'Failed', color: 'red', order: 3 },
-  'gate-waiting': { id: 'gate-waiting', label: 'Gate Waiting', color: 'yellow', order: 4 },
+  'gate-waiting': { id: 'gate-waiting', label: 'Needs Approval', color: 'yellow', order: 4 },
   retrying: { id: 'retrying', label: 'Retrying', color: 'orange', order: 5 },
   done: { id: 'done', label: 'Done', color: 'green', order: 6 },
 }
@@ -48,9 +57,10 @@ export const COLUMN_DEFS: Record<ColumnId, ColumnDef> = {
 // ============ Polling Intervals ============
 
 export const POLLING_INTERVALS = {
-  idle: 60000, // 30s - no running tasks
-  board: 30000, // 10s - has running tasks
-  active: 15000, // 5s - selected task is running
+  idle: 60_000, // 60s - no running tasks
+  board: 30_000, // 30s - has running tasks
+  active: 15_000, // 15s - selected task is running
+  backlog: 120_000, // 120s - backlog view, tasks change rarely
 } as const
 
 // ============ Branch Prefixes ============
@@ -101,9 +111,9 @@ export const BRANCH_CACHE_TTL = 600000 // 10min - branches rarely change
 
 export const CACHE_TTL = {
   tasks: 120000, // 2min - reduced API calls while staying fresh
-  pipeline: 60000, // 30s - increased from 5s to reduce calls
-  boards: 900000, // 5min - labels/milestones rarely change
-  prs: 300000, // 2min - increased from 30s
+  pipeline: 60000, // 1min - fresh enough for status checks
+  boards: 900000, // 15min - labels/milestones rarely change
+  prs: 300000, // 5min - PRs don't change that often
 } as const
 
 // ============ Emoji List ============
