@@ -4,8 +4,8 @@
   "mode": "full",
   "pipeline": "spec_execute_verify",
   "startedAt": "2026-03-17T20:33:21.677Z",
-  "updatedAt": "2026-03-17T21:08:44.768Z",
-  "state": "failed",
+  "updatedAt": "2026-03-17T21:40:36.967Z",
+  "state": "paused",
   "cursor": "architect",
   "stages": {
     "taskify": {
@@ -37,11 +37,19 @@
       "sessionId": "ses_30272da7cffewMw1kBiuNj2xFk"
     },
     "architect": {
-      "state": "failed",
+      "state": "paused",
       "retries": 0,
-      "startedAt": "2026-03-17T21:04:36.259Z",
-      "elapsed": 247,
-      "error": "Agent \"architect\" failed. Artifacts: architect-stderr.log, architect-events.jsonl"
+      "startedAt": "2026-03-17T21:35:45.256Z",
+      "completedAt": "2026-03-17T21:40:32.616Z",
+      "elapsed": 287,
+      "outputFile": "architect.md",
+      "tokenUsage": {
+        "input": 24,
+        "output": 13048,
+        "cacheRead": 2673099
+      },
+      "cost": 2.5425757499999997,
+      "sessionId": "ses_3024609aaffen6CAklBPvEG1J0"
     }
   },
   "issueNumber": 822,
@@ -54,5 +62,6 @@
       "timestamp": "2026-03-17T20:33:21.677Z"
     }
   ],
-  "completedAt": "2026-03-17T21:08:44.768Z"
+  "completedAt": "2026-03-17T21:40:36.967Z",
+  "totalCost": 2.5425757499999997
 }
