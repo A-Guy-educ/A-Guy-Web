@@ -196,7 +196,7 @@ This is a rerun (3rd attempt). The previous runs had no `plan.md`, `build.md`, o
 - `src/app/api/jobs/run-immediate/route.ts` (MODIFIED — catch at line 159)
 - `src/app/api/pdfjs-viewer/route.ts` (MODIFIED — catch at line 111)
 - `src/app/api/copilotkit/route.ts` (MODIFIED — catch at line 161)
-- `src/app/api/agent/message/persist/route.ts` (MODIFIED — catch at line 116)
+- `src/app/api/agent/message/persist/route.ts` (MODIFIED — catch at line 111)
 
 **Exact Behavior:**
 For each route, replace the bare `catch → console.error/logger.error → NextResponse.json(500)` pattern with dynamic import of `captureAndRespond`:

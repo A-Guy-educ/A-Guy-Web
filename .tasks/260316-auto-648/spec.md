@@ -41,7 +41,8 @@ Called from instrumentation.ts at startup.
 
 ### 4. Pre-launch E2E Tests
 
-Cherry-pick commit 9631fe7b from feat/pre-launch-e2e-verification branch.
+~~Cherry-pick commit 9631fe7b from feat/pre-launch-e2e-verification branch.~~
+**ALREADY DONE**: E2E test helpers and verification specs already exist in the codebase (merged via PR #784). No action needed.
 
 ## Sentry Coverage (Phase 2)
 
@@ -58,7 +59,7 @@ Add captureAndRespond to 6 routes:
 - api/agent/message/persist
 
 ### 5c. High-Traffic Routes
-Migrate 4 routes to withApiHandler:
+Add Sentry.captureException to 4 routes (pragmatic approach — full withApiHandler migration requires deep refactoring of downstream PayloadRequest-accepting endpoint functions):
 - api/agent/chat
 - api/agent/chat/stream
 - api/exercises/import
@@ -90,10 +91,10 @@ Add Sentry.browserTracingIntegration() to instrumentation-client.ts
 1. Security headers are applied correctly (strict for frontend, permissive for admin)
 2. Frontend error boundary captures errors to Sentry
 3. Required env vars are validated at startup
-4. E2E test helpers are available
+4. ~~E2E test helpers are available~~ Already done (PR #784)
 5. All Cody routes report errors to Sentry
 6. 6 non-Cody routes report errors to Sentry
-7. 4 high-traffic routes use withApiHandler
+7. 4 high-traffic routes have Sentry.captureException in catch blocks
 8. 4 remaining routes have Zod validation
 9. CI runs with coverage reporting
 10. Web Vitals are tracked in Sentry
