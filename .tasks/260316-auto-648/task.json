@@ -4,34 +4,35 @@
   "confidence": 0.95,
   "primary_domain": "devops",
   "scope": [
-    "Security headers in next.config.js",
-    "Frontend error boundary",
-    "Env variable validation",
-    "E2E test cherry-pick",
-    "Sentry integration in API routes",
-    "Zod validation in API routes",
-    "CI coverage enforcement",
-    "Web Vitals tracking"
+    "next.config.js",
+    "src/app/(frontend)/error.tsx",
+    "src/infra/config/env-validation.ts",
+    "instrumentation.ts",
+    "Cody error utility",
+    "API routes (15+)",
+    "CI workflow",
+    "vitest config",
+    "instrumentation-client.ts"
   ],
   "missing_inputs": [],
   "assumptions": [
-    "Cherry-pick commit 9631fe7b will apply cleanly or have resolvable conflicts",
-    "handleCodyApiError utility exists and can be found in codebase",
-    "withApiHandler utility exists for API route migration"
+    "Cherry-pick commit 9631fe7b will succeed without major conflicts",
+    "Existing handleCodyApiError utility exists in codebase",
+    "withApiHandler utility exists for Phase 2 migration"
   ],
   "review_questions": [
-    "Is working directly on dev branch approved (no feature branch)?",
-    "Should E2E tests be committed even though they're on a diverged branch?",
-    "Are permissive coverage thresholds acceptable initially?"
+    "Is cherry-pick from feat/pre-launch-e2e-verification the correct approach, or should we manually recreate specific test helpers?",
+    "What specific coverage thresholds should be set in vitest.config.unit.mts?",
+    "Should the env validation throw on missing optional vars (Sentry, OpenAI keys) or just warn?"
   ],
   "complexity": 65,
-  "complexity_reasoning": "Scope: 20+ files across 3 phases. Risk: Security headers, CI/CD changes, Sentry integration (HIGH). Novelty: Following existing patterns (8). Cross-domain: Frontend + Backend + DevOps + Infra (12). Ambiguity: Clear spec with file paths (2). Dependencies: Multi-phase implementation (8). Total: 65",
+  "complexity_reasoning": "Scope: 22 (25+ files across multiple modules). Risk: 16 (security headers, API validation, CI changes). Novelty: 8 (extending existing patterns). Cross-domain: 13 (security + frontend + backend + infra + testing). Ambiguity: 2 (very clear spec with file paths). Dependencies: 4 (mostly self-contained). Total: 65",
   "input_quality": {
-    "level": "detailed_plan",
+    "level": "spec_and_plan",
     "skip_stages": [
       "architect"
     ],
-    "reasoning": "Input contains step-by-step phases with specific file paths and implementation details. Phase 1-3 structure with clear deliverables. Promoted spec.md not needed - task already has detailed plan structure."
+    "reasoning": "Task contains detailed phases (Phase 1-3) with step-by-step implementation steps, specific file paths to modify/create, and verification commands. Has both requirements (Background, Audit Summary) and implementation plan (Phase items with file lists). Promoted spec.md and plan.md will be written."
   },
   "pipeline_profile": "standard",
   "pipeline": "spec_execute_verify"
