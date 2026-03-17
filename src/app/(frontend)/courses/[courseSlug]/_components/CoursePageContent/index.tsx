@@ -14,11 +14,18 @@ import { ExamsTab } from '../ExamsTab'
 import { LearnTab } from '../LearnTab'
 import { PracticeTab } from '../PracticeTab'
 
+export interface LessonProgress {
+  completed: number
+  total: number
+  percent: number
+}
+
 interface CoursePageContentProps {
   course: Course
   chapters: Chapter[]
   lessons: Lesson[]
   courseSlug: string
+  lessonProgressMap?: Record<string, LessonProgress>
 }
 
 export function CoursePageContent({
@@ -26,6 +33,7 @@ export function CoursePageContent({
   chapters,
   lessons,
   courseSlug,
+  lessonProgressMap = {},
 }: CoursePageContentProps) {
   const t = useTranslations('coursePage')
   const [activeTab, setActiveTab] = useState<CourseTab>('learn')
@@ -59,6 +67,7 @@ export function CoursePageContent({
             chapters={chapters}
             courseSlug={courseSlug}
             tabColor={TAB_COLORS[activeTab]}
+            lessonProgressMap={lessonProgressMap}
           />
         )}
         {activeTab === 'practice' && (
@@ -67,6 +76,7 @@ export function CoursePageContent({
             chapters={chapters}
             courseSlug={courseSlug}
             tabColor={TAB_COLORS[activeTab]}
+            lessonProgressMap={lessonProgressMap}
           />
         )}
         {activeTab === 'ask' && (

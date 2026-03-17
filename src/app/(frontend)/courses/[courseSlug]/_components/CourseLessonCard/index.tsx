@@ -13,6 +13,7 @@ interface CourseLessonCardProps {
   courseSlug: string
   chapterSlug: string
   tabColor?: { text: string; stroke: string }
+  progress?: number
 }
 
 export function CourseLessonCard({
@@ -21,19 +22,18 @@ export function CourseLessonCard({
   courseSlug,
   chapterSlug,
   tabColor,
+  progress = 0,
 }: CourseLessonCardProps) {
   const t = useTranslations('coursePage')
   const tc = useTranslations('courses')
 
   const href = `/courses/${courseSlug}/chapters/${chapterSlug}/lessons/${lesson.slug}`
-  // Placeholder progress — will be wired to UserProgress later
-  const progress = 0
 
   const progressText =
     progress >= 100
       ? t('lessonCompleted')
       : progress > 0
-        ? t('lessonsRemaining').replace('{count}', String(3))
+        ? t('statusInProgress')
         : t('notStarted')
 
   const accentColor = tabColor?.stroke ?? 'hsl(var(--primary))'
