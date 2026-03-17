@@ -76,7 +76,8 @@ jobs:
 
       - name: Create version branch with cheap models
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          # Use GITHUB_TOKEN for push (has contents:write from workflow permissions)
+          GH_TOKEN: ${{ github.token }}
         run: |
           RUN_ID=${{ steps.setup.outputs.run_id }}
           BRANCH="systest/$RUN_ID"
@@ -259,7 +260,8 @@ jobs:
 
       - name: Delete version branch
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          # Use GITHUB_TOKEN for delete (has contents:write from workflow permissions)
+          GH_TOKEN: ${{ github.token }}
         run: |
           BRANCH="${{ needs.setup.outputs.version_branch }}"
           if [ -n "$BRANCH" ]; then
