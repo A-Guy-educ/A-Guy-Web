@@ -59,14 +59,38 @@ export async function POST(request: Request): Promise<Response> {
         overrideAccess: true,
       })
     } else if (blobUrl) {
-      const results = await payload.find({
+      // First try by blobUrl (set by onUploadCompleted callback)
+      const byUrl = await payload.find({
         collection: 'upload-sessions',
         where: { blobUrl: { equals: blobUrl } },
         limit: 1,
         depth: 0,
         overrideAccess: true,
       })
-      session = results.docs[0] || null
+      session = byUrl.docs[0] || null
+
+      // If not found, try by pathname (onUploadCompleted may not have fired)
+      if (!session) {
+        try {
+          const url = new URL(blobUrl)
+          const blobPathname = url.pathname.startsWith('/') ? url.pathname.slice(1) : url.pathname
+          if (blobPathname) {
+            const byPath = await payload.find({
+              collection: 'upload-sessions',
+              where: {
+                pathname: { equals: blobPathname },
+                createdBy: { equals: userId },
+              },
+              limit: 1,
+              depth: 0,
+              overrideAccess: true,
+            })
+            session = byPath.docs[0] || null
+          }
+        } catch {
+          // Invalid URL, skip pathname lookup
+        }
+      }
     }
 
     if (!session) {
@@ -111,16 +135,28 @@ export async function POST(request: Request): Promise<Response> {
       return Response.json({ error: 'Invalid session status' }, { status: 409 })
     }
 
-    if (!session.blobUrl) {
+    // If onUploadCompleted didn't fire, use the blobUrl from the client
+    const resolvedBlobUrl = session.blobUrl || blobUrl
+    if (!resolvedBlobUrl) {
       return Response.json({ error: 'Upload not completed' }, { status: 409 })
     }
 
-    if (!isVercelBlobUrl(session.blobUrl)) {
+    if (!isVercelBlobUrl(resolvedBlobUrl)) {
       return Response.json({ error: 'Invalid blob URL' }, { status: 400 })
     }
 
+    // Update session with blobUrl if it wasn't set by onUploadCompleted
+    if (!session.blobUrl && resolvedBlobUrl) {
+      await payload.update({
+        collection: 'upload-sessions',
+        id: session.id,
+        data: { blobUrl: resolvedBlobUrl, status: 'uploaded' },
+        overrideAccess: true,
+      })
+    }
+
     const blobAdapter = getMediaBlobAdapter()
-    const metadata = await blobAdapter.getMetadata(session.blobUrl)
+    const metadata = await blobAdapter.getMetadata(resolvedBlobUrl)
 
     if (!metadata) {
       return Response.json({ error: 'Blob not found' }, { status: 404 })
@@ -146,7 +182,7 @@ export async function POST(request: Request): Promise<Response> {
       data: {
         tenant: session.tenant,
         createdBy: userId,
-        url: session.blobUrl,
+        url: resolvedBlobUrl,
         pathname: session.pathname,
         originalFilename: session.originalFilename,
         mimeType: session.mimeType,
