@@ -139,6 +139,10 @@ export async function runRerunMode(ctx: PipelineContext): Promise<void> {
       const tempPipeline = resolvePipelineForMode('rerun', ctx.profile, false, ctx)
       const tempOrder = flattenPipelineOrder(tempPipeline.order)
       input.fromStage = resolveFromStageAfterGateApproval(gateApprovedStage, tempOrder)
+      // R3-FIX #2: Trigger pipeline rebuild after gate approval.
+      // The profile or task definition may have changed between the original run
+      // and this rerun — rebuilding ensures the correct stages are used.
+      ctx.pipelineNeedsRebuild = true
       logger.info(`  ℹ️ Gate approved at ${gateApprovedStage} — resuming from ${input.fromStage}`)
     } else {
       // FIX #827: When pipeline state is 'failed', prefer failed stage over paused stage.
