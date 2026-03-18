@@ -349,6 +349,9 @@ jobs:
           app-id: 3116827
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
+          repositories: A-Guy
+          permission-contents: write
+          permission-pull-requests: write
 
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -403,8 +406,8 @@ jobs:
         run: |
           git config --global user.email "${GIT_USER_EMAIL:-242132053+aguyaharonyair@users.noreply.github.com}"
           git config --global user.name "${GIT_USER_NAME:-aguyaharonyair}"
-          # Use GITHUB_TOKEN for all GitHub HTTPS operations (including push)
-          git config --global url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "https://github.com/"
+          # Use App token for all GitHub HTTPS operations (including push)
+          git config --global url."https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/".insteadOf "https://github.com/"
 
       # Overlay pipeline version (if specified)
       - name: Overlay pipeline version
