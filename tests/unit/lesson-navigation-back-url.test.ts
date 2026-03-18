@@ -2,7 +2,7 @@
  * @fileType test
  * @domain frontend
  * @pattern lesson-navigation, url-routing
- * @ai-summary Verifies that lesson pages navigate to course page after completion, not chapter page
+ * @ai-summary Verifies that lesson pages navigate to /study after completion
  */
 import { describe, expect, it } from 'vitest'
 import * as fs from 'fs'
@@ -10,56 +10,53 @@ import * as path from 'path'
 
 describe('Lesson Navigation backUrl Fix (Issue #851)', () => {
   /**
-   * This test verifies that the backUrl in lesson pages points to the course page
-   * rather than the chapter page, ensuring users are redirected to the modern
-   * course page after completing a lesson instead of the old chapter list view.
+   * This test verifies that the backUrl in lesson pages points to /study
+   * ensuring users are redirected to the study dashboard after completing
+   * a lesson instead of the course page or chapter list view.
    */
-  it('lesson page should navigate to course page (not chapter page)', () => {
+  it('lesson page should navigate to /study (not course or chapter page)', () => {
     const lessonPagePath = path.join(
       process.cwd(),
       'src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/page.tsx',
     )
     const content = fs.readFileSync(lessonPagePath, 'utf-8')
 
-    // The backUrl should point to /courses/${courseSlug} (course page - new UI)
-    // NOT /courses/${courseSlug}/chapters/${chapterSlug} (chapter page - old UI)
-    expect(content).toContain('const backUrl = `/courses/${courseSlug}`')
+    expect(content).toContain("const backUrl = '/study'")
     expect(content).not.toContain(
       'const backUrl = `/courses/${courseSlug}/chapters/${chapterSlug}`',
     )
+    expect(content).not.toContain('const backUrl = `/courses/${courseSlug}`')
   })
 
-  it('exercise page should navigate to course page (not lesson page)', () => {
+  it('exercise page should navigate to /study (not course or lesson page)', () => {
     const exercisePagePath = path.join(
       process.cwd(),
       'src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/page.tsx',
     )
     const content = fs.readFileSync(exercisePagePath, 'utf-8')
 
-    // The backUrl should point to /courses/${courseSlug} (course page)
-    // NOT /courses/${courseSlug}/chapters/${chapterSlug}/lessons/${lessonSlug} (lesson page)
-    expect(content).toContain('const backUrl = `/courses/${courseSlug}`')
+    expect(content).toContain("const backUrl = '/study'")
     expect(content).not.toContain(
       'const backUrl = `/courses/${courseSlug}/chapters/${chapterSlug}/lessons/${lessonSlug}`',
     )
+    expect(content).not.toContain('const backUrl = `/courses/${courseSlug}`')
   })
 
-  it('complete page should navigate to course page (not lesson page)', () => {
+  it('complete page should navigate to /study (not course or lesson page)', () => {
     const completePagePath = path.join(
       process.cwd(),
       'src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/complete/page.tsx',
     )
     const content = fs.readFileSync(completePagePath, 'utf-8')
 
-    // The backUrl should point to /courses/${courseSlug} (course page)
-    // NOT /courses/${courseSlug}/chapters/${chapterSlug}/lessons/${lessonSlug} (lesson page)
-    expect(content).toContain('const backUrl = `/courses/${courseSlug}`')
+    expect(content).toContain("const backUrl = '/study'")
     expect(content).not.toContain(
       'const backUrl = `/courses/${courseSlug}/chapters/${chapterSlug}/lessons/${lessonSlug}`',
     )
+    expect(content).not.toContain('const backUrl = `/courses/${courseSlug}`')
   })
 
-  it('all three lesson navigation pages should use consistent course page URL', () => {
+  it('all three lesson navigation pages should use consistent /study URL', () => {
     const basePath =
       'src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]'
 
@@ -73,11 +70,10 @@ describe('Lesson Navigation backUrl Fix (Issue #851)', () => {
       'utf-8',
     )
 
-    // All three should have consistent backUrl pointing to course page
-    const courseUrlPattern = 'const backUrl = `/courses/${courseSlug}`'
+    const studyUrlPattern = "const backUrl = '/study'"
 
-    expect(lessonPage).toContain(courseUrlPattern)
-    expect(exercisePage).toContain(courseUrlPattern)
-    expect(completePage).toContain(courseUrlPattern)
+    expect(lessonPage).toContain(studyUrlPattern)
+    expect(exercisePage).toContain(studyUrlPattern)
+    expect(completePage).toContain(studyUrlPattern)
   })
 })
