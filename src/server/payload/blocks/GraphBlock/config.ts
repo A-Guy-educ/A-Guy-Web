@@ -13,8 +13,9 @@ export const GraphBlock: Block = {
       type: 'textarea',
       required: true,
       admin: {
-        description:
-          'AxisSpecV1 JSON. Must have kind:"cartesian", units, grid, axes, and elements:{points,graphs}.',
+        components: {
+          Field: '@/ui/admin/IntroGraphField#IntroGraphSpecField',
+        },
       },
     },
     {

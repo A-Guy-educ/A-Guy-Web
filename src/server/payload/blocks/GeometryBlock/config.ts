@@ -13,8 +13,9 @@ export const GeometryBlock: Block = {
       type: 'textarea',
       required: true,
       admin: {
-        description:
-          'GeometrySpecV1 JSON. Must have kind:"euclidean", canvas:{width,height}, and elements:{points,lines,circles,angles}.',
+        components: {
+          Field: '@/ui/admin/IntroGeometryField#IntroGeometrySpecField',
+        },
       },
     },
   ],

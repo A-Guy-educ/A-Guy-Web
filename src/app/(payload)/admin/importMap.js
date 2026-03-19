@@ -17,6 +17,8 @@ import { PreviewComponent as PreviewComponent_a8a977ebc872c5d5ea7ee689724c0860 }
 import { SlugField as SlugField_3817bf644402e67bfe6577f60ef982de } from '@payloadcms/ui'
 import { IntroTableHeadersField as IntroTableHeadersField_7c6162afec623d7dc5ec436565e36ecb } from '@/ui/admin/IntroTableField'
 import { IntroTableRowsField as IntroTableRowsField_7c6162afec623d7dc5ec436565e36ecb } from '@/ui/admin/IntroTableField'
+import { IntroGeometrySpecField as IntroGeometrySpecField_c2c1761cbe819b0609cad9be299e1fc7 } from '@/ui/admin/IntroGeometryField'
+import { IntroGraphSpecField as IntroGraphSpecField_8d1eea97d57da5692323d9664ac06d67 } from '@/ui/admin/IntroGraphField'
 import { LessonConversionPanel as LessonConversionPanel_057daf3b86f654d90edf003b44c43703 } from '@/ui/admin/exercise-conversion/LessonConversionPanel'
 import { ExerciseContentEditor as ExerciseContentEditor_d0c5d070052b5cabcf602f1e9878afd8 } from '@/ui/admin/ExerciseContentEditor'
 import { ExercisePreview as ExercisePreview_79d54f4a9901df303ad8ae2cc7d44435 } from '@/ui/admin/ExercisePreview'
@@ -57,6 +59,8 @@ export const importMap = {
   "@payloadcms/ui#SlugField": SlugField_3817bf644402e67bfe6577f60ef982de,
   "@/ui/admin/IntroTableField#IntroTableHeadersField": IntroTableHeadersField_7c6162afec623d7dc5ec436565e36ecb,
   "@/ui/admin/IntroTableField#IntroTableRowsField": IntroTableRowsField_7c6162afec623d7dc5ec436565e36ecb,
+  "@/ui/admin/IntroGeometryField#IntroGeometrySpecField": IntroGeometrySpecField_c2c1761cbe819b0609cad9be299e1fc7,
+  "@/ui/admin/IntroGraphField#IntroGraphSpecField": IntroGraphSpecField_8d1eea97d57da5692323d9664ac06d67,
   "@/ui/admin/exercise-conversion/LessonConversionPanel#LessonConversionPanel": LessonConversionPanel_057daf3b86f654d90edf003b44c43703,
   "@/ui/admin/ExerciseContentEditor#ExerciseContentEditor": ExerciseContentEditor_d0c5d070052b5cabcf602f1e9878afd8,
   "@/ui/admin/ExercisePreview#ExercisePreview": ExercisePreview_79d54f4a9901df303ad8ae2cc7d44435,
