@@ -199,12 +199,17 @@ export function useExercisesPager({
         if (nextPage >= totalPages) return prev
         const nextState = pageToState(nextPage)
 
+        // Save lesson completion when reaching the outro page
+        // Set flag BEFORE saveExerciseProgress to prevent race with 99% write
+        if (nextState.type === 'outro' && !completionSavedRef.current) {
+          completionSavedRef.current = true
+        }
+
         // Save exercise progress when leaving an exercise
         saveExerciseProgress(prev)
 
-        // Save lesson completion when reaching the outro page
-        if (nextState.type === 'outro' && !completionSavedRef.current) {
-          completionSavedRef.current = true
+        // Fire 100% save after exercise progress to ensure correct final state
+        if (nextState.type === 'outro') {
           saveProgress({
             recordType: 'lesson',
             recordId: lessonId,
