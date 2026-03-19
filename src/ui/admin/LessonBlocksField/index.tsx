@@ -82,6 +82,10 @@ export const LessonBlocksField: React.FC<{ path: string }> = ({ path }) => {
 
   const blocks: RawBlock[] = useMemo(() => (Array.isArray(value) ? value : []), [value])
 
+  // Drag-and-drop state
+  const [dragIndex, setDragIndex] = useState<number | null>(null)
+  const [dropTarget, setDropTarget] = useState<number | null>(null)
+
   // Title cache (refId -> title)
   const [titleCache, setTitleCache] = useState<Record<string, string>>({})
   const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set())
@@ -185,6 +189,40 @@ export const LessonBlocksField: React.FC<{ path: string }> = ({ path }) => {
     },
     [blocks, updateBlocks],
   )
+
+  const handleDragStart = useCallback((e: React.DragEvent, idx: number) => {
+    setDragIndex(idx)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', String(idx))
+  }, [])
+
+  const handleDragOver = useCallback((e: React.DragEvent, idx: number) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDropTarget(idx)
+  }, [])
+
+  const handleDragLeave = useCallback(() => {
+    setDropTarget(null)
+  }, [])
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent, toIdx: number) => {
+      e.preventDefault()
+      const fromIdx = dragIndex
+      setDragIndex(null)
+      setDropTarget(null)
+      if (fromIdx !== null && fromIdx !== toIdx) {
+        moveBlock(fromIdx, toIdx)
+      }
+    },
+    [dragIndex, moveBlock],
+  )
+
+  const handleDragEnd = useCallback(() => {
+    setDragIndex(null)
+    setDropTarget(null)
+  }, [])
 
   const removeBlock = useCallback(
     (index: number) => {
@@ -312,16 +350,34 @@ export const LessonBlocksField: React.FC<{ path: string }> = ({ path }) => {
         {rows.map((row, idx) => (
           <div
             key={`${row.blockType}-${row.refId}-${idx}`}
+            draggable
+            onDragStart={(e) => handleDragStart(e, idx)}
+            onDragOver={(e) => handleDragOver(e, idx)}
+            onDragLeave={handleDragLeave}
+            onDrop={(e) => handleDrop(e, idx)}
+            onDragEnd={handleDragEnd}
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: 8,
               padding: '8px 12px',
               borderBottom: idx < rows.length - 1 ? '1px solid var(--theme-elevation-100)' : 'none',
-              background: idx % 2 === 0 ? 'transparent' : 'var(--theme-elevation-50)',
+              background:
+                dropTarget === idx
+                  ? 'var(--theme-elevation-100)'
+                  : dragIndex === idx
+                    ? 'var(--theme-elevation-50)'
+                    : idx % 2 === 0
+                      ? 'transparent'
+                      : 'var(--theme-elevation-50)',
+              opacity: dragIndex === idx ? 0.5 : 1,
+              borderTop:
+                dropTarget === idx ? '2px solid var(--theme-success-500, #22c55e)' : 'none',
+              transition: 'background 0.15s, opacity 0.15s',
+              cursor: 'grab',
             }}
           >
-            <span style={{ color: 'var(--theme-elevation-300)', flexShrink: 0, cursor: 'grab' }}>
+            <span style={{ color: 'var(--theme-elevation-300)', flexShrink: 0 }}>
               <GripVertical size={16} />
             </span>
 
