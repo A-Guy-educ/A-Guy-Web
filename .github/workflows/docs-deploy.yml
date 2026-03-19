@@ -56,7 +56,43 @@ jobs:
           # 6. Copy Docsify index.html
           cp docs/index.html _wiki/index.html
 
-          # 7. Auto-generate _sidebar.md
+          # 7. Auto-generate README.md for folders that don't have one
+          find _wiki -type d | while read dir; do
+            if [ ! -f "$dir/README.md" ]; then
+              # Get folder name for title
+              folder_name=$(basename "$dir")
+              [ "$folder_name" = "_wiki" ] && continue
+
+              # Make title from folder name (kebab-case to Title Case)
+              title=$(echo "$folder_name" | sed 's/-/ /g' | sed 's/\b\(.\)/\u\1/g')
+
+              # List all .md files in this folder
+              echo "# $title" > "$dir/README.md"
+              echo "" >> "$dir/README.md"
+              for md in "$dir"/*.md; do
+                [ "$(basename "$md")" = "README.md" ] && continue
+                [ ! -f "$md" ] && continue
+                # Get first heading from file, or use filename
+                heading=$(head -5 "$md" | grep "^#" | head -1 | sed 's/^#* *//')
+                filename=$(basename "$md" .md)
+                if [ -n "$heading" ]; then
+                  echo "- [$heading]($filename)" >> "$dir/README.md"
+                else
+                  echo "- [$filename]($filename)" >> "$dir/README.md"
+                fi
+              done
+
+              # List subdirectories
+              for subdir in "$dir"/*/; do
+                [ ! -d "$subdir" ] && continue
+                subname=$(basename "$subdir")
+                subtitle=$(echo "$subname" | sed 's/-/ /g' | sed 's/\b\(.\)/\u\1/g')
+                echo "- [$subtitle]($subname/)" >> "$dir/README.md"
+              done
+            fi
+          done
+
+          # 8. Auto-generate _sidebar.md
           cat > _wiki/_sidebar.md << 'SIDEBAR'
           - **Home**
             - [Welcome](/)
