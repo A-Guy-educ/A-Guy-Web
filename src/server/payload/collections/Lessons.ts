@@ -175,7 +175,7 @@ export const Lessons: CollectionConfig = {
     // --- Lesson Blocks (ordered playlist) ---
     {
       name: 'blocks',
-      type: 'json',
+      type: 'textarea',
       admin: {
         description: 'Ordered playlist of exercises and content pages. Defines the lesson flow.',
         components: {

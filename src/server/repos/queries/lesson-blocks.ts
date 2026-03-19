@@ -31,13 +31,25 @@ export const queryLessonBlocks = cache(
       overrideAccess: false,
     })
 
-    // blocks is stored as JSON (type: 'json'), so it may come as unknown
+    // blocks is stored as a textarea (JSON string) or may be an array
     const rawBlocks = lesson?.blocks
-    if (!rawBlocks || !Array.isArray(rawBlocks) || rawBlocks.length === 0) {
+    let parsed: unknown[]
+    if (Array.isArray(rawBlocks)) {
+      parsed = rawBlocks
+    } else if (typeof rawBlocks === 'string' && rawBlocks.trim()) {
+      try {
+        const result = JSON.parse(rawBlocks)
+        parsed = Array.isArray(result) ? result : []
+      } catch {
+        return []
+      }
+    } else {
       return []
     }
 
-    const blocks = rawBlocks as Array<{
+    if (parsed.length === 0) return []
+
+    const blocks = parsed as Array<{
       blockType?: string
       exercise?: string | { id: string }
       contentPage?: string | { id: string }

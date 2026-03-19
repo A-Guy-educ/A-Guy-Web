@@ -1304,15 +1304,7 @@ export interface Lesson {
   /**
    * Ordered playlist of exercises and content pages. Defines the lesson flow.
    */
-  blocks?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
+  blocks?: string | null;
   /**
    * Upload lesson content files (PDFs, videos, images, etc.)
    */

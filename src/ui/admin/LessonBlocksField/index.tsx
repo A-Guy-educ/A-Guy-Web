@@ -75,12 +75,26 @@ interface ResolvedRow {
  * Shows a flat sortable list of exercise/content page titles
  * instead of the default expandable blocks UI.
  */
+/** Parse blocks from the textarea value (string or array) */
+function parseBlocks(val: unknown): RawBlock[] {
+  if (Array.isArray(val)) return val
+  if (typeof val === 'string' && val.trim()) {
+    try {
+      const parsed = JSON.parse(val)
+      if (Array.isArray(parsed)) return parsed
+    } catch {
+      // ignore parse errors
+    }
+  }
+  return []
+}
+
 export const LessonBlocksField: React.FC<{ path: string }> = ({ path }) => {
-  const { value, setValue } = useField<RawBlock[]>({ path })
+  const { value, setValue } = useField<string>({ path })
   const docInfo = useDocumentInfo()
   const lessonId = docInfo?.id
 
-  const blocks: RawBlock[] = useMemo(() => (Array.isArray(value) ? value : []), [value])
+  const blocks: RawBlock[] = useMemo(() => parseBlocks(value), [value])
 
   // Drag-and-drop state
   const [dragIndex, setDragIndex] = useState<number | null>(null)
@@ -170,11 +184,11 @@ export const LessonBlocksField: React.FC<{ path: string }> = ({ path }) => {
       .filter((row) => row.refId) // skip blocks with no ref
   }, [blocks, titleCache, loadingIds])
 
-  /** Update Payload form state with normalized blocks */
+  /** Update Payload form state with normalized blocks (serialized as JSON string) */
   const updateBlocks = useCallback(
     (newBlocks: RawBlock[]) => {
       const normalized = newBlocks.map(normalizeBlock).filter(Boolean) as RawBlock[]
-      setValue(normalized)
+      setValue(JSON.stringify(normalized))
     },
     [setValue],
   )
@@ -280,7 +294,7 @@ export const LessonBlocksField: React.FC<{ path: string }> = ({ path }) => {
           : { id: generateBlockId(), blockType: 'contentPageRef', contentPage: refId }
 
       // Read current value directly to avoid stale closure
-      const current = (Array.isArray(value) ? value : []) as RawBlock[]
+      const current = parseBlocks(value)
       updateBlocks([...current, newBlock])
       setTitleCache((prev) => ({ ...prev, [refId]: title }))
       setShowPicker(null)
