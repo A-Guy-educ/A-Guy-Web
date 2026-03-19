@@ -279,11 +279,13 @@ export const LessonBlocksField: React.FC<{ path: string }> = ({ path }) => {
           ? { id: generateBlockId(), blockType: 'exerciseRef', exercise: refId }
           : { id: generateBlockId(), blockType: 'contentPageRef', contentPage: refId }
 
-      updateBlocks([...blocks, newBlock])
+      // Read current value directly to avoid stale closure
+      const current = (Array.isArray(value) ? value : []) as RawBlock[]
+      updateBlocks([...current, newBlock])
       setTitleCache((prev) => ({ ...prev, [refId]: title }))
       setShowPicker(null)
     },
-    [blocks, updateBlocks],
+    [value, updateBlocks],
   )
 
   const filteredResults = useMemo(() => {
