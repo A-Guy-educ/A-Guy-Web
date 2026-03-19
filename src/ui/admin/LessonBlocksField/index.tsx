@@ -12,16 +12,59 @@ import {
   FileText,
 } from 'lucide-react'
 
-interface BlockItem {
-  id?: string
-  blockType: 'exerciseRef' | 'contentPageRef'
-  exercise?: string | { id: string; title?: string }
-  contentPage?: string | { id: string; title?: string }
+function generateBlockId(): string {
+  return Math.random().toString(36).slice(2, 14)
 }
 
-interface ResolvedBlock {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type RawBlock = Record<string, any>
+
+/** Extract a plain ID string from a value that might be a string ID or a populated object */
+function extractId(val: unknown): string | null {
+  if (typeof val === 'string' && val.length > 0) return val
+  if (val && typeof val === 'object' && 'id' in val) return String((val as { id: unknown }).id)
+  return null
+}
+
+/** Extract title from a potentially populated relationship value */
+function extractTitle(val: unknown): string | null {
+  if (val && typeof val === 'object' && 'title' in val) {
+    return String((val as { title: unknown }).title) || null
+  }
+  return null
+}
+
+/** Normalize a block to the format Payload expects for saving:
+ *  - Ensure blockType is present
+ *  - Ensure id is present
+ *  - Relationship values are plain ID strings
+ */
+function normalizeBlock(block: RawBlock): RawBlock | null {
+  if (!block.blockType) return null
+
+  const normalized: RawBlock = {
+    id: block.id || generateBlockId(),
+    blockType: block.blockType,
+  }
+
+  if (block.blockType === 'exerciseRef') {
+    const id = extractId(block.exercise)
+    if (!id) return null
+    normalized.exercise = id
+  } else if (block.blockType === 'contentPageRef') {
+    const id = extractId(block.contentPage)
+    if (!id) return null
+    normalized.contentPage = id
+  } else {
+    return null
+  }
+
+  return normalized
+}
+
+interface ResolvedRow {
   index: number
-  blockType: 'exerciseRef' | 'contentPageRef'
+  blockType: string
   refId: string
   title: string
   loading: boolean
@@ -33,57 +76,47 @@ interface ResolvedBlock {
  * instead of the default expandable blocks UI.
  */
 export const LessonBlocksField: React.FC<{ path: string }> = ({ path }) => {
-  const { value, setValue } = useField<BlockItem[]>({ path })
+  const { value, setValue } = useField<RawBlock[]>({ path })
   const docInfo = useDocumentInfo()
   const lessonId = docInfo?.id
 
-  const blocks: BlockItem[] = useMemo(() => (Array.isArray(value) ? value : []), [value])
+  const blocks: RawBlock[] = useMemo(() => (Array.isArray(value) ? value : []), [value])
 
-  // Resolved titles cache
+  // Title cache (refId -> title)
   const [titleCache, setTitleCache] = useState<Record<string, string>>({})
   const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set())
 
-  // Extract ref IDs from blocks
-  const getRefId = (block: BlockItem): string | null => {
-    if (block.blockType === 'exerciseRef') {
-      if (!block.exercise) return null
-      return typeof block.exercise === 'string' ? block.exercise : block.exercise.id
+  // Extract inline titles from populated objects into cache on first render
+  useEffect(() => {
+    const newTitles: Record<string, string> = {}
+    for (const block of blocks) {
+      if (block.blockType === 'exerciseRef') {
+        const id = extractId(block.exercise)
+        const title = extractTitle(block.exercise)
+        if (id && title && !titleCache[id]) newTitles[id] = title
+      } else if (block.blockType === 'contentPageRef') {
+        const id = extractId(block.contentPage)
+        const title = extractTitle(block.contentPage)
+        if (id && title && !titleCache[id]) newTitles[id] = title
+      }
     }
-    if (block.blockType === 'contentPageRef') {
-      if (!block.contentPage) return null
-      return typeof block.contentPage === 'string' ? block.contentPage : block.contentPage.id
+    if (Object.keys(newTitles).length > 0) {
+      setTitleCache((prev) => ({ ...prev, ...newTitles }))
     }
-    return null
-  }
+    // Only run when blocks change, not when titleCache changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [blocks])
 
-  const getInlineTitle = (block: BlockItem): string | null => {
-    if (block.blockType === 'exerciseRef' && block.exercise && typeof block.exercise === 'object') {
-      return block.exercise.title || null
-    }
-    if (
-      block.blockType === 'contentPageRef' &&
-      block.contentPage &&
-      typeof block.contentPage === 'object'
-    ) {
-      return block.contentPage.title || null
-    }
-    return null
-  }
-
-  // Fetch titles for unresolved IDs
+  // Fetch titles for IDs not in cache
   useEffect(() => {
     const idsToFetch: Array<{ id: string; collection: string }> = []
 
     for (const block of blocks) {
-      const refId = getRefId(block)
-      if (!refId || titleCache[refId] || loadingIds.has(refId)) continue
-      const inlineTitle = getInlineTitle(block)
-      if (inlineTitle) {
-        setTitleCache((prev) => ({ ...prev, [refId]: inlineTitle }))
-        continue
-      }
+      const refField = block.blockType === 'exerciseRef' ? block.exercise : block.contentPage
+      const id = extractId(refField)
+      if (!id || titleCache[id] || loadingIds.has(id)) continue
       const collection = block.blockType === 'exerciseRef' ? 'exercises' : 'content-pages'
-      idsToFetch.push({ id: refId, collection })
+      idsToFetch.push({ id, collection })
     }
 
     if (idsToFetch.length === 0) return
@@ -94,16 +127,12 @@ export const LessonBlocksField: React.FC<{ path: string }> = ({ path }) => {
       return next
     })
 
-    // Fetch each title
     for (const { id, collection } of idsToFetch) {
       fetch(`/api/${collection}/${id}?depth=0`, { credentials: 'include' })
         .then((res) => (res.ok ? res.json() : null))
         .then((data) => {
-          if (data?.title) {
-            setTitleCache((prev) => ({ ...prev, [id]: data.title }))
-          } else {
-            setTitleCache((prev) => ({ ...prev, [id]: `(${id.slice(0, 8)}...)` }))
-          }
+          const title = data?.title || `(${id.slice(0, 8)}...)`
+          setTitleCache((prev) => ({ ...prev, [id]: title }))
         })
         .catch(() => {
           setTitleCache((prev) => ({ ...prev, [id]: `(${id.slice(0, 8)}...)` }))
@@ -116,23 +145,35 @@ export const LessonBlocksField: React.FC<{ path: string }> = ({ path }) => {
           })
         })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [blocks, titleCache])
+
+  // Build display rows
+  const rows: ResolvedRow[] = useMemo(() => {
+    return blocks
+      .map((block, index) => {
+        const refField = block.blockType === 'exerciseRef' ? block.exercise : block.contentPage
+        const refId = extractId(refField) || ''
+        const title = titleCache[refId] || ''
+        return {
+          index,
+          blockType: block.blockType as string,
+          refId,
+          title,
+          loading: !title && loadingIds.has(refId),
+        }
+      })
+      .filter((row) => row.refId) // skip blocks with no ref
   }, [blocks, titleCache, loadingIds])
 
-  // Build resolved list
-  const resolvedBlocks: ResolvedBlock[] = useMemo(() => {
-    return blocks.map((block, index) => {
-      const refId = getRefId(block) || ''
-      const inlineTitle = getInlineTitle(block)
-      const title = inlineTitle || titleCache[refId] || ''
-      return {
-        index,
-        blockType: block.blockType,
-        refId,
-        title,
-        loading: !title && loadingIds.has(refId),
-      }
-    })
-  }, [blocks, titleCache, loadingIds])
+  /** Update Payload form state with normalized blocks */
+  const updateBlocks = useCallback(
+    (newBlocks: RawBlock[]) => {
+      const normalized = newBlocks.map(normalizeBlock).filter(Boolean) as RawBlock[]
+      setValue(normalized)
+    },
+    [setValue],
+  )
 
   const moveBlock = useCallback(
     (fromIndex: number, toIndex: number) => {
@@ -140,17 +181,16 @@ export const LessonBlocksField: React.FC<{ path: string }> = ({ path }) => {
       const next = [...blocks]
       const [moved] = next.splice(fromIndex, 1)
       next.splice(toIndex, 0, moved)
-      setValue(next)
+      updateBlocks(next)
     },
-    [blocks, setValue],
+    [blocks, updateBlocks],
   )
 
   const removeBlock = useCallback(
     (index: number) => {
-      const next = blocks.filter((_, i) => i !== index)
-      setValue(next)
+      updateBlocks(blocks.filter((_, i) => i !== index))
     },
-    [blocks, setValue],
+    [blocks, updateBlocks],
   )
 
   // Picker state
@@ -167,17 +207,11 @@ export const LessonBlocksField: React.FC<{ path: string }> = ({ path }) => {
       setPickerLoading(true)
 
       const collection = type === 'exercise' ? 'exercises' : 'content-pages'
-      const params = new URLSearchParams({
-        depth: '0',
-        limit: '50',
-        sort: 'title',
-      })
+      const params = new URLSearchParams({ depth: '0', limit: '50', sort: 'title' })
 
-      // Filter exercises by lesson
       if (type === 'exercise' && lessonId) {
         params.set('where[lesson][equals]', String(lessonId))
       }
-      // Filter content pages by lesson + published
       if (type === 'contentPage' && lessonId) {
         params.set('where[lesson][equals]', String(lessonId))
         params.set('where[status][equals]', 'published')
@@ -201,17 +235,17 @@ export const LessonBlocksField: React.FC<{ path: string }> = ({ path }) => {
   )
 
   const addBlock = useCallback(
-    (type: 'exercise' | 'contentPage', id: string, title: string) => {
-      const newBlock: BlockItem =
+    (type: 'exercise' | 'contentPage', refId: string, title: string) => {
+      const newBlock: RawBlock =
         type === 'exercise'
-          ? { blockType: 'exerciseRef', exercise: id }
-          : { blockType: 'contentPageRef', contentPage: id }
+          ? { id: generateBlockId(), blockType: 'exerciseRef', exercise: refId }
+          : { id: generateBlockId(), blockType: 'contentPageRef', contentPage: refId }
 
-      setValue([...blocks, newBlock])
-      setTitleCache((prev) => ({ ...prev, [id]: title }))
+      updateBlocks([...blocks, newBlock])
+      setTitleCache((prev) => ({ ...prev, [refId]: title }))
       setShowPicker(null)
     },
-    [blocks, setValue],
+    [blocks, updateBlocks],
   )
 
   const filteredResults = useMemo(() => {
@@ -220,8 +254,15 @@ export const LessonBlocksField: React.FC<{ path: string }> = ({ path }) => {
     return pickerResults.filter((r) => r.title.toLowerCase().includes(q))
   }, [pickerResults, pickerSearch])
 
-  // Already-added IDs to prevent duplicates
-  const addedIds = useMemo(() => new Set(blocks.map(getRefId).filter(Boolean)), [blocks])
+  const addedIds = useMemo(() => {
+    const ids = new Set<string>()
+    for (const block of blocks) {
+      const refField = block.blockType === 'exerciseRef' ? block.exercise : block.contentPage
+      const id = extractId(refField)
+      if (id) ids.add(id)
+    }
+    return ids
+  }, [blocks])
 
   return (
     <div style={{ marginBottom: 24 }}>
@@ -255,7 +296,7 @@ export const LessonBlocksField: React.FC<{ path: string }> = ({ path }) => {
           overflow: 'hidden',
         }}
       >
-        {resolvedBlocks.length === 0 && (
+        {rows.length === 0 && (
           <div
             style={{
               padding: '24px 16px',
@@ -268,31 +309,22 @@ export const LessonBlocksField: React.FC<{ path: string }> = ({ path }) => {
           </div>
         )}
 
-        {resolvedBlocks.map((block, idx) => (
+        {rows.map((row, idx) => (
           <div
-            key={`${block.blockType}-${block.refId}-${idx}`}
+            key={`${row.blockType}-${row.refId}-${idx}`}
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: 8,
               padding: '8px 12px',
-              borderBottom:
-                idx < resolvedBlocks.length - 1 ? '1px solid var(--theme-elevation-100)' : 'none',
+              borderBottom: idx < rows.length - 1 ? '1px solid var(--theme-elevation-100)' : 'none',
               background: idx % 2 === 0 ? 'transparent' : 'var(--theme-elevation-50)',
             }}
           >
-            {/* Drag handle / order indicator */}
-            <span
-              style={{
-                color: 'var(--theme-elevation-300)',
-                flexShrink: 0,
-                cursor: 'grab',
-              }}
-            >
+            <span style={{ color: 'var(--theme-elevation-300)', flexShrink: 0, cursor: 'grab' }}>
               <GripVertical size={16} />
             </span>
 
-            {/* Order number */}
             <span
               style={{
                 fontSize: 11,
@@ -306,7 +338,6 @@ export const LessonBlocksField: React.FC<{ path: string }> = ({ path }) => {
               {idx + 1}
             </span>
 
-            {/* Type icon + badge */}
             <span
               style={{
                 display: 'inline-flex',
@@ -318,16 +349,16 @@ export const LessonBlocksField: React.FC<{ path: string }> = ({ path }) => {
                 fontWeight: 600,
                 flexShrink: 0,
                 background:
-                  block.blockType === 'exerciseRef'
+                  row.blockType === 'exerciseRef'
                     ? 'var(--theme-success-100, #dcfce7)'
                     : 'var(--theme-warning-100, #fef3c7)',
                 color:
-                  block.blockType === 'exerciseRef'
+                  row.blockType === 'exerciseRef'
                     ? 'var(--theme-success-600, #16a34a)'
                     : 'var(--theme-warning-600, #ca8a04)',
               }}
             >
-              {block.blockType === 'exerciseRef' ? (
+              {row.blockType === 'exerciseRef' ? (
                 <>
                   <BookOpen size={12} /> Exercise
                 </>
@@ -338,7 +369,6 @@ export const LessonBlocksField: React.FC<{ path: string }> = ({ path }) => {
               )}
             </span>
 
-            {/* Title */}
             <span
               style={{
                 flex: 1,
@@ -349,10 +379,10 @@ export const LessonBlocksField: React.FC<{ path: string }> = ({ path }) => {
                 whiteSpace: 'nowrap',
               }}
             >
-              {block.loading ? (
+              {row.loading ? (
                 <span style={{ color: 'var(--theme-elevation-400)' }}>Loading...</span>
               ) : (
-                block.title || (
+                row.title || (
                   <span style={{ color: 'var(--theme-elevation-400)', fontStyle: 'italic' }}>
                     Untitled
                   </span>
@@ -360,10 +390,9 @@ export const LessonBlocksField: React.FC<{ path: string }> = ({ path }) => {
               )}
             </span>
 
-            {/* Move up/down */}
             <button
               type="button"
-              onClick={() => moveBlock(idx, idx - 1)}
+              onClick={() => moveBlock(row.index, row.index - 1)}
               disabled={idx === 0}
               style={{
                 padding: 4,
@@ -379,14 +408,14 @@ export const LessonBlocksField: React.FC<{ path: string }> = ({ path }) => {
             </button>
             <button
               type="button"
-              onClick={() => moveBlock(idx, idx + 1)}
-              disabled={idx === resolvedBlocks.length - 1}
+              onClick={() => moveBlock(row.index, row.index + 1)}
+              disabled={idx === rows.length - 1}
               style={{
                 padding: 4,
                 border: 'none',
                 background: 'transparent',
-                cursor: idx === resolvedBlocks.length - 1 ? 'not-allowed' : 'pointer',
-                opacity: idx === resolvedBlocks.length - 1 ? 0.2 : 0.6,
+                cursor: idx === rows.length - 1 ? 'not-allowed' : 'pointer',
+                opacity: idx === rows.length - 1 ? 0.2 : 0.6,
                 color: 'var(--theme-text)',
               }}
               title="Move down"
@@ -394,10 +423,9 @@ export const LessonBlocksField: React.FC<{ path: string }> = ({ path }) => {
               <ChevronDown size={14} />
             </button>
 
-            {/* Remove */}
             <button
               type="button"
-              onClick={() => removeBlock(idx)}
+              onClick={() => removeBlock(row.index)}
               style={{
                 padding: 4,
                 border: 'none',
@@ -509,14 +537,22 @@ export const LessonBlocksField: React.FC<{ path: string }> = ({ path }) => {
             <div style={{ flex: 1, overflowY: 'auto' }}>
               {pickerLoading && (
                 <p
-                  style={{ textAlign: 'center', color: 'var(--theme-elevation-400)', padding: 20 }}
+                  style={{
+                    textAlign: 'center',
+                    color: 'var(--theme-elevation-400)',
+                    padding: 20,
+                  }}
                 >
                   Loading...
                 </p>
               )}
               {!pickerLoading && filteredResults.length === 0 && (
                 <p
-                  style={{ textAlign: 'center', color: 'var(--theme-elevation-400)', padding: 20 }}
+                  style={{
+                    textAlign: 'center',
+                    color: 'var(--theme-elevation-400)',
+                    padding: 20,
+                  }}
                 >
                   No results found
                 </p>
