@@ -1,8 +1,10 @@
 'use client'
 
+import { useMemo } from 'react'
 import type { Chapter, Lesson } from '@/payload-types'
 import { getEffectiveLessonType } from '@/server/constants/lesson-types'
 import { useTranslations } from '@/ui/web/providers/I18n'
+import { useProgressMap } from '@/client/hooks/useProgressMap'
 import { CourseLessonCard } from '../CourseLessonCard'
 
 interface LearnTabProps {
@@ -16,14 +18,16 @@ export function LearnTab({ lessons, chapters, courseSlug, tabColor }: LearnTabPr
   const t = useTranslations('coursePage')
   const learningLessons = lessons.filter((l) => getEffectiveLessonType(l.type) === 'learning')
 
+  const lessonIds = useMemo(() => learningLessons.map((l) => l.id), [learningLessons])
+  const { progressMap, statusMap } = useProgressMap({ recordType: 'lesson', recordIds: lessonIds })
+
   if (learningLessons.length === 0) {
     return null
   }
 
-  // Placeholder — will reflect real UserProgress when wired
-  const completedCount = 0
-  const inProgressCount = 0
-  const notStartedCount = learningLessons.length
+  const completedCount = Object.values(statusMap).filter((s) => s === 'completed').length
+  const inProgressCount = Object.values(statusMap).filter((s) => s === 'in_progress').length
+  const notStartedCount = learningLessons.length - completedCount - inProgressCount
 
   return (
     <>
@@ -56,6 +60,7 @@ export function LearnTab({ lessons, chapters, courseSlug, tabColor }: LearnTabPr
               courseSlug={courseSlug}
               chapterSlug={chapterSlug}
               tabColor={tabColor}
+              progress={progressMap[lesson.id] ?? 0}
             />
           )
         })}

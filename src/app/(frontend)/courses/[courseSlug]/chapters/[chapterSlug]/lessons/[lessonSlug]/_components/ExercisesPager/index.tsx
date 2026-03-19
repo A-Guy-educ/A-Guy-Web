@@ -54,7 +54,7 @@ export function ExercisesPager({
     handleStartExercises,
     getExerciseOrdinal,
     totalExercises,
-  } = useExercisesPager({ exercises, courseSlug, chapterSlug, lessonSlug, hasAboutPage })
+  } = useExercisesPager({ exercises, courseSlug, chapterSlug, lessonSlug, lessonId, hasAboutPage })
 
   const introMediaObj = introMedia && typeof introMedia === 'object' ? introMedia : null
 
@@ -95,6 +95,7 @@ export function ExercisesPager({
 
                 <div className="bg-card rounded-2xl p-5 md:p-6 border border-border/60 shadow-sm">
                   <ExerciseRenderer
+                    key={currentExercise.id}
                     content={currentExercise.content as unknown as ExerciseContentData}
                     mode="student"
                     showCheckAnswer={true}
