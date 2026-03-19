@@ -113,7 +113,7 @@ export function McqQuestion({
                   {isSelected && <div className="w-2 h-2 rounded-full bg-primary-foreground" />}
                 </div>
               )}
-              <div className="flex-1 text-foreground">
+              <div className="flex-1 text-lg text-foreground">
                 <RichTextRenderer block={optionBlock} />
               </div>
             </label>
