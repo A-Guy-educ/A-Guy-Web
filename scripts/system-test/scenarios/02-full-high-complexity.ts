@@ -165,11 +165,13 @@ export const scenario02: Scenario = {
 
       // Step 3: Poll for workflow completion
       ctx.log.info('Polling for workflow completion (up to 90 min)...')
-      // Don't match by branch — cody workflow runs on 'dev' branch via workflow_dispatch.
-      // Instead, match only by timestamp (we know the exact dispatch time).
+      // Match by timestamp + event type. Cody workflow runs on 'dev' branch via
+      // workflow_dispatch, so we can't match by branch. We filter by event type to
+      // avoid matching skipped issue_comment-triggered runs.
       const run = await pollWorkflowRun(ctx.gh, {
         workflow: CODY_WORKFLOW,
         afterTimestamp: workflowDispatchTime,
+        matchEvent: 'workflow_dispatch',
         maxWaitMs: 90 * 60 * 1000,
         intervalMs: 30 * 1000,
       })
