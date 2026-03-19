@@ -163,42 +163,83 @@ export const scenario02: Scenario = {
       assertions.push({ name: 'Pipeline dispatched', passed: true, detail: taskId })
       ctx.log.info(`Dispatched pipeline for task ${taskId}`)
 
-      // Step 3: Poll for workflow completion
-      ctx.log.info('Polling for workflow completion (up to 90 min)...')
-      // Match by timestamp + event type. Cody workflow runs on 'dev' branch via
-      // workflow_dispatch, so we can't match by branch. We filter by event type to
-      // avoid matching skipped issue_comment-triggered runs.
-      const run = await pollWorkflowRun(ctx.gh, {
-        workflow: CODY_WORKFLOW,
-        afterTimestamp: workflowDispatchTime,
-        matchEvent: 'workflow_dispatch',
-        maxWaitMs: 90 * 60 * 1000,
-        intervalMs: 30 * 1000,
-      })
+      // Step 2.5: Auto-approve risk gate after a delay.
+      // Medium-risk tasks trigger a risk-gated pause. Post "@cody approve" after
+      // a short delay to unblock the pipeline automatically.
+      ctx.log.info('Scheduling auto-approve for risk gate in 60s...')
+      setTimeout(() => {
+        try {
+          ctx.log.info('Posting @cody approve to auto-approve risk gate...')
+          execFileSync(
+            'gh',
+            ['issue', 'comment', String(issueNumber), '--repo', ctx.repo, '--body', '@cody approve'],
+            { env: { ...process.env }, stdio: 'pipe' },
+          )
+          ctx.log.info('Auto-approved risk gate')
+        } catch (error) {
+          ctx.log.warn({ error }, 'Failed to auto-approve (gate may not be active yet)')
+        }
+      }, 60_000)
+
+      // Also schedule a second attempt in case the first was too early
+      setTimeout(() => {
+        try {
+          execFileSync(
+            'gh',
+            ['issue', 'comment', String(issueNumber), '--repo', ctx.repo, '--body', '@cody approve'],
+            { env: { ...process.env }, stdio: 'pipe' },
+          )
+        } catch {
+          // Ignore — gate may already be approved
+        }
+      }, 180_000)
+
+      // Step 3: Poll for pipeline completion via issue labels.
+      // The cody pipeline can span multiple workflow runs (initial dispatch,
+      // gate approval reruns, pipeline-fixer retries), so polling for a single
+      // workflow run is unreliable. Instead, poll the issue labels for the
+      // terminal state: cody:done or cody:failed.
+      ctx.log.info('Polling for pipeline completion via issue labels (up to 90 min)...')
+      const terminalLabels = ['cody:done', 'cody:failed']
+      const pollStart = Date.now()
+      const maxWaitMs = 90 * 60 * 1000
+      const pollIntervalMs = 30 * 1000
+      let finalLabel: string | undefined
+
+      while (Date.now() - pollStart < maxWaitMs) {
+        const labelsOutput = execFileSync(
+          'gh', ['issue', 'view', String(issueNumber), '--repo', ctx.repo, '--json', 'labels', '--jq', '[.labels[].name]'],
+          { encoding: 'utf-8', stdio: 'pipe' },
+        ).trim()
+        const labels: string[] = labelsOutput ? JSON.parse(labelsOutput) : []
+        const terminal = labels.find((l: string) => terminalLabels.includes(l))
+        if (terminal) {
+          finalLabel = terminal
+          break
+        }
+        ctx.log.info(`  Labels: [${labels.join(', ')}] — waiting...`)
+        await new Promise((r) => setTimeout(r, pollIntervalMs))
+      }
+
+      if (!finalLabel) {
+        throw new Error(`Pipeline did not reach terminal state within ${maxWaitMs}ms`)
+      }
 
       assertions.push({
-        name: 'Workflow completed',
+        name: 'Pipeline completed',
         passed: true,
-        detail: `Run ${run.id}, conclusion: ${run.conclusion}`,
+        detail: `Terminal label: ${finalLabel}`,
       })
 
       // Step 4: Assert results
-      if (run.conclusion === 'success') {
-        assertions.push({ name: 'Workflow succeeded', passed: true })
+      if (finalLabel === 'cody:done') {
+        assertions.push({ name: 'Pipeline succeeded (cody:done)', passed: true })
       } else {
         assertions.push({
-          name: 'Workflow succeeded',
+          name: 'Pipeline succeeded (cody:done)',
           passed: false,
-          detail: `Expected success, got: ${run.conclusion}`,
+          detail: `Expected cody:done, got: ${finalLabel}`,
         })
-      }
-
-      // Check labels
-      try {
-        assertLabelsPresent(ctx.gh, issueNumber, ['cody:done'])
-        assertions.push({ name: 'cody:done label', passed: true })
-      } catch (error) {
-        assertions.push({ name: 'cody:done label', passed: false, detail: String(error) })
       }
 
       // Check task comment
@@ -209,9 +250,10 @@ export const scenario02: Scenario = {
         assertions.push({ name: 'Task marker comment', passed: false, detail: String(error) })
       }
 
-      // Check PR created
+      // Check PR created — match by issue number since the branch name
+      // contains the issue number (e.g. feat/260319-systest-934-...), not the run ID
       try {
-        const pr = assertPRCreated(ctx.repo, new RegExp(taskId))
+        const pr = assertPRCreated(ctx.repo, new RegExp(String(issueNumber)))
         assertions.push({
           name: 'PR created',
           passed: true,
