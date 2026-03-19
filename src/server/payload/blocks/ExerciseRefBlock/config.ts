@@ -13,8 +13,15 @@ export const ExerciseRefBlock: Block = {
       type: 'relationship',
       relationTo: 'exercises',
       required: true,
+      filterOptions: ({ data }) => {
+        // Only show exercises that belong to this lesson
+        if (data?.id) {
+          return { lesson: { equals: data.id } }
+        }
+        return true
+      },
       admin: {
-        description: 'Reference to an exercise',
+        description: 'Reference to an exercise belonging to this lesson',
       },
     },
   ],
