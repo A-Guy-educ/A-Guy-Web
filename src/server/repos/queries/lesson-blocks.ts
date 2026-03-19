@@ -31,15 +31,23 @@ export const queryLessonBlocks = cache(
       overrideAccess: false,
     })
 
-    if (!lesson?.blocks || !Array.isArray(lesson.blocks) || lesson.blocks.length === 0) {
+    // blocks is stored as JSON (type: 'json'), so it may come as unknown
+    const rawBlocks = lesson?.blocks
+    if (!rawBlocks || !Array.isArray(rawBlocks) || rawBlocks.length === 0) {
       return []
     }
+
+    const blocks = rawBlocks as Array<{
+      blockType?: string
+      exercise?: string | { id: string }
+      contentPage?: string | { id: string }
+    }>
 
     // Collect IDs by type
     const exerciseIds: string[] = []
     const contentPageIds: string[] = []
 
-    for (const block of lesson.blocks) {
+    for (const block of blocks) {
       if (block.blockType === 'exerciseRef' && block.exercise) {
         const id = typeof block.exercise === 'string' ? block.exercise : block.exercise.id
         exerciseIds.push(id)
@@ -97,7 +105,7 @@ export const queryLessonBlocks = cache(
     // Resolve in order, skip missing references
     const resolved: ResolvedLessonBlock[] = []
 
-    for (const block of lesson.blocks) {
+    for (const block of blocks) {
       if (block.blockType === 'exerciseRef' && block.exercise) {
         const id = typeof block.exercise === 'string' ? block.exercise : block.exercise.id
         const exercise = exerciseMap.get(id)

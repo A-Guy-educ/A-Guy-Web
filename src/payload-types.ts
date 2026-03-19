@@ -1302,9 +1302,17 @@ export interface Lesson {
    */
   accessType: 'inherit' | 'free' | 'mandatory' | 'gated' | 'paid';
   /**
-   * Ordered playlist of exercises and content pages. Defines the lesson flow. Drag to reorder.
+   * Ordered playlist of exercises and content pages. Defines the lesson flow.
    */
-  blocks?: (ExerciseRefBlock | ContentPageRefBlock)[] | null;
+  blocks?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   /**
    * Upload lesson content files (PDFs, videos, images, etc.)
    */
@@ -1339,19 +1347,6 @@ export interface Lesson {
   createdBy?: (string | null) | User;
   updatedAt: string;
   createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "ExerciseRefBlock".
- */
-export interface ExerciseRefBlock {
-  /**
-   * Reference to an exercise belonging to this lesson
-   */
-  exercise: string | Exercise;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'exerciseRef';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1462,104 +1457,6 @@ export interface Exercise {
     | null;
   updatedAt: string;
   createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "ContentPageRefBlock".
- */
-export interface ContentPageRefBlock {
-  /**
-   * Reference to a content page belonging to this lesson
-   */
-  contentPage: string | ContentPage;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'contentPageRef';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "content-pages".
- */
-export interface ContentPage {
-  id: string;
-  /**
-   * Tenant scope for this document
-   */
-  tenant: string | Tenant;
-  /**
-   * The lesson this content page belongs to
-   */
-  lesson: string | Lesson;
-  /**
-   * Content page title
-   */
-  title: string;
-  /**
-   * URL-friendly identifier (auto-generated from title if empty)
-   */
-  slug?: string | null;
-  /**
-   * Page content. Supports rich text, HTML/SVG, media, tables, geometry, and graphs.
-   */
-  body: (ContentBlock | HtmlBlock | MediaBlock | TableBlock | GeometryBlock | GraphBlock)[];
-  /**
-   * Publication status
-   */
-  status: 'draft' | 'published' | 'archived';
-  /**
-   * Whether this content page is currently active
-   */
-  isActive: boolean;
-  /**
-   * User who created this document
-   */
-  createdBy?: (string | null) | User;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "MediaBlock".
- */
-export interface MediaBlock {
-  media: string | Media;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'mediaBlock';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "TableBlock".
- */
-export interface TableBlock {
-  headers: string;
-  rows: string;
-  showBorders?: boolean | null;
-  showHeader?: boolean | null;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'tableBlock';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "GeometryBlock".
- */
-export interface GeometryBlock {
-  spec: string;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'geometryBlock';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "GraphBlock".
- */
-export interface GraphBlock {
-  spec: string;
-  displaySize?: ('small' | 'medium' | 'large' | 'full') | null;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'graphBlock';
 }
 /**
  * Chat attachments uploaded directly to Vercel Blob
@@ -1682,6 +1579,91 @@ export interface MemoryItem {
   conversation?: (string | null) | Conversation;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "content-pages".
+ */
+export interface ContentPage {
+  id: string;
+  /**
+   * Tenant scope for this document
+   */
+  tenant: string | Tenant;
+  /**
+   * The lesson this content page belongs to
+   */
+  lesson: string | Lesson;
+  /**
+   * Content page title
+   */
+  title: string;
+  /**
+   * URL-friendly identifier (auto-generated from title if empty)
+   */
+  slug?: string | null;
+  /**
+   * Page content. Supports rich text, HTML/SVG, media, tables, geometry, and graphs.
+   */
+  body: (ContentBlock | HtmlBlock | MediaBlock | TableBlock | GeometryBlock | GraphBlock)[];
+  /**
+   * Publication status
+   */
+  status: 'draft' | 'published' | 'archived';
+  /**
+   * Whether this content page is currently active
+   */
+  isActive: boolean;
+  /**
+   * User who created this document
+   */
+  createdBy?: (string | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "MediaBlock".
+ */
+export interface MediaBlock {
+  media: string | Media;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'mediaBlock';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TableBlock".
+ */
+export interface TableBlock {
+  headers: string;
+  rows: string;
+  showBorders?: boolean | null;
+  showHeader?: boolean | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'tableBlock';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "GeometryBlock".
+ */
+export interface GeometryBlock {
+  spec: string;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'geometryBlock';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "GraphBlock".
+ */
+export interface GraphBlock {
+  spec: string;
+  displaySize?: ('small' | 'medium' | 'large' | 'full') | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'graphBlock';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -3064,12 +3046,7 @@ export interface LessonsSelect<T extends boolean = true> {
   status?: T;
   isActive?: T;
   accessType?: T;
-  blocks?:
-    | T
-    | {
-        exerciseRef?: T | ExerciseRefBlockSelect<T>;
-        contentPageRef?: T | ContentPageRefBlockSelect<T>;
-      };
+  blocks?: T;
   contentFiles?: T;
   lessonContextText?: T;
   prompt?: T;
@@ -3080,24 +3057,6 @@ export interface LessonsSelect<T extends boolean = true> {
   createdBy?: T;
   updatedAt?: T;
   createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "ExerciseRefBlock_select".
- */
-export interface ExerciseRefBlockSelect<T extends boolean = true> {
-  exercise?: T;
-  id?: T;
-  blockName?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "ContentPageRefBlock_select".
- */
-export interface ContentPageRefBlockSelect<T extends boolean = true> {
-  contentPage?: T;
-  id?: T;
-  blockName?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

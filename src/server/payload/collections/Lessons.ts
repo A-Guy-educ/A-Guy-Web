@@ -2,8 +2,6 @@ import type { CollectionConfig } from 'payload'
 
 import { DEFAULT_LESSON_ACCESS_TYPE } from '@/server/constants/access-types'
 import { tenantField } from '@/server/payload/fields/tenant'
-import { ContentPageRefBlock } from '../blocks/ContentPageRefBlock/config'
-import { ExerciseRefBlock } from '../blocks/ExerciseRefBlock/config'
 import { adminOnly } from '../access/adminOnly'
 import { publishedAndActive } from '../access/publishedAndActive'
 import { createdByField } from '../fields/createdBy'
@@ -177,8 +175,7 @@ export const Lessons: CollectionConfig = {
     // --- Lesson Blocks (ordered playlist) ---
     {
       name: 'blocks',
-      type: 'blocks',
-      blocks: [ExerciseRefBlock, ContentPageRefBlock],
+      type: 'json',
       admin: {
         description: 'Ordered playlist of exercises and content pages. Defines the lesson flow.',
         components: {
