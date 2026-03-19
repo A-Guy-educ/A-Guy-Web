@@ -45,7 +45,7 @@ export function ExercisesPager({
     handleStart,
     getExerciseOrdinal,
     totalExercises,
-  } = useExercisesPager({ exercises, courseSlug, chapterSlug, lessonSlug, lessonId, hasAboutPage })
+  } = useExercisesPager({ exercises, courseSlug, chapterSlug, lessonSlug, lessonId })
 
   // Store per-exercise question results from ExerciseRenderer
   const exerciseResults = useRef<
@@ -116,8 +116,6 @@ export function ExercisesPager({
       }
     }
   }, [pageState.type, lessonId, lessonTitle])
-
-  const introMediaObj = introMedia && typeof introMedia === 'object' ? introMedia : null
 
   const exerciseOrdinal = getExerciseOrdinal()
   const currentExercise =
