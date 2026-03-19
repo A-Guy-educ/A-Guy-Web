@@ -52,6 +52,11 @@ export const Lessons: CollectionConfig = {
       'contentStatus',
       'updatedAt',
     ],
+    components: {
+      edit: {
+        beforeDocumentControls: ['@/ui/admin/TranslationButton#TranslateLessonAction'],
+      },
+    },
   },
   fields: [
     // Tenant
@@ -258,18 +263,6 @@ export const Lessons: CollectionConfig = {
       admin: {
         position: 'sidebar',
         description: 'URL-friendly identifier (auto-generated from title if empty)',
-      },
-    },
-
-    // Translation button (sidebar)
-    {
-      name: 'translateAction',
-      type: 'ui',
-      admin: {
-        position: 'sidebar',
-        components: {
-          Field: '@/ui/admin/TranslationButton#TranslateLessonButton',
-        },
       },
     },
 

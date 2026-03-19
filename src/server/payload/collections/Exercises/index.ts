@@ -58,6 +58,11 @@ export const Exercises: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['order', 'title', 'lesson', 'updatedAt'],
+    components: {
+      edit: {
+        beforeDocumentControls: ['@/ui/admin/TranslationButton#TranslateExerciseAction'],
+      },
+    },
   },
 
   fields: [
@@ -274,17 +279,6 @@ export const Exercises: CollectionConfig = {
         position: 'sidebar',
         components: {
           Field: '@/ui/admin/ExercisePreview#ExercisePreview',
-        },
-      },
-    },
-    // Translation button (sidebar)
-    {
-      name: 'translateAction',
-      type: 'ui',
-      admin: {
-        position: 'sidebar',
-        components: {
-          Field: '@/ui/admin/TranslationButton#TranslateExerciseButton',
         },
       },
     },

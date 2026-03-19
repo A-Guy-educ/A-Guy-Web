@@ -60,6 +60,11 @@ export const Courses: CollectionConfig = {
       'contentStatus',
       'updatedAt',
     ],
+    components: {
+      edit: {
+        beforeDocumentControls: ['@/ui/admin/TranslationButton#TranslateCourseAction'],
+      },
+    },
   },
   fields: [
     // Tenant
@@ -236,18 +241,6 @@ export const Courses: CollectionConfig = {
           type: 'textarea',
         },
       ],
-    },
-
-    // Translation button (sidebar)
-    {
-      name: 'translateAction',
-      type: 'ui',
-      admin: {
-        position: 'sidebar',
-        components: {
-          Field: '@/ui/admin/TranslationButton#TranslateCourseButton',
-        },
-      },
     },
 
     // Content Status
