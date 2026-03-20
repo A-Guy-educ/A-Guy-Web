@@ -1,30 +1,31 @@
 {
   "id": "pdf-blocked-url-download-fallback",
   "name": "PDF shows download button when URL is blocked by X-Frame-Options",
-  "journey": "pdf-viewing",
+  "journey": "student-accesses-gated-content",
   "type": "feature",
-  "area": "pdf",
+  "area": "lessons",
   "tags": ["pdf", "download", "x-frame-options", "fallback"],
   "locale": "he",
   "steps": [
     {
-      "action": "goto",
+      "action": "navigate",
       "input": {
+        "type": "url",
         "url": "/test/pdf-embed?url=https://www.aguy.co.il/&title=Test%20Blocked%20PDF"
       }
     },
     {
-      "action": "expectVisible",
-      "input": { "selector": "h1:has-text('PDF Embed Test')" }
+      "action": "see",
+      "input": { "text": "PDF Embed Test" }
     },
     {
-      "action": "expectPdfDownloadButtonVisible",
-      "input": { "timeout": 5000 }
+      "action": "seePdf",
+      "input": { "state": "blocked", "timeout": 5000 }
     },
     {
-      "action": "expectUrl",
+      "action": "beAt",
       "input": { "pattern": "/test/pdf-embed" }
     }
   ],
-  "teardown": "none"
+  "teardown": "auto"
 }
