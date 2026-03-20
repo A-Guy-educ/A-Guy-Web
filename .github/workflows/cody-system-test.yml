@@ -130,7 +130,7 @@ jobs:
             --repo "$REPO"
 
       - name: Upload recordings
-        if: inputs.mock_mode == 'record'
+        if: always() && inputs.mock_mode == 'record'
         uses: actions/upload-artifact@v4
         with:
           name: llm-recordings
