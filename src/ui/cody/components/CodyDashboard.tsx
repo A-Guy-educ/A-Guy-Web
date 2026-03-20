@@ -42,7 +42,6 @@ import {
   Bug,
   Menu,
   RefreshCw,
-  Bell,
   Globe,
   AlertCircle,
   X as XIcon,
@@ -53,8 +52,17 @@ import {
 import { useCodyTasks, queryKeys } from '../hooks'
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
 import { useBrowserNotifications } from '../hooks/useBrowserNotifications'
+import { useNotificationStore } from '../notifications/useNotificationStore'
+import { NotificationCenter } from '../notifications/NotificationCenter'
 import { useMediaQuery } from '@/server/payload/hooks/useMediaQuery'
-import { RateLimitError, NoTokenError, SessionExpiredError, tasksApi, codyApi } from '../api'
+import {
+  RateLimitError,
+  NoTokenError,
+  SessionExpiredError,
+  tasksApi,
+  codyApi,
+  redirectToLogin,
+} from '../api'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { EnvironmentToolbar } from './EnvironmentToolbar'
@@ -63,7 +71,7 @@ import { useGitHubIdentity } from '../hooks/useGitHubIdentity'
 import { useTheme } from '@/ui/web/providers/Theme'
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/web/components/avatar'
 import { SimpleTooltip } from './SimpleTooltip'
-import { SITE_URLS } from '../constants'
+import { SITE_URLS, PRIORITY_LEVELS, PRIORITY_META } from '../constants'
 
 interface CodyDashboardProps {
   initialIssueNumber?: number
@@ -89,6 +97,10 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
     if (typeof window === 'undefined') return 'all'
     return new URLSearchParams(window.location.search).get('label') ?? 'all'
   })
+  const [priorityFilter, setPriorityFilter] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'all'
+    return new URLSearchParams(window.location.search).get('priority') ?? 'all'
+  })
   const [statusFilter, setStatusFilter] = useState<string>(() => {
     if (typeof window === 'undefined') return 'all'
     return new URLSearchParams(window.location.search).get('status') ?? 'all'
@@ -99,6 +111,7 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
     return (['backlog', 'queue'].includes(v ?? '') ? v : 'running') as ViewMode
   })
   const [showMobileMenu, setShowMobileMenu] = useState(false)
+  const [showUserDropdown, setShowUserDropdown] = useState(false)
   const [showMobileDetail, setShowMobileDetail] = useState(false)
   const [showMobileChat, setShowMobileChat] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
@@ -150,6 +163,15 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
 
   const queryClient = useQueryClient()
 
+  // Helper to handle auth errors — redirects to login if session expired
+  const handleAuthError = (error: Error) => {
+    if (error instanceof SessionExpiredError) {
+      redirectToLogin()
+      return true
+    }
+    return false
+  }
+
   // #1: Derive selectedTask from query data — always fresh
   const selectedTask = useMemo(
     () =>
@@ -179,6 +201,11 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
     onSuccess: () => {
       toast.success('Assigned')
     },
+    onError: (error) => {
+      if (!handleAuthError(error)) {
+        toast.error('Failed to assign')
+      }
+    },
   })
 
   const unassignMutation = useMutation({
@@ -186,6 +213,11 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
       codyApi.tasks.unassign(issueNumber, assignees, githubUser?.login),
     onSuccess: () => {
       toast.success('Unassigned')
+    },
+    onError: (error) => {
+      if (!handleAuthError(error)) {
+        toast.error('Failed to unassign')
+      }
     },
   })
 
@@ -201,7 +233,8 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
       )
       return { previous }
     },
-    onError: (_err, _task, context) => {
+    onError: (error, _task, context) => {
+      if (handleAuthError(error)) return
       if (context?.previous) {
         queryClient.setQueryData(queryKeys.tasks(days), context.previous)
       }
@@ -223,7 +256,8 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
       )
       return { previous }
     },
-    onError: (_err, _task, context) => {
+    onError: (error, _task, context) => {
+      if (handleAuthError(error)) return
       if (context?.previous) {
         queryClient.setQueryData(queryKeys.tasks(days), context.previous)
       }
@@ -244,7 +278,8 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
       )
       return { previous }
     },
-    onError: (_err, _task, context) => {
+    onError: (error, _task, context) => {
+      if (handleAuthError(error)) return
       if (context?.previous) {
         queryClient.setQueryData(queryKeys.tasks(days), context.previous)
       }
@@ -302,12 +337,15 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
     [queryClient],
   )
 
-  // Browser notifications
+  // Notification system
+  const notificationStore = useNotificationStore()
+
   const {
     checkTaskChanges,
     permission: notificationPermission,
     isSupported: notificationsSupported,
-  } = useBrowserNotifications()
+    requestPermission,
+  } = useBrowserNotifications({ store: notificationStore })
 
   // Check for task changes when tasks update
   useEffect(() => {
@@ -326,6 +364,8 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
     else params.delete('status')
     if (labelFilter !== 'all') params.set('label', labelFilter)
     else params.delete('label')
+    if (priorityFilter !== 'all') params.set('priority', priorityFilter)
+    else params.delete('priority')
     if (viewMode !== 'running') params.set('view', viewMode)
     else params.delete('view')
     if (debouncedSearch) params.set('q', debouncedSearch)
@@ -333,7 +373,7 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
     const search = params.toString()
     const newUrl = window.location.pathname + (search ? `?${search}` : '')
     window.history.replaceState(null, '', newUrl)
-  }, [dateFilter, statusFilter, labelFilter, viewMode, debouncedSearch])
+  }, [dateFilter, statusFilter, labelFilter, priorityFilter, viewMode, debouncedSearch])
 
   // Get unique labels from tasks (excluding internal/system labels)
   const availableLabels = Array.from(new Set(tasks.flatMap((task) => task.labels)))
@@ -380,7 +420,12 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
   const { runningCount, backlogCount, queueCount } = getViewModeCounts(tasks)
 
   // Filter tasks by view mode, then by status and label (combined with AND logic)
-  const baseFilteredTasks = filterTasksByView(tasks, { viewMode, statusFilter, labelFilter })
+  const baseFilteredTasks = filterTasksByView(tasks, {
+    viewMode,
+    statusFilter,
+    labelFilter,
+    priorityFilter,
+  })
   const searchedTasks = useMemo(() => {
     if (!debouncedSearch.trim()) return baseFilteredTasks
     const q = debouncedSearch.toLowerCase()
@@ -436,7 +481,7 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
   // Reset focused index when task list changes
   useEffect(() => {
     setFocusedIndex(0)
-  }, [sortedTasks.length, viewMode, statusFilter, labelFilter, debouncedSearch])
+  }, [sortedTasks.length, viewMode, statusFilter, labelFilter, priorityFilter, debouncedSearch])
 
   // Check for specific errors
   const isRateLimited = error instanceof RateLimitError
@@ -671,6 +716,20 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
           ))}
         </SelectContent>
       </Select>
+      {/* Priority filter */}
+      <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="Filter by priority" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All priorities</SelectItem>
+          {PRIORITY_LEVELS.map((level) => (
+            <SelectItem key={level} value={level}>
+              {PRIORITY_META[level].badge} {level} — {PRIORITY_META[level].label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </>
   )
 
@@ -755,15 +814,12 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
 
                 {/* Desktop controls */}
                 <div className="hidden md:flex items-center gap-3">
-                  {/* GitHub identity badge */}
+                  {/* GitHub identity badge with dropdown */}
                   {githubUser && (
-                    <SimpleTooltip
-                      content={`Logged in as @${githubUser.login} — click to log out`}
-                      side="bottom"
-                    >
+                    <div className="relative">
                       <button
                         type="button"
-                        onClick={clearGitHubUser}
+                        onClick={() => setShowUserDropdown((prev) => !prev)}
                         className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-accent transition-colors"
                       >
                         <Avatar className="h-5 w-5">
@@ -772,38 +828,30 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
                         </Avatar>
                         <span className="text-xs text-muted-foreground">@{githubUser.login}</span>
                       </button>
-                    </SimpleTooltip>
+                      {showUserDropdown && (
+                        <div className="absolute top-full right-0 mt-1 w-36 py-1 bg-popover border rounded-md shadow-lg z-50">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              clearGitHubUser()
+                              setShowUserDropdown(false)
+                            }}
+                            className="w-full px-3 py-1.5 text-left text-sm hover:bg-accent"
+                          >
+                            Sign out
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   )}
 
-                  {/* Notification status */}
-                  {notificationsSupported && (
-                    <SimpleTooltip
-                      content={
-                        notificationPermission === 'granted'
-                          ? 'Notifications enabled'
-                          : 'Enable notifications'
-                      }
-                      side="bottom"
-                    >
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => Notification.requestPermission()}
-                        aria-label={
-                          notificationPermission === 'granted'
-                            ? 'Notifications enabled'
-                            : 'Enable notifications'
-                        }
-                        className={
-                          notificationPermission === 'granted'
-                            ? 'text-green-500'
-                            : 'text-muted-foreground'
-                        }
-                      >
-                        <Bell className="w-4 h-4" />
-                      </Button>
-                    </SimpleTooltip>
-                  )}
+                  {/* Notification center */}
+                  <NotificationCenter
+                    store={notificationStore}
+                    browserPermission={notificationPermission}
+                    isSupported={notificationsSupported}
+                    onRequestPermission={requestPermission}
+                  />
 
                   {/* Theme toggle */}
                   <SimpleTooltip
@@ -885,6 +933,8 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
                   onStatusFilterChange={setStatusFilter}
                   labelFilter={labelFilter}
                   onLabelFilterChange={setLabelFilter}
+                  priorityFilter={priorityFilter}
+                  onPriorityFilterChange={setPriorityFilter}
                   availableLabels={availableLabels}
                   labelCounts={labelCounts}
                   statusCounts={statusCounts}
@@ -1025,7 +1075,7 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
                   </Avatar>
                   <div className="flex flex-col items-start">
                     <span className="text-sm font-medium">@{githubUser.login}</span>
-                    <span className="text-xs text-muted-foreground">Tap to switch</span>
+                    <span className="text-xs text-muted-foreground">Tap to sign out</span>
                   </div>
                 </button>
               )}

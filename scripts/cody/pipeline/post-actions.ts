@@ -72,10 +72,17 @@ export async function executePostAction(
       const taskDef = readTask(ctx.taskDir)
       if (taskDef) {
         // Apply --complexity override if provided (for testing/debugging)
-        if (ctx.input.complexityOverride !== undefined && taskDef.complexity === undefined) {
+        if (ctx.input.complexityOverride !== undefined) {
+          const oldComplexity = taskDef.complexity
           taskDef.complexity = ctx.input.complexityOverride
           taskDef.complexity_reasoning = `Override via --complexity=${ctx.input.complexityOverride}`
-          logger.info(`  ℹ️ Applied complexity override: ${ctx.input.complexityOverride}`)
+          if (oldComplexity !== undefined) {
+            logger.info(
+              `  ℹ️ Complexity override: ${oldComplexity} → ${ctx.input.complexityOverride}`,
+            )
+          } else {
+            logger.info(`  ℹ️ Complexity override applied: ${ctx.input.complexityOverride}`)
+          }
         }
         // Update ctx.taskDef so subsequent post-actions can access it
         ctx.taskDef = taskDef
@@ -90,6 +97,15 @@ export async function executePostAction(
         if (taskDef.complexity !== undefined) {
           const tier = getComplexityTier(taskDef.complexity)
           logger.info(`  ℹ️ Complexity: ${taskDef.complexity} (${tier}) → profile: ${ctx.profile}`)
+
+          // R2-FIX #6: Warn when complexity seems mismatched with profile.
+          // A lightweight profile with high complexity may skip important stages.
+          if (ctx.profile === 'lightweight' && taskDef.complexity >= 35) {
+            logger.warn(
+              `  ⚠️ Profile/complexity mismatch: lightweight profile with complexity ${taskDef.complexity} (complex tier). ` +
+                `Some stages may be unexpectedly skipped. Consider overriding with --profile=standard.`,
+            )
+          }
         } else {
           logger.info(
             `  ℹ️ Resolved profile: ${ctx.profile} (no complexity score, using legacy heuristic)`,

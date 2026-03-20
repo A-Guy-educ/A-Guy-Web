@@ -21,6 +21,7 @@ import {
   findNearestEarlierStage,
 } from '../rerun-utils'
 import { getLastFailedStage, getLastPausedStage } from '../cody-utils'
+import { checkoutTaskBranch } from '../git-utils'
 import { runFullMode } from './full'
 
 export async function runRerunMode(ctx: PipelineContext): Promise<void> {
@@ -32,6 +33,20 @@ export async function runRerunMode(ctx: PipelineContext): Promise<void> {
   // because the gate paused before resolve-profile post-action ran)
   const pausedStage = !input.fromStage ? getLastPausedStage(input.taskId) : null
   let gateApprovedStage: string | null = null
+
+  // Early branch checkout: In CI, rerun mode starts on dev but task files
+  // (spec.md, task.md, task.json) live on the feature branch. Checkout the
+  // task's feature branch BEFORE checking for files, otherwise we'll falsely
+  // fall back to full mode and fail with "task.md not found".
+  if (process.env.GITHUB_ACTIONS && !input.dryRun) {
+    const checkedOut = checkoutTaskBranch(input.taskId, taskDir)
+    if (!checkedOut) {
+      logger.info('No feature branch found for task — falling back to full pipeline')
+      input.mode = 'full'
+      await runFullMode(ctx)
+      return
+    }
+  }
 
   // G33: Fallback to full only if spec.md missing AND no paused stage to resume
   const specPath = path.join(taskDir, 'spec.md')
@@ -130,6 +145,10 @@ export async function runRerunMode(ctx: PipelineContext): Promise<void> {
     logger.info('⚡ Turbo mode: forcing turbo profile')
   }
 
+  // Track if fromStage was explicitly provided (via CLI) vs derived from failed/paused stage
+  // If explicitly provided, don't inject default feedback (prevents backup to architect on auto-retries)
+  const fromStageExplicitlyProvided = !!input.fromStage
+
   // Determine fromStage
   // FIX #673: After gate approval, use the NEXT stage (not the approved one)
   // to prevent resetFromStage from overwriting the gate approval
@@ -139,6 +158,10 @@ export async function runRerunMode(ctx: PipelineContext): Promise<void> {
       const tempPipeline = resolvePipelineForMode('rerun', ctx.profile, false, ctx)
       const tempOrder = flattenPipelineOrder(tempPipeline.order)
       input.fromStage = resolveFromStageAfterGateApproval(gateApprovedStage, tempOrder)
+      // R3-FIX #2: Trigger pipeline rebuild after gate approval.
+      // The profile or task definition may have changed between the original run
+      // and this rerun — rebuilding ensures the correct stages are used.
+      ctx.pipelineNeedsRebuild = true
       logger.info(`  ℹ️ Gate approved at ${gateApprovedStage} — resuming from ${input.fromStage}`)
     } else {
       // FIX #827: When pipeline state is 'failed', prefer failed stage over paused stage.
@@ -161,8 +184,9 @@ export async function runRerunMode(ctx: PipelineContext): Promise<void> {
     }
   }
 
-  // Default feedback
-  if (!input.feedback) {
+  // Default feedback - but only if fromStage wasn't explicitly provided
+  // This prevents unnecessary backup to architect on auto-retries (pipeline-fixer)
+  if (!input.feedback && !fromStageExplicitlyProvided) {
     input.feedback = 'Rerun requested via /cody rerun'
   }
 
@@ -188,16 +212,20 @@ export async function runRerunMode(ctx: PipelineContext): Promise<void> {
   const stageOrder = flattenPipelineOrder(pipeline.order)
 
   // P3 fix: Back up to architect when feedback provided so plan can be revised
-  const resolvedFrom = resolveRerunFromStage(input.fromStage || 'build', input.feedback, stageOrder)
-  if (resolvedFrom !== input.fromStage) {
-    logger.info(
-      `  \u2139\ufe0f Feedback provided \u2014 backing up from ${input.fromStage} to ${resolvedFrom} for plan revision`,
-    )
-    input.fromStage = resolvedFrom
+  // BUT: Don't back up if fromStage was explicitly provided (via CLI --from or pipeline-fixer)
+  // This prevents pipeline-fixer retries from unnecessarily re-running architect
+  let resolvedFrom = input.fromStage || 'build'
+  if (!fromStageExplicitlyProvided && input.feedback) {
+    resolvedFrom = resolveRerunFromStage(resolvedFrom, input.feedback, stageOrder)
+    if (resolvedFrom !== input.fromStage) {
+      logger.info(
+        `  ℹ️ Feedback provided — backing up from ${input.fromStage} to ${resolvedFrom} for plan revision`,
+      )
+    }
   }
 
   // Fix 5: Validate fromStage exists in the resolved pipeline order
-  let fromStage = input.fromStage || 'build'
+  let fromStage = resolvedFrom
   if (!stageOrder.includes(fromStage as StageName)) {
     const fallback = findNearestEarlierStage(fromStage, stageOrder)
     logger.warn(

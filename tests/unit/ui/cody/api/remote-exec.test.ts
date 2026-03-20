@@ -9,10 +9,12 @@ vi.mock('@/ui/cody/auth', () => ({
   verifyActorLogin: vi.fn(() => ({
     identity: { login: 'alice', id: 1 },
   })),
+  requireCodyAuth: vi.fn(() => null),
   requireDashboardAuth: vi.fn(() => ({
     authenticated: true,
     user: { id: '1', email: 'test@test.com' },
   })),
+  getUserOctokit: vi.fn(() => Promise.resolve(null)),
 }))
 
 // Mock remote-config
@@ -139,12 +141,12 @@ describe('GET /api/cody/remote/status', () => {
     vi.mocked(getRemoteConfig).mockReturnValue(undefined)
   })
 
-  it('returns 404 when user is not configured', async () => {
+  it('returns 200 with configured: false when user is not configured', async () => {
     const { GET } = await import('@/app/api/cody/remote/status/route')
 
     const req = new NextRequest('http://localhost/api/cody/remote/status?actorLogin=unknown')
     const res = await GET(req)
-    expect(res.status).toBe(404)
+    expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.configured).toBe(false)
   })
