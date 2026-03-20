@@ -80,14 +80,26 @@ function normalizeRequest(body: unknown): object {
         content: msgObj.content,
       }
     })
-    // Also keep model as it's part of the request identity
+    // Normalize model name to strip provider prefix (e.g., "groq/llama..." -> "llama...")
+    const model = normalizeModelName(obj.model as string)
     return {
-      model: obj.model,
+      model,
       messages: normalizedMessages,
     }
   }
 
   return obj
+}
+
+/**
+ * Normalize model name by stripping provider prefix
+ * e.g., "groq/llama-3.3-70b-versatile" -> "llama-3.3-70b-versatile"
+ */
+function normalizeModelName(model: string): string {
+  if (!model) return model
+  // Strip provider prefix if present (e.g., "groq/", "openai/", etc.)
+  const slashIndex = model.indexOf('/')
+  return slashIndex >= 0 ? model.substring(slashIndex + 1) : model
 }
 
 export function createReplayer(options: ReplayerOptions): Replayer {
