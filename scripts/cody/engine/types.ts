@@ -406,6 +406,11 @@ export type RunMechanicalAutofixAction = {
   type: 'run-mechanical-autofix'
 }
 
+// Update-knowledge-base action — updates cross-task knowledge base after completion
+export type UpdateKnowledgeBaseAction = {
+  type: 'update-knowledge-base'
+}
+
 // Parallel-post-action - runs multiple actions concurrently
 export type ParallelPostAction = {
   type: 'parallel'
@@ -429,6 +434,7 @@ export type PostAction =
   | AnalyzeReviewFindingsAction
   | ClearVerifyFailuresAction
   | RunMechanicalAutofixAction
+  | UpdateKnowledgeBaseAction
   | ParallelPostAction
 
 // ============================================================================

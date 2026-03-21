@@ -31,6 +31,7 @@ import {
   executeValidateBuildContent,
   executeValidateSrcChanges,
 } from './validators'
+import { executeUpdateKnowledgeBase } from './knowledge-base'
 
 /**
  * Execute a post-action by dispatching to the appropriate module
@@ -103,6 +104,9 @@ export async function executePostAction(
       }
       break
     }
+
+    case 'update-knowledge-base':
+      return executeUpdateKnowledgeBase(ctx, _state)
 
     case 'parallel': {
       if (!('actions' in action) || !Array.isArray((action as { actions?: unknown }).actions)) {

@@ -490,6 +490,9 @@ No critical gaps identified. Plan was refined in-place.
         ensureBranch: false,
         localOnly: true,
       },
+      // Update knowledge base with patterns learned from this task
+      // Non-blocking: executeUpdateKnowledgeBase handles errors gracefully
+      { type: 'update-knowledge-base' },
     ],
   })
 
