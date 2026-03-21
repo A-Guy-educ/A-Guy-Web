@@ -38,6 +38,12 @@ import {
   SheetDescription,
 } from '@/ui/web/components/sheet'
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/ui/web/components/dropdown-menu'
+import {
   MessageSquare,
   Bug,
   Menu,
@@ -48,6 +54,8 @@ import {
   Sun,
   Moon,
   GitBranch,
+  ChevronDown,
+  Plus,
 } from 'lucide-react'
 import { useCodyTasks, queryKeys } from '../hooks'
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
@@ -897,15 +905,27 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
                       <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
                     </Button>
                   </SimpleTooltip>
-                  <SimpleTooltip content="Report a bug" side="bottom">
-                    <Button variant="outline" onClick={handleOpenBug}>
-                      <Bug className="w-4 h-4 mr-2" />
-                      Report Bug
-                    </Button>
-                  </SimpleTooltip>
-                  <SimpleTooltip content="Create new task" side="bottom">
-                    <Button onClick={handleOpenCreate}>+ New Task</Button>
-                  </SimpleTooltip>
+
+                  {/* New/Report dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="sm" className="gap-1">
+                        <Plus className="w-4 h-4" />
+                        <span className="hidden sm:inline">New</span>
+                        <ChevronDown className="w-3 h-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={handleOpenCreate}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        New Task
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleOpenBug}>
+                        <Bug className="w-4 h-4 mr-2" />
+                        Report Bug
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
                 {/* Mobile hamburger */}
