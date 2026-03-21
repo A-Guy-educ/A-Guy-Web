@@ -171,8 +171,9 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          external_repository: A-Guy-educ/a-guy-wiki
           publish_dir: ./_wiki
-          publish_branch: wiki-pages
+          publish_branch: main
           force_orphan: true
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
