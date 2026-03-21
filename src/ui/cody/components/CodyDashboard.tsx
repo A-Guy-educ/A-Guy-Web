@@ -88,6 +88,8 @@ interface CodyDashboardProps {
 
 export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboardProps) {
   const initialIssueRef = useRef(initialIssueNumber)
+  // Track if initial modal has been handled to prevent re-opening on tasks change
+  const initialModalHandledRef = useRef(false)
   // #1: Track selection by issue number, derive task from query data
   const [selectedIssueNumber, setSelectedIssueNumber] = useState<number | null>(null)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
@@ -595,13 +597,16 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
 
   // Auto-select task from URL on initial load
   useEffect(() => {
-    // Check for modal routes on initial load
-    const modal = initialModal || getModalFromUrl()
-    if (modal) {
-      if (modal === 'new') setShowCreateDialog(true)
-      else if (modal === 'bug') setShowBugDialog(true)
-      else if (modal === 'chat') setShowMobileChat(true)
-      return
+    // Only handle initial modal once to prevent re-opening on tasks change
+    if (!initialModalHandledRef.current) {
+      initialModalHandledRef.current = true
+      const modal = initialModal || getModalFromUrl()
+      if (modal) {
+        if (modal === 'new') setShowCreateDialog(true)
+        else if (modal === 'bug') setShowBugDialog(true)
+        else if (modal === 'chat') setShowMobileChat(true)
+        return
+      }
     }
 
     // Check for preview URL on initial load
