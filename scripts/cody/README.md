@@ -649,3 +649,73 @@ CodyInput {
   complexityOverride?: number
 }
 ```
+
+## Key Features
+
+### Post-Action Classification
+
+Post-actions are classified as **blocking** or **advisory**:
+
+| Blocking                 | Advisory                    |
+| ------------------------ | --------------------------- |
+| `validate-task-json`     | `set-classification-labels` |
+| `resolve-profile`        | `archive-rerun-feedback`    |
+| `check-gate`             | `run-tsc`                   |
+| `commit-task-files`      | `run-unit-tests`            |
+| `validate-plan-exists`   | `run-quality-with-autofix`  |
+| `validate-build-content` | `analyze-review-findings`   |
+| `validate-src-changes`   | `clear-verify-failures`     |
+|                          | `run-mechanical-autofix`    |
+
+Use `isBlockingPostAction()` to check classification programmatically.
+
+### Structured Event Logging
+
+Pipeline events are logged with consistent structure for observability:
+
+```typescript
+import { logStageStart, logStageComplete, logPipelineStart } from './pipeline-events'
+
+logPipelineStart(ctx.taskId, ctx.input.mode, ctx.profile)
+logStageStart('architect', ctx.taskId)
+logStageComplete('architect', ctx.taskId, 'completed', durationMs)
+```
+
+Event types are defined in `PIPELINE_EVENTS` constant.
+
+### Parallel Post-Actions
+
+Run multiple post-actions concurrently with classification-based failure handling:
+
+```typescript
+{
+  type: 'parallel',
+  actions: [
+    { type: 'set-classification-labels' },
+    { type: 'run-tsc' },
+    { type: 'run-unit-tests' },
+  ],
+}
+```
+
+Blocking failures stop the pipeline; advisory failures log warnings and continue.
+
+### Declarative Retry Loops
+
+Configure retry behavior declaratively:
+
+```typescript
+retryWith: {
+  stage: 'verify',
+  maxAttempts: 3,
+  onFailure: async (ctx, taskDir) => {
+    await writeFile(path.join(taskDir, 'verify-failures.md'), gatherFailures())
+  },
+  onTimeout: 'retry', // 'retry' resets stage, 'fail' ends pipeline
+}
+```
+
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for development setup and guidelines.
+See [STAGE_AUTHORING.md](./STAGE_AUTHORING.md) for stage and post-action development.

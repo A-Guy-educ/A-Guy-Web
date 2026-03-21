@@ -11,7 +11,7 @@ import * as path from 'path'
 
 import { logger } from '../../logger'
 import type { PipelineContext, PostAction, PipelineStateV2 } from '../../engine/types'
-import { PipelinePausedError } from '../../engine/types'
+import { PipelinePausedError, isBlockingPostAction } from '../../engine/types'
 
 // Focused modules
 import { executeValidateTaskJson } from './validate-task-json'
@@ -126,15 +126,37 @@ export async function executePostAction(
         throw pauseResult.reason
       }
 
+      // Classify failures into blocking vs advisory
       const failures = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected')
       if (failures.length > 0) {
-        const errors = failures
-          .map((f) => {
-            const err = f.reason as Error
-            return err?.message || String(f.reason)
-          })
-          .join('; ')
-        throw new Error(`Parallel post-actions failed: ${errors}`)
+        // Check if any blocking actions failed
+        const blockingFailures: { action: PostAction; error: string }[] = []
+        const advisoryFailures: { action: PostAction; error: string }[] = []
+
+        for (let i = 0; i < results.length; i++) {
+          const result = results[i]
+          if (result.status === 'rejected') {
+            const action = parallelActions[i]
+            const err =
+              result.reason instanceof Error ? result.reason.message : String(result.reason)
+            if (isBlockingPostAction(action)) {
+              blockingFailures.push({ action, error: err })
+            } else {
+              advisoryFailures.push({ action, error: err })
+            }
+          }
+        }
+
+        // Log advisory failures as warnings (don't fail the pipeline)
+        for (const { action, error } of advisoryFailures) {
+          logger.warn({ actionType: action.type }, `   Advisory post-action failed: ${error}`)
+        }
+
+        // Throw only if blocking actions failed
+        if (blockingFailures.length > 0) {
+          const errors = blockingFailures.map((f) => f.error).join('; ')
+          throw new Error(`Parallel post-actions failed (blocking): ${errors}`)
+        }
       }
       logger.info(`   ✅ All ${parallelActions.length} parallel actions completed`)
       break
