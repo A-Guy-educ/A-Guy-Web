@@ -68,66 +68,37 @@ export default async function ScenarioListPage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Link href="/cody/scenario/new">
+            <Link href="/cody/scenario">
               <Button>New Scenario</Button>
             </Link>
           </div>
         </div>
       </header>
 
-      <div className="container py-6">
-        {/* Quick Links */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Prototypes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                {prototypes.length} prototype{prototypes.length !== 1 ? 's' : ''} available
-              </p>
+      <div className="container py-6 space-y-8">
+        {/* Quick Start */}
+        <Card className="bg-primary/5 border-primary/20">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold">Create a New Scenario</h2>
+                <p className="text-sm text-muted-foreground">
+                  Use the step-by-step wizard to create a scenario from prototypes and design system
+                  components
+                </p>
+              </div>
               <Link href="/cody/scenario">
-                <Button variant="outline" size="sm">
-                  Browse
-                </Button>
+                <Button>Start Wizard</Button>
               </Link>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Design System</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">Browse DS components</p>
-              <Link href="/cody/scenario">
-                <Button variant="outline" size="sm">
-                  View Components
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">GitHub</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">Create issue from scenario</p>
-              <Link href="/cody/scenario">
-                <Button variant="outline" size="sm">
-                  Create Issue
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Scenarios by Category */}
         <div className="space-y-6">
           <h2 className="text-xl font-semibold">Scenario Categories</h2>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
@@ -155,11 +126,6 @@ export default async function ScenarioListPage() {
                 ) : (
                   <p className="text-sm text-muted-foreground mb-4">No scenarios yet</p>
                 )}
-                <Link href="/cody/scenario?category=core">
-                  <Button variant="outline" size="sm">
-                    View All
-                  </Button>
-                </Link>
               </CardContent>
             </Card>
 
@@ -188,23 +154,18 @@ export default async function ScenarioListPage() {
                 ) : (
                   <p className="text-sm text-muted-foreground mb-4">No scenarios yet</p>
                 )}
-                <Link href="/cody/scenario?category=feature">
-                  <Button variant="outline" size="sm">
-                    View All
-                  </Button>
-                </Link>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span>Edge</span>
+                  <span>Edge Case</span>
                   <Badge variant="outline">{edgeScenarios.length}</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">Edge case handling</p>
+                <p className="text-sm text-muted-foreground mb-4">Boundary conditions</p>
                 {edgeScenarios.length > 0 ? (
                   <ul className="space-y-1 mb-4">
                     {edgeScenarios.slice(0, 3).map((s) => (
@@ -221,15 +182,24 @@ export default async function ScenarioListPage() {
                 ) : (
                   <p className="text-sm text-muted-foreground mb-4">No scenarios yet</p>
                 )}
-                <Link href="/cody/scenario?category=edge">
-                  <Button variant="outline" size="sm">
-                    View All
-                  </Button>
-                </Link>
               </CardContent>
             </Card>
           </div>
         </div>
+
+        {/* Prototypes Info */}
+        {prototypes.length > 0 && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">Available Prototypes</h2>
+            <div className="flex flex-wrap gap-2">
+              {prototypes.map((p) => (
+                <Badge key={p} variant="outline">
+                  {p}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

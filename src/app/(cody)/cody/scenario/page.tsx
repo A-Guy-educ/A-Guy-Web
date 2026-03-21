@@ -1,17 +1,17 @@
 /**
  * @fileType page
  * @domain cody
- * @pattern scenario-editor-page
- * @ai-summary Scenario Editor page - IDE for building scenarios with prototypes and design system
+ * @pattern scenario-wizard-page
+ * @ai-summary Scenario creation wizard page - 4-step flow to create scenarios
  */
-import { ScenarioEditor } from './components/ScenarioEditor'
+import { ScenarioWizard } from './components/ScenarioWizard'
 
 export const metadata = {
-  title: 'Scenario Editor',
-  description: 'Create and manage scenarios for scenario-first development',
+  title: 'Create Scenario',
+  description: 'Create a new scenario using the step-by-step wizard',
   path: '/cody/scenario',
 }
 
 export default async function ScenarioPage() {
-  return <ScenarioEditor />
+  return <ScenarioWizard />
 }
