@@ -1184,7 +1184,12 @@ export function commitPipelineFiles(
       logger.info(`[commit] ${message}`)
     } catch (commitError: unknown) {
       const commitMsg = commitError instanceof Error ? commitError.message : String(commitError)
-      if (commitMsg.includes('nothing to commit') || commitMsg.includes('no changes added')) {
+      // Handle various git "nothing to commit" messages
+      if (
+        commitMsg.includes('nothing to commit') ||
+        commitMsg.includes('no changes added') ||
+        commitMsg.includes('nothing added to commit')
+      ) {
         return { success: true, message: 'No changes to commit', committed: false }
       }
       throw commitError
