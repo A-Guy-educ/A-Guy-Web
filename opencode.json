@@ -121,7 +121,7 @@
       ]
     },
     "contextplus": {
-      "type": "sse",
+      "type": "remote",
       "url": "${BRAIN_SERVER_URL:-http://100.66.248.120:4097/sse}"
     }
   }
