@@ -233,6 +233,7 @@
         "src/ui/cody/components/EnvironmentToolbar.tsx",
         "src/ui/cody/components/ErrorBoundary.tsx",
         "src/ui/cody/components/FilterBar.tsx",
+        "src/ui/cody/components/FilterDropdown.tsx",
         "src/ui/cody/components/FixRequestDialog.tsx",
         "src/ui/cody/components/KeyboardShortcutsDialog.tsx",
         "src/ui/cody/components/LabelPicker.tsx",
@@ -561,6 +562,7 @@
         "src/ui/cody/components/CreateTaskDialog.tsx",
         "src/ui/cody/components/EditTaskDialog.tsx",
         "src/ui/cody/components/FilterBar.tsx",
+        "src/ui/cody/components/FilterDropdown.tsx",
         "src/ui/cody/components/MergeApprovalDialog.tsx",
         "src/ui/cody/components/MergeButton.tsx",
         "src/ui/cody/components/MessageActions.tsx",
@@ -1907,6 +1909,11 @@
       "pattern": "filter-bar",
       "description": "No description available",
       "files": ["src/ui/cody/components/FilterBar.tsx"]
+    },
+    "filter-dropdown": {
+      "pattern": "filter-dropdown",
+      "description": "No description available",
+      "files": ["src/ui/cody/components/FilterDropdown.tsx"]
     },
     "fix-request-dialog": {
       "pattern": "fix-request-dialog",
@@ -5878,8 +5885,16 @@
       "type": "component",
       "domain": "cody",
       "patterns": ["filter-bar", "tailwind-component", "client-component"],
-      "aiSummary": "Dedicated filter sub-header bar for Cody dashboard with view toggle, date, status, and label filters",
+      "aiSummary": "Dedicated filter sub-header bar for Cody dashboard with view toggle and consolidated filter dropdown",
       "dependencies": ["react", "lucide-react"]
+    },
+    "src/ui/cody/components/FilterDropdown.tsx": {
+      "path": "src/ui/cody/components/FilterDropdown.tsx",
+      "type": "component",
+      "domain": "cody",
+      "patterns": ["filter-dropdown", "tailwind-component", "client-component"],
+      "aiSummary": "Consolidated dropdown for all task filters — status, label, priority, date, and sort",
+      "dependencies": ["lucide-react"]
     },
     "src/ui/cody/components/FixRequestDialog.tsx": {
       "path": "src/ui/cody/components/FixRequestDialog.tsx",
@@ -7296,8 +7311,8 @@
     }
   },
   "metadata": {
-    "generatedAt": "2026-03-21T18:43:13.363Z",
-    "totalFiles": 634,
-    "totalPatterns": 245
+    "generatedAt": "2026-03-21T20:09:28.124Z",
+    "totalFiles": 635,
+    "totalPatterns": 246
   }
 }

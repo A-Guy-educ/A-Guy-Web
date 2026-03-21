@@ -115,9 +115,36 @@ Created a comprehensive integration test suite covering the Cody dashboard chat 
 
 None — plan followed exactly
 
+## Additional Fix: Mobile Chat Close Button
+
+**Issue**: On mobile, when the chat window opens (via `/cody/chat`), the close button (X icon from shadcn/ui) was small and not obvious, making it difficult for users to find how to close the chat.
+
+**Fix**: Added an explicit "Close" button with X icon at the top of the mobile chat sheet with:
+- Larger touch target (5x5 icon instead of 4x4)
+- Visible "Close" text label
+- Proper `aria-label` for accessibility
+- Positioned in a visible `border-b` header bar
+
+```tsx
+// Before: Only default shadcn close button (small X icon)
+// After: Explicit close button in visible header
+<div className="flex justify-end p-2 border-b border-border">
+  <Button
+    variant="ghost"
+    size="sm"
+    onClick={() => handleCloseChat(false)}
+    className="text-muted-foreground hover:text-foreground"
+    aria-label="Close chat"
+  >
+    <XIcon className="w-5 h-5 mr-1" />
+    Close
+  </Button>
+</div>
+```
+
 ## Quality
 
 - TypeScript: PASS
 - Lint: PASS
-- Unit Tests: 291 test files, 4242 tests passing
+- Unit Tests: 292 test files, 4246 tests passing
 - Integration Tests: 14 passed

@@ -1204,6 +1204,19 @@ export function CodyDashboard({ initialIssueNumber, initialModal }: CodyDashboar
                 <SheetTitle>Chat with Cody</SheetTitle>
                 <SheetDescription>AI assistant chat</SheetDescription>
               </SheetHeader>
+              {/* Mobile close button — larger touch target for easier closing */}
+              <div className="flex justify-end p-2 border-b border-border">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleCloseChat(false)}
+                  className="text-muted-foreground hover:text-foreground"
+                  aria-label="Close chat"
+                >
+                  <XIcon className="w-5 h-5 mr-1" />
+                  Close
+                </Button>
+              </div>
               <CodyChat selectedTask={selectedTask} actorLogin={githubUser?.login} />
             </SheetContent>
           </Sheet>
