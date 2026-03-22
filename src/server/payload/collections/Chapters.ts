@@ -31,6 +31,11 @@ export const Chapters: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'adminTitle',
+    components: {
+      edit: {
+        beforeDocumentControls: ['@/ui/admin/CascadeDeleteButton#ChapterCascadeDelete'],
+      },
+    },
     defaultColumns: ['course', 'chapterLabel', 'title', 'order', 'status', 'isActive', 'updatedAt'],
   },
   fields: [
@@ -147,17 +152,5 @@ export const Chapters: CollectionConfig = {
 
     // Created By
     createdByField,
-
-    // Cascade Delete
-    {
-      name: 'cascadeDelete',
-      type: 'ui',
-      admin: {
-        position: 'sidebar',
-        components: {
-          Field: '@/ui/admin/CascadeDeleteButton#ChapterCascadeDelete',
-        },
-      },
-    },
   ],
 }

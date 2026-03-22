@@ -47,6 +47,11 @@ export const Courses: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'title',
+    components: {
+      edit: {
+        beforeDocumentControls: ['@/ui/admin/CascadeDeleteButton#CourseCascadeDelete'],
+      },
+    },
     defaultColumns: [
       'courseLabel',
       'title',
@@ -240,17 +245,5 @@ export const Courses: CollectionConfig = {
 
     // Created By
     createdByField,
-
-    // Cascade Delete
-    {
-      name: 'cascadeDelete',
-      type: 'ui',
-      admin: {
-        position: 'sidebar',
-        components: {
-          Field: '@/ui/admin/CascadeDeleteButton#CourseCascadeDelete',
-        },
-      },
-    },
   ],
 }

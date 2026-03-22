@@ -2,7 +2,7 @@
 
 import { useDocumentInfo } from '@payloadcms/ui'
 import { useRouter } from 'next/navigation'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 type CollectionSlug = 'courses' | 'chapters' | 'lessons'
 
@@ -18,15 +18,25 @@ const DESCENDANT_DESCRIPTIONS: Record<CollectionSlug, string> = {
   lessons: 'all exercises',
 }
 
-export const CascadeDeleteButton: React.FC<{ collection: CollectionSlug }> = ({ collection }) => {
+const CascadeDeleteButton: React.FC<{ collection: CollectionSlug }> = ({ collection }) => {
   const { id } = useDocumentInfo()
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null)
-  const [showConfirm, setShowConfirm] = useState(false)
+  const [showModal, setShowModal] = useState(false)
 
   const label = COLLECTION_LABELS[collection]
   const descendants = DESCENDANT_DESCRIPTIONS[collection]
+
+  // Close modal on Escape key
+  useEffect(() => {
+    if (!showModal) return
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowModal(false)
+    }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [showModal])
 
   const handleCascadeDelete = useCallback(async () => {
     if (!id) return
@@ -42,133 +52,153 @@ export const CascadeDeleteButton: React.FC<{ collection: CollectionSlug }> = ({ 
       const data = await response.json()
 
       if (response.ok && data.success) {
-        setResult({
-          success: true,
-          message: data.message,
-        })
-        // Redirect to collection list after short delay
+        setResult({ success: true, message: data.message })
         setTimeout(() => {
           router.push(`/admin/collections/${collection}`)
         }, 1500)
       } else {
-        setResult({
-          success: false,
-          message: data.error || 'Cascade delete failed',
-        })
+        setResult({ success: false, message: data.error || 'Cascade delete failed' })
       }
     } catch {
-      setResult({
-        success: false,
-        message: 'Network error — could not reach the server',
-      })
+      setResult({ success: false, message: 'Network error — could not reach the server' })
     } finally {
       setIsDeleting(false)
-      setShowConfirm(false)
     }
   }, [id, collection, router])
 
   if (!id) return null
 
   return (
-    <div
-      style={{
-        padding: 16,
-        marginTop: 16,
-        border: '1px solid var(--theme-elevation-200)',
-        borderRadius: 4,
-        backgroundColor: 'var(--theme-elevation-50)',
-      }}
-    >
-      <h4 style={{ margin: '0 0 8px', fontSize: 14, fontWeight: 600 }}>Cascade Delete</h4>
-      <p style={{ margin: '0 0 12px', fontSize: 12, color: 'var(--theme-elevation-600)' }}>
-        Delete this {label.toLowerCase()} and {descendants} that belong to it.
-      </p>
+    <>
+      <button
+        type="button"
+        onClick={() => setShowModal(true)}
+        style={{
+          padding: '6px 12px',
+          fontSize: 13,
+          fontWeight: 600,
+          borderRadius: 4,
+          border: 'none',
+          backgroundColor: '#dc2626',
+          color: '#fff',
+          cursor: 'pointer',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        Cascade Delete
+      </button>
 
-      {!showConfirm ? (
-        <button
-          type="button"
-          onClick={() => setShowConfirm(true)}
-          disabled={isDeleting}
+      {showModal && (
+        // Backdrop
+        <div
+          onClick={() => !isDeleting && setShowModal(false)}
           style={{
-            padding: '6px 14px',
-            fontSize: 12,
-            fontWeight: 600,
-            borderRadius: 4,
-            border: 'none',
-            backgroundColor: '#dc2626',
-            color: '#fff',
-            cursor: isDeleting ? 'not-allowed' : 'pointer',
-            opacity: isDeleting ? 0.6 : 1,
+            position: 'fixed',
+            inset: 0,
+            zIndex: 10000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
           }}
         >
-          Cascade Delete {label}
-        </button>
-      ) : (
-        <div>
-          <p
+          {/* Modal */}
+          <div
+            onClick={(e) => e.stopPropagation()}
             style={{
-              margin: '0 0 8px',
-              fontSize: 12,
-              fontWeight: 600,
-              color: '#dc2626',
+              backgroundColor: 'var(--theme-elevation-0)',
+              borderRadius: 8,
+              padding: 24,
+              maxWidth: 440,
+              width: '90%',
+              boxShadow: '0 8px 30px rgba(0, 0, 0, 0.3)',
             }}
           >
-            Are you sure? This will permanently delete this {label.toLowerCase()} and {descendants}.
-            This action cannot be undone.
-          </p>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              type="button"
-              onClick={handleCascadeDelete}
-              disabled={isDeleting}
+            <h3
               style={{
-                padding: '6px 14px',
-                fontSize: 12,
-                fontWeight: 600,
-                borderRadius: 4,
-                border: 'none',
-                backgroundColor: '#dc2626',
-                color: '#fff',
-                cursor: isDeleting ? 'not-allowed' : 'pointer',
-                opacity: isDeleting ? 0.6 : 1,
+                margin: '0 0 8px',
+                fontSize: 16,
+                fontWeight: 700,
+                color: '#dc2626',
               }}
             >
-              {isDeleting ? 'Deleting...' : 'Yes, Delete Everything'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowConfirm(false)}
-              disabled={isDeleting}
+              Cascade Delete {label}
+            </h3>
+
+            <p
               style={{
-                padding: '6px 14px',
-                fontSize: 12,
-                fontWeight: 500,
-                borderRadius: 4,
-                border: '1px solid var(--theme-elevation-300)',
-                backgroundColor: 'transparent',
+                margin: '0 0 20px',
+                fontSize: 14,
+                lineHeight: 1.5,
                 color: 'var(--theme-elevation-800)',
-                cursor: 'pointer',
               }}
             >
-              Cancel
-            </button>
+              This will permanently delete this {label.toLowerCase()} and{' '}
+              <strong>{descendants}</strong> that belong to it. This action cannot be undone.
+            </p>
+
+            {result && (
+              <p
+                style={{
+                  margin: '0 0 16px',
+                  padding: '8px 12px',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  borderRadius: 4,
+                  backgroundColor: result.success
+                    ? 'rgba(22, 163, 74, 0.1)'
+                    : 'rgba(220, 38, 38, 0.1)',
+                  color: result.success ? '#16a34a' : '#dc2626',
+                }}
+              >
+                {result.message}
+              </p>
+            )}
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowModal(false)
+                  setResult(null)
+                }}
+                disabled={isDeleting}
+                style={{
+                  padding: '8px 16px',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  borderRadius: 4,
+                  border: '1px solid var(--theme-elevation-300)',
+                  backgroundColor: 'transparent',
+                  color: 'var(--theme-elevation-800)',
+                  cursor: isDeleting ? 'not-allowed' : 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleCascadeDelete}
+                disabled={isDeleting}
+                style={{
+                  padding: '8px 16px',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  borderRadius: 4,
+                  border: 'none',
+                  backgroundColor: '#dc2626',
+                  color: '#fff',
+                  cursor: isDeleting ? 'not-allowed' : 'pointer',
+                  opacity: isDeleting ? 0.6 : 1,
+                }}
+              >
+                {isDeleting ? 'Deleting...' : 'Yes, Delete Everything'}
+              </button>
+            </div>
           </div>
         </div>
       )}
-
-      {result && (
-        <p
-          style={{
-            marginTop: 10,
-            fontSize: 12,
-            fontWeight: 500,
-            color: result.success ? '#16a34a' : '#dc2626',
-          }}
-        >
-          {result.message}
-        </p>
-      )}
-    </div>
+    </>
   )
 }
 
