@@ -28,7 +28,6 @@ const CascadeDeleteButton: React.FC<{ collection: CollectionSlug }> = ({ collect
   const label = COLLECTION_LABELS[collection]
   const descendants = DESCENDANT_DESCRIPTIONS[collection]
 
-  // Close modal on Escape key
   useEffect(() => {
     if (!showModal) return
     const handleKey = (e: KeyboardEvent) => {
@@ -73,89 +72,38 @@ const CascadeDeleteButton: React.FC<{ collection: CollectionSlug }> = ({ collect
       <button
         type="button"
         onClick={() => setShowModal(true)}
-        style={{
-          padding: '6px 12px',
-          fontSize: 13,
-          fontWeight: 600,
-          borderRadius: 4,
-          border: 'none',
-          backgroundColor: '#dc2626',
-          color: '#fff',
-          cursor: 'pointer',
-          whiteSpace: 'nowrap',
-        }}
+        className="rounded border-none bg-error px-3 py-1.5 text-[13px] font-semibold whitespace-nowrap text-error-foreground hover:opacity-90 cursor-pointer"
       >
         Cascade Delete
       </button>
 
       {showModal && (
-        // Backdrop
         <div
           onClick={() => !isDeleting && setShowModal(false)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 10000,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          }}
+          className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50"
         >
-          {/* Modal */}
           <div
             onClick={(e) => e.stopPropagation()}
-            style={{
-              backgroundColor: 'var(--theme-elevation-0)',
-              borderRadius: 8,
-              padding: 24,
-              maxWidth: 440,
-              width: '90%',
-              boxShadow: '0 8px 30px rgba(0, 0, 0, 0.3)',
-            }}
+            className="w-[90%] max-w-[440px] rounded-lg bg-[var(--theme-elevation-0)] p-6 shadow-xl"
           >
-            <h3
-              style={{
-                margin: '0 0 8px',
-                fontSize: 16,
-                fontWeight: 700,
-                color: '#dc2626',
-              }}
-            >
-              Cascade Delete {label}
-            </h3>
+            <h3 className="mb-2 text-base font-bold text-error">Cascade Delete {label}</h3>
 
-            <p
-              style={{
-                margin: '0 0 20px',
-                fontSize: 14,
-                lineHeight: 1.5,
-                color: 'var(--theme-elevation-800)',
-              }}
-            >
+            <p className="mb-5 text-sm leading-relaxed text-[var(--theme-elevation-800)]">
               This will permanently delete this {label.toLowerCase()} and{' '}
               <strong>{descendants}</strong> that belong to it. This action cannot be undone.
             </p>
 
             {result && (
               <p
-                style={{
-                  margin: '0 0 16px',
-                  padding: '8px 12px',
-                  fontSize: 13,
-                  fontWeight: 500,
-                  borderRadius: 4,
-                  backgroundColor: result.success
-                    ? 'rgba(22, 163, 74, 0.1)'
-                    : 'rgba(220, 38, 38, 0.1)',
-                  color: result.success ? '#16a34a' : '#dc2626',
-                }}
+                className={`mb-4 rounded px-3 py-2 text-[13px] font-medium ${
+                  result.success ? 'bg-success/10 text-success' : 'bg-error/10 text-error'
+                }`}
               >
                 {result.message}
               </p>
             )}
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+            <div className="flex justify-end gap-2.5">
               <button
                 type="button"
                 onClick={() => {
@@ -163,16 +111,7 @@ const CascadeDeleteButton: React.FC<{ collection: CollectionSlug }> = ({ collect
                   setResult(null)
                 }}
                 disabled={isDeleting}
-                style={{
-                  padding: '8px 16px',
-                  fontSize: 13,
-                  fontWeight: 500,
-                  borderRadius: 4,
-                  border: '1px solid var(--theme-elevation-300)',
-                  backgroundColor: 'transparent',
-                  color: 'var(--theme-elevation-800)',
-                  cursor: isDeleting ? 'not-allowed' : 'pointer',
-                }}
+                className="cursor-pointer rounded border border-[var(--theme-elevation-300)] bg-transparent px-4 py-2 text-[13px] font-medium text-[var(--theme-elevation-800)] disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
@@ -180,17 +119,7 @@ const CascadeDeleteButton: React.FC<{ collection: CollectionSlug }> = ({ collect
                 type="button"
                 onClick={handleCascadeDelete}
                 disabled={isDeleting}
-                style={{
-                  padding: '8px 16px',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  borderRadius: 4,
-                  border: 'none',
-                  backgroundColor: '#dc2626',
-                  color: '#fff',
-                  cursor: isDeleting ? 'not-allowed' : 'pointer',
-                  opacity: isDeleting ? 0.6 : 1,
-                }}
+                className="cursor-pointer rounded border-none bg-error px-4 py-2 text-[13px] font-semibold text-error-foreground disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isDeleting ? 'Deleting...' : 'Yes, Delete Everything'}
               </button>
@@ -202,7 +131,6 @@ const CascadeDeleteButton: React.FC<{ collection: CollectionSlug }> = ({ collect
   )
 }
 
-// Collection-specific wrappers for Payload's component registration
 export const CourseCascadeDelete = () => <CascadeDeleteButton collection="courses" />
 export const ChapterCascadeDelete = () => <CascadeDeleteButton collection="chapters" />
 export const LessonCascadeDelete = () => <CascadeDeleteButton collection="lessons" />
