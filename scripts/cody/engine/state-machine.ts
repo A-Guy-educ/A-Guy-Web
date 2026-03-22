@@ -43,6 +43,7 @@ import { executePostAction } from '../pipeline/post-actions'
 import { flattenPipelineOrder } from '../pipeline/definitions'
 import { execFileSync } from 'node:child_process'
 import { commitPipelineFiles } from '../git-utils'
+import { PipelineObserver } from '../pipeline/observer/observer'
 
 /**
  * Error subclass that carries the originating stage name for parallel error attribution
@@ -371,10 +372,87 @@ async function executeSingleStep(
       state = updateStage(state, stageName, { state: 'paused' })
       return completeState(state, 'paused')
     }
+
     // Handle failure - mark stage as failed
     const errorMessage = error instanceof Error ? error.message : String(error)
     logger.error({ err: error }, `  ❌ ${stageName} failed:`)
     logStageFail(stageName, ctx.taskId, errorMessage)
+
+    // Check if Observer is available (requires serverUrl and sessionId)
+    const canObserve = ctx.serverUrl && ctx.lastSessionId && !ctx.input.dryRun
+
+    if (canObserve && !def.advisory) {
+      // Delegate to Observer for complex failure handling
+      // Pipeline is PAUSED while Observer waits for agent decision
+      try {
+        const observer = new PipelineObserver(
+          ctx.taskId,
+          ctx.taskDir,
+          ctx.serverUrl!,
+          ctx.lastSessionId!,
+          ctx.taskDir, // dataDir is taskDir/opencode-data derived in Observer
+        )
+
+        const failure = {
+          stageName,
+          error: error instanceof Error ? error : new Error(String(error)),
+          attempt: (state.stages[stageName]?.retries ?? 0) + 1,
+          maxAttempts: def.maxRetries,
+          taskDir: ctx.taskDir,
+        }
+
+        const observerResult = await observer.handle(failure)
+
+        logger.info(
+          `[StateMachine] Observer decision: ${observerResult.action} - ${observerResult.reason}`,
+        )
+
+        // Apply Observer's decision
+        switch (observerResult.action) {
+          case 'retry':
+            // Reset stage to pending for retry
+            state = updateStage(state, stageName, {
+              state: 'pending',
+              retries: observerResult.observerAttempt,
+              error: `Observer retry: ${observerResult.reason}`,
+            })
+            return state
+
+          case 'escalate':
+            // Pause pipeline and notify (GitHub issue comment)
+            state = updateStage(state, stageName, {
+              state: 'failed',
+              error: `Observer escalate: ${observerResult.reason}`,
+            })
+            return completeState(state, 'paused')
+
+          case 'halt':
+          default:
+            // Mark pipeline as failed
+            state = updateStage(state, stageName, {
+              state: 'failed',
+              error: `Observer halt: ${observerResult.reason}`,
+            })
+            if (ctx.input.issueNumber) {
+              setLifecycleLabel(ctx.input.issueNumber, 'cody:failed')
+            }
+            return completeState(state, 'failed')
+        }
+      } catch (observerError) {
+        // Observer failed - fall back to default failure handling
+        logger.error({ err: observerError }, `[StateMachine] Observer error, falling back`)
+        state = updateStage(state, stageName, {
+          state: 'failed',
+          error: errorMessage,
+        })
+        if (ctx.input.issueNumber) {
+          setLifecycleLabel(ctx.input.issueNumber, 'cody:failed')
+        }
+        return completeState(state, 'failed')
+      }
+    }
+
+    // Default failure handling (no Observer available or advisory stage)
     state = updateStage(state, stageName, {
       state: 'failed',
       error: errorMessage,
