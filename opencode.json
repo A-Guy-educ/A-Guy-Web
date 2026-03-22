@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "instructions": [".ai-docs/BOOTSTRAP.md"],
+  "instructions": [".ai-docs/BOOTSTRAP.md", ".ai-docs/quick-reference/CHEAT-SHEET.md"],
   "provider": {
     "minimax": {
       "options": {
@@ -60,7 +60,8 @@
     },
     "cody-expert": {
       "model": "minimax-coding-plan/MiniMax-M2.7-highspeed",
-      "description": "Cody pipeline expert - understands pipeline execution, debugging, adding new stages"
+      "description": "Cody pipeline expert - understands pipeline execution, debugging, adding new stages",
+      "instructions": [".opencode/docs/PIPELINE.md"]
     },
     "build-manager": {
       "model": "anthropic/claude-opus-4-6",
