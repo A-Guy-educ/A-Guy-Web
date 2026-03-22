@@ -18,6 +18,14 @@ export const TranslateLessonSchema = z.object({
   promptId: z.string().optional(),
 })
 
+export const TranslateChapterSchema = z.object({
+  scope: z.literal('chapter'),
+  chapterId: z.string().min(1),
+  targetLocale: z.enum(CONTENT_LOCALES),
+  targetCourseId: z.string().min(1),
+  promptId: z.string().optional(),
+})
+
 export const TranslateCourseSchema = z.object({
   scope: z.literal('course'),
   courseId: z.string().min(1),
@@ -28,6 +36,7 @@ export const TranslateCourseSchema = z.object({
 export const TranslateRequestSchema = z.discriminatedUnion('scope', [
   TranslateExerciseSchema,
   TranslateLessonSchema,
+  TranslateChapterSchema,
   TranslateCourseSchema,
 ])
 

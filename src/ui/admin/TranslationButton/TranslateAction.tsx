@@ -19,6 +19,7 @@ export const TranslateAction: React.FC<TranslateActionProps> = ({ collectionSlug
   const handleTranslate = (params: {
     targetLocale: string
     promptId?: string
+    targetCourseId?: string
     targetChapterId?: string
     targetLessonId?: string
   }) => {
@@ -27,6 +28,15 @@ export const TranslateAction: React.FC<TranslateActionProps> = ({ collectionSlug
         scope: 'course',
         courseId: id,
         targetLocale: params.targetLocale,
+        promptId: params.promptId,
+      })
+    } else if (collectionSlug === 'chapters') {
+      if (!params.targetCourseId) return
+      translate({
+        scope: 'chapter',
+        chapterId: id,
+        targetLocale: params.targetLocale,
+        targetCourseId: params.targetCourseId,
         promptId: params.promptId,
       })
     } else if (collectionSlug === 'lessons') {

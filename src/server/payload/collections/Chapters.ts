@@ -43,6 +43,11 @@ export const Chapters: CollectionConfig = {
       'isActive',
       'updatedAt',
     ],
+    components: {
+      edit: {
+        beforeDocumentControls: ['@/ui/admin/TranslationButton#TranslateChapterAction'],
+      },
+    },
   },
   fields: [
     // Tenant

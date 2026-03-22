@@ -13,6 +13,7 @@ interface TranslationModalProps {
   onConfirm: (params: {
     targetLocale: string
     promptId?: string
+    targetCourseId?: string
     targetChapterId?: string
     targetLessonId?: string
   }) => void
@@ -22,6 +23,7 @@ interface TranslationModalProps {
   translationSuccess?: boolean
   translationResult?: {
     courseId?: string
+    chapterId?: string
     lessonId?: string
     id?: string
     [key: string]: unknown
@@ -58,22 +60,28 @@ export function TranslationModal({
 }: TranslationModalProps) {
   const [targetLocale, setTargetLocale] = useState('en')
   const [selectedPromptId, setSelectedPromptId] = useState('')
+  const [selectedCourseId, setSelectedCourseId] = useState('')
   const [selectedChapterId, setSelectedChapterId] = useState('')
   const [selectedLessonId, setSelectedLessonId] = useState('')
 
   const [prompts, setPrompts] = useState<SelectOption[]>([])
+  const [courses, setCourses] = useState<SelectOption[]>([])
   const [chapters, setChapters] = useState<SelectOption[]>([])
   const [lessons, setLessons] = useState<SelectOption[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
 
-  const needsChapter = collectionSlug === 'lessons'
+  // Which selectors are needed based on scope
+  const needsCourse =
+    collectionSlug === 'chapters' || collectionSlug === 'lessons' || collectionSlug === 'exercises'
+  const needsChapter = collectionSlug === 'lessons' || collectionSlug === 'exercises'
   const needsLesson = collectionSlug === 'exercises'
 
+  // Load prompts and courses on open
   useEffect(() => {
     if (!isOpen) return
 
-    async function loadData() {
+    async function loadInitialData() {
       setIsLoading(true)
       setLoadError(null)
 
@@ -97,29 +105,13 @@ export function TranslationModal({
             }),
         )
 
-        // Load chapters if needed
-        if (needsChapter) {
+        // Load courses if needed
+        if (needsCourse) {
           fetches.push(
-            fetch('/api/chapters?limit=200&sort=title', { credentials: 'include' })
+            fetch('/api/courses?limit=200&sort=title', { credentials: 'include' })
               .then((r) => r.json())
               .then((data) => {
-                setChapters(
-                  (data.docs || []).map((d: Record<string, unknown>) => ({
-                    id: d.id as string,
-                    title: (d.adminTitle as string) || (d.title as string) || (d.id as string),
-                  })),
-                )
-              }),
-          )
-        }
-
-        // Load lessons if needed
-        if (needsLesson) {
-          fetches.push(
-            fetch('/api/lessons?limit=200&sort=title', { credentials: 'include' })
-              .then((r) => r.json())
-              .then((data) => {
-                setLessons(
+                setCourses(
                   (data.docs || []).map((d: Record<string, unknown>) => ({
                     id: d.id as string,
                     title: (d.title as string) || (d.id as string),
@@ -137,12 +129,78 @@ export function TranslationModal({
       }
     }
 
-    loadData()
-  }, [isOpen, needsChapter, needsLesson])
+    loadInitialData()
+  }, [isOpen, needsCourse])
 
+  // Load chapters when course is selected
+  useEffect(() => {
+    if (!needsChapter || !selectedCourseId) {
+      setChapters([])
+      setSelectedChapterId('')
+      return
+    }
+
+    let cancelled = false
+
+    fetch(`/api/chapters?where[course][equals]=${selectedCourseId}&limit=200&sort=order`, {
+      credentials: 'include',
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return
+        setChapters(
+          (data.docs || []).map((d: Record<string, unknown>) => ({
+            id: d.id as string,
+            title: (d.adminTitle as string) || (d.title as string) || (d.id as string),
+          })),
+        )
+      })
+      .catch(() => {
+        if (!cancelled) setChapters([])
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [selectedCourseId, needsChapter])
+
+  // Load lessons when chapter is selected
+  useEffect(() => {
+    if (!needsLesson || !selectedChapterId) {
+      setLessons([])
+      setSelectedLessonId('')
+      return
+    }
+
+    let cancelled = false
+
+    fetch(`/api/lessons?where[chapter][equals]=${selectedChapterId}&limit=200&sort=order`, {
+      credentials: 'include',
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return
+        setLessons(
+          (data.docs || []).map((d: Record<string, unknown>) => ({
+            id: d.id as string,
+            title: (d.title as string) || (d.id as string),
+          })),
+        )
+      })
+      .catch(() => {
+        if (!cancelled) setLessons([])
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [selectedChapterId, needsLesson])
+
+  // Reset state when modal closes
   useEffect(() => {
     if (!isOpen) {
       setSelectedPromptId('')
+      setSelectedCourseId('')
       setSelectedChapterId('')
       setSelectedLessonId('')
       setTargetLocale('en')
@@ -153,9 +211,11 @@ export function TranslationModal({
   if (!isOpen) return null
 
   const error = loadError || translationError
+
   const canTranslate =
     !isLoading &&
     !isTranslating &&
+    (!needsCourse || selectedCourseId) &&
     (!needsChapter || selectedChapterId) &&
     (!needsLesson || selectedLessonId)
 
@@ -226,17 +286,53 @@ export function TranslationModal({
               </select>
             </div>
 
-            {/* Target Chapter (for lessons) */}
+            {/* Target Course (for chapters, lessons, exercises) */}
+            {needsCourse && (
+              <div>
+                <label style={LABEL_STYLE}>Target Course</label>
+                <select
+                  value={selectedCourseId}
+                  onChange={(e) => {
+                    setSelectedCourseId(e.target.value)
+                    setSelectedChapterId('')
+                    setSelectedLessonId('')
+                  }}
+                  disabled={isTranslating}
+                  style={SELECT_STYLE}
+                >
+                  <option value="">-- Select a course --</option>
+                  {courses.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Target Chapter (for lessons, exercises) */}
             {needsChapter && (
               <div>
                 <label style={LABEL_STYLE}>Target Chapter</label>
                 <select
                   value={selectedChapterId}
-                  onChange={(e) => setSelectedChapterId(e.target.value)}
-                  disabled={isTranslating}
-                  style={SELECT_STYLE}
+                  onChange={(e) => {
+                    setSelectedChapterId(e.target.value)
+                    setSelectedLessonId('')
+                  }}
+                  disabled={isTranslating || !selectedCourseId}
+                  style={{
+                    ...SELECT_STYLE,
+                    opacity: selectedCourseId ? 1 : 0.5,
+                  }}
                 >
-                  <option value="">-- Select a chapter --</option>
+                  <option value="">
+                    {!selectedCourseId
+                      ? '-- Select a course first --'
+                      : chapters.length === 0
+                        ? '-- No chapters found --'
+                        : '-- Select a chapter --'}
+                  </option>
                   {chapters.map((ch) => (
                     <option key={ch.id} value={ch.id}>
                       {ch.title}
@@ -253,10 +349,19 @@ export function TranslationModal({
                 <select
                   value={selectedLessonId}
                   onChange={(e) => setSelectedLessonId(e.target.value)}
-                  disabled={isTranslating}
-                  style={SELECT_STYLE}
+                  disabled={isTranslating || !selectedChapterId}
+                  style={{
+                    ...SELECT_STYLE,
+                    opacity: selectedChapterId ? 1 : 0.5,
+                  }}
                 >
-                  <option value="">-- Select a lesson --</option>
+                  <option value="">
+                    {!selectedChapterId
+                      ? '-- Select a chapter first --'
+                      : lessons.length === 0
+                        ? '-- No lessons found --'
+                        : '-- Select a lesson --'}
+                  </option>
                   {lessons.map((ls) => (
                     <option key={ls.id} value={ls.id}>
                       {ls.title}
@@ -332,6 +437,16 @@ export function TranslationModal({
                 </a>
               </div>
             )}
+            {translationResult?.chapterId && (
+              <div style={{ marginTop: 6 }}>
+                <a
+                  href={`/admin/collections/chapters/${translationResult.chapterId}`}
+                  style={{ color: 'inherit', textDecoration: 'underline' }}
+                >
+                  View translated chapter
+                </a>
+              </div>
+            )}
             {translationResult?.lessonId && (
               <div style={{ marginTop: 6 }}>
                 <a
@@ -344,6 +459,7 @@ export function TranslationModal({
             )}
             {translationResult?.id &&
               !translationResult?.courseId &&
+              !translationResult?.chapterId &&
               !translationResult?.lessonId && (
                 <div style={{ marginTop: 6 }}>
                   <a
@@ -398,6 +514,7 @@ export function TranslationModal({
                   onConfirm({
                     targetLocale,
                     promptId: selectedPromptId || undefined,
+                    targetCourseId: selectedCourseId || undefined,
                     targetChapterId: selectedChapterId || undefined,
                     targetLessonId: selectedLessonId || undefined,
                   })

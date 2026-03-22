@@ -10,6 +10,7 @@ import { logger } from '@/infra/utils/logger'
 import { TranslateRequestSchema } from './translation-schema'
 import { handleExerciseTranslation } from './handle-exercise-translation'
 import { handleLessonTranslation } from './handle-lesson-translation'
+import { handleChapterTranslation } from './handle-chapter-translation'
 import { handleCourseTranslation } from './handle-course-translation'
 
 export async function translateContentEndpoint(
@@ -64,6 +65,19 @@ export async function translateContentEndpoint(
         targetLocale: input.targetLocale,
         targetChapterId: input.targetChapterId,
         includeExercises: input.includeExercises,
+        promptId: input.promptId,
+      },
+      reqLogger,
+    )
+  }
+
+  if (input.scope === 'chapter') {
+    return handleChapterTranslation(
+      req,
+      {
+        chapterId: input.chapterId,
+        targetLocale: input.targetLocale,
+        targetCourseId: input.targetCourseId,
         promptId: input.promptId,
       },
       reqLogger,
