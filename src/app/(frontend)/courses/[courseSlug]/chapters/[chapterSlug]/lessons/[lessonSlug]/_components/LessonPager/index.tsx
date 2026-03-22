@@ -1,19 +1,29 @@
 'use client'
 
-import { useCallback, useEffect, useRef } from 'react'
 import type { Exercise, Media as MediaType } from '@/payload-types'
+import type { ResolvedLessonBlock } from '@/server/repos/queries/lesson-blocks'
 import { Button } from '@/ui/web/components/button'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
 import { ExerciseRenderer } from '@/ui/web/exerciserenderer'
-import { BookOpen, ChevronLeft, ChevronRight, Layers, Loader2, Sparkles } from 'lucide-react'
+import {
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  Layers,
+  Loader2,
+  Sparkles,
+} from 'lucide-react'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import type { ExerciseContentData } from '@/ui/web/exerciserenderer/types'
 import { Progress } from '@/ui/web/components/progress'
-import { useExercisesPager } from './useExercisesPager'
+import { useLessonPager } from './useLessonPager'
 import { ExerciseWorkspace } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseWorkspace'
 import { ChatInterface } from '@/ui/web/chat'
-interface ExercisesPagerProps {
-  exercises: Exercise[]
+import type React from 'react'
+
+interface LessonPagerProps {
+  blocks: ResolvedLessonBlock[]
   lessonTitle: string
   backUrl: string
   courseSlug: string
@@ -21,10 +31,12 @@ interface ExercisesPagerProps {
   lessonSlug: string
   lessonId: string
   mediaMap?: Record<string, MediaType>
+  /** Pre-rendered content page bodies (keyed by content page ID) */
+  contentPageBodies?: Record<string, React.ReactNode>
 }
 
-export function ExercisesPager({
-  exercises,
+export function LessonPager({
+  blocks,
   lessonTitle,
   backUrl,
   courseSlug,
@@ -32,7 +44,8 @@ export function ExercisesPager({
   lessonSlug,
   lessonId,
   mediaMap,
-}: ExercisesPagerProps) {
+  contentPageBodies,
+}: LessonPagerProps) {
   const t = useTranslations('courses')
   const {
     pageState,
@@ -43,97 +56,25 @@ export function ExercisesPager({
     handleNext,
     handlePrev,
     handleStart,
-    getExerciseOrdinal,
-    totalExercises,
-  } = useExercisesPager({ exercises, courseSlug, chapterSlug, lessonSlug, lessonId })
+    getCurrentBlockOrdinal,
+    totalBlocks,
+  } = useLessonPager({ blocks, courseSlug, chapterSlug, lessonSlug })
 
-  // Store per-exercise question results from ExerciseRenderer
-  const exerciseResults = useRef<
-    Record<string, { totalQuestions: number; checkedCount: number; correctCount: number }>
-  >({})
-  const trackedExercises = useRef(new Set<string>())
-  const prevExerciseIndex = useRef<number | undefined>(undefined)
-  const trackedLessonCompletion = useRef(false)
+  const currentBlock =
+    pageState.type === 'block' && pageState.blockIndex !== undefined
+      ? blocks[pageState.blockIndex]
+      : null
 
-  // Track exercise when navigating away — only if student checked at least one answer
-  useEffect(() => {
-    if (
-      prevExerciseIndex.current !== undefined &&
-      prevExerciseIndex.current !== pageState.exerciseIndex
-    ) {
-      const prevExercise = exercises[prevExerciseIndex.current]
-      if (prevExercise && !trackedExercises.current.has(prevExercise.id)) {
-        const results = exerciseResults.current[prevExercise.id]
-        const checkedCount = results?.checkedCount || 0
+  const exerciseCount = blocks.filter((b) => b.type === 'exercise').length
 
-        // Only track if student actually attempted at least one question
-        if (checkedCount > 0) {
-          trackedExercises.current.add(prevExercise.id)
-          const totalQuestions = results?.totalQuestions || 1
-          const correctCount = results?.correctCount || 0
-          const score = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0
-          fetch('/api/stats/track-activity', {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              eventType: 'exercise_completed',
-              exerciseId: prevExercise.id,
-              exerciseTitle: prevExercise.title || '',
-              lessonId,
-              score,
-              totalQuestions,
-              correctCount,
-            }),
-          }).catch(() => {
-            // fail silently
-          })
-        }
-      }
-    }
-    prevExerciseIndex.current = pageState.exerciseIndex
-  }, [pageState.exerciseIndex, exercises, lessonId])
+  // Render exercise block in workspace layout
+  if (pageState.type === 'block' && currentBlock?.type === 'exercise') {
+    const exercise = currentBlock.data as Exercise
+    const ordinal = getCurrentBlockOrdinal()
 
-  // Track lesson completion when reaching outro — only if student attempted exercises
-  useEffect(() => {
-    if (pageState.type === 'outro' && !trackedLessonCompletion.current) {
-      // Only mark lesson complete if at least one exercise was actually attempted
-      const hasAttemptedExercises = trackedExercises.current.size > 0
-      if (hasAttemptedExercises) {
-        trackedLessonCompletion.current = true
-        fetch('/api/stats/track-activity', {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            eventType: 'lesson_completed',
-            lessonId,
-            lessonTitle,
-          }),
-        }).catch(() => {
-          // fail silently
-        })
-      }
-    }
-  }, [pageState.type, lessonId, lessonTitle])
-
-  const exerciseOrdinal = getExerciseOrdinal()
-  const currentExercise =
-    typeof pageState.exerciseIndex === 'number' ? exercises[pageState.exerciseIndex] : null
-
-  const handleExerciseResultsChange = useCallback(
-    (results: { totalQuestions: number; checkedCount: number; correctCount: number }) => {
-      if (currentExercise) {
-        exerciseResults.current[currentExercise.id] = results
-      }
-    },
-    [currentExercise],
-  )
-
-  if (pageState.type === 'exercise' && currentExercise) {
     return (
       <ExerciseWorkspace
-        exerciseTitle={currentExercise.title ?? ''}
+        exerciseTitle={exercise.title ?? ''}
         backUrl={backUrl}
         primaryContent={
           <div className="h-full flex flex-col">
@@ -141,41 +82,32 @@ export function ExercisesPager({
               <div className="w-full p-4 md:p-6 space-y-4">
                 <div className="bg-card rounded-2xl border border-border/60 shadow-sm overflow-hidden mt-4">
                   <Progress value={progressPercent} className="h-1.5 rounded-none" />
-
                   <div className="p-5 md:p-6">
                     <p className="text-start text-base font-semibold text-slate-900 dark:text-slate-100 mb-3">
-                      {exerciseOrdinal !== null
-                        ? `${t('exercise')} ${exerciseOrdinal} ${t('of')} ${totalExercises}`
+                      {ordinal !== null
+                        ? `${t('exercise')} ${ordinal} ${t('of')} ${totalBlocks}`
                         : ''}
                     </p>
                     <div className="flex items-center gap-3 mb-2">
                       <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
                         <Layers className="w-4 h-4 text-primary" />
                       </div>
-                      <div>
-                        <h2 className="text-lg font-medium text-foreground">
-                          {currentExercise.title}
-                        </h2>
-                      </div>
+                      <h2 className="text-lg font-medium text-foreground">{exercise.title}</h2>
                     </div>
                   </div>
                 </div>
-
                 <div className="bg-card rounded-2xl p-5 md:p-6 border border-border/60 shadow-sm">
                   <ExerciseRenderer
-                    key={currentExercise.id}
-                    content={currentExercise.content as unknown as ExerciseContentData}
+                    content={exercise.content as unknown as ExerciseContentData}
                     mode="student"
                     showCheckAnswer={true}
                     mediaMap={mediaMap}
                     lessonId={lessonId}
-                    exerciseId={currentExercise.id}
-                    onResultsChange={handleExerciseResultsChange}
+                    exerciseId={exercise.id}
                   />
                 </div>
               </div>
             </div>
-
             <div className="shrink-0 border-t border-border bg-card px-4 py-3">
               <div className="flex justify-between items-center">
                 <Button
@@ -208,17 +140,15 @@ export function ExercisesPager({
         chatContent={
           <ChatInterface
             lessonId={lessonId}
-            exerciseId={currentExercise.id}
+            exerciseId={exercise.id}
             currentExercise={{
-              id: currentExercise.id,
-              title: currentExercise.title ?? '',
+              id: exercise.id,
+              title: exercise.title ?? '',
               content: {
-                blocks: (currentExercise.content as unknown as ExerciseContentData).blocks.map(
-                  (block) => {
-                    const { id, type, ...rest } = block
-                    return { id, type, ...rest }
-                  },
-                ),
+                blocks: (exercise.content as unknown as ExerciseContentData).blocks.map((block) => {
+                  const { id, type, ...rest } = block
+                  return { id, type, ...rest }
+                }),
               },
             }}
             mediaMap={
@@ -241,10 +171,66 @@ export function ExercisesPager({
     )
   }
 
+  // Render content page block
+  if (pageState.type === 'block' && currentBlock?.type === 'contentPage') {
+    const contentPage = currentBlock.data
+    const bodyRendered = contentPageBodies?.[contentPage.id]
+
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Progress value={progressPercent} className="h-1.5 rounded-none" />
+        <main className="flex-1 overflow-y-auto">
+          <div className="container mx-auto px-4 sm:px-6 py-8 md:py-12 max-w-7xl">
+            <div className="space-y-8">
+              <header className="text-center">
+                <span className="inline-block px-4 py-1.5 bg-muted text-muted-foreground rounded-full text-[10px] tracking-[0.2em] uppercase mb-5 border border-border/40">
+                  <FileText className="w-3 h-3 inline-block me-1" />
+                  {getCurrentBlockOrdinal()} / {totalBlocks}
+                </span>
+                <h1 className="text-4xl md:text-[42px] font-medium leading-tight text-foreground mb-3">
+                  {contentPage.title}
+                </h1>
+                <div className="w-20 h-1 bg-primary mx-auto rounded-full" />
+              </header>
+
+              <div className="bg-card rounded-3xl p-8 md:p-10 border border-border/60 shadow-xl shadow-muted/50">
+                {bodyRendered ? (
+                  <div className="prose prose-lg max-w-none dark:prose-invert">{bodyRendered}</div>
+                ) : (
+                  <p className="text-muted-foreground text-center">No content</p>
+                )}
+              </div>
+
+              <div className="flex justify-between items-center pt-4">
+                <Button
+                  variant="ghost"
+                  onClick={handlePrev}
+                  disabled={!canGoPrev || isNavigating}
+                  className="text-muted-foreground text-sm hover:text-foreground gap-1.5 cursor-pointer"
+                >
+                  <ChevronRight className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />{' '}
+                  {t('exercisesPagerPrev')}
+                </Button>
+                <Button
+                  onClick={handleNext}
+                  disabled={!canGoNext || isNavigating}
+                  className="px-6 py-2 rounded-xl text-sm cursor-pointer"
+                >
+                  {isNavigating ? <Loader2 className="w-4 h-4 me-2 animate-spin" /> : null}
+                  {t('exercisesPagerNext')}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  // Intro and outro pages
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Progress value={progressPercent} className="h-1.5 rounded-none" />
-
       <main className="flex-1 overflow-y-auto">
         <div className="container mx-auto px-4 sm:px-6 py-8 md:py-12 max-w-7xl">
           {pageState.type === 'intro' && (
@@ -268,13 +254,13 @@ export function ExercisesPager({
                   {t('exercisesPagerWelcome')}
                 </h2>
                 <p className="text-muted-foreground mb-10 text-base leading-relaxed max-w-2xl mx-auto">
-                  {t('exercisesPagerIntroDescriptionPart1')} {totalExercises}{' '}
+                  {t('exercisesPagerIntroDescriptionPart1')} {totalBlocks}{' '}
                   {t('exercisesPagerIntroDescriptionPart2')}
                 </p>
 
                 <div className="inline-flex items-center gap-3 px-5 py-3 bg-muted rounded-2xl border border-border/60 mb-10">
                   <Layers className="w-5 h-5 text-primary" />
-                  <span className="text-primary text-xl font-medium">{totalExercises}</span>
+                  <span className="text-primary text-xl font-medium">{exerciseCount}</span>
                   <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
                     {t('exercise')}
                   </span>
