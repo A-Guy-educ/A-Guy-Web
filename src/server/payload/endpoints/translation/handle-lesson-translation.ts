@@ -77,8 +77,6 @@ export async function handleLessonTranslation(
         status: 'published',
         isActive: true,
         accessType: source.accessType,
-        introEnabled: source.introEnabled ?? false,
-        introDescription: source.introDescription ?? undefined,
         locale: targetLocale,
         translatedFrom: lessonId,
         contentStatus: 'none',
