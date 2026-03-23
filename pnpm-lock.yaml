@@ -372,9 +372,6 @@ importers:
       lint-staged:
         specifier: ^16.2.7
         version: 16.2.7
-      opencode-ai:
-        specifier: 0.0.0-dev-202603021929
-        version: 0.0.0-dev-202603021929
       playwright:
         specifier: 1.57.0
         version: 1.57.0
@@ -8621,65 +8618,6 @@ packages:
         optional: true
       zod:
         optional: true
-
-  opencode-ai@0.0.0-dev-202603021929:
-    resolution: {integrity: sha512-ooEh/HUIaFZwUVsPpmn+ZjqLqtIYNIkuJyeqNgTL3dQ9CQ2VnzXKyp6SYkwOWOuhYv88DTHQI0IlFKnzUeeJeQ==}
-    hasBin: true
-
-  opencode-darwin-arm64@0.0.0-dev-202603021929:
-    resolution: {integrity: sha512-6CahxKgUHFD7rZQDG8NdDmY0T27ur7WAegrvcDBfrwPu5K2PaB975+DdBA22ihlL7E3ZKw5GEN7DF0CJmizLXg==}
-    cpu: [arm64]
-    os: [darwin]
-
-  opencode-darwin-x64-baseline@0.0.0-dev-202603021929:
-    resolution: {integrity: sha512-TF16R0uogZ6y6HRsYKA8hxEeLCFJg9ZIdvOnQCI8fhSfg12UrUUrviOtuNsXtDkgSRDQssbD9oUj30QmdG8DYw==}
-    cpu: [x64]
-    os: [darwin]
-
-  opencode-darwin-x64@0.0.0-dev-202603021929:
-    resolution: {integrity: sha512-fvN+h6YIC34QdqY3Uop73/d+jq6ST6dsiSkJndZTdGqRPzGgpIk6hr2d2j7xMg2BGQ1RG/kYsT/e+OEsj5wsjA==}
-    cpu: [x64]
-    os: [darwin]
-
-  opencode-linux-arm64-musl@0.0.0-dev-202603021929:
-    resolution: {integrity: sha512-V6LKoNu/1gLjjEZO893Z05ix8jwYi/D+WzSwA7KUvqwUsv9mQZl+0Kv01aZ9h+KDY68fUrrtStfCmLeMC8hdkA==}
-    cpu: [arm64]
-    os: [linux]
-
-  opencode-linux-arm64@0.0.0-dev-202603021929:
-    resolution: {integrity: sha512-pISHzHGSDmaftuCwAorefCM7O1e3sgKUTaV74/YIRf287L/nG1TYv5uDL680Fmh0+kf8rtOK5LAE3y//2K4sCg==}
-    cpu: [arm64]
-    os: [linux]
-
-  opencode-linux-x64-baseline-musl@0.0.0-dev-202603021929:
-    resolution: {integrity: sha512-1nA/o2C33FS2QLQy1rkaLzpUHYFOtPmhHVt/Xntdc0ALbi5Res3leQNrr3164MfhjYsS3089k03QaSeq3Uvomg==}
-    cpu: [x64]
-    os: [linux]
-
-  opencode-linux-x64-baseline@0.0.0-dev-202603021929:
-    resolution: {integrity: sha512-rdJzU9QeXDEoSsojqhWMFcBDmzgF+hwiRw9HBQcb6B25bO7Z06Mas+452wT2Sh6a8PpBBnXSkr6BEDIkd/5Qiw==}
-    cpu: [x64]
-    os: [linux]
-
-  opencode-linux-x64-musl@0.0.0-dev-202603021929:
-    resolution: {integrity: sha512-byBmL0+8AIfcF4ljPXlsnkJya0CiBd+DR7Lv1o93ImMaqi9iFRBKHMV0LnEVSGsUZGqD1yQsAwBH5cgP2QSreQ==}
-    cpu: [x64]
-    os: [linux]
-
-  opencode-linux-x64@0.0.0-dev-202603021929:
-    resolution: {integrity: sha512-ZG1tKej1qhlIkRFmmixCnVTyiODy0uK/+COtAyR4tmrp8RPymXNk9PvMCZJ5mHk426KkPGwR9ZDlgd/g+h/epg==}
-    cpu: [x64]
-    os: [linux]
-
-  opencode-windows-x64-baseline@0.0.0-dev-202603021929:
-    resolution: {integrity: sha512-eiAxsX6LxNwn2si1NeuL1c3z66gnrL6gOb2BU3Gw/YBqTcQlAYliAH3TUcgaDdVHNliQRWop6eDnjmx6USJ7qA==}
-    cpu: [x64]
-    os: [win32]
-
-  opencode-windows-x64@0.0.0-dev-202603021929:
-    resolution: {integrity: sha512-mx+Kp50Dsx69XZ5hY8RViccx8TEGCIAqj79dlqz9/6ZOuPxCpQ1+2j5/HALQZnn7AJU1iY6GlRPr/FJHOl9b2g==}
-    cpu: [x64]
-    os: [win32]
 
   opencollective-postinstall@2.0.3:
     resolution: {integrity: sha512-8AV/sCtuzUeTo8gQK5qDZzARrulB3egtLzFgteqB2tcT4Mw7B8Kt7JcDHmltjz6FOAHsvTevk70gZEbhM4ZS9Q==}
@@ -21024,53 +20962,6 @@ snapshots:
       zod: 4.3.6
     transitivePeerDependencies:
       - encoding
-
-  opencode-ai@0.0.0-dev-202603021929:
-    optionalDependencies:
-      opencode-darwin-arm64: 0.0.0-dev-202603021929
-      opencode-darwin-x64: 0.0.0-dev-202603021929
-      opencode-darwin-x64-baseline: 0.0.0-dev-202603021929
-      opencode-linux-arm64: 0.0.0-dev-202603021929
-      opencode-linux-arm64-musl: 0.0.0-dev-202603021929
-      opencode-linux-x64: 0.0.0-dev-202603021929
-      opencode-linux-x64-baseline: 0.0.0-dev-202603021929
-      opencode-linux-x64-baseline-musl: 0.0.0-dev-202603021929
-      opencode-linux-x64-musl: 0.0.0-dev-202603021929
-      opencode-windows-x64: 0.0.0-dev-202603021929
-      opencode-windows-x64-baseline: 0.0.0-dev-202603021929
-
-  opencode-darwin-arm64@0.0.0-dev-202603021929:
-    optional: true
-
-  opencode-darwin-x64-baseline@0.0.0-dev-202603021929:
-    optional: true
-
-  opencode-darwin-x64@0.0.0-dev-202603021929:
-    optional: true
-
-  opencode-linux-arm64-musl@0.0.0-dev-202603021929:
-    optional: true
-
-  opencode-linux-arm64@0.0.0-dev-202603021929:
-    optional: true
-
-  opencode-linux-x64-baseline-musl@0.0.0-dev-202603021929:
-    optional: true
-
-  opencode-linux-x64-baseline@0.0.0-dev-202603021929:
-    optional: true
-
-  opencode-linux-x64-musl@0.0.0-dev-202603021929:
-    optional: true
-
-  opencode-linux-x64@0.0.0-dev-202603021929:
-    optional: true
-
-  opencode-windows-x64-baseline@0.0.0-dev-202603021929:
-    optional: true
-
-  opencode-windows-x64@0.0.0-dev-202603021929:
-    optional: true
 
   opencollective-postinstall@2.0.3: {}
 
