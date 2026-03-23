@@ -43,26 +43,30 @@ async function fetchFormulaSheet({
   id: string
   locale: ContentLocale
 }): Promise<FormulaSheet | null> {
-  const payload = await getPayload({ config: configPromise })
+  try {
+    const payload = await getPayload({ config: configPromise })
 
-  const result = await payload.findByID({
-    collection: 'formula-sheets',
-    id,
-    depth: 2,
-    overrideAccess: true,
-    disableErrors: true,
-  })
+    const result = await payload.findByID({
+      collection: 'formula-sheets',
+      id,
+      depth: 1,
+      overrideAccess: true,
+      disableErrors: true,
+    })
 
-  if (!result || result.status !== 'published') {
+    if (!result || result.status !== 'published') {
+      return null
+    }
+
+    // Accept if locale matches the requested one or the fallback
+    if (result.locale === locale || result.locale === getOppositeLocale(locale)) {
+      return result
+    }
+
+    return null
+  } catch {
     return null
   }
-
-  // Accept if locale matches the requested one or the fallback
-  if (result.locale === locale || result.locale === getOppositeLocale(locale)) {
-    return result
-  }
-
-  return null
 }
 
 /**
