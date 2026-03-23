@@ -65,11 +65,15 @@ function MediaItem({ media }: { media: Media }) {
     // Generic external embed
     const embedUrl = embedMedia.embedUrl || embedMedia.externalUrl
     if (embedUrl) {
+      const isPdf =
+        embedUrl.includes('pdfjs-viewer') ||
+        embedUrl.endsWith('.pdf') ||
+        embedMedia.mimeType?.includes('pdf')
       return (
         <iframe
           src={embedUrl}
           title={embedMedia.embedTitle || 'External content'}
-          className="w-full h-[400px] border border-border rounded"
+          className={cn('w-full border border-border rounded', isPdf ? 'h-[80vh]' : 'h-[400px]')}
           loading="lazy"
         />
       )
