@@ -50,6 +50,8 @@ export default async function LessonPage({ params }: LessonPageProps) {
   }
 
   // Resolve formula sheet for this lesson (with course fallback)
+  // JSON.parse(JSON.stringify()) strips non-serializable data (Dates, circular refs)
+  // that would crash Next.js server → client prop serialization
   let formulaSheet: FormulaSheet | null = null
   try {
     const result = contentLocale
@@ -59,7 +61,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
           locale: contentLocale,
         })
       : null
-    formulaSheet = result?.sheet ?? null
+    formulaSheet = result?.sheet ? JSON.parse(JSON.stringify(result.sheet)) : null
   } catch {
     // Formula sheet resolution failed — continue without it
   }
