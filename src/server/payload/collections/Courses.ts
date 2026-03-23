@@ -50,7 +50,10 @@ export const Courses: CollectionConfig = {
     useAsTitle: 'title',
     components: {
       edit: {
-        beforeDocumentControls: ['@/ui/admin/CascadeDeleteButton#CourseCascadeDelete'],
+        beforeDocumentControls: [
+          '@/ui/admin/TranslationButton#TranslateCourseAction',
+          '@/ui/admin/CascadeDeleteButton#CourseCascadeDelete',
+        ],
       },
     },
     defaultColumns: [
@@ -65,11 +68,6 @@ export const Courses: CollectionConfig = {
       'contentStatus',
       'updatedAt',
     ],
-    components: {
-      edit: {
-        beforeDocumentControls: ['@/ui/admin/TranslationButton#TranslateCourseAction'],
-      },
-    },
   },
   fields: [
     // Tenant
