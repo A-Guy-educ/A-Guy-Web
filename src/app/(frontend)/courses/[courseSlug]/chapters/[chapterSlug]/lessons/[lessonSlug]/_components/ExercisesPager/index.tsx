@@ -1,5 +1,6 @@
 'use client'
 
+import type React from 'react'
 import { useCallback, useEffect, useRef } from 'react'
 import type { Exercise, Media as MediaType } from '@/payload-types'
 import { Button } from '@/ui/web/components/button'
@@ -21,10 +22,10 @@ interface ExercisesPagerProps {
   lessonSlug: string
   lessonId: string
   mediaMap?: Record<string, MediaType>
-  /** Resolved formula sheet to display */
-  formulaSheet?: import('@/payload-types').FormulaSheet | null
-  /** Source of the formula sheet (lesson or course) */
-  formulaSheetSource?: 'lesson' | 'course' | null
+  /** Title of the formula sheet */
+  formulaSheetTitle?: string | null
+  /** Pre-rendered formula sheet content */
+  formulaSheetContent?: React.ReactNode | null
 }
 
 export function ExercisesPager({
@@ -36,8 +37,8 @@ export function ExercisesPager({
   lessonSlug,
   lessonId,
   mediaMap,
-  formulaSheet,
-  formulaSheetSource,
+  formulaSheetTitle,
+  formulaSheetContent,
 }: ExercisesPagerProps) {
   const t = useTranslations('courses')
   const {
@@ -141,8 +142,8 @@ export function ExercisesPager({
       <ExerciseWorkspace
         exerciseTitle={currentExercise.title ?? ''}
         backUrl={backUrl}
-        formulaSheet={formulaSheet}
-        formulaSheetSource={formulaSheetSource}
+        formulaSheetTitle={formulaSheetTitle}
+        formulaSheetContent={formulaSheetContent}
         primaryContent={
           <div className="h-full flex flex-col">
             <div className="flex-1 overflow-y-auto min-h-0">

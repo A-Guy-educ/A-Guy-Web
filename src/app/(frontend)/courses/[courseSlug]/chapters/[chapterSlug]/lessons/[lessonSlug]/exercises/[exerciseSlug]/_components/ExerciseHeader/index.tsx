@@ -1,10 +1,12 @@
 'use client'
 
+import type React from 'react'
+
 import { isRTL } from '@/i18n/config'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
 import { useRouterWithLoading } from '@/infra/loading/hooks/useRouterWithLoading'
 import { cn } from '@/infra/utils/ui'
-import type { FormulaSheet, User } from '@/payload-types'
+import type { User } from '@/payload-types'
 import { TelescopeLogo } from '@/ui/web/TelescopeLogo'
 import { UserDropdown } from '@/ui/web/UserDropdown'
 import { Button } from '@/ui/web/components/button'
@@ -20,10 +22,10 @@ interface ExerciseHeaderProps {
   user?: User | null
   isAuthLoading?: boolean
   currentUrl?: string
-  /** Formula sheet to display in the header */
-  formulaSheet?: FormulaSheet | null
-  /** Source of the formula sheet (lesson or course) */
-  formulaSheetSource?: 'lesson' | 'course' | null
+  /** Title of the formula sheet */
+  formulaSheetTitle?: string | null
+  /** Pre-rendered formula sheet content */
+  formulaSheetContent?: React.ReactNode | null
 }
 
 export function ExerciseHeader({
@@ -33,8 +35,8 @@ export function ExerciseHeader({
   user,
   isAuthLoading,
   currentUrl,
-  formulaSheet,
-  formulaSheetSource,
+  formulaSheetTitle,
+  formulaSheetContent,
 }: ExerciseHeaderProps) {
   const t = useTranslations('courses')
   const tCommon = useTranslations('common.header')
@@ -85,9 +87,10 @@ export function ExerciseHeader({
         }}
       >
         {/* Formula Sheet Button */}
-        {formulaSheet && (
-          <FormulaSheetButton sheet={formulaSheet} source={formulaSheetSource ?? null} />
-        )}
+        <FormulaSheetButton
+          title={formulaSheetTitle ?? null}
+          content={formulaSheetContent ?? null}
+        />
 
         {/* Logo - Hidden on mobile, shown on desktop */}
         <TelescopeLogo className="h-8 w-auto hidden lg:flex" />

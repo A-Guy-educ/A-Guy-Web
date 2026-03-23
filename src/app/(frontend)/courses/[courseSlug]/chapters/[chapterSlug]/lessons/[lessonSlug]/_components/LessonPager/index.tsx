@@ -33,10 +33,10 @@ interface LessonPagerProps {
   mediaMap?: Record<string, MediaType>
   /** Pre-rendered content page bodies (keyed by content page ID) */
   contentPageBodies?: Record<string, React.ReactNode>
-  /** Resolved formula sheet to display */
-  formulaSheet?: import('@/payload-types').FormulaSheet | null
-  /** Source of the formula sheet (lesson or course) */
-  formulaSheetSource?: 'lesson' | 'course' | null
+  /** Title of the formula sheet */
+  formulaSheetTitle?: string | null
+  /** Pre-rendered formula sheet content */
+  formulaSheetContent?: React.ReactNode | null
 }
 
 export function LessonPager({
@@ -49,8 +49,8 @@ export function LessonPager({
   lessonId,
   mediaMap,
   contentPageBodies,
-  formulaSheet,
-  formulaSheetSource,
+  formulaSheetTitle,
+  formulaSheetContent,
 }: LessonPagerProps) {
   const t = useTranslations('courses')
   const {
@@ -82,8 +82,8 @@ export function LessonPager({
       <ExerciseWorkspace
         exerciseTitle={exercise.title ?? ''}
         backUrl={backUrl}
-        formulaSheet={formulaSheet}
-        formulaSheetSource={formulaSheetSource}
+        formulaSheetTitle={formulaSheetTitle}
+        formulaSheetContent={formulaSheetContent}
         primaryContent={
           <div className="h-full flex flex-col">
             <div className="flex-1 overflow-y-auto min-h-0">

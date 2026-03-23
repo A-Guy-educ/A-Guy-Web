@@ -9,6 +9,7 @@ import { isValidContentLocale } from '@/server/payload/fields/contentLocale'
 import { queryCourseBySlug } from '@/server/repos/queries/courses'
 import { queryExercisesByLesson } from '@/server/repos/queries/exercises'
 import { resolveFormulaSheet } from '@/server/repos/queries/formula-sheets'
+import { FormulaSheetContent } from '@/ui/web/shared/FormulaSheetViewer/FormulaSheetContent'
 import { queryLessonBlocks } from '@/server/repos/queries/lesson-blocks'
 import { queryLessonBySlug } from '@/server/repos/queries/lessons'
 import { queryMediaByIds } from '@/server/repos/queries/media'
@@ -49,13 +50,20 @@ export default async function LessonPage({ params }: LessonPageProps) {
   }
 
   // Resolve formula sheet for this lesson (with course fallback)
-  const formulaSheet = contentLocale
+  const formulaSheetResult = contentLocale
     ? await resolveFormulaSheet({
         lessonId: lesson.id,
         courseId: course.id,
         locale: contentLocale,
       })
     : null
+
+  // Pre-render formula sheet content server-side (RenderBlocks/RichText
+  // transitively import server-only modules that can't be bundled for the browser)
+  const formulaSheetTitle = formulaSheetResult?.sheet.title ?? null
+  const formulaSheetContent = formulaSheetResult ? (
+    <FormulaSheetContent sheet={formulaSheetResult.sheet} />
+  ) : null
 
   const lessonChapter = typeof lesson.chapter === 'string' ? null : lesson.chapter
   const lessonCourseId = lessonChapter
@@ -156,8 +164,8 @@ export default async function LessonPage({ params }: LessonPageProps) {
           lessonId={lesson.id}
           mediaMap={mediaMap}
           contentPageBodies={contentPageBodies}
-          formulaSheet={formulaSheet?.sheet ?? null}
-          formulaSheetSource={formulaSheet?.source ?? null}
+          formulaSheetTitle={formulaSheetTitle}
+          formulaSheetContent={formulaSheetContent}
         />
       </AccessGateProvider>
     )
@@ -206,8 +214,8 @@ export default async function LessonPage({ params }: LessonPageProps) {
             lessonSlug={lessonSlug}
             lessonId={lesson.id}
             mediaMap={mediaMap}
-            formulaSheet={formulaSheet?.sheet ?? null}
-            formulaSheetSource={formulaSheet?.source ?? null}
+            formulaSheetTitle={formulaSheetTitle}
+            formulaSheetContent={formulaSheetContent}
           />
         ) : (
           // Empty lesson: show ExerciseWorkspace with DynamicLesson as primaryContent
@@ -216,8 +224,8 @@ export default async function LessonPage({ params }: LessonPageProps) {
             <ExerciseWorkspace
               exerciseTitle={lesson.title}
               backUrl={backUrl}
-              formulaSheet={formulaSheet?.sheet ?? null}
-              formulaSheetSource={formulaSheet?.source ?? null}
+              formulaSheetTitle={formulaSheetTitle}
+              formulaSheetContent={formulaSheetContent}
               primaryContent={<EmptyLessonPlaceholder />}
               chatContent={
                 <ChatInterface
@@ -260,8 +268,8 @@ export default async function LessonPage({ params }: LessonPageProps) {
       <ExerciseWorkspace
         exerciseTitle={lesson.title}
         backUrl={backUrl}
-        formulaSheet={formulaSheet?.sheet ?? null}
-        formulaSheetSource={formulaSheet?.source ?? null}
+        formulaSheetTitle={formulaSheetTitle}
+        formulaSheetContent={formulaSheetContent}
         primaryContent={primaryContent}
         chatContent={
           <ChatInterface

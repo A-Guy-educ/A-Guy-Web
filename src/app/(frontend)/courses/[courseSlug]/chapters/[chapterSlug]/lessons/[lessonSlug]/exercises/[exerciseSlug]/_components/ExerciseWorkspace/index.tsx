@@ -11,10 +11,10 @@ interface ExerciseWorkspaceProps {
   backUrl?: string
   primaryContent: React.ReactNode
   chatContent: React.ReactNode
-  /** Formula sheet to display in the header */
-  formulaSheet?: import('@/payload-types').FormulaSheet | null
-  /** Source of the formula sheet (lesson or course) */
-  formulaSheetSource?: 'lesson' | 'course' | null
+  /** Title of the formula sheet */
+  formulaSheetTitle?: string | null
+  /** Pre-rendered formula sheet content */
+  formulaSheetContent?: React.ReactNode | null
 }
 
 export function ExerciseWorkspace({
@@ -22,8 +22,8 @@ export function ExerciseWorkspace({
   backUrl,
   primaryContent,
   chatContent,
-  formulaSheet,
-  formulaSheetSource,
+  formulaSheetTitle,
+  formulaSheetContent,
 }: ExerciseWorkspaceProps) {
   const { user, isLoading: isAuthLoading } = useCurrentUser()
   const pathname = usePathname()
@@ -41,8 +41,8 @@ export function ExerciseWorkspace({
         user={user}
         isAuthLoading={isAuthLoading}
         currentUrl={pathname}
-        formulaSheet={formulaSheet}
-        formulaSheetSource={formulaSheetSource}
+        formulaSheetTitle={formulaSheetTitle}
+        formulaSheetContent={formulaSheetContent}
       />
       <SplitPaneLayout
         primaryContent={primaryContent}
