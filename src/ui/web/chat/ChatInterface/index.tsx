@@ -389,13 +389,6 @@ export function ChatInterface({
             )}
           </div>
           <div className="flex items-center gap-content-gap-xs">
-            {currentUser && !isAdmin && quota.isLoaded && (
-              <ChatQuotaBar
-                questionsUsed={quota.questionsUsed}
-                maxQuestions={quota.maxQuestions}
-                resetAt={quota.resetAt}
-              />
-            )}
             {contextKey && (
               <button
                 onClick={handleReset}
@@ -540,6 +533,17 @@ export function ChatInterface({
             type={chatError.type}
             message={chatError.message}
             onDismiss={dismissError}
+          />
+        </div>
+      )}
+
+      {/* Chat Quota Counter */}
+      {currentUser && !isAdmin && quota.isLoaded && (
+        <div className="flex-grow-0 flex-shrink-0 px-5 pt-2">
+          <ChatQuotaBar
+            questionsUsed={quota.questionsUsed}
+            maxQuestions={quota.maxQuestions}
+            resetAt={quota.resetAt}
           />
         </div>
       )}
