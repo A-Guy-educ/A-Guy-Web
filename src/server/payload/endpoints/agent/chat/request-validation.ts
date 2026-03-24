@@ -5,8 +5,7 @@
 import { z } from 'zod'
 
 export const chatRequestSchema = z.object({
-  /** Must accommodate exercise context injection (~2100 chars) and help prompts */
-  message: z.string().min(1).max(5000),
+  message: z.string().min(1).max(1000),
   acknowledgment: z.string().min(1),
   // Context parameters (prefer IDs over slugs)
   exerciseId: z.string().optional(),

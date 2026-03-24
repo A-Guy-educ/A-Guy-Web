@@ -36,8 +36,7 @@ import type { ComposedPrompt } from '@/infra/llm/context-policy'
 import type { ChatMessage } from '@/infra/llm/services/exercise-chat-service'
 
 // Maximum messages to keep in conversation
-// Leaves more headroom vs maxRows: 100 in Conversations collection
-const MAX_MESSAGES_BEFORE_ASSISTANT = 90
+const MAX_MESSAGES_BEFORE_ASSISTANT = 95
 
 /**
  * Trim messages array to stay within maxRows limit
