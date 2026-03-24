@@ -258,6 +258,7 @@ export const Lessons: CollectionConfig = {
       name: 'formulaSheet',
       type: 'relationship',
       relationTo: 'formula-sheets',
+      maxDepth: 0,
       index: true,
       admin: {
         position: 'sidebar',

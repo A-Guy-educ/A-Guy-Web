@@ -31,9 +31,6 @@ export const queryCourseBySlug = cache(
       pagination: false,
       depth: 1,
       overrideAccess: false,
-      // Exclude formulaSheet from population — its blocks field can cause
-      // population errors. Formula sheets are fetched separately via resolveFormulaSheet.
-      select: { formulaSheet: false },
     })
 
     return result.docs?.[0] || null
@@ -64,9 +61,6 @@ export const queryPublishedCourses = cache(async (locale?: ContentLocale) => {
     pagination: false,
     depth: 1,
     overrideAccess: false,
-    // Exclude formulaSheet from population — its blocks field can cause
-    // population errors. Formula sheets are fetched separately via resolveFormulaSheet.
-    select: { formulaSheet: false },
   })
 
   return result.docs
