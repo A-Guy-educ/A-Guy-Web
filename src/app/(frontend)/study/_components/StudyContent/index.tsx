@@ -303,6 +303,7 @@ function LessonGridCard({
             <ContentStatusBadge
               contentStatus={lesson.contentStatus}
               contentStatusExpiresAt={lesson.contentStatusExpiresAt ?? undefined}
+              contentStatusLabel={lesson.contentStatusLabel ?? undefined}
             />
           </div>
           <p className="text-body-xs text-muted-foreground mt-1 flex items-center justify-end gap-1">

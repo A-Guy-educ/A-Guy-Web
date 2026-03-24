@@ -83,7 +83,7 @@ export function CourseCard({ course, isOwned = false }: CourseCardProps) {
   return (
     <div
       className={cn(
-        'relative bg-card p-6 rounded-[2rem] flex flex-col',
+        'relative bg-card p-card-padding rounded-[2rem] flex flex-col',
         borderClass,
         'shadow-[0_1px_2px_0_rgba(60,64,67,.3),0_1px_3px_1px_rgba(60,64,67,.15)]',
         'transition-all hover:-translate-y-0.5',
@@ -92,7 +92,7 @@ export function CourseCard({ course, isOwned = false }: CourseCardProps) {
     >
       {isOwned && (
         <span
-          className="absolute -top-3 left-6 bg-[hsl(var(--success))] text-white px-4 py-1 rounded-full shadow-md uppercase tracking-wider"
+          className="absolute -top-3 left-6 bg-[hsl(var(--success))] text-white px-4 py-1 rounded-full shadow-elevation-3 uppercase tracking-wider"
           style={{ fontSize: '9px', fontWeight: 900 }}
         >
           הקורס שלך
@@ -103,10 +103,11 @@ export function CourseCard({ course, isOwned = false }: CourseCardProps) {
       <ContentStatusBadge
         contentStatus={course.contentStatus}
         contentStatusExpiresAt={course.contentStatusExpiresAt ?? undefined}
+        contentStatusLabel={course.contentStatusLabel ?? undefined}
         className="absolute -top-3 right-6"
       />
 
-      <div className="mb-6 flex justify-between items-start gap-4">
+      <div className="mb-6 flex justify-between items-start gap-content-gap">
         <div className="flex-1">
           {course.courseLabel && (
             <span

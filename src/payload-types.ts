@@ -561,7 +561,7 @@ export interface Course {
   /**
    * Content status badge displayed to students
    */
-  contentStatus: 'none' | 'soon' | 'justAdded';
+  contentStatus: 'none' | 'soon' | 'justAdded' | 'custom';
   /**
    * When unchecked, "Soon" content is completely hidden from student listings
    */
@@ -570,6 +570,10 @@ export interface Course {
    * Badge auto-expires after this date (leave empty for permanent badge)
    */
   contentStatusExpiresAt?: string | null;
+  /**
+   * Custom badge text (e.g. "מותאם לבגרות")
+   */
+  contentStatusLabel?: string | null;
   /**
    * User who created this document
    */
@@ -717,7 +721,7 @@ export interface Prompt {
   /**
    * Purpose of this prompt: chat conversation, PDF extraction, PDF verification, or context extraction for AI tutor
    */
-  usage?: ('chat' | 'extractor' | 'verifier' | 'context_extractor') | null;
+  usage?: ('chat' | 'extractor' | 'verifier' | 'context_extractor' | 'translator') | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1346,7 +1350,7 @@ export interface Lesson {
   /**
    * Content status badge displayed to students
    */
-  contentStatus: 'none' | 'soon' | 'justAdded';
+  contentStatus: 'none' | 'soon' | 'justAdded' | 'custom';
   /**
    * When unchecked, "Soon" content is completely hidden from student listings
    */
@@ -1355,6 +1359,10 @@ export interface Lesson {
    * Badge auto-expires after this date (leave empty for permanent badge)
    */
   contentStatusExpiresAt?: string | null;
+  /**
+   * Custom badge text (e.g. "מותאם לבגרות")
+   */
+  contentStatusLabel?: string | null;
   /**
    * User who created this document
    */
@@ -3068,6 +3076,7 @@ export interface CoursesSelect<T extends boolean = true> {
   contentStatus?: T;
   contentStatusVisible?: T;
   contentStatusExpiresAt?: T;
+  contentStatusLabel?: T;
   createdBy?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -3118,6 +3127,7 @@ export interface LessonsSelect<T extends boolean = true> {
   contentStatus?: T;
   contentStatusVisible?: T;
   contentStatusExpiresAt?: T;
+  contentStatusLabel?: T;
   createdBy?: T;
   updatedAt?: T;
   createdAt?: T;
