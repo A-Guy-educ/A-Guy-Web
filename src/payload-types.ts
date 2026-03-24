@@ -468,6 +468,14 @@ export interface User {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Questions used in current window
+   */
+  chatQuestionsUsed?: number | null;
+  /**
+   * When the current chat quota window started
+   */
+  chatWindowStart?: string | null;
   oauthLoginSecretEnc?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -717,7 +725,7 @@ export interface Prompt {
   /**
    * Purpose of this prompt: chat conversation, PDF extraction, PDF verification, or context extraction for AI tutor
    */
-  usage?: ('chat' | 'extractor' | 'verifier' | 'context_extractor') | null;
+  usage?: ('chat' | 'extractor' | 'verifier' | 'context_extractor' | 'translator') | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -976,7 +984,7 @@ export interface ConfigValue {
   /**
    * Feature domain for this configuration
    */
-  domain: 'chat' | 'pdf_conversion' | 'global' | 'guest_chat';
+  domain: 'chat' | 'pdf_conversion' | 'global' | 'guest_chat' | 'student_chat';
   /**
    * Tenant this configuration belongs to
    */
@@ -3323,6 +3331,8 @@ export interface UsersSelect<T extends boolean = true> {
         grantedAt?: T;
         id?: T;
       };
+  chatQuestionsUsed?: T;
+  chatWindowStart?: T;
   oauthLoginSecretEnc?: T;
   updatedAt?: T;
   createdAt?: T;

@@ -27,6 +27,7 @@ export const ConfigDomain = {
   PdfConversion: 'pdf_conversion',
   Global: 'global',
   GuestChat: 'guest_chat',
+  StudentChat: 'student_chat',
 } as const
 
 export type ConfigDomain = (typeof ConfigDomain)[keyof typeof ConfigDomain]
