@@ -125,6 +125,7 @@ export function ExerciseRenderer({
   className = '',
   mediaMap = EMPTY_MEDIA_MAP,
   exerciseNumber = 1,
+  showExerciseNumber = false,
   lessonId = '',
   exerciseId = '',
   onResultsChange,
@@ -351,10 +352,10 @@ export function ExerciseRenderer({
   return (
     <MediaMapProvider value={mediaMap}>
       <div className={cn('w-full max-w-3xl mx-auto', className)}>
-        {/* Exercise Number Bubble - only shown when there are multiple questions */}
+        {/* Exercise Number Bubble - only shown when explicitly enabled (e.g. multiple exercises on one page) */}
         {/* NOTE: We intentionally avoid flex-row-reverse here because it inverts the bubble
              position depending on DOM order. Instead we pin the bubble via auto margins. */}
-        {questionBlocks.length > 1 && (
+        {showExerciseNumber && (
           <div className="w-full flex items-center justify-between mb-6">
             <div
               className={cn(
