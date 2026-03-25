@@ -7,6 +7,7 @@
  * @ai-summary Checks and increments authenticated user chat quota (rolling window)
  */
 import { getChatConfig } from '@/infra/llm/providers/shared/chat-config'
+import { hoursToMs } from '@/infra/utils/time'
 import type { Payload } from 'payload'
 
 const QUOTA_DEFAULTS = { maxQuestions: 15, windowHours: 12 }
@@ -43,7 +44,7 @@ export async function checkAndIncrementChatQuota(
   let questionsUsed = user.chatQuestionsUsed ?? 0
 
   // If no window or window expired, start fresh
-  const windowMs = windowHours * 60 * 60 * 1000
+  const windowMs = hoursToMs(windowHours)
   const windowExpired = !windowStart || now.getTime() - windowStart.getTime() > windowMs
 
   if (windowExpired) {
@@ -91,7 +92,7 @@ export async function getChatQuotaStatus(
   const windowStart = user.chatWindowStart ? new Date(user.chatWindowStart) : null
   let questionsUsed = user.chatQuestionsUsed ?? 0
 
-  const windowMs = windowHours * 60 * 60 * 1000
+  const windowMs = hoursToMs(windowHours)
   const windowExpired = !windowStart || now.getTime() - windowStart.getTime() > windowMs
 
   if (windowExpired) {
