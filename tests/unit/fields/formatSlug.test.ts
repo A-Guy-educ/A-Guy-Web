@@ -1,32 +1,33 @@
 import { describe, it, expect } from 'vitest'
 
-import { formatSlug } from '@/server/payload/fields/formatSlug'
+import { formatSlug, stripCopySuffix } from '@/server/payload/fields/formatSlug'
 
 describe('formatSlug', () => {
-  describe('Hebrew support', () => {
-    it('should produce non-empty slug for Hebrew-only title (via fallback)', () => {
-      // Note: slugify with strict:true and locale:'he' strips Hebrew characters,
-      // resulting in an empty string. The fallback mechanism ensures non-empty slugs.
+  describe('Hebrew transliteration', () => {
+    it('should transliterate Hebrew-only title to Latin slug', () => {
       const result = formatSlug('שלום עולם')
-      expect(result).toBeDefined()
-      expect(result.length).toBeGreaterThan(0)
-      // Fallback should be used since slugify returns empty for Hebrew with strict mode
-      expect(result).toMatch(/^item-[a-z0-9]+$/)
+      expect(result).toBe('shlvm-avlm')
     })
 
-    it('should produce non-empty slug for mixed Hebrew/English title', () => {
+    it('should transliterate mixed Hebrew/English title', () => {
       const result = formatSlug('כיתה 8 - Algebra בסיסי')
-      expect(result).toBeDefined()
-      expect(result.length).toBeGreaterThan(0)
+      expect(result).toBe('kyth-8-algebra-bsysy')
     })
 
     it('should handle Hebrew with diacritics/niqqud', () => {
-      // With strict mode, Hebrew is stripped → empty → fallback
       const result = formatSlug('שָׁלוֹם עוֹלָם')
-      expect(result).toBeDefined()
-      expect(result.length).toBeGreaterThan(0)
-      // Should use fallback since Hebrew is stripped
-      expect(result).toMatch(/^item-[a-z0-9]+$/)
+      // Niqqud stripped, then Hebrew transliterated
+      expect(result).toBe('shlvm-avlm')
+    })
+
+    it('should transliterate final-form letters (sofit)', () => {
+      const result = formatSlug('חשבון')
+      expect(result).toBe('chshbvn')
+    })
+
+    it('should transliterate lesson-style Hebrew title', () => {
+      const result = formatSlug('שיעור ראשון')
+      expect(result).toBe('shyavr-rshvn')
     })
   })
 
@@ -55,12 +56,6 @@ describe('formatSlug', () => {
   })
 
   describe('fallback behavior', () => {
-    it('should return transformed punctuation (not fallback) when slugify produces non-empty result', () => {
-      // slugify transforms !@#$% to "dollarpercent" (not empty), so it's returned as-is
-      const result = formatSlug('!@#$%')
-      expect(result).toBe('dollarpercent')
-    })
-
     it('should return provided fallback for whitespace-only input', () => {
       const result = formatSlug('   ', 'whitespace-fallback')
       expect(result).toBe('whitespace-fallback')
@@ -104,5 +99,31 @@ describe('formatSlug', () => {
       const result = formatSlug('test-slug-682076 ')
       expect(result).toBe('test-slug-682076')
     })
+  })
+})
+
+describe('stripCopySuffix', () => {
+  it('should strip single -copy suffix', () => {
+    expect(stripCopySuffix('my-lesson-copy')).toBe('my-lesson')
+  })
+
+  it('should strip repeated -copy suffixes', () => {
+    expect(stripCopySuffix('my-lesson-copy-copy-copy')).toBe('my-lesson')
+  })
+
+  it('should strip -copy-2 suffixes', () => {
+    expect(stripCopySuffix('my-lesson-copy-2')).toBe('my-lesson')
+  })
+
+  it('should strip mixed -copy and -copy-N suffixes', () => {
+    expect(stripCopySuffix('my-lesson-copy-copy-2-copy')).toBe('my-lesson')
+  })
+
+  it('should not modify slug without -copy suffix', () => {
+    expect(stripCopySuffix('my-lesson')).toBe('my-lesson')
+  })
+
+  it('should not strip -copy from middle of slug', () => {
+    expect(stripCopySuffix('copy-lesson')).toBe('copy-lesson')
   })
 })

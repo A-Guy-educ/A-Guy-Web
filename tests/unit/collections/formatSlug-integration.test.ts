@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest'
+import type { PayloadRequest } from 'payload'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 import { Courses } from '@/server/payload/collections/Courses'
 import { Chapters } from '@/server/payload/collections/Chapters'
@@ -8,18 +9,14 @@ describe('formatSlug integration with collections', () => {
   describe('Courses beforeChange hook', () => {
     const beforeChangeHook = Courses.hooks?.beforeChange?.[0]
 
-    it('should generate non-empty slug for Hebrew title (via fallback)', () => {
+    it('should generate transliterated slug for Hebrew title', () => {
       expect(beforeChangeHook).toBeDefined()
 
-      // Simulate the hook call
       const mockData = { title: 'שלום עולם' }
       // @ts-expect-error - Hook has complex signature, we're testing simple case
       const result = beforeChangeHook({ data: mockData })
 
-      expect(result.slug).toBeDefined()
-      expect(result.slug.length).toBeGreaterThan(0)
-      // slugify with strict:true strips Hebrew → empty → fallback used
-      expect(result.slug).toMatch(/^item-[a-z0-9]+$/)
+      expect(result.slug).toBe('shlvm-avlm')
     })
 
     it('should generate slug from English title', () => {
@@ -50,7 +47,7 @@ describe('formatSlug integration with collections', () => {
   describe('Chapters beforeChange hook', () => {
     const beforeChangeHook = Chapters.hooks?.beforeChange?.[0]
 
-    it('should generate non-empty slug for Hebrew title (via fallback)', () => {
+    it('should generate transliterated slug for Hebrew title', () => {
       expect(beforeChangeHook).toBeDefined()
 
       const mockData = { title: 'פרק ראשון' }
@@ -59,8 +56,8 @@ describe('formatSlug integration with collections', () => {
 
       expect(result.slug).toBeDefined()
       expect(result.slug.length).toBeGreaterThan(0)
-      // slugify with strict:true strips Hebrew → empty → fallback used
-      expect(result.slug).toMatch(/^item-[a-z0-9]+$/)
+      // Should be transliterated, not a fallback
+      expect(result.slug).not.toMatch(/^item-/)
     })
 
     it('should generate slug from English title', () => {
@@ -83,36 +80,116 @@ describe('formatSlug integration with collections', () => {
   describe('Lessons beforeChange hook', () => {
     const beforeChangeHook = Lessons.hooks?.beforeChange?.[0]
 
-    it('should generate non-empty slug with timestamp suffix for Hebrew title', () => {
+    const mockPayloadFind = vi.fn()
+    const mockReq = {
+      payload: { find: mockPayloadFind },
+    } as unknown as PayloadRequest
+
+    beforeEach(() => {
+      mockPayloadFind.mockReset()
+    })
+
+    it('should generate transliterated slug for Hebrew title', async () => {
       expect(beforeChangeHook).toBeDefined()
+      mockPayloadFind.mockResolvedValue({ docs: [] })
 
-      const mockData = { title: 'שיעור ראשון', createdAt: '2024-01-01T12:00:00.000Z' }
+      const mockData = { title: 'שיעור ראשון' }
       // @ts-expect-error - Hook has complex signature
-      const result = beforeChangeHook({ data: mockData })
+      const result = await beforeChangeHook({
+        data: mockData,
+        operation: 'create',
+        req: mockReq,
+      })
 
-      expect(result.slug).toBeDefined()
-      expect(result.slug.length).toBeGreaterThan(0)
-      // slugify strips Hebrew → fallback with timestamp suffix
-      expect(result.slug).toMatch(/^item-[a-z0-9]+-[0-9]{6}$/)
+      expect(result.slug).toBe('shyavr-rshvn')
     })
 
-    it('should generate slug from English title with timestamp suffix', () => {
-      // When createdAt is not a string or doesn't match the expected format,
-      // the hook uses Date.now() for the timestamp
-      const mockData = { title: 'First Lesson', createdAt: undefined }
-      // @ts-expect-error - Hook has complex signature
-      const result = beforeChangeHook({ data: mockData })
+    it('should generate slug from English title', async () => {
+      mockPayloadFind.mockResolvedValue({ docs: [] })
 
-      // Should contain the slugified title and a timestamp suffix
-      expect(result.slug).toMatch(/^first-lesson-[0-9]{6}$/)
+      const mockData = { title: 'First Lesson' }
+      // @ts-expect-error - Hook has complex signature
+      const result = await beforeChangeHook({
+        data: mockData,
+        operation: 'create',
+        req: mockReq,
+      })
+
+      expect(result.slug).toBe('first-lesson')
     })
 
-    it('should NOT overwrite existing slug on update', () => {
+    it('should NOT overwrite existing slug on update', async () => {
       const mockData = { title: 'New Title', slug: 'existing-lesson-slug' }
       // @ts-expect-error - Hook has complex signature
-      const result = beforeChangeHook({ data: mockData })
+      const result = await beforeChangeHook({
+        data: mockData,
+        operation: 'update',
+        req: mockReq,
+      })
 
       expect(result.slug).toBe('existing-lesson-slug')
+    })
+
+    it('should strip -copy suffix and regenerate slug', async () => {
+      mockPayloadFind.mockResolvedValue({ docs: [] })
+
+      const mockData = { title: 'First Lesson', slug: 'first-lesson-copy' }
+      // @ts-expect-error - Hook has complex signature
+      const result = await beforeChangeHook({
+        data: mockData,
+        operation: 'create',
+        req: mockReq,
+      })
+
+      expect(result.slug).toBe('first-lesson')
+    })
+
+    it('should strip repeated -copy-copy suffixes and regenerate', async () => {
+      mockPayloadFind.mockResolvedValue({ docs: [] })
+
+      const mockData = {
+        title: 'First Lesson',
+        slug: 'first-lesson-copy-copy-copy',
+      }
+      // @ts-expect-error - Hook has complex signature
+      const result = await beforeChangeHook({
+        data: mockData,
+        operation: 'create',
+        req: mockReq,
+      })
+
+      expect(result.slug).toBe('first-lesson')
+    })
+
+    it('should add numeric suffix when slug already exists', async () => {
+      mockPayloadFind
+        .mockResolvedValueOnce({ docs: [{ id: 'other-id' }] }) // first-lesson taken
+        .mockResolvedValueOnce({ docs: [] }) // first-lesson-1 available
+
+      const mockData = { title: 'First Lesson' }
+      // @ts-expect-error - Hook has complex signature
+      const result = await beforeChangeHook({
+        data: mockData,
+        operation: 'create',
+        req: mockReq,
+      })
+
+      expect(result.slug).toBe('first-lesson-1')
+    })
+
+    it('should allow own slug on update', async () => {
+      mockPayloadFind.mockResolvedValue({ docs: [{ id: 'my-id' }] })
+
+      const mockData = { title: 'First Lesson' }
+      // @ts-expect-error - Hook has complex signature
+      const result = await beforeChangeHook({
+        data: mockData,
+        operation: 'update',
+        originalDoc: { id: 'my-id' },
+        req: mockReq,
+      })
+
+      expect(result.slug).toBe('first-lesson')
     })
   })
 })

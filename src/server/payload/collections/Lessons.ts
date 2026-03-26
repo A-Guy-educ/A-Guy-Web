@@ -7,7 +7,7 @@ import { adminOnly } from '../access/adminOnly'
 import { publishedAndActive } from '../access/publishedAndActive'
 import { contentStatusFields } from '../fields/contentStatus'
 import { createdByField } from '../fields/createdBy'
-import { formatSlug } from '../fields/formatSlug'
+import { formatSlug, stripCopySuffix } from '../fields/formatSlug'
 import { translatedFromField } from '../fields/translatedFrom'
 
 export const Lessons: CollectionConfig = {
@@ -21,19 +21,59 @@ export const Lessons: CollectionConfig = {
   },
   hooks: {
     beforeChange: [
-      ({ data }) => {
-        if (data?.slug) {
-          data.slug = data.slug.trim()
+      async ({ data, operation, originalDoc, req }) => {
+        if (!data) return data
+
+        const title = data.title || originalDoc?.title
+
+        // Determine if slug needs regeneration:
+        // 1. No slug at all → generate from title
+        // 2. Slug contains -copy suffix (duplication) → regenerate from title
+        // 3. Existing slug → keep it (just trim)
+        let needsGeneration = !data.slug
+        if (data.slug) {
+          const cleaned = stripCopySuffix(data.slug.trim())
+          if (cleaned !== data.slug.trim()) {
+            // Had -copy suffix → regenerate from title instead
+            needsGeneration = true
+          } else {
+            data.slug = data.slug.trim()
+          }
         }
-        if (data?.title && !data?.slug) {
-          // Generate unique slug from title
-          // Include timestamp for uniqueness, falling back to random if timestamp not available
-          const timestamp =
-            typeof data.createdAt === 'string'
-              ? data.createdAt.replace(/[^0-9]/g, '').slice(-6)
-              : Date.now().toString().slice(-6)
-          data.slug = `${formatSlug(data.title)}-${timestamp}`
+
+        if (needsGeneration && title) {
+          const baseSlug = formatSlug(title)
+
+          // Check uniqueness and add numeric suffix if needed
+          let slug = baseSlug
+          let counter = 1
+          const MAX_ATTEMPTS = 100
+
+          for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+            const existing = await req.payload.find({
+              collection: 'lessons',
+              where: { slug: { equals: slug } },
+              limit: 1,
+              depth: 0,
+              req,
+            })
+
+            const isOwnDoc =
+              operation === 'update' && originalDoc?.id && existing.docs[0]?.id === originalDoc.id
+
+            if (existing.docs.length === 0 || isOwnDoc) {
+              data.slug = slug
+              return data
+            }
+
+            slug = `${baseSlug}-${counter}`
+            counter++
+          }
+
+          // Fallback: append timestamp if all numeric suffixes taken
+          data.slug = `${baseSlug}-${Date.now().toString(36)}`
         }
+
         return data
       },
     ],
