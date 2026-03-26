@@ -58,6 +58,9 @@ export async function GET(request: NextRequest) {
     if (!courseSlug) {
       const { searchCourseContent } = await import('@/server/repos/queries/course-search')
       const results = await searchCourseContent({ query, limit: 20 })
+      const courses = results
+        .filter((r) => r.type === 'course')
+        .map((r) => ({ id: r.id, title: r.title, url: r.url }))
       const lessons = results
         .filter((r) => r.type === 'lesson')
         .map((r) => ({ id: r.id, title: r.title, type: 'learning', url: r.url }))
@@ -66,8 +69,8 @@ export async function GET(request: NextRequest) {
         .map((r) => ({ id: r.id, title: r.title, lessonTitle: r.subtitle, url: r.url }))
       return NextResponse.json({
         enrolled: true,
-        results: { lessons, exercises, questions: [] },
-        total: lessons.length + exercises.length,
+        results: { courses, lessons, exercises, questions: [] },
+        total: courses.length + lessons.length + exercises.length,
       })
     }
 

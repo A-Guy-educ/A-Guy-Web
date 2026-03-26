@@ -8,19 +8,46 @@ interface SearchResult {
   title: string
   subtitle: string
   url: string
-  type: 'lesson' | 'exercise'
+  type: 'course' | 'lesson' | 'exercise'
 }
 
 /**
  * Search across all published courses, lessons, and exercises.
- * Used on the general /search page (not scoped to a single course).
+ * Used on the general /search page and the header dropdown (not scoped to a single course).
  */
 export const searchCourseContent = cache(
   async ({ query, limit = 20 }: { query: string; limit?: number }): Promise<SearchResult[]> => {
     const payload = await getPayload({ config: configPromise })
     const results: SearchResult[] = []
 
-    // 1. Search lessons by title
+    // 1. Search courses by title
+    const coursesResult = await payload.find({
+      collection: 'courses',
+      where: {
+        and: [
+          { title: { like: query } },
+          { status: { equals: 'published' } },
+          { isActive: { equals: true } },
+        ],
+      },
+      limit: 10,
+      pagination: false,
+      depth: 0,
+      overrideAccess: true,
+    })
+
+    for (const course of coursesResult.docs) {
+      if (!course.slug) continue
+      results.push({
+        id: course.id,
+        title: course.title,
+        subtitle: '',
+        url: `/courses/${course.slug}`,
+        type: 'course',
+      })
+    }
+
+    // 2. Search lessons by title
     const lessonsResult = await payload.find({
       collection: 'lessons',
       where: {

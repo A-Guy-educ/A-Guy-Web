@@ -25,7 +25,14 @@ interface SearchResultQuestion {
   url: string
 }
 
+interface SearchResultCourse {
+  id: string
+  title: string
+  url: string
+}
+
 export interface CourseSearchResults {
+  courses?: SearchResultCourse[]
   lessons: SearchResultLesson[]
   exercises: SearchResultExercise[]
   questions: SearchResultQuestion[]

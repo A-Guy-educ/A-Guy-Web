@@ -30,9 +30,10 @@
       "loggingOut": "Logging out..."
     },
     "courseSearch": {
-      "placeholder": "Search in course...",
+      "placeholder": "Search...",
       "noResults": "No results found",
       "enrollRequired": "You must enroll first",
+      "courses": "Courses",
       "lessons": "Lessons",
       "exercises": "Exercises",
       "questions": "Questions",

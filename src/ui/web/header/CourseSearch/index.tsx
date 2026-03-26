@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { SearchIcon, X, Loader2, BookOpen, FileText, HelpCircle } from 'lucide-react'
+import { SearchIcon, X, Loader2, BookOpen, FileText, HelpCircle, GraduationCap } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
 import { useTranslations } from '@/ui/web/providers/I18n'
@@ -164,6 +164,7 @@ export const CourseSearch: React.FC<CourseSearchProps> = ({ variant, onNavigate 
 
 interface SearchDropdownProps {
   results: {
+    courses?: Array<{ id: string; title: string; url: string }>
     lessons: Array<{ id: string; title: string; type: string; url: string }>
     exercises: Array<{ id: string; title: string; lessonTitle: string; url: string }>
     questions: Array<{ id: string; promptSnippet: string; exerciseTitle: string; url: string }>
@@ -216,13 +217,29 @@ const SearchDropdown: React.FC<SearchDropdownProps> = ({
       {/* Results */}
       {!isLoading && enrolled === true && results && (
         <>
-          {results.lessons.length === 0 &&
+          {(results.courses?.length ?? 0) === 0 &&
+            results.lessons.length === 0 &&
             results.exercises.length === 0 &&
             results.questions.length === 0 && (
               <div className="p-card-padding-sm text-center text-body-sm text-muted-foreground">
                 {t('noResults')}
               </div>
             )}
+
+          {/* Courses */}
+          {results.courses && results.courses.length > 0 && (
+            <SearchSection icon={GraduationCap} title={t('courses')}>
+              {results.courses.map((course) => (
+                <SearchResultItem
+                  key={course.id}
+                  href={course.url}
+                  title={course.title}
+                  subtitle=""
+                  onClick={onResultClick}
+                />
+              ))}
+            </SearchSection>
+          )}
 
           {/* Lessons */}
           {results.lessons.length > 0 && (

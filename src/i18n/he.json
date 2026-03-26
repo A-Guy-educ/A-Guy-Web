@@ -30,9 +30,10 @@
       "language": "שפה"
     },
     "courseSearch": {
-      "placeholder": "חיפוש בקורס...",
+      "placeholder": "חיפוש...",
       "noResults": "לא נמצאו תוצאות",
       "enrollRequired": "תחילה יש להירשם",
+      "courses": "קורסים",
       "lessons": "שיעורים",
       "exercises": "תרגילים",
       "questions": "שאלות",
