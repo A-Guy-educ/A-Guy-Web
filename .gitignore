@@ -64,3 +64,6 @@ scripts/browser-agent/.env
 
 # Task specs (local only)
 shay-tassk/
+
+# LaTeX example files (local only)
+latex_examples/
