@@ -47,45 +47,37 @@ Guidelines:
 
 ## Repo Patterns
 
-**API Routes**: `src/app/api/oauth/google/callback/route.ts` — Use typed `NextRequest`/`NextResponse`, validate inputs with Zod (e.g., `validateOAuthState()`), set headers explicitly, return typed responses. Include JSDoc with `@fileType api-route`, `@domain`, `@pattern`, and `@ai-summary`.
+**Import Aliases**: Always use `@/` for cross-directory imports (e.g., `@/infra/auth/oauth_state`). Relative imports (`../`) only within same directory.
 
-**Services**: `src/server/services/exercise-conversion/idempotency.ts` — Define interfaces, export deterministic utility functions, add comprehensive JSDoc explaining contract and examples. Services live in `src/server/services/` by domain.
+**Bilingual Support**: Update both `messages/en.json` and `messages/he.json` for all UI text strings.
 
-**Embed Providers**: `src/infra/media/embed/youtube.ts` — Pattern matcher functions (regex arrays), ID extraction, oEmbed fetching. Export type-safe functions with detailed documentation. Live in `src/infra/media/embed/`.
+**Payload Type Generation**: Run `pnpm generate:types` after modifying collection/global schemas in `src/server/payload/collections/` or `src/server/payload/globals/`.
 
-**Imports**: Always use `@/` aliases for cross-directory imports: `import { User } from '@/payload-types'` or `import { SmartDocLoader } from '@/infra/llm/smart-doc-loader'`. Use relative imports only within the same directory.
+**Service Layer**: Place business logic in `src/server/services/` (e.g., `exercise-conversion/idempotency.ts`). OAuth flows in `src/app/api/oauth/google/callback/route.ts`.
 
-**Logging**: Use `payload.logger.info()`, `.warn()`, `.error()` instead of `console.log`. Never log in production code.
+**Validation & Logging**: Use Zod `safeParse()` for schema validation; no `console.log` in production (use `payload.logger`). See `src/server/services/exercise-conversion/idempotency.ts` for idempotency patterns.
 
-**Validation**: Use Zod with `safeParse()` and check `success` flag: `const result = schema.safeParse(input); if (!result.success) return error`.
-
-**Bilingual**: When adding UI strings, update both `messages/en.json` (English) and `messages/he.json` (Hebrew) with identical keys.
-
-**Payload Workflow**: After modifying collection schemas in `src/server/payload/collections/`, run `pnpm generate:types` to regenerate TypeScript types. After adding admin components, run `pnpm generate:importmap`.
+**Design System**: Use CSS variables from `src/app/(frontend)/globals.css` and Tailwind tokens from `tailwind.tokens.mjs`—never create custom colors.
 
 ## Improvement Areas
 
-**Anti-Pattern - src/lib/ Directory**: Do NOT create a `src/lib/` directory. Shared utilities belong in domain-specific folders (e.g., `src/infra/`, `src/server/services/`, `src/ui/`). The codebase enforces this structure to maintain clear ownership.
-
-**Anti-Pattern - Unsafe Parsing**: Never use `schema.parse(body)` in API routes. Use `safeParse()` with success checks instead. Found in some legacy endpoint handlers.
-
-**Anti-Pattern - console.log in Production**: Some older files still have `console.log` statements in server code. Replace with `payload.logger.*()` calls for structured logging.
-
-**Anti-Pattern - Stale Payload Types**: Manual edits to `src/payload-types.ts` cause conflicts during regeneration. Always regenerate types with `pnpm generate:types` after schema changes instead of manual editing.
-
-**Anti-Pattern - Missing Hebrew Translations**: New UI strings in `messages/en.json` may lack corresponding entries in `messages/he.json`, breaking bilingual support. Always add both simultaneously.
+- `console.log()` still present in production code (should use `payload.logger`)
+- Relative imports across directories (must use `@/` aliases)
+- Missing Hebrew translations in some UI components (`messages/he.json`)
+- Raw Tailwind color values instead of design system tokens
+- Unsafe Zod `.parse()` calls (should use `.safeParse()` with proper error handling)
+- Some services lack idempotency keys for deterministic operations
 
 ## Acceptance Criteria
 
-- [ ] Task type correctly identified (feature | bugfix | refactor | docs | chore)
-- [ ] Title is actionable and ≤72 characters
-- [ ] Description captures intent and scope clearly
-- [ ] Scope includes exact file paths (use Glob to verify files exist)
-- [ ] Risk level justifies technical complexity (low=simple, medium=moderate, high=critical)
-- [ ] Questions ask only about product/requirements, NOT technical implementation
-- [ ] If scope touches Payload collections, notes that `pnpm generate:types` is required
-- [ ] If scope touches UI strings, notes that bilingual translations (en.json + he.json) are required
-- [ ] If scope touches logging, notes replacement of console.log with payload.logger
-- [ ] Questions list is ≤3 items or empty if task is clear
+- [ ] Tests pass with 80%+ coverage
+- [ ] Imports use `@/` aliases (never relative paths across directories)
+- [ ] Bilingual updates: both `messages/en.json` and `messages/he.json` if UI text modified
+- [ ] `pnpm generate:types` run if Payload schema changed
+- [ ] No `console.log()` in production code; use `payload.logger` instead
+- [ ] Zod validation uses `safeParse()` with proper success flag checks
+- [ ] Design tokens from `globals.css` and `tailwind.tokens.mjs` (no custom colors)
+- [ ] No hardcoded configuration values (use environment variables)
+- [ ] Idempotency keys for deterministic operations (source-based, not LLM-derived)
 
 {{TASK_CONTEXT}}

@@ -21,46 +21,42 @@ Do NOT make unrelated changes. Fix ONLY the reported errors.
 
 ## Repo Patterns
 
-**Validation with Zod**:
+**TypeScript & Type Safety** — Always use `tsc --noEmit` to verify. OAuth handlers (src/app/api/oauth/google/callback/route.ts) show error typing: `interface GoogleUserInfo { sub: string; email: string }` with strict interface validation. Payload collections in src/server/payload/collections/ use typed configs with access control.
 
-```typescript
-// src/app/api/oauth/google/callback/route.ts — use safeParse, check success flag
-const result = stateSchema.safeParse(state)
-if (!result.success) {
-  return NextResponse.json({ error: 'invalid' }, { status: 400 })
-}
-```
+**URL Pattern Detection** — src/infra/media/embed/youtube.ts demonstrates regex array with capture groups: `const YOUTUBE_PATTERNS: RegExp[] = [/pattern1/, /pattern2/]` followed by `.some(pattern => pattern.test(url))`. Apply this pattern for other embed providers.
 
-**API Response Envelope**: Always return `{ success: boolean, data?, error? }` from API routes. See `src/app/api/` endpoints.
+**Service Layer Idempotency** — src/server/services/exercise-conversion/idempotency.ts shows deterministic operations using source-derived ordinals (array index), not LLM output: `systemOrdinal: number` is code-derived, never user-provided. Format: `{tenantId}:{lessonId}:{sourceDocId}:{pageStart}-{pageEnd}:{systemOrdinal}:{specVersion}`.
 
-**@/ Aliases**: Use `import { getPayload } from '@/infra/payload/client'` not relative paths.
+**Immutable Updates** — Always use spread operators: `return { ...user, name }` not `user.name = name`. Never mutate Payload documents directly.
 
-**Payload Types**: After modifying `src/server/payload/collections/`, run `pnpm generate:types` to regenerate `src/payload-types.ts`.
+**No console.log** — Use structured error logging instead (see src/infra/auth/oauth_logger.ts pattern). Remove all `console.log()` statements from production code.
 
-**Logging**: Use `payload.logger.info('msg')` not `console.log` in `src/server/` and `src/infra/` code.
-
-**Design System**: Use CSS variables like `bg-primary`, `text-secondary` (from `src/app/(frontend)/globals.css`), not raw Tailwind colors like `bg-blue-500`.
-
-**Bilingual Support**: When adding UI strings, update both `messages/en.json` and `messages/he.json`.
+**Import Aliases** — Always use `@/` aliases: `import { helper } from '@/infra/auth/oauth'` not `import { helper } from '../../../infra/auth/oauth'`.
 
 ## Improvement Areas
 
-- **Unsafe parse()**: Replace `schema.parse(body)` with `schema.safeParse(body)` + success check. Critical security issue.
-- **console.log in server**: Audit `src/app/api/`, `src/server/`, `src/infra/` for `console.log` — replace with `payload.logger.*()`.
-- **Raw Tailwind colors**: `bg-blue-500`, `text-red-600` violate design system. Use CSS variables instead.
-- **Missing Hebrew translations**: New UI keys in `messages/en.json` must have matching entries in `messages/he.json`.
-- **Relative imports**: Replace `../../../` paths with `@/` aliases to match project structure.
+**Error Logging Consistency** — While OAuth uses `logOAuthError()`, other services lack centralized error logging. Standardize error logging across src/server/services/ to use structured logging instead of console.log.
+
+**External API Retry Logic** — src/infra/media/embed/ (YouTube, Vimeo oEmbed calls) lack exponential backoff retry logic. Add retry utilities for failed external API calls.
+
+**Type Generation Workflow** — Developers sometimes forget to run `pnpm generate:types` after Payload schema changes. Add pre-commit validation to catch missing type generation.
+
+**Test Isolation** — Some integration tests may have shared Payload instance state. Ensure each test properly resets Payload context.
 
 ## Acceptance Criteria
 
-- [ ] `pnpm typecheck` passes with no errors
-- [ ] `pnpm lint` passes (no CRITICAL or HIGH violations)
-- [ ] `pnpm test:int` passes (integration tests green)
-- [ ] No `console.log` or `console.error` in modified `src/app/api/`, `src/server/`, `src/infra/` files
-- [ ] All Zod validations use `safeParse()` with success flag check
-- [ ] All new UI strings in `messages/en.json` have Hebrew equivalents in `messages/he.json`
-- [ ] No raw Tailwind colors (`bg-red-500`, `text-blue-600`) — use design tokens only
-- [ ] All cross-directory imports use `@/` aliases
-- [ ] If Payload collection schema modified, `pnpm generate:types` was run and `src/payload-types.ts` updated
+- [ ] `tsc --noEmit` passes (TypeScript strict mode compliance)
+- [ ] `pnpm lint` passes (no linting errors)
+- [ ] `pnpm format:check` passes (code formatting consistent)
+- [ ] No `console.log()` statements remain in src/ files
+- [ ] All `@/` aliases used; no relative imports across directories
+- [ ] If Payload schema changed: `pnpm generate:types` was run and imports match `payload-types.ts`
+- [ ] If admin components added: `pnpm generate:importmap` was run
+- [ ] Bilingual strings: both `messages/en.json` and `messages/he.json` updated (if UI text changed)
+- [ ] All unit tests pass: `pnpm test:int`
+- [ ] All E2E tests pass: `pnpm test:e2e` (if user flow modified)
+- [ ] No mutations in state updates (spread operators used, not direct assignment)
+- [ ] New services/utilities use JSDoc comments for complex logic
+- [ ] OAuth/auth code validates CSRF state and handles errors explicitly
 
 {{TASK_CONTEXT}}

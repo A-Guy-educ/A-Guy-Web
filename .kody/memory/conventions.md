@@ -1,10 +1,10 @@
 # Conventions
 
-- **Imports**: Always use `@/` aliases for cross-directory imports; no relative paths across boundaries
-- **Bilingual Support**: Update both `messages/en.json` (English) and `messages/he.json` (Hebrew) for any new UI strings
-- **Payload CMS Workflow**: Run `pnpm generate:types` after schema changes; `pnpm generate:importmap` after admin components
-- **Logging**: Use `payload.logger.*()` for structured logging; no `console.log` in production code
-- **Validation**: Use Zod with `safeParse()` and check success flag; never use unsafe `parse()`
-- **Immutability**: Use spread operators `{...obj, field: value}` for updates; no mutations
-- **Payload Types**: After modifying Payload collections, regenerate types via `pnpm generate:types`
-- **References**: [CLAUDE.md](./CLAUDE.md) for commands; [AGENTS.md](./AGENTS.md) for detailed patterns
+- **TypeScript**: Strict mode, @/ aliases for cross-directory imports (never relative paths)
+- **Bilingual**: Update both `messages/en.json` and `messages/he.json` for UI text
+- **Payload Workflow**: Run `pnpm generate:types` after schema changes; `pnpm generate:importmap` after adding admin components
+- **Design System**: Use CSS variables from `globals.css` and Tailwind tokens from `tailwind.tokens.mjs`; never create custom colors
+- **Code Quality**: No `console.log` in production; immutable updates with spread operators; Zod for validation
+- **Service Layer**: Place business logic in `src/server/services/`; use idempotency keys for deterministic operations
+- **Auth**: OAuth pattern in `src/app/api/oauth/`; validate CSRF state; handle session creation
+- **Domains**: No `lib/` folder; organize by feature domain (media/embed, exercise-conversion, etc.)

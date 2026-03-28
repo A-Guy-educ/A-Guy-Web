@@ -51,72 +51,42 @@ Review checklist:
 
 ## Repo Patterns
 
-**OAuth & API Routes** (`src/app/api/oauth/google/callback/route.ts`):
-- Use `getPayload({ config })` to initialize Payload CMS
-- Validate external input (OAuth state, tokens) before processing
-- Use `NextResponse` with explicit status codes; handle redirects with `res.headers.set('Location', ...)`
-- Store secrets in environment variables only, never hardcode
+**OAuth Security Pattern** (`src/app/api/oauth/google/callback/route.ts`):
+- CSRF protection via state validation before exchanging code
+- NextResponse with 302 redirect; manipulate headers before redirecting
+- Correlation IDs for error logging; never expose internal state in error messages
+- No hardcoded URLs; use `getPublicBaseUrl()` from config
 
-**Embed Providers** (`src/infra/media/embed/youtube.ts`):
-- Export detection functions (e.g., `isYouTubeUrl()`) and extraction functions separately
-- Use JSDoc with `@example` tags documenting supported URL formats
-- Return null/false for invalid inputs, not exceptions
-- Import types from local `./types` files using `@/` alias when crossing directories
+**Media Embed Pattern** (`src/infra/media/embed/youtube.ts`):
+- Multiple regex patterns for URL detection (11 different YouTube URL formats)
+- Always extract video ID as capture group before calling external APIs
+- Return null on no match; don't throw errors for unrecognized URLs
+- Document why patterns exist (different URL schemes, mobile URLs, etc.)
 
-**Validation & Error Handling** (pattern throughout codebase):
-- Use `zod.safeParse()` and check the `.success` flag; NEVER use unsafe `parse()`
-- Catch errors in try-catch blocks and provide user-friendly messages in API responses
-- Use `payload.logger.info()` / `.error()` for structured logging; NEVER use `console.log()`
-
-**TypeScript & Immutability**:
-- Use `@/` aliases for all cross-directory imports
-- Never mutate objects; use spread operator: `{ ...obj, field: newValue }`
-- Define TypeScript interfaces for function parameters (e.g., `IdempotencyParams`)
-
-**Payload CMS Workflow**:
-- After modifying collection schema in `src/server/payload/collections/`, run `pnpm generate:types` immediately
-- Use `payload.logger` instead of `console.log` in hooks and endpoints
+**Idempotency Pattern** (`src/server/services/exercise-conversion/idempotency.ts`):
+- Deterministic keys from source position + system ordinal (array index), NOT LLM-derived ordering
+- Format: `{tenantId}:{lessonId}:{sourceDocId}:{pageStart}-{pageEnd}:{systemOrdinal}:{specVersion}`
+- Store LLM data (e.g., `orderInSegment`) separately for debugging, never use for deduplication
+- Bump `SPEC_VERSION` when extraction contract changes
 
 ## Improvement Areas
 
-1. **Critical: Unsafe Validation** — API routes using `schema.parse(body)` without success check in `src/app/api/` routes
-   - Pattern: Several endpoints may bypass `safeParse()` error handling
-   - Fix: Use `const result = schema.safeParse(body); if (!result.success) { return ApiError(...) }`
-
-2. **Critical: console.log in Server Code** — Hardcoded `console.log` statements in `src/server/` and `src/infra/` code
-   - Pattern: Production logging bypasses structured logging
-   - Fix: Replace `console.log()` with `payload.logger.info()` or `payload.logger.error()`
-
-3. **Major: Missing Hebrew Translations** — New UI strings added to `messages/en.json` without Hebrew equivalents
-   - Pattern: Bilingual support requirement not followed in `src/i18n/`
-   - Fix: Update both `messages/en.json` AND `messages/he.json` together
-
-4. **Major: Stale Payload Types** — Changes to `src/server/payload/collections/` without regenerating types
-   - Pattern: `src/payload-types.ts` becomes out of sync with schema
-   - Fix: Run `pnpm generate:types` after schema modifications, commit updated file
-
-5. **Major: Relative Imports Across Boundaries** — Imports like `../../../lib/` or `../../../infra/` instead of `@/` aliases
-   - Pattern: Path fragility when moving files
-   - Fix: Always use `@/ aliases for cross-directory imports (e.g., `import { helper } from '@/lib/utils'`)
-
-6. **Major: Design System Violations** — Raw Tailwind colors like `bg-blue-500` instead of design tokens
-   - Pattern: Hardcoded colors bypass theme system in `tailwind.tokens.mjs`
-   - Fix: Use design token classes (e.g., `bg-primary`, `bg-secondary`) defined in `src/app/(frontend)/globals.css`
+- **Payload Type Generation**: Ensure `pnpm generate:types` is run after any schema changes to `src/server/payload/collections/` or `src/server/payload/globals/`; auto-generated types in `src/payload-types.ts` should match manual edits
+- **Import Map Updates**: After adding Payload admin components to `src/ui/admin/`, run `pnpm generate:importmap` to update the admin import map
+- **Design System Violations**: Check for hardcoded color values; all colors must be CSS variables from `src/app/(frontend)/globals.css` or Tailwind tokens from `tailwind.tokens.mjs`
+- **Console.log Drift**: Production code must not contain `console.log`; use proper logging for server-side errors
 
 ## Acceptance Criteria
 
-- [ ] All **Critical** severity findings are resolved (no security vulnerabilities, unsafe validation, console.log in server code)
-- [ ] All **Major** severity findings are resolved (no logic errors, broken tests, missing translations, stale types)
-- [ ] **Minor** findings are addressed where practical (style consistency, naming clarity, performance micro-improvements)
-- [ ] TypeScript type safety verified: `pnpm typecheck` passes with no errors
-- [ ] Linting passes: `pnpm lint` shows no errors (Minor style warnings acceptable)
-- [ ] New UI strings translated in both `messages/en.json` and `messages/he.json`
-- [ ] Payload schema changes trigger type regeneration: `pnpm generate:types` committed with changes
-- [ ] Validation uses `zod.safeParse()` with explicit success flag checks; no unsafe `parse()` calls
-- [ ] All imports use `@/` aliases; no relative paths like `../../../` across directory boundaries
-- [ ] No `console.log` in server/infra code; all logging uses `payload.logger.*()` methods
-- [ ] Design system compliance: no raw colors (`bg-blue-500`); only design token classes used
-- [ ] Error handling comprehensive: API routes return structured error responses, edge cases handled
-- [ ] Code follows immutability patterns: object updates use spread operators, no mutations
+- [ ] Code uses @/ aliases for cross-directory imports (never relative paths like `../../../`)
+- [ ] No hardcoded secrets (API keys, URLs, tokens); all use `process.env.*`
+- [ ] Input validation with Zod at API boundaries; use `schema.parse()` or `schema.safeParse()`
+- [ ] Immutable updates with spread operator (`{...obj, field: newValue}`)
+- [ ] Error handling with try-catch; server errors logged, user-facing errors are descriptive
+- [ ] Security: CSRF protection, no SQL injection, XSS prevention where applicable
+- [ ] TypeScript strict mode compliance; no `any` types without justification
+- [ ] Bilingual UI text in both `messages/en.json` and `messages/he.json`
+- [ ] Tests pass locally (`pnpm test` or specific test file)
+- [ ] No `console.log` in production code
 
 {{TASK_CONTEXT}}
