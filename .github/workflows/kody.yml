@@ -293,7 +293,7 @@ jobs:
         with:
           name: kody-tasks-${{ github.event.inputs.task_id || needs.parse.outputs.task_id }}
           path: .tasks/
-          retention-days: 7
+          retention-days: 3
 
   # ─── Error Notifications ─────────────────────────────────────────────────────
   notify-parse-error:
