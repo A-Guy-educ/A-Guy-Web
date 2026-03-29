@@ -26,9 +26,9 @@ export function NavigationBar() {
   const pathname = usePathname()
 
   return (
-    <nav className="bg-card pb-4 pt-3 border-b border-border/60">
-      <div className="max-w-2xl mx-auto px-4">
-        <div className="bg-muted/60 p-1.5 rounded-2xl flex items-center justify-between">
+    <nav className="bg-card py-2 border-b border-border/40">
+      <div className="max-w-lg mx-auto px-4">
+        <div className="bg-muted/40 p-1 rounded-xl flex items-center justify-between">
           {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href
             const Icon = item.icon
@@ -38,14 +38,14 @@ export function NavigationBar() {
                 key={item.key}
                 href={item.href}
                 className={cn(
-                  'relative flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 md:px-4 min-h-[44px] text-body-xs md:text-body-sm rounded-xl transition-colors',
+                  'relative flex-1 flex items-center justify-center gap-1.5 py-2 px-2 md:px-3 min-h-[40px] text-body-xs md:text-body-sm rounded-lg transition-colors',
                   isActive ? 'font-bold' : 'font-medium text-muted-foreground hover:text-foreground',
                 )}
               >
                 {isActive && (
                   <motion.div
                     layoutId="navIndicator"
-                    className="absolute inset-0 bg-card rounded-xl shadow-elevation-1"
+                    className="absolute inset-0 bg-card rounded-lg shadow-sm"
                     style={{ zIndex: 0 }}
                     transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                   />

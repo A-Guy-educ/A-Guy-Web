@@ -207,7 +207,7 @@ export function ExercisesPager({
             <div
               ref={contentRef}
               tabIndex={-1}
-              className="flex-1 overflow-y-auto min-h-0 pb-20 outline-none"
+              className="flex-1 overflow-y-auto min-h-0 pb-4 outline-none"
               onTouchStart={onTouchStart}
               onTouchMove={onTouchMove}
               onTouchEnd={onTouchEnd}
@@ -264,7 +264,7 @@ export function ExercisesPager({
             </div>
 
             {/* Fixed bottom navigation bar */}
-            <div className="fixed bottom-0 inset-x-0 z-30 bg-card/80 backdrop-blur-xl border-t border-border/50 px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            <div className="sticky bottom-0 z-30 bg-card/80 backdrop-blur-xl border-t border-border/50 px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
               <div className="max-w-3xl mx-auto flex items-center justify-between">
                 <Button
                   variant="ghost"

@@ -20,7 +20,7 @@ import { AccessGateProvider } from '@/ui/web/auth/AccessGateProvider'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import { ContentStatusBadge } from '@/ui/web/shared/ContentStatusBadge'
 import { ProgressCircle } from '@/ui/web/shared/ProgressCircle'
-import { BarChart3, Clock, GraduationCap, PlayCircle, Sparkles } from 'lucide-react'
+import { BarChart3, BookOpen, Clock, FileText, GraduationCap, PlayCircle, Sparkles, Target, Trophy } from 'lucide-react'
 import { Button } from '@/ui/web/components/button'
 import { Progress } from '@/ui/web/components/progress'
 import { motion } from 'framer-motion'
@@ -290,65 +290,38 @@ export function StudyContent({
       isAuthenticated={isAuthenticated}
     >
       {/* Course context header */}
-      <div className="w-full py-section-sm px-6">
-        <div className="max-w-5xl mx-auto text-center">
+      <div className="w-full pt-5 pb-1 px-6">
+        <div className="max-w-3xl mx-auto text-center">
           <ExamReminderBubble courseId={courseInfo?.courseId ?? ''} />
 
-          {/* Grade level badge */}
-          {courseInfo?.courseLabel && (
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className="mt-4"
-            >
-              <span
-                className="inline-block text-body-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full"
-                style={{
-                  backgroundColor: `${tabColor.stroke}15`,
-                  color: tabColor.stroke,
-                }}
-              >
-                {courseInfo.courseLabel}
-              </span>
-            </motion.div>
-          )}
-
-          {/* Big course title */}
-          <h1 className="text-display-sm md:text-display-md font-black text-foreground mt-3 text-center">
+          <h1 className="text-heading-lg font-bold text-foreground mt-1">
             {sectionTitle}
           </h1>
 
           {/* Overall progress bar */}
-          {filteredLessons.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, scaleX: 0.8 }}
-              animate={{ opacity: 1, scaleX: 1 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-              className="mt-4 max-w-sm mx-auto"
-            >
-              <div className="flex items-center justify-between text-body-xs text-muted-foreground mb-1.5">
-                <span>{`${overallProgress}%`}</span>
-                <span className="font-bold" style={{ color: tabColor.stroke }}>
+          {filteredLessons.length > 0 && overallProgress > 0 && (
+            <div className="mt-3 max-w-xs mx-auto">
+              <div className="flex items-center gap-3">
+                <div className="h-1.5 flex-1 rounded-full bg-muted overflow-hidden">
+                  <motion.div
+                    className="h-full rounded-full"
+                    style={{ backgroundColor: tabColor.stroke }}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${overallProgress}%` }}
+                    transition={{ duration: 0.6, ease: 'easeOut' }}
+                  />
+                </div>
+                <span className="text-body-xs font-bold text-muted-foreground">
                   {overallProgress}%
                 </span>
               </div>
-              <div className="h-2 rounded-full bg-muted overflow-hidden">
-                <motion.div
-                  className="h-full rounded-full"
-                  style={{ backgroundColor: tabColor.stroke }}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${overallProgress}%` }}
-                  transition={{ duration: 0.6, delay: 0.2, ease: 'easeOut' }}
-                />
-              </div>
-            </motion.div>
+            </div>
           )}
         </div>
       </div>
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-section-sm max-w-5xl">
+      <main className="container mx-auto px-6 py-4 max-w-3xl">
         {continueLesson && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -377,39 +350,28 @@ export function StudyContent({
         )}
 
         {filteredLessons.length > 0 ? (
-          <div className="space-y-10">
+          <div className="space-y-8">
             {chapterGroups.map((group, groupIdx) => {
-              // Running lesson index across groups
               const startIndex = chapterGroups
                 .slice(0, groupIdx)
                 .reduce((sum, g) => sum + g.lessons.length, 0)
 
               return (
                 <section key={group.chapterSlug}>
-                  {/* Chapter heading as section divider (only when multiple chapters) */}
                   {hasMultipleChapters && (
-                    <motion.div
-                      initial={{ opacity: 0, x: -12 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3, delay: groupIdx * 0.05 }}
-                      className="flex items-center gap-3 mb-5"
-                    >
+                    <div className="flex items-center gap-2 mb-4">
                       <div
-                        className="w-1 h-6 rounded-full shrink-0"
+                        className="w-0.5 h-5 rounded-full shrink-0"
                         style={{ backgroundColor: tabColor.stroke }}
                       />
-                      <h2 className="text-heading-lg font-bold text-foreground">
-                        {group.chapterLabel && (
-                          <span className="text-muted-foreground font-medium">
-                            {group.chapterLabel}{' '}
-                          </span>
-                        )}
+                      <h2 className="text-heading-sm font-semibold text-muted-foreground">
+                        {group.chapterLabel && <span>{group.chapterLabel} </span>}
                         {group.chapterTitle}
                       </h2>
-                    </motion.div>
+                    </div>
                   )}
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-content-gap-lg">
+                  <div className="flex flex-col gap-3">
                     {group.lessons.map((lesson, idx) => (
                       <motion.div
                         key={lesson.id}
@@ -442,36 +404,26 @@ export function StudyContent({
           </div>
         )}
 
-        {/* Footer actions as styled cards */}
-        <div className="mt-16 pt-8 border-t border-border">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-content-gap">
+        {/* Footer actions */}
+        <div className="mt-8 pt-5 border-t border-border/30">
+          <div className="flex items-center justify-center gap-3 flex-wrap">
             <SystemLink
               href="/stats"
-              className="group flex flex-col items-center gap-2 bg-card border border-border rounded-2xl p-6 hover:border-primary/30 hover:shadow-elevation-2 transition-all"
+              className="group inline-flex items-center gap-2 rounded-lg border border-border/40 px-4 py-2.5 text-body-sm font-medium text-muted-foreground hover:text-foreground hover:border-border/60 transition-all"
             >
-              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                <BarChart3 className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-              </div>
-              <span className="text-body-sm font-bold text-foreground">
-                {t('statsAndPerformance')}
-              </span>
+              <BarChart3 className="w-4 h-4" />
+              {t('statsAndPerformance')}
             </SystemLink>
             <SystemLink
               href="/study-plan"
-              className="group flex flex-col items-center gap-2 bg-primary text-primary-foreground rounded-2xl p-6 shadow-elevation-2 hover:opacity-90 transition-all"
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-body-sm font-medium text-primary-foreground transition-all hover:opacity-90"
             >
-              <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
-                <GraduationCap className="w-5 h-5" />
-              </div>
-              <span className="text-body-sm font-bold">{t('upcomingExam')}</span>
+              <GraduationCap className="w-4 h-4" />
+              {t('upcomingExam')}
             </SystemLink>
-            <button className="group flex flex-col items-center gap-2 bg-card border border-border rounded-2xl p-6 hover:border-primary/30 hover:shadow-elevation-2 transition-all">
-              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                <Sparkles className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-              </div>
-              <span className="text-body-sm font-bold text-foreground">
-                {t('bagrutTransition')}
-              </span>
+            <button className="group inline-flex items-center gap-2 rounded-lg border border-border/40 px-4 py-2.5 text-body-sm font-medium text-muted-foreground hover:text-foreground hover:border-border/60 transition-all">
+              <Sparkles className="w-4 h-4" />
+              {t('bagrutTransition')}
             </button>
           </div>
         </div>
@@ -543,62 +495,74 @@ function LessonGridCard({
     }
   }
 
+  // Pick icon based on lesson type
+  const TypeIcon = lesson.type === 'practice' ? Target : lesson.type === 'exam' ? Trophy : BookOpen
+  const hasFiles = (lesson.contentFiles?.length ?? 0) > 0
+
   return (
     <div
       className={cn(
-        'relative rounded-2xl bg-card border border-border/40 shadow-elevation-1 transition-all duration-normal overflow-hidden',
-        'border-s-4',
-        !isSoon && 'hover:shadow-card-hover hover:-translate-y-0.5',
-        isSoon && 'opacity-60',
+        'relative group rounded-xl bg-card border border-border/30 transition-all duration-normal',
+        !isSoon && 'hover:bg-muted/30 hover:border-border/50',
+        isSoon && 'opacity-50',
       )}
-      style={{ borderInlineStartColor: accentColor }}
     >
       <ContentStatusBadge
         contentStatus={lesson.contentStatus}
         contentStatusExpiresAt={lesson.contentStatusExpiresAt ?? undefined}
         contentStatusLabel={lesson.contentStatusLabel ?? undefined}
-        className="absolute -top-3 right-4 z-10"
+        className="absolute -top-2.5 end-3 z-10"
       />
       <SystemLink
         href={isSoon ? '#' : href}
         onClick={handleLessonClick}
         className={cn(
-          'p-5',
-          'flex flex-row-reverse items-center justify-between',
+          'p-5 flex items-center gap-4',
           isSoon ? 'cursor-not-allowed' : 'cursor-pointer',
         )}
       >
-        <div className="flex flex-col text-end">
-          <span
-            className="text-label font-bold mb-1 uppercase tracking-wide"
-            style={{ color: accentColor }}
-          >
-            {tc('lesson')} {index}
-          </span>
-          <h3 className="text-heading-md font-bold text-card-foreground">{lesson.title}</h3>
-          <p className="text-body-sm text-muted-foreground mt-1 flex items-center justify-end gap-1">
-            {progress === 0 && <Clock className="w-3 h-3" />}
-            {progressText}
-          </p>
+        {/* Lesson icon */}
+        <div
+          className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+          style={{ backgroundColor: `${accentColor.replace(')', ' / 0.1)')}` }}
+        >
+          <TypeIcon className="w-5 h-5" style={{ color: accentColor }} />
         </div>
 
-        <div className="relative shrink-0 w-14 h-14">
-          <ProgressCircle
-            percentage={progress}
-            size={56}
-            strokeWidth={3}
-            strokeColor={tabColor?.stroke}
-          >
-            <text
-              x="50%"
-              y="50%"
-              textAnchor="middle"
-              dy=".3em"
-              className="text-body-sm font-bold fill-foreground"
-            >
-              {Math.round(progress)}%
-            </text>
-          </ProgressCircle>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="text-body-xs font-medium text-muted-foreground">
+              {tc('lesson')} {index}
+            </span>
+            {hasFiles && (
+              <FileText className="w-3 h-3 text-muted-foreground/50" />
+            )}
+          </div>
+          <h3 className="text-body-lg font-semibold text-card-foreground truncate">{lesson.title}</h3>
+          {lesson.description && (
+            <p className="text-body-xs text-muted-foreground mt-1 line-clamp-1 [&_p]:inline">
+              {lesson.description.replace(/<[^>]*>/g, '')}
+            </p>
+          )}
+        </div>
+
+        {/* Progress */}
+        <div className="shrink-0 flex flex-col items-end gap-1">
+          {progress > 0 ? (
+            <>
+              <span className="text-body-sm font-semibold" style={{ color: accentColor }}>
+                {Math.round(progress)}%
+              </span>
+              <div className="w-14 h-1 rounded-full bg-muted overflow-hidden">
+                <div className="h-full rounded-full" style={{ width: `${progress}%`, backgroundColor: accentColor }} />
+              </div>
+            </>
+          ) : (
+            <span className="text-body-xs text-muted-foreground flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              {progressText}
+            </span>
+          )}
         </div>
       </SystemLink>
     </div>

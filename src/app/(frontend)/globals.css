@@ -15,8 +15,8 @@
 
   :root,
   [data-theme='light'] {
-    /* Light background - light gray-blue for exercise view */
-    --background: 210 33% 97%; /* #f4f7fa */
+    /* Light background - warm neutral */
+    --background: 40 20% 97%; /* #f9f8f6 */
     --foreground: 220 9% 11%; /* #1a1c1e */
 
     /* Card: pure white for elevated surfaces */

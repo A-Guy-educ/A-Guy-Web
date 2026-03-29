@@ -5,7 +5,7 @@ const Card: React.FC<
   { ref?: React.Ref<HTMLDivElement> } & React.HTMLAttributes<HTMLDivElement>
 > = ({ className, ref, ...props }) => (
   <div
-    className={cn('rounded-2xl border border-border/40 bg-card text-card-foreground shadow-elevation-1 transition-all duration-normal overflow-hidden', className)}
+    className={cn('rounded-xl bg-card text-card-foreground border border-border/30 transition-all duration-normal', className)}
     ref={ref}
     {...props}
   />

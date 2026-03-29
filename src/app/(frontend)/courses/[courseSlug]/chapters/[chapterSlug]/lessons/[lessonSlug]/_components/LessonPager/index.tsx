@@ -154,7 +154,7 @@ export function LessonPager({
             <div
               ref={contentRef}
               tabIndex={-1}
-              className="flex-1 overflow-y-auto min-h-0 pb-20 outline-none"
+              className="flex-1 overflow-y-auto min-h-0 pb-4 outline-none"
               onTouchStart={onTouchStart}
               onTouchMove={onTouchMove}
               onTouchEnd={onTouchEnd}
@@ -206,7 +206,7 @@ export function LessonPager({
             </div>
 
             {/* Fixed bottom navigation bar */}
-            <div className="fixed bottom-0 inset-x-0 z-30 bg-card/80 backdrop-blur-xl border-t border-border/50 px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            <div className="sticky bottom-0 z-30 bg-card/80 backdrop-blur-xl border-t border-border/50 px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
               <div className="max-w-3xl mx-auto flex items-center justify-between">
                 <Button
                   variant="ghost"
@@ -293,7 +293,7 @@ export function LessonPager({
         <main
           ref={contentRef}
           tabIndex={-1}
-          className="flex-1 overflow-y-auto pb-24 outline-none"
+          className="flex-1 overflow-y-auto pb-4 outline-none"
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
@@ -336,7 +336,7 @@ export function LessonPager({
         </main>
 
         {/* Fixed bottom navigation bar */}
-        <div className="fixed bottom-0 inset-x-0 z-30 bg-card/80 backdrop-blur-xl border-t border-border/50 px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className="sticky bottom-0 z-30 bg-card/80 backdrop-blur-xl border-t border-border/50 px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <div className="max-w-3xl mx-auto flex items-center justify-between">
             <Button
               variant="ghost"
@@ -383,7 +383,7 @@ export function LessonPager({
             {/* Top progress line */}
             <Progress value={progressPercent} className="h-0.5 rounded-none" />
 
-            <div className="flex-1 overflow-y-auto min-h-0 pb-20">
+            <div className="flex-1 overflow-y-auto min-h-0 pb-4">
               <div className="w-full h-full flex flex-col min-h-0">
                 {validFiles.map((file, index) => (
                   <div key={file.id} className="w-full flex-1 min-h-0">
@@ -403,7 +403,7 @@ export function LessonPager({
             </div>
 
             {/* Fixed bottom navigation bar */}
-            <div className="fixed bottom-0 inset-x-0 z-30 bg-card/80 backdrop-blur-xl border-t border-border/50 px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            <div className="sticky bottom-0 z-30 bg-card/80 backdrop-blur-xl border-t border-border/50 px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
               <div className="max-w-3xl mx-auto flex items-center justify-between">
                 <Button
                   variant="ghost"
@@ -467,47 +467,39 @@ export function LessonPager({
                 <span className="inline-block px-4 py-1.5 bg-muted text-muted-foreground rounded-full text-label tracking-[0.2em] uppercase mb-5 border border-border/40">
                   {t('exercisesPagerIntro')}
                 </span>
-                <h1 className="text-display-lg md:text-display-xl font-bold leading-tight text-foreground mb-3">
+                <h1 className="text-heading-xl md:text-display-sm font-bold leading-tight text-foreground mb-2">
                   {lessonTitle}
                 </h1>
-                <div className="w-20 h-1 bg-primary mx-auto rounded-full" />
+                <div className="w-12 h-0.5 bg-primary mx-auto rounded-full" />
               </header>
 
-              <div className="bg-card rounded-3xl p-card-padding-lg md:p-10 border border-border/60 shadow-card-hover shadow-muted/50 text-center">
-                <div className="w-24 h-24 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-card shadow-primary/10 border border-primary/20">
-                  <BookOpen className="w-11 h-11 text-primary" />
+              <div className="bg-card rounded-2xl p-6 md:p-8 border border-border/40 text-center max-w-lg mx-auto">
+                <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-5">
+                  <BookOpen className="w-7 h-7 text-primary" />
                 </div>
 
-                <h2 className="text-display-xl font-medium mb-4 text-foreground">
+                <h2 className="text-heading-xl font-bold mb-2 text-foreground">
                   {t('exercisesPagerWelcome')}
                 </h2>
-                <p className="text-muted-foreground mb-10 text-body-lg leading-relaxed max-w-2xl mx-auto">
+                <p className="text-muted-foreground mb-6 text-body-md max-w-sm mx-auto">
                   {t('exercisesPagerIntroDescriptionPart1')} {totalBlocks}{' '}
                   {t('exercisesPagerIntroDescriptionPart2')}
                 </p>
 
                 {/* Lesson contents summary */}
-                <div className="flex items-center justify-center gap-6 mb-10">
+                <div className="flex items-center justify-center gap-4 mb-6">
                   {exerciseCount > 0 && (
-                    <div className="inline-flex items-center gap-3 px-5 py-3 bg-muted rounded-2xl border border-border/60">
-                      <Layers className="w-5 h-5 text-primary" />
-                      <span className="text-primary text-heading-xl font-medium">
-                        {exerciseCount}
-                      </span>
-                      <span className="text-label text-muted-foreground uppercase tracking-wider">
-                        {t('exercise')}
-                      </span>
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-muted rounded-lg text-body-sm">
+                      <Layers className="w-4 h-4 text-primary" />
+                      <span className="text-primary font-semibold">{exerciseCount}</span>
+                      <span className="text-muted-foreground">{t('exercise')}</span>
                     </div>
                   )}
                   {contentPageCount > 0 && (
-                    <div className="inline-flex items-center gap-3 px-5 py-3 bg-muted rounded-2xl border border-border/60">
-                      <FileText className="w-5 h-5 text-primary" />
-                      <span className="text-primary text-heading-xl font-medium">
-                        {contentPageCount}
-                      </span>
-                      <span className="text-label text-muted-foreground uppercase tracking-wider">
-                        {t('contentPages') ?? 'Pages'}
-                      </span>
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-muted rounded-lg text-body-sm">
+                      <FileText className="w-4 h-4 text-primary" />
+                      <span className="text-primary font-semibold">{contentPageCount}</span>
+                      <span className="text-muted-foreground">{t('contentPages') ?? 'Pages'}</span>
                     </div>
                   )}
                 </div>
@@ -515,7 +507,7 @@ export function LessonPager({
                 <Button
                   onClick={handleStart}
                   size="lg"
-                  className="w-full py-section-sm rounded-2xl text-body-lg shadow-card shadow-primary/20 hover:shadow-card-hover hover:shadow-primary/30 transition-all duration-slow cursor-pointer"
+                  className="px-10 rounded-xl cursor-pointer"
                 >
                   {t('exercisesPagerStart')}{' '}
                   <ChevronLeft className="w-5 h-5 ms-2 rtl:rotate-0 ltr:rotate-180" />
