@@ -38,6 +38,9 @@ importers:
       '@google/generative-ai':
         specifier: ^0.24.1
         version: 0.24.1
+      '@kody-ade/kody-engine-lite':
+        specifier: '*'
+        version: 0.1.61
       '@marsidev/react-turnstile':
         specifier: ^1.4.1
         version: 1.4.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -294,9 +297,6 @@ importers:
       '@eslint/eslintrc':
         specifier: ^3.2.0
         version: 3.3.3
-      '@kody-ade/kody-engine-lite':
-        specifier: ^0.1.61
-        version: 0.1.61
       '@playwright/test':
         specifier: 1.57.0
         version: 1.57.0
