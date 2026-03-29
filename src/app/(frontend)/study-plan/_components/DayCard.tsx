@@ -51,7 +51,7 @@ export function DayCard({ day, topics, onToggleStatus, onEdit }: DayCardProps) {
 
   if (isEditing) {
     return (
-      <div className="bg-card rounded-2xl border-2 border-primary/50 p-card-padding shadow-elevation-1">
+      <div className="rounded-2xl bg-card border border-border/40 border-s-4 border-s-primary shadow-elevation-1 overflow-hidden p-5">
         <div className="flex items-start justify-between mb-3">
           <span className="text-body-sm font-semibold text-muted-foreground">
             {new Date(day.date).toLocaleDateString('he-IL', {
@@ -117,8 +117,9 @@ export function DayCard({ day, topics, onToggleStatus, onEdit }: DayCardProps) {
   return (
     <div
       className={cn(
-        'relative bg-card rounded-2xl border-2 p-card-padding transition-all duration-normal',
-        isCompleted ? 'border-success/30 opacity-60' : 'border-border hover:border-border shadow-elevation-1',
+        'relative rounded-2xl bg-card border border-border/40 shadow-elevation-1 p-5 transition-all duration-normal overflow-hidden',
+        'border-s-4',
+        isCompleted ? 'border-s-success opacity-60' : 'border-s-primary hover:shadow-card-hover hover:-translate-y-0.5',
       )}
     >
       {/* Edit button - only show when not completed */}

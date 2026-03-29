@@ -25,11 +25,10 @@ export function ConversationCard({
 
   return (
     <div
-      className="rounded-2xl overflow-hidden border border-border/40 shadow-elevation-1 transition-all duration-normal active:scale-[0.98]"
-      style={{ borderTopWidth: 3, borderTopColor: accentColor ?? 'hsl(var(--primary))' }}
+      className="rounded-2xl bg-card border border-border/40 shadow-elevation-1 transition-all duration-normal overflow-hidden border-s-4 border-s-success hover:shadow-card-hover hover:-translate-y-0.5"
     >
       <div
-        className={cn('bg-card p-6', 'flex items-center justify-between', 'cursor-pointer')}
+        className={cn('p-5', 'flex items-center justify-between', 'cursor-pointer')}
         onClick={onClick}
         role="button"
         tabIndex={0}
@@ -39,8 +38,8 @@ export function ConversationCard({
           <span className="text-label font-bold text-muted-foreground mb-1 uppercase tracking-wide">
             {t('question')} {index}
           </span>
-          <h3 className="text-body-lg font-bold text-card-foreground truncate">{title}</h3>
-          {subtitle && <p className="text-body-xs text-muted-foreground mt-1 truncate">{subtitle}</p>}
+          <h3 className="text-heading-md font-bold text-card-foreground truncate">{title}</h3>
+          {subtitle && <p className="text-body-sm text-muted-foreground mt-1 truncate">{subtitle}</p>}
         </div>
         <div className="flex items-center gap-2 shrink-0 ms-3">
           <button

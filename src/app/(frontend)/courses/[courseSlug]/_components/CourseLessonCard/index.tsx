@@ -50,15 +50,13 @@ export function CourseLessonCard({
   return (
     <div
       className={cn(
-        'group relative rounded-2xl overflow-visible border border-border/40 shadow-elevation-1',
-        'transition-all duration-normal',
-        !isSoon && 'active:scale-[0.98] hover:shadow-elevation-3',
+        'group relative rounded-2xl bg-card border border-border/40 shadow-elevation-1',
+        'transition-all duration-normal overflow-hidden',
+        'border-s-4',
+        !isSoon && 'hover:shadow-card-hover hover:-translate-y-0.5',
         isSoon && 'opacity-60',
       )}
-      style={{
-        borderInlineStartWidth: 4,
-        borderInlineStartColor: accentColor,
-      }}
+      style={{ borderInlineStartColor: accentColor }}
     >
       <ContentStatusBadge
         contentStatus={lesson.contentStatus}
@@ -70,7 +68,7 @@ export function CourseLessonCard({
         href={isSoon ? '#' : href}
         onClick={handleLessonClick}
         className={cn(
-          'bg-card rounded-2xl p-6',
+          'p-5',
           'flex items-center justify-between gap-4',
           'transition-colors duration-normal',
           !isSoon && 'group-hover:bg-muted/30',
@@ -84,10 +82,10 @@ export function CourseLessonCard({
           >
             {tc('lesson')} {index}
           </span>
-          <h3 className="text-body-lg font-bold text-card-foreground leading-snug">
+          <h3 className="text-heading-md font-bold text-card-foreground leading-snug">
             {lesson.title}
           </h3>
-          <p className="text-body-xs text-muted-foreground flex items-center justify-start gap-1.5">
+          <p className="text-body-sm text-muted-foreground flex items-center justify-start gap-1.5">
             {progress === 0 && <Clock className="w-3.5 h-3.5" />}
             {progressText}
           </p>

@@ -546,11 +546,12 @@ function LessonGridCard({
   return (
     <div
       className={cn(
-        'relative rounded-2xl overflow-visible border border-border/40 shadow-elevation-1 transition-all',
-        !isSoon && 'active:scale-[0.98]',
+        'relative rounded-2xl bg-card border border-border/40 shadow-elevation-1 transition-all duration-normal overflow-hidden',
+        'border-s-4',
+        !isSoon && 'hover:shadow-card-hover hover:-translate-y-0.5',
         isSoon && 'opacity-60',
       )}
-      style={{ borderTopWidth: 3, borderTopColor: accentColor }}
+      style={{ borderInlineStartColor: accentColor }}
     >
       <ContentStatusBadge
         contentStatus={lesson.contentStatus}
@@ -562,7 +563,7 @@ function LessonGridCard({
         href={isSoon ? '#' : href}
         onClick={handleLessonClick}
         className={cn(
-          'bg-card p-5',
+          'p-5',
           'flex flex-row-reverse items-center justify-between',
           isSoon ? 'cursor-not-allowed' : 'cursor-pointer',
         )}
@@ -574,8 +575,8 @@ function LessonGridCard({
           >
             {tc('lesson')} {index}
           </span>
-          <h3 className="text-body-lg font-bold text-card-foreground">{lesson.title}</h3>
-          <p className="text-body-xs text-muted-foreground mt-1 flex items-center justify-end gap-1">
+          <h3 className="text-heading-md font-bold text-card-foreground">{lesson.title}</h3>
+          <p className="text-body-sm text-muted-foreground mt-1 flex items-center justify-end gap-1">
             {progress === 0 && <Clock className="w-3 h-3" />}
             {progressText}
           </p>

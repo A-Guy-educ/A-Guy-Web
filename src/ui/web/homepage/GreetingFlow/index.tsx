@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react'
 import { TypingAnimation } from '@/ui/web/shared/TypingAnimation'
 import { Button } from '@/ui/web/components/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/web/components/card'
-import { Badge } from '@/ui/web/components/badge'
+import { SafeHtml } from '@/ui/web/SafeHtml'
 import { Stack } from '@/ui/web/shared/Layout/Stack'
 import { Grid } from '@/ui/web/shared/Layout/Grid'
 import { Section } from '@/ui/web/shared/Layout/Section'
@@ -12,6 +11,23 @@ import { Text } from '@/ui/web/shared/Typography/Text'
 import { setUserProfile } from '@/client/state/localStorage/userProfile'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import type { Course } from '@/payload-types'
+
+const COURSE_COLORS = [
+  'hsl(217 91% 60%)',
+  'hsl(142 71% 45%)',
+  'hsl(271 91% 65%)',
+  'hsl(25 95% 53%)',
+  'hsl(330 81% 60%)',
+]
+
+function getCourseColorIndex(label?: string | null): number {
+  if (!label) return 0
+  let hash = 0
+  for (let i = 0; i < label.length; i++) {
+    hash = label.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  return Math.abs(hash) % COURSE_COLORS.length
+}
 
 type FlowStep = 'greeting' | 'mood' | 'moodResponse' | 'courses' | 'complete'
 
@@ -122,29 +138,33 @@ export function GreetingFlow({ onComplete }: { onComplete: () => void }) {
               <Text variant="muted">{t('loading')}</Text>
             ) : courses.length > 0 ? (
               <Grid cols={{ default: '1', md: '2', lg: '3' }} gap="content-gap-lg">
-                {courses.map((course) => (
-                  <Card
-                    key={course.id}
-                    onClick={() => handleCourseSelect(course)}
-                    className="cursor-pointer transition-all duration-slow hover:shadow-card-hover hover:-translate-y-1 h-full flex flex-col"
-                  >
-                    <CardHeader>
+                {courses.map((course) => {
+                  const accentColor = COURSE_COLORS[getCourseColorIndex(course.courseLabel)]
+                  return (
+                    <div
+                      key={course.id}
+                      onClick={() => handleCourseSelect(course)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => e.key === 'Enter' && handleCourseSelect(course)}
+                      className="rounded-2xl bg-card border border-border/40 shadow-elevation-1 transition-all duration-normal overflow-hidden border-s-4 cursor-pointer hover:shadow-card-hover hover:-translate-y-0.5 h-full flex flex-col p-5"
+                      style={{ borderInlineStartColor: accentColor }}
+                    >
                       {course.courseLabel && (
-                        <Badge variant="secondary" className="w-fit mb-2">
+                        <span className="inline-block self-start mb-3 bg-muted text-foreground text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full">
                           {course.courseLabel}
-                        </Badge>
+                        </span>
                       )}
-                      <CardTitle className="text-body-lg font-bold">{course.title}</CardTitle>
-                    </CardHeader>
-                    {course.description && (
-                      <CardContent className="flex-1">
-                        <CardDescription className="line-clamp-2">
-                          {course.description}
-                        </CardDescription>
-                      </CardContent>
-                    )}
-                  </Card>
-                ))}
+                      <h3 className="text-heading-md font-bold text-card-foreground">{course.title}</h3>
+                      {course.description && (
+                        <SafeHtml
+                          html={course.description}
+                          className="text-body-sm text-muted-foreground line-clamp-2 mt-2 [&_p]:m-0"
+                        />
+                      )}
+                    </div>
+                  )
+                })}
               </Grid>
             ) : (
               <Text variant="muted">{t('noCoursesAvailable')}</Text>

@@ -21,7 +21,7 @@ export function ChapterCard({ chapter, courseSlug }: ChapterCardProps) {
   }
 
   return (
-    <Card className={cn('hover:shadow-card-hover hover:border-primary/15 transition-all duration-normal')}>
+    <Card className={cn('border-s-4 border-s-primary hover:shadow-card-hover hover:-translate-y-0.5')}>
       <CardHeader>
         {chapter.chapterLabel && (
           <div className="mb-2">
@@ -30,11 +30,11 @@ export function ChapterCard({ chapter, courseSlug }: ChapterCardProps) {
             </span>
           </div>
         )}
-        <CardTitle className="text-heading-lg">{chapter.title}</CardTitle>
+        <CardTitle>{chapter.title}</CardTitle>
         {chapter.description && (
           <SafeHtml
             html={chapter.description}
-            className="text-body-sm text-muted-foreground [&_p]:m-0"
+            className="text-body-sm text-muted-foreground line-clamp-2 [&_p]:m-0"
           />
         )}
       </CardHeader>

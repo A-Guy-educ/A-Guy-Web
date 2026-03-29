@@ -133,11 +133,11 @@ export function AskConversationGrid() {
             disabled={isCreating}
             onClick={handleNewQuestion}
             className={cn(
-              'bg-primary text-primary-foreground rounded-3xl p-6 shadow-card',
+              'bg-primary text-primary-foreground rounded-2xl p-5 shadow-elevation-1',
               'flex items-center justify-between',
-              'border border-transparent hover:opacity-95',
-              'transition-all cursor-pointer active:scale-[0.98]',
-              'text-right',
+              'border border-border/40 hover:opacity-95',
+              'transition-all duration-normal cursor-pointer hover:shadow-card-hover hover:-translate-y-0.5',
+              'text-right overflow-hidden',
             )}
           >
             <div className="flex flex-col">
@@ -159,10 +159,11 @@ export function AskConversationGrid() {
             <SystemLink
               href={`/ask?chat=${conv.id}&ctx=${encodeURIComponent(conv.contextKey ?? '')}`}
               className={cn(
-                'bg-card rounded-3xl p-6 shadow-card',
+                'bg-card rounded-2xl p-5 shadow-elevation-1',
                 'flex items-center justify-between',
-                'border border-transparent hover:border-primary/20',
-                'transition-all cursor-pointer active:scale-[0.98]',
+                'border border-border/40 border-s-4 border-s-success',
+                'transition-all duration-normal cursor-pointer hover:shadow-card-hover hover:-translate-y-0.5',
+                'overflow-hidden',
               )}
             >
               <div className="flex flex-col">
@@ -170,7 +171,7 @@ export function AskConversationGrid() {
                   {t('question')} {conversations.length - idx}
                 </span>
                 <h3 className="text-heading-md font-bold text-card-foreground">{conv.title || '...'}</h3>
-                <p className="text-body-xs text-muted-foreground mt-1">
+                <p className="text-body-sm text-muted-foreground mt-1">
                   {conv.messageCount} {conv.messageCount === 1 ? 'message' : 'messages'}
                 </p>
               </div>

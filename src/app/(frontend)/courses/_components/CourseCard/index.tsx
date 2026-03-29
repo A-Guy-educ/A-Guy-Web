@@ -99,22 +99,16 @@ export function CourseCard({ course, isOwned = false }: CourseCardProps) {
   return (
     <div
       className={cn(
-        'group relative bg-card rounded-[2rem] flex flex-col overflow-hidden',
-        'bg-gradient-to-b',
-        courseColor.bg,
-        isOwned ? 'border-2 border-primary/20' : 'border border-transparent hover:border-primary/10',
-        'shadow-card',
-        'transition-all duration-normal hover:-translate-y-1 hover:shadow-card-hover',
+        'group relative rounded-2xl bg-card border border-border/40 shadow-elevation-1',
+        'transition-all duration-normal overflow-hidden',
+        'hover:shadow-card-hover hover:-translate-y-0.5',
+        'border-s-4',
+        'flex flex-col',
         isSoon && 'opacity-75',
       )}
+      style={{ borderInlineStartColor: courseColor.accent }}
     >
-      {/* Colored accent strip at top */}
-      <div
-        className="h-1 w-full transition-all duration-normal group-hover:h-1.5"
-        style={{ backgroundColor: courseColor.accent }}
-      />
-
-      <div className="p-4 md:p-card-padding pt-5 flex flex-col flex-1">
+      <div className="p-5 flex flex-col flex-1">
         {isOwned && (
           <span className="absolute -top-3 start-6 bg-success text-white px-4 py-1 rounded-full shadow-elevation-3 uppercase tracking-wider text-[9px] font-black z-10">
             {t('yourCourse') ?? '\u05D4\u05E7\u05D5\u05E8\u05E1 \u05E9\u05DC\u05DA'}
@@ -129,18 +123,15 @@ export function CourseCard({ course, isOwned = false }: CourseCardProps) {
           className="absolute -top-3 end-6 z-10"
         />
 
-        {/* Course label as colored badge */}
+        {/* Course label as muted badge */}
         {course.courseLabel && (
-          <span
-            className="inline-block self-start mb-3 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-white"
-            style={{ backgroundColor: courseColor.accent }}
-          >
+          <span className="inline-block self-start mb-3 bg-muted text-foreground text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full">
             {course.courseLabel}
           </span>
         )}
 
-        {/* Title - large and bold */}
-        <h4 className="text-heading-lg md:text-heading-xl font-bold text-card-foreground text-start mb-2 break-words">
+        {/* Title */}
+        <h4 className="text-heading-md font-bold text-card-foreground text-start mb-2 break-words">
           {course.title}
         </h4>
 
@@ -148,7 +139,7 @@ export function CourseCard({ course, isOwned = false }: CourseCardProps) {
         {course.description && (
           <SafeHtml
             html={course.description}
-            className="text-body-xs md:text-body-sm text-muted-foreground line-clamp-2 text-start [&_p]:m-0 break-words"
+            className="text-body-sm text-muted-foreground line-clamp-2 text-start [&_p]:m-0 break-words"
           />
         )}
 

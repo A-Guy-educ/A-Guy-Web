@@ -99,7 +99,7 @@ export function SelectedCourseCard() {
 
   if (loadingState === 'loading') {
     return (
-      <Card>
+      <Card className="border-s-4 border-s-primary">
         <CardHeader>
           <CardTitle>{t('selectedCourse')}</CardTitle>
         </CardHeader>
@@ -114,12 +114,12 @@ export function SelectedCourseCard() {
 
   if (loadingState === 'not-selected') {
     return (
-      <Card>
+      <Card className="border-s-4 border-s-primary">
         <CardHeader>
           <CardTitle>{t('selectedCourse')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground mb-4">{t('noCourseSelected')}</p>
+          <p className="text-body-sm text-muted-foreground mb-4">{t('noCourseSelected')}</p>
           <Link href="/">
             <Button variant="outline">{t('selectCourse')}</Button>
           </Link>
@@ -130,12 +130,12 @@ export function SelectedCourseCard() {
 
   if (loadingState === 'not-found') {
     return (
-      <Card>
+      <Card className="border-s-4 border-s-primary">
         <CardHeader>
           <CardTitle>{t('selectedCourse')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground mb-4">{t('noCourseSelected')}</p>
+          <p className="text-body-sm text-muted-foreground mb-4">{t('noCourseSelected')}</p>
           <Link href="/">
             <Button variant="outline">{t('selectCourse')}</Button>
           </Link>
@@ -146,12 +146,12 @@ export function SelectedCourseCard() {
 
   if (loadingState === 'error') {
     return (
-      <Card>
+      <Card className="border-s-4 border-s-destructive">
         <CardHeader>
           <CardTitle>{t('selectedCourse')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-destructive mb-4">Failed to load course</p>
+          <p className="text-body-sm text-destructive mb-4">Failed to load course</p>
           <Button onClick={handleRetry} variant="outline">
             Try Again
           </Button>
@@ -161,7 +161,7 @@ export function SelectedCourseCard() {
   }
 
   return (
-    <Card>
+    <Card className="border-s-4 border-s-primary">
       <CardHeader>
         <CardTitle>{t('selectedCourse')}</CardTitle>
       </CardHeader>
@@ -170,12 +170,12 @@ export function SelectedCourseCard() {
           <>
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1">
-                <Badge variant="secondary" className="mb-2">
+                <Badge variant="secondary" className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full mb-2">
                   {course.courseLabel}
                 </Badge>
-                <p className="font-semibold text-heading-lg">{course.title}</p>
+                <p className="font-bold text-heading-md">{course.title}</p>
                 {course.description && (
-                  <p className="text-muted-foreground text-body-sm">{course.description}</p>
+                  <p className="text-body-sm text-muted-foreground line-clamp-2">{course.description}</p>
                 )}
               </div>
             </div>

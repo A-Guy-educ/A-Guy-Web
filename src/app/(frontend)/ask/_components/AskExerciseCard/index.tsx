@@ -34,16 +34,16 @@ export function AskExerciseCard({ file }: AskExerciseCardProps) {
   }
 
   return (
-    <div className="rounded-3xl overflow-hidden mb-6 shadow-elevation-1 border border-border bg-card transition-shadow duration-normal hover:shadow-elevation-2">
+    <div className="rounded-2xl bg-card border border-border/40 shadow-elevation-1 transition-all duration-normal overflow-hidden border-s-4 border-s-accent hover:shadow-card-hover hover:-translate-y-0.5 mb-6">
       <div className="aspect-video relative overflow-hidden bg-muted">
         <Image src={file.url} alt={file.title} fill className="object-contain" sizes="(max-width: 768px) 100vw, 50vw" />
       </div>
 
-      <div className="p-card-padding">
+      <div className="p-5">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div>
-            <h3 className="text-heading-lg font-bold text-foreground">{file.title}</h3>
-            <p className="text-muted-foreground text-body-xs mt-1">{file.date}</p>
+            <h3 className="text-heading-md font-bold text-card-foreground">{file.title}</h3>
+            <p className="text-body-sm text-muted-foreground mt-1">{file.date}</p>
           </div>
           <div className="flex gap-2">
             <button
