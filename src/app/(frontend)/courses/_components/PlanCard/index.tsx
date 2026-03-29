@@ -35,6 +35,12 @@ interface PlanCardProps {
   isPremium?: boolean
 }
 
+const PLAN_GRADIENTS = {
+  current: 'from-muted/30 to-transparent',
+  standard: 'from-blue-500/5 to-transparent',
+  premium: 'from-primary/8 via-purple-500/5 to-transparent',
+} as const
+
 export function PlanCard({
   title,
   subtitle,
@@ -65,11 +71,11 @@ export function PlanCard({
   const getFeatureIcon = (iconType: IconType) => {
     switch (iconType) {
       case 'x':
-        return <XCircle className="w-4 h-4 text-muted-foreground/30" />
+        return <XCircle className="w-4 h-4 text-muted-foreground/30 shrink-0" />
       case 'check':
-        return <CheckCircle2 className="w-4 h-4 text-success" />
+        return <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
       case 'help':
-        return <HelpCircle className="w-4 h-4 text-warning" />
+        return <HelpCircle className="w-4 h-4 text-warning shrink-0" />
       default:
         return null
     }
@@ -78,7 +84,7 @@ export function PlanCard({
   const getFeatureStyle = (style: FeatureStyle) => {
     switch (style) {
       case 'disabled':
-        return 'text-muted-foreground italic'
+        return 'text-muted-foreground italic line-through decoration-muted-foreground/30'
       case 'enabled':
         return 'font-medium text-card-foreground'
       case 'limited':
@@ -94,10 +100,14 @@ export function PlanCard({
       ? 'border border-border'
       : 'border border-border/50'
 
+  const gradientClass = PLAN_GRADIENTS[buttonStyle] ?? PLAN_GRADIENTS.standard
+
   return (
     <div
       className={cn(
-        'relative bg-card rounded-[2.5rem] p-8 flex flex-col min-w-[300px] md:min-w-0',
+        'group relative rounded-[2.5rem] flex flex-col min-w-[300px] md:min-w-0 overflow-hidden',
+        'bg-card bg-gradient-to-b',
+        gradientClass,
         borderClass,
         'shadow-card',
         'transition-all duration-slow hover:-translate-y-1 hover:shadow-card-hover hover:border-primary/15',
@@ -106,7 +116,7 @@ export function PlanCard({
       {badge && (
         <div
           className={cn(
-            'absolute -top-4 left-1/2 -translate-x-1/2',
+            'absolute -top-4 left-1/2 -translate-x-1/2 z-10',
             badgeColor,
             'text-white px-6 py-2 rounded-full shadow-lg',
           )}
@@ -117,51 +127,74 @@ export function PlanCard({
         </div>
       )}
 
-      <div className="mb-8">
-        <span
-          className={cn(
-            'block mb-2 uppercase tracking-widest text-[10px]',
-            isPremium ? 'text-primary' : 'text-muted-foreground',
-          )}
-        >
-          {subtitle}
-        </span>
-        <h3
-          className={cn('text-heading-xl font-black mb-1', isPremium ? 'text-primary' : 'text-card-foreground')}
-        >
-          {title}
-        </h3>
-        <div className="text-heading-xl font-black text-card-foreground">
-          ₪{price}{' '}
-          <span className="text-body-sm font-normal text-muted-foreground">
-            / {period}
-          </span>
-        </div>
-      </div>
-
-      <ul className="space-y-4 mb-10 flex-1">
-        {features.map((feature, index) => (
-          <li
-            key={index}
-            className={cn('flex items-center gap-3 text-body-sm', getFeatureStyle(feature.style))}
+      <div className="p-8 flex flex-col flex-1">
+        {/* Plan header */}
+        <div className="mb-8">
+          <span
+            className={cn(
+              'block mb-2 uppercase tracking-widest text-[10px]',
+              isPremium ? 'text-primary' : 'text-muted-foreground',
+            )}
           >
-            {getFeatureIcon(feature.icon)}
-            <span>{feature.text}</span>
-          </li>
-        ))}
-        <li className={cn('flex items-center gap-3 text-body-sm', courseCount.color)}>
-          {courseCount.icon === 'book' ? (
-            <BookOpen className="w-4 h-4" />
-          ) : (
-            <Layers className="w-4 h-4" />
-          )}
-          <span>{courseCount.text}</span>
-        </li>
-      </ul>
+            {subtitle}
+          </span>
+          <h3
+            className={cn(
+              'text-heading-xl font-black mb-4',
+              isPremium ? 'text-primary' : 'text-card-foreground',
+            )}
+          >
+            {title}
+          </h3>
 
-      <button className={cn(getButtonClasses(), 'text-body-sm')}>
-        {buttonText}
-      </button>
+          {/* Prominent pricing */}
+          <div className="flex items-baseline gap-1">
+            <span
+              className={cn(
+                'text-display-sm font-black',
+                isPremium ? 'text-primary' : 'text-card-foreground',
+              )}
+            >
+              {'\u20AA'}{price}
+            </span>
+            <span className="text-body-sm font-normal text-muted-foreground">
+              / {period}
+            </span>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-border/50 mb-6" />
+
+        {/* Feature list */}
+        <ul className="space-y-3.5 mb-10 flex-1">
+          {features.map((feature, featureIndex) => (
+            <li
+              key={featureIndex}
+              className={cn(
+                'flex items-center gap-3 text-body-sm',
+                getFeatureStyle(feature.style),
+              )}
+            >
+              {getFeatureIcon(feature.icon)}
+              <span>{feature.text}</span>
+            </li>
+          ))}
+          <li className={cn('flex items-center gap-3 text-body-sm font-medium', courseCount.color)}>
+            {courseCount.icon === 'book' ? (
+              <BookOpen className="w-4 h-4 shrink-0" />
+            ) : (
+              <Layers className="w-4 h-4 shrink-0" />
+            )}
+            <span>{courseCount.text}</span>
+          </li>
+        </ul>
+
+        {/* Action button */}
+        <button className={cn(getButtonClasses(), 'text-body-sm font-semibold')}>
+          {buttonText}
+        </button>
+      </div>
     </div>
   )
 }

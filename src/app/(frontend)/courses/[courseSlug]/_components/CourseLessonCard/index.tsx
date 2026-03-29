@@ -50,11 +50,15 @@ export function CourseLessonCard({
   return (
     <div
       className={cn(
-        'relative rounded-2xl overflow-visible border border-border/40 shadow-elevation-1 transition-all',
-        !isSoon && 'active:scale-[0.98]',
+        'group relative rounded-2xl overflow-visible border border-border/40 shadow-elevation-1',
+        'transition-all duration-normal',
+        !isSoon && 'active:scale-[0.98] hover:shadow-elevation-3',
         isSoon && 'opacity-60',
       )}
-      style={{ borderTopWidth: 3, borderTopColor: accentColor }}
+      style={{
+        borderInlineStartWidth: 4,
+        borderInlineStartColor: accentColor,
+      }}
     >
       <ContentStatusBadge
         contentStatus={lesson.contentStatus}
@@ -66,30 +70,34 @@ export function CourseLessonCard({
         href={isSoon ? '#' : href}
         onClick={handleLessonClick}
         className={cn(
-          'bg-card p-5',
-          'flex items-center justify-between',
+          'bg-card rounded-2xl p-6',
+          'flex items-center justify-between gap-4',
+          'transition-colors duration-normal',
+          !isSoon && 'group-hover:bg-muted/30',
           isSoon ? 'cursor-not-allowed' : 'cursor-pointer',
         )}
       >
-        <div className="flex flex-col text-start">
+        <div className="flex flex-col text-start gap-1.5">
           <span
-            className="text-label font-bold mb-1 uppercase tracking-wide"
+            className="text-label font-bold uppercase tracking-wide"
             style={{ color: accentColor }}
           >
             {tc('lesson')} {index}
           </span>
-          <h3 className="text-body-lg font-bold text-card-foreground">{lesson.title}</h3>
-          <p className="text-body-xs text-muted-foreground mt-1 flex items-center justify-start gap-1">
-            {progress === 0 && <Clock className="w-3 h-3" />}
+          <h3 className="text-body-lg font-bold text-card-foreground leading-snug">
+            {lesson.title}
+          </h3>
+          <p className="text-body-xs text-muted-foreground flex items-center justify-start gap-1.5">
+            {progress === 0 && <Clock className="w-3.5 h-3.5" />}
             {progressText}
           </p>
         </div>
 
-        <div className="relative shrink-0 w-14 h-14">
+        <div className="relative shrink-0 w-16 h-16">
           <ProgressCircle
             percentage={progress}
-            size={56}
-            strokeWidth={3}
+            size={64}
+            strokeWidth={4}
             strokeColor={tabColor?.stroke}
           >
             <text

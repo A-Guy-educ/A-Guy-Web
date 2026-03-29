@@ -20,6 +20,7 @@ import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import { ContentStatusBadge } from '@/ui/web/shared/ContentStatusBadge'
 import { ProgressCircle } from '@/ui/web/shared/ProgressCircle'
 import { BarChart3, Clock, GraduationCap, Sparkles } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import { useEffect, useMemo, useState } from 'react'
 import { useProgressMap } from '@/client/hooks/useProgressMap'
@@ -55,6 +56,19 @@ interface StudyContentProps {
   lessonType?: LessonType
   /** Server-side prefetched data — skips client-side API fetch when provided */
   prefetchedData?: PrefetchedData | null
+}
+
+interface FilteredLesson extends Lesson {
+  _chapterSlug: string
+  _chapterTitle: string
+  _chapterLabel: string | null | undefined
+}
+
+interface ChapterGroup {
+  chapterSlug: string
+  chapterTitle: string
+  chapterLabel: string | null | undefined
+  lessons: FilteredLesson[]
 }
 
 export function StudyContent({
@@ -170,13 +184,53 @@ export function StudyContent({
         const chapterSlug = chapter.slug || ''
         return (chapter.lessons ?? [])
           .filter((lesson) => getEffectiveLessonType(lesson.type) === lessonType)
-          .map((lesson) => ({ ...lesson, _chapterSlug: chapterSlug }))
+          .map((lesson) => ({
+            ...lesson,
+            _chapterSlug: chapterSlug,
+            _chapterTitle: chapter.title,
+            _chapterLabel: chapter.chapterLabel,
+          }))
       }),
     [chapters, lessonType],
   )
 
+  /** Group lessons by chapter for section-based rendering */
+  const chapterGroups = useMemo(() => {
+    const groups: ChapterGroup[] = []
+    const groupMap = new Map<string, ChapterGroup>()
+
+    for (const lesson of filteredLessons) {
+      const key = lesson._chapterSlug
+      const existing = groupMap.get(key)
+      if (existing) {
+        existing.lessons.push(lesson)
+      } else {
+        const group: ChapterGroup = {
+          chapterSlug: lesson._chapterSlug,
+          chapterTitle: lesson._chapterTitle,
+          chapterLabel: lesson._chapterLabel,
+          lessons: [lesson],
+        }
+        groupMap.set(key, group)
+        groups.push(group)
+      }
+    }
+
+    return groups
+  }, [filteredLessons])
+
   const lessonIds = useMemo(() => filteredLessons.map((l) => l.id), [filteredLessons])
   const { progressMap } = useProgressMap({ recordType: 'lesson', recordIds: lessonIds })
+
+  /** Compute overall progress across all filtered lessons */
+  const overallProgress = useMemo(() => {
+    if (filteredLessons.length === 0) return 0
+    const totalProgress = filteredLessons.reduce(
+      (sum, lesson) => sum + (progressMap[lesson.id] ?? 0),
+      0,
+    )
+    return Math.round(totalProgress / filteredLessons.length)
+  }, [filteredLessons, progressMap])
 
   if (isLoading) {
     return (
@@ -187,6 +241,7 @@ export function StudyContent({
   }
 
   const sectionTitle = courseInfo?.courseTitle || ts('studyTopics')
+  const hasMultipleChapters = chapterGroups.length > 1
 
   return (
     <AccessGateProvider
@@ -201,31 +256,125 @@ export function StudyContent({
       requiresEntitlement={requiresEntitlement}
       isAuthenticated={isAuthenticated}
     >
-      {/* Centered title area - clean background */}
+      {/* Course context header */}
       <div className="w-full py-section-sm px-6">
         <div className="max-w-5xl mx-auto text-center">
           <ExamReminderBubble courseId={courseInfo?.courseId ?? ''} />
-          <h1 className="text-display-sm md:text-display-md font-black text-foreground mt-4 text-center">
+
+          {/* Grade level badge */}
+          {courseInfo?.courseLabel && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="mt-4"
+            >
+              <span
+                className="inline-block text-body-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full"
+                style={{
+                  backgroundColor: `${tabColor.stroke}15`,
+                  color: tabColor.stroke,
+                }}
+              >
+                {courseInfo.courseLabel}
+              </span>
+            </motion.div>
+          )}
+
+          {/* Big course title */}
+          <h1 className="text-display-sm md:text-display-md font-black text-foreground mt-3 text-center">
             {sectionTitle}
           </h1>
+
+          {/* Overall progress bar */}
+          {filteredLessons.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, scaleX: 0.8 }}
+              animate={{ opacity: 1, scaleX: 1 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+              className="mt-4 max-w-sm mx-auto"
+            >
+              <div className="flex items-center justify-between text-body-xs text-muted-foreground mb-1.5">
+                <span>{ts('overallProgress') ?? `${overallProgress}%`}</span>
+                <span className="font-bold" style={{ color: tabColor.stroke }}>
+                  {overallProgress}%
+                </span>
+              </div>
+              <div className="h-2 rounded-full bg-muted overflow-hidden">
+                <motion.div
+                  className="h-full rounded-full"
+                  style={{ backgroundColor: tabColor.stroke }}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${overallProgress}%` }}
+                  transition={{ duration: 0.6, delay: 0.2, ease: 'easeOut' }}
+                />
+              </div>
+            </motion.div>
+          )}
         </div>
       </div>
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-section-sm max-w-5xl">
         {filteredLessons.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-content-gap-lg">
-            {filteredLessons.map((lesson, idx) => (
-              <LessonGridCard
-                key={lesson.id}
-                lesson={lesson}
-                index={idx + 1}
-                courseSlug={courseInfo?.courseSlug ?? ''}
-                chapterSlug={lesson._chapterSlug}
-                tabColor={tabColor}
-                progress={progressMap[lesson.id] ?? 0}
-              />
-            ))}
+          <div className="space-y-10">
+            {chapterGroups.map((group, groupIdx) => {
+              // Running lesson index across groups
+              const startIndex = chapterGroups
+                .slice(0, groupIdx)
+                .reduce((sum, g) => sum + g.lessons.length, 0)
+
+              return (
+                <section key={group.chapterSlug}>
+                  {/* Chapter heading as section divider (only when multiple chapters) */}
+                  {hasMultipleChapters && (
+                    <motion.div
+                      initial={{ opacity: 0, x: -12 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: groupIdx * 0.05 }}
+                      className="flex items-center gap-3 mb-5"
+                    >
+                      <div
+                        className="w-1 h-6 rounded-full shrink-0"
+                        style={{ backgroundColor: tabColor.stroke }}
+                      />
+                      <h2 className="text-heading-lg font-bold text-foreground">
+                        {group.chapterLabel && (
+                          <span className="text-muted-foreground font-medium">
+                            {group.chapterLabel}{' '}
+                          </span>
+                        )}
+                        {group.chapterTitle}
+                      </h2>
+                    </motion.div>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-content-gap-lg">
+                    {group.lessons.map((lesson, idx) => (
+                      <motion.div
+                        key={lesson.id}
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{
+                          duration: 0.3,
+                          delay: (startIndex + idx) * 0.04,
+                          ease: 'easeOut',
+                        }}
+                      >
+                        <LessonGridCard
+                          lesson={lesson}
+                          index={startIndex + idx + 1}
+                          courseSlug={courseInfo?.courseSlug ?? ''}
+                          chapterSlug={lesson._chapterSlug}
+                          tabColor={tabColor}
+                          progress={progressMap[lesson.id] ?? 0}
+                        />
+                      </motion.div>
+                    ))}
+                  </div>
+                </section>
+              )
+            })}
           </div>
         ) : (
           <div className="text-center py-20 text-muted-foreground italic">
@@ -233,26 +382,36 @@ export function StudyContent({
           </div>
         )}
 
-        {/* Footer actions with divider */}
+        {/* Footer actions as styled cards */}
         <div className="mt-16 pt-8 border-t border-border">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-content-gap">
             <SystemLink
               href="/stats"
-              className="flex items-center justify-center gap-content-gap-xs text-body-sm font-bold text-foreground bg-card border border-border px-6 py-3 rounded-full hover:bg-muted/50 transition-all"
+              className="group flex flex-col items-center gap-2 bg-card border border-border rounded-2xl p-6 hover:border-primary/30 hover:shadow-elevation-2 transition-all"
             >
-              <BarChart3 className="w-4 h-4" />
-              {t('statsAndPerformance')}
+              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                <BarChart3 className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              </div>
+              <span className="text-body-sm font-bold text-foreground">
+                {t('statsAndPerformance')}
+              </span>
             </SystemLink>
             <SystemLink
               href="/study-plan"
-              className="flex items-center justify-center gap-content-gap-xs text-body-sm font-bold text-primary-foreground bg-primary px-6 py-3 rounded-full shadow-card hover:opacity-90 transition-all"
+              className="group flex flex-col items-center gap-2 bg-primary text-primary-foreground rounded-2xl p-6 shadow-elevation-2 hover:opacity-90 transition-all"
             >
-              <GraduationCap className="w-4 h-4" />
-              {t('upcomingExam')}
+              <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
+                <GraduationCap className="w-5 h-5" />
+              </div>
+              <span className="text-body-sm font-bold">{t('upcomingExam')}</span>
             </SystemLink>
-            <button className="flex items-center justify-center gap-content-gap-xs text-body-sm font-bold text-foreground bg-card border border-border px-6 py-3 rounded-full hover:bg-muted/50 transition-all">
-              <Sparkles className="w-4 h-4" />
-              {t('bagrutTransition')}
+            <button className="group flex flex-col items-center gap-2 bg-card border border-border rounded-2xl p-6 hover:border-primary/30 hover:shadow-elevation-2 transition-all">
+              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                <Sparkles className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              </div>
+              <span className="text-body-sm font-bold text-foreground">
+                {t('bagrutTransition')}
+              </span>
             </button>
           </div>
         </div>
