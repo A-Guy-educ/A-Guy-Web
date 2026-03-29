@@ -1389,6 +1389,10 @@ export interface Lesson {
    */
   chapter: string | Chapter;
   /**
+   * Auto-populated from chapter. Used for filtering lessons by course.
+   */
+  parentCourse?: (string | null) | Course;
+  /**
    * The type of lesson: Learning content, Practice exercises, or Exam
    */
   type: 'learning' | 'practice' | 'exam';
@@ -1493,6 +1497,10 @@ export interface Exercise {
    * The lesson this exercise belongs to
    */
   lesson: string | Lesson;
+  /**
+   * Auto-populated from lesson hierarchy. Used for filtering exercises by course.
+   */
+  parentCourse?: (string | null) | Course;
   /**
    * URL-friendly identifier (auto-generated from title, unique within lesson)
    */
@@ -3154,6 +3162,7 @@ export interface LessonsSelect<T extends boolean = true> {
   locale?: T;
   translatedFrom?: T;
   chapter?: T;
+  parentCourse?: T;
   type?: T;
   title?: T;
   description?: T;
@@ -3251,6 +3260,7 @@ export interface ExercisesSelect<T extends boolean = true> {
   title?: T;
   order?: T;
   lesson?: T;
+  parentCourse?: T;
   slug?: T;
   showQuestionNumbering?: T;
   content?: T;

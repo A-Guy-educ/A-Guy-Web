@@ -36,6 +36,29 @@ export const Lessons: CollectionConfig = {
         }
         return data
       },
+      // Auto-populate parentCourse from chapter -> course
+      async ({ data, req }) => {
+        if (data?.chapter) {
+          try {
+            const chapterId = typeof data.chapter === 'string' ? data.chapter : data.chapter?.id
+            if (chapterId) {
+              const chapter = await req.payload.findByID({
+                collection: 'chapters',
+                id: chapterId,
+                depth: 0,
+                select: { course: true },
+              })
+              if (chapter?.course) {
+                data.parentCourse =
+                  typeof chapter.course === 'string' ? chapter.course : chapter.course?.id
+              }
+            }
+          } catch {
+            // Silently skip — parentCourse is a convenience field
+          }
+        }
+        return data
+      },
     ],
   },
   admin: {
@@ -76,6 +99,16 @@ export const Lessons: CollectionConfig = {
       index: true,
       admin: {
         description: 'The chapter this lesson belongs to',
+      },
+    },
+    {
+      name: 'parentCourse',
+      type: 'relationship',
+      relationTo: 'courses',
+      index: true,
+      admin: {
+        readOnly: true,
+        description: 'Auto-populated from chapter. Used for filtering lessons by course.',
       },
     },
     {
@@ -263,6 +296,18 @@ export const Lessons: CollectionConfig = {
       admin: {
         position: 'sidebar',
         description: 'Lesson-specific formula sheet (overrides course default)',
+      },
+    },
+
+    // Content hierarchy navigation (sidebar)
+    {
+      name: 'contentNavigation',
+      type: 'ui',
+      admin: {
+        position: 'sidebar',
+        components: {
+          Field: '@/ui/admin/ContentNavigation#LessonNavigation',
+        },
       },
     },
 

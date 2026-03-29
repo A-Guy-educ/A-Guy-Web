@@ -54,6 +54,43 @@ export const Exercises: CollectionConfig = {
     read: anyone,
     update: isAdminOrOwner,
   },
+  hooks: {
+    beforeChange: [
+      // Auto-populate parentCourse from lesson -> chapter -> course
+      async ({ data, req }) => {
+        if (data?.lesson) {
+          try {
+            const lessonId = typeof data.lesson === 'string' ? data.lesson : data.lesson?.id
+            if (lessonId) {
+              const lesson = await req.payload.findByID({
+                collection: 'lessons',
+                id: lessonId,
+                depth: 0,
+                select: { chapter: true },
+              })
+              const chapterId =
+                typeof lesson?.chapter === 'string' ? lesson.chapter : lesson?.chapter?.id
+              if (chapterId) {
+                const chapter = await req.payload.findByID({
+                  collection: 'chapters',
+                  id: chapterId,
+                  depth: 0,
+                  select: { course: true },
+                })
+                if (chapter?.course) {
+                  data.parentCourse =
+                    typeof chapter.course === 'string' ? chapter.course : chapter.course?.id
+                }
+              }
+            }
+          } catch {
+            // Silently skip — parentCourse is a convenience field
+          }
+        }
+        return data
+      },
+    ],
+  },
 
   admin: {
     useAsTitle: 'title',
@@ -101,6 +138,17 @@ export const Exercises: CollectionConfig = {
           required: true,
           index: true,
           admin: { description: 'The lesson this exercise belongs to' },
+        },
+        {
+          name: 'parentCourse',
+          type: 'relationship',
+          relationTo: 'courses',
+          index: true,
+          admin: {
+            readOnly: true,
+            description:
+              'Auto-populated from lesson hierarchy. Used for filtering exercises by course.',
+          },
         },
         {
           name: 'slug',
@@ -279,6 +327,18 @@ export const Exercises: CollectionConfig = {
           },
         },
       ],
+    },
+
+    // Content hierarchy navigation (sidebar)
+    {
+      name: 'contentNavigation',
+      type: 'ui',
+      admin: {
+        position: 'sidebar',
+        components: {
+          Field: '@/ui/admin/ContentNavigation#ExerciseNavigation',
+        },
+      },
     },
 
     // Preview field (sidebar)
