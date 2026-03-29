@@ -34,3 +34,13 @@ All done. Here's a summary of what was implemented:
 - `src/server/payload/hooks/lessons/syncLessonBlocks.ts` — shared utility with `addBlockToLesson` / `removeBlockFromLesson`. Appends new blocks at the end, uses `_skipBlockSync` context flag to prevent infinite loops.
 - `src/server/payload/migrations/populateLessonBlocks.ts` — idempotent one-time migration that scans all exercises (sorted by `order`) and content pages (sorted by `createdAt`), then appends any missing blocks to e
 ...(truncated)
+
+### review (2026-03-29T14:57:34)
+Both requirements are already implemented:
+
+1. **New blocks are inserted at the end** — `addBlockToLesson` uses `[...blocks, newBlock]` to append at the end, and the migration also appends missing blocks with `[...existingBlocks, ...toAdd]`.
+
+2. **One-time migration runs on deployment** — `runPopulateLessonBlocksOnInit` is called in `payload.config.ts`'s `onInit` handler. It's idempotent (skips existing refs) and processes exercises sorted by `order`, then content pages sorted by `createdAt`.
+
+T
+...(truncated)
