@@ -28,6 +28,18 @@
       "myAccount": "My Account",
       "logout": "Logout",
       "loggingOut": "Logging out..."
+    },
+    "courseSearch": {
+      "placeholder": "Search...",
+      "noResults": "No results found",
+      "enrollRequired": "You must enroll first",
+      "courses": "Courses",
+      "lessons": "Lessons",
+      "exercises": "Exercises",
+      "questions": "Questions",
+      "minChars": "Type at least 2 characters",
+      "searching": "Searching...",
+      "error": "Search failed. Please try again."
     }
   },
   "auth": {
