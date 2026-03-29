@@ -23,5 +23,14 @@ export function LayoutClient() {
     restoreAccent()
   }, [])
 
+  // Register service worker for offline support
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {
+        // Silent fail - SW is optional
+      })
+    }
+  }, [])
+
   return null
 }

@@ -112,6 +112,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.aguy.co.il'),
+  manifest: '/manifest.json',
   title: {
     default: 'A-Guy | תרגול מתמטיקה אינטראקטיבי',
     template: '%s | A-Guy',
@@ -122,6 +123,15 @@ export const metadata: Metadata = {
   authors: [{ name: 'A-Guy', url: 'https://www.aguy.co.il' }],
   creator: 'A-Guy',
   publisher: 'A-Guy',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'A-Guy',
+  },
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#91262C' },
+    { media: '(prefers-color-scheme: dark)', color: '#0f172a' },
+  ],
   robots: {
     index: true,
     follow: true,
@@ -153,9 +163,6 @@ export const metadata: Metadata = {
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.ico',
-    apple: '/apple-touch-icon.png',
-  },
-  other: {
-    'theme-color': '#0f172a',
+    apple: '/favicon.svg',
   },
 }

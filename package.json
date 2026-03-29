@@ -97,7 +97,9 @@
     "remote:agent:funnel": "tsx scripts/remote-agent/start-with-funnel.ts",
     "design:tokens:audit": "pnpm tsx scripts/design-tokens/audit.ts",
     "design:tokens:audit:fixable": "pnpm tsx scripts/design-tokens/audit.ts --fixable",
-    "design:tokens:audit:verbose": "pnpm tsx scripts/design-tokens/audit.ts --verbose"
+    "design:tokens:audit:verbose": "pnpm tsx scripts/design-tokens/audit.ts --verbose",
+    "test:visual": "pnpm exec playwright test tests/visual/",
+    "test:visual:update": "pnpm exec playwright test tests/visual/ --update-snapshots"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.30",
