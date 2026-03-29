@@ -60,15 +60,9 @@ export function LessonContent({
                 {validFiles.map((file, index) => (
                   <div key={file.id} className="w-full min-h-[841px] flex-shrink-0">
                     {index > 0 && (
-                      <div
-                        className="h-0.5 my-8 flex-shrink-0"
-                        style={{
-                          background:
-                            'linear-gradient(to right, transparent, hsl(var(--border)) 20%, hsl(var(--border)) 80%, transparent)',
-                        }}
-                      />
+                      <div className="h-0.5 my-8 flex-shrink-0 bg-gradient-to-r from-transparent via-border to-transparent" />
                     )}
-                    <div className="border rounded-lg overflow-hidden bg-gray-50">
+                    <div className="border rounded-lg overflow-hidden bg-muted">
                       <MediaComponent resource={file} className="w-full" htmlElement={null} />
                     </div>
                   </div>
@@ -82,7 +76,7 @@ export function LessonContent({
           <>
             <div className="flex flex-col gap-4">
               <div className="mb-6">
-                <h2 className="text-2xl font-bold">{t('exercisesTitle')}</h2>
+                <h2 className="text-heading-xl font-bold">{t('exercisesTitle')}</h2>
                 <p className="text-muted-foreground">{t('exercisesDescription')}</p>
               </div>
               {hasExercises ? (

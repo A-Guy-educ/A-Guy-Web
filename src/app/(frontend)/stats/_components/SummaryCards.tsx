@@ -41,37 +41,37 @@ export function SummaryCards({ summary, categoryProgress }: SummaryCardsProps) {
   const t = useTranslations('stats')
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-content-gap">
       {/* Time Spent */}
-      <Card>
+      <Card className="shadow-elevation-1 transition-shadow duration-normal hover:shadow-elevation-2">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+          <CardTitle className="text-body-sm font-medium text-muted-foreground flex items-center gap-2">
             <Clock className="w-4 h-4" />
             {t('timeSpent')}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-3xl font-bold">{formatTime(summary.timeSpent)}</div>
-          <div className="text-sm text-muted-foreground mt-2">
+          <div className="text-display-sm font-bold">{formatTime(summary.timeSpent)}</div>
+          <div className="text-body-sm text-muted-foreground mt-2">
             {t('categoryLearn')}: {categoryProgress.learn.count} {t('lessonsCompleted')}
           </div>
         </CardContent>
       </Card>
 
       {/* Daily Streak */}
-      <Card>
+      <Card className="shadow-elevation-1 transition-shadow duration-normal hover:shadow-elevation-2">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-            <Flame className="w-4 h-4 text-orange-500" />
+          <CardTitle className="text-body-sm font-medium text-muted-foreground flex items-center gap-2">
+            <Flame className="w-4 h-4 text-warning" />
             {t('dailyStreak')}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-3xl font-bold flex items-center gap-2">
+          <div className="text-display-sm font-bold flex items-center gap-2">
             {summary.dailyStreak}
-            <span className="text-sm font-normal text-muted-foreground">{t('days')}</span>
+            <span className="text-body-sm font-normal text-muted-foreground">{t('days')}</span>
           </div>
-          <div className="text-sm text-muted-foreground mt-2">
+          <div className="text-body-sm text-muted-foreground mt-2">
             {t('categoryAsk')}: {categoryProgress.ask.conversations} {t('conversationsStarted')}
           </div>
         </CardContent>

@@ -49,13 +49,13 @@ export function PracticeTab({
   return (
     <>
       <div className="flex gap-2 justify-center mb-6 flex-wrap">
-        <span className="text-xs font-semibold px-3 py-1 rounded-full bg-muted text-muted-foreground">
+        <span className="text-body-xs font-semibold px-3 py-1 rounded-full bg-muted text-muted-foreground">
           <span style={{ color: tabColor?.stroke }}>{completedCount}</span> {t('statusCompleted')}
         </span>
-        <span className="text-xs font-semibold px-3 py-1 rounded-full bg-muted text-muted-foreground">
+        <span className="text-body-xs font-semibold px-3 py-1 rounded-full bg-muted text-muted-foreground">
           <span style={{ color: tabColor?.stroke }}>{inProgressCount}</span> {t('statusInProgress')}
         </span>
-        <span className="text-xs font-semibold px-3 py-1 rounded-full bg-muted text-muted-foreground">
+        <span className="text-body-xs font-semibold px-3 py-1 rounded-full bg-muted text-muted-foreground">
           <span style={{ color: tabColor?.stroke }}>{notStartedCount}</span> {t('statusNotStarted')}
         </span>
       </div>

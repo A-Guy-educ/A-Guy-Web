@@ -14,9 +14,9 @@ export function AccountPageContent({
   const t = useTranslations('auth.account')
 
   return (
-    <div className="container py-16">
-      <div className="mx-auto max-w-2xl space-y-6">
-        <h1 className="text-3xl font-bold">{t('title')}</h1>
+    <div className="container py-section-md">
+      <div className="mx-auto max-w-2xl space-y-content-gap">
+        <h1 className="text-display-sm font-bold">{t('title')}</h1>
         <AccountHub user={user} initialSection={initialSection} />
       </div>
     </div>

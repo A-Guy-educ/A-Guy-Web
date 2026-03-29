@@ -93,8 +93,7 @@ export function MembershipPlans() {
     <section className="mb-24">
       <div className="text-center mb-12">
         <h2
-          className="text-card-foreground uppercase tracking-widest"
-          style={{ fontSize: '24px', fontWeight: 900 }}
+          className="text-heading-xl font-black text-card-foreground uppercase tracking-widest"
         >
           {t('membershipPlans')}
         </h2>

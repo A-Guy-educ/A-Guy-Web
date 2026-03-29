@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 
+import { cn } from '@/infra/utils/ui'
 import { Badge } from '@/ui/web/components/badge'
 import { Card } from '@/ui/web/components/card'
 import { useTranslations } from '@/ui/web/providers/I18n'
@@ -103,25 +104,26 @@ export function TeachersProfileSection() {
 
   return (
     <div className="py-4 space-y-4">
-      <p className="text-sm text-muted-foreground">{t('description')}</p>
+      <p className="text-body-sm text-muted-foreground">{t('description')}</p>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-content-gap sm:grid-cols-2">
         {profiles.map((profile) => (
           <Card
             key={profile.slug}
-            className={`cursor-pointer transition-all hover:border-primary/50 ${
-              selectedSlug === profile.slug ? 'ring-2 ring-primary border-primary' : 'border-border'
-            }`}
+            className={cn(
+              'cursor-pointer transition-all duration-normal hover:border-primary/50',
+              selectedSlug === profile.slug ? 'ring-2 ring-primary border-primary' : 'border-border',
+            )}
             onClick={() => handleSelect(profile.slug)}
           >
-            <div className="p-4">
+            <div className="p-card-padding">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-medium">{profile.label}</h3>
                 {selectedSlug === profile.slug && (
                   <Badge variant="secondary">{t('selected')}</Badge>
                 )}
               </div>
-              <p className="text-sm text-muted-foreground">{profile.description}</p>
+              <p className="text-body-sm text-muted-foreground">{profile.description}</p>
             </div>
           </Card>
         ))}

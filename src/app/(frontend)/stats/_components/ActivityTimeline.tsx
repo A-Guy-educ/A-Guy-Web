@@ -23,17 +23,17 @@ interface Activity {
 function getActivityIcon(actionType: string) {
   switch (actionType) {
     case 'lesson_completed':
-      return <CheckCircle2 className="w-4 h-4 text-green-500" />
+      return <CheckCircle2 className="w-4 h-4 text-success" />
     case 'exercise_attempted':
-      return <FileQuestion className="w-4 h-4 text-blue-500" />
+      return <FileQuestion className="w-4 h-4 text-primary" />
     case 'exercise_completed':
-      return <CheckCircle2 className="w-4 h-4 text-green-600" />
+      return <CheckCircle2 className="w-4 h-4 text-success" />
     case 'question_asked':
-      return <HelpCircle className="w-4 h-4 text-orange-500" />
+      return <HelpCircle className="w-4 h-4 text-warning" />
     case 'conversation_started':
-      return <MessageCircle className="w-4 h-4 text-purple-500" />
+      return <MessageCircle className="w-4 h-4 text-accent-foreground" />
     default:
-      return <Activity className="w-4 h-4 text-gray-500" />
+      return <Activity className="w-4 h-4 text-muted-foreground" />
   }
 }
 
@@ -80,7 +80,7 @@ export function ActivityTimeline() {
 
   if (loading) {
     return (
-      <Card>
+      <Card className="shadow-elevation-1">
         <CardHeader>
           <CardTitle>{t('recentActivity')}</CardTitle>
         </CardHeader>
@@ -95,7 +95,7 @@ export function ActivityTimeline() {
 
   if (activities.length === 0) {
     return (
-      <Card>
+      <Card className="shadow-elevation-1">
         <CardHeader>
           <CardTitle>{t('recentActivity')}</CardTitle>
         </CardHeader>
@@ -107,7 +107,7 @@ export function ActivityTimeline() {
   }
 
   return (
-    <Card>
+    <Card className="shadow-elevation-1">
       <CardHeader>
         <CardTitle>{t('recentActivity')}</CardTitle>
       </CardHeader>
@@ -117,8 +117,8 @@ export function ActivityTimeline() {
             <div key={`${activity.targetId}-${index}`} className="flex items-start gap-3">
               {getActivityIcon(activity.actionType)}
               <div className="flex-1">
-                <p className="text-sm font-medium">{activity.label}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-body-sm font-medium">{activity.label}</p>
+                <p className="text-body-xs text-muted-foreground">
                   {formatRelativeTime(activity.timestamp)}
                 </p>
               </div>

@@ -98,8 +98,8 @@ export function StatsDashboard({
   }, [fetchData])
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">{t('title')}</h1>
+    <div className="space-y-content-gap">
+      <h1 className="text-display-sm font-bold">{t('title')}</h1>
 
       <DashboardFilters
         courses={courses}
@@ -117,7 +117,7 @@ export function StatsDashboard({
         <>
           <SummaryCards summary={data.summary} categoryProgress={data.categoryProgress} />
           <CategoryProgress data={data.categoryProgress} />
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-content-gap">
             <PracticedItems items={data.practicedLessons} type="lessons" />
             <PracticedItems items={data.practicedExams} type="exams" />
           </div>

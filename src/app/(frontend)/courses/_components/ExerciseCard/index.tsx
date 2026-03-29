@@ -69,15 +69,15 @@ export function ExerciseCard({
   const badge = questionTypes.length > 0 ? getQuestionTypeBadge(questionTypes[0] as string) : null
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className="hover:shadow-card-hover transition-all duration-normal">
       <CardHeader>
         <div className="flex items-center gap-3 mb-2">
-          <span className="text-sm font-semibold text-muted-foreground">
+          <span className="text-body-sm font-semibold text-muted-foreground">
             {t('exercise')} {index + 1}
           </span>
           {badge && <Badge variant={badge.variant}>{badge.label}</Badge>}
         </div>
-        <CardTitle className="text-xl">{exercise.title}</CardTitle>
+        <CardTitle className="text-heading-lg">{exercise.title}</CardTitle>
         {isExerciseContent(exercise.content) && exercise.content.blocks.length > 0 && (
           <CardDescription className="line-clamp-2">
             {exercise.content.blocks[0] &&

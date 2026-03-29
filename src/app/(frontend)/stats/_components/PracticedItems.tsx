@@ -42,7 +42,7 @@ export function PracticedItems({ items, type }: PracticedItemsProps) {
 
   if (items.length === 0) {
     return (
-      <Card>
+      <Card className="shadow-elevation-1">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Icon className="w-5 h-5" />
@@ -57,7 +57,7 @@ export function PracticedItems({ items, type }: PracticedItemsProps) {
   }
 
   return (
-    <Card>
+    <Card className="shadow-elevation-1">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Icon className="w-5 h-5" />
@@ -66,7 +66,7 @@ export function PracticedItems({ items, type }: PracticedItemsProps) {
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-body-sm">
             <thead>
               <tr className="border-b border-border">
                 <th className="text-start py-2 font-medium text-muted-foreground">

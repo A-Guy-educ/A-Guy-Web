@@ -37,7 +37,7 @@ export function ViewToggle({
         variant={activeMode === 'non-interactive' ? 'default' : 'ghost'}
         size="sm"
         onClick={() => handleModeChange('non-interactive')}
-        className="transition-all"
+        className="transition-all duration-normal"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -59,7 +59,7 @@ export function ViewToggle({
         variant={activeMode === 'interactive' ? 'default' : 'ghost'}
         size="sm"
         onClick={() => handleModeChange('interactive')}
-        className="transition-all"
+        className="transition-all duration-normal"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

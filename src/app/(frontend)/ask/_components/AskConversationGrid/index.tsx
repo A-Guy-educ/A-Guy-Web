@@ -120,12 +120,12 @@ export function AskConversationGrid() {
       {/* Main Content */}
       <main className="container mx-auto px-6 py-10 max-w-5xl">
         <section className="mb-8 text-right px-2">
-          <h2 className="text-2xl md:text-3xl font-black text-foreground leading-tight">
+          <h2 className="text-heading-xl md:text-display-sm font-black text-foreground leading-tight">
             {t('sectionTitle.ask')}
           </h2>
         </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-content-gap">
           {/* New Question Card */}
           <button
             disabled={isCreating}
@@ -139,11 +139,11 @@ export function AskConversationGrid() {
             )}
           >
             <div className="flex flex-col">
-              <span className="text-[10px] font-bold text-primary-foreground/60 mb-1 uppercase tracking-wide">
+              <span className="text-label font-bold text-primary-foreground/60 mb-1 uppercase tracking-wide">
                 {t('quickAction')}
               </span>
-              <h3 className="text-xl font-bold">{t('newQuestion')}</h3>
-              <p className="text-xs text-primary-foreground/70 mt-1">{t('newQuestionSub')}</p>
+              <h3 className="text-heading-lg font-bold">{t('newQuestion')}</h3>
+              <p className="text-body-xs text-primary-foreground/70 mt-1">{t('newQuestionSub')}</p>
             </div>
             <div className="w-14 h-14 bg-primary-foreground/20 rounded-full flex items-center justify-center">
               <Sparkles className="w-6 h-6 text-primary-foreground fill-current" />
@@ -163,11 +163,11 @@ export function AskConversationGrid() {
               )}
             >
               <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-muted-foreground mb-1 uppercase tracking-wide">
+                <span className="text-label font-bold text-muted-foreground mb-1 uppercase tracking-wide">
                   {t('question')} {conversations.length - idx}
                 </span>
-                <h3 className="text-lg font-bold text-card-foreground">{conv.title || '...'}</h3>
-                <p className="text-xs text-muted-foreground mt-1">
+                <h3 className="text-heading-md font-bold text-card-foreground">{conv.title || '...'}</h3>
+                <p className="text-body-xs text-muted-foreground mt-1">
                   {conv.messageCount} {conv.messageCount === 1 ? 'message' : 'messages'}
                 </p>
               </div>
@@ -181,10 +181,10 @@ export function AskConversationGrid() {
         {/* Footer */}
         <div className="mt-16 pt-8 border-t border-border text-center">
           <div className="flex flex-wrap justify-center gap-4">
-            <button className="text-sm font-bold text-muted-foreground bg-card shadow-card px-8 py-3 rounded-full hover:bg-muted transition-all text-nowrap">
+            <button className="text-body-sm font-bold text-muted-foreground bg-card shadow-card px-8 py-3 rounded-full hover:bg-muted transition-all duration-normal text-nowrap">
               {t('viewStats')}
             </button>
-            <button className="text-sm font-bold text-primary-foreground bg-primary px-8 py-3 rounded-full shadow-lg hover:opacity-90 transition-all text-nowrap">
+            <button className="text-body-sm font-bold text-primary-foreground bg-primary px-8 py-3 rounded-full shadow-card hover:opacity-90 transition-all duration-normal text-nowrap">
               {t('continueLastPoint')}
             </button>
           </div>
@@ -206,18 +206,18 @@ function GradeSection({ courseId, courseLabel }: { courseId: string; courseLabel
     <div className="w-full bg-card/50 py-4 border-b border-border">
       <div className="max-w-5xl mx-auto px-6 flex flex-col">
         <div className="text-center">
-          <span className="text-sm md:text-base font-extrabold text-primary uppercase tracking-[0.3em]">
+          <span className="text-body-sm md:text-body-md font-extrabold text-primary uppercase tracking-[0.3em]">
             {t('grade')} {courseLabel}
           </span>
         </div>
         {hasUpcomingExam && daysUntil !== null && (
           <div className="flex items-center justify-end gap-3 mt-3 animate-in fade-in">
             <div className="bg-card shadow-card border border-primary/10 rounded-2xl rounded-tr-none px-4 py-2">
-              <p className="text-xs md:text-sm font-bold text-primary">
+              <p className="text-body-xs md:text-body-sm font-bold text-primary">
                 {t('examReminder').replace('{days}', String(daysUntil))}
               </p>
             </div>
-            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center shadow-md shrink-0">
+            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center shadow-elevation-2 shrink-0">
               <Sparkles className="w-4 h-4 text-primary-foreground fill-current" />
             </div>
           </div>

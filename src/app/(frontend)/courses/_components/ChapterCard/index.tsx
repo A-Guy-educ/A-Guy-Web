@@ -6,6 +6,7 @@ import { useTranslations } from '@/ui/web/providers/I18n'
 import { Card, CardFooter, CardHeader, CardTitle } from '@/ui/web/components/card'
 import { Button } from '@/ui/web/components/button'
 import { SafeHtml } from '@/ui/web/SafeHtml'
+import { cn } from '@/infra/utils/ui'
 
 interface ChapterCardProps {
   chapter: Chapter
@@ -20,20 +21,20 @@ export function ChapterCard({ chapter, courseSlug }: ChapterCardProps) {
   }
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className={cn('hover:shadow-card-hover transition-all duration-normal')}>
       <CardHeader>
         {chapter.chapterLabel && (
           <div className="mb-2">
-            <span className="text-sm font-semibold text-muted-foreground">
+            <span className="text-body-sm font-semibold text-muted-foreground">
               {t('chapter')} {chapter.chapterLabel}
             </span>
           </div>
         )}
-        <CardTitle className="text-xl">{chapter.title}</CardTitle>
+        <CardTitle className="text-heading-lg">{chapter.title}</CardTitle>
         {chapter.description && (
           <SafeHtml
             html={chapter.description}
-            className="text-sm text-muted-foreground [&_p]:m-0"
+            className="text-body-sm text-muted-foreground [&_p]:m-0"
           />
         )}
       </CardHeader>

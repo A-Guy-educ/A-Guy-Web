@@ -56,7 +56,7 @@ export function PlanCard({
       case 'standard':
         return 'w-full py-4 rounded-2xl bg-foreground text-background shadow-lg hover:opacity-90'
       case 'premium':
-        return 'w-full py-4 rounded-2xl bg-[hsl(var(--primary))] text-white shadow-xl hover:scale-[1.02] transition-transform'
+        return 'w-full py-4 rounded-2xl bg-primary text-white shadow-xl hover:scale-[1.02] transition-transform'
       default:
         return 'w-full py-4 rounded-2xl bg-foreground text-background'
     }
@@ -67,9 +67,9 @@ export function PlanCard({
       case 'x':
         return <XCircle className="w-4 h-4 text-muted-foreground/30" />
       case 'check':
-        return <CheckCircle2 className="w-4 h-4 text-[hsl(var(--success))]" />
+        return <CheckCircle2 className="w-4 h-4 text-success" />
       case 'help':
-        return <HelpCircle className="w-4 h-4 text-[hsl(var(--warning))]" />
+        return <HelpCircle className="w-4 h-4 text-warning" />
       default:
         return null
     }
@@ -89,7 +89,7 @@ export function PlanCard({
   }
 
   const borderClass = isPremium
-    ? 'border-2 border-[hsl(var(--primary))]'
+    ? 'border-2 border-primary'
     : isBordered
       ? 'border border-border'
       : 'border border-border/50'
@@ -99,8 +99,8 @@ export function PlanCard({
       className={cn(
         'relative bg-card rounded-[2.5rem] p-8 flex flex-col min-w-[300px] md:min-w-0',
         borderClass,
-        'shadow-[0_1px_2px_0_rgba(60,64,67,.3),0_1px_3px_1px_rgba(60,64,67,.15)]',
-        'transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)]',
+        'shadow-card',
+        'transition-all duration-slow hover:-translate-y-1 hover:shadow-card-hover',
       )}
     >
       {badge && (
@@ -111,7 +111,7 @@ export function PlanCard({
             'text-white px-6 py-2 rounded-full shadow-lg',
           )}
         >
-          <span className="uppercase tracking-widest" style={{ fontSize: '10px' }}>
+          <span className="uppercase tracking-widest text-[10px] font-black">
             {badge}
           </span>
         </div>
@@ -120,22 +120,20 @@ export function PlanCard({
       <div className="mb-8">
         <span
           className={cn(
-            'block mb-2 uppercase tracking-widest',
-            isPremium ? 'text-[hsl(var(--primary))]' : 'text-muted-foreground',
+            'block mb-2 uppercase tracking-widest text-[10px]',
+            isPremium ? 'text-primary' : 'text-muted-foreground',
           )}
-          style={{ fontSize: '10px' }}
         >
           {subtitle}
         </span>
         <h3
-          className={cn('mb-1', isPremium ? 'text-[hsl(var(--primary))]' : 'text-card-foreground')}
-          style={{ fontSize: '24px', fontWeight: 900 }}
+          className={cn('text-heading-xl font-black mb-1', isPremium ? 'text-primary' : 'text-card-foreground')}
         >
           {title}
         </h3>
-        <div style={{ fontSize: '24px', fontWeight: 900 }} className="text-card-foreground">
+        <div className="text-heading-xl font-black text-card-foreground">
           ₪{price}{' '}
-          <span style={{ fontSize: '14px', fontWeight: 400 }} className="text-muted-foreground">
+          <span className="text-body-sm font-normal text-muted-foreground">
             / {period}
           </span>
         </div>
@@ -145,13 +143,13 @@ export function PlanCard({
         {features.map((feature, index) => (
           <li
             key={index}
-            className={cn('flex items-center gap-3 text-sm', getFeatureStyle(feature.style))}
+            className={cn('flex items-center gap-3 text-body-sm', getFeatureStyle(feature.style))}
           >
             {getFeatureIcon(feature.icon)}
             <span>{feature.text}</span>
           </li>
         ))}
-        <li className={cn('flex items-center gap-3 text-sm', courseCount.color)}>
+        <li className={cn('flex items-center gap-3 text-body-sm', courseCount.color)}>
           {courseCount.icon === 'book' ? (
             <BookOpen className="w-4 h-4" />
           ) : (
@@ -161,7 +159,7 @@ export function PlanCard({
         </li>
       </ul>
 
-      <button className={getButtonClasses()} style={{ fontSize: '14px' }}>
+      <button className={cn(getButtonClasses(), 'text-body-sm')}>
         {buttonText}
       </button>
     </div>

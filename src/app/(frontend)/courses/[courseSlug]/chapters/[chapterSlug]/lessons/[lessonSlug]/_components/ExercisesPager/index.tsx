@@ -256,10 +256,10 @@ export function ExercisesPager({
           {pageState.type === 'intro' && (
             <div className="space-y-8">
               <header className="text-center">
-                <span className="inline-block px-4 py-1.5 bg-muted text-muted-foreground rounded-full text-[10px] tracking-[0.2em] uppercase mb-5 border border-border/40">
+                <span className="inline-block px-4 py-1.5 bg-muted text-muted-foreground rounded-full text-label tracking-[0.2em] uppercase mb-5 border border-border/40">
                   {t('exercisesPagerIntro')}
                 </span>
-                <h1 className="text-display-md md:text-[42px] font-medium leading-tight text-foreground mb-3">
+                <h1 className="text-display-md md:text-display-lg font-medium leading-tight text-foreground mb-3">
                   {lessonTitle}
                 </h1>
                 <div className="w-20 h-1 bg-primary mx-auto rounded-full" />
@@ -281,7 +281,7 @@ export function ExercisesPager({
                 <div className="inline-flex items-center gap-3 px-5 py-3 bg-muted rounded-2xl border border-border/60 mb-10">
                   <Layers className="w-5 h-5 text-primary" />
                   <span className="text-primary text-heading-xl font-medium">{totalExercises}</span>
-                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                  <span className="text-label text-muted-foreground uppercase tracking-wider">
                     {t('exercise')}
                   </span>
                 </div>
@@ -301,10 +301,10 @@ export function ExercisesPager({
           {pageState.type === 'outro' && (
             <div className="space-y-8">
               <header className="text-center">
-                <span className="inline-block px-4 py-1.5 bg-secondary/10 text-secondary rounded-full text-[10px] tracking-[0.2em] uppercase mb-5 border border-secondary/20">
+                <span className="inline-block px-4 py-1.5 bg-secondary/10 text-secondary rounded-full text-label tracking-[0.2em] uppercase mb-5 border border-secondary/20">
                   {t('exercisesPagerCompleted')}
                 </span>
-                <h1 className="text-display-md md:text-[42px] font-medium leading-tight text-foreground mb-3">
+                <h1 className="text-display-md md:text-display-lg font-medium leading-tight text-foreground mb-3">
                   {t('exercisesPagerCompletedTitle')}
                 </h1>
                 <div className="w-20 h-1 bg-secondary mx-auto rounded-full" />

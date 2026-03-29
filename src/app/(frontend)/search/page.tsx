@@ -39,19 +39,19 @@ export default async function Page({ searchParams: searchParamsPromise }: Args) 
       </div>
 
       {!query ? null : !hasResults ? (
-        <div className="container">No results found.</div>
+        <div className="container text-body-md text-muted-foreground">No results found.</div>
       ) : (
         <>
           {/* Course Content Results */}
           {courseResults && courseResults.length > 0 && (
             <div className="container mb-16">
-              <h2 className="text-display-xs font-bold mb-6">Courses & Lessons</h2>
+              <h2 className="text-heading-xl font-bold mb-6">Courses & Lessons</h2>
               <div className="grid gap-3">
                 {courseResults.map((result) => (
                   <SystemLink
                     key={result.id}
                     href={result.url}
-                    className="flex items-center gap-content-gap p-card-padding-sm rounded-lg border border-border bg-card hover:bg-muted transition-colors"
+                    className="flex items-center gap-content-gap p-card-padding-sm rounded-lg border border-border bg-card hover:bg-muted transition-colors duration-normal"
                   >
                     {result.type === 'lesson' ? (
                       <BookOpen className="w-5 h-5 text-primary shrink-0" />

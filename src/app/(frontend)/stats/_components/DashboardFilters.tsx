@@ -6,6 +6,7 @@
 
 'use client'
 
+import { cn } from '@/infra/utils/ui'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import {
   Select,
@@ -60,31 +61,34 @@ export function DashboardFilters({
       <div className="flex gap-2">
         <button
           onClick={() => onTimeframeChange('week')}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+          className={cn(
+            'px-4 py-2 rounded-full text-body-sm font-medium transition-all duration-normal',
             selectedTimeframe === 'week'
               ? 'bg-primary text-primary-foreground'
-              : 'bg-muted text-muted-foreground hover:bg-muted/80'
-          }`}
+              : 'bg-muted text-muted-foreground hover:bg-muted/80',
+          )}
         >
           {t('thisWeek')}
         </button>
         <button
           onClick={() => onTimeframeChange('month')}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+          className={cn(
+            'px-4 py-2 rounded-full text-body-sm font-medium transition-all duration-normal',
             selectedTimeframe === 'month'
               ? 'bg-primary text-primary-foreground'
-              : 'bg-muted text-muted-foreground hover:bg-muted/80'
-          }`}
+              : 'bg-muted text-muted-foreground hover:bg-muted/80',
+          )}
         >
           {t('thisMonth')}
         </button>
         <button
           onClick={() => onTimeframeChange('overall')}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+          className={cn(
+            'px-4 py-2 rounded-full text-body-sm font-medium transition-all duration-normal',
             selectedTimeframe === 'overall'
               ? 'bg-primary text-primary-foreground'
-              : 'bg-muted text-muted-foreground hover:bg-muted/80'
-          }`}
+              : 'bg-muted text-muted-foreground hover:bg-muted/80',
+          )}
         >
           {t('overall')}
         </button>

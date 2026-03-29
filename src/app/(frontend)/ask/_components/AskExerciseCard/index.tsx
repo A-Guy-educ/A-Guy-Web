@@ -33,26 +33,25 @@ export function AskExerciseCard({ file }: AskExerciseCardProps) {
   }
 
   return (
-    <div className="rounded-3xl overflow-hidden mb-6 shadow-sm border border-border bg-card">
+    <div className="rounded-3xl overflow-hidden mb-6 shadow-elevation-1 border border-border bg-card transition-shadow duration-normal hover:shadow-elevation-2">
       <div className="aspect-video relative overflow-hidden bg-muted">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={file.url} alt={file.title} className="w-full h-full object-contain" />
       </div>
 
-      <div className="p-6">
+      <div className="p-card-padding">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div>
-            <h3 className="text-xl font-bold text-foreground">{file.title}</h3>
-            <p className="text-muted-foreground text-xs mt-1">{file.date}</p>
+            <h3 className="text-heading-lg font-bold text-foreground">{file.title}</h3>
+            <p className="text-muted-foreground text-body-xs mt-1">{file.date}</p>
           </div>
           <div className="flex gap-2">
             <button
               onClick={handleHint}
               disabled={file.isUploading}
               className={cn(
-                'p-2 rounded-xl transition-colors disabled:opacity-40',
-                'bg-amber-50 text-amber-600 hover:bg-amber-100',
-                'dark:bg-amber-950/30 dark:text-amber-400 dark:hover:bg-amber-950/50',
+                'p-2 rounded-xl transition-colors duration-normal disabled:opacity-40',
+                'bg-warning/10 text-warning hover:bg-warning/20',
               )}
               aria-label={`${file.title} - hint`}
             >
@@ -62,9 +61,8 @@ export function AskExerciseCard({ file }: AskExerciseCardProps) {
               onClick={handleSolution}
               disabled={file.isUploading}
               className={cn(
-                'p-2 rounded-xl transition-colors disabled:opacity-40',
-                'bg-indigo-50 text-indigo-600 hover:bg-indigo-100',
-                'dark:bg-indigo-950/30 dark:text-indigo-400 dark:hover:bg-indigo-950/50',
+                'p-2 rounded-xl transition-colors duration-normal disabled:opacity-40',
+                'bg-primary/10 text-primary hover:bg-primary/20',
               )}
               aria-label={`${file.title} - solution`}
             >
@@ -73,7 +71,7 @@ export function AskExerciseCard({ file }: AskExerciseCardProps) {
             <button
               onClick={() => setIsOpen(!isOpen)}
               className={cn(
-                'flex items-center gap-2 px-5 py-2 rounded-xl font-bold transition-all',
+                'flex items-center gap-2 px-5 py-2 rounded-xl font-bold transition-all duration-normal',
                 isOpen
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-primary/10 text-primary hover:bg-primary/20',

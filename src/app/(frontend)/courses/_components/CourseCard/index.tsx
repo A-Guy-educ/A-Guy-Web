@@ -77,23 +77,22 @@ export function CourseCard({ course, isOwned = false }: CourseCardProps) {
   }
 
   const borderClass = isOwned
-    ? 'border-2 border-[hsl(var(--primary))]/20'
-    : 'border border-transparent hover:border-[hsl(var(--primary-soft))]'
+    ? 'border-2 border-primary/20'
+    : 'border border-transparent hover:border-primary/10'
 
   return (
     <div
       className={cn(
         'relative bg-card p-card-padding rounded-[2rem] flex flex-col',
         borderClass,
-        'shadow-[0_1px_2px_0_rgba(60,64,67,.3),0_1px_3px_1px_rgba(60,64,67,.15)]',
-        'transition-all hover:-translate-y-0.5',
+        'shadow-card',
+        'transition-all duration-normal hover:-translate-y-0.5 hover:shadow-card-hover',
         isSoon && 'opacity-75',
       )}
     >
       {isOwned && (
         <span
-          className="absolute -top-3 start-6 bg-[hsl(var(--success))] text-white px-4 py-1 rounded-full shadow-elevation-3 uppercase tracking-wider"
-          style={{ fontSize: '9px', fontWeight: 900 }}
+          className="absolute -top-3 start-6 bg-success text-white px-4 py-1 rounded-full shadow-elevation-3 uppercase tracking-wider text-[9px] font-black"
         >
           הקורס שלך
         </span>
@@ -111,23 +110,20 @@ export function CourseCard({ course, isOwned = false }: CourseCardProps) {
         <div className="flex-1">
           {course.courseLabel && (
             <span
-              className="block mb-1 uppercase tracking-widest text-primary"
-              style={{ fontSize: '10px', fontWeight: 900 }}
+              className="block mb-1 uppercase tracking-widest text-primary text-[10px] font-black"
             >
               {course.courseLabel}
             </span>
           )}
           <h4
-            className="text-card-foreground text-start"
-            style={{ fontSize: '20px', fontWeight: 900 }}
+            className="text-heading-lg font-black text-card-foreground text-start"
           >
             {course.title}
           </h4>
           {course.description && (
             <SafeHtml
               html={course.description}
-              className="text-muted-foreground mt-1 line-clamp-2 text-start [&_p]:m-0"
-              style={{ fontSize: '12px' }}
+              className="text-body-xs text-muted-foreground mt-1 line-clamp-2 text-start [&_p]:m-0"
             />
           )}
         </div>
@@ -137,7 +133,7 @@ export function CourseCard({ course, isOwned = false }: CourseCardProps) {
               <ProgressCircle percentage={courseProgress} size={48} strokeWidth={3}>
                 {courseProgress >= 100 ? (
                   <foreignObject x="25%" y="25%" width="50%" height="50%">
-                    <CheckCircle className="w-full h-full text-[hsl(var(--success))]" />
+                    <CheckCircle className="w-full h-full text-success" />
                   </foreignObject>
                 ) : (
                   <text
@@ -156,11 +152,11 @@ export function CourseCard({ course, isOwned = false }: CourseCardProps) {
             <div
               className={cn(
                 'w-12 h-12 rounded-2xl flex items-center justify-center',
-                isOwned ? 'bg-[hsl(var(--success))]/10' : 'bg-muted',
+                isOwned ? 'bg-success/10' : 'bg-muted',
               )}
             >
               {isOwned ? (
-                <CheckCircle className="w-6 h-6 text-[hsl(var(--success))]" />
+                <CheckCircle className="w-6 h-6 text-success" />
               ) : (
                 <BookOpen className="w-6 h-6 text-primary" />
               )}
@@ -176,10 +172,10 @@ export function CourseCard({ course, isOwned = false }: CourseCardProps) {
           className={cn(
             'w-full',
             isOwned
-              ? 'bg-[hsl(var(--success))]/10 text-[hsl(var(--success))] hover:bg-[hsl(var(--success))]/20'
+              ? 'bg-success/10 text-success hover:bg-success/20'
               : isSoon
                 ? 'bg-muted text-muted-foreground cursor-not-allowed'
-                : 'bg-muted text-primary hover:bg-[hsl(var(--primary-soft))]',
+                : 'bg-muted text-primary hover:bg-primary/5',
           )}
         >
           {isLoading ? (

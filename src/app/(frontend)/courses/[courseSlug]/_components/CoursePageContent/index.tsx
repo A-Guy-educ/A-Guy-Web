@@ -40,12 +40,7 @@ export function CoursePageContent({
   const { hasUpcomingExam, daysUntil } = useExamCountdown(course.id)
 
   return (
-    <div
-      className="min-h-screen"
-      style={{
-        background: 'linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%)',
-      }}
-    >
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted">
       <CourseAnalytics courseId={course.id} courseTitle={course.title} />
       <CourseTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
@@ -53,7 +48,7 @@ export function CoursePageContent({
       <div className="w-full py-6 px-6">
         <div className="max-w-5xl mx-auto text-center">
           {hasUpcomingExam && daysUntil !== null && <ExamReminderBubble daysUntil={daysUntil} />}
-          <h1 className="text-3xl md:text-4xl font-black text-foreground mt-4 text-center">
+          <h1 className="text-display-sm md:text-display-md font-black text-foreground mt-4 text-center">
             {course.title}
           </h1>
         </div>
@@ -91,19 +86,19 @@ export function CoursePageContent({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <SystemLink
               href={`/stats?courseId=${course.id}`}
-              className="flex items-center justify-center gap-2 text-sm font-bold text-foreground bg-card border border-border px-6 py-3 rounded-full hover:bg-muted/50 transition-all"
+              className="flex items-center justify-center gap-2 text-body-sm font-bold text-foreground bg-card border border-border px-6 py-3 rounded-full hover:bg-muted/50 transition-all duration-normal"
             >
               <BarChart3 className="w-4 h-4" />
               {t('statsAndPerformance')}
             </SystemLink>
             <SystemLink
               href="/study-plan"
-              className="flex items-center justify-center gap-2 text-sm font-bold text-primary-foreground bg-primary px-6 py-3 rounded-full shadow-lg hover:opacity-90 transition-all"
+              className="flex items-center justify-center gap-2 text-body-sm font-bold text-primary-foreground bg-primary px-6 py-3 rounded-full shadow-elevation-3 hover:opacity-90 transition-all duration-normal"
             >
               <GraduationCap className="w-4 h-4" />
               {t('upcomingExam')}
             </SystemLink>
-            <button className="flex items-center justify-center gap-2 text-sm font-bold text-foreground bg-card border border-border px-6 py-3 rounded-full hover:bg-muted/50 transition-all">
+            <button className="flex items-center justify-center gap-2 text-body-sm font-bold text-foreground bg-card border border-border px-6 py-3 rounded-full hover:bg-muted/50 transition-all duration-normal">
               <Sparkles className="w-4 h-4" />
               {t('bagrutTransition')}
             </button>

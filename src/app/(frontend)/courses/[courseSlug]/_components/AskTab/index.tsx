@@ -72,16 +72,16 @@ export function AskTab({ courseId, accentColor }: AskTabProps) {
         className={cn(
           'bg-primary text-primary-foreground rounded-3xl p-6 shadow-card',
           'flex items-center justify-between',
-          'transition-all cursor-pointer border border-transparent hover:opacity-95',
+          'transition-all duration-normal cursor-pointer border border-transparent hover:opacity-95',
           'text-start',
         )}
       >
         <div className="flex flex-col">
-          <span className="text-[10px] font-bold text-primary-foreground/60 mb-1 uppercase tracking-wide">
+          <span className="text-label font-bold text-primary-foreground/60 mb-1 uppercase tracking-wide">
             {t('quickAction')}
           </span>
-          <h3 className="text-xl font-bold">{t('newQuestion')}</h3>
-          <p className="text-xs text-primary-foreground/70 mt-1">{t('newQuestionSub')}</p>
+          <h3 className="text-heading-lg font-bold">{t('newQuestion')}</h3>
+          <p className="text-body-xs text-primary-foreground/70 mt-1">{t('newQuestionSub')}</p>
         </div>
         <div className="w-14 h-14 bg-primary-foreground/20 rounded-full flex items-center justify-center shrink-0 ms-3">
           <Sparkles className="w-6 h-6 text-primary-foreground fill-current" />

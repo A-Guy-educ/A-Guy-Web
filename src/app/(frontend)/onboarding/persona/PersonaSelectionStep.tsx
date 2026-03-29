@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 
 import { Spinner } from '@/infra/loading/components/Spinner'
 import { useRouterWithLoading } from '@/infra/loading/hooks/useRouterWithLoading'
+import { cn } from '@/infra/utils/ui'
 import { Badge } from '@/ui/web/components/badge'
 import { Button } from '@/ui/web/components/button'
 import { Card } from '@/ui/web/components/card'
@@ -102,7 +103,7 @@ export function PersonaSelectionStep({ returnTo }: PersonaSelectionStepProps) {
 
   if (loading) {
     return (
-      <div className="container py-16">
+      <div className="container py-section-md">
         <div className="mx-auto max-w-2xl text-center">
           <Spinner size="lg" />
           <p className="mt-4 text-muted-foreground">{t('loading')}</p>
@@ -112,15 +113,15 @@ export function PersonaSelectionStep({ returnTo }: PersonaSelectionStepProps) {
   }
 
   return (
-    <div className="container py-16">
+    <div className="container py-section-md">
       <div className="mx-auto max-w-2xl">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">{t('title')}</h1>
-          <p className="text-muted-foreground">{t('subtitle')}</p>
+          <h1 className="text-display-sm font-bold mb-2">{t('title')}</h1>
+          <p className="text-body-md text-muted-foreground">{t('subtitle')}</p>
         </div>
 
         {profiles.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2" role="radiogroup" aria-label={t('title')}>
+          <div className="grid gap-content-gap sm:grid-cols-2" role="radiogroup" aria-label={t('title')}>
             {profiles.map((profile) => (
               <Card
                 key={profile.slug}
@@ -133,21 +134,22 @@ export function PersonaSelectionStep({ returnTo }: PersonaSelectionStepProps) {
                     handleSelect(profile.slug)
                   }
                 }}
-                className={`cursor-pointer transition-all hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                className={cn(
+                  'cursor-pointer transition-all duration-normal hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                   selectedSlug === profile.slug
                     ? 'ring-2 ring-primary border-primary'
-                    : 'border-border'
-                }`}
+                    : 'border-border',
+                )}
                 onClick={() => handleSelect(profile.slug)}
               >
-                <div className="p-4">
+                <div className="p-card-padding">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-medium">{profile.label}</h3>
                     {selectedSlug === profile.slug && (
                       <Badge variant="secondary">{t('selected')}</Badge>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground">{profile.description}</p>
+                  <p className="text-body-sm text-muted-foreground">{profile.description}</p>
                 </div>
               </Card>
             ))}

@@ -173,9 +173,9 @@ export function SelectedCourseCard() {
                 <Badge variant="secondary" className="mb-2">
                   {course.courseLabel}
                 </Badge>
-                <p className="font-semibold text-lg">{course.title}</p>
+                <p className="font-semibold text-heading-lg">{course.title}</p>
                 {course.description && (
-                  <p className="text-muted-foreground text-sm">{course.description}</p>
+                  <p className="text-muted-foreground text-body-sm">{course.description}</p>
                 )}
               </div>
             </div>

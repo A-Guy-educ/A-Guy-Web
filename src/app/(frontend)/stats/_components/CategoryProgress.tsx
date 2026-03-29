@@ -62,14 +62,14 @@ export function CategoryProgress({ data }: CategoryProgressProps) {
   ]
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-content-gap">
       {categories.map((category) => {
         const Icon = category.icon
         return (
-          <Card key={category.key}>
+          <Card key={category.key} className="shadow-elevation-1 transition-shadow duration-normal hover:shadow-elevation-2">
             <CardHeader className="pb-2">
               <CardTitle
-                className="text-sm font-medium flex items-center gap-2"
+                className="text-body-sm font-medium flex items-center gap-2"
                 style={{ color: category.color }}
               >
                 <Icon className="w-4 h-4" style={{ color: category.color }} />
@@ -77,7 +77,7 @@ export function CategoryProgress({ data }: CategoryProgressProps) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-lg font-semibold">{category.value}</div>
+              <div className="text-heading-lg font-semibold">{category.value}</div>
               <Progress
                 value={category.progress}
                 className="mt-2"

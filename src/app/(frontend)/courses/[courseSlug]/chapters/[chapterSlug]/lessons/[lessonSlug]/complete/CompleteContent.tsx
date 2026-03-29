@@ -47,24 +47,24 @@ export function CompleteContent({ backUrl, lessonId }: CompleteContentProps) {
         <div className="container mx-auto px-4 sm:px-6 py-8 md:py-12 max-w-3xl">
           <div className="space-y-8">
             <header className="text-center">
-              <span className="inline-block px-4 py-1.5 bg-secondary/10 text-secondary rounded-full text-[10px] tracking-[0.2em] uppercase mb-5 border border-secondary/20">
+              <span className="inline-block px-4 py-1.5 bg-secondary/10 text-secondary rounded-full text-label tracking-[0.2em] uppercase mb-5 border border-secondary/20">
                 {t('exercisesPagerCompleted')}
               </span>
-              <h1 className="text-4xl md:text-[42px] font-medium leading-tight text-foreground mb-3">
+              <h1 className="text-display-md md:text-display-lg font-medium leading-tight text-foreground mb-3">
                 {t('exercisesPagerCompletedTitle')}
               </h1>
               <div className="w-20 h-1 bg-secondary mx-auto rounded-full" />
             </header>
 
-            <div className="bg-card rounded-3xl p-8 md:p-10 border border-border/60 shadow-xl shadow-muted/50 text-center">
-              <div className="w-20 h-20 bg-secondary/10 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-lg shadow-secondary/10 border border-secondary/20">
+            <div className="bg-card rounded-3xl p-card-padding-lg md:p-10 border border-border/60 shadow-card-hover shadow-muted/50 text-center">
+              <div className="w-20 h-20 bg-secondary/10 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-card shadow-secondary/10 border border-secondary/20">
                 <Sparkles className="w-9 h-9 text-secondary" />
               </div>
 
-              <h2 className="text-2xl font-medium mb-4 text-foreground">
+              <h2 className="text-heading-xl font-medium mb-4 text-foreground">
                 {t('exercisesPagerCompletedTitle')}
               </h2>
-              <p className="text-muted-foreground mb-10 text-base leading-relaxed max-w-md mx-auto">
+              <p className="text-muted-foreground mb-10 text-body-md leading-relaxed max-w-md mx-auto">
                 {t('exercisesPagerCompletedDescription')}
               </p>
 
@@ -72,7 +72,7 @@ export function CompleteContent({ backUrl, lessonId }: CompleteContentProps) {
                 asChild
                 size="lg"
                 variant="secondary"
-                className="w-full py-6 rounded-2xl text-lg shadow-lg shadow-secondary/20 hover:shadow-xl hover:shadow-secondary/30 transition-all duration-300"
+                className="w-full py-section-sm rounded-2xl text-body-lg shadow-card shadow-secondary/20 hover:shadow-card-hover hover:shadow-secondary/30 transition-all duration-slow"
               >
                 <SystemLink href={backUrl}>
                   <Sparkles className="w-5 h-5 me-2" />
@@ -85,7 +85,7 @@ export function CompleteContent({ backUrl, lessonId }: CompleteContentProps) {
               <Button
                 asChild
                 variant="ghost"
-                className="text-muted-foreground text-sm hover:text-foreground transition-colors duration-300 gap-1.5"
+                className="text-muted-foreground text-body-sm hover:text-foreground transition-colors duration-slow gap-1.5"
               >
                 <SystemLink href={backUrl}>
                   <Sparkles className="w-4 h-4 me-2" />

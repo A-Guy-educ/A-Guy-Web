@@ -110,7 +110,7 @@ function SignupFormContent() {
   return (
     <Card>
       <CardHeader>
-        <p className="text-sm text-muted-foreground text-center">
+        <p className="text-body-sm text-muted-foreground text-center">
           Fill in the form below to create your account
         </p>
       </CardHeader>
@@ -121,7 +121,7 @@ function SignupFormContent() {
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
             </div>
-            <div className="relative flex justify-center text-xs uppercase">
+            <div className="relative flex justify-center text-body-xs uppercase">
               <span className="bg-background px-2 text-muted-foreground">
                 {tOauth('orDivider')}
               </span>
@@ -144,9 +144,9 @@ function SignupFormContent() {
         </form>
       </CardContent>
       <CardFooter className="flex justify-center">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-body-sm text-muted-foreground">
           {t('alreadyHaveAccount')}{' '}
-          <SystemLink href="/login" className="text-primary hover:underline">
+          <SystemLink href="/login" className="text-primary hover:underline transition-colors duration-normal">
             {t('login')}
           </SystemLink>
         </p>
@@ -168,7 +168,7 @@ function SignupFormSkeleton() {
   return (
     <Card>
       <CardHeader>
-        <p className="text-sm text-muted-foreground text-center">
+        <p className="text-body-sm text-muted-foreground text-center">
           Fill in the form below to create your account
         </p>
       </CardHeader>

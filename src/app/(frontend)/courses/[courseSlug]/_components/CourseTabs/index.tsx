@@ -6,10 +6,10 @@ import { useTranslations } from '@/ui/web/providers/I18n'
 export type CourseTab = 'learn' | 'practice' | 'ask' | 'exams'
 
 export const TAB_COLORS: Record<CourseTab, { text: string; stroke: string }> = {
-  learn: { text: 'hsl(217 91% 60%)', stroke: 'hsl(217 91% 60%)' },
-  practice: { text: 'hsl(0 72% 51%)', stroke: 'hsl(0 72% 51%)' },
-  exams: { text: 'hsl(330 81% 60%)', stroke: 'hsl(330 81% 60%)' },
-  ask: { text: 'hsl(142 71% 45%)', stroke: 'hsl(142 71% 45%)' },
+  learn: { text: 'hsl(var(--tab-learn))', stroke: 'hsl(var(--tab-learn))' },
+  practice: { text: 'hsl(var(--tab-practice))', stroke: 'hsl(var(--tab-practice))' },
+  exams: { text: 'hsl(var(--tab-exams))', stroke: 'hsl(var(--tab-exams))' },
+  ask: { text: 'hsl(var(--tab-ask))', stroke: 'hsl(var(--tab-ask))' },
 }
 
 interface CourseTabsProps {
@@ -32,8 +32,8 @@ export function CourseTabs({ activeTab, onTabChange }: CourseTabsProps) {
               key={tab}
               onClick={() => onTabChange(tab)}
               className={cn(
-                'flex-1 px-6 py-2 text-sm rounded-full transition-all font-semibold',
-                isActive ? 'bg-card shadow-md' : 'hover:opacity-80',
+                'flex-1 px-6 py-2 text-body-sm rounded-full transition-all duration-fast font-semibold',
+                isActive ? 'bg-card shadow-card' : 'hover:opacity-hover',
               )}
               style={{ color: TAB_COLORS[tab].text }}
             >
