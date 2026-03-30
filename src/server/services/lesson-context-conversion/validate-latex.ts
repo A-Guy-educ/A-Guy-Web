@@ -147,5 +147,32 @@ function detectTruncation(text: string, braceBalance: number, envIssues: string[
     if (braceBalance > 0) return true
   }
 
+  // Content-level check: exercises with empty solution stubs suggest the LLM
+  // ran out of tokens and wrapped up early with a valid \end{document}
+  if (hasEmptySolutionStubs(text)) return true
+
+  return false
+}
+
+/**
+ * Detect when the LLM generated exercise headers but left solutions empty.
+ * This happens when the LLM runs out of output tokens but still produces
+ * a structurally valid document (with \end{document}).
+ */
+function hasEmptySolutionStubs(text: string): boolean {
+  // Find all solution section headers
+  const solutionHeaders = text.match(/\\section\*\{פתרון תרגיל \d+\}/g)
+  if (!solutionHeaders || solutionHeaders.length === 0) return false
+
+  // Check if any solution section is empty (just a header with no content before the next header or end)
+  for (const header of solutionHeaders) {
+    const headerIndex = text.indexOf(header)
+    const afterHeader = text.substring(headerIndex + header.length).trim()
+
+    // Find what comes next: another \section*, \end{document}, or content
+    const nextSectionMatch = afterHeader.match(/^[\s\n]*(\\section\*|\\end\{document\})/)
+    if (nextSectionMatch) return true
+  }
+
   return false
 }
