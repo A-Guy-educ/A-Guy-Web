@@ -93,12 +93,14 @@ export const Exercises: CollectionConfig = {
       },
     ],
     afterRead: [
-      // Lazy backfill: populate course/chapter on existing records that don't have them yet
-      // Skip during build/seed to avoid cascading DB writes that slow down static generation
+      // Lazy backfill: when an exercise is read and its denormalized course/chapter
+      // fields are empty, resolve them from the hierarchy and persist to the DB.
+      // This is a one-time write per record — subsequent reads skip (already populated).
+      // Skipped during build/seed (no req.user) to avoid slow static generation.
       async ({ doc, req }) => {
         if (!doc?.lesson) return doc
-        if (doc.course && doc.chapter) return doc // Already populated
-        if (!req.user) return doc // Skip for unauthenticated/build-time reads
+        if (doc.course && doc.chapter) return doc
+        if (!req.user) return doc
 
         try {
           const lessonId = typeof doc.lesson === 'string' ? doc.lesson : doc.lesson?.id
@@ -123,23 +125,24 @@ export const Exercises: CollectionConfig = {
           const courseId =
             typeof chapter?.course === 'string' ? chapter.course : chapter?.course?.id
 
-          // Silently persist to DB so filters work on next query
-          if (courseId || chapterId) {
+          const updates: Record<string, string> = {}
+          if (chapterId && !doc.chapter) updates.chapter = chapterId
+          if (courseId && !doc.course) updates.course = courseId
+
+          if (Object.keys(updates).length > 0) {
+            // Persist to DB so list-view filters match on the next query
             await req.payload.update({
               collection: 'exercises',
               id: doc.id,
-              data: {
-                ...(chapterId && !doc.chapter ? { chapter: chapterId } : {}),
-                ...(courseId && !doc.course ? { course: courseId } : {}),
-              } as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+              data: updates as any, // eslint-disable-line @typescript-eslint/no-explicit-any
               overrideAccess: true,
               context: { _skipBlockSync: true },
             })
-            if (!doc.chapter) doc.chapter = chapterId
-            if (!doc.course) doc.course = courseId
+            if (updates.chapter) doc.chapter = chapterId
+            if (updates.course) doc.course = courseId
           }
         } catch {
-          // Silently skip
+          // Silently skip — backfill is best-effort
         }
 
         return doc

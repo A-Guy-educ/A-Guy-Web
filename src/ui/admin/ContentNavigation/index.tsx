@@ -113,7 +113,6 @@ const ContentNavigation: React.FC<{ context: CollectionContext }> = ({ context }
 
     try {
       if (context === 'exercises') {
-        // Exercise: parent is lesson -> chapter -> course
         const lesson = await fetchRecord('lessons', parentId)
         let chapter: ParentRecord | null = null
         let course: ParentRecord | null = null
@@ -131,7 +130,6 @@ const ContentNavigation: React.FC<{ context: CollectionContext }> = ({ context }
 
         setHierarchy({ lesson, chapter, course })
       } else {
-        // Lesson: parent is chapter -> course
         const chapter = await fetchRecord('chapters', parentId)
         let course: ParentRecord | null = null
 
@@ -161,18 +159,24 @@ const ContentNavigation: React.FC<{ context: CollectionContext }> = ({ context }
 
   if (!docId && !parentId) {
     return (
-      <div style={styles.container}>
-        <div style={styles.label}>Content Hierarchy</div>
-        <p style={styles.empty}>Save the document to see navigation links.</p>
+      <div className="py-3">
+        <div className="mb-2 text-[13px] font-semibold uppercase tracking-wide text-[var(--theme-elevation-800)]">
+          Content Hierarchy
+        </div>
+        <p className="m-0 text-[13px] text-[var(--theme-elevation-500)]">
+          Save the document to see navigation links.
+        </p>
       </div>
     )
   }
 
   if (loading) {
     return (
-      <div style={styles.container}>
-        <div style={styles.label}>Content Hierarchy</div>
-        <p style={styles.empty}>Loading hierarchy...</p>
+      <div className="py-3">
+        <div className="mb-2 text-[13px] font-semibold uppercase tracking-wide text-[var(--theme-elevation-800)]">
+          Content Hierarchy
+        </div>
+        <p className="m-0 text-[13px] text-[var(--theme-elevation-500)]">Loading hierarchy...</p>
       </div>
     )
   }
@@ -213,31 +217,40 @@ const ContentNavigation: React.FC<{ context: CollectionContext }> = ({ context }
   }
 
   return (
-    <div style={styles.container}>
-      <div style={styles.label}>Content Hierarchy</div>
+    <div className="py-3">
+      <div className="mb-2 text-[13px] font-semibold uppercase tracking-wide text-[var(--theme-elevation-800)]">
+        Content Hierarchy
+      </div>
 
       {/* Breadcrumb */}
-      <nav style={styles.breadcrumb} aria-label="Content hierarchy breadcrumb">
+      <nav
+        className="mb-3 flex flex-wrap items-center gap-0.5 rounded bg-[var(--theme-elevation-50)] px-2.5 py-2 text-body-xs leading-relaxed"
+        aria-label="Content hierarchy breadcrumb"
+      >
         {breadcrumbs.map((crumb, i) => (
-          <span key={`${crumb.collection}-${i}`} style={styles.breadcrumbItem}>
-            {i > 0 && <span style={styles.separator}>{' > '}</span>}
+          <span key={`${crumb.collection}-${i}`} className="inline-flex items-center">
+            {i > 0 && (
+              <span className="mx-0.5 text-[11px] text-[var(--theme-elevation-400)]">{' > '}</span>
+            )}
             {crumb.id ? (
               <a
                 href={adminUrl(crumb.collection, crumb.id)}
-                style={styles.breadcrumbLink}
+                className="font-medium text-[var(--theme-text)] no-underline hover:underline"
                 title={`Go to ${crumb.label}`}
               >
                 {crumb.label}
               </a>
             ) : (
-              <span style={styles.notAssigned}>{crumb.label}</span>
+              <span className="text-body-xs italic text-[var(--theme-elevation-400)]">
+                {crumb.label}
+              </span>
             )}
           </span>
         ))}
       </nav>
 
       {/* Parent links */}
-      <div style={styles.links}>
+      <div className="flex flex-col gap-1.5">
         {context === 'exercises' && (
           <ParentLink label="Lesson" record={hierarchy.lesson} collection="lessons" />
         )}
@@ -260,101 +273,23 @@ const ParentLink: React.FC<{
   const name = displayName(record)
 
   return (
-    <div style={styles.linkRow}>
-      <span style={styles.linkLabel}>{label}:</span>
+    <div className="flex items-baseline gap-1.5 text-[13px]">
+      <span className="min-w-[56px] shrink-0 font-semibold text-[var(--theme-elevation-600)]">
+        {label}:
+      </span>
       {record?.id ? (
         <a
           href={adminUrl(collection, record.id)}
-          style={styles.linkValue}
+          className="break-words text-[var(--theme-text)] underline decoration-[var(--theme-elevation-300)] underline-offset-2"
           title={`Navigate to ${name}`}
         >
           {name}
         </a>
       ) : (
-        <span style={styles.notAssigned}>{name}</span>
+        <span className="text-body-xs italic text-[var(--theme-elevation-400)]">{name}</span>
       )}
     </div>
   )
-}
-
-/* ------------------------------------------------------------------ */
-/*  Styles                                                             */
-/* ------------------------------------------------------------------ */
-
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    padding: '12px 0',
-  },
-  label: {
-    fontSize: '13px',
-    fontWeight: 600,
-    color: 'var(--theme-elevation-800)',
-    marginBottom: '8px',
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px',
-  },
-  empty: {
-    fontSize: '13px',
-    color: 'var(--theme-elevation-500)',
-    margin: 0,
-  },
-  breadcrumb: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    gap: '2px',
-    marginBottom: '12px',
-    padding: '8px 10px',
-    backgroundColor: 'var(--theme-elevation-50)',
-    borderRadius: '4px',
-    fontSize: '12px',
-    lineHeight: '1.4',
-  },
-  breadcrumbItem: {
-    display: 'inline-flex',
-    alignItems: 'center',
-  },
-  separator: {
-    color: 'var(--theme-elevation-400)',
-    margin: '0 2px',
-    fontSize: '11px',
-  },
-  breadcrumbLink: {
-    color: 'var(--theme-text)',
-    textDecoration: 'none',
-    fontWeight: 500,
-    borderBottom: '1px solid transparent',
-    transition: 'border-color 0.15s',
-  },
-  notAssigned: {
-    color: 'var(--theme-elevation-400)',
-    fontStyle: 'italic',
-    fontSize: '12px',
-  },
-  links: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-  },
-  linkRow: {
-    display: 'flex',
-    alignItems: 'baseline',
-    gap: '6px',
-    fontSize: '13px',
-  },
-  linkLabel: {
-    fontWeight: 600,
-    color: 'var(--theme-elevation-600)',
-    flexShrink: 0,
-    minWidth: '56px',
-  },
-  linkValue: {
-    color: 'var(--theme-text)',
-    textDecoration: 'underline',
-    textUnderlineOffset: '2px',
-    textDecorationColor: 'var(--theme-elevation-300)',
-    wordBreak: 'break-word',
-  },
 }
 
 /* ------------------------------------------------------------------ */

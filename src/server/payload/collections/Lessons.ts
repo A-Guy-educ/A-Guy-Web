@@ -94,12 +94,14 @@ export const Lessons: CollectionConfig = {
       },
     ],
     afterRead: [
-      // Lazy backfill: populate course on existing records that don't have it yet
-      // Skip during build/seed to avoid cascading DB writes that slow down static generation
+      // Lazy backfill: when a lesson is read and its denormalized course field is
+      // empty, resolve it from chapter -> course and persist to the DB.
+      // One-time write per record — subsequent reads skip (already populated).
+      // Skipped during build/seed (no req.user) to avoid slow static generation.
       async ({ doc, req }) => {
         if (!doc?.chapter) return doc
-        if (doc.course) return doc // Already populated
-        if (!req.user) return doc // Skip for unauthenticated/build-time reads
+        if (doc.course) return doc
+        if (!req.user) return doc
 
         try {
           const chapterId = typeof doc.chapter === 'string' ? doc.chapter : doc.chapter?.id
@@ -115,6 +117,7 @@ export const Lessons: CollectionConfig = {
             typeof chapter?.course === 'string' ? chapter.course : chapter?.course?.id
 
           if (courseId) {
+            // Persist to DB so list-view filters match on the next query
             await req.payload.update({
               collection: 'lessons',
               id: doc.id,
@@ -124,7 +127,7 @@ export const Lessons: CollectionConfig = {
             doc.course = courseId
           }
         } catch {
-          // Silently skip
+          // Silently skip — backfill is best-effort
         }
 
         return doc
