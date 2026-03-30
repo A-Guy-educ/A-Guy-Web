@@ -3,7 +3,7 @@
 import { ExerciseBlockDefaults, generateId } from '@/server/payload/collections/Exercises/defaults'
 import type { ContentBlock, InlineRichText } from '@/server/payload/collections/Exercises/types'
 import { useField, useForm } from '@payloadcms/ui'
-import { Code, Copy, FileCode, MoveDown, MoveUp, Plus, Trash2 } from 'lucide-react'
+import { Copy, FileCode, MoveDown, MoveUp, Plus, Trash2 } from 'lucide-react'
 import React from 'react'
 import { BlockTypeSelector } from './BlockTypeSelector'
 import { FullJsonEditor } from './FullJsonEditor'
@@ -375,16 +375,6 @@ export const ExerciseContentEditor: React.FC<{ path: string }> = ({ path }) => {
               type="button"
             >
               <FileCode size={16} />
-            </button>
-          )}
-          {!isFullJsonMode && (
-            <button
-              className={`icon-button ${isJsonPanelOpen ? 'active' : ''}`}
-              onClick={() => setIsJsonPanelOpen(!isJsonPanelOpen)}
-              title={isJsonPanelOpen ? 'Hide JSON' : 'Show JSON'}
-              type="button"
-            >
-              <Code size={16} />
             </button>
           )}
           <div className="editor-badge">{isFullJsonMode ? 'JSON' : 'Flat Blocks'}</div>
