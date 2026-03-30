@@ -28,6 +28,7 @@ import { motion } from 'framer-motion'
 import { toast } from 'sonner'
 import { useEffect, useMemo, useState } from 'react'
 import { useProgressMap } from '@/client/hooks/useProgressMap'
+import { CourseLessonCard } from '@/app/(frontend)/courses/[courseSlug]/_components/CourseLessonCard'
 
 interface ChapterWithLessons extends Chapter {
   lessons: Lesson[]
@@ -385,7 +386,7 @@ export function StudyContent({
                           ease: 'easeOut',
                         }}
                       >
-                        <LessonGridCard
+                        <CourseLessonCard
                           lesson={lesson}
                           index={startIndex + idx + 1}
                           courseSlug={courseInfo?.courseSlug ?? ''}
@@ -459,112 +460,6 @@ function ExamReminderBubble({ courseId }: { courseId: string }) {
       <span className="bg-primary text-white text-body-sm font-bold px-6 py-2 rounded-full">
         {message}
       </span>
-    </div>
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/* Lesson grid card matching the HTML design                           */
-/* ------------------------------------------------------------------ */
-
-function LessonGridCard({
-  lesson,
-  index,
-  courseSlug,
-  chapterSlug,
-  tabColor,
-  progress: progressProp,
-}: {
-  lesson: Lesson
-  index: number
-  courseSlug: string
-  chapterSlug: string
-  tabColor?: { text: string; stroke: string }
-  progress?: number
-}) {
-  const t = useTranslations('coursePage')
-  const tc = useTranslations('courses')
-
-  if (!lesson.slug) return null
-
-  const href = `/courses/${courseSlug}/chapters/${chapterSlug}/lessons/${lesson.slug}`
-  const isSoon = lesson.contentStatus === 'soon'
-  const progress = progressProp ?? 0
-
-  const accentColor = tabColor?.stroke ?? 'hsl(var(--primary))'
-
-  const handleLessonClick = (e: React.MouseEvent) => {
-    if (isSoon) {
-      e.preventDefault()
-      toast.info(tc('contentLocked'))
-    }
-  }
-
-  // Pick icon based on lesson type
-  const TypeIcon = lesson.type === 'practice' ? Target : lesson.type === 'exam' ? Trophy : BookOpen
-  const hasFiles = (lesson.contentFiles?.length ?? 0) > 0
-
-  const progressText =
-    progress >= 100 ? t('lessonCompleted') : progress > 0 ? t('statusInProgress') : t('notStarted')
-
-  return (
-    <div
-      className={cn(
-        'relative rounded-2xl overflow-visible border border-border/40 shadow-elevation-1 transition-all will-change-transform',
-        !isSoon && 'active:scale-[0.98]',
-        isSoon && 'opacity-60',
-      )}
-      style={{ borderTopWidth: 3, borderTopColor: accentColor }}
-    >
-      <ContentStatusBadge
-        contentStatus={lesson.contentStatus}
-        contentStatusExpiresAt={lesson.contentStatusExpiresAt ?? undefined}
-        contentStatusLabel={lesson.contentStatusLabel ?? undefined}
-        className="absolute -top-3 end-4 z-10"
-      />
-      <SystemLink
-        href={isSoon ? '#' : href}
-        onClick={handleLessonClick}
-        className={cn(
-          'bg-card p-5 flex items-center justify-between gap-4',
-          isSoon ? 'cursor-not-allowed' : 'cursor-pointer',
-        )}
-      >
-        <div className="flex flex-col text-start gap-1.5 min-w-0">
-          <span
-            className="text-[10px] font-bold uppercase tracking-wide"
-            style={{ color: accentColor }}
-          >
-            {tc('lesson')} {index}
-          </span>
-          <h3 className="text-body-lg font-bold text-card-foreground leading-snug">
-            {lesson.title}
-          </h3>
-          <p className="text-body-xs text-muted-foreground flex items-center gap-1.5">
-            {progress === 0 && <Clock className="w-3.5 h-3.5" />}
-            {progressText}
-          </p>
-        </div>
-
-        <div className="shrink-0 w-14 h-14">
-          <ProgressCircle
-            percentage={progress}
-            size={56}
-            strokeWidth={3}
-            strokeColor={accentColor}
-          >
-            <text
-              x="50%"
-              y="50%"
-              textAnchor="middle"
-              dy=".3em"
-              className="text-body-sm font-bold fill-foreground"
-            >
-              {Math.round(progress)}%
-            </text>
-          </ProgressCircle>
-        </div>
-      </SystemLink>
     </div>
   )
 }
