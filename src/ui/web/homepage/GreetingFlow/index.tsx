@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { TypingAnimation } from '@/ui/web/shared/TypingAnimation'
 import { Button } from '@/ui/web/components/button'
-import { SafeHtml } from '@/ui/web/SafeHtml'
+import { AccentCard } from '@/ui/web/components/accent-card'
 import { Stack } from '@/ui/web/shared/Layout/Stack'
 import { Grid } from '@/ui/web/shared/Layout/Grid'
 import { Section } from '@/ui/web/shared/Layout/Section'
@@ -20,13 +20,13 @@ const COURSE_COLORS = [
   'hsl(330 81% 60%)',
 ]
 
-function getCourseColorIndex(label?: string | null): number {
-  if (!label) return 0
+function getCourseColor(label?: string | null): string {
+  if (!label) return COURSE_COLORS[0]
   let hash = 0
   for (let i = 0; i < label.length; i++) {
     hash = label.charCodeAt(i) + ((hash << 5) - hash)
   }
-  return Math.abs(hash) % COURSE_COLORS.length
+  return COURSE_COLORS[Math.abs(hash) % COURSE_COLORS.length]
 }
 
 type FlowStep = 'greeting' | 'mood' | 'moodResponse' | 'courses' | 'complete'
@@ -139,30 +139,34 @@ export function GreetingFlow({ onComplete }: { onComplete: () => void }) {
             ) : courses.length > 0 ? (
               <Grid cols={{ default: '1', md: '2', lg: '3' }} gap="content-gap-lg">
                 {courses.map((course) => {
-                  const accentColor = COURSE_COLORS[getCourseColorIndex(course.courseLabel)]
+                  const color = getCourseColor(course.courseLabel)
                   return (
-                    <div
+                    <AccentCard
                       key={course.id}
+                      accentColor={color}
+                      accentPosition="top"
                       onClick={() => handleCourseSelect(course)}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => e.key === 'Enter' && handleCourseSelect(course)}
-                      className="rounded-2xl bg-card border border-border/40 shadow-elevation-1 transition-all duration-normal overflow-hidden border-s-4 cursor-pointer hover:shadow-card-hover hover:-translate-y-0.5 h-full flex flex-col p-5"
-                      style={{ borderInlineStartColor: accentColor }}
+                      className="cursor-pointer h-full flex flex-col"
                     >
-                      {course.courseLabel && (
-                        <span className="inline-block self-start mb-3 bg-muted text-foreground text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full">
-                          {course.courseLabel}
-                        </span>
-                      )}
-                      <h3 className="text-heading-md font-bold text-card-foreground">{course.title}</h3>
-                      {course.description && (
-                        <SafeHtml
-                          html={course.description}
-                          className="text-body-sm text-muted-foreground line-clamp-2 mt-2 [&_p]:m-0"
-                        />
-                      )}
-                    </div>
+                      <div className="p-5">
+                        {course.courseLabel && (
+                          <span
+                            className="text-[10px] font-bold uppercase tracking-wide"
+                            style={{ color }}
+                          >
+                            {course.courseLabel}
+                          </span>
+                        )}
+                        <h3 className="text-body-lg font-bold text-card-foreground mt-1">
+                          {course.title}
+                        </h3>
+                        {course.description && (
+                          <p className="text-body-xs text-muted-foreground mt-2 line-clamp-2">
+                            {course.description}
+                          </p>
+                        )}
+                      </div>
+                    </AccentCard>
                   )
                 })}
               </Grid>

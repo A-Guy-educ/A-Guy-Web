@@ -21,7 +21,7 @@ import { AccessGateProvider } from '@/ui/web/auth/AccessGateProvider'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import { ContentStatusBadge } from '@/ui/web/shared/ContentStatusBadge'
 import { PageTransition } from '@/ui/web/components/page-transition'
-import { BarChart3, BookOpen, FileText, GraduationCap, PlayCircle, Sparkles, Target, Trophy } from 'lucide-react'
+import { BarChart3, BookOpen, Clock, FileText, GraduationCap, PlayCircle, Sparkles, Target, Trophy } from 'lucide-react'
 import { Button } from '@/ui/web/components/button'
 import { Progress } from '@/ui/web/components/progress'
 import { motion } from 'framer-motion'
@@ -292,11 +292,11 @@ export function StudyContent({
       isAuthenticated={isAuthenticated}
     >
       {/* Course context header */}
-      <div className="w-full pt-5 pb-1 px-6">
-        <div className="max-w-3xl mx-auto text-center">
+      <div className="w-full py-6 px-6">
+        <div className="max-w-5xl mx-auto text-center">
           <ExamReminderBubble courseId={courseInfo?.courseId ?? ''} />
 
-          <h1 className="text-heading-lg font-bold text-foreground mt-1">
+          <h1 className="text-3xl md:text-4xl font-black text-foreground mt-4">
             {sectionTitle}
           </h1>
 
@@ -323,7 +323,7 @@ export function StudyContent({
       </div>
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-4 max-w-3xl">
+      <main className="container mx-auto px-6 py-6 max-w-5xl">
         {continueLesson && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -373,7 +373,7 @@ export function StudyContent({
                     </div>
                   )}
 
-                  <div className="flex flex-col gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {group.lessons.map((lesson, idx) => (
                       <motion.div
                         key={lesson.id}
@@ -411,23 +411,23 @@ export function StudyContent({
         )}
 
         {/* Footer actions */}
-        <div className="mt-8 pt-5 border-t border-border/30">
-          <div className="flex items-center justify-center gap-3 flex-wrap">
+        <div className="mt-16 pt-8 border-t border-border">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <SystemLink
               href="/stats"
-              className="group inline-flex items-center gap-2 rounded-lg border border-border/40 px-4 py-2.5 min-h-[44px] text-body-sm font-medium text-muted-foreground hover:text-foreground hover:border-border/60 active:opacity-70 transition-all"
+              className="flex items-center justify-center gap-2 text-sm font-bold text-foreground bg-card border border-border px-6 py-3 rounded-full hover:bg-muted/50 transition-all"
             >
               <BarChart3 className="w-4 h-4" />
               {t('statsAndPerformance')}
             </SystemLink>
             <SystemLink
               href="/study-plan"
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 min-h-[44px] text-body-sm font-medium text-primary-foreground transition-all hover:opacity-90 active:opacity-70"
+              className="flex items-center justify-center gap-2 text-sm font-bold text-primary-foreground bg-primary px-6 py-3 rounded-full shadow-lg hover:opacity-90 transition-all"
             >
               <GraduationCap className="w-4 h-4" />
               {t('upcomingExam')}
             </SystemLink>
-            <button className="group inline-flex items-center gap-2 rounded-lg border border-border/40 px-4 py-2.5 min-h-[44px] text-body-sm font-medium text-muted-foreground hover:text-foreground hover:border-border/60 active:opacity-70 transition-all">
+            <button className="flex items-center justify-center gap-2 text-sm font-bold text-foreground bg-card border border-border px-6 py-3 rounded-full hover:bg-muted/50 transition-all">
               <Sparkles className="w-4 h-4" />
               {t('bagrutTransition')}
             </button>
@@ -504,76 +504,64 @@ function LessonGridCard({
   const TypeIcon = lesson.type === 'practice' ? Target : lesson.type === 'exam' ? Trophy : BookOpen
   const hasFiles = (lesson.contentFiles?.length ?? 0) > 0
 
+  const progressText =
+    progress >= 100 ? t('lessonCompleted') : progress > 0 ? t('statusInProgress') : t('notStarted')
+
   return (
     <div
       className={cn(
-        'relative group rounded-xl bg-card border border-border/30 transition-all duration-normal will-change-transform',
-        !isSoon && 'hover:border-border/50 active:scale-[0.98]',
-        isSoon && 'opacity-50',
+        'relative rounded-2xl overflow-visible border border-border/40 shadow-elevation-1 transition-all will-change-transform',
+        !isSoon && 'active:scale-[0.98]',
+        isSoon && 'opacity-60',
       )}
-      style={{
-        borderInlineStartWidth: '3px',
-        borderInlineStartColor: isSoon ? 'var(--border)' : accentColor,
-      }}
+      style={{ borderTopWidth: 3, borderTopColor: accentColor }}
     >
       <ContentStatusBadge
         contentStatus={lesson.contentStatus}
         contentStatusExpiresAt={lesson.contentStatusExpiresAt ?? undefined}
         contentStatusLabel={lesson.contentStatusLabel ?? undefined}
-        className="absolute -top-2.5 end-3 z-10"
+        className="absolute -top-3 end-4 z-10"
       />
       <SystemLink
         href={isSoon ? '#' : href}
         onClick={handleLessonClick}
         className={cn(
-          'p-5 flex items-center gap-4',
+          'bg-card p-5 flex items-center justify-between gap-4',
           isSoon ? 'cursor-not-allowed' : 'cursor-pointer',
         )}
       >
-        {/* Lesson icon */}
-        <div
-          className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-          style={{ backgroundColor: `${accentColor.replace(')', ' / 0.15)')}` }}
-        >
-          <TypeIcon className="w-5 h-5" style={{ color: accentColor }} />
+        <div className="flex flex-col text-start gap-1.5 min-w-0">
+          <span
+            className="text-[10px] font-bold uppercase tracking-wide"
+            style={{ color: accentColor }}
+          >
+            {tc('lesson')} {index}
+          </span>
+          <h3 className="text-body-lg font-bold text-card-foreground leading-snug">
+            {lesson.title}
+          </h3>
+          <p className="text-body-xs text-muted-foreground flex items-center gap-1.5">
+            {progress === 0 && <Clock className="w-3.5 h-3.5" />}
+            {progressText}
+          </p>
         </div>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-body-xs font-medium text-muted-foreground">
-              {tc('lesson')} {index}
-            </span>
-            {hasFiles && (
-              <FileText className="w-3 h-3 text-muted-foreground/50" />
-            )}
-          </div>
-          <h3 className="text-body-lg font-semibold text-card-foreground truncate">{lesson.title}</h3>
-          {lesson.description && (
-            <p className="text-body-xs text-muted-foreground mt-1 line-clamp-1 [&_p]:inline">
-              {lesson.description.replace(/<[^>]*>/g, '')}
-            </p>
-          )}
-        </div>
-
-        {/* Progress */}
-        <div className="shrink-0">
+        <div className="shrink-0 w-14 h-14">
           <ProgressCircle
             percentage={progress}
-            size={40}
+            size={56}
             strokeWidth={3}
             strokeColor={accentColor}
           >
-            {progress > 0 ? (
-              <text
-                x="50%"
-                y="50%"
-                textAnchor="middle"
-                dy=".3em"
-                className="text-[10px] font-bold fill-foreground"
-              >
-                {Math.round(progress)}%
-              </text>
-            ) : null}
+            <text
+              x="50%"
+              y="50%"
+              textAnchor="middle"
+              dy=".3em"
+              className="text-body-sm font-bold fill-foreground"
+            >
+              {Math.round(progress)}%
+            </text>
           </ProgressCircle>
         </div>
       </SystemLink>
