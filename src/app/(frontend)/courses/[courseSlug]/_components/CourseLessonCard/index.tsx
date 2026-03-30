@@ -6,7 +6,7 @@ import type { Lesson } from '@/payload-types'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { ContentStatusBadge } from '@/ui/web/shared/ContentStatusBadge'
 import { ProgressCircle } from '@/ui/web/shared/ProgressCircle'
-import { BookOpen, FileText, Target, Trophy } from 'lucide-react'
+import { BookOpen, Clock, Target, Trophy } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface CourseLessonCardProps {
@@ -31,6 +31,10 @@ export function CourseLessonCard({
   const href = `/courses/${courseSlug}/chapters/${chapterSlug}/lessons/${lesson.slug}`
   const isSoon = lesson.contentStatus === 'soon'
   const accentColor = isSoon ? 'var(--border)' : (tabColor?.stroke ?? 'hsl(var(--primary))')
+
+  const t = useTranslations('coursePage')
+  const progressText =
+    progress >= 100 ? t('lessonCompleted') : progress > 0 ? t('statusInProgress') : t('notStarted')
 
   const handleLessonClick = (e: React.MouseEvent) => {
     if (isSoon) {
