@@ -7,7 +7,7 @@ import { useRouterWithLoading } from '@/infra/loading/hooks/useRouterWithLoading
 import { Badge } from '@/ui/web/components/badge'
 import { Button } from '@/ui/web/components/button'
 import { Card } from '@/ui/web/components/card'
-import { useTranslations } from '@/ui/web/providers/I18n'
+import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import { toast } from 'sonner'
 
 const PERSONA_COOKIE_NAME = 'onboarding_persona'
@@ -26,6 +26,7 @@ interface PersonaSelectionStepProps {
 
 export function PersonaSelectionStep({ returnTo }: PersonaSelectionStepProps) {
   const t = useTranslations('onboarding.persona')
+  const locale = useLocale()
   const router = useRouterWithLoading()
   const [profiles, setProfiles] = useState<TeacherProfile[]>([])
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null)
@@ -61,7 +62,7 @@ export function PersonaSelectionStep({ returnTo }: PersonaSelectionStepProps) {
       }
     }
     fetchProfiles()
-  }, [])
+  }, [locale])
 
   const handleSelect = (slug: string) => {
     setSelectedSlug(slug)

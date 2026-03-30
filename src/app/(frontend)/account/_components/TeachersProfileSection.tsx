@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 
 import { Badge } from '@/ui/web/components/badge'
 import { Card } from '@/ui/web/components/card'
-import { useTranslations } from '@/ui/web/providers/I18n'
+import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import { toast } from 'sonner'
 
 interface TeacherProfile {
@@ -16,6 +16,7 @@ interface TeacherProfile {
 
 export function TeachersProfileSection() {
   const t = useTranslations('auth.account.teacherProfile')
+  const locale = useLocale()
   const [profiles, setProfiles] = useState<TeacherProfile[]>([])
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -55,7 +56,7 @@ export function TeachersProfileSection() {
     }
 
     fetchData()
-  }, [])
+  }, [locale])
 
   const handleSelect = async (slug: string) => {
     if (saving) return
