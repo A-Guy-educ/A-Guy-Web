@@ -92,6 +92,57 @@ export const Exercises: CollectionConfig = {
         return data
       },
     ],
+    afterRead: [
+      // Lazy backfill: populate course/chapter on existing records that don't have them yet
+      async ({ doc, req }) => {
+        if (!doc?.lesson) return doc
+        if (doc.course && doc.chapter) return doc // Already populated
+
+        try {
+          const lessonId = typeof doc.lesson === 'string' ? doc.lesson : doc.lesson?.id
+          if (!lessonId) return doc
+
+          const lesson = await req.payload.findByID({
+            collection: 'lessons',
+            id: lessonId,
+            depth: 0,
+            select: { chapter: true },
+          })
+          const chapterId =
+            typeof lesson?.chapter === 'string' ? lesson.chapter : lesson?.chapter?.id
+          if (!chapterId) return doc
+
+          const chapter = await req.payload.findByID({
+            collection: 'chapters',
+            id: chapterId,
+            depth: 0,
+            select: { course: true },
+          })
+          const courseId =
+            typeof chapter?.course === 'string' ? chapter.course : chapter?.course?.id
+
+          // Silently persist to DB so filters work on next query
+          if (courseId || chapterId) {
+            await req.payload.update({
+              collection: 'exercises',
+              id: doc.id,
+              data: {
+                ...(chapterId && !doc.chapter ? { chapter: chapterId } : {}),
+                ...(courseId && !doc.course ? { course: courseId } : {}),
+              } as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+              overrideAccess: true,
+              context: { _skipBlockSync: true },
+            })
+            if (!doc.chapter) doc.chapter = chapterId
+            if (!doc.course) doc.course = courseId
+          }
+        } catch {
+          // Silently skip
+        }
+
+        return doc
+      },
+    ],
     afterChange: [
       async ({ doc, previousDoc, req }) => {
         if (req.context?._skipBlockSync) return doc

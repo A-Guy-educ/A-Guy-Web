@@ -93,6 +93,41 @@ export const Lessons: CollectionConfig = {
         return data
       },
     ],
+    afterRead: [
+      // Lazy backfill: populate course on existing records that don't have it yet
+      async ({ doc, req }) => {
+        if (!doc?.chapter) return doc
+        if (doc.course) return doc // Already populated
+
+        try {
+          const chapterId = typeof doc.chapter === 'string' ? doc.chapter : doc.chapter?.id
+          if (!chapterId) return doc
+
+          const chapter = await req.payload.findByID({
+            collection: 'chapters',
+            id: chapterId,
+            depth: 0,
+            select: { course: true },
+          })
+          const courseId =
+            typeof chapter?.course === 'string' ? chapter.course : chapter?.course?.id
+
+          if (courseId) {
+            await req.payload.update({
+              collection: 'lessons',
+              id: doc.id,
+              data: { course: courseId } as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+              overrideAccess: true,
+            })
+            doc.course = courseId
+          }
+        } catch {
+          // Silently skip
+        }
+
+        return doc
+      },
+    ],
   },
   admin: {
     useAsTitle: 'title',
