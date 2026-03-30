@@ -1,4 +1,3 @@
-```json
 {
   "task_type": "bugfix",
   "title": "Hide chat when lesson has no context text",
@@ -12,4 +11,3 @@
   "risk_level": "low",
   "questions": []
 }
-```

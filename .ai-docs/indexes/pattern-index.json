@@ -5107,7 +5107,7 @@
       "domain": "general",
       "patterns": ["tailwind-component", "client-component"],
       "aiSummary": "",
-      "dependencies": ["framer-motion", "lucide-react", "react"]
+      "dependencies": ["lucide-react", "react"]
     },
     "src/ui/web/components/tabs.tsx": {
       "path": "src/ui/web/components/tabs.tsx",
@@ -5799,7 +5799,7 @@
     }
   },
   "metadata": {
-    "generatedAt": "2026-03-30T07:10:58.582Z",
+    "generatedAt": "2026-03-30T11:10:36.574Z",
     "totalFiles": 534,
     "totalPatterns": 135
   }

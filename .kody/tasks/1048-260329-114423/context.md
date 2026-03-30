@@ -1,5 +1,5 @@
-
 ### taskify (2026-03-29T11:47:22)
+
 Now I have a complete understanding of the bug. Let me classify this task:
 
 ```json
@@ -23,3 +23,4 @@ Here's a summary of what was changed:
 
 2. **`PdfLessonPager`**, **`ExercisesPager`**, **`LessonPager`** — Accept `hasLesso
 ...(truncated)
+```
