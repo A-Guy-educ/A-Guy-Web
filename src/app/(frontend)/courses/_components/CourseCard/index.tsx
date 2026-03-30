@@ -99,14 +99,16 @@ export function CourseCard({ course, isOwned = false }: CourseCardProps) {
   return (
     <div
       className={cn(
-        'group relative rounded-2xl bg-card border border-border/40 shadow-elevation-1',
-        'transition-all duration-normal overflow-hidden',
-        'hover:shadow-card-hover hover:-translate-y-0.5',
-        'border-s-4',
+        'group relative rounded-xl bg-card border border-border/30',
+        'transition-all duration-normal will-change-transform',
+        'hover:border-border/50 active:scale-[0.98]',
         'flex flex-col',
-        isSoon && 'opacity-75',
+        isSoon && 'opacity-50',
       )}
-      style={{ borderInlineStartColor: courseColor.accent }}
+      style={{
+        borderInlineStartWidth: '3px',
+        borderInlineStartColor: courseColor.accent,
+      }}
     >
       <div className="p-5 flex flex-col flex-1">
         {isOwned && (
