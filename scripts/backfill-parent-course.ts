@@ -1,7 +1,7 @@
 /**
- * Backfill parentCourse on existing Lessons and Exercises
+ * Backfill course on existing Lessons and Exercises
  *
- * Populates the denormalized parentCourse field by traversing:
+ * Populates the denormalized course field by traversing:
  *   Lesson  -> chapter -> course
  *   Exercise -> lesson -> chapter -> course
  *
@@ -18,7 +18,7 @@ async function backfillLessons(payload: Awaited<ReturnType<typeof getPayload>>) 
     limit: 10000,
     depth: 0,
     overrideAccess: true,
-    select: { chapter: true, parentCourse: true },
+    select: { chapter: true, course: true },
   })
 
   let updated = 0
@@ -47,8 +47,7 @@ async function backfillLessons(payload: Awaited<ReturnType<typeof getPayload>>) 
       }
 
       // Skip if already set correctly
-      const existingCourseId =
-        typeof lesson.parentCourse === 'string' ? lesson.parentCourse : lesson.parentCourse?.id
+      const existingCourseId = typeof lesson.course === 'string' ? lesson.course : lesson.course?.id
       if (existingCourseId === courseId) {
         skipped++
         continue
@@ -57,7 +56,7 @@ async function backfillLessons(payload: Awaited<ReturnType<typeof getPayload>>) 
       await payload.update({
         collection: 'lessons',
         id: lesson.id,
-        data: { parentCourse: courseId } as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+        data: { course: courseId } as any, // eslint-disable-line @typescript-eslint/no-explicit-any
         overrideAccess: true,
       })
       updated++
@@ -76,15 +75,20 @@ async function backfillExercises(payload: Awaited<ReturnType<typeof getPayload>>
     limit: 10000,
     depth: 0,
     overrideAccess: true,
-    select: { lesson: true, parentCourse: true },
+    select: { lesson: true, course: true },
   })
 
-  // Build a cache of lesson -> course mappings to avoid repeated queries
-  const lessonCourseCache = new Map<string, string | null>()
+  // Build a cache of lesson -> { chapterId, courseId } mappings
+  const lessonHierarchyCache = new Map<
+    string,
+    { chapterId: string | null; courseId: string | null }
+  >()
 
-  async function getCourseForLesson(lessonId: string): Promise<string | null> {
-    if (lessonCourseCache.has(lessonId)) {
-      return lessonCourseCache.get(lessonId)!
+  async function getHierarchyForLesson(
+    lessonId: string,
+  ): Promise<{ chapterId: string | null; courseId: string | null }> {
+    if (lessonHierarchyCache.has(lessonId)) {
+      return lessonHierarchyCache.get(lessonId)!
     }
 
     try {
@@ -98,8 +102,9 @@ async function backfillExercises(payload: Awaited<ReturnType<typeof getPayload>>
 
       const chapterId = typeof lesson.chapter === 'string' ? lesson.chapter : lesson.chapter?.id
       if (!chapterId) {
-        lessonCourseCache.set(lessonId, null)
-        return null
+        const result = { chapterId: null, courseId: null }
+        lessonHierarchyCache.set(lessonId, result)
+        return result
       }
 
       const chapter = await payload.findByID({
@@ -111,11 +116,13 @@ async function backfillExercises(payload: Awaited<ReturnType<typeof getPayload>>
       })
 
       const courseId = typeof chapter.course === 'string' ? chapter.course : chapter.course?.id
-      lessonCourseCache.set(lessonId, courseId || null)
-      return courseId || null
+      const result = { chapterId, courseId: courseId || null }
+      lessonHierarchyCache.set(lessonId, result)
+      return result
     } catch {
-      lessonCourseCache.set(lessonId, null)
-      return null
+      const result = { chapterId: null, courseId: null }
+      lessonHierarchyCache.set(lessonId, result)
+      return result
     }
   }
 
@@ -129,16 +136,20 @@ async function backfillExercises(payload: Awaited<ReturnType<typeof getPayload>>
       continue
     }
 
-    const courseId = await getCourseForLesson(lessonId)
-    if (!courseId) {
+    const { chapterId, courseId } = await getHierarchyForLesson(lessonId)
+    if (!courseId && !chapterId) {
       skipped++
       continue
     }
 
     // Skip if already set correctly
     const existingCourseId =
-      typeof exercise.parentCourse === 'string' ? exercise.parentCourse : exercise.parentCourse?.id
-    if (existingCourseId === courseId) {
+      typeof exercise.course === 'string' ? exercise.course : exercise.course?.id
+    const existingChapterId =
+      typeof (exercise as any).chapter === 'string'
+        ? (exercise as any).chapter
+        : (exercise as any).chapter?.id // eslint-disable-line @typescript-eslint/no-explicit-any
+    if (existingCourseId === courseId && existingChapterId === chapterId) {
       skipped++
       continue
     }
@@ -147,7 +158,7 @@ async function backfillExercises(payload: Awaited<ReturnType<typeof getPayload>>
       await payload.update({
         collection: 'exercises',
         id: exercise.id,
-        data: { parentCourse: courseId } as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+        data: { course: courseId, chapter: chapterId } as any, // eslint-disable-line @typescript-eslint/no-explicit-any
         overrideAccess: true,
       })
       updated++
@@ -163,7 +174,7 @@ async function backfillExercises(payload: Awaited<ReturnType<typeof getPayload>>
 }
 
 async function main() {
-  console.log('Backfilling parentCourse fields...\n')
+  console.log('Backfilling course fields...\n')
 
   const payload = await getPayload({ config })
 

@@ -57,7 +57,7 @@ export const Exercises: CollectionConfig = {
   },
   hooks: {
     beforeChange: [
-      // Auto-populate parentCourse from lesson -> chapter -> course
+      // Auto-populate course from lesson -> chapter -> course
       async ({ data, req }) => {
         if (data?.lesson) {
           try {
@@ -72,6 +72,7 @@ export const Exercises: CollectionConfig = {
               const chapterId =
                 typeof lesson?.chapter === 'string' ? lesson.chapter : lesson?.chapter?.id
               if (chapterId) {
+                data.chapter = chapterId
                 const chapter = await req.payload.findByID({
                   collection: 'chapters',
                   id: chapterId,
@@ -79,13 +80,13 @@ export const Exercises: CollectionConfig = {
                   select: { course: true },
                 })
                 if (chapter?.course) {
-                  data.parentCourse =
+                  data.course =
                     typeof chapter.course === 'string' ? chapter.course : chapter.course?.id
                 }
               }
             }
           } catch {
-            // Silently skip — parentCourse is a convenience field
+            // Silently skip — course is a convenience field
           }
         }
         return data
@@ -196,12 +197,23 @@ export const Exercises: CollectionConfig = {
           admin: { description: 'The lesson this exercise belongs to' },
         },
         {
-          name: 'parentCourse',
+          name: 'chapter',
+          type: 'relationship',
+          relationTo: 'chapters',
+          index: true,
+          admin: {
+            hidden: true,
+            description:
+              'Auto-populated from lesson hierarchy. Used for filtering exercises by chapter.',
+          },
+        },
+        {
+          name: 'course',
           type: 'relationship',
           relationTo: 'courses',
           index: true,
           admin: {
-            readOnly: true,
+            hidden: true,
             description:
               'Auto-populated from lesson hierarchy. Used for filtering exercises by course.',
           },

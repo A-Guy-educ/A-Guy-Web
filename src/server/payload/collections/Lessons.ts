@@ -69,7 +69,7 @@ export const Lessons: CollectionConfig = {
 
         return data
       },
-      // Auto-populate parentCourse from chapter -> course
+      // Auto-populate course from chapter -> course
       async ({ data, req }) => {
         if (data?.chapter) {
           try {
@@ -82,12 +82,12 @@ export const Lessons: CollectionConfig = {
                 select: { course: true },
               })
               if (chapter?.course) {
-                data.parentCourse =
+                data.course =
                   typeof chapter.course === 'string' ? chapter.course : chapter.course?.id
               }
             }
           } catch {
-            // Silently skip — parentCourse is a convenience field
+            // Silently skip — course is a convenience field
           }
         }
         return data
@@ -135,12 +135,12 @@ export const Lessons: CollectionConfig = {
       },
     },
     {
-      name: 'parentCourse',
+      name: 'course',
       type: 'relationship',
       relationTo: 'courses',
       index: true,
       admin: {
-        readOnly: true,
+        hidden: true,
         description: 'Auto-populated from chapter. Used for filtering lessons by course.',
       },
     },

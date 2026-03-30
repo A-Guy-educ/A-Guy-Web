@@ -1109,7 +1109,7 @@ export interface ConfigValue {
   /**
    * Feature domain for this configuration
    */
-  domain: 'chat' | 'pdf_conversion' | 'global' | 'guest_chat' | 'student_chat';
+  domain: 'chat' | 'pdf_conversion' | 'global' | 'guest_chat' | 'latex_conversion';
   /**
    * Tenant this configuration belongs to
    */
@@ -1431,7 +1431,7 @@ export interface Lesson {
   /**
    * Auto-populated from chapter. Used for filtering lessons by course.
    */
-  parentCourse?: (string | null) | Course;
+  course?: (string | null) | Course;
   /**
    * The type of lesson: Learning content, Practice exercises, or Exam
    */
@@ -1538,9 +1538,13 @@ export interface Exercise {
    */
   lesson: string | Lesson;
   /**
+   * Auto-populated from lesson hierarchy. Used for filtering exercises by chapter.
+   */
+  chapter?: (string | null) | Chapter;
+  /**
    * Auto-populated from lesson hierarchy. Used for filtering exercises by course.
    */
-  parentCourse?: (string | null) | Course;
+  course?: (string | null) | Course;
   /**
    * URL-friendly identifier (auto-generated from title, unique within lesson)
    */
@@ -3220,7 +3224,7 @@ export interface LessonsSelect<T extends boolean = true> {
   locale?: T;
   translatedFrom?: T;
   chapter?: T;
-  parentCourse?: T;
+  course?: T;
   type?: T;
   title?: T;
   description?: T;
@@ -3323,7 +3327,8 @@ export interface ExercisesSelect<T extends boolean = true> {
   title?: T;
   order?: T;
   lesson?: T;
-  parentCourse?: T;
+  chapter?: T;
+  course?: T;
   slug?: T;
   showQuestionNumbering?: T;
   content?: T;
