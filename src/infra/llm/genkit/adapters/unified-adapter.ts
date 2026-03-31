@@ -127,6 +127,7 @@ export async function createGenkitUnifiedAdapter(
               const result = await ai.generate({
                 model: config.model,
                 prompt,
+                config: { temperature: config.temperature },
               })
 
               return {
