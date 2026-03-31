@@ -75,8 +75,8 @@ export async function localizeTeacherProfiles(
   for (const doc of allProfiles.docs) {
     const profile = doc as unknown as LegacyTeacherProfile
 
-    // Skip if already migrated (locale field present)
-    if (profile.locale) {
+    // Skip if fully migrated (has locale AND label)
+    if (profile.locale && profile.label) {
       skipped++
       continue
     }
