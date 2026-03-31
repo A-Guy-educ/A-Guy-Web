@@ -233,57 +233,103 @@ export async function extractLessonContext(
 
     let extractedText = validation.sanitizedText
 
-    // ========== Step 8b: If truncated, retry with solutions-only pass ==========
+    // ========== Step 8b: If truncated, retry with solutions-only passes ==========
     if (validation.isTruncated) {
-      warnings.push('First pass was truncated — running a second pass for solutions only.')
+      warnings.push('First pass was truncated — running additional passes for solutions.')
 
-      const solutionsPrompt = `You are given LaTeX code of math exercises that was extracted from a PDF. The extraction was cut off before the solutions could be completed.
+      // Count how many exercises were extracted (by matching \textbf{תרגיל N})
+      const exerciseHeaders = extractedText.match(/\\textbf\{תרגיל \d+\}/g) || []
+      const totalExercises = exerciseHeaders.length
 
-Your task: Generate ONLY the solutions section for these exercises. Output valid LaTeX starting from \\newpage and the solutions sections.
+      // Remove empty solution stubs from the first pass
+      const textWithoutEmptyStubs = extractedText.replace(/\\newpage[\s\S]*$/, '').trim()
+      extractedText = textWithoutEmptyStubs
+
+      // Run up to 3 solution passes, each asking for remaining solutions only
+      const MAX_SOLUTION_PASSES = 3
+      for (let pass = 0; pass < MAX_SOLUTION_PASSES; pass++) {
+        // Detect which solutions already exist
+        const existingSolutions = extractedText.match(/\\section\*\{פתרון תרגיל (\d+)\}/g) || []
+        const solvedNumbers = new Set(
+          existingSolutions.map((s) => {
+            const m = s.match(/(\d+)/)
+            return m ? parseInt(m[1], 10) : 0
+          }),
+        )
+
+        // Find which exercises still need solutions
+        const missingNumbers: number[] = []
+        for (let i = 1; i <= totalExercises; i++) {
+          if (!solvedNumbers.has(i)) missingNumbers.push(i)
+        }
+
+        // Also check if the last existing solution was truncated (ends mid-sentence)
+        const lastSolutionMatch = extractedText.match(/\\section\*\{פתרון תרגיל \d+\}[\s\S]*$/)
+        const lastSolutionTruncated =
+          lastSolutionMatch &&
+          (lastSolutionMatch[0].endsWith('\\') ||
+            lastSolutionMatch[0].match(/\$[^$]*$/) !== null ||
+            lastSolutionMatch[0].match(/\\begin\{[^}]+\}(?![\s\S]*\\end\{)/))
+
+        if (missingNumbers.length === 0 && !lastSolutionTruncated) break
+
+        const targetExercises =
+          lastSolutionTruncated && missingNumbers.length === 0
+            ? `Complete the truncated solution for exercise ${Math.max(...solvedNumbers)} and any remaining exercises.`
+            : `Generate solutions ONLY for exercises: ${missingNumbers.join(', ')}.`
+
+        const solutionsPrompt = `You are given LaTeX code of math exercises extracted from a PDF. Some solutions are missing or incomplete.
+
+Your task: ${targetExercises}
 
 Rules:
-- Start with \\newpage
 - Use \\section*{פתרון תרגיל X} for each solution
 - Solutions must be highly detailed, showing formulas, derivatives, and logical steps
 - Match the solution list format: \\begin{enumerate}[label=\\textbf{\\alph*.}]
-- Do NOT repeat the exercises — only output the solutions
+- Do NOT repeat exercises or solutions that already exist
 - Do NOT include \\documentclass, \\usepackage, \\begin{document}, or \\end{document}
 
-Here are the exercises that need solutions:
+Current document (with existing solutions):
 
 ${extractedText}`
 
-      try {
-        const solutionsResponse = await adapter.generateMultimodalCompletion(
-          {
-            prompt: solutionsPrompt,
-            model: modelConfig,
-            attachments: [{ data: base64Data, mimeType }],
-          },
-          payload,
-        )
+        try {
+          const solutionsResponse = await adapter.generateMultimodalCompletion(
+            {
+              prompt: solutionsPrompt,
+              model: modelConfig,
+              attachments: [{ data: base64Data, mimeType }],
+            },
+            payload,
+          )
 
-        const solutionsText = solutionsResponse.text?.trim()
+          const solutionsText = solutionsResponse.text?.trim()
 
-        if (solutionsText) {
-          // Remove any duplicate preamble/document tags the LLM might add
-          const cleanedSolutions = solutionsText
-            .replace(/\\documentclass[\s\S]*?\\begin\{document\}/g, '')
-            .replace(/\\end\{document\}/g, '')
-            .trim()
+          if (solutionsText) {
+            const cleanedSolutions = solutionsText
+              .replace(/\\documentclass[\s\S]*?\\begin\{document\}/g, '')
+              .replace(/\\end\{document\}/g, '')
+              .trim()
 
-          if (cleanedSolutions) {
-            // Remove empty solution stubs from the first pass before appending real solutions
-            const textWithoutEmptyStubs = extractedText.replace(/\\newpage[\s\S]*$/, '').trim()
-
-            extractedText = `${textWithoutEmptyStubs}\n\n${cleanedSolutions}`
-            warnings.push('Solutions were extracted in a second pass and appended successfully.')
+            if (cleanedSolutions) {
+              extractedText = `${extractedText}\n\n${cleanedSolutions}`
+              warnings.push(`Solutions pass ${pass + 1}: appended solutions successfully.`)
+            }
           }
+        } catch (solutionsError) {
+          const msg = solutionsError instanceof Error ? solutionsError.message : 'Unknown error'
+          warnings.push(`Solutions pass ${pass + 1} failed: ${msg}.`)
+          break
         }
-      } catch (solutionsError) {
-        const msg = solutionsError instanceof Error ? solutionsError.message : 'Unknown error'
+      }
+
+      // Final check: report any still-missing solutions
+      const finalSolutions = extractedText.match(/\\section\*\{פתרון תרגיל (\d+)\}/g) || []
+      const finalSolvedCount = new Set(finalSolutions).size
+      if (finalSolvedCount < totalExercises) {
         warnings.push(
-          `Second pass for solutions failed: ${msg}. Exercises were saved without full solutions.`,
+          `${finalSolvedCount}/${totalExercises} exercise solutions were extracted. ` +
+            `Some solutions may still be missing.`,
         )
       }
     }
