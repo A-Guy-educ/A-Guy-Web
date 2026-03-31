@@ -109,9 +109,9 @@ describe('LLM Model Configuration Validation', () => {
       expect(imageConfig.temperature).toBe(0.2)
       expect(imageConfig.temperature).toBeLessThan(0.5) // Should be lower for consistency
 
-      // PDF_TO_EXERCISE: Zero temperature for deterministic extraction
+      // PDF_TO_EXERCISE: Low temperature (0.1) for accurate extraction
       const pdfConfig = getProviderModelConfig(LLMProviderType.GEMINI, 'PDF_TO_EXERCISE')
-      expect(pdfConfig.temperature).toBe(0)
+      expect(pdfConfig.temperature).toBe(0.1)
       expect(pdfConfig.temperature).toBeLessThan(0.3) // Should be lowest for accuracy
     })
 
