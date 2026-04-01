@@ -39,14 +39,17 @@ All implementation steps are complete. Here's a summary of the changes:
 ## Summary
 
 ### Files Created (new):
+
 1. **`src/app/api/course-syllabus/route.ts`** - GET endpoint that returns course syllabus (chapters + lessons) for a given `courseId`
 2. **`src/app/(frontend)/study-plan/_components/LessonSelector/index.tsx`** - Collapsible panel UI for selecting lessons from the course syllabus
 
 ### Files Modified:
+
 1. **`src/server/services/study-plan/types.ts`** - Added `LessonRef` interface and optio
-...(truncated)
+   ...(truncated)
 
 ### review (2026-03-31T16:09:57)
+
 Now I have enough information. Let me compile my review.
 
 ---
@@ -55,22 +58,26 @@ Now I have enough information. Let me compile my review.
 
 ## Summary
 
-The implementation adds a course-integrated lesson selector for study plans, but contains a critical hardcoded placeholder `courseId="default-course"` that causes the feature to silently return an empty syllabus at runtime. Additionally, non-lesson topic pills in `DayCard` are missing the required `transition-all duration-normal` class that lesson-backed pills have, violating the design system rule that 
+The implementation adds a course-integrated lesson selector for study plans, but contains a critical hardcoded placeholder `courseId="default-course"` that causes the feature to silently return an empty syllabus at runtime. Additionally, non-lesson topic pills in `DayCard` are missing the required `transition-all duration-normal` class that lesson-backed pills have, violating the design system rule that
 ...(truncated)
 
 ### review-fix (2026-03-31T16:13:23)
+
 Both critical and major issues are now fixed. Here's a summary of the fixes:
 
 ## Fixes Applied
 
 ### Critical: Hardcoded `courseId="default-course"` causing empty syllabus
+
 **Problem:** When `courseId="default-course"`, `queryChaptersByCourse` would find no course (since no real course has that ID), returning an empty syllabus silently.
 
 **Fix (3 files):**
+
 1. **`src/server/repos/queries/courses.ts`** - Added `queryCourseByGradeLevel(gradeLevel)` to look up a published course by its `courseLabel` f
-...(truncated)
+   ...(truncated)
 
 ### review (2026-03-31T16:14:21)
+
 ---
 
 ## Verdict: PASS (with notes)
@@ -92,4 +99,4 @@ None.
 ### Minor
 
 1. **`src/app/(frontend)/study-plan/_components/LessonSelector/index.tsx:109-112`** —
-...(truncated)
+   ...(truncated)

@@ -73,10 +73,9 @@ export async function GET(request: NextRequest) {
           lessonTitle: lesson.title,
           lessonSlug: lesson.slug,
           lessonOrder: lesson.order,
-          lessonUrl:
-            buildLessonUrl(),
-            // courseSlug not available on chapter at depth-1 from this query path
-            // We'll look it up via chapter.course
+          lessonUrl: buildLessonUrl(),
+          // courseSlug not available on chapter at depth-1 from this query path
+          // We'll look it up via chapter.course
         })),
       }
     }),
