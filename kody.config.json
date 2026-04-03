@@ -50,15 +50,6 @@
       }
     }
   },
-  "mcp": {
-    "enabled": true,
-    "servers": {},
-    "stages": [
-      "build",
-      "review",
-      "review-fix"
-    ]
-  },
   "devServer": {
     "command": "pnpm dev",
     "url": "http://localhost:3000",
