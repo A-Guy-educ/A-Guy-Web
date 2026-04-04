@@ -25,6 +25,7 @@ None.
 2. `src/ui/admin/UserEmail/index.tsx:1-8` — JSDoc is present but uses a non-standard `@pattern admin-nav` tag. Very minor, non-blocking.
 
 **Notes:**
+
 - The inline `style={{}}` approach matches the existing `VersionInfo` component pattern exactly — this is appropriate for Payload admin panel components which use their own CSS variable system (`--base`, `--theme-elevation-*`), not the project's frontend design tokens.
 - `useAuth()` is the correct Payload CMS hook for accessing the current user in admin components.
 - The `user?.email` null check with early return is correct.
