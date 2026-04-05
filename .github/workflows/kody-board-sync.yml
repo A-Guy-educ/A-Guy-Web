@@ -31,11 +31,11 @@ jobs:
       - name: Update project board status
         if: steps.map.outputs.status != ''
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
         run: |
           STATUS="${{ steps.map.outputs.status }}"
           ISSUE_NODE_ID="${{ github.event.issue.node_id }}"
-          PROJECT_NUMBER=2
+          PROJECT_NUMBER=3
           ORG="A-Guy-educ"
 
           # Get project ID
