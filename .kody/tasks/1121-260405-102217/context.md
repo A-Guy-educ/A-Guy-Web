@@ -35,3 +35,23 @@ export const CHAT_ASSET_MIN_IMAGE_HEIGHT = 100
 - **Added `getImageDimensions()`** - loads image via `Image()` object and returns natural width/height
 - **Added `isImageTooSmall()`** - checks if image dimen
 ...(truncated)
+
+### review (2026-04-05T11:38:57)
+## Verdict: PASS
+
+## Summary
+
+Added client-side image dimension validation (100x100px minimum) before upload with actionable error messages, and improved error extraction from Vercel Blob responses to surface `serverMessage` property when available.
+
+## Findings
+
+### Critical
+None.
+
+### Major
+None.
+
+### Minor
+
+- `src/ui/web/chat/hooks/useDirectChatAssetUpload.ts:291-294` — `extractBlobErrorMessage` is called after retry logic exhausted, but original code still shows `error instanceof Error ? err
+...(truncated)
