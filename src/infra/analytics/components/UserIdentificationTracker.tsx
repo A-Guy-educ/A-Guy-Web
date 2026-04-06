@@ -3,7 +3,8 @@
 import { detectBrowserLocale } from '@/i18n/config'
 import { SYSTEM_EVENTS, systemEventBus } from '@/infra/system-events'
 import { useEffect } from 'react'
-import { identify } from '../core/tracker'
+import { alias, identify } from '../core/tracker'
+import { getOrCreateAnonymousId } from '../utils/anonymous-id'
 import {
   getCachedUserProperties,
   shouldRefreshUserProperties,
@@ -105,6 +106,8 @@ export function UserIdentificationTracker() {
               })
 
               // Additionally call identify() to ensure user properties are set
+              // CRITICAL: Call alias() BEFORE identify() to merge anonymous session with identified user
+              alias(user.id, getOrCreateAnonymousId())
               identify(user.id, userProperties)
 
               sessionStorage.setItem('analytics_tracked_user_id', user.id)
