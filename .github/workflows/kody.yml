@@ -459,12 +459,12 @@ jobs:
       - name: Typecheck
         run: pnpm tsc --noEmit
       - name: CLI loads
-        run: kody-engine --help
+        run: pnpm exec kody-engine --help
       - name: Dry run
         run: |
           mkdir -p .kody/tasks/smoke-test
           echo "Smoke test task" > .kody/tasks/smoke-test/task.md
-          kody-engine run --task-id smoke-test --dry-run || true
+          pnpm exec kody-engine run --task-id smoke-test --dry-run || true
           if [ -f ".kody/tasks/smoke-test/status.json" ]; then
             echo "✓ status.json created"
             cat .kody/tasks/smoke-test/status.json
