@@ -1,37 +1,47 @@
 'use client'
 
 import { useField } from '@payloadcms/ui'
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { BookOpen, ChevronDown, ChevronRight } from 'lucide-react'
 
 /**
  * @fileType component
  * @domain admin|exercises
  * @pattern context-exercise-viewer
- * @ai-summary Displays parsed exercises from lessonContextText LaTeX content
+ * @ai-summary Displays and allows editing of parsed exercises from lessonContextText LaTeX content
  */
 
 interface ParsedExercise {
   number: number
   title: string
+  /** The LaTeX header that matched (e.g. "\\textbf{תרגיל 1}") */
+  header: string
   latexContent: string
   solution: string | null
+  /** The solution header if present (e.g. "\\section*{פתרון תרגיל 1}") */
+  solutionHeader: string | null
   hasDiagram: boolean
+  /** Character offsets within the extraction run text for reconstruction */
+  startIndex: number
+  endIndex: number
 }
 
 interface ParsedSegment {
   exercises: ParsedExercise[]
   extractionIndex: number
+  /** Original text of this extraction run */
+  originalText: string
 }
 
 /** Check if text contains TikZ or minipage diagram markers */
-function hasDiagram(text: string): boolean {
+function hasDiagramCheck(text: string): boolean {
   return /\\(begin|end)\{(?:tikzpicture|minipage)\}/.test(text)
 }
 
 /**
  * Parse LaTeX text into structured exercise segments.
  * Handles multiple extraction runs separated by \n\n---\n\n
+ * Tracks character positions for write-back support.
  */
 function parseContextText(contextText: string): ParsedSegment[] {
   if (!contextText || !contextText.trim()) {
@@ -43,8 +53,8 @@ function parseContextText(contextText: string): ParsedSegment[] {
   const segments: ParsedSegment[] = []
 
   for (let runIndex = 0; runIndex < runs.length; runIndex++) {
-    const runText = runs[runIndex].trim()
-    if (!runText) continue
+    const runText = runs[runIndex]
+    if (!runText.trim()) continue
 
     const exercises: ParsedExercise[] = []
 
@@ -52,20 +62,15 @@ function parseContextText(contextText: string): ParsedSegment[] {
     const exercisePattern =
       /(?:\\textbf\{(תרגיל\s+(\d+)[^}]*)\}|\\section\*?\{(תרגיל\s+(\d+)[^}]*)\}|\\subsection\*?\{(תרגיל\s+(\d+)[^}]*)\})/g
 
-    // Pattern to match solution headers: \section*{פתרון תרגיל N} etc.
-    const solutionPattern =
-      /(?:\\section\*?\{פתרון\s+תרגיל\s+(\d+)\}|\\subsection\*?\{פתרון\s+תרגיל\s+(\d+)\})/g
-
-    let match
-
     // Find all exercise boundaries
     const exerciseMatches: Array<{
       index: number
       title: string
       number: number
-      length: number
+      fullMatch: string
     }> = []
 
+    let match
     while ((match = exercisePattern.exec(runText)) !== null) {
       const title = match[1] || match[3] || match[5]
       const number = parseInt(match[2] || match[4] || match[6], 10)
@@ -73,49 +78,76 @@ function parseContextText(contextText: string): ParsedSegment[] {
         index: match.index,
         title,
         number,
-        length: match[0].length,
+        fullMatch: match[0],
       })
     }
 
-    // If no exercises found, treat the entire text as one exercise
+    // Find all solution boundaries
+    const solutionPattern =
+      /(?:\\section\*?\{(פתרון\s+תרגיל\s+(\d+))\}|\\subsection\*?\{(פתרון\s+תרגיל\s+(\d+))\})/g
+    const solutionMatches: Array<{
+      index: number
+      number: number
+      fullMatch: string
+    }> = []
+    while ((match = solutionPattern.exec(runText)) !== null) {
+      const number = parseInt(match[2] || match[4], 10)
+      solutionMatches.push({ index: match.index, number, fullMatch: match[0] })
+    }
+
+    // Find the start of solutions section (first solution header)
+    const firstSolutionIndex =
+      solutionMatches.length > 0 ? solutionMatches[0].index : runText.length
+
     if (exerciseMatches.length === 0) {
+      // No exercises found — treat entire text as one exercise
       exercises.push({
         number: 1,
         title: 'תרגיל 1',
+        header: '',
         latexContent: runText,
         solution: null,
-        hasDiagram: hasDiagram(runText),
+        solutionHeader: null,
+        hasDiagram: hasDiagramCheck(runText),
+        startIndex: 0,
+        endIndex: runText.length,
       })
     } else {
-      // Process each exercise boundary
+      // Process each exercise
       for (let i = 0; i < exerciseMatches.length; i++) {
         const current = exerciseMatches[i]
         const next = exerciseMatches[i + 1]
 
-        // Content starts after the exercise title
-        const contentStart = current.index + current.length
-        // Content ends at the next exercise boundary or end of text
-        const contentEnd = next ? next.index : runText.length
-        let latexContent = runText.slice(contentStart, contentEnd).trim()
+        // Content starts after the exercise header
+        const contentStart = current.index + current.fullMatch.length
+        // Content ends at the next exercise boundary, solutions section, or end of text
+        const contentEnd = next ? next.index : firstSolutionIndex
 
-        // Check for solution within this exercise's content
+        const latexContent = runText.slice(contentStart, contentEnd).trim()
+
+        // Find matching solution
+        const solMatch = solutionMatches.find((s) => s.number === current.number)
         let solution: string | null = null
-        const solutionMatch = solutionPattern.exec(latexContent)
-        if (solutionMatch) {
-          const solIndex = solutionMatch.index
-          // Solution content starts after the solution header
-          const solContentStart = solIndex + solutionMatch[0].length
-          solution = latexContent.slice(solContentStart).trim()
-          // Remove solution from exercise content
-          latexContent = latexContent.slice(0, solIndex).trim()
+        let solutionHeader: string | null = null
+        if (solMatch) {
+          solutionHeader = solMatch.fullMatch
+          const solContentStart = solMatch.index + solMatch.fullMatch.length
+          // Solution ends at next solution or end of text
+          const nextSol = solutionMatches.find((s) => s.index > solMatch.index)
+          const solContentEnd = nextSol ? nextSol.index : runText.length
+          solution = runText.slice(solContentStart, solContentEnd).trim()
         }
 
         exercises.push({
           number: current.number,
           title: current.title,
+          header: current.fullMatch,
           latexContent,
           solution,
-          hasDiagram: hasDiagram(latexContent),
+          solutionHeader,
+          hasDiagram: hasDiagramCheck(latexContent),
+          startIndex: current.index,
+          endIndex: contentEnd,
         })
       }
     }
@@ -123,39 +155,125 @@ function parseContextText(contextText: string): ParsedSegment[] {
     segments.push({
       exercises,
       extractionIndex: runIndex + 1,
+      originalText: runText,
     })
   }
 
   return segments
 }
 
-/** Simple read-only rich text display component */
-function RichTextDisplay({ value }: { value: string }) {
-  // For now, render as pre-formatted text since this is read-only display
-  // The LaTeX content is shown as-is for admins to verify extraction quality
+/**
+ * Reconstruct the full lessonContextText from edited segments.
+ * Rebuilds each run by replacing exercise/solution content while preserving
+ * the document preamble, headers, and delimiters.
+ */
+function reconstructContextText(segments: ParsedSegment[]): string {
+  const runs: string[] = []
+
+  for (const segment of segments) {
+    const runText = segment.originalText
+    const { exercises } = segment
+
+    // If only one exercise with no header, the entire run IS the content
+    if (exercises.length === 1 && !exercises[0].header) {
+      runs.push(exercises[0].latexContent)
+      continue
+    }
+
+    // Find preamble (everything before first exercise)
+    const firstExercise = exercises[0]
+    const preamble = runText.slice(0, firstExercise.startIndex)
+
+    // Rebuild: preamble + exercises + solutions
+    const parts: string[] = [preamble]
+
+    for (const ex of exercises) {
+      parts.push(ex.header)
+      parts.push('\n')
+      parts.push(ex.latexContent)
+      parts.push('\n\n')
+    }
+
+    // Rebuild solutions section
+    for (const ex of exercises) {
+      if (ex.solution !== null && ex.solutionHeader) {
+        parts.push(ex.solutionHeader)
+        parts.push('\n')
+        parts.push(ex.solution)
+        parts.push('\n\n')
+      }
+    }
+
+    // Check if there's a \end{document} that should be preserved
+    if (runText.includes('\\end{document}') && !parts.some((p) => p.includes('\\end{document}'))) {
+      parts.push('\\end{document}\n')
+    }
+
+    runs.push(parts.join(''))
+  }
+
+  return runs.join('\n\n---\n\n')
+}
+
+/** Editable LaTeX textarea component */
+function EditableLatex({
+  value,
+  onChange,
+  label,
+}: {
+  value: string
+  onChange: (newValue: string) => void
+  label: string
+}) {
   return (
-    <div
-      style={{
-        fontFamily: 'monospace',
-        fontSize: 12,
-        whiteSpace: 'pre-wrap',
-        wordBreak: 'break-word',
-        color: 'var(--theme-elevation-700)',
-        backgroundColor: 'var(--theme-elevation-50)',
-        padding: 12,
-        borderRadius: 4,
-        lineHeight: 1.6,
-        maxHeight: 300,
-        overflow: 'auto',
-      }}
-    >
-      {value}
+    <div style={{ marginBottom: 8 }}>
+      <label
+        style={{
+          display: 'block',
+          fontSize: 11,
+          fontWeight: 600,
+          color: 'var(--theme-elevation-500)',
+          marginBottom: 4,
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px',
+        }}
+      >
+        {label}
+      </label>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        style={{
+          width: '100%',
+          minHeight: 120,
+          fontFamily: 'monospace',
+          fontSize: 12,
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word',
+          color: 'var(--theme-elevation-700)',
+          backgroundColor: 'var(--theme-elevation-50)',
+          padding: 12,
+          borderRadius: 4,
+          lineHeight: 1.6,
+          border: '1px solid var(--theme-elevation-150)',
+          resize: 'vertical',
+          boxSizing: 'border-box',
+        }}
+      />
     </div>
   )
 }
 
 /** Single exercise card component */
-function ExerciseCard({ exercise }: { exercise: ParsedExercise }) {
+function ExerciseCard({
+  exercise,
+  onContentChange,
+  onSolutionChange,
+}: {
+  exercise: ParsedExercise
+  onContentChange: (newContent: string) => void
+  onSolutionChange: (newSolution: string) => void
+}) {
   const [isExpanded, setIsExpanded] = useState(false)
 
   return (
@@ -216,45 +334,25 @@ function ExerciseCard({ exercise }: { exercise: ParsedExercise }) {
             (includes diagram)
           </span>
         )}
+        {exercise.solution !== null && (
+          <span
+            style={{
+              fontSize: 10,
+              color: 'var(--theme-elevation-400)',
+              fontStyle: 'italic',
+            }}
+          >
+            (has solution)
+          </span>
+        )}
       </button>
 
-      {/* Exercise content */}
+      {/* Exercise content - editable */}
       {isExpanded && (
         <div style={{ padding: '0 12px 12px 12px' }}>
-          <div style={{ marginBottom: 8 }}>
-            <label
-              style={{
-                display: 'block',
-                fontSize: 11,
-                fontWeight: 600,
-                color: 'var(--theme-elevation-500)',
-                marginBottom: 4,
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-              }}
-            >
-              Content
-            </label>
-            <RichTextDisplay value={exercise.latexContent} />
-          </div>
-
-          {exercise.solution && (
-            <div>
-              <label
-                style={{
-                  display: 'block',
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: 'var(--theme-elevation-500)',
-                  marginBottom: 4,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                }}
-              >
-                Solution
-              </label>
-              <RichTextDisplay value={exercise.solution} />
-            </div>
+          <EditableLatex label="Content" value={exercise.latexContent} onChange={onContentChange} />
+          {exercise.solution !== null && (
+            <EditableLatex label="Solution" value={exercise.solution} onChange={onSolutionChange} />
           )}
         </div>
       )}
@@ -263,12 +361,54 @@ function ExerciseCard({ exercise }: { exercise: ParsedExercise }) {
 }
 
 export const ContextExerciseViewer: React.FC = () => {
-  const { value: contextText } = useField<string>({ path: 'lessonContextText' })
+  const { value: contextText, setValue } = useField<string>({ path: 'lessonContextText' })
 
   const segments = useMemo(() => parseContextText(contextText || ''), [contextText])
 
-  // Calculate total exercise count
-  const totalExercises = segments.reduce((sum, seg) => sum + seg.exercises.length, 0)
+  // Local editable state — initialized from parsed segments
+  const [editedSegments, setEditedSegments] = useState<ParsedSegment[]>([])
+  const [initialized, setInitialized] = useState(false)
+
+  // Sync parsed segments to editable state when contextText changes externally
+  useMemo(() => {
+    if (segments.length > 0 || initialized) {
+      setEditedSegments(segments)
+      setInitialized(true)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contextText])
+
+  const totalExercises = editedSegments.reduce((sum, seg) => sum + seg.exercises.length, 0)
+
+  /** Update a specific exercise's content and write back to lessonContextText */
+  const updateExercise = useCallback(
+    (
+      segmentIndex: number,
+      exerciseIndex: number,
+      field: 'latexContent' | 'solution',
+      newValue: string,
+    ) => {
+      setEditedSegments((prev) => {
+        const updated = prev.map((seg, si) => {
+          if (si !== segmentIndex) return seg
+          return {
+            ...seg,
+            exercises: seg.exercises.map((ex, ei) => {
+              if (ei !== exerciseIndex) return ex
+              return { ...ex, [field]: newValue }
+            }),
+          }
+        })
+
+        // Reconstruct and write back to the Payload field
+        const newContextText = reconstructContextText(updated)
+        setValue(newContextText)
+
+        return updated
+      })
+    },
+    [setValue],
+  )
 
   // Show nothing when lessonContextText is empty
   if (!contextText || !contextText.trim()) {
@@ -297,10 +437,10 @@ export const ContextExerciseViewer: React.FC = () => {
         }}
       >
         Extracted exercises from PDF context. {totalExercises} exercise
-        {totalExercises !== 1 ? 's' : ''} found.
+        {totalExercises !== 1 ? 's' : ''} found. Edit individual exercises below.
       </p>
 
-      {segments.length > 1 && (
+      {editedSegments.length > 1 && (
         <p
           style={{
             fontSize: 11,
@@ -309,13 +449,13 @@ export const ContextExerciseViewer: React.FC = () => {
             fontStyle: 'italic',
           }}
         >
-          {segments.length} extraction runs detected (separated by --- delimiter)
+          {editedSegments.length} extraction runs detected (separated by --- delimiter)
         </p>
       )}
 
-      {segments.map((segment) => (
+      {editedSegments.map((segment, segIdx) => (
         <div key={segment.extractionIndex}>
-          {segments.length > 1 && (
+          {editedSegments.length > 1 && (
             <span
               style={{
                 display: 'block',
@@ -329,10 +469,12 @@ export const ContextExerciseViewer: React.FC = () => {
               Extraction Run {segment.extractionIndex}
             </span>
           )}
-          {segment.exercises.map((exercise) => (
+          {segment.exercises.map((exercise, exIdx) => (
             <ExerciseCard
               key={`${segment.extractionIndex}-${exercise.number}`}
               exercise={exercise}
+              onContentChange={(val) => updateExercise(segIdx, exIdx, 'latexContent', val)}
+              onSolutionChange={(val) => updateExercise(segIdx, exIdx, 'solution', val)}
             />
           ))}
         </div>
