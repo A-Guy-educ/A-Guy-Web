@@ -3,8 +3,7 @@
 import { detectBrowserLocale } from '@/i18n/config'
 import { SYSTEM_EVENTS, systemEventBus } from '@/infra/system-events'
 import { useEffect } from 'react'
-import { alias, identify } from '../core/tracker'
-import { getOrCreateAnonymousId } from '../utils/anonymous-id'
+import { identify } from '../core/tracker'
 import {
   getCachedUserProperties,
   shouldRefreshUserProperties,
@@ -32,8 +31,7 @@ export function UserIdentificationTracker() {
           const trackedUserId = sessionStorage.getItem('analytics_tracked_user_id')
 
           if (trackedUserId !== cached.user_id) {
-            // CRITICAL: Call alias() BEFORE identify() to merge anonymous session
-            alias(cached.user_id, getOrCreateAnonymousId())
+            // Login only needs identify() — alias() is only for signup
             identify(cached.user_id, { ...cached })
             sessionStorage.setItem('analytics_tracked_user_id', cached.user_id)
           }
@@ -99,14 +97,10 @@ export function UserIdentificationTracker() {
               // Cache user properties for future sessions
               updateCachedUserProperties(userProperties)
 
-              // CRITICAL: Call alias() BEFORE any identify/track calls
-              // to merge anonymous session with identified user
-              alias(user.id, getOrCreateAnonymousId())
-
-              // Now identify with full user properties
+              // Identify user with full properties (login only needs identify, not alias)
               identify(user.id, userProperties)
 
-              // Emit user_resolved AFTER alias+identify so events fire under the real user
+              // Emit user_resolved after identify so events fire under the real user
               systemEventBus.emit(SYSTEM_EVENTS.USER_RESOLVED, {
                 user_id: user.id,
                 is_anonymous: false,

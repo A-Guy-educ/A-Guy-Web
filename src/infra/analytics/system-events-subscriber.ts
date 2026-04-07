@@ -77,14 +77,14 @@ export function initAnalyticsSubscriber(): () => void {
 
     safeSubscribe(SYSTEM_EVENTS.USER_RESOLVED, (envelope) => {
       const payload = envelope.payload as { user_id?: string; auth_method?: string }
-      // CRITICAL: alias before identify/track so events fire under the real user ID
+      // Identify user first so the USER_IDENTIFIED event fires under the real user ID
+      // NOTE: No alias() here — alias is only for signup (REGISTRATION_COMPLETED handler)
       if (payload.user_id) {
-        analytics.alias(payload.user_id, getOrCreateAnonymousId())
         analytics.identify(payload.user_id, {
           auth_method: payload.auth_method,
         })
       }
-      // Map to USER_IDENTIFIED event (now fires after alias+identify)
+      // Map to USER_IDENTIFIED event (fires after identify)
       analytics.track(PRODUCT_EVENTS.USER_IDENTIFIED, {
         user_id: payload.user_id,
         is_new_user: false,
