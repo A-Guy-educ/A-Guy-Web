@@ -30,6 +30,11 @@
     "versionFiles": ["package.json"],
     "notifyCommand": "curl -s -X POST \"$SLACK_WEBHOOK_URL\" -H 'Content-Type: application/json' -d '{\"text\": \"🚀 a-guy v$VERSION released — https://github.com/A-Guy-educ/A-Guy/releases/tag/v$VERSION\"}'"
   },
+  "watch": {
+    "enabled": true,
+    "digestIssue": null,
+    "model": "MiniMax-M2.7-highspeed"
+  },
   "devServer": {
     "command": "pnpm dev",
     "url": "http://localhost:3000",
