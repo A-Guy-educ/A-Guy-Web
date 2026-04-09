@@ -1,8 +1,12 @@
 name: kody-watch
 
 on:
+  # Run on every PR merge to dev — creates GitHub issues for any failures found
+  pull_request:
+    types: [closed]
+    branches: [dev]
+  # Continuous monitoring: run daily but do NOT create issues (read-only digest)
   schedule:
-    # Every day at 08:00 UTC
     - cron: '0 8 * * *'
   workflow_dispatch:
     inputs:
@@ -75,10 +79,12 @@ jobs:
           WATCH_DIGEST_ISSUE_INFRA: ${{ vars.WATCH_DIGEST_ISSUE_INFRA }}
           WATCH_DIGEST_ISSUE_ANALYTICS: ${{ vars.WATCH_DIGEST_ISSUE_ANALYTICS }}
           PREVIEW_URL: ${{ vars.PREVIEW_URL }}
-          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+          # Only create issues on PR merges and manual runs — not on scheduled runs
+          DRY_RUN: ${{ inputs.dry_run || (github.event_name == 'schedule' && 'true') || 'false' }}
         run: |
           ARGS="watch"
           [ "$DRY_RUN" = "true" ] && ARGS="$ARGS --dry-run"
+          echo "Trigger: ${{ github.event_name }} | DRY_RUN: $DRY_RUN"
           kody-engine $ARGS
 
       - name: Upload watch memory artifacts
