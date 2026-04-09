@@ -33,7 +33,8 @@
   "watch": {
     "enabled": true,
     "digestIssue": null,
-    "model": "MiniMax-M2.7-highspeed"
+    "model": "MiniMax-M2.7-highspeed",
+    "provider": "minimax"
   },
   "devServer": {
     "command": "pnpm dev",
