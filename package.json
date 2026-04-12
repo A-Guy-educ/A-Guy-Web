@@ -192,6 +192,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "4.5.2",
     "eslint": "^9.16.0",
+    "eslint-config-next": "15.5.9",
     "husky": "^9.1.7",
     "jsdom": "26.1.0",
     "lint-staged": "^16.2.7",
