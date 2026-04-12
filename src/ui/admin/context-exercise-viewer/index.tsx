@@ -116,8 +116,17 @@ function parseContextText(contextText: string): ParsedSegment[] {
         const enumi = parseInt(match[1], 10)
         const number = enumi + 1 // \setcounter{enumi}{0} means exercise 1
 
-        // Deduplicate — keep first occurrence of each exercise number
-        if (exerciseMatches.some((e) => e.number === number)) continue
+        // Deduplicate — keep LAST occurrence (later blocks may have continuations)
+        const existingIdx = exerciseMatches.findIndex((e) => e.number === number)
+        if (existingIdx !== -1) {
+          exerciseMatches[existingIdx] = {
+            index: match.index,
+            title: `תרגיל ${number}`,
+            number,
+            fullMatch: match[0],
+          }
+          continue
+        }
 
         exerciseMatches.push({
           index: match.index,
