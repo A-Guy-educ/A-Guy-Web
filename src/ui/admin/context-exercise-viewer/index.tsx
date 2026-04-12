@@ -185,15 +185,20 @@ function parseContextText(contextText: string): ParsedSegment[] {
         endIndex: runText.length,
       })
     } else {
+      // Sort by text position for correct content boundary slicing
+      const byPosition = [...exerciseMatches].sort((a, b) => a.index - b.index)
+
       // Process each exercise
       for (let i = 0; i < exerciseMatches.length; i++) {
         const current = exerciseMatches[i]
-        const next = exerciseMatches[i + 1]
+        // Find the next exercise by text position (not by number) for content boundary
+        const posIdx = byPosition.indexOf(current)
+        const nextByPos = posIdx < byPosition.length - 1 ? byPosition[posIdx + 1] : null
 
         // Content starts after the exercise header
         const contentStart = current.index + current.fullMatch.length
-        // Content ends at the next exercise boundary, solutions section, or end of text
-        const contentEnd = next ? next.index : firstSolutionIndex
+        // Content ends at the next exercise boundary (by position), solutions section, or end of text
+        const contentEnd = nextByPos ? nextByPos.index : firstSolutionIndex
 
         const latexContent = runText.slice(contentStart, contentEnd).trim()
 
