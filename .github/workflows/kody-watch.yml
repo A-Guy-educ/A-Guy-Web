@@ -13,7 +13,7 @@ on:
       agents:
         type: string
         default: ''
-        description: 'Comma-separated agent names to run (functional,infra,analytics). Default: all'
+        description: 'Comma-separated agent names to run (functional,infra,analytics,system-test). Default: all'
 
 concurrency:
   group: kody-watch
@@ -27,7 +27,7 @@ permissions:
 jobs:
   watch:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
         with:
@@ -61,8 +61,8 @@ jobs:
             KEY=$(echo "$entry" | jq -r '.key')
             VALUE=$(echo "$entry" | jq -r '.value')
             DELIM="KODY_EOF_${KEY}"
-            echo "${KEY}<<${DELIM}" >> $GITHUB_ENV
-            echo "${VALUE}" >> $GITHUB_ENV
+            echo "+{KEY}<<${DELIM}" >> $GITHUB_ENV
+            echo "+{VALUE}" >> $GITHUB_ENV
             echo "${DELIM}" >> $GITHUB_ENV
           done
 
@@ -74,6 +74,7 @@ jobs:
           WATCH_DIGEST_ISSUE_FUNCTIONAL: ${{ vars.WATCH_DIGEST_ISSUE_FUNCTIONAL }}
           WATCH_DIGEST_ISSUE_INFRA: ${{ vars.WATCH_DIGEST_ISSUE_INFRA }}
           WATCH_DIGEST_ISSUE_ANALYTICS: ${{ vars.WATCH_DIGEST_ISSUE_ANALYTICS }}
+          WATCH_DIGEST_ISSUE_SYSTEM_TEST: ${{ vars.WATCH_DIGEST_ISSUE_SYSTEM_TEST }}
           PREVIEW_URL: ${{ vars.PREVIEW_URL }}
           DRY_RUN: ${{ inputs.dry_run || 'false' }}
         run: |
