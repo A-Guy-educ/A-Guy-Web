@@ -1569,7 +1569,7 @@ export interface Exercise {
    * User who created this document
    */
   createdBy?: (string | null) | User;
-  origin: 'manual' | 'conversion' | 'import' | 'context_extraction';
+  origin: 'manual' | 'conversion' | 'import';
   /**
    * Original PDF media for conversion exercises
    */
