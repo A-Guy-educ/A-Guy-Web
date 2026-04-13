@@ -7,7 +7,7 @@
  *
  * Idempotent: deletes previous context_extraction exercises before creating new ones.
  */
-import { apiError, ApiErrors, apiSuccess } from '@/server/api/responses'
+import { apiError, apiSuccess } from '@/server/api/responses'
 import { withApiHandler } from '@/server/api/with-api-handler'
 import { parseContextText } from '@/lib/context-exercise-parser'
 import { makeLatexBlock } from '@/lib/latex-parser/block-generators'
