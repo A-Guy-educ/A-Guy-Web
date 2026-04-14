@@ -105,9 +105,7 @@ export function useTTS(): UseTTSReturn {
         return
       }
       // Cancel any existing speech
-      if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
-        window.speechSynthesis.cancel()
-      }
+      window.speechSynthesis.cancel()
       utteranceRef.current = null
       setIsPaused(false)
 
@@ -136,12 +134,8 @@ export function useTTS(): UseTTSReturn {
       utteranceRef.current = utterance
       setPlayingMessageId(messageId)
 
-      // Defer speak() — Chrome silently drops utterances queued immediately after cancel()
-      setTimeout(() => {
-        if (utteranceRef.current === utterance) {
-          window.speechSynthesis.speak(utterance)
-        }
-      }, 50)
+      // Speak synchronously — must stay in user gesture call stack or Chrome blocks audio
+      window.speechSynthesis.speak(utterance)
     },
     [playingMessageId, stop, isPaused, resume, currentRate],
   )
