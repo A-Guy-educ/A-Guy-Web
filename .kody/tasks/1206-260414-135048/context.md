@@ -46,3 +46,38 @@ The CI failures are **all pre-existing issues** unrelated to the auth middleware
 | `lesson-types.int.spec.ts` | TypeError reading 'db' property |
 | `memory-system.int.spec.ts` | Hook timeout (3
 ...(truncated)
+
+### review (2026-04-14T15:43:00)
+Now let me do the code review based on the changes.
+
+## Verdict: PASS
+
+## Summary
+
+The implementation adds auth guard logic to middleware.ts to restrict learning features to authenticated users, with a comprehensive integration test suite covering 19 test cases. Public routes (`/` and `/courses`) pass through while protected routes redirect to `/login?returnTo=<path>`.
+
+## Findings
+
+### Critical
+
+None.
+
+### Major
+
+1. **middleware.ts:44** — Duplicate array values in `authCookieNames`
+   ```js
+   
+...(truncated)
+
+### review-fix (2026-04-14T15:45:58)
+**Fix Applied:**
+
+**Issue:** `middleware.ts:44` - Duplicate array values in `authCookieNames`
+- Changed from `['payload-token', 'payload-token']` to a simple check: `cookieStore.get('payload-token')?.value !== undefined`
+
+**Verification:**
+- Auth middleware tests: **19/19 passed** ✓
+- Typecheck: **passed** ✓
+
+The code is now cleaner and simpler - there's only one cookie name to check (`payload-token`), so no need for an array at all.
+

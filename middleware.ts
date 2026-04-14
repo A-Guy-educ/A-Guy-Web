@@ -36,13 +36,11 @@ function isProtectedLearningPath(pathname: string): boolean {
 
 /**
  * Check if the request has a valid Payload auth token.
- * Supports both prefixed cookie names (payload-token) and default (payload-token).
+ * Checks for the payload-token cookie.
  */
 function hasAuthToken(request: NextRequest): boolean {
   const cookieStore = request.cookies
-  // Check common Payload cookie names
-  const authCookieNames = ['payload-token', 'payload-token']
-  return authCookieNames.some((name) => cookieStore.get(name)?.value)
+  return cookieStore.get('payload-token')?.value !== undefined
 }
 
 function resolveCookieDomain(host: string): string | undefined {
