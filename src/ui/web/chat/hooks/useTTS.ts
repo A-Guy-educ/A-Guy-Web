@@ -69,7 +69,11 @@ export function useTTS(): UseTTSReturn {
   }, [])
 
   const pause = useCallback(() => {
-    if (typeof window !== 'undefined' && window.speechSynthesis && window.speechSynthesis.speaking) {
+    if (
+      typeof window !== 'undefined' &&
+      window.speechSynthesis &&
+      window.speechSynthesis.speaking
+    ) {
       window.speechSynthesis.pause()
       setIsPaused(true)
     }

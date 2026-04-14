@@ -77,8 +77,8 @@ const LATEX_LOOKUP: Record<string, { en: string; he: string }> = {
   '\\nabla': { en: 'nabla ', he: 'nabla ' },
 
   // Arrows
-  '\\rightarrow': { en: ' right arrow ', he: ' hatsa\'a yeminit ' },
-  '\\leftarrow': { en: ' left arrow ', he: ' hatsa\'a smolit ' },
+  '\\rightarrow': { en: ' right arrow ', he: " hatsa'a yeminit " },
+  '\\leftarrow': { en: ' left arrow ', he: " hatsa'a smolit " },
   '\\Rightarrow': { en: ' implies ', he: ' metzaven ' },
   '\\Leftarrow': { en: ' is implied by ', he: ' ' },
   '\\leftrightarrow': { en: ' is equivalent to ', he: ' ' },
@@ -242,7 +242,8 @@ export function latexToSpeech(latex: string, locale: SupportedLocale): string {
   // 6. Handle nth root \sqrt[n]{x}
   text = text.replace(/\\sqrt\[(\d+)\]\{([^{}]*)\}/g, (_, n, arg) => {
     const argSpeech = latexToSpeech(arg.trim(), locale)
-    if (n === '2') return locale === 'en' ? `square root of ${argSpeech}` : `shoresh shel ${argSpeech}`
+    if (n === '2')
+      return locale === 'en' ? `square root of ${argSpeech}` : `shoresh shel ${argSpeech}`
     if (n === '3')
       return locale === 'en' ? `cube root of ${argSpeech}` : `shoresh kibli shel ${argSpeech}`
     const ordinal = locale === 'en' ? getOrdinal(parseInt(n)) : `${n} kibli`
@@ -284,7 +285,7 @@ export function latexToSpeech(latex: string, locale: SupportedLocale): string {
   })
 
   // 12. Handle superscript ^2 / ^3 (standalone, not followed by digit)
-  text = text.replace(/\^2(?!\d)/g, locale === 'en' ? ' squared' : ' beribu\'a')
+  text = text.replace(/\^2(?!\d)/g, locale === 'en' ? ' squared' : " beribu'a")
   text = text.replace(/\^3(?!\d)/g, locale === 'en' ? ' cubed' : ' kibush')
 
   // 13. Handle general superscript ^{...}
@@ -343,7 +344,10 @@ export function latexToSpeech(latex: string, locale: SupportedLocale): string {
     if (op === '-') {
       // Only replace minus when between word characters (operator context)
       // Skip hyphens in Hebrew words like "me-i" (between letters)
-      text = text.replace(/(?<=[a-zA-Z0-9\u0590-\u05FF])-(?=[a-zA-Z0-9\u0590-\u05FF])/g, replacement.trim())
+      text = text.replace(
+        /(?<=[a-zA-Z0-9\u0590-\u05FF])-(?=[a-zA-Z0-9\u0590-\u05FF])/g,
+        replacement.trim(),
+      )
     } else {
       const escaped = op.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
       text = text.replace(new RegExp(escaped, 'g'), replacement)
