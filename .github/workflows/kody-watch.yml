@@ -67,6 +67,12 @@ jobs:
             echo "${DELIM}" >> $GITHUB_ENV
           done
 
+      - name: Debug MINIMAX_API_KEY
+        run: |
+          echo "MINIMAX_API_KEY set: [${MINIMAX_API_KEY:+yes (length: ${#MINIMAX_API_KEY})}]"
+          echo "MINIMAX_API_KEY prefix: ${MINIMAX_API_KEY:0:8}..."
+          echo "AI_BASE_URL: ${AI_BASE_URL:-not set}"
+
       - name: Run Kody Watch
         env:
           GH_TOKEN: ${{ github.token }}
