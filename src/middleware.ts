@@ -5,7 +5,7 @@ import {
   type Locale,
   locales,
   getLocaleFromSubdomain,
-} from './src/i18n/config'
+} from './i18n/config'
 
 /**
  * Check if a path is a protected learning route that requires authentication.

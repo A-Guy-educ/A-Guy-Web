@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { NextRequest, NextResponse } from 'next/server'
-import { middleware } from '../../middleware'
+import { middleware } from '../../src/middleware'
 
 /**
  * Auth Middleware Integration Tests
