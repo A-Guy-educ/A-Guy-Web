@@ -50,3 +50,11 @@ export function detectLanguage(text: string): 'he-IL' | 'en-US' {
   const latinChars = (text.match(/[a-zA-Z]/g) || []).length
   return hebrewChars > latinChars ? 'he-IL' : 'en-US'
 }
+
+/** Check if the browser has a native speech synthesis voice for the given locale. */
+export function hasNativeVoiceForLocale(locale: string): boolean {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return false
+  const voices = window.speechSynthesis.getVoices()
+  const langPrefix = locale === 'he' ? ['he', 'iw'] : [locale]
+  return voices.some((v) => langPrefix.some((p) => v.lang.startsWith(p)))
+}

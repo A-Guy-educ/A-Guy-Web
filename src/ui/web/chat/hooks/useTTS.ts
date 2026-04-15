@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { stripMarkdown, detectLanguage } from '@/infra/utils/speechHelpers'
+import { stripMarkdown, detectLanguage, hasNativeVoiceForLocale } from '@/infra/utils/speechHelpers'
 import type { SupportedLocale } from '@/infra/utils/latexToSpeech'
 
 const LOCALE_TO_LANG: Record<string, string> = {
@@ -23,37 +23,20 @@ function primeSpeechVoices(): void {
 function pickVoiceForLocale(locale: string): SpeechSynthesisVoice | undefined {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return undefined
   const voices = window.speechSynthesis.getVoices()
-  console.warn('[TTS] Available voices:', voices.map((v) => `${v.name} (${v.lang})`).join(', '))
   const langPrefix = locale === 'he' ? ['he', 'iw'] : [locale]
   const matching = voices.filter((v) => langPrefix.some((p) => v.lang.startsWith(p)))
-
-  if (matching.length > 0) {
-    if (locale === 'he') {
-      return (
-        matching.find((v) => v.name.includes('Natural') || v.name.includes('Online')) ??
-        matching.find((v) => v.name.includes('Hila') || v.name.includes('Carmit')) ??
-        matching.find((v) => v.name.includes('Google') || v.name.includes('Premium')) ??
-        matching[0]
-      )
-    }
+  if (matching.length === 0) return undefined
+  if (locale === 'he') {
     return (
-      matching.find((v) => v.name.includes('Natural') || v.name.includes('Google')) ?? matching[0]
+      matching.find((v) => v.name.includes('Natural') || v.name.includes('Online')) ??
+      matching.find((v) => v.name.includes('Hila') || v.name.includes('Carmit')) ??
+      matching.find((v) => v.name.includes('Google') || v.name.includes('Premium')) ??
+      matching[0]
     )
   }
-
-  // No voice for this locale — fall back to any English voice so speech isn't silent
-  if (locale === 'he') {
-    const enVoices = voices.filter((v) => v.lang.includes('en'))
-    if (enVoices.length > 0) {
-      console.warn('[TTS] No Hebrew voice found, falling back to English voice')
-      return (
-        enVoices.find((v) => v.name.includes('Natural') || v.name.includes('Google')) ?? enVoices[0]
-      )
-    }
-  }
-
-  // Last resort — return first available voice
-  return voices[0]
+  return (
+    matching.find((v) => v.name.includes('Natural') || v.name.includes('Google')) ?? matching[0]
+  )
 }
 
 interface UseTTSReturn {
@@ -72,6 +55,8 @@ export function useTTS(): UseTTSReturn {
   const [isPaused, setIsPaused] = useState(false)
   const [currentRate, setCurrentRateState] = useState(1.0)
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const isLoadingRef = useRef(false)
 
   // Prime voice list on mount (Chrome loads voices async)
   useEffect(() => {
@@ -79,6 +64,13 @@ export function useTTS(): UseTTSReturn {
   }, [])
 
   const stop = useCallback(() => {
+    // Stop cloud audio
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current.currentTime = 0
+      audioRef.current = null
+    }
+    // Stop browser TTS
     if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel()
     utteranceRef.current = null
     setPlayingMessageId(null)
@@ -86,6 +78,13 @@ export function useTTS(): UseTTSReturn {
   }, [])
 
   const pause = useCallback(() => {
+    // Cloud audio pause
+    if (audioRef.current && !audioRef.current.paused) {
+      audioRef.current.pause()
+      setIsPaused(true)
+      return
+    }
+    // Browser TTS pause
     if (
       typeof window !== 'undefined' &&
       window.speechSynthesis &&
@@ -97,6 +96,13 @@ export function useTTS(): UseTTSReturn {
   }, [])
 
   const resume = useCallback(() => {
+    // Cloud audio resume
+    if (audioRef.current && audioRef.current.paused) {
+      audioRef.current.play()
+      setIsPaused(false)
+      return
+    }
+    // Browser TTS resume
     if (typeof window !== 'undefined' && window.speechSynthesis && window.speechSynthesis.paused) {
       window.speechSynthesis.resume()
       setIsPaused(false)
@@ -105,6 +111,9 @@ export function useTTS(): UseTTSReturn {
 
   const setRate = useCallback((rate: number) => {
     setCurrentRateState(rate)
+    if (audioRef.current) {
+      audioRef.current.playbackRate = rate
+    }
     if (utteranceRef.current) {
       utteranceRef.current.rate = rate
     }
@@ -112,7 +121,7 @@ export function useTTS(): UseTTSReturn {
 
   const speak = useCallback(
     (messageId: string, text: string, locale?: SupportedLocale) => {
-      if (typeof window === 'undefined' || !window.speechSynthesis) return
+      if (typeof window === 'undefined') return
       if (playingMessageId === messageId && !isPaused) {
         stop()
         return
@@ -121,20 +130,61 @@ export function useTTS(): UseTTSReturn {
         resume()
         return
       }
-      // Cancel only if there's something playing — avoids Chrome cancel/speak race
-      if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
-        window.speechSynthesis.cancel()
-      }
-      utteranceRef.current = null
-      setIsPaused(false)
+      stop()
 
       // Detect language if not provided
       const detectedLocale: SupportedLocale =
         locale ?? (detectLanguage(text) === 'he-IL' ? 'he' : 'en')
       const cleanText = stripMarkdown(text, detectedLocale)
-      if (!cleanText) {
-        console.warn('[TTS] cleanText is empty, nothing to speak')
+      if (!cleanText) return
+
+      // Check if browser has a native voice for this locale
+      if (!hasNativeVoiceForLocale(detectedLocale)) {
+        // Cloud TTS fallback
+        if (isLoadingRef.current) return
+        isLoadingRef.current = true
+        setPlayingMessageId(messageId)
+
+        fetch('/api/tts/synthesize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: cleanText, locale: detectedLocale }),
+        })
+          .then((res) => {
+            if (!res.ok) throw new Error(`TTS API error: ${res.status}`)
+            return res.json()
+          })
+          .then(({ audioContent }) => {
+            const audio = new Audio(`data:audio/mp3;base64,${audioContent}`)
+            audioRef.current = audio
+            audio.playbackRate = currentRate
+            audio.onended = () => {
+              setPlayingMessageId(null)
+              audioRef.current = null
+              setIsPaused(false)
+            }
+            audio.onerror = () => {
+              setPlayingMessageId(null)
+              audioRef.current = null
+              setIsPaused(false)
+            }
+            audio.play()
+          })
+          .catch(() => {
+            setPlayingMessageId(null)
+            setIsPaused(false)
+          })
+          .finally(() => {
+            isLoadingRef.current = false
+          })
+
         return
+      }
+
+      // Browser TTS path
+      if (!window.speechSynthesis) return
+      if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+        window.speechSynthesis.cancel()
       }
 
       const utterance = new SpeechSynthesisUtterance(cleanText)
@@ -143,31 +193,18 @@ export function useTTS(): UseTTSReturn {
       if (voice) utterance.voice = voice
       utterance.rate = 0.85 * currentRate
       utterance.pitch = 0.95
-      console.warn(
-        '[TTS] Speaking:',
-        cleanText.slice(0, 80),
-        '| lang:',
-        utterance.lang,
-        '| voice:',
-        voice?.name ?? 'default',
-        '| rate:',
-        utterance.rate,
-      )
       utterance.onend = () => {
         setPlayingMessageId(null)
         utteranceRef.current = null
         setIsPaused(false)
       }
-      utterance.onerror = (e) => {
-        console.warn('[TTS] Speech error:', e.error, 'text length:', cleanText.length)
+      utterance.onerror = () => {
         setPlayingMessageId(null)
         utteranceRef.current = null
         setIsPaused(false)
       }
       utteranceRef.current = utterance
       setPlayingMessageId(messageId)
-
-      // Speak synchronously — must stay in user gesture call stack or Chrome blocks audio
       window.speechSynthesis.speak(utterance)
     },
     [playingMessageId, stop, isPaused, resume, currentRate],
@@ -175,6 +212,10 @@ export function useTTS(): UseTTSReturn {
 
   useEffect(
     () => () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
       if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel()
     },
     [],
