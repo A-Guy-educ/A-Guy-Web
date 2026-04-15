@@ -104,8 +104,10 @@ export function useTTS(): UseTTSReturn {
         resume()
         return
       }
-      // Cancel any existing speech
-      window.speechSynthesis.cancel()
+      // Cancel only if there's something playing — avoids Chrome cancel/speak race
+      if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+        window.speechSynthesis.cancel()
+      }
       utteranceRef.current = null
       setIsPaused(false)
 
@@ -113,7 +115,10 @@ export function useTTS(): UseTTSReturn {
       const detectedLocale: SupportedLocale =
         locale ?? (detectLanguage(text) === 'he-IL' ? 'he' : 'en')
       const cleanText = stripMarkdown(text, detectedLocale)
-      if (!cleanText) return
+      if (!cleanText) {
+        console.warn('[TTS] cleanText is empty, nothing to speak')
+        return
+      }
 
       const utterance = new SpeechSynthesisUtterance(cleanText)
       utterance.lang = LOCALE_TO_LANG[detectedLocale] ?? 'en-US'
@@ -121,12 +126,23 @@ export function useTTS(): UseTTSReturn {
       if (voice) utterance.voice = voice
       utterance.rate = 0.85 * currentRate
       utterance.pitch = 0.95
+      console.warn(
+        '[TTS] Speaking:',
+        cleanText.slice(0, 80),
+        '| lang:',
+        utterance.lang,
+        '| voice:',
+        voice?.name ?? 'default',
+        '| rate:',
+        utterance.rate,
+      )
       utterance.onend = () => {
         setPlayingMessageId(null)
         utteranceRef.current = null
         setIsPaused(false)
       }
-      utterance.onerror = () => {
+      utterance.onerror = (e) => {
+        console.warn('[TTS] Speech error:', e.error, 'text length:', cleanText.length)
         setPlayingMessageId(null)
         utteranceRef.current = null
         setIsPaused(false)
