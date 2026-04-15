@@ -37,6 +37,7 @@ test.describe('Scenario #19 – Course Creation', () => {
     const course = await payload.create({
       collection: 'courses',
       data: {
+        courseLabel: 'VERIFY',
         title: 'Verification Test Course',
         slug,
         status: 'published',
@@ -45,6 +46,7 @@ test.describe('Scenario #19 – Course Creation', () => {
         order: 999,
         pageAccessType: 'free',
         accessType: 'free',
+        categories: data?.course ? [data.course.courseId] : [],
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any,
       overrideAccess: true,
@@ -76,6 +78,7 @@ test.describe('Scenario #20 – Course Archiving', () => {
     const course = await payload.create({
       collection: 'courses',
       data: {
+        courseLabel: 'VERIFY',
         title: 'Archive Test Course',
         slug,
         status: 'draft',
@@ -84,6 +87,7 @@ test.describe('Scenario #20 – Course Archiving', () => {
         order: 999,
         pageAccessType: 'free',
         accessType: 'free',
+        categories: data?.course ? [data.course.courseId] : [],
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any,
       overrideAccess: true,
