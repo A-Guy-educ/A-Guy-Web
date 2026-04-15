@@ -43,3 +43,42 @@ The task to remove `lessonContextText` field from the Lessons collection is comp
 | `src/app/api/lessons/convert-context/route.ts` | Updated comment |
 | `src/lib/context-exercise-parser/index.ts` | Upda
 ...(truncated)
+
+### review (2026-04-15T15:14:50)
+## Verdict: PASS
+
+## Summary
+
+Successfully removed the `lessonContextText` field from the Lessons collection and all associated code from the chat injection pipeline. The field was orphaned after the context extraction refactor (PR #1200) redirected all context storage to the `ContextExtractions` collection. All test files for the deleted module were also removed.
+
+## Findings
+
+### Critical
+None.
+
+### Major
+None.
+
+### Minor
+None.
+
+## Verification
+
+| Check | Result |
+|-------|--------|
+| `lessonC
+...(truncated)
+
+### review-fix (2026-04-15T15:16:20)
+The review passed with **Verdict: PASS** — no Critical, Major, or Minor findings. The `lessonContextText` field removal is complete and verified.
+
+**Summary of the completed work:**
+
+| Change | Status |
+|--------|--------|
+| Removed `lessonContextText` field from Lessons schema | ✓ |
+| Deleted `src/infra/llm/lesson-context.ts` | ✓ |
+| Removed `lessonContextText` from prompt composition pipeline | ✓ |
+| Removed `hasLessonContext` prop from all pager components | ✓ |
+| Removed associated test file
+...(truncated)
