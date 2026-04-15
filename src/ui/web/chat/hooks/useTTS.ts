@@ -25,18 +25,34 @@ function pickVoiceForLocale(locale: string): SpeechSynthesisVoice | undefined {
   const voices = window.speechSynthesis.getVoices()
   const langPrefix = locale === 'he' ? ['he', 'iw'] : [locale]
   const matching = voices.filter((v) => langPrefix.some((p) => v.lang.includes(p)))
-  if (matching.length === 0) return undefined
-  if (locale === 'he') {
+
+  if (matching.length > 0) {
+    if (locale === 'he') {
+      return (
+        matching.find((v) => v.name.includes('Natural') || v.name.includes('Online')) ??
+        matching.find((v) => v.name.includes('Hila') || v.name.includes('Carmit')) ??
+        matching.find((v) => v.name.includes('Google') || v.name.includes('Premium')) ??
+        matching[0]
+      )
+    }
     return (
-      matching.find((v) => v.name.includes('Natural') || v.name.includes('Online')) ??
-      matching.find((v) => v.name.includes('Hila') || v.name.includes('Carmit')) ??
-      matching.find((v) => v.name.includes('Google') || v.name.includes('Premium')) ??
-      matching[0]
+      matching.find((v) => v.name.includes('Natural') || v.name.includes('Google')) ?? matching[0]
     )
   }
-  return (
-    matching.find((v) => v.name.includes('Natural') || v.name.includes('Google')) ?? matching[0]
-  )
+
+  // No voice for this locale — fall back to any English voice so speech isn't silent
+  if (locale === 'he') {
+    const enVoices = voices.filter((v) => v.lang.includes('en'))
+    if (enVoices.length > 0) {
+      console.warn('[TTS] No Hebrew voice found, falling back to English voice')
+      return (
+        enVoices.find((v) => v.name.includes('Natural') || v.name.includes('Google')) ?? enVoices[0]
+      )
+    }
+  }
+
+  // Last resort — return first available voice
+  return voices[0]
 }
 
 interface UseTTSReturn {
