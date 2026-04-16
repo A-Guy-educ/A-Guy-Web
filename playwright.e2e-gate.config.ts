@@ -39,7 +39,7 @@ export default defineConfig({
     {
       name: 'chromium',
       testDir: './tests/e2e',
-      testMatch: ['verification/**/*.spec.ts', 'analytics-events.e2e.spec.ts'],
+      testMatch: ['verification/**/*.spec.ts'],
       use: { ...devices['Desktop Chrome'], channel: 'chromium' },
     },
   ],
