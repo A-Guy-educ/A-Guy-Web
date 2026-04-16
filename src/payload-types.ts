@@ -1577,6 +1577,10 @@ export interface Exercise {
    */
   sourceDoc?: (string | null) | Media;
   /**
+   * Raw LaTeX chunk this exercise was derived from (for LaTeX imports)
+   */
+  sourceLatex?: string | null;
+  /**
    * Payload job ID that created this exercise
    */
   conversionJobId?: string | null;
@@ -3380,6 +3384,7 @@ export interface ExercisesSelect<T extends boolean = true> {
   createdBy?: T;
   origin?: T;
   sourceDoc?: T;
+  sourceLatex?: T;
   conversionJobId?: T;
   sourcePageStart?: T;
   sourcePageEnd?: T;
