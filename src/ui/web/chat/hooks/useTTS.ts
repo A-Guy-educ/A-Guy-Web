@@ -57,6 +57,10 @@ export function useTTS(): UseTTSReturn {
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const isLoadingRef = useRef(false)
+  // Track browser TTS position for mid-playback rate changes
+  const charIndexRef = useRef(0)
+  const fullTextRef = useRef('')
+  const localeRef = useRef<SupportedLocale>('en')
 
   // Prime voice list on mount (Chrome loads voices async)
   useEffect(() => {
@@ -73,6 +77,8 @@ export function useTTS(): UseTTSReturn {
     // Stop browser TTS
     if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.cancel()
     utteranceRef.current = null
+    charIndexRef.current = 0
+    fullTextRef.current = ''
     setPlayingMessageId(null)
     setIsPaused(false)
   }, [])
@@ -109,15 +115,54 @@ export function useTTS(): UseTTSReturn {
     }
   }, [])
 
-  const setRate = useCallback((rate: number) => {
-    setCurrentRateState(rate)
-    if (audioRef.current) {
-      audioRef.current.playbackRate = rate
-    }
-    if (utteranceRef.current) {
-      utteranceRef.current.rate = rate
-    }
-  }, [])
+  const setRate = useCallback(
+    (rate: number) => {
+      setCurrentRateState(rate)
+      // Cloud audio supports live rate changes
+      if (audioRef.current) {
+        audioRef.current.playbackRate = rate
+        return
+      }
+      // Browser TTS: cancel and restart from current position with new rate
+      if (
+        utteranceRef.current &&
+        typeof window !== 'undefined' &&
+        window.speechSynthesis?.speaking
+      ) {
+        const remainingText = fullTextRef.current.slice(charIndexRef.current)
+        if (!remainingText) return
+
+        window.speechSynthesis.cancel()
+        utteranceRef.current = null
+
+        const utterance = new SpeechSynthesisUtterance(remainingText)
+        const locale = localeRef.current
+        utterance.lang = LOCALE_TO_LANG[locale] ?? 'en-US'
+        const voice = pickVoiceForLocale(locale)
+        if (voice) utterance.voice = voice
+        utterance.rate = 0.85 * rate
+        utterance.pitch = 0.95
+
+        const baseOffset = charIndexRef.current
+        utterance.onboundary = (event: SpeechSynthesisEvent) => {
+          charIndexRef.current = baseOffset + event.charIndex
+        }
+        utterance.onend = () => {
+          setPlayingMessageId(null)
+          utteranceRef.current = null
+          setIsPaused(false)
+        }
+        utterance.onerror = () => {
+          setPlayingMessageId(null)
+          utteranceRef.current = null
+          setIsPaused(false)
+        }
+        utteranceRef.current = utterance
+        window.speechSynthesis.speak(utterance)
+      }
+    },
+    [playingMessageId],
+  )
 
   const speak = useCallback(
     (messageId: string, text: string, locale?: SupportedLocale) => {
@@ -187,12 +232,20 @@ export function useTTS(): UseTTSReturn {
         window.speechSynthesis.cancel()
       }
 
+      // Store for mid-playback rate changes
+      fullTextRef.current = cleanText
+      localeRef.current = detectedLocale
+      charIndexRef.current = 0
+
       const utterance = new SpeechSynthesisUtterance(cleanText)
       utterance.lang = LOCALE_TO_LANG[detectedLocale] ?? 'en-US'
       const voice = pickVoiceForLocale(detectedLocale)
       if (voice) utterance.voice = voice
       utterance.rate = 0.85 * currentRate
       utterance.pitch = 0.95
+      utterance.onboundary = (event: SpeechSynthesisEvent) => {
+        charIndexRef.current = event.charIndex
+      }
       utterance.onend = () => {
         setPlayingMessageId(null)
         utteranceRef.current = null
