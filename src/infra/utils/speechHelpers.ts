@@ -6,7 +6,7 @@
  */
 
 import { latexToSpeech, type SupportedLocale } from './latexToSpeech'
-import { normalizeLatexDelimiters } from '@/ui/web/chat/ChatMessageContent/normalize-latex'
+import { normalizeLatexDelimiters } from '@/infra/utils/normalize-latex'
 
 /**
  * Convert LaTeX math expressions within text to spoken equivalents,
