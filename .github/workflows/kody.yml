@@ -166,7 +166,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: true
-          token: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Checkout PR branch (for fix/rerun/review on PRs)
         if: github.event.issue.pull_request && (needs.parse.outputs.mode == 'fix' || needs.parse.outputs.mode == 'fix-ci' || needs.parse.outputs.mode == 'rerun' || needs.parse.outputs.mode == 'review' || needs.parse.outputs.mode == 'resolve')
@@ -236,7 +236,7 @@ jobs:
 
       - name: Run Kody pipeline
         env:
-          GH_TOKEN: ${{ secrets.PROJECT_TOKEN || steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN || secrets.GITHUB_TOKEN }}
           TASK_ID: ${{ github.event.inputs.task_id || needs.parse.outputs.task_id }}
           MODE: ${{ github.event.inputs.mode || needs.parse.outputs.mode || 'full' }}
           FROM_STAGE: ${{ github.event.inputs.from_stage || needs.parse.outputs.from_stage }}
