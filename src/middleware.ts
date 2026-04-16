@@ -5,7 +5,43 @@ import {
   type Locale,
   locales,
   getLocaleFromSubdomain,
-} from './src/i18n/config'
+} from './i18n/config'
+
+/**
+ * Check if a path is a protected learning route that requires authentication.
+ * Public routes: / (landing), /courses (catalog listing only)
+ * Protected: /courses/[slug] (individual course pages), /study, /practice, /test, /ask, and nested paths
+ */
+function isProtectedLearningPath(pathname: string): boolean {
+  // Exact public routes
+  if (pathname === '/' || pathname === '/courses') {
+    return false
+  }
+
+  // Protected learning routes
+  const protectedPaths = ['/study', '/practice', '/test', '/ask']
+  for (const protectedPath of protectedPaths) {
+    if (pathname === protectedPath || pathname.startsWith(`${protectedPath}/`)) {
+      return true
+    }
+  }
+
+  // /courses/* but NOT /courses exactly - all course-specific pages require auth
+  if (pathname.startsWith('/courses/')) {
+    return true
+  }
+
+  return false
+}
+
+/**
+ * Check if the request has a valid Payload auth token.
+ * Checks for the payload-token cookie.
+ */
+function hasAuthToken(request: NextRequest): boolean {
+  const cookieStore = request.cookies
+  return cookieStore.get('payload-token')?.value !== undefined
+}
 
 function resolveCookieDomain(host: string): string | undefined {
   // If you're on *.vercel.app, sharing cookies across subdomains via Domain=.vercel.app
@@ -40,6 +76,13 @@ export function middleware(request: NextRequest) {
 
   if (shouldExclude) {
     return NextResponse.next()
+  }
+
+  // Auth guard: redirect unauthenticated users to login for protected learning routes
+  if (isProtectedLearningPath(pathname) && !hasAuthToken(request)) {
+    const loginUrl = new URL('/login', request.url)
+    loginUrl.searchParams.set('returnTo', pathname)
+    return NextResponse.redirect(loginUrl)
   }
 
   let locale: Locale = defaultLocale
