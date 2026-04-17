@@ -155,6 +155,15 @@ export default buildConfig({
       // Socket timeout for long-running operations
       socketTimeoutMS: 30000,
     },
+    afterOpenConnection: async (adapter) => {
+      // Log connection establishment for monitoring
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const pool = (adapter.connection as any).pool
+      if (pool) {
+        const poolSize = pool.size ?? 'unknown'
+        console.info(`[MongoDB] Connection pool opened with maxSize=${poolSize}`)
+      }
+    },
   }),
   collections: [
     Pages,

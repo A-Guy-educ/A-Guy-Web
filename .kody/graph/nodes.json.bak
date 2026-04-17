@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "nodes": {
+    "thoughts_mongodbpool_monitoring_1433967375574": {
+      "id": "thoughts_mongodbpool_monitoring_1433967375574",
+      "type": "thoughts",
+      "hall": "thoughts",
+      "room": "MongoDB/Pool monitoring",
+      "content": "MongooseAdapter pool stats are accessed via `mongoose.connection.adapter` not directly on the connection object",
+      "episodeId": "ep_stage_diary_001",
+      "validFrom": "2026-04-17T15:32:48.831Z",
+      "validTo": null,
+      "tags": [
+        "stage:build",
+        "task:1269-260417-150933",
+        "kind:gotcha"
+      ]
+    },
+    "conventions_project_structure_1433968648195": {
+      "id": "conventions_project_structure_1433968648195",
+      "type": "conventions",
+      "hall": "conventions",
+      "room": "Project structure",
+      "content": "Database infrastructure code lives in `src/infra/db/` directory",
+      "episodeId": "ep_stage_diary_001",
+      "validFrom": "2026-04-17T15:32:48.832Z",
+      "validTo": null,
+      "tags": [
+        "stage:build",
+        "task:1269-260417-150933",
+        "kind:convention"
+      ]
+    },
+    "facts_payload_cms_config_1433969885259": {
+      "id": "facts_payload_cms_config_1433969885259",
+      "type": "facts",
+      "hall": "facts",
+      "room": "Payload CMS config",
+      "content": "Used `afterOpenConnection` callback in Payload connection string options to hook into connection lifecycle",
+      "episodeId": "ep_stage_diary_001",
+      "validFrom": "2026-04-17T15:32:48.833Z",
+      "validTo": null,
+      "tags": [
+        "stage:build",
+        "task:1269-260417-150933",
+        "kind:decision"
+      ]
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "id": "ep_stage_diary_001",
+  "runId": "1269-260417-150933",
+  "source": "stage_diary",
+  "taskId": "1269-260417-150933",
+  "createdAt": "2026-04-17T15:32:48.825Z",
+  "rawContent": "{\"stage\":\"build\",\"insights\":[{\"kind\":\"gotcha\",\"text\":\"MongooseAdapter pool stats are accessed via `mongoose.connection.adapter` not directly on the connection object\",\"scope\":\"MongoDB/Pool monitoring\"},{\"kind\":\"convention\",\"text\":\"Database infrastructure code lives in `src/infra/db/` directory\",\"scope\":\"Project structure\"},{\"kind\":\"decision\",\"text\":\"Used `afterOpenConnection` callback in Payload connection string options to hook into connection lifecycle\",\"scope\":\"Payload CMS config\"},{\"kind\":\"lesson\",\"text\":\"Pool stats structure: `pool.size` (max), `pool.available`, `pool.inUse`, `pool.waitQueues` on MongooseAdapter\",\"scope\":\"MongoDB/Pool monitoring\"}]}",
+  "extractedNodeIds": [],
+  "linkedFiles": [],
+  "metadata": {
+    "stage": "build"
+  }
+}
