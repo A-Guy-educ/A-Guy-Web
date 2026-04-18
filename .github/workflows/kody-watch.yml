@@ -2,9 +2,10 @@ name: kody-watch
 
 on:
   schedule:
-    # Every day at 07:30 UTC — starts early enough that kody engine is up by 08:00-08:30
-    # when system-test agent's cron window (0 8 * * *) is active
-    - cron: '30 7 * * *'
+    # Every 10 minutes. Each agent's own cron in agent.json still gates whether
+    # that specific agent executes on any given invocation, so daily agents stay
+    # daily — this cadence is driven by job-manager's need for a responsive queue.
+    - cron: '*/10 * * * *'
   workflow_dispatch:
     inputs:
       dry_run:
