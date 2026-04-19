@@ -16,3 +16,15 @@
 
 ### build (2026-04-19T15:42:40)
 Stale notification. The implementation is verified and complete.
+
+### review (2026-04-19T15:54:52)
+Based on my thorough review of all changed and new files in the `1244--featlms-instructor-role-per-course-permissi` branch, here is my structured review:
+
+---
+
+## Verdict: PASS
+
+## Summary
+
+This PR adds the `Instructor` role to the RBAC system, a new `course-instructors` collection linking instructors to courses with per-course permissions (primary/TA/guest), a new instructor dashboard API, a supervisory admin view at `/instructor`, a gradebook API, and comprehensive test coverage. All three req
+...(truncated)

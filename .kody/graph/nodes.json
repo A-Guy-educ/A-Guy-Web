@@ -64,6 +64,70 @@
         "kind:gotcha"
       ],
       "confidence": 0.7
+    },
+    "thoughts_srcserverpayloadcollectionsusersrolests_2948756705973": {
+      "id": "thoughts_srcserverpayloadcollectionsusersrolests_2948756705973",
+      "type": "thoughts",
+      "hall": "thoughts",
+      "room": "src/server/payload/collections/Users/roles.ts",
+      "content": "When reorganizing roles (e.g., moving them to a new module), update all backward-compat re-export files too — it's easy to forget them.",
+      "episodeId": "ep_stage_diary_002",
+      "validFrom": "2026-04-19T15:55:04.908Z",
+      "validTo": null,
+      "tags": [
+        "stage:review",
+        "task:2",
+        "kind:gotcha"
+      ],
+      "confidence": 0.7
+    },
+    "thoughts_srcserverpayloadbackendintegration_2948758272875": {
+      "id": "thoughts_srcserverpayloadbackendintegration_2948758272875",
+      "type": "thoughts",
+      "hall": "thoughts",
+      "room": "src/server/payload/backend-integration",
+      "content": "Backend-integration layers that import roles from shared infra need their import paths updated when roles are reorganized.",
+      "episodeId": "ep_stage_diary_002",
+      "validFrom": "2026-04-19T15:55:04.909Z",
+      "validTo": null,
+      "tags": [
+        "stage:review",
+        "task:2",
+        "kind:gotcha"
+      ],
+      "confidence": 0.7
+    },
+    "facts_codereview_workflow_2948759836058": {
+      "id": "facts_codereview_workflow_2948759836058",
+      "type": "facts",
+      "hall": "facts",
+      "room": "code-review workflow",
+      "content": "Always confirm the implementation branch is up to date with origin before reviewing, to avoid flagging issues that were already fixed.",
+      "episodeId": "ep_stage_diary_002",
+      "validFrom": "2026-04-19T15:55:04.911Z",
+      "validTo": null,
+      "tags": [
+        "stage:review",
+        "task:2",
+        "kind:lesson"
+      ],
+      "confidence": 0.7
+    },
+    "conventions_pr_review_workflow_2948763904386": {
+      "id": "conventions_pr_review_workflow_2948763904386",
+      "type": "conventions",
+      "hall": "conventions",
+      "room": "PR review workflow",
+      "content": "Quality gates (typecheck + lint + unit tests) must all pass before a PR review is marked verified.",
+      "episodeId": "ep_stage_diary_002",
+      "validFrom": "2026-04-19T15:55:04.915Z",
+      "validTo": null,
+      "tags": [
+        "stage:review",
+        "task:2",
+        "kind:convention"
+      ],
+      "confidence": 0.7
     }
   }
 }
