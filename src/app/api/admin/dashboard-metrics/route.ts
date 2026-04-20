@@ -1,14 +1,16 @@
 /**
  * Admin Dashboard Metrics API
  *
- * GET /api/admin/dashboard-metrics
- * Returns user statistics, content counts, and engagement metrics for admin dashboard widgets.
+ * GET /api/admin/dashboard-metrics?period=week|month|year
+ * Returns user statistics, content counts, and engagement metrics.
  * Admin-only — returns 403 for non-admin users.
  */
 
 import { getPayload } from 'payload'
 
 import config from '@payload-config'
+
+export type Period = 'week' | 'month' | 'year'
 
 interface UserMetrics {
   activeUsersToday: number
@@ -21,6 +23,8 @@ interface UserMetrics {
   totalUsers: number
   totalGuestSessions: number
   guestToRegisteredCount: number
+  returningUsers: number
+  returningUsersTotal: number
 }
 
 interface CourseEnrollment {
@@ -54,6 +58,7 @@ interface ContentCounts {
 }
 
 export interface DashboardMetricsResponse {
+  period: Period
   userMetrics: UserMetrics
   contentCounts: ContentCounts
   engagement: EngagementMetrics
@@ -67,8 +72,7 @@ function startOfDay(date: Date): Date {
 
 function startOfWeek(date: Date): Date {
   const d = startOfDay(date)
-  const day = d.getDay()
-  d.setDate(d.getDate() - day)
+  d.setDate(d.getDate() - d.getDay())
   return d
 }
 
@@ -77,6 +81,29 @@ function startOfMonth(date: Date): Date {
   d.setDate(1)
   d.setHours(0, 0, 0, 0)
   return d
+}
+
+function getPeriodStart(now: Date, period: Period): Date {
+  switch (period) {
+    case 'week': {
+      const d = new Date(now)
+      d.setDate(d.getDate() - 7)
+      d.setHours(0, 0, 0, 0)
+      return d
+    }
+    case 'month': {
+      const d = new Date(now)
+      d.setMonth(d.getMonth() - 1)
+      d.setHours(0, 0, 0, 0)
+      return d
+    }
+    case 'year': {
+      const d = new Date(now)
+      d.setFullYear(d.getFullYear() - 1)
+      d.setHours(0, 0, 0, 0)
+      return d
+    }
+  }
 }
 
 export async function GET(req: Request) {
@@ -95,6 +122,12 @@ export async function GET(req: Request) {
     return Response.json({ error: 'Forbidden' }, { status: 403 })
   }
 
+  const url = new URL(req.url)
+  const period = (url.searchParams.get('period') || 'month') as Period
+  if (!['week', 'month', 'year'].includes(period)) {
+    return Response.json({ error: 'Invalid period' }, { status: 400 })
+  }
+
   const now = new Date()
   const todayStr = now.toISOString().split('T')[0]
   const yesterday = new Date(now)
@@ -111,6 +144,8 @@ export async function GET(req: Request) {
   const thisMonthStart = startOfMonth(now)
   const lastMonthStart = new Date(thisMonthStart)
   lastMonthStart.setMonth(lastMonthStart.getMonth() - 1)
+
+  const periodStart = getPeriodStart(now, period)
 
   const [
     activeToday,
@@ -131,7 +166,11 @@ export async function GET(req: Request) {
     allUserStats,
     coursesWithTitles,
     usersWithEntitlements,
-    _lessonsByType,
+    learningLessons,
+    practiceLessons,
+    examLessons,
+    returningUsersResult,
+    totalUsersInPeriod,
   ] = await Promise.all([
     // Active users today/yesterday
     payload.find({
@@ -196,7 +235,7 @@ export async function GET(req: Request) {
     payload.find({ collection: 'users', limit: 0, overrideAccess: true }),
     // Total guest sessions
     payload.find({ collection: 'guest-sessions', limit: 0, overrideAccess: true }),
-    // Guests that converted (claimed by a user)
+    // Guests that converted
     payload.find({
       collection: 'guest-sessions',
       where: { claimedByUser: { exists: true } },
@@ -209,7 +248,7 @@ export async function GET(req: Request) {
     payload.find({ collection: 'exercises', limit: 0, overrideAccess: true }),
     payload.find({ collection: 'formula-sheets', limit: 0, overrideAccess: true }),
     payload.find({ collection: 'prompts', limit: 0, overrideAccess: true }),
-    // Engagement: avg time (fetch user-stats with time data)
+    // Engagement: user-stats with time data
     payload.find({
       collection: 'user-stats',
       where: { totalTimeSpentSeconds: { greater_than: 0 } },
@@ -217,27 +256,55 @@ export async function GET(req: Request) {
       overrideAccess: true,
       select: { totalTimeSpentSeconds: true, activityLog: true },
     }),
-    // Courses with titles for enrollment distribution
+    // Courses with titles (fetch all fields so we get id + title)
     payload.find({
       collection: 'courses',
       limit: 100,
       overrideAccess: true,
-      select: { title: true },
     }),
-    // Users with course entitlements
+    // Users with course entitlements (populate course relationship)
     payload.find({
       collection: 'users',
       where: { 'courseEntitlements.course': { exists: true } },
       limit: 500,
       overrideAccess: true,
-      select: { courseEntitlements: true },
+      depth: 1,
     }),
-    // Lessons by type for lesson type usage
+    // Lesson type counts
     payload.find({
       collection: 'lessons',
+      where: { type: { equals: 'learning' } },
       limit: 0,
       overrideAccess: true,
-      select: { type: true },
+    }),
+    payload.find({
+      collection: 'lessons',
+      where: { type: { equals: 'practice' } },
+      limit: 0,
+      overrideAccess: true,
+    }),
+    payload.find({
+      collection: 'lessons',
+      where: { type: { equals: 'exam' } },
+      limit: 0,
+      overrideAccess: true,
+    }),
+    // Returning users: users who were active in the selected period
+    // (have a lastActiveDate >= periodStart)
+    payload.find({
+      collection: 'user-stats',
+      where: {
+        lastActiveDate: { greater_than_equal: periodStart.toISOString().split('T')[0] },
+      },
+      limit: 0,
+      overrideAccess: true,
+    }),
+    // Users who registered before the period (existing users)
+    payload.find({
+      collection: 'users',
+      where: { createdAt: { less_than: periodStart.toISOString() } },
+      limit: 0,
+      overrideAccess: true,
     }),
   ])
 
@@ -280,58 +347,42 @@ export async function GET(req: Request) {
     }
   }
 
-  // Course enrollment distribution
+  // Course enrollment distribution — build ID→title map
   const courseIdToTitle = new Map<string, string>()
   for (const course of coursesWithTitles.docs as Array<{ id: string; title?: string }>) {
     courseIdToTitle.set(course.id, course.title || 'Untitled')
   }
 
+  // With depth:1, course entitlements should have populated course objects
   const enrollmentCounts = new Map<string, number>()
   for (const user of usersWithEntitlements.docs as Array<{
-    courseEntitlements?: Array<{ course?: string | { id: string } }>
+    courseEntitlements?: Array<{ course?: string | { id: string; title?: string } }>
   }>) {
     for (const ent of user.courseEntitlements || []) {
-      const courseId = typeof ent.course === 'string' ? ent.course : ent.course?.id
-      if (courseId) {
-        enrollmentCounts.set(courseId, (enrollmentCounts.get(courseId) || 0) + 1)
+      if (!ent.course) continue
+      // With depth:1, course should be populated as an object
+      if (typeof ent.course === 'object' && ent.course.id) {
+        const id = ent.course.id
+        // Use title from populated object, fallback to map
+        if (!courseIdToTitle.has(id) && ent.course.title) {
+          courseIdToTitle.set(id, ent.course.title)
+        }
+        enrollmentCounts.set(id, (enrollmentCounts.get(id) || 0) + 1)
+      } else if (typeof ent.course === 'string') {
+        enrollmentCounts.set(ent.course, (enrollmentCounts.get(ent.course) || 0) + 1)
       }
     }
   }
 
   const courseEnrollments: CourseEnrollment[] = Array.from(enrollmentCounts.entries())
     .map(([id, count]) => ({
-      courseTitle: courseIdToTitle.get(id) || 'Unknown',
+      courseTitle: courseIdToTitle.get(id) || `Course ${id.slice(-6)}`,
       count,
     }))
     .sort((a, b) => b.count - a.count)
 
-  // Lesson type counts (from total lessons, not user progress)
-  const lessonTypeCounts = { learning: 0, practice: 0, exam: 0 }
-  // lessonsByType has totalDocs but we need per-type counts
-  // We'll do separate counts since we already have totalDocs
-  const learningLessons = await payload.find({
-    collection: 'lessons',
-    where: { type: { equals: 'learning' } },
-    limit: 0,
-    overrideAccess: true,
-  })
-  const practiceLessons = await payload.find({
-    collection: 'lessons',
-    where: { type: { equals: 'practice' } },
-    limit: 0,
-    overrideAccess: true,
-  })
-  const examLessons = await payload.find({
-    collection: 'lessons',
-    where: { type: { equals: 'exam' } },
-    limit: 0,
-    overrideAccess: true,
-  })
-  lessonTypeCounts.learning = learningLessons.totalDocs
-  lessonTypeCounts.practice = practiceLessons.totalDocs
-  lessonTypeCounts.exam = examLessons.totalDocs
-
   const response: DashboardMetricsResponse = {
+    period,
     userMetrics: {
       activeUsersToday: activeToday.totalDocs,
       activeUsersYesterday: activeYesterday.totalDocs,
@@ -343,6 +394,8 @@ export async function GET(req: Request) {
       totalUsers: totalUsersResult.totalDocs,
       totalGuestSessions: totalGuestsResult.totalDocs,
       guestToRegisteredCount: guestClaimedResult.totalDocs,
+      returningUsers: returningUsersResult.totalDocs,
+      returningUsersTotal: totalUsersInPeriod.totalDocs,
     },
     contentCounts: {
       courses: coursesCount.totalDocs,
@@ -355,7 +408,11 @@ export async function GET(req: Request) {
       avgTimeSpentMinutes: avgTimeMinutes,
       courseEnrollments,
       featureUsage,
-      lessonTypeUsage: lessonTypeCounts,
+      lessonTypeUsage: {
+        learning: learningLessons.totalDocs,
+        practice: practiceLessons.totalDocs,
+        exam: examLessons.totalDocs,
+      },
     },
   }
 

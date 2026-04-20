@@ -1,19 +1,28 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
 
 import type { DashboardMetricsResponse, Period } from '@/app/api/admin/dashboard-metrics/route'
 
-interface UseMetricsResult {
+interface MetricsContextValue {
   data: DashboardMetricsResponse | null
   loading: boolean
   error: string | null
   period: Period
   setPeriod: (p: Period) => void
-  refetch: () => void
 }
 
-export function useMetrics(): UseMetricsResult {
+const MetricsContext = createContext<MetricsContextValue | null>(null)
+
+export function useMetricsContext(): MetricsContextValue {
+  const ctx = useContext(MetricsContext)
+  if (!ctx) {
+    throw new Error('useMetricsContext must be used within MetricsProvider')
+  }
+  return ctx
+}
+
+const MetricsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [data, setData] = useState<DashboardMetricsResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -46,5 +55,11 @@ export function useMetrics(): UseMetricsResult {
     void fetchMetrics()
   }, [fetchMetrics])
 
-  return { data, loading, error, period, setPeriod, refetch: fetchMetrics }
+  return (
+    <MetricsContext.Provider value={{ data, loading, error, period, setPeriod }}>
+      {children}
+    </MetricsContext.Provider>
+  )
 }
+
+export default MetricsProvider

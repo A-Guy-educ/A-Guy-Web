@@ -11,10 +11,10 @@ import {
   widgetContainerStyle,
   widgetTitleStyle,
 } from './styles'
-import { useMetrics } from './useMetrics'
+import { useMetricsContext } from './MetricsProvider'
 
 const ContentCountsWidget: React.FC = () => {
-  const { data, loading, error } = useMetrics()
+  const { data, loading, error } = useMetricsContext()
 
   // Admin-only: render nothing for non-admins
   if (error === 'admin-only') return null

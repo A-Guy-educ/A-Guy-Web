@@ -1,11 +1,11 @@
 'use client'
 
-import { Activity, CalendarDays, Eye, TrendingUp, UserPlus, Users } from 'lucide-react'
+import { Activity, CalendarDays, Eye, RefreshCw, TrendingUp, UserPlus, Users } from 'lucide-react'
 import React from 'react'
 
 import { MetricCard } from './MetricCard'
+import { useMetricsContext } from './MetricsProvider'
 import { errorStyle, loadingStyle, widgetContainerStyle, widgetTitleStyle } from './styles'
-import { useMetrics } from './useMetrics'
 
 function calcTrend(current: number, previous: number): { value: number; label: string } | null {
   if (previous === 0) return current > 0 ? { value: 100, label: 'vs prior' } : null
@@ -13,7 +13,7 @@ function calcTrend(current: number, previous: number): { value: number; label: s
 }
 
 const UserMetricsWidget: React.FC = () => {
-  const { data, loading, error } = useMetrics()
+  const { data, loading, error } = useMetricsContext()
 
   if (error === 'admin-only') return null
 
@@ -44,13 +44,18 @@ const UserMetricsWidget: React.FC = () => {
       ? ((userMetrics.guestToRegisteredCount / userMetrics.totalGuestSessions) * 100).toFixed(1)
       : '0'
 
+  const retentionRate =
+    userMetrics.returningUsersTotal > 0
+      ? ((userMetrics.returningUsers / userMetrics.returningUsersTotal) * 100).toFixed(1)
+      : '0'
+
   return (
     <div style={widgetContainerStyle}>
       <h3 style={widgetTitleStyle}>User Statistics</h3>
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateColumns: 'repeat(4, 1fr)',
           gap: 16,
           marginBottom: 16,
         }}
@@ -75,6 +80,14 @@ const UserMetricsWidget: React.FC = () => {
           icon={<UserPlus size={20} />}
           accentColor="#06b6d4"
           suffix={`(${conversionRate}%)`}
+          large
+        />
+        <MetricCard
+          label="Retention rate"
+          value={Number(retentionRate)}
+          icon={<RefreshCw size={20} />}
+          accentColor="#10b981"
+          suffix="%"
           large
         />
       </div>

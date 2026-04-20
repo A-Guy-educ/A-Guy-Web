@@ -13,8 +13,8 @@ import {
 import React from 'react'
 import type { CSSProperties } from 'react'
 
+import { useMetricsContext } from './MetricsProvider'
 import { errorStyle, loadingStyle, widgetContainerStyle, widgetTitleStyle } from './styles'
-import { useMetrics } from './useMetrics'
 
 const sectionStyle: CSSProperties = {
   display: 'grid',
@@ -86,7 +86,7 @@ const enrollmentLabelStyle: CSSProperties = {
 const COLORS = ['#6366f1', '#3b82f6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
 
 const EngagementWidget: React.FC = () => {
-  const { data, loading, error } = useMetrics()
+  const { data, loading, error } = useMetricsContext()
 
   if (error === 'admin-only') return null
 
