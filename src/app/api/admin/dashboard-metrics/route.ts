@@ -83,6 +83,27 @@ function startOfMonth(date: Date): Date {
   return d
 }
 
+/**
+ * Fetch every matching doc via pagination — used for queries that need to
+ * process all results in-process (e.g. for aggregation). Returns a flat array
+ * of docs across all pages.
+ */
+async function findAll<T>(
+  fetchPage: (page: number) => Promise<{ docs: T[]; hasNextPage: boolean; totalPages: number }>,
+): Promise<T[]> {
+  const results: T[] = []
+  let page = 1
+  // Cap at 20 pages (e.g. 20 * 500 = 10,000 docs) as a safety net against runaway loops.
+  const maxPages = 20
+  while (page <= maxPages) {
+    const res = await fetchPage(page)
+    results.push(...res.docs)
+    if (!res.hasNextPage) break
+    page++
+  }
+  return results
+}
+
 function getPeriodStart(now: Date, period: Period): Date {
   switch (period) {
     case 'week': {
@@ -248,27 +269,43 @@ export async function GET(req: Request) {
     payload.find({ collection: 'exercises', limit: 0, overrideAccess: true }),
     payload.find({ collection: 'formula-sheets', limit: 0, overrideAccess: true }),
     payload.find({ collection: 'prompts', limit: 0, overrideAccess: true }),
-    // Engagement: user-stats with time data
-    payload.find({
-      collection: 'user-stats',
-      where: { totalTimeSpentSeconds: { greater_than: 0 } },
-      limit: 500,
-      overrideAccess: true,
-      select: { totalTimeSpentSeconds: true, activityLog: true },
-    }),
+    // Engagement: user-stats with time data — paginated to avoid truncation
+    findAll<{ totalTimeSpentSeconds?: number; activityLog?: Array<{ actionType?: string }> }>(
+      (page) =>
+        payload.find({
+          collection: 'user-stats',
+          where: { totalTimeSpentSeconds: { greater_than: 0 } },
+          limit: 500,
+          page,
+          overrideAccess: true,
+          select: { totalTimeSpentSeconds: true, activityLog: true },
+        }) as Promise<{
+          docs: { totalTimeSpentSeconds?: number; activityLog?: Array<{ actionType?: string }> }[]
+          hasNextPage: boolean
+          totalPages: number
+        }>,
+    ),
     // Courses with titles (fetch all fields so we get id + title)
     payload.find({
       collection: 'courses',
       limit: 100,
       overrideAccess: true,
     }),
-    // Users with course entitlements
-    payload.find({
-      collection: 'users',
-      where: { 'courseEntitlements.course': { exists: true } },
-      limit: 500,
-      overrideAccess: true,
-    }),
+    // Users with course entitlements — paginated to avoid truncation
+    findAll<{ courseEntitlements?: Array<{ course?: string | { id?: string } }> }>(
+      (page) =>
+        payload.find({
+          collection: 'users',
+          where: { 'courseEntitlements.course': { exists: true } },
+          limit: 500,
+          page,
+          overrideAccess: true,
+        }) as Promise<{
+          docs: { courseEntitlements?: Array<{ course?: string | { id?: string } }> }[]
+          hasNextPage: boolean
+          totalPages: number
+        }>,
+    ),
     // Lesson type counts
     payload.find({
       collection: 'lessons',
@@ -307,11 +344,8 @@ export async function GET(req: Request) {
     }),
   ])
 
-  // Calculate avg time spent
-  const statsWithTime = allUserStats.docs as Array<{
-    totalTimeSpentSeconds?: number
-    activityLog?: Array<{ actionType?: string }>
-  }>
+  // Calculate avg time spent (allUserStats is already a flat array from findAll)
+  const statsWithTime = allUserStats
   const totalSeconds = statsWithTime.reduce((sum, s) => sum + (s.totalTimeSpentSeconds || 0), 0)
   const avgTimeMinutes =
     statsWithTime.length > 0 ? Math.round(totalSeconds / statsWithTime.length / 60) : 0
@@ -347,13 +381,9 @@ export async function GET(req: Request) {
   }
 
   // Count enrollments per course ID (from entitlements)
+  // usersWithEntitlements is already a flat array from findAll
   const enrollmentCounts = new Map<string, number>()
-  for (const user of usersWithEntitlements.docs) {
-    const u = user as unknown as {
-      courseEntitlements?: Array<{
-        course?: string | { id?: string }
-      }>
-    }
+  for (const u of usersWithEntitlements) {
     for (const ent of u.courseEntitlements || []) {
       if (!ent.course) continue
       const courseId =
