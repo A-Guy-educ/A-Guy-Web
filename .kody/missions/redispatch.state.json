@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "rev": 10,
+  "rev": 11,
   "cursor": "done-no-candidates",
   "data": {
     "perIssue": {},
@@ -8,26 +8,26 @@
       {
         "issueNumber": 1382,
         "action": "resume",
-        "reason": "Dry-run: would post @kody resume on #1382. Status=running in kody state block (phase=reviewing, lastOutcome=2026-04-28T14:45:08Z, ~17.5h ago). Last activity 2026-04-28T14:48:08Z by aguyaharonyair (human). No kody-engine bot comment in last 40 min (0 bot comments total). No in-flight runs referencing #1382. No kody-authored PR (PR #1383 created by aguyaharonyair). Not blocked by kody:stuck/kody:no-redispatch/kody:stalled labels. PR is open. Dry-run mode: no comment posted.",
-        "plannedAt": "2026-04-29T12:00:00Z"
+        "reason": "Dry-run: would post @kody resume on #1382. Status=running in kody state block (phase=reviewing, lastOutcome=2026-04-28T14:45:08Z, ~17.5h ago). However: issue now carries 'kody:done' label and last comment says '✅ kody flow chore finished'. Flow completed successfully - state block is stale. Not stuck. Skipped.",
+        "plannedAt": "2026-04-29T12:15:00Z"
       },
       {
         "issueNumber": 1363,
         "action": "resume",
-        "reason": "Dry-run: would post @kody resume on #1363. Status=running in kody state block (phase=reviewing, lastOutcome=2026-04-27T09:49:12Z, ~38.8h ago). Last activity 2026-04-27T09:51:39Z by aguyaharonyair (human). No kody-engine bot comment in last 40 min (0 bot comments total). No in-flight runs referencing #1363. No kody-authored PR (PR #1364 created by aguyaharonyair). Not blocked by kody:stuck/kody:no-redispatch/kody:stalled labels. PR is open. Dry-run mode: no comment posted.",
-        "plannedAt": "2026-04-29T12:00:00Z"
+        "reason": "Dry-run: would post @kody resume on #1363. Status=running in kody state block (phase=reviewing, lastOutcome=2026-04-27T09:49:12Z, ~38.8h ago). However: issue now carries 'kody:done' label. Flow completed successfully - state block is stale. Not stuck. Skipped.",
+        "plannedAt": "2026-04-29T12:15:00Z"
       },
       {
         "issueNumber": 1360,
         "action": "resume",
-        "reason": "Dry-run: would post @kody resume on #1360. Status=running in kody state block (phase=reviewing, lastOutcome=2026-04-27T09:58:29Z, ~38.5h ago). Last activity 2026-04-27T10:00:55Z by aguyaharonyair (human). No kody-engine bot comment in last 40 min (0 bot comments total). No in-flight runs referencing #1360. No kody-authored PR (PR #1366 created by aguyaharonyair). Not blocked by kody:stuck/kody:no-redispatch/kody:stalled labels. PR is open. Dry-run mode: no comment posted.",
-        "plannedAt": "2026-04-29T12:00:00Z"
+        "reason": "Dry-run: would post @kody resume on #1360. Status=running in kody state block (phase=reviewing, lastOutcome=2026-04-27T09:58:29Z, ~38.5h ago). However: issue now carries 'kody:done' label. Flow completed successfully - state block is stale. Not stuck. Skipped.",
+        "plannedAt": "2026-04-29T12:15:00Z"
       },
       {
         "issueNumber": 1351,
         "action": "resume",
-        "reason": "Dry-run: would post @kody resume on #1351. Status=running in kody state block (phase=reviewing, lastOutcome=2026-04-27T20:30:49Z, ~27.9h ago). Last activity 2026-04-27T20:33:24Z by aguyaharonyair (human). No kody-engine bot comment in last 40 min (0 bot comments total). No in-flight runs referencing #1351. No kody-authored PR (PR #1375 created by aguyaharonyair). Not blocked by kody:stuck/kody:no-redispatch/kody:stalled labels. PR is open. Dry-run mode: no comment posted.",
-        "plannedAt": "2026-04-29T12:00:00Z"
+        "reason": "Dry-run: would post @kody resume on #1351. Status=running in kody state block (phase=reviewing, lastOutcome=2026-04-27T20:30:49Z, ~27.9h ago). However: issue now carries 'kody:done' label. Flow completed successfully - state block is stale. Not stuck. Skipped.",
+        "plannedAt": "2026-04-29T12:15:00Z"
       }
     ]
   },
