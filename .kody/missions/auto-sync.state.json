@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "rev": 28,
+  "rev": 29,
   "cursor": "tick",
   "data": {
     "perPr": {
@@ -17,10 +17,10 @@
         "lastActionAt": null
       },
       "1266": {
-        "lastSha": "3af3fc065666487b272d3eae5510845c4329b2c1",
-        "attempts": 1,
+        "lastSha": "4f6d4789374830c59e2707b248f29ba67d6bd52c",
+        "attempts": 0,
         "stuck": false,
-        "lastActionAt": "2026-04-29T22:30:00Z"
+        "lastActionAt": null
       },
       "1272": {
         "lastSha": "8183610c426343ece531eeaffbc62be249e14899",
@@ -47,13 +47,19 @@
         "lastActionAt": null
       },
       "1369": {
-        "lastSha": "b2e52579ba100f2e2655a9cd5b435b8d2e8488a3",
+        "lastSha": "973072be8ed57e59d5f48c84f10ef79a066f520b",
         "attempts": 0,
         "stuck": false,
         "lastActionAt": null
       },
       "1374": {
         "lastSha": "1acbc8d06ff5753fe7179db4e066c81478aa3b89",
+        "attempts": 0,
+        "stuck": false,
+        "lastActionAt": null
+      },
+      "1375": {
+        "lastSha": "5e4bb96b67ba64ec5a947bf581bc10efb5eef079",
         "attempts": 0,
         "stuck": false,
         "lastActionAt": null
@@ -71,13 +77,13 @@
         "lastActionAt": null
       },
       "1379": {
-        "lastSha": "add45ac681fb90aaec095679a7d2e8f411546c08",
+        "lastSha": "f882a8dcb14645db8b30aa3ebffcd751b1b9d391",
         "attempts": 0,
         "stuck": false,
         "lastActionAt": null
       },
       "1381": {
-        "lastSha": "41113e1e790d18721a8af44841d323c5dc302106",
+        "lastSha": "3db0b57545d858c8b45c5eb6437e32a62814c699",
         "attempts": 0,
         "stuck": false,
         "lastActionAt": null
@@ -85,8 +91,8 @@
       "1383": {
         "lastSha": "6c992436b5211d03da405c1fcaf95e5c9d16df19",
         "attempts": 2,
-        "stuck": false,
-        "lastActionAt": "2026-04-29T21:34:46Z"
+        "stuck": true,
+        "lastActionAt": "2026-04-29T22:57:38Z"
       },
       "1384": {
         "lastSha": "256fabd666b9ef143ce741a2235c025cf72a0f0b",
