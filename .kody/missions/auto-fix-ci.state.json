@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "rev": 147,
+  "rev": 148,
   "cursor": "fix-ci-checked",
   "data": {
     "perPr": {
       "1285": {
         "lastSha": "f85e80724237f3fa993fc6717933e3e68c51b5ed",
-        "attempts": 0,
+        "attempts": 1,
         "stuck": false
       }
     }
