@@ -18,19 +18,20 @@ type VisibleRenderersData = {
 const VALID_RENDERERS = ['media', 'pdf', 'interactive'] as const
 
 /**
- * Validates that at least one renderer is selected and all values are valid.
- * Fails fast — runs before slug generation and course backfill.
+ * Validates `visibleRenderers` when present. Treats missing/undefined as
+ * "legacy lesson — all renderers enabled" so updates to lessons created
+ * before this field existed don't fail. Explicit empty array still throws.
  */
 const validateVisibleRenderers: CollectionBeforeChangeHook = async ({ data, operation }) => {
-  if (operation === 'create' || operation === 'update') {
-    const renderers = (data as VisibleRenderersData | null)?.visibleRenderers
-    if (!renderers || !Array.isArray(renderers) || renderers.length === 0) {
-      throw new Error('At least one renderer must be visible to students.')
-    }
-    const allValid = renderers.every((r) => (VALID_RENDERERS as readonly string[]).includes(r))
-    if (!allValid) {
-      throw new Error('visibleRenderers contains an invalid value.')
-    }
+  if (operation !== 'create' && operation !== 'update') return data
+  const renderers = (data as VisibleRenderersData | null)?.visibleRenderers
+  // Backward compat: missing/undefined means legacy lesson — treat as all enabled.
+  if (renderers === undefined || renderers === null) return data
+  if (!Array.isArray(renderers) || renderers.length === 0) {
+    throw new Error('At least one renderer must be visible to students.')
+  }
+  if (!renderers.every((r) => (VALID_RENDERERS as readonly string[]).includes(r))) {
+    throw new Error('visibleRenderers contains an invalid value.')
   }
   return data
 }
@@ -46,7 +47,6 @@ export const Lessons: CollectionConfig = {
   },
   hooks: {
     beforeChange: [
-      validateVisibleRenderers,
       async ({ data, operation, originalDoc, req }) => {
         if (!data) return data
 
@@ -118,6 +118,7 @@ export const Lessons: CollectionConfig = {
         }
         return data
       },
+      validateVisibleRenderers,
     ],
     afterRead: [
       // Lazy backfill: when a lesson is read and its denormalized course field is
