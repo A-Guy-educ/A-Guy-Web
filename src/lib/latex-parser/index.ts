@@ -147,7 +147,9 @@ function findMatchingBrace(text: string, openPos: number): number {
  * Strip {\color{name} content} and {\Large\color{name} content} groups,
  * using proper brace counting to handle nested braces like \frac{1}{...}.
  *
- * Handles: ${\color{winered} g(x) = \frac{1}{f(x) + b} }$ → $g(x) = \frac{1}{f(x) + b}$
+ * Special case: {\color{winered} ...} is preserved as [wine-red-math]...[/wine-red-math]
+ * so the frontend can render it in wine-red color.
+ * Non-winered colors are stripped normally.
  */
 function stripColorAndSizing(text: string): string {
   let result = text
@@ -160,6 +162,23 @@ function stripColorAndSizing(text: string): string {
     if (result[i] === '{') {
       // Check if this opens a color/sizing group
       const after = result.slice(i + 1)
+
+      // Special case: {\color{winered} ...} — preserve as wine-red-math token
+      // Handle both {\color{winered}...} and {\Large\color{winered}...} variants
+      const wineredMatch =
+        /^\\color\{winered\}\s*/.exec(after) ||
+        /^\\(?:Large|large|huge|Huge)\s*\\color\{winered\}\s*/.exec(after)
+      if (wineredMatch) {
+        const closingBrace = findMatchingBrace(result, i)
+        if (closingBrace > i) {
+          const contentStart = i + 1 + wineredMatch[0].length
+          const inner = result.slice(contentStart, closingBrace)
+          output += `[wine-red-math]${inner}[/wine-red-math]`
+          i = closingBrace + 1
+          continue
+        }
+      }
+
       const cmdMatch =
         /^\\(?:Large|large|huge|Huge)\s*\\color\{[^}]*\}\s*/.exec(after) ||
         /^\\color\{[^}]*\}\s*/.exec(after) ||

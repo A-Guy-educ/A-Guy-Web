@@ -20,6 +20,16 @@ import { visit } from 'unist-util-visit'
  * walks the HTML tree and wraps:
  * - Block math (.katex-display) -> <div dir="ltr" class="isolate block text-center mt-3 mb-3">
  * - Inline math (.katex)        -> <span dir="ltr" class="isolate inline-block align-middle">
+ *
+ * WINE-RED MATH:
+ * The LaTeX parser emits [wine-red-math]...[/wine-red-math] markers for
+ * {\color{winered}...} expressions. The remarkWineRedMath plugin creates
+ * a wineRedMath custom node. This rehype plugin intercepts math rendering
+ * (via the `handlers` option passed to remark-rehype) and applies the
+ * wine-red class to the KaTeX wrapper when the node has data.wineRed=true.
+ *
+ * Note: Wine-red is applied in MathMarkdown/index.tsx via a custom
+ * remark-rehype handlers option, NOT here. This plugin handles RTL only.
  */
 export function rehypeMathWrapper() {
   return (tree: Root) => {

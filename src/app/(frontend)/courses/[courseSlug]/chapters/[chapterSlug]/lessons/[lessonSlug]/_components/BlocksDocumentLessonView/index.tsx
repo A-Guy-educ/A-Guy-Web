@@ -5,14 +5,23 @@
  * tab"). Each exercise's structured blocks (`exercise.content.blocks`) are
  * laid out worksheet-style via ExerciseWorksheet — same source of truth as
  * the Interactive tab, just non-interactive and styled as a printed page.
+ *
+ * Solutions (fullSolution/solution) from question blocks are collected into
+ * a single "Solutions" section rendered AFTER all exercises, before the
+ * copyright footer.
+ *
+ * The document uses a <table> structure so the <tfoot> copyright footer
+ * repeats on every printed page via CSS @page rules.
  */
 
 'use client'
 
 import React from 'react'
 import { ExerciseWorksheet } from '@/ui/web/exerciserenderer/ExerciseWorksheet'
-import { useLocale } from '@/ui/web/providers/I18n'
+import { RichTextRenderer } from '@/ui/web/exerciserenderer/blocks/RichTextRenderer'
+import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import type { Exercise, Media as MediaType } from '@/payload-types'
+import type { QuestionBlock, InlineRichText, RichTextBlock } from '@/ui/web/exerciserenderer/types'
 import { ExerciseWorkspace } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseWorkspace'
 
 type WorksheetBlocks = React.ComponentProps<typeof ExerciseWorksheet>['blocks']
@@ -33,6 +42,110 @@ function getBlocks(exercise: Exercise): WorksheetBlocks {
   return content.blocks as WorksheetBlocks
 }
 
+/** Hebrew letters for solution numbering */
+const HEBREW_LETTERS = [
+  'א',
+  'ב',
+  'ג',
+  'ד',
+  'ה',
+  'ו',
+  'ז',
+  'ח',
+  'ט',
+  'י',
+  'כ',
+  'ל',
+  'מ',
+  'נ',
+  'ס',
+  'ע',
+  'פ',
+  'צ',
+  'ק',
+  'ר',
+  'ש',
+  'ת',
+]
+
+type SolutionEntry = {
+  blockId: string
+  label: string
+  content: InlineRichText
+}
+
+/**
+ * Extracts solutions from all question blocks across all exercises.
+ * Returns them in order with Hebrew letter labels.
+ */
+function getSolutions(exercises: Exercise[], locale: string | null | undefined): SolutionEntry[] {
+  const isRtl = locale?.toLowerCase().startsWith('he') ?? false
+  const solutions: SolutionEntry[] = []
+  let questionIndex = -1 // Will be incremented to 0 for first question
+
+  for (const exercise of exercises) {
+    const blocks = getBlocks(exercise)
+
+    for (const block of blocks) {
+      if (
+        block.type === 'question_select' ||
+        block.type === 'question_free_response' ||
+        block.type === 'question_table' ||
+        block.type === 'question_matching' ||
+        block.type === 'question_geometry' ||
+        block.type === 'question_axis'
+      ) {
+        questionIndex++
+        const q = block as QuestionBlock
+        const sol =
+          (q as { fullSolution?: InlineRichText }).fullSolution ??
+          (q as { solution?: InlineRichText }).solution
+        if (!sol) continue
+
+        const label = isRtl
+          ? `${HEBREW_LETTERS[questionIndex] || String(questionIndex + 1)}.`
+          : `${questionIndex + 1}.`
+
+        solutions.push({ blockId: q.id, label, content: sol })
+      }
+    }
+  }
+
+  return solutions
+}
+
+/** Renders the collected solutions section */
+function SolutionsSection({ solutions, dir }: { solutions: SolutionEntry[]; dir: 'ltr' | 'rtl' }) {
+  const t = useTranslations()
+
+  if (solutions.length === 0) return null
+
+  return (
+    <section className="mt-section-md border-t border-border/60 pt-section-md">
+      <h2 className="mb-6 text-heading-md font-bold text-foreground">{t('solutionsHeading')}</h2>
+      <ol className="flex flex-col gap-content-gap-lg list-none ps-0" dir={dir}>
+        {solutions.map((sol) => {
+          const block: RichTextBlock = {
+            id: `sol-${sol.blockId}`,
+            type: 'rich_text',
+            format: sol.content.format,
+            value: sol.content.value,
+            mediaIds: sol.content.mediaIds ?? [],
+          }
+          return (
+            <li key={sol.blockId} className="flex flex-col gap-content-gap-xs">
+              <span className="font-bold text-primary">{sol.label}</span>
+              <div className="prose prose-slate dark:prose-invert max-w-none text-foreground leading-relaxed">
+                <RichTextRenderer block={block} />
+              </div>
+            </li>
+          )
+        })}
+      </ol>
+    </section>
+  )
+}
+
 export function BlocksDocumentLessonView({
   lessonTitle,
   backUrl,
@@ -48,6 +161,8 @@ export function BlocksDocumentLessonView({
     .map((exercise) => ({ exercise, blocks: getBlocks(exercise) }))
     .filter((entry) => entry.blocks.length > 0)
 
+  const solutions = getSolutions(exercises, locale)
+
   return (
     <ExerciseWorkspace
       exerciseTitle={lessonTitle}
@@ -56,47 +171,74 @@ export function BlocksDocumentLessonView({
         <div className="flex h-full flex-col">
           {headerSlot}
           <div className="flex-1 overflow-auto bg-gradient-to-b from-muted via-muted to-border/40 py-section-md px-4 print:bg-background print:overflow-visible print:p-0">
-            <article
-              dir={dir}
-              className="mx-auto max-w-[794px] overflow-hidden rounded-md border border-border bg-card shadow-modal print:shadow-none print:border-0 print:rounded-none print:max-w-full"
+            {/* Use a table so <tfoot> repeats on every printed page */}
+            <table
+              className="mx-auto max-w-[794px] w-full border-collapse overflow-hidden rounded-md border border-border bg-card shadow-modal print:shadow-none print:border-0 print:rounded-none print:max-w-full"
+              style={{ page: 'lesson-page' }}
             >
-              <header className="flex items-center justify-between border-b border-border/60 bg-card px-12 py-3 print:hidden">
-                <span className="truncate text-body-sm font-medium text-muted-foreground">
-                  {lessonTitle}
-                </span>
-                <span
-                  aria-hidden
-                  className="font-mono text-body-xs tracking-[0.4em] text-muted-foreground/50"
-                >
-                  —
-                </span>
-              </header>
+              {/* Screen-only header */}
+              <thead>
+                <tr>
+                  <th
+                    scope="colgroup"
+                    colSpan={1}
+                    className="border-b border-border/60 bg-card px-12 py-3 text-left print:hidden"
+                  >
+                    <span className="truncate text-body-sm font-medium text-muted-foreground">
+                      {lessonTitle}
+                    </span>
+                  </th>
+                </tr>
+              </thead>
 
-              <div className="bg-background px-12 py-10 font-serif sm:px-16 sm:py-section-lg">
-                {lessonTitle && (
-                  <h1 className="mb-8 text-center text-heading-xl font-bold text-foreground">
-                    {lessonTitle}
-                  </h1>
-                )}
-                <div className="flex flex-col gap-12">
-                  {renderable.map(({ exercise, blocks }) => (
-                    <section key={exercise.id} className="flex flex-col gap-content-gap">
-                      {exercise.title && (
-                        <h2 className="text-heading-md font-bold text-foreground">
-                          {exercise.title}
-                        </h2>
-                      )}
-                      <ExerciseWorksheet blocks={blocks} mediaMap={mediaMap} />
-                    </section>
-                  ))}
-                </div>
-              </div>
+              {/* Document body — lesson title, exercises, solutions */}
+              <tbody>
+                <tr>
+                  <td className="bg-background px-12 py-10 font-serif sm:px-16 sm:py-section-lg">
+                    {lessonTitle && (
+                      <h1 className="mb-8 text-center text-heading-xl font-bold text-foreground">
+                        {lessonTitle}
+                      </h1>
+                    )}
+                    <div className="flex flex-col gap-12">
+                      {renderable.map(({ exercise, blocks }) => (
+                        <section key={exercise.id} className="flex flex-col gap-content-gap">
+                          {exercise.title && (
+                            <h2 className="text-heading-md font-bold text-foreground">
+                              {exercise.title}
+                            </h2>
+                          )}
+                          <ExerciseWorksheet blocks={blocks} mediaMap={mediaMap} />
+                        </section>
+                      ))}
+                    </div>
 
-              <footer className="flex items-center justify-between border-t border-border/60 bg-card px-12 py-2 text-body-xs text-muted-foreground/70 print:hidden">
-                <span className="truncate">{lessonTitle}</span>
-                <span className="font-mono tracking-[0.3em]">· · ·</span>
-              </footer>
-            </article>
+                    {/* Solutions section — rendered AFTER all exercises, BEFORE footer */}
+                    <SolutionsSection solutions={solutions} dir={dir} />
+                  </td>
+                </tr>
+              </tbody>
+
+              {/* Print-only footer: repeats on every printed page via @page rules */}
+              <tfoot className="print:table-footer-group hidden print:!table-footer-group">
+                <tr>
+                  <td className="border-t border-border/60 px-12 py-2 text-center text-body-xs text-muted-foreground/70">
+                    כל הזכויות שמורות לגיא קורן, אין להעתיק, לצלם, לפרסם את המסמכים או חלקם ללא
+                    אישור בכתב מגיא קורן
+                  </td>
+                </tr>
+              </tfoot>
+
+              {/* Screen-only footer */}
+              <tfoot className="print:hidden">
+                <tr>
+                  <td className="flex items-center justify-between border-t border-border/60 bg-card px-12 py-2 text-body-xs text-muted-foreground/70">
+                    <span className="truncate">{lessonTitle}</span>
+                    <span className="font-mono tracking-[0.3em]">· · ·</span>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
         </div>
       }

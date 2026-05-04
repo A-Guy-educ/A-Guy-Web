@@ -48,6 +48,9 @@
 
     /* Border: warm stone — premium stationery feel */
     --border: 30, 8%, 82%; /* hsl(30,8%,82%) — warm light gray, not blue */
+
+    /* Wine-red for {\color{winered}...} math expressions */
+    --wine-red: 350 55% 38%; /* ≈ #722F37 */
     --input: 210 14% 97%; /* #f8f9fa */
 
     /* Focus ring follows primary */
@@ -196,6 +199,9 @@
     --tab-practice: 0 72% 62%; /* Red — True/False */
     --tab-exams: 330 81% 68%; /* Pink — Matching */
     --tab-ask: 142 71% 55%; /* Green — Free Response */
+
+    /* Wine-red for {\color{winered}...} math expressions */
+    --wine-red: 350 55% 38%; /* ≈ #722F37 */
   }
 }
 
@@ -425,6 +431,15 @@ html[data-theme='light'] {
     font-size: 1.1em;
   }
 
+  /* Wine-red math color for {\color{winered}...} expressions */
+  .katex.wine-red {
+    color: hsl(var(--wine-red));
+  }
+
+  .wine-red {
+    color: hsl(var(--wine-red));
+  }
+
   .katex-display {
     @apply my-5 overflow-x-auto overflow-y-hidden py-2;
 
@@ -621,5 +636,19 @@ body.landing-page footer {
   body {
     font-size: 12pt;
     line-height: 1.5;
+  }
+}
+
+/* Print page layout for lesson documents */
+@page {
+  size: A4;
+  margin: 2cm 2cm 3cm 2cm;
+}
+
+@page lesson-page {
+  @bottom-center {
+    content: "כל הזכויות שמורות לגיא קורן, אין להעתיק, לצלם, לפרסם את המסמכים או חלקם ללא אישור בכתב מגיא קורן";
+    font-size: 8pt;
+    color: #666;
   }
 }

@@ -73,4 +73,55 @@ Remember to show your work.
     const result = parseLatexToBlocks(latex)
     expect(result.blocks.length).toBeGreaterThanOrEqual(2)
   })
+
+  describe('wine-red math color preservation', () => {
+    it('preserves winered color as [wine-red-math] token', () => {
+      const latex = '\\begin{document}${\\color{winered} x^2 + 1}$\\end{document}'
+      const result = parseLatexToBlocks(latex)
+      expect(result.errors).toHaveLength(0)
+      expect(result.blocks.length).toBeGreaterThan(0)
+      const richText = result.blocks.find((b) => b.type === 'rich_text')
+      expect(richText).toBeDefined()
+      expect((richText as { value: string }).value).toContain('[wine-red-math]')
+      expect((richText as { value: string }).value).toContain('[/wine-red-math]')
+      expect((richText as { value: string }).value).toContain('x^2 + 1')
+    })
+
+    it('preserves winered color with nested LaTeX structures', () => {
+      const latex = '\\begin{document}${\\color{winered} \\frac{1}{x}}$\\end{document}'
+      const result = parseLatexToBlocks(latex)
+      expect(result.errors).toHaveLength(0)
+      const richText = result.blocks.find((b) => b.type === 'rich_text')
+      expect(richText).toBeDefined()
+      expect((richText as { value: string }).value).toContain('[wine-red-math]')
+      expect((richText as { value: string }).value).toContain('\\frac{1}{x}')
+    })
+
+    it('strips non-winered colors normally', () => {
+      const latex = '\\begin{document}${\\color{blue} x}$\\end{document}'
+      const result = parseLatexToBlocks(latex)
+      expect(result.errors).toHaveLength(0)
+      const richText = result.blocks.find((b) => b.type === 'rich_text')
+      expect(richText).toBeDefined()
+      expect((richText as { value: string }).value).toContain('x')
+      expect((richText as { value: string }).value).not.toContain('[wine-red-math]')
+    })
+
+    it('handles malformed winered color (unclosed brace)', () => {
+      // Should not crash — malformed groups are handled gracefully
+      const latex = '\\begin{document}${\\color{winered}$\\end{document}'
+      const result = parseLatexToBlocks(latex)
+      expect(result.errors).toHaveLength(0)
+      expect(result.blocks.length).toBeGreaterThanOrEqual(0)
+    })
+
+    it('handles winered color with sizing commands', () => {
+      const latex = '\\begin{document}${\\Large\\color{winered} x}$\\end{document}'
+      const result = parseLatexToBlocks(latex)
+      expect(result.errors).toHaveLength(0)
+      const richText = result.blocks.find((b) => b.type === 'rich_text')
+      expect(richText).toBeDefined()
+      expect((richText as { value: string }).value).toContain('[wine-red-math]')
+    })
+  })
 })
