@@ -139,9 +139,20 @@ function WorksheetBlock({ block, mediaMap, sideBySideLayout }: WorksheetBlockPro
 
   if (block.type === 'question_geometry') {
     const b = block as QuestionGeometryBlock
-    const layout = pickGraphLayout(b.layout, sideBySideLayout)
+    const { canvas } = b.geometry
+    // Guard against zero/invalid dimensions
+    const aspectRatio =
+      canvas?.width && canvas?.height && canvas.height > 0
+        ? canvas.width / canvas.height
+        : undefined
+    const layout = pickGraphLayout(b.layout, sideBySideLayout, aspectRatio)
     return (
-      <GraphWithPrompt blockId={b.id} layout={layout} prompt={b.prompt}>
+      <GraphWithPrompt
+        blockId={b.id}
+        layout={layout}
+        prompt={b.prompt}
+        worksheetLayout={{ sideContentAspectRatio: aspectRatio }}
+      >
         <GeometryRenderer blockId={b.id} spec={b.geometry} />
       </GraphWithPrompt>
     )
@@ -149,9 +160,17 @@ function WorksheetBlock({ block, mediaMap, sideBySideLayout }: WorksheetBlockPro
 
   if (block.type === 'question_axis') {
     const b = block as QuestionAxisBlock
-    const layout = pickGraphLayout(b.layout, sideBySideLayout)
+    // AxisRenderer always renders a 2:3 (width:height) board → aspect = 1.5 > 0.6
+    // → always triggers the 3/5 wrap → always stacked in worksheet
+    const axisAspectRatio = 1.5
+    const layout = pickGraphLayout(b.layout, sideBySideLayout, axisAspectRatio)
     return (
-      <GraphWithPrompt blockId={b.id} layout={layout} prompt={b.prompt}>
+      <GraphWithPrompt
+        blockId={b.id}
+        layout={layout}
+        prompt={b.prompt}
+        worksheetLayout={{ sideContentAspectRatio: axisAspectRatio }}
+      >
         <AxisRenderer blockId={b.id} spec={b.axis} displaySize={b.displaySize} />
       </GraphWithPrompt>
     )
@@ -192,11 +211,28 @@ function WorksheetBlock({ block, mediaMap, sideBySideLayout }: WorksheetBlockPro
   return null
 }
 
-function pickGraphLayout(stored: GraphLayout | undefined, fallback: GraphLayout): GraphLayout {
-  // Honour the author's explicit side-by-side choice; otherwise default to the
-  // locale-aware side-by-side. Vertical stored layouts pass through as-is.
-  if (stored === 'textLeft' || stored === 'textRight') return stored
+function pickGraphLayout(
+  stored: GraphLayout | undefined,
+  fallback: GraphLayout,
+  aspectRatio?: number,
+): GraphLayout {
+  // Honour the author's explicit vertical choice as-is.
   if (stored === 'textAbove' || stored === 'textBelow') return stored
+
+  // 3/5 wrap rule: if side-by-side and aspect ratio > 0.6, switch to stacked.
+  const shouldWrap = aspectRatio !== undefined && aspectRatio > 0.6
+
+  if (stored === 'textLeft') {
+    return shouldWrap ? 'textBelow' : 'textLeft'
+  }
+  if (stored === 'textRight') {
+    return shouldWrap ? 'textAbove' : 'textRight'
+  }
+
+  // No stored layout — use locale fallback, applying 3/5 wrap
+  if (aspectRatio !== undefined && aspectRatio > 0.6) {
+    return fallback === 'textLeft' ? 'textBelow' : 'textAbove'
+  }
   return fallback
 }
 
@@ -293,33 +329,82 @@ function WorksheetTable({ block }: { block: QuestionTableBlock }) {
   const { headers, rowsData, showBorders, showHeader, columnAlignment } = block.table
   const alignClass = (i: number) => ALIGN_CLASS[columnAlignment?.[i] ?? 'left']
   const cellBase = showBorders ? 'border border-foreground/40 px-3 py-2' : 'px-3 py-2'
+
+  // 3/5 wrap heuristic for tables: column count as proxy for aspect ratio.
+  // <= 4 columns -> table is narrow enough to fit side-by-side at 40% / 25rem cap.
+  // > 4 columns -> table too wide -> stack vertically.
+  const isNarrowTable = headers.length <= 4
+
+  // Always use LTR for the layout container so side-by-side is consistent.
+  const dir: 'ltr' | 'rtl' = 'ltr'
+
   return (
     <div className="flex flex-col gap-content-gap-xs">
-      <PromptText prompt={block.prompt} />
-      <table className="w-full table-fixed border-collapse text-body-sm">
-        {showHeader && headers.length > 0 && (
-          <thead>
-            <tr>
-              {headers.map((h, i) => (
-                <th key={i} className={cn(cellBase, 'bg-muted font-semibold', alignClass(i))}>
-                  {h}
-                </th>
+      {isNarrowTable ? (
+        // Side-by-side: 60/40, mobile stacks prompt-first
+        <div className="flex flex-col sm:flex-row gap-content-gap" dir={dir}>
+          {/* Prompt first on mobile (sm:order-first), full width on mobile */}
+          <div className="flex-[3] sm:order-first min-h-[60px]">
+            <PromptText prompt={block.prompt} />
+          </div>
+          {/* Table on the right (mobile: full width below) */}
+          <div className="flex-[2] max-w-[25rem]">
+            <table className="w-full table-fixed border-collapse text-body-sm">
+              {showHeader && headers.length > 0 && (
+                <thead>
+                  <tr>
+                    {headers.map((h, i) => (
+                      <th key={i} className={cn(cellBase, 'bg-muted font-semibold', alignClass(i))}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+              )}
+              <tbody>
+                {rowsData.map((row, ri) => (
+                  <tr key={ri}>
+                    {row.map((cell, ci) => (
+                      <td key={ci} className={cn(cellBase, alignClass(ci))}>
+                        {cell || ' '}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
+        // Stacked: prompt above, table below
+        <div className="flex flex-col gap-content-gap-xs">
+          <PromptText prompt={block.prompt} />
+          <table className="w-full table-fixed border-collapse text-body-sm">
+            {showHeader && headers.length > 0 && (
+              <thead>
+                <tr>
+                  {headers.map((h, i) => (
+                    <th key={i} className={cn(cellBase, 'bg-muted font-semibold', alignClass(i))}>
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+            )}
+            <tbody>
+              {rowsData.map((row, ri) => (
+                <tr key={ri}>
+                  {row.map((cell, ci) => (
+                    <td key={ci} className={cn(cellBase, alignClass(ci))}>
+                      {cell || ' '}
+                    </td>
+                  ))}
+                </tr>
               ))}
-            </tr>
-          </thead>
-        )}
-        <tbody>
-          {rowsData.map((row, ri) => (
-            <tr key={ri}>
-              {row.map((cell, ci) => (
-                <td key={ci} className={cn(cellBase, alignClass(ci))}>
-                  {cell || ' '}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }

@@ -159,4 +159,106 @@ describe('ExerciseWorksheet', () => {
     expect(screen.getByTestId('axis')).toBeInTheDocument()
     expect(screen.getByText('Graph it')).toBeInTheDocument()
   })
+
+  it('geometry block with landscape canvas (aspect 1.5 > 0.6) renders GeometryRenderer', () => {
+    const blocks = [
+      {
+        id: 'geo1',
+        type: 'question_geometry',
+        prompt: { type: 'rich_text', format: 'md-math-v1', value: 'Landscape geo', mediaIds: [] },
+        geometry: {
+          kind: 'euclidean',
+          canvas: { width: 600, height: 400, background: undefined, grid: false, axis: false },
+          elements: {},
+          interactionSpec: {},
+        },
+      },
+    ] as unknown as ContentBlock[]
+
+    renderWith('en', blocks)
+    // GeometryRenderer should be rendered (aspect 1.5 → 3/5 wrap → stacked)
+    expect(screen.getByTestId('geometry')).toBeInTheDocument()
+    expect(screen.getByText('Landscape geo')).toBeInTheDocument()
+  })
+
+  it('geometry block with portrait canvas (aspect 0.5 < 0.6) renders GeometryRenderer', () => {
+    const blocks = [
+      {
+        id: 'geo2',
+        type: 'question_geometry',
+        prompt: { type: 'rich_text', format: 'md-math-v1', value: 'Portrait geo', mediaIds: [] },
+        geometry: {
+          kind: 'euclidean',
+          canvas: { width: 200, height: 400, background: undefined, grid: false, axis: false },
+          elements: {},
+          interactionSpec: {},
+        },
+      },
+    ] as unknown as ContentBlock[]
+
+    renderWith('en', blocks)
+    expect(screen.getByTestId('geometry')).toBeInTheDocument()
+    expect(screen.getByText('Portrait geo')).toBeInTheDocument()
+  })
+
+  it('axis block renders AxisRenderer (always stacked: fixed aspect 1.5 > 0.6)', () => {
+    const blocks = [
+      {
+        id: 'axis1',
+        type: 'question_axis',
+        prompt: { type: 'rich_text', format: 'md-math-v1', value: 'Axis question', mediaIds: [] },
+        axis: {},
+      },
+    ] as unknown as ContentBlock[]
+
+    renderWith('en', blocks)
+    expect(screen.getByTestId('axis')).toBeInTheDocument()
+    expect(screen.getByText('Axis question')).toBeInTheDocument()
+  })
+
+  it('narrow table (3 cols <= 4) renders side-by-side container', () => {
+    const blocks = [
+      {
+        id: 'tbl1',
+        type: 'question_table',
+        prompt: { type: 'rich_text', format: 'md-math-v1', value: 'Table prompt', mediaIds: [] },
+        table: {
+          solutionFill: false,
+          headers: ['A', 'B', 'C'],
+          rowsData: [['1', '2', '3']],
+          showBorders: true,
+          showHeader: true,
+        },
+      },
+    ] as unknown as ContentBlock[]
+
+    renderWith('en', blocks)
+    expect(screen.getByText('Table prompt')).toBeInTheDocument()
+    // The side-by-side container has sm:flex-row and gap-content-gap
+    const sideBySideContainer = document.querySelector('[dir="ltr"]')
+    expect(sideBySideContainer?.className).toContain('sm:flex-row')
+  })
+
+  it('wide table (6 cols > 4) renders stacked container (no sm:flex-row)', () => {
+    const blocks = [
+      {
+        id: 'tbl2',
+        type: 'question_table',
+        prompt: { type: 'rich_text', format: 'md-math-v1', value: 'Wide table', mediaIds: [] },
+        table: {
+          solutionFill: false,
+          headers: ['A', 'B', 'C', 'D', 'E', 'F'],
+          rowsData: [['1', '2', '3', '4', '5', '6']],
+          showBorders: true,
+          showHeader: true,
+        },
+      },
+    ] as unknown as ContentBlock[]
+
+    renderWith('en', blocks)
+    expect(screen.getByText('Wide table')).toBeInTheDocument()
+    // Wide table → stacked → no sm:flex-row side-by-side container
+    const sideBySideContainer = document.querySelector('[dir="ltr"]')
+    expect(sideBySideContainer).not.toBeInTheDocument()
+  })
 })
