@@ -1,14 +1,14 @@
 {
   "version": 1,
-  "rev": 160,
-  "cursor": "tick-1276-sync",
+  "rev": 161,
+  "cursor": "tick-1277-sync",
   "data": {
     "perPr": {
       "1217": {
         "lastSha": "014995cda5937a0a0d4f5f34b8d60222d5d424f7",
-        "attempts": 0,
+        "attempts": 1,
         "stuck": false,
-        "lastActionAt": null
+        "lastActionAt": "2026-05-04T06:35:14Z"
       },
       "1227": {
         "lastSha": "1667897cf017ff234c1dfd4dc06852692cf9b374",
