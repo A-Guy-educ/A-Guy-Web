@@ -17,17 +17,23 @@ A PR enters this mission's scope as soon as it becomes ready for review (non-dra
 - Do not re-issue `@kody resolve` on the same head SHA more than 2 times.
 - After 2 failed attempts on a SHA: post `kody resolve stuck — needs human` and add label `kody:stuck-conflict`; skip until SHA changes or label is removed.
 
-## Tick procedure
+## Tick procedure — REQUIRED
 
-The tick is fully scripted — past iterations of this mission hallucinated PR numbers and posted `@kody resolve` on long-closed PRs. All filtering, posting, and state mutation now lives in [auto-resolve-tick.sh](.kody/scripts/auto-resolve-tick.sh).
+This tick is **fully scripted**. The script [auto-resolve-tick.sh](.kody/scripts/auto-resolve-tick.sh) is the **single source of truth** for which PRs are candidates, what state mutations to make, and which comments to post.
 
-**Step 1 — Run the tick script:**
+A previous iteration of this mission used prose enumeration and **hallucinated** PRs #122 and #124 as conflicting (both are long-closed) — then posted a real `@kody resolve` comment on closed PR #122. Do not repeat that.
 
-```
-bash .kody/scripts/auto-resolve-tick.sh
-```
+You **MUST**:
 
-**Step 2 — Emit the script's stdout verbatim**, including the markdown summary table and the `kody-mission-next-state` fenced block. Do not paraphrase, edit, reorder, or compute anything yourself.
+1. Run exactly: `bash .kody/scripts/auto-resolve-tick.sh`
+2. Emit the script's stdout verbatim — including the markdown summary table and the `kody-mission-next-state` fenced block at the end.
+
+You **MUST NOT**:
+
+- Call `gh pr list` yourself.
+- Filter, decide actions, post comments, or mutate state outside the script.
+- Use any prior knowledge of PR numbers in this repo. The script's output is your only data source for this tick.
+- Re-run the script (it has side effects). One invocation per tick.
 
 If the script exits non-zero, surface its stderr and emit a state block with the prior `perPr` unchanged so progress isn't lost.
 
