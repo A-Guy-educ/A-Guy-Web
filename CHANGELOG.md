@@ -5997,6 +5997,35 @@ Note: Database values unchanged, backward compatibility exports added
 
 # Changelog
 
+## v0.25.7 — 2026-05-06
+
+### Features
+- Color all math expressions wine-red via scoped CSS (877618e4)
+- Support \textcolor{winered}{...} as wine-red-math token (657002f6)
+- PDF tab HTML content fixes — Hebrew question labels, wine-red math, solutions section, print footer (8bfaa4cd)
+
+### Fixes
+- add explicit variant="default" to lesson pager Next buttons (#1413) (68ccc5f6)
+- Nuclear wine-red — hex, multiple selectors, -webkit-text-fill-color (e4b0a110)
+- Move pdf-tab-content class out of <table> to outer <div> (76c21667)
+- Force wine-red on all KaTeX glyphs with !important + descendant selector (b194a1c0)
+- Strip math-mode $...$ around wine-red markers (6199706a)
+- Number solutions per exercise, group sub-questions (441cf74a)
+- clean up dead code, fix require() call, deduplicate constants, fix HTML validity (8d219e9a)
+
+### Chores
+- update state for redispatch (rev 151) (02971043)
+- update state for auto-sync (rev 194) (8c65779b)
+- update state for auto-resolve (rev 57) (6af7b5e2)
+- update state for auto-fix-ci (rev 195) (bae48a09)
+- update state for redispatch (rev 150) (436c3dd0)
+- update state for auto-sync (rev 193) (0a6136fb)
+- update state for auto-resolve (rev 56) (8b9faf50)
+- update state for auto-fix-ci (rev 194) (322f1053)
+
+### Other
+- Remove wine-red math support (c56fd5ce)
+- Remove edge-case lone-$ test that depends on broader pipeline (4cd73d01)
 ## v0.25.6 — 2026-05-06
 
 ### Fixes
