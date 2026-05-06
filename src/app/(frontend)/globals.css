@@ -442,13 +442,17 @@ html[data-theme='light'] {
 
   /* PDF tab: every math expression renders in wine-red, regardless of source markup.
      Scoped to .pdf-tab-content so the interactive tab keeps default coloring.
-     `!important` is required because the base `.katex { @apply text-foreground }`
-     rule and Tailwind utilities compete on equal specificity in some build
-     orders. KaTeX uses inline color on a few inner spans, so we also force the
-     universal selector inside .katex to override them. */
+     Hex literal (not var) in case --wine-red doesn't resolve in the build.
+     -webkit-text-fill-color belt-and-suspenders for any user-agent override.
+     Targets katex AND katex-html because some renders use the latter wrapper. */
   .pdf-tab-content .katex,
-  .pdf-tab-content .katex * {
-    color: hsl(var(--wine-red)) !important;
+  .pdf-tab-content .katex *,
+  .pdf-tab-content .katex-html,
+  .pdf-tab-content .katex-html *,
+  .pdf-tab-content .katex-mathml,
+  .pdf-tab-content .katex-mathml * {
+    color: #722f37 !important;
+    -webkit-text-fill-color: #722f37 !important;
   }
 
   .katex-display {
