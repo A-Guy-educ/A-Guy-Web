@@ -1,3 +1,4 @@
 {"type":"meta","mode":"interactive","createdAt":"2026-05-06T20:13:39.547Z","idleExitMs":300000,"hardCapMs":1800000}
 {"role":"user","content":"hi","timestamp":"2026-05-06T20:15:36.538Z","toolCalls":[]}
 {"role":"assistant","content":"Hi! I'm Kody, your AI assistant for the Kody Operations Dashboard. How can I help you today?","timestamp":"2026-05-06T20:16:12.874Z","toolCalls":[]}
+{"role":"user","content":"in which environment are you running on?","timestamp":"2026-05-06T20:16:50.388Z","toolCalls":[]}
