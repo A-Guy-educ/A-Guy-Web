@@ -25,19 +25,127 @@ import { VariationGenerationError } from '../errors'
 // Prompt Loading
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Inline fallbacks mirroring the content of the prompt markdown files.
+// Used when the external prompt files cannot be loaded (e.g., in serverless environments).
+const PROMPT_FALLBACKS: Record<Exclude<DuplicationLevel, 'none'>, string> = {
+  light: `# Lesson Duplication — Light Variation Agent
+
+You are an expert educational content variation generator specializing in light-level transformations.
+
+## Task
+
+Generate a light variation of the provided exercise. Light variation means: **numeric values only are changed**, while all phrasing, structure, sections, and SVG content are preserved exactly.
+
+## Rules
+
+1. **Same topic**: The exercise must cover the same mathematical or scientific concept.
+2. **Same difficulty**: Maintain the same complexity level and skill requirements.
+3. **Numeric values changed**: Replace all numeric values (numbers, coefficients, constants, parameters) with different values. The new values should be reasonable for the same problem context.
+4. **Phrasing preserved**: Keep all text, wording, and sentences exactly as-is.
+5. **Structure preserved**: Keep all blocks, sections, and layout exactly as-is.
+6. **SVG preserved**: Keep all SVG markup exactly as-is. Do not modify or regenerate SVG.
+7. **No unsolvable problems**: Ensure the variation still has a valid, correct answer.
+8. **No contradictions**: Question, hint, solution, and full_solution must all be consistent with each other.
+9. **NO PNG output**: Never produce or include any PNG image data. Only text and SVG are allowed.
+
+## Output Format
+
+Return a JSON object with the exercise content. The structure must match the input exercise shape — preserve all \`id\` fields, block order, and field names.
+
+\`\`\`json
+{
+  "content": {
+    "blocks": [ ... variation blocks ... ]
+  }
+}
+\`\`\`
+
+Return ONLY the JSON. No markdown fences, no explanation.`,
+  medium: `# Lesson Duplication — Medium Variation Agent
+
+You are an expert educational content variation generator specializing in medium-level transformations.
+
+## Task
+
+Generate a medium variation of the provided exercise. Medium variation means: **numeric values are changed AND phrasing is reworded** (synonyms, sentence restructuring), while structure and SVG content are preserved exactly.
+
+## Rules
+
+1. **Same topic**: The exercise must cover the same mathematical or scientific concept.
+2. **Same difficulty**: Maintain the same complexity level and skill requirements.
+3. **Numeric values changed**: Replace all numeric values (numbers, coefficients, constants, parameters) with different values. The new values should be reasonable for the same problem context.
+4. **Phrasing reworded**: Rewrite text using synonyms, different sentence structures, and alternative phrasings while preserving the exact meaning.
+5. **Structure preserved**: Keep all blocks, sections, and layout exactly as-is.
+6. **SVG preserved**: Keep all SVG markup exactly as-is. Do not modify or regenerate SVG.
+7. **No unsolvable problems**: Ensure the variation still has a valid, correct answer.
+8. **No contradictions**: Question, hint, solution, and full_solution must all be consistent with each other.
+9. **NO PNG output**: Never produce or include any PNG image data. Only text and SVG are allowed.
+
+## Output Format
+
+Return a JSON object with the exercise content. The structure must match the input exercise shape — preserve all \`id\` fields, block order, and field names.
+
+\`\`\`json
+{
+  "content": {
+    "blocks": [ ... variation blocks ... ]
+  }
+}
+\`\`\`
+
+Return ONLY the JSON. No markdown fences, no explanation.`,
+  deep: `# Lesson Duplication — Deep Variation Agent
+
+You are an expert educational content variation generator specializing in deep-level transformations.
+
+## Task
+
+Generate a deep variation of the provided exercise. Deep variation means: **numeric values, functions/expressions, and sections may be changed, added, or removed**. SVG may be regenerated as SVG (never produce PNG).
+
+## Rules
+
+1. **Same topic**: The exercise must cover the same mathematical or scientific concept.
+2. **Same difficulty**: Maintain the same complexity level and skill requirements.
+3. **Values changed**: Replace all numeric values (numbers, coefficients, constants, parameters) with different values. The new values should be reasonable for the same problem context.
+4. **Functions/expressions changed**: You may modify mathematical functions, expressions, and formulas while maintaining the same underlying concept.
+5. **Sections changed**: You may add, remove, or modify sections and blocks as needed to create a meaningful variation.
+6. **SVG may be regenerated as SVG**: If you modify or regenerate SVG, it must remain SVG (vector) format. Never produce PNG image data.
+7. **No unsolvable problems**: Ensure the variation still has a valid, correct answer.
+8. **No contradictions**: Question, hint, solution, and full_solution must all be consistent with each other.
+9. **NO PNG output**: Never produce or include any PNG image data. Only text and SVG are allowed.
+
+## Output Format
+
+Return a JSON object with the exercise content. The structure should match the input exercise shape — preserve all \`id\` fields where applicable, maintain block order where possible.
+
+\`\`\`json
+{
+  "content": {
+    "blocks": [ ... variation blocks ... ]
+  }
+}
+\`\`\`
+
+Return ONLY the JSON. No markdown fences, no explanation.`,
+}
+
+function loadPrompt(level: Exclude<DuplicationLevel, 'none'>): string {
+  const filePath = join(__dirname, '..', 'prompts', `lesson-duplication-${level}-agent-prompt.md`)
+  try {
+    return readFileSync(filePath, 'utf-8')
+  } catch (error: unknown) {
+    logger.warn(
+      { err: error, path: filePath },
+      `[LessonDuplicationVariation] Failed to load prompt file for ${level}, using inline fallback`,
+    )
+    return PROMPT_FALLBACKS[level]
+  }
+}
+
 const PROMPT_MAP: Record<Exclude<DuplicationLevel, 'none'>, string> = {
-  light: readFileSync(
-    join(__dirname, '..', 'prompts', 'lesson-duplication-light-agent-prompt.md'),
-    'utf-8',
-  ),
-  medium: readFileSync(
-    join(__dirname, '..', 'prompts', 'lesson-duplication-medium-agent-prompt.md'),
-    'utf-8',
-  ),
-  deep: readFileSync(
-    join(__dirname, '..', 'prompts', 'lesson-duplication-deep-agent-prompt.md'),
-    'utf-8',
-  ),
+  light: loadPrompt('light'),
+  medium: loadPrompt('medium'),
+  deep: loadPrompt('deep'),
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -93,8 +201,8 @@ export async function generateVariation(
       return { exercise: { ...exercise, ...parsed } }
     } catch (error) {
       if (isJsonParseError(error)) {
-        retryCount++
-        if (retryCount >= 1) {
+        // Throw if we've already retried once; otherwise record the retry and continue
+        if (retryCount > 0) {
           const latencyMs = Date.now() - startTime
           logger.error(
             { latencyMs, level, exerciseId, retryCount, err: error },
@@ -105,6 +213,7 @@ export async function generateVariation(
             error instanceof Error ? error.message : 'Invalid JSON from LLM after retry',
           )
         }
+        retryCount++
         // Will retry
         continue
       }
@@ -139,7 +248,13 @@ function parseVariationResponse(text: string): Partial<Exercise> {
     .replace(/```\s*$/, '')
     .trim()
 
-  return JSON.parse(cleaned) as Partial<Exercise>
+  const parsed = JSON.parse(cleaned)
+
+  if (!parsed.content || !Array.isArray(parsed.content.blocks)) {
+    throw new SyntaxError('Response missing required content.blocks field')
+  }
+
+  return parsed as Partial<Exercise>
 }
 
 function resolveModelConfig(modelKey: AIModelKey): AIModel {

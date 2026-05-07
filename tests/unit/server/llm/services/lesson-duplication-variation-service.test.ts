@@ -8,11 +8,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
  */
 
 // Mock the genkit adapter
-const mockGenerateChatCompletion = vi.fn()
 vi.mock('@/infra/llm/genkit/adapters/unified-adapter', () => ({
-  createGenkitUnifiedAdapter: vi.fn().mockResolvedValue({
-    generateChatCompletion: (...args: unknown[]) => mockGenerateChatCompletion(...args),
-  }),
+  createGenkitUnifiedAdapter: vi.fn(),
 }))
 
 // Mock logger
@@ -38,6 +35,7 @@ import { generateVariation } from '@/infra/llm/services/lesson-duplication-varia
 import { VariationGenerationError } from '@/infra/llm/errors'
 import type { Exercise } from '@/payload-types'
 import { logger } from '@/infra/utils/logger'
+import { createGenkitUnifiedAdapter } from '@/infra/llm/genkit/adapters/unified-adapter'
 
 const mockPayload = {} as never
 
@@ -82,9 +80,18 @@ function makeMockExercise(id: string): Exercise {
 }
 
 describe('generateVariation', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-    mockGenerateChatCompletion.mockReset()
+  /** Reference to generateChatCompletion mock, set up fresh in each test */
+  let mockGenerateChatCompletion: ReturnType<typeof vi.fn>
+
+  beforeEach(async () => {
+    // Use resetAllMocks to clear mockReturnValue/mocksResolvedValue queues too
+    vi.resetAllMocks()
+
+    // Create fresh mock for generateChatCompletion each test
+    mockGenerateChatCompletion = vi.fn()
+    ;(createGenkitUnifiedAdapter as ReturnType<typeof vi.fn>).mockResolvedValue({
+      generateChatCompletion: mockGenerateChatCompletion,
+    })
   })
 
   it('returns exercise with only numeric values changed for light level', async () => {
@@ -240,11 +247,11 @@ describe('generateVariation', () => {
   })
 
   it('triggers exactly one retry on invalid JSON then throws VariationGenerationError', async () => {
-    // First call returns invalid JSON
+    // First call returns invalid JSON → JSON.parse throws → retry
     mockGenerateChatCompletion.mockResolvedValueOnce({
       text: 'not json {',
     })
-    // Second call also returns invalid JSON
+    // Second call also returns invalid JSON → JSON.parse throws → retry exhausted → throw
     mockGenerateChatCompletion.mockResolvedValueOnce({
       text: 'still not json',
     })
@@ -255,14 +262,22 @@ describe('generateVariation', () => {
       generateVariation({ exercise: inputExercise, level: 'light' }, mockPayload),
     ).rejects.toThrow(VariationGenerationError)
 
+    // With the fix: each generateVariation makes 2 adapter calls (initial + one retry)
+    // This first call consumed both queued responses
+    expect(mockGenerateChatCompletion).toHaveBeenCalledTimes(2)
+
+    // Set up fresh queue for second call
+    mockGenerateChatCompletion.mockResolvedValueOnce({ text: 'also invalid' })
+    mockGenerateChatCompletion.mockResolvedValueOnce({ text: 'still invalid' })
+
     await expect(
       generateVariation({ exercise: inputExercise, level: 'light' }, mockPayload),
     ).rejects.toMatchObject({
       exerciseId: 'ex-4',
     })
 
-    // Verify adapter was called exactly twice (initial + retry)
-    expect(mockGenerateChatCompletion).toHaveBeenCalledTimes(2)
+    // Second generateVariation also makes 2 adapter calls
+    expect(mockGenerateChatCompletion).toHaveBeenCalledTimes(4)
   })
 
   it('logs latency, level, exerciseId, retryCount per successful call', async () => {
@@ -374,5 +389,24 @@ describe('generateVariation', () => {
       prompt: { value: string }
     }
     expect(resultBlock.prompt.value).toBe('What is $7+7$?')
+  })
+
+  it('retries once and throws when LLM returns empty object missing content.blocks', async () => {
+    const inputExercise = makeMockExercise('ex-8')
+    let callCount = 0
+
+    // Directly mock createGenkitUnifiedAdapter per-call to ensure fresh mock each loop iteration
+    ;(createGenkitUnifiedAdapter as ReturnType<typeof vi.fn>).mockImplementation(async () => {
+      callCount++
+      const chatCompletion = vi.fn().mockResolvedValueOnce({ text: '{}' })
+      return { generateChatCompletion: chatCompletion }
+    })
+
+    await expect(
+      generateVariation({ exercise: inputExercise, level: 'light' }, mockPayload),
+    ).rejects.toThrow(VariationGenerationError)
+
+    // Verify the retry mechanism triggered (adapter called twice: initial + one retry)
+    expect(callCount).toBe(2)
   })
 })
