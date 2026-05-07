@@ -123,6 +123,45 @@ describe('buildLessonContextBlock (unit)', () => {
     expect(block).toMatch(/do not reveal directly/i)
   })
 
+  it('handles question_* blocks where prompt/hint are InlineRichText objects (production shape)', () => {
+    const exercise = {
+      title: 'תרגיל 14',
+      content: {
+        blocks: [
+          {
+            id: 'a',
+            type: 'rich_text',
+            format: 'md-math-v1',
+            value: 'בכל סעיף נתונים משולשים דומים — מצאו את ערכו של x',
+            mediaIds: [],
+          },
+          {
+            id: 'b',
+            type: 'question_geometry',
+            // Production shape: prompt/hint are InlineRichText objects, NOT strings
+            prompt: {
+              type: 'rich_text',
+              format: 'md-math-v1',
+              value: 'מצא את \\(x\\)',
+              mediaIds: [],
+            },
+            hint: {
+              type: 'rich_text',
+              format: 'md-math-v1',
+              value: 'השתמש ביחס דמיון',
+              mediaIds: [],
+            },
+          },
+        ],
+      },
+    }
+    const block = _buildLessonContextBlock(null, null, null, exercise as any)
+    expect(block).toBeDefined()
+    expect(block).toContain('בכל סעיף')
+    expect(block).toContain('מצא את')
+    expect(block).toContain('השתמש ביחס דמיון')
+  })
+
   it('parses content when stored as a JSON string', () => {
     const stringified = JSON.stringify({
       blocks: [{ id: 'x', type: 'rich_text', value: 'מצא את x' }],

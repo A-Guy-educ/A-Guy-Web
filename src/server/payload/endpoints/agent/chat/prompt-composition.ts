@@ -32,6 +32,40 @@ interface LessonContext {
  *
  * Truncated to 4 KB to keep the system prompt bounded.
  */
+/**
+ * Coerce a field that the schema models as InlineRichTextSchema (an object
+ * `{type:'rich_text', value: string, ...}`) but might also appear as a raw
+ * string in older or inline data, into a plain string suitable for the
+ * system prompt. Returns undefined when no usable text is found.
+ */
+function richTextToString(value: unknown): string | undefined {
+  if (!value) return undefined
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+    return trimmed.length > 0 ? trimmed : undefined
+  }
+  if (typeof value === 'object') {
+    const v = (value as { value?: unknown }).value
+    if (typeof v === 'string') {
+      const trimmed = v.trim()
+      return trimmed.length > 0 ? trimmed : undefined
+    }
+  }
+  return undefined
+}
+
+/**
+ * Pull readable text out of an exercise's `content.blocks[]` shape.
+ * Handles two block flavours seen in the schema:
+ *  - `rich_text` blocks: text under `.value`
+ *  - `question_*` blocks (e.g. `question_geometry`): `.prompt` / `.hint` on the
+ *    block itself. In production these are InlineRichText objects (not plain
+ *    strings) — the helper above unwraps them. Without this branch,
+ *    multi-part exercises surface only their intro paragraph and the model
+ *    has no specific sub-question to ground answers in.
+ *
+ * Truncated to 4 KB to keep the system prompt bounded.
+ */
 function extractExerciseBody(content: unknown): string | undefined {
   if (!content) return undefined
   // Some setups store content as a JSON-encoded string
@@ -53,21 +87,22 @@ function extractExerciseBody(content: unknown): string | undefined {
     const b = block as Record<string, unknown>
     const type = (b.type as string | undefined) ?? 'block'
 
-    // 1) Rich-text intro / explanation
-    if (typeof b.value === 'string' && b.value.trim()) {
-      parts.push(b.value.trim())
-      return
+    // 1) Rich-text intro / explanation block (standalone rich_text)
+    if (type === 'rich_text') {
+      const text = richTextToString(b)
+      if (text) {
+        parts.push(text)
+        return
+      }
     }
 
-    // 2) Question-style blocks carry prompt/hint on the block itself
-    const prompt = b.prompt as string | undefined
-    const hint = b.hint as string | undefined
-    if ((prompt && prompt.trim()) || (hint && hint.trim())) {
+    // 2) Question-style blocks carry prompt/hint as InlineRichText fields
+    const prompt = richTextToString(b.prompt)
+    const hint = richTextToString(b.hint)
+    if (prompt || hint) {
       const sub: string[] = [`### Sub-question ${idx + 1} (${type})`]
-      if (prompt && prompt.trim()) sub.push(`Prompt: ${prompt.trim()}`)
-      if (hint && hint.trim()) {
-        sub.push(`Hint (do not reveal directly; use for guidance): ${hint.trim()}`)
-      }
+      if (prompt) sub.push(`Prompt: ${prompt}`)
+      if (hint) sub.push(`Hint (do not reveal directly; use for guidance): ${hint}`)
       parts.push(sub.join('\n'))
       return
     }
