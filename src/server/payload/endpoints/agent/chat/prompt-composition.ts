@@ -18,6 +18,84 @@ interface LessonContext {
   lessonPrompt: Prompt | null
   courseContextText?: string
   coursePrompt: Prompt | null
+  lessonContextBlock?: string
+}
+
+/**
+ * Build a markdown block describing the current lesson and (optionally) exercise
+ * so the model always knows what the student is working on, even when no admin
+ * Prompt is linked to the lesson.
+ *
+ * Fields are looked up tolerantly — missing values are simply skipped.
+ */
+function buildLessonContextBlock(
+  lesson?: Record<string, unknown> | null,
+  chapter?: Record<string, unknown> | null,
+  course?: Record<string, unknown> | null,
+  exercise?: Record<string, unknown> | null,
+): string | undefined {
+  const lines: string[] = []
+
+  const lessonTitle = lesson?.title as string | undefined
+  const lessonType = lesson?.type as string | undefined
+  const chapterTitle = chapter?.title as string | undefined
+  const courseTitle = course?.title as string | undefined
+
+  if (lessonTitle || chapterTitle || courseTitle) {
+    lines.push('## Current Lesson')
+    if (courseTitle) lines.push(`Course: ${courseTitle}`)
+    if (chapterTitle) lines.push(`Chapter: ${chapterTitle}`)
+    if (lessonTitle) lines.push(`Lesson: ${lessonTitle}`)
+    if (lessonType) lines.push(`Type: ${lessonType}`)
+  }
+
+  if (exercise) {
+    const exTitle = exercise.title as string | undefined
+    const exPrompt = exercise.prompt as string | undefined
+    const exHint = exercise.hint as string | undefined
+    if (exTitle || exPrompt || exHint) {
+      if (lines.length > 0) lines.push('')
+      lines.push('## Current Exercise')
+      if (exTitle) lines.push(`Title: ${exTitle}`)
+      if (exPrompt) lines.push(`Prompt: ${exPrompt}`)
+      if (exHint) lines.push(`Hint (do not reveal directly; use for guidance): ${exHint}`)
+    }
+  }
+
+  if (lines.length === 0) return undefined
+  return [
+    'The following describes what the student is currently working on. Use it to ground your responses; do not refuse to discuss it.',
+    '',
+    ...lines,
+  ].join('\n')
+}
+
+/**
+ * Resolve a relationship field that may be a string id or a populated doc.
+ */
+async function resolveRel(
+  payload: Payload,
+  collection: 'lessons' | 'chapters' | 'courses' | 'exercises',
+  rel: unknown,
+): Promise<Record<string, unknown> | null> {
+  if (!rel) return null
+  if (typeof rel === 'object' && rel !== null && 'id' in rel) {
+    return rel as unknown as Record<string, unknown>
+  }
+  if (typeof rel === 'string') {
+    try {
+      const doc = await payload.findByID({
+        collection,
+        id: rel,
+        depth: 0,
+        overrideAccess: true,
+      })
+      return doc as unknown as Record<string, unknown>
+    } catch {
+      return null
+    }
+  }
+  return null
 }
 
 /**
@@ -29,22 +107,20 @@ async function fetchLessonContext(
   user: { id: string },
   reqLogger: Logger,
 ): Promise<LessonContext> {
-  const lesson = await payload.findByID({
+  const lesson = (await payload.findByID({
     collection: 'lessons',
     id: lessonId,
     depth: 0,
     user,
     overrideAccess: false,
-  })
+  })) as unknown as Record<string, unknown>
 
   let lessonPrompt: Prompt | null = null
 
   // Fetch prompt separately if lesson has one (admin-only, requires override)
-  if ((lesson as { prompt?: unknown }).prompt) {
+  if (lesson.prompt) {
     const promptId =
-      typeof (lesson as { prompt: unknown }).prompt === 'string'
-        ? (lesson as { prompt: string }).prompt
-        : (lesson as { prompt: { id: string } }).prompt.id
+      typeof lesson.prompt === 'string' ? lesson.prompt : (lesson.prompt as { id: string }).id
 
     try {
       lessonPrompt = (await payload.findByID({
@@ -58,7 +134,13 @@ async function fetchLessonContext(
     }
   }
 
-  return { lessonPrompt, courseContextText: undefined, coursePrompt: null }
+  // Build a context block from the lesson hierarchy (lesson → chapter → course)
+  const chapter = await resolveRel(payload, 'chapters', lesson.chapter)
+  const course = chapter ? await resolveRel(payload, 'courses', chapter.course) : null
+
+  const lessonContextBlock = buildLessonContextBlock(lesson, chapter, course)
+
+  return { lessonPrompt, courseContextText: undefined, coursePrompt: null, lessonContextBlock }
 }
 
 /**
@@ -70,44 +152,42 @@ async function fetchExerciseLessonContext(
   user: { id: string },
   reqLogger: Logger,
 ): Promise<LessonContext> {
-  const exercise = await payload.findByID({
+  const exercise = (await payload.findByID({
     collection: 'exercises',
     id: exerciseId,
     depth: 0,
     user,
     overrideAccess: false,
-  })
+  })) as unknown as Record<string, unknown>
 
-  if (!(exercise as { lesson?: unknown }).lesson) {
+  if (!exercise.lesson) {
+    // Even with no parent lesson, surface what we know about the exercise itself
     return {
       lessonPrompt: null,
       courseContextText: undefined,
       coursePrompt: null,
+      lessonContextBlock: buildLessonContextBlock(null, null, null, exercise),
     }
   }
 
   const lessonId =
-    typeof (exercise as { lesson: unknown }).lesson === 'string'
-      ? (exercise as { lesson: string }).lesson
-      : (exercise as { lesson: { id: string } }).lesson.id
+    typeof exercise.lesson === 'string' ? exercise.lesson : (exercise.lesson as { id: string }).id
 
   try {
-    const lesson = await payload.findByID({
+    const lesson = (await payload.findByID({
       collection: 'lessons',
       id: lessonId,
       depth: 0,
       user,
       overrideAccess: true, // Use overrideAccess since student role may not have lesson read access
-    })
+    })) as unknown as Record<string, unknown>
 
     let lessonPrompt: Prompt | null = null
 
     // Fetch prompt separately if lesson has one
-    if ((lesson as { prompt?: unknown }).prompt) {
+    if (lesson.prompt) {
       const promptId =
-        typeof (lesson as { prompt: unknown }).prompt === 'string'
-          ? (lesson as { prompt: string }).prompt
-          : (lesson as { prompt: { id: string } }).prompt.id
+        typeof lesson.prompt === 'string' ? lesson.prompt : (lesson.prompt as { id: string }).id
 
       try {
         lessonPrompt = (await payload.findByID({
@@ -121,7 +201,12 @@ async function fetchExerciseLessonContext(
       }
     }
 
-    return { lessonPrompt, courseContextText: undefined, coursePrompt: null }
+    const chapter = await resolveRel(payload, 'chapters', lesson.chapter)
+    const course = chapter ? await resolveRel(payload, 'courses', chapter.course) : null
+
+    const lessonContextBlock = buildLessonContextBlock(lesson, chapter, course, exercise)
+
+    return { lessonPrompt, courseContextText: undefined, coursePrompt: null, lessonContextBlock }
   } catch (error) {
     reqLogger.warn(
       { err: error, lessonId, exerciseId },
@@ -131,6 +216,7 @@ async function fetchExerciseLessonContext(
       lessonPrompt: null,
       courseContextText: undefined,
       coursePrompt: null,
+      lessonContextBlock: buildLessonContextBlock(null, null, null, exercise),
     }
   }
 }
@@ -230,6 +316,11 @@ export async function fetchLessonContextForContext(
   }
 }
 
+/**
+ * Re-export for tests/diagnostics. Keeps the helper isolated and unit-testable.
+ */
+export { buildLessonContextBlock as _buildLessonContextBlock }
+
 export interface ComposedSystemInstructions {
   instructions: string
   promptResolution: {
@@ -254,6 +345,7 @@ export async function composeFullSystemInstructions(
   coursePrompt?: Prompt | null,
   courseContextText?: string,
   userId?: string,
+  lessonContextBlock?: string,
 ): Promise<ComposedSystemInstructions> {
   // Fetch published system prompts (always included)
   const systemPromptsResult = await fetchPublishedSystemPrompts(payload)
@@ -301,11 +393,12 @@ export async function composeFullSystemInstructions(
     'Resolved teacher profile',
   )
 
-  // Compose final system instructions: system prompts + teacher profile + lesson/course prompt + course context
+  // Compose final system instructions: system prompts + teacher profile + lesson/course prompt + lesson context block
   const instructions = composeSystemInstructions(
     systemPromptsResult.templates,
     promptResolution.template,
     teacherProfileBlock,
+    lessonContextBlock,
   )
 
   return {
