@@ -23,32 +23,61 @@ interface LessonContext {
 
 /**
  * Pull readable text out of an exercise's `content.blocks[]` shape.
- * Currently emits the `value` of `rich_text` blocks; other block types
- * are stringified compactly so the model still sees something.
+ * Handles two block flavours seen in the schema:
+ *  - `rich_text` blocks: text under `.value`
+ *  - `question_*` blocks (e.g. `question_geometry`): `.prompt` / `.hint` on the
+ *    block itself, no `.value`. Without this branch, multi-part exercises
+ *    surface only their intro paragraph and the model has no specific
+ *    sub-question to ground answers in.
  *
- * Truncated to 4 KB to keep the system prompt bounded — full exercises with
- * lots of media would otherwise blow out the prompt budget.
+ * Truncated to 4 KB to keep the system prompt bounded.
  */
 function extractExerciseBody(content: unknown): string | undefined {
-  if (!content || typeof content !== 'object') return undefined
-  const blocks = (content as { blocks?: unknown[] }).blocks
+  if (!content) return undefined
+  // Some setups store content as a JSON-encoded string
+  let normalized: unknown = content
+  if (typeof normalized === 'string') {
+    try {
+      normalized = JSON.parse(normalized)
+    } catch {
+      return undefined
+    }
+  }
+  if (typeof normalized !== 'object' || normalized === null) return undefined
+  const blocks = (normalized as { blocks?: unknown[] }).blocks
   if (!Array.isArray(blocks) || blocks.length === 0) return undefined
 
   const parts: string[] = []
-  for (const block of blocks) {
-    if (!block || typeof block !== 'object') continue
+  blocks.forEach((block, idx) => {
+    if (!block || typeof block !== 'object') return
     const b = block as Record<string, unknown>
-    const type = b.type as string | undefined
-    if (type === 'rich_text' && typeof b.value === 'string') {
-      parts.push(b.value)
-    } else if (typeof b.value === 'string') {
-      parts.push(b.value)
-    } else if (type) {
-      parts.push(`[${type}]`)
+    const type = (b.type as string | undefined) ?? 'block'
+
+    // 1) Rich-text intro / explanation
+    if (typeof b.value === 'string' && b.value.trim()) {
+      parts.push(b.value.trim())
+      return
     }
-  }
+
+    // 2) Question-style blocks carry prompt/hint on the block itself
+    const prompt = b.prompt as string | undefined
+    const hint = b.hint as string | undefined
+    if ((prompt && prompt.trim()) || (hint && hint.trim())) {
+      const sub: string[] = [`### Sub-question ${idx + 1} (${type})`]
+      if (prompt && prompt.trim()) sub.push(`Prompt: ${prompt.trim()}`)
+      if (hint && hint.trim()) {
+        sub.push(`Hint (do not reveal directly; use for guidance): ${hint.trim()}`)
+      }
+      parts.push(sub.join('\n'))
+      return
+    }
+
+    // 3) Unknown / opaque block — leave a marker so the model knows something is there
+    parts.push(`[${type} block]`)
+  })
+
   if (parts.length === 0) return undefined
-  const joined = parts.join('\n').trim()
+  const joined = parts.join('\n\n').trim()
   if (!joined) return undefined
   const MAX = 4000
   return joined.length > MAX ? joined.slice(0, MAX) + '\n…(truncated)' : joined

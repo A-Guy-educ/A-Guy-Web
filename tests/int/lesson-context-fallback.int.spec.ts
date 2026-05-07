@@ -88,6 +88,53 @@ describe('buildLessonContextBlock (unit)', () => {
     expect(block).toContain('אורך הצלע החסרה')
   })
 
+  it('extracts prompt/hint from question_* blocks (multi-part exercises)', () => {
+    const exercise = {
+      title: 'תרגיל רב-שלבי',
+      content: {
+        blocks: [
+          {
+            id: 'a',
+            type: 'rich_text',
+            value: 'בכל סעיף נתונים משולשים דומים — מצאו את ערכו של x',
+          },
+          {
+            id: 'b',
+            type: 'question_geometry',
+            prompt: 'סעיף 1: מה אורך הצלע AB?',
+            hint: 'השתמש ביחס הדמיון',
+          },
+          {
+            id: 'c',
+            type: 'question_geometry',
+            prompt: 'סעיף 2: חשב את שטח המשולש',
+          },
+        ],
+      },
+    }
+    const block = _buildLessonContextBlock(null, null, null, exercise as any)
+    expect(block).toBeDefined()
+    expect(block).toContain('בכל סעיף')
+    expect(block).toContain('Sub-question 2')
+    expect(block).toContain('Sub-question 3')
+    expect(block).toContain('סעיף 1: מה אורך הצלע AB')
+    expect(block).toContain('סעיף 2: חשב את שטח המשולש')
+    expect(block).toContain('השתמש ביחס הדמיון')
+    expect(block).toMatch(/do not reveal directly/i)
+  })
+
+  it('parses content when stored as a JSON string', () => {
+    const stringified = JSON.stringify({
+      blocks: [{ id: 'x', type: 'rich_text', value: 'מצא את x' }],
+    })
+    const block = _buildLessonContextBlock(null, null, null, {
+      title: 'JSON-stored',
+      content: stringified,
+    } as any)
+    expect(block).toBeDefined()
+    expect(block).toContain('מצא את x')
+  })
+
   it('truncates very large exercise bodies', () => {
     const huge = 'x'.repeat(10000)
     const block = _buildLessonContextBlock(null, null, null, {
