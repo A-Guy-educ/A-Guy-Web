@@ -51,7 +51,3 @@ export class RouterStrategy implements VariationStrategy {
     return this.aiStrategy.apply(exercise, level)
   }
 }
-
-// Backwards-compatible export of the old function name (used by orchestrator via runStrategy)
-// The orchestrator calls routeVariation(exerciseId, level, payload) — we bind to a fresh RouterStrategy instance
-export const routeVariation = new RouterStrategy().apply.bind(new RouterStrategy())
