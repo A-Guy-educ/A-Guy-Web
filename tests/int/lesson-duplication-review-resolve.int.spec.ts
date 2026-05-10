@@ -16,8 +16,8 @@ import { getPayload, type Payload } from 'payload'
 import config from '@payload-config'
 
 import { POST as resolvePOST } from '@/app/api/lesson-duplications/[id]/resolve/route'
-import { NextRequest } from 'next/server'
 import { getDefaultTenantSlug } from '@/server/repos/tenant/get-default-tenant'
+import { AccountRole } from '@/server/payload/collections/Users/roles'
 
 async function ensureDefaultTenant(payload: Payload): Promise<string> {
   const slug = getDefaultTenantSlug()
@@ -180,14 +180,21 @@ describe('Lesson duplication review — resolve endpoint', () => {
     cleanupExerciseIds.push(outputExerciseId2)
 
     // Create admin user for HTTP endpoint tests
+    // Note: ensureRoleOnSignup hook strips role='admin' on create, so we create
+    // without role and update it separately (same pattern as admin-dashboard-metrics tests).
     const adminUser = await payload.create({
       collection: 'users',
       data: {
         email: `resolve-admin-${ts}@example.com`,
         password: 'TestPassword123!',
         name: `Resolve Admin ${ts}`,
-        role: 'admin' as never,
-      },
+      } as never,
+      overrideAccess: true,
+    })
+    await payload.update({
+      collection: 'users',
+      id: adminUser.id,
+      data: { role: AccountRole.Admin } as never,
       overrideAccess: true,
     })
     const loginResult = await payload.login({
@@ -741,7 +748,7 @@ describe('Lesson duplication review — resolve endpoint', () => {
 
       // Call POST /resolve with action: looks_right
       const resolveUrl = `http://localhost:3000/api/lesson-duplications/${record.id}/resolve`
-      const request = new NextRequest(resolveUrl, {
+      const request = new Request(resolveUrl, {
         method: 'POST',
         headers: {
           Authorization: `JWT ${adminToken}`,
@@ -751,11 +758,12 @@ describe('Lesson duplication review — resolve endpoint', () => {
           actions: [{ failureIndex: 0, action: 'looks_right' }],
         }),
       })
-      const response = await resolvePOST(request)
+      const response = await resolvePOST(request as never)
 
       expect(response.status).toBe(200)
       const data = (await response.json()) as { data?: { status: string } }
-      expect(data.data?.status).toBe('needs_review')
+      // All failures resolved → auto-transition to succeeded
+      expect(data.data?.status).toBe('succeeded')
 
       // Verify the failure is resolved on the record
       const updated = await payload.findByID({
@@ -844,7 +852,7 @@ describe('Lesson duplication review — resolve endpoint', () => {
 
       // Call POST /resolve with looks_right for both failures
       const resolveUrl = `http://localhost:3000/api/lesson-duplications/${record.id}/resolve`
-      const request = new NextRequest(resolveUrl, {
+      const request = new Request(resolveUrl, {
         method: 'POST',
         headers: {
           Authorization: `JWT ${adminToken}`,
@@ -857,7 +865,7 @@ describe('Lesson duplication review — resolve endpoint', () => {
           ],
         }),
       })
-      const response = await resolvePOST(request)
+      const response = await resolvePOST(request as never)
 
       expect(response.status).toBe(200)
       const data = (await response.json()) as { data?: { status: string } }
