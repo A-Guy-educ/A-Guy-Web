@@ -13,13 +13,30 @@
  * One bad exercise must not sink the whole duplication run — invalid JSON gets one retry,
  * then the exercise is marked failed and the loop continues.
  */
-import { readFileSync } from 'fs'
-import { join } from 'path'
-
 import type { Payload } from 'payload'
 import type { Exercise } from '@/payload-types'
 import type { DuplicationLevel } from '@/server/payload/collections/LessonDuplications'
 import type { AIModel, AIModelKey } from '../models'
+
+// Inline the per-subject/level prompt markdown at build time via Next.js's
+// `asset/source` webpack loader (configured in next.config.js). This avoids
+// the readFileSync + __dirname dance that broke on Vercel — Next.js doesn't
+// reliably preserve relative paths in serverless bundles.
+import algebraLight from '../prompts/lesson-duplication/algebra-light-agent-prompt.md'
+import algebraMedium from '../prompts/lesson-duplication/algebra-medium-agent-prompt.md'
+import algebraDeep from '../prompts/lesson-duplication/algebra-deep-agent-prompt.md'
+import geometryLight from '../prompts/lesson-duplication/geometry-light-agent-prompt.md'
+import geometryMedium from '../prompts/lesson-duplication/geometry-medium-agent-prompt.md'
+import geometryDeep from '../prompts/lesson-duplication/geometry-deep-agent-prompt.md'
+import calculusLight from '../prompts/lesson-duplication/calculus-light-agent-prompt.md'
+import calculusMedium from '../prompts/lesson-duplication/calculus-medium-agent-prompt.md'
+import calculusDeep from '../prompts/lesson-duplication/calculus-deep-agent-prompt.md'
+import mixedLight from '../prompts/lesson-duplication/mixed-light-agent-prompt.md'
+import mixedMedium from '../prompts/lesson-duplication/mixed-medium-agent-prompt.md'
+import mixedDeep from '../prompts/lesson-duplication/mixed-deep-agent-prompt.md'
+import otherLight from '../prompts/lesson-duplication/other-light-agent-prompt.md'
+import otherMedium from '../prompts/lesson-duplication/other-medium-agent-prompt.md'
+import otherDeep from '../prompts/lesson-duplication/other-deep-agent-prompt.md'
 
 import { getModelRegistryEntry, getProviderModelName } from '../models'
 import { LLMProviderType } from '../providers/types'
@@ -90,31 +107,35 @@ function withTimeout<T>(
 // condition we want to paper over. One failed exercise lands on the K6 review
 // screen with a clear "GENERATION_FAILED" code; the rest of the run is fine.
 /**
- * Read the subject + level prompt from disk.
- * Throws when the file is missing — better to fail one exercise with a clear
- * code than to silently fall back to a stale generic prompt and degrade output
- * quality across the entire duplication run.
+ * Lookup table of build-time-inlined prompts. Adding a new subject or level
+ * requires adding the import above + an entry here.
+ */
+const PROMPTS: Record<DuplicationSubject, Record<Exclude<DuplicationLevel, 'none'>, string>> = {
+  algebra: { light: algebraLight, medium: algebraMedium, deep: algebraDeep },
+  geometry: { light: geometryLight, medium: geometryMedium, deep: geometryDeep },
+  calculus: { light: calculusLight, medium: calculusMedium, deep: calculusDeep },
+  mixed: { light: mixedLight, medium: mixedMedium, deep: mixedDeep },
+  other: { light: otherLight, medium: otherMedium, deep: otherDeep },
+}
+
+/**
+ * Return the inlined prompt for the requested subject + level. Throws if the
+ * import resolved to something falsy (would only happen if a prompt .md file
+ * is missing from the repo at build time — caught by typecheck).
  */
 function loadSubjectPrompt(
   subject: DuplicationSubject,
   level: Exclude<DuplicationLevel, 'none'>,
 ): string {
-  const filePath = join(
-    __dirname,
-    '..',
-    'prompts',
-    'lesson-duplication',
-    `${subject}-${level}-agent-prompt.md`,
-  )
-  try {
-    return readFileSync(filePath, 'utf-8')
-  } catch (error: unknown) {
+  const prompt = PROMPTS[subject]?.[level]
+  if (!prompt || prompt.trim().length === 0) {
     logger.error(
-      { err: error, path: filePath, subject, level },
-      '[LessonDuplicationVariation] Prompt file missing — refusing to use stale fallback',
+      { subject, level },
+      '[LessonDuplicationVariation] Prompt missing from inlined table',
     )
-    throw new Error(`Missing prompt file for subject=${subject} level=${level} at ${filePath}`)
+    throw new Error(`Missing prompt for subject=${subject} level=${level}`)
   }
+  return prompt
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
