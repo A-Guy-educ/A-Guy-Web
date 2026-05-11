@@ -7,7 +7,7 @@ import { adminOnly } from '../access/adminOnly'
 import { publishedAndActive } from '../access/publishedAndActive'
 import { contentStatusFields } from '../fields/contentStatus'
 import { createdByField } from '../fields/createdBy'
-import { formatSlugAsync } from '../fields/formatSlug'
+import { formatSlug, formatSlugAsync } from '../fields/formatSlug'
 import { translatedFromField } from '../fields/translatedFrom'
 
 // Type for visibleRenderers field data
@@ -60,6 +60,14 @@ export const Lessons: CollectionConfig = {
           data.slug = await formatSlugAsync(title)
         } else if (data.slug) {
           data.slug = data.slug.trim()
+        }
+
+        // Defense in depth: only sanitize if the slug contains characters that
+        // aren't URL-safe (whitespace or punctuation other than `-`). Valid
+        // existing slugs pass through untouched — only mangled inputs like
+        // "Power - Copy" (from Payload's built-in duplicate) get reformatted.
+        if (typeof data.slug === 'string' && /[^a-z0-9\-]/i.test(data.slug)) {
+          data.slug = formatSlug(data.slug)
         }
 
         // On create, always ensure uniqueness (handles duplication & conflicts)
