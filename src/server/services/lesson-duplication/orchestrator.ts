@@ -21,6 +21,7 @@ import type { DuplicationSubject } from '@/server/payload/collections/LessonDupl
 import { logger } from '@/infra/utils/logger'
 import { withConcurrencyLimit } from '@/infra/utils/concurrency'
 import { selectExercisesScaled } from '@/server/services/lesson-duplication/selectors'
+import { getSourceExercisesForLesson } from '@/server/services/lesson-duplication/source-exercises'
 import {
   validateExerciseStructural,
   fillMissingFieldsWithPlaceholders,
@@ -463,15 +464,13 @@ export async function runDuplicationOrchestrator(
       duplication.level ?? 'light',
     )
 
-    const allExercises = await payload.find({
-      collection: 'exercises',
-      where: { lesson: { equals: sourceLessonId } },
-      limit: 0,
-      depth: 0,
-      overrideAccess: true,
-    })
+    // Resolve exercises via lesson.blocks first (authoritative) and fall back
+    // to the FK reverse query. The previous FK-only path silently produced
+    // empty variations for lessons that reference exercises owned by another
+    // lesson (e.g. shared exercises across re-published lesson copies).
+    const allExercises = await getSourceExercisesForLesson(payload, sourceLessonId)
 
-    const selectedExercises = selectExercisesScaled(allExercises.docs as ExerciseDoc[], 20)
+    const selectedExercises = selectExercisesScaled(allExercises as ExerciseDoc[], 20)
 
     const duplicationLevel = duplication.level as 'none' | 'light' | 'medium' | 'deep'
     const duplicationSubject =

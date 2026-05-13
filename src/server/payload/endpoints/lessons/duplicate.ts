@@ -127,17 +127,15 @@ async function deepCloneLesson(req: PayloadRequest, sourceLessonId: string): Pro
     req,
   })
 
-  // Clone all exercises that point at the source lesson.
-  const exercises = await req.payload.find({
-    collection: 'exercises',
-    where: { lesson: { equals: sourceLessonId } },
-    limit: 0,
-    depth: 0,
-    overrideAccess: true,
-    req,
-  })
+  // Clone all exercises that belong to the source lesson. We prefer
+  // `lesson.blocks[].exercise` ids (authoritative) and fall back to the FK
+  // reverse query. The previous FK-only path silently cloned 0 exercises for
+  // lessons whose blocks reference exercises owned by a different lesson.
+  const { getSourceExercisesForLesson } =
+    await import('@/server/services/lesson-duplication/source-exercises')
+  const exerciseDocs = await getSourceExercisesForLesson(req.payload, sourceLessonId)
 
-  for (const exercise of exercises.docs) {
+  for (const exercise of exerciseDocs) {
     const exData = stripManagedFields(exercise as unknown as Record<string, unknown>)
     await req.payload.create({
       collection: 'exercises',
