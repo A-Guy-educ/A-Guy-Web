@@ -24,10 +24,7 @@ import { getModelRegistryEntry, getProviderModelName } from '../models'
 import { LLMProviderType } from '../providers/types'
 import { logger } from '@/infra/utils/logger'
 import { VariationGenerationError } from '../errors'
-import {
-  LessonVariationOutputSchema,
-  SolutionDerivationOutputSchema,
-} from '../schemas/lesson-duplication-output'
+import { SolutionDerivationOutputSchema } from '../schemas/lesson-duplication-output'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -166,11 +163,14 @@ export async function generateVariation(
             messages: [{ role: 'user', content: creativeUserPrompt }],
             model: creativeConfig,
             acknowledgment: `Generating ${level} variation for exercise`,
-            // Constrain Gemini's output to the relaxed variation schema so
-            // whole-shape hallucinations (missing content.blocks, wrong root
-            // type, etc.) are caught at the provider boundary rather than at
-            // payload.create.
-            outputSchema: LessonVariationOutputSchema,
+            // We do NOT pass `outputSchema` here. Gemini's responseSchema
+            // interpreter handles the full content.blocks shape badly: with
+            // either `.passthrough()` or strict objects, it returns
+            // `{ "content": "blocks" }` (treating the property name as a
+            // string value) or echoes the input exercise verbatim. Verified
+            // against real Gemini on 2026-05-13 across light/medium/deep on
+            // 3 different exercises. `sanitizeAiBlocks` + payload.create's
+            // strict schema remain the structural gate for pass 1.
           },
           payload,
         ),
@@ -409,14 +409,16 @@ interface AdapterResult {
  * model fell back to free text).
  */
 function extractPass1Output(result: AdapterResult): Partial<Exercise> {
-  // Structured-output path: Genkit hands us the parsed object directly.
+  // Pass 1 currently runs without `outputSchema` (Gemini's responseSchema
+  // mangles the content.blocks shape — see the call site), so `result.output`
+  // is generally absent. Kept as a forward-compatible preference in case the
+  // pass-1 schema path becomes viable later.
   if (result.output && typeof result.output === 'object') {
     const candidate = result.output as { content?: { blocks?: unknown } }
     if (candidate.content && Array.isArray(candidate.content.blocks)) {
       return candidate as Partial<Exercise>
     }
   }
-  // Text fallback: strip code fences, JSON.parse, validate envelope.
   return parseVariationResponseFromText(result.text)
 }
 

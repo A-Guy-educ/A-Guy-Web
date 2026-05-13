@@ -1,23 +1,31 @@
 /**
  * Output schemas for the lesson-duplication variation pipeline.
  *
- * These schemas are passed to Genkit's `ai.generate({ output: { schema } })` so
- * Gemini's JSON-mode refuses to emit non-conforming output. They are the durable
- * fix for the `answer.kind`-and-friends hallucination class that `sanitizeAiBlocks`
- * patches over after the fact.
+ * Passed to Genkit's `ai.generate({ output: { schema } })` so Gemini's
+ * responseSchema mode refuses to emit non-conforming output.
+ *
+ * Status (2026-05-13):
+ *  - `SolutionDerivationOutputSchema` (pass 2): IN USE. Small/well-bounded —
+ *    Gemini handles it correctly. Verified live against gemini-2.5-pro.
+ *  - `LessonVariationOutputSchema` (pass 1): NOT WIRED UP. Verified live that
+ *    Gemini collapses the full content.blocks shape to `{ "content": "blocks" }`
+ *    (treating the property name as a string value) regardless of whether the
+ *    envelope is `.strict()` or `.passthrough()`. The schema is kept here as
+ *    documentation of the intended shape and to seed the next attempt — when
+ *    Genkit / Gemini structured-output support for nested object schemas
+ *    improves, the variation service can opt back in by re-adding the
+ *    `outputSchema: LessonVariationOutputSchema` argument to pass 1.
  *
  * Design notes:
  *  - Gemini's responseSchema implementation does not handle large discriminated
- *    unions or `.strict()` well — `ContentSchema` (the canonical Zod definition
- *    at src/server/payload/collections/Exercises/schemas.ts) is too rich and
- *    will be rejected when translated to Gemini's JSON-Schema subset. We use a
- *    deliberately relaxed shape here that constrains the high-value bits
- *    (top-level envelope, block list, per-block `id` + `type`) and lets
- *    everything else pass through. `sanitizeAiBlocks` + `payload.create` Zod
- *    validation remain the canonical enforcement; this schema is a coarse
- *    gate that catches whole-shape mistakes before they reach those layers.
- *  - All block objects use `.passthrough()` so block-type-specific fields
- *    survive untouched.
+ *    unions, `.strict()` envelopes, or `additionalProperties: true` well.
+ *    `ContentSchema` (the canonical Zod definition at
+ *    src/server/payload/collections/Exercises/schemas.ts) is too rich to use
+ *    directly. The pass-1 schema below is a deliberately relaxed shape that
+ *    only constrains envelope + per-block `id`/`type`; block objects use
+ *    `.passthrough()` so per-type fields survive.
+ *  - `sanitizeAiBlocks` + `payload.create`'s strict Zod validation remain the
+ *    canonical enforcement for pass-1 output.
  */
 import { z } from 'zod'
 
@@ -69,16 +77,20 @@ const VariationContentBlockSchema = z
  * Schema for pass 1's output. The model returns a full `content.blocks` shape
  * matching the input exercise's block layout (same length, same ids, same
  * types), with question/hint/phrasing fields rewritten per the variation level.
+ *
+ * IMPORTANT: the envelope (top-level + `content`) does NOT use `.passthrough()`.
+ * Gemini's responseSchema interpreter chokes on the resulting JSON Schema
+ * (sets `additionalProperties: true` on the object, and Gemini was observed
+ * to silently collapse output to `{ "content": "blocks" }` or
+ * `{ "content": null }`). The envelope is closed; only the block objects
+ * themselves use passthrough, because their per-type field set is too varied
+ * to enumerate without a full discriminated union.
  */
-export const LessonVariationOutputSchema = z
-  .object({
-    content: z
-      .object({
-        blocks: z.array(VariationContentBlockSchema),
-      })
-      .passthrough(),
-  })
-  .passthrough()
+export const LessonVariationOutputSchema = z.object({
+  content: z.object({
+    blocks: z.array(VariationContentBlockSchema),
+  }),
+})
 
 export type LessonVariationOutput = z.infer<typeof LessonVariationOutputSchema>
 
@@ -96,17 +108,14 @@ export type LessonVariationOutput = z.infer<typeof LessonVariationOutputSchema>
  * (e.g. free-response, geometry, axis). The merge step in the variation
  * service only applies it when present.
  */
-export const SolutionDerivationOutputSchema = z
-  .object({
-    solution: InlineRichTextSchema.optional(),
-    fullSolution: InlineRichTextSchema.optional(),
-    answer: z
-      .object({
-        correctOptionIds: z.array(z.string()).optional(),
-      })
-      .passthrough()
-      .optional(),
-  })
-  .passthrough()
+export const SolutionDerivationOutputSchema = z.object({
+  solution: InlineRichTextSchema.optional(),
+  fullSolution: InlineRichTextSchema.optional(),
+  answer: z
+    .object({
+      correctOptionIds: z.array(z.string()).optional(),
+    })
+    .optional(),
+})
 
 export type SolutionDerivationOutput = z.infer<typeof SolutionDerivationOutputSchema>

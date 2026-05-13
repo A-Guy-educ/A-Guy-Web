@@ -774,7 +774,7 @@ describe('generateVariation', () => {
     expect(block.prompt.value).toBe('Fallback?')
   })
 
-  it('passes outputSchema to the adapter on both passes', async () => {
+  it('passes outputSchema to pass 2 only (pass 1 disabled — Gemini mangles full content schema)', async () => {
     const callSchemas: Array<unknown> = []
 
     mockGenerateChatCompletion.mockImplementation(async (input: { outputSchema?: unknown }) => {
@@ -818,11 +818,12 @@ describe('generateVariation', () => {
     )
 
     expect(callSchemas).toHaveLength(2)
-    // Both passes should receive a Zod schema (any truthy object with .parse).
-    for (const schema of callSchemas) {
-      expect(schema).toBeDefined()
-      expect(typeof (schema as { parse?: unknown }).parse).toBe('function')
-    }
+    // Pass 1: no schema (Gemini's responseSchema collapses the full
+    // content.blocks shape to garbage — verified live).
+    expect(callSchemas[0]).toBeUndefined()
+    // Pass 2: schema is set (small, well-bounded — Gemini handles it).
+    expect(callSchemas[1]).toBeDefined()
+    expect(typeof (callSchemas[1] as { parse?: unknown }).parse).toBe('function')
   })
 
   it('strips markdown code fences from LLM response', async () => {
