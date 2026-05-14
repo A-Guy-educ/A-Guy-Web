@@ -100,8 +100,7 @@ vi.mock('@/infra/llm/services/lesson-duplication-variation-service', () => ({
         }
       },
     ),
-}
-))
+}))
 
 async function ensureDefaultTenant(payload: Payload): Promise<string> {
   const slug = getDefaultTenantSlug()
