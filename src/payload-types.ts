@@ -1854,6 +1854,22 @@ export interface LessonDuplication {
       }[]
     | null;
   /**
+   * Total input tokens consumed across all LLM calls for this duplication run.
+   */
+  aiTokensInput?: number | null;
+  /**
+   * Total output tokens generated across all LLM calls for this duplication run.
+   */
+  aiTokensOutput?: number | null;
+  /**
+   * Estimated USD cost of all LLM calls for this duplication run, based on Gemini 3.1 Pro pricing.
+   */
+  aiCostUsd?: number | null;
+  /**
+   * Wall-clock duration of the duplication run in milliseconds.
+   */
+  runDurationMs?: number | null;
+  /**
    * User who created this document
    */
   createdBy?: (string | null) | User;
@@ -3501,6 +3517,10 @@ export interface LessonDuplicationsSelect<T extends boolean = true> {
         strategy?: T;
         id?: T;
       };
+  aiTokensInput?: T;
+  aiTokensOutput?: T;
+  aiCostUsd?: T;
+  runDurationMs?: T;
   createdBy?: T;
   updatedAt?: T;
   createdAt?: T;
