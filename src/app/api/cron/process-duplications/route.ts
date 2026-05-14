@@ -16,6 +16,7 @@
  * We accept either that or a missing-but-trusted Vercel deployment header
  * for local dev. Anything else is rejected.
  */
+import { timingSafeEqual } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { ObjectId } from 'mongodb'
 import type { Payload } from 'payload'
@@ -124,8 +125,14 @@ function isAuthorized(request: NextRequest): boolean {
     // always set CRON_SECRET.
     return process.env.NODE_ENV !== 'production'
   }
-  const auth = request.headers.get('authorization')
-  return auth === `Bearer ${expected}`
+  const auth = request.headers.get('authorization') ?? ''
+  const expectedHeader = `Bearer ${expected}`
+  // Constant-time comparison to avoid leaking the secret via response-time
+  // side channels. timingSafeEqual requires equal-length buffers; the
+  // length check itself is not timing-sensitive — different-length auth
+  // headers are obviously wrong on inspection.
+  if (auth.length !== expectedHeader.length) return false
+  return timingSafeEqual(Buffer.from(auth, 'utf8'), Buffer.from(expectedHeader, 'utf8'))
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse> {

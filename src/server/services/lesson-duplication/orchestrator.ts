@@ -591,9 +591,62 @@ export async function runDuplicationOrchestrator(
       PER_RUN_EXERCISE_CAP,
     )
 
-    // Filter out exercises already processed on prior ticks. Source of truth
-    // is the record itself: any exercise whose id appears in outputExercises
-    // (succeeded) or failures (terminal failure) is done.
+    // Filter out exercises already processed on prior ticks. Sources of truth:
+    //  1. The record's `outputExercises` — explicitly recorded successes.
+    //  2. The record's `failures` — terminal per-exercise failures.
+    //  3. Output exercises already present in the output lesson itself, even
+    //     if their mapping never made it back into `outputExercises`. This
+    //     closes the crash-window between createOutputExercise (writes the
+    //     exercise to Mongo) and appendOutputExercise (records the mapping):
+    //     if the function dies between those two calls, the exercise is
+    //     durably saved but the record doesn't know about it; without this
+    //     check the next tick would re-process the source and create a
+    //     duplicate. We identify the source by the deterministic title
+    //     `Variation of <sourceExerciseId>` set in createOutputExercise.
+    const existingOutputExercises = await payload.find({
+      collection: 'exercises',
+      where: { lesson: { equals: outputLessonId } },
+      limit: 0,
+      depth: 0,
+      overrideAccess: true,
+    })
+    const titleSourceIds = new Set<string>()
+    const orphanMappings: OutputExerciseMapping[] = []
+    const knownMappingSources = new Set(
+      ((duplication.outputExercises as unknown as OutputExerciseMapping[]) ?? []).map(
+        (m) => m.sourceExerciseId,
+      ),
+    )
+    for (const ex of existingOutputExercises.docs as Array<{
+      id: string
+      title?: string
+    }>) {
+      const match = typeof ex.title === 'string' ? /^Variation of (\S+)/.exec(ex.title) : null
+      if (match) {
+        titleSourceIds.add(match[1])
+        // Recover the mapping for any orphan exercise (created but never
+        // recorded). Next tick start, we'll reconcile by appending these
+        // mappings so the record matches reality going forward.
+        if (!knownMappingSources.has(match[1])) {
+          orphanMappings.push({
+            sourceExerciseId: match[1],
+            outputExerciseId: ex.id,
+            strategy: 'ai',
+          })
+        }
+      }
+    }
+
+    // Reconcile orphan mappings recovered from the output lesson so the
+    // duplications record reflects reality before this tick continues.
+    for (const orphan of orphanMappings) {
+      await appendOutputExercise(payload, duplicationId, orphan)
+      logger.warn(
+        { duplicationId, sourceExerciseId: orphan.sourceExerciseId },
+        '[orchestrator] Recovered orphan output exercise (crash-window mapping)',
+      )
+    }
+
     const processedIds = new Set<string>([
       ...((duplication.outputExercises as unknown as OutputExerciseMapping[]) ?? []).map(
         (m) => m.sourceExerciseId,
@@ -601,6 +654,7 @@ export async function runDuplicationOrchestrator(
       ...((duplication.failures as unknown as Array<{ exerciseRef: string }>) ?? []).map(
         (f) => f.exerciseRef,
       ),
+      ...titleSourceIds,
     ])
     const remaining = selectedExercises.filter((ex) => !processedIds.has(ex.id))
 
