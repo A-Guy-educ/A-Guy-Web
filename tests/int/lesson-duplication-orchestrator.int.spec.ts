@@ -41,9 +41,11 @@ vi.mock('@/infra/llm/services/lesson-duplication-variation-service', () => ({
         input: { exercise: { id: string } },
         _payload: unknown,
       ): Promise<{ exercise: { id: string; content: { blocks: unknown[] } } }> => {
-        mockState.next
+        // Capture once — `mockState.next` is a getter that increments on
+        // every read, so re-reading it inside the check would skip past 3.
+        const callNumber = mockState.next
         // Force failure on the 3rd exercise (call count 3 = index 2)
-        if (mockState.next === 3) {
+        if (callNumber === 3) {
           throw new Error('Forced failure for test')
         }
         return {
