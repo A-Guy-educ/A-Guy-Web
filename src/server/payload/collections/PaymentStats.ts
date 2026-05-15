@@ -128,7 +128,8 @@ export const PaymentStats: CollectionConfig = {
       defaultValue: 0,
       min: 0,
       admin: {
-        description: 'Distinct users whose first ever succeeded transaction falls on this date',
+        description:
+          'Approximate count of newly-counted succeeded transactions per day — may overcount repeat users on the same date due to simplified deduplication logic',
       },
     },
   ],

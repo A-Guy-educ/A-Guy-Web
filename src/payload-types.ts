@@ -2757,7 +2757,7 @@ export interface PaymentStat {
   refundedCount: number;
   failedCount: number;
   /**
-   * Distinct users whose first ever succeeded transaction falls on this date
+   * Approximate count of newly-counted succeeded transactions per day — may overcount repeat users on the same date due to simplified deduplication logic
    */
   newCustomersCount: number;
   updatedAt: string;
