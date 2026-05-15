@@ -7,9 +7,38 @@
  * @ai-summary Tracks each coupon redemption for usage counting and per-user limits
  */
 
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, CollectionAfterChangeHook } from 'payload'
 
 import { adminOnly } from '../access/adminOnly'
+
+/**
+ * afterChange: Increment coupon.usesCount when a usage is created.
+ * Uses context.skipHooks to prevent infinite loops.
+ */
+const incrementCouponUsesCount: CollectionAfterChangeHook = async ({ doc, operation, req }) => {
+  if (operation !== 'create') return doc
+
+  const couponId = typeof doc.coupon === 'string' ? doc.coupon : (doc.coupon as { id?: string })?.id
+  if (!couponId) return doc
+
+  try {
+    await req.payload.update({
+      collection: 'coupons',
+      id: couponId,
+      data: { $inc: { usesCount: 1 } } as Record<string, unknown>,
+      context: { skipHooks: true },
+      req,
+      overrideAccess: true,
+    })
+  } catch (error) {
+    req.payload.logger.error(
+      { err: error, couponUsageId: doc.id, couponId },
+      'Failed to increment coupon usesCount',
+    )
+  }
+
+  return doc
+}
 
 export const CouponUsages: CollectionConfig = {
   slug: 'coupon-usages',
@@ -18,6 +47,9 @@ export const CouponUsages: CollectionConfig = {
     read: adminOnly,
     update: adminOnly,
     delete: adminOnly,
+  },
+  hooks: {
+    afterChange: [incrementCouponUsesCount],
   },
   admin: {
     useAsTitle: 'usedAt',

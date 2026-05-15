@@ -14,6 +14,8 @@
  * @ai-summary Tests Coupons collection: CRUD, access control, hooks, and validation
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { ObjectId } from 'mongodb'
+
 import { AccountRole } from '@/server/payload/collections/Users/roles'
 import config from '@payload-config'
 import type { Payload } from 'payload'
@@ -984,6 +986,105 @@ describe.skipIf(!hasDatabaseUrl)('CouponUsages Collection', () => {
     transactionId = transaction.id
   })
 
+  describe('afterChange hook — usesCount increment', () => {
+    it('should increment coupon usesCount when a coupon usage is created', async () => {
+      const admin = await getAdminUser()
+
+      // Create a dedicated coupon for this test (not the shared couponId)
+      const coupon = await payload.create({
+        collection: 'coupons',
+        data: {
+          code: `HOOK-INCR-${Date.now()}`,
+          discountType: 'percentage',
+          discountValue: 10,
+          currency: 'ILS',
+          maxUses: 10,
+          usesCount: 0,
+          isActive: true,
+        },
+        user: admin as any,
+        overrideAccess: false,
+      })
+      trackCoupon(coupon.id)
+
+      // Create a usage — the afterChange hook should increment usesCount
+      const usage = await payload.create({
+        collection: 'coupon-usages',
+        data: {
+          coupon: coupon.id,
+          transaction: transactionId,
+          user: adminUserId,
+          usedAt: new Date().toISOString(),
+        },
+        user: admin as any,
+        overrideAccess: false,
+      })
+      trackCouponUsage(usage.id)
+
+      // Verify usesCount was incremented
+      const reRead = await payload.findByID({
+        collection: 'coupons',
+        id: coupon.id,
+        overrideAccess: true,
+      })
+      expect(reRead.usesCount).toBe(1)
+    })
+
+    it('should increment usesCount for each usage created', async () => {
+      const admin = await getAdminUser()
+
+      const coupon = await payload.create({
+        collection: 'coupons',
+        data: {
+          code: `HOOK-INCR-MULTI-${Date.now()}`,
+          discountType: 'percentage',
+          discountValue: 10,
+          currency: 'ILS',
+          maxUses: 10,
+          usesCount: 0,
+          isActive: true,
+        },
+        user: admin as any,
+        overrideAccess: false,
+      })
+      trackCoupon(coupon.id)
+
+      // Create multiple usages
+      const usage1 = await payload.create({
+        collection: 'coupon-usages',
+        data: {
+          coupon: coupon.id,
+          transaction: transactionId,
+          user: adminUserId,
+          usedAt: new Date().toISOString(),
+        },
+        user: admin as any,
+        overrideAccess: false,
+      })
+      trackCouponUsage(usage1.id)
+
+      const usage2 = await payload.create({
+        collection: 'coupon-usages',
+        data: {
+          coupon: coupon.id,
+          transaction: transactionId,
+          user: adminUserId,
+          usedAt: new Date().toISOString(),
+        },
+        user: admin as any,
+        overrideAccess: false,
+      })
+      trackCouponUsage(usage2.id)
+
+      const reRead = await payload.findByID({
+        collection: 'coupons',
+        id: coupon.id,
+        overrideAccess: true,
+      })
+      expect(reRead.usesCount).toBe(2)
+    })
+  })
+
   describe('CRUD operations as admin', () => {
     it('should create a coupon usage record', async () => {
       const admin = await getAdminUser()
@@ -1124,6 +1225,158 @@ describe.skipIf(!hasDatabaseUrl)('CouponUsages Collection', () => {
 
       expect(error).not.toBeNull()
       expect((error as any).status).toBeGreaterThanOrEqual(400)
+    })
+
+    it('should deny student from updating coupon usages', async () => {
+      const admin = await getAdminUser()
+      const student = await getStudentUser()
+
+      const usage = await payload.create({
+        collection: 'coupon-usages',
+        data: {
+          coupon: couponId,
+          transaction: transactionId,
+          user: adminUserId,
+          usedAt: new Date().toISOString(),
+        },
+        user: admin as any,
+        overrideAccess: false,
+      })
+      trackCouponUsage(usage.id)
+
+      let error: Error | null = null
+      try {
+        await payload.update({
+          collection: 'coupon-usages',
+          id: usage.id,
+          data: { usedAt: new Date().toISOString() },
+          user: student as any,
+          overrideAccess: false,
+        })
+      } catch (e) {
+        error = e as Error
+      }
+
+      expect(error).not.toBeNull()
+      expect((error as any).status).toBeGreaterThanOrEqual(400)
+    })
+  })
+
+  describe('Admin update', () => {
+    it('should allow admin to update a coupon usage', async () => {
+      const admin = await getAdminUser()
+
+      const usage = await payload.create({
+        collection: 'coupon-usages',
+        data: {
+          coupon: couponId,
+          transaction: transactionId,
+          user: adminUserId,
+          usedAt: new Date().toISOString(),
+        },
+        user: admin as any,
+        overrideAccess: false,
+      })
+      trackCouponUsage(usage.id)
+
+      const newUsedAt = new Date().toISOString()
+      const updated = await payload.update({
+        collection: 'coupon-usages',
+        id: usage.id,
+        data: { usedAt: newUsedAt },
+        user: admin as any,
+        overrideAccess: false,
+      })
+
+      expect(updated.id).toBe(usage.id)
+      expect(updated.usedAt).toBe(newUsedAt)
+    })
+  })
+
+  describe('Atomic increment — usesCount', () => {
+    it('should atomically increment coupon usesCount when usage is created', async () => {
+      const admin = await getAdminUser()
+
+      // Create a dedicated coupon for this test
+      const coupon = await payload.create({
+        collection: 'coupons',
+        data: {
+          code: `ATOMIC-INCR-${Date.now()}`,
+          discountType: 'percentage',
+          discountValue: 10,
+          currency: 'ILS',
+          maxUses: 10,
+          usesCount: 0,
+          isActive: true,
+        },
+        user: admin as any,
+        overrideAccess: false,
+      })
+      trackCoupon(coupon.id)
+
+      // Get the raw MongoDB collection for atomic $inc
+      const couponsCollection = payload.db.collections['coupons']
+
+      // Simulate two concurrent atomic increment attempts
+      const results = await Promise.all([
+        couponsCollection.updateOne(
+          { _id: new ObjectId(coupon.id), usesCount: { $lt: 10 } },
+          { $inc: { usesCount: 1 } },
+        ),
+        couponsCollection.updateOne(
+          { _id: new ObjectId(coupon.id), usesCount: { $lt: 10 } },
+          { $inc: { usesCount: 1 } },
+        ),
+      ])
+
+      const successCount = results.filter((r) => r.modifiedCount === 1).length
+      expect(successCount).toBe(2) // Both should succeed since maxUses=10
+
+      // Verify final count
+      const reRead = await payload.findByID({
+        collection: 'coupons',
+        id: coupon.id,
+        overrideAccess: true,
+      })
+      expect(reRead.usesCount).toBe(2)
+    })
+
+    it('should prevent over-redemption when maxUses is reached (atomic $lt guard)', async () => {
+      const admin = await getAdminUser()
+
+      // Create a coupon with maxUses=1
+      const coupon = await payload.create({
+        collection: 'coupons',
+        data: {
+          code: `ATOMIC-OVER-${Date.now()}`,
+          discountType: 'percentage',
+          discountValue: 10,
+          currency: 'ILS',
+          maxUses: 1,
+          usesCount: 0,
+          isActive: true,
+        },
+        user: admin as any,
+        overrideAccess: false,
+      })
+      trackCoupon(coupon.id)
+
+      const couponsCollection = payload.db.collections['coupons']
+
+      // Simulate two concurrent atomic increment attempts
+      const results = await Promise.all([
+        couponsCollection.updateOne(
+          { _id: new ObjectId(coupon.id), usesCount: { $lt: 1 } },
+          { $inc: { usesCount: 1 } },
+        ),
+        couponsCollection.updateOne(
+          { _id: new ObjectId(coupon.id), usesCount: { $lt: 1 } },
+          { $inc: { usesCount: 1 } },
+        ),
+      ])
+
+      const successCount = results.filter((r) => r.modifiedCount === 1).length
+      expect(successCount).toBe(1) // Only one should succeed
     })
   })
 })
