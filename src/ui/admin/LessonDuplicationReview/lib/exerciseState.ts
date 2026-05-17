@@ -41,7 +41,11 @@ export interface ExerciseState {
  *    a. If outputExerciseId ∈ reviewedIds → state = 'succeeded'
  *    b. Else if sourceExerciseId has any unresolved failure → state = 'needs_review', failureCodes = codes
  *    c. Else → state = 'succeeded' (in outputExercises but no failures)
- * 2. Source exercises with no output exercise → state = 'pending'
+ *
+ * Note: 'failed' and 'pending' states are not produced by this function.
+ * 'failed' would require a distinct failure mode beyond unresolved failures.
+ * 'pending' would require tracking source exercises with no output exercise mapping,
+ * which is not currently computed here.
  *
  * Complexity: O(N × F) where N = outputExercises, F = failures.
  */

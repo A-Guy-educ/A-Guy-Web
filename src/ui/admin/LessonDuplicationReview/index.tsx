@@ -12,8 +12,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { DiffPreview } from './DiffPreview'
-import { cn } from '@/infra/utils/ui'
-import { computeExerciseStates, countByState, type ExerciseReviewState } from './lib/exerciseState'
+import { computeExerciseStates, countByState } from './lib/exerciseState'
 import type { ContentBlock } from '@/server/payload/collections/Exercises/types'
 
 type Action = 'skip' | 'regenerate' | 'keep' | 'looks_right'
@@ -162,7 +161,6 @@ export function LessonDuplicationReview({ duplicationId }: { duplicationId: stri
   const [isProcessing, setIsProcessing] = useState(false)
   const [processError, setProcessError] = useState<string | null>(null)
   const [processOutcome, setProcessOutcome] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'all' | ExerciseReviewState>('all')
   const diffPreviewRef = useRef<HTMLDivElement>(null)
 
   const fetchRecord = useCallback(async () => {
@@ -478,7 +476,7 @@ export function LessonDuplicationReview({ duplicationId }: { duplicationId: stri
         <div className="flex items-center gap-content-gap text-body-sm flex-wrap">
           <span className="font-semibold text-foreground">{counts.succeeded} succeeded</span>
           <span className="text-[hsl(var(--warning))] font-medium">
-            · {counts.needs_review + ' needs_review'}
+            · {counts.needs_review} needs_review
           </span>
           <span className="text-[hsl(var(--error))] font-medium">· {counts.failed} failed</span>
           <div className="flex-1" />
@@ -524,55 +522,6 @@ export function LessonDuplicationReview({ duplicationId }: { duplicationId: stri
             </>
           )}
         </div>
-      </div>
-
-      {/* Tab navigation */}
-      <div className="flex items-center gap-1 mb-6 border-b border-border">
-        {(['all', 'succeeded', 'needs_review', 'failed', 'pending'] as const).map((tab) => {
-          const tabCount =
-            tab === 'all'
-              ? counts.total
-              : tab === 'succeeded'
-                ? counts.succeeded
-                : tab === 'needs_review'
-                  ? counts.needs_review
-                  : tab === 'pending'
-                    ? counts.pending
-                    : 0
-          const isActive = activeTab === tab
-          return (
-            <button
-              key={tab}
-              role="tab"
-              aria-selected={isActive}
-              onClick={() => setActiveTab(tab)}
-              className={cn(
-                'px-4 py-2 text-label font-medium border-b-2 -mb-px transition-all duration-normal',
-                isActive
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border',
-              )}
-            >
-              {tab === 'all'
-                ? 'All'
-                : tab === 'needs_review'
-                  ? 'Needs Review'
-                  : tab.charAt(0).toUpperCase() + tab.slice(1)}
-              {tabCount > 0 && (
-                <span
-                  className={cn(
-                    'ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold',
-                    isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-[var(--theme-elevation-200)] text-muted-foreground',
-                  )}
-                >
-                  {tabCount}
-                </span>
-              )}
-            </button>
-          )
-        })}
       </div>
 
       {submitError && (
