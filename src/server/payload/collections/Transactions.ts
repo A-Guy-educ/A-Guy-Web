@@ -29,7 +29,10 @@ export const Transactions: CollectionConfig = {
     group: 'Payments',
     components: {
       edit: {
-        beforeDocumentControls: ['@/ui/admin/TransactionEditView#TransactionRefundAction'],
+        beforeDocumentControls: [
+          '@/ui/admin/TransactionEditView#TransactionRefundAction',
+          '@/ui/admin/TransactionEditView#TransactionPaymentDetail',
+        ],
       },
     },
   },

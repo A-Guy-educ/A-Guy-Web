@@ -21,10 +21,7 @@ import { readFileSync } from 'fs'
 import path from 'path'
 
 describe('TransactionEditView Component Structure (#1645)', () => {
-  const componentPath = path.resolve(
-    process.cwd(),
-    'src/ui/admin/TransactionEditView/index.tsx',
-  )
+  const componentPath = path.resolve(process.cwd(), 'src/ui/admin/TransactionEditView/index.tsx')
 
   it('should have a component file that exists', () => {
     expect(() => readFileSync(componentPath, 'utf-8')).not.toThrow()
@@ -37,7 +34,9 @@ describe('TransactionEditView Component Structure (#1645)', () => {
     // OR extend the existing component with detail sections
     const hasDetailExport =
       content.includes('TransactionDetailView') ||
-      content.includes('export') && content.includes('TransactionEditView') && content.includes('detail')
+      (content.includes('export') &&
+        content.includes('TransactionEditView') &&
+        content.includes('detail'))
 
     expect(hasDetailExport).toBe(true)
   })
@@ -48,9 +47,7 @@ describe('TransactionEditView Component Structure (#1645)', () => {
     // The component should format amount for display
     // Amount should be converted from agorot: 9900 → ₪99.00
     const hasFormattedAmount =
-      content.includes('₪') ||
-      content.includes('formatAmount') ||
-      content.includes('toFixed(2)')
+      content.includes('₪') || content.includes('formatAmount') || content.includes('toFixed(2)')
 
     expect(hasFormattedAmount).toBe(true)
   })
@@ -62,7 +59,8 @@ describe('TransactionEditView Component Structure (#1645)', () => {
     // NOT just displaying the raw number like "9900"
     const hasAmountFormatting =
       (content.includes('₪') && content.includes('amount')) ||
-      (content.includes('formatAmount') || content.includes('currency'))
+      content.includes('formatAmount') ||
+      content.includes('currency')
 
     expect(hasAmountFormatting).toBe(true)
   })
@@ -74,7 +72,10 @@ describe('TransactionEditView Component Structure (#1645)', () => {
     // Status values: pending, succeeded, failed, refunded
     const hasStatusDisplay =
       content.includes('status') &&
-      (content.includes('succeeded') || content.includes('failed') || content.includes('pending') || content.includes('refunded'))
+      (content.includes('succeeded') ||
+        content.includes('failed') ||
+        content.includes('pending') ||
+        content.includes('refunded'))
 
     expect(hasStatusDisplay).toBe(true)
   })
@@ -85,7 +86,10 @@ describe('TransactionEditView Component Structure (#1645)', () => {
     // The component should display provider information
     const hasProviderDisplay =
       content.includes('provider') &&
-      (content.includes('stripe') || content.includes('paypal') || content.includes('Stripe') || content.includes('PayPal'))
+      (content.includes('stripe') ||
+        content.includes('paypal') ||
+        content.includes('Stripe') ||
+        content.includes('PayPal'))
 
     expect(hasProviderDisplay).toBe(true)
   })
@@ -126,7 +130,8 @@ describe('TransactionEditView Component Structure (#1645)', () => {
     const content = readFileSync(componentPath, 'utf-8')
 
     // The component should link to the product edit view
-    const hasProductLink = content.includes('/admin/collections/products/') || content.includes('products/')
+    const hasProductLink =
+      content.includes('/admin/collections/products/') || content.includes('products/')
 
     expect(hasProductLink).toBe(true)
   })
@@ -136,8 +141,10 @@ describe('TransactionEditView Component Structure (#1645)', () => {
 
     // The component should display webhook metadata
     const hasMetadataSection =
-      content.includes('metadata') || content.includes('Metadata') ||
-      content.includes('providerTransactionId') || content.includes('webhook')
+      content.includes('metadata') ||
+      content.includes('Metadata') ||
+      content.includes('providerTransactionId') ||
+      content.includes('webhook')
 
     expect(hasMetadataSection).toBe(true)
   })
@@ -182,8 +189,7 @@ describe('TransactionEditView Component Structure (#1645)', () => {
 
     // The component should show refund information for refunded transactions
     const hasRefundSection =
-      content.includes('refund') || content.includes('refunded') ||
-      content.includes('Refund')
+      content.includes('refund') || content.includes('refunded') || content.includes('Refund')
 
     expect(hasRefundSection).toBe(true)
   })
@@ -214,7 +220,7 @@ describe('TransactionEditView Component Structure (#1645)', () => {
 
     // The component should fetch transaction data with depth=2 to get user and product
     const hasDepth2Fetch =
-      content.includes('depth') && content.includes('2') ||
+      (content.includes('depth') && content.includes('2')) ||
       content.includes('depth=2') ||
       content.includes('depth: 2')
 
@@ -252,7 +258,8 @@ describe('TransactionEditView Component Structure (#1645)', () => {
 
     // The component should use cards for section styling
     const hasCardLayout =
-      content.includes('card') || content.includes('Card') ||
+      content.includes('card') ||
+      content.includes('Card') ||
       content.includes('elevat') || // elevation classes
       content.includes('bg-') // Tailwind background classes
 
