@@ -99,7 +99,7 @@ export function withApiHandler<TBody = unknown, TQuery = unknown>(
       )
 
       Sentry.captureException(error, {
-        tags: { route: request.nextUrl.pathname, isOperational },
+        tags: { route: request.nextUrl?.pathname ?? 'unknown', isOperational },
         extra: { requestId },
       })
 

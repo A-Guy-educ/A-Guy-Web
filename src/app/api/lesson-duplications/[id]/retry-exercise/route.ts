@@ -53,12 +53,17 @@ export const POST = withApiHandler<RetryBody, unknown>(
     if (!record) return ApiErrors.notFound('LessonDuplications record')
 
     // 2. Fetch source exercise
-    const source = await payload.findByID({
-      collection: 'exercises',
-      id: body.sourceExerciseId,
-      depth: 0,
-      overrideAccess: true,
-    })
+    let source
+    try {
+      source = await payload.findByID({
+        collection: 'exercises',
+        id: body.sourceExerciseId,
+        depth: 0,
+        overrideAccess: true,
+      })
+    } catch {
+      return ApiErrors.notFound(`Source exercise ${body.sourceExerciseId}`)
+    }
     if (!source) return ApiErrors.notFound(`Source exercise ${body.sourceExerciseId}`)
 
     // 3. Get output lesson ID
