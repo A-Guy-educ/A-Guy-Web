@@ -23,7 +23,10 @@ import type { Payload } from 'payload'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { logger } from '@/infra/utils/logger'
-import { runDuplicationOrchestrator } from '@/server/services/lesson-duplication/orchestrator'
+import {
+  runDuplicationOrchestrator,
+  STUCK_FAILURE_CODE,
+} from '@/server/services/lesson-duplication/orchestrator'
 
 // Vercel cron functions inherit the same maxDuration ceiling as regular
 // serverless functions. 800s on Pro lets one tick process roughly 3-5
@@ -138,7 +141,7 @@ async function markStuckAndFailed(payload: Payload, duplicationId: string): Prom
         failures: {
           exerciseRef: '',
           sectionIndex: 0,
-          code: 'STUCK_AFTER_MAX_ATTEMPTS',
+          code: STUCK_FAILURE_CODE,
           message:
             'Record was auto-failed after 5 consecutive cron ticks produced no new output exercises. Check source lesson data, exercise structure, and orchestrator logs.',
           suggestedAction: 'skip',
@@ -239,7 +242,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({
       duplicationId,
       outcome: 'failed',
-      reason: 'STUCK_AFTER_MAX_ATTEMPTS',
+      reason: STUCK_FAILURE_CODE,
       elapsedMs: Date.now() - startedAt,
     })
   }

@@ -24,11 +24,13 @@ import { NextRequest } from 'next/server'
 
 import { getDefaultTenantSlug } from '@/server/repos/tenant/get-default-tenant'
 import { GET as processDuplicationsGET } from '@/app/api/cron/process-duplications/route'
+import { STUCK_FAILURE_CODE } from '@/server/services/lesson-duplication/orchestrator'
 
 // Mock orchestrator to always return 'in_progress' (simulates a record that
 // never makes progress — e.g. source lesson with no exercises)
 vi.mock('@/server/services/lesson-duplication/orchestrator', () => ({
   runDuplicationOrchestrator: vi.fn().mockResolvedValue('in_progress'),
+  STUCK_FAILURE_CODE: 'STUCK_AFTER_MAX_ATTEMPTS',
 }))
 
 const CRON_SECRET = process.env.CRON_SECRET ?? 'test-secret'
@@ -321,7 +323,7 @@ describe('process-duplications stuck record auto-fail — integration', () => {
     const body2 = (await resp2.json()) as { duplicationId?: string; outcome?: string }
     expect(body2.duplicationId).toBe(record2.id)
     expect(body2.outcome).toBe('failed') // auto-fails at 5
-    expect((body2 as { reason?: string }).reason).toBe('STUCK_AFTER_MAX_ATTEMPTS')
+    expect((body2 as { reason?: string }).reason).toBe(STUCK_FAILURE_CODE)
   })
 
   it('cron auto-fails record with claimAttempts >= 5 — status=failed + STUCK_AFTER_MAX_ATTEMPTS entry', async () => {
@@ -351,7 +353,7 @@ describe('process-duplications stuck record auto-fail — integration', () => {
       duplicationId: string
     }
     expect(body.outcome).toBe('failed')
-    expect(body.reason).toBe('STUCK_AFTER_MAX_ATTEMPTS')
+    expect(body.reason).toBe(STUCK_FAILURE_CODE)
 
     // Verify DB state
     const final = await payload.findByID({
@@ -364,7 +366,7 @@ describe('process-duplications stuck record auto-fail — integration', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const failures = (final as any).failures as Array<{ code: string }>
     expect(failures.length).toBeGreaterThan(0)
-    const stuckEntry = failures.find((f) => f.code === 'STUCK_AFTER_MAX_ATTEMPTS')
+    const stuckEntry = failures.find((f) => f.code === STUCK_FAILURE_CODE)
     expect(stuckEntry).toBeDefined()
   })
 
