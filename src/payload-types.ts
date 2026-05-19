@@ -1945,6 +1945,10 @@ export interface Transaction {
    */
   errorMessage?: string | null;
   /**
+   * Timestamp when product entitlements were granted to the user
+   */
+  entitlementsGrantedAt?: string | null;
+  /**
    * User who created this document
    */
   createdBy?: (string | null) | User;
@@ -4437,6 +4441,7 @@ export interface TransactionsSelect<T extends boolean = true> {
   successUrl?: T;
   cancelUrl?: T;
   errorMessage?: T;
+  entitlementsGrantedAt?: T;
   createdBy?: T;
   updatedAt?: T;
   createdAt?: T;
