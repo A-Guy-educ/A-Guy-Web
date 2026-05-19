@@ -41,7 +41,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
   }
 
   // 3. Fetch transaction
-  let transaction: Transaction | undefined
+  let transaction: Transaction | null = null
   try {
     transaction = (await payload.findByID({
       collection: 'transactions',
@@ -49,9 +49,9 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       depth: 0,
       overrideAccess: true,
     })) as Transaction
-  } catch (err: unknown) {
-    const error = err as { status?: number; isOperational?: boolean }
-    if (error?.status === 404 || error?.isOperational) {
+  } catch (err) {
+    // Handle both operational errors and not-found errors
+    if (err instanceof Error && (err.name === 'NotFound' || err.message.includes('Not Found'))) {
       return NextResponse.json({ error: 'Transaction not found' }, { status: 404 })
     }
     throw err
