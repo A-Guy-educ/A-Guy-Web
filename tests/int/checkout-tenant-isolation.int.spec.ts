@@ -49,6 +49,7 @@ let tenantAId: string
 let tenantBId: string
 let adminUserTenantAId: string
 let studentUserTenantAId: string
+let studentUserTenantAEmail: string
 let adminUserTenantBId: string
 let studentUserTenantBId: string
 let productTenantAId: string
@@ -93,6 +94,7 @@ beforeAll(async () => {
     data: {
       email: `admin-tenant-a-${Date.now()}@example.com`,
       password: 'test123456',
+      tenant: tenantAId,
     } as any,
     overrideAccess: true,
   })
@@ -105,16 +107,19 @@ beforeAll(async () => {
   adminUserTenantAId = adminTenantA.id
 
   // Create student user in tenant A
+  const studentTenantAEmail = `student-tenant-a-${Date.now()}@example.com`
   const studentTenantA = await payload.create({
     collection: 'users',
     data: {
-      email: `student-tenant-a-${Date.now()}@example.com`,
+      email: studentTenantAEmail,
       password: 'test123456',
       role: AccountRole.Student,
+      tenant: tenantAId,
     } as any,
     overrideAccess: true,
   })
   studentUserTenantAId = studentTenantA.id
+  studentUserTenantAEmail = studentTenantAEmail
 
   // Create admin user in tenant B
   const adminTenantB = await payload.create({
@@ -122,6 +127,7 @@ beforeAll(async () => {
     data: {
       email: `admin-tenant-b-${Date.now()}@example.com`,
       password: 'test123456',
+      tenant: tenantBId,
     } as any,
     overrideAccess: true,
   })
@@ -140,6 +146,7 @@ beforeAll(async () => {
       email: `student-tenant-b-${Date.now()}@example.com`,
       password: 'test123456',
       role: AccountRole.Student,
+      tenant: tenantBId,
     } as any,
     overrideAccess: true,
   })
@@ -287,16 +294,24 @@ afterAll(async () => {
 // ---------------------------------------------------------------------------
 
 async function callCheckoutEndpoint(
-  userId: string,
+  userEmail: string,
   productId: string,
   couponCode?: string,
 ): Promise<{ status: number; data: any }> {
+  // Login to get authentication token
+  const loginResult = await payload.login({
+    collection: 'users',
+    data: { email: userEmail, password: 'test123456' },
+  })
+  const token = loginResult.token
+
   // Import the route handler
   const { POST } = await import('@/app/api/payments/checkout/route')
 
   // Create a mock NextRequest with auth headers
   const headers = new Headers()
   headers.set('Content-Type', 'application/json')
+  headers.set('Authorization', `Bearer ${token}`)
 
   const mockRequest = new NextRequest('http://localhost:3000/api/payments/checkout', {
     method: 'POST',
@@ -338,18 +353,18 @@ describe.skipIf(!process.env.DATABASE_URL)('Checkout Tenant Isolation', () => {
       id: productTenantAId,
       overrideAccess: true,
     })
-    expect((productA as any).tenant).toBe(tenantAId)
+    expect((productA as any).tenant).toMatchObject({ id: tenantAId })
 
     const productB = await payload.findByID({
       collection: 'products',
       id: productTenantBId,
       overrideAccess: true,
     })
-    expect((productB as any).tenant).toBe(tenantBId)
+    expect((productB as any).tenant).toMatchObject({ id: tenantBId })
 
     // Student tenant A tries to checkout product from tenant B
     // This should fail because the product belongs to a different tenant
-    const result = await callCheckoutEndpoint(studentUserTenantAId, productTenantBId)
+    const result = await callCheckoutEndpoint(studentUserTenantAEmail, productTenantBId)
 
     // After the fix, this should return 404 product_not_found
     // The buggy behavior would be that it returns 200 and creates a checkout session
@@ -369,21 +384,25 @@ describe.skipIf(!process.env.DATABASE_URL)('Checkout Tenant Isolation', () => {
       id: couponTenantAId,
       overrideAccess: true,
     })
-    expect((couponA as any).tenant).toBe(tenantAId)
+    expect((couponA as any).tenant).toMatchObject({ id: tenantAId })
 
     const couponB = await payload.findByID({
       collection: 'coupons',
       id: couponTenantBId,
       overrideAccess: true,
     })
-    expect((couponB as any).tenant).toBe(tenantBId)
+    expect((couponB as any).tenant).toMatchObject({ id: tenantBId })
 
     // Get coupon code for tenant B
     const couponBCode = (couponB as any).code
 
     // Student tenant A tries to use a coupon from tenant B with a valid product
     // This should fail because the coupon belongs to a different tenant
-    const result = await callCheckoutEndpoint(studentUserTenantAId, productTenantAId, couponBCode)
+    const result = await callCheckoutEndpoint(
+      studentUserTenantAEmail,
+      productTenantAId,
+      couponBCode,
+    )
 
     // After the fix, this should return 400 invalid_coupon
     expect(result.status).toBe(400)
@@ -420,7 +439,7 @@ describe.skipIf(!process.env.DATABASE_URL)('Checkout Tenant Isolation', () => {
     createdProductIds.push(globalProduct.id)
 
     // Checkout of global product should work (no tenant to mismatch)
-    const result = await callCheckoutEndpoint(studentUserTenantAId, globalProduct.id)
+    const result = await callCheckoutEndpoint(studentUserTenantAEmail, globalProduct.id)
     expect(result.status).toBe(200)
     expect(result.data.success).toBe(true)
     expect(result.data.checkoutUrl).toBeDefined()
