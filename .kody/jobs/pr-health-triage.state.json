@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "rev": 2,
+  "rev": 3,
   "cursor": "idle",
   "data": {
     "prs": {
@@ -29,6 +29,31 @@
         "stage": "sync-auto",
         "lastActAt": "2026-05-21T10:49:51Z"
       },
+      "1483": {
+        "fp": "sync|2026-05-20T21:17:48Z",
+        "stage": "sync-auto",
+        "lastActAt": "2026-05-21T12:05:13Z"
+      },
+      "1511": {
+        "fp": "sync|2026-05-20T20:42:02Z",
+        "stage": "sync-auto",
+        "lastActAt": "2026-05-21T12:05:16Z"
+      },
+      "1524": {
+        "fp": "sync|2026-05-20T20:42:42Z",
+        "stage": "sync-auto",
+        "lastActAt": "2026-05-21T12:05:19Z"
+      },
+      "1525": {
+        "fp": "sync|2026-05-20T20:42:06Z",
+        "stage": "sync-auto",
+        "lastActAt": "2026-05-21T12:05:22Z"
+      },
+      "1547": {
+        "fp": "sync|2026-05-20T20:39:54Z",
+        "stage": "sync-auto",
+        "lastActAt": "2026-05-21T12:05:25Z"
+      },
       "1566": {
         "fp": "sync|2026-05-20T20:27:41Z",
         "stage": "sync-auto",
@@ -50,7 +75,7 @@
         "lastActAt": "2026-05-21T09:31:20Z"
       }
     },
-    "lastFiredAt": "2026-05-21T10:50:29.056Z"
+    "lastFiredAt": "2026-05-21T12:05:58.226Z"
   },
   "done": false
 }
