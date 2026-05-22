@@ -1,6 +1,7 @@
 ---
 every: 1h
 staff: qa
+disabled: true
 ---
 
 # QA Sweep
