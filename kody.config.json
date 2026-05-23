@@ -14,7 +14,7 @@
     "repo": "A-Guy"
   },
   "agent": {
-    "model": "gemini/gemini-3.5-flash"
+    "model": "minimax/MiniMax-M2.7-highspeed"
   },
   "qa": {
     "fallbackUrl": "https://dev.aguy.co.il"
