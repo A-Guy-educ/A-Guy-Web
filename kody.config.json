@@ -14,14 +14,16 @@
     "repo": "A-Guy"
   },
   "agent": {
-    "model": "minimax/MiniMax-M2.7-highspeed"
+    "model": "gemini/gemini-3.5-flash"
   },
   "qa": {
     "fallbackUrl": "https://dev.aguy.co.il"
   },
   "release": {
     "releaseBranch": "main",
-    "versionFiles": ["package.json"],
+    "versionFiles": [
+      "package.json"
+    ],
     "e2eCommand": "npx tsx scripts/release-e2e-gate.ts",
     "timeoutMs": 1800000
   },
@@ -30,5 +32,8 @@
   },
   "jobs": {
     "stateBackend": "contents-api"
+  },
+  "executables": {
+    "default": "run"
   }
 }
