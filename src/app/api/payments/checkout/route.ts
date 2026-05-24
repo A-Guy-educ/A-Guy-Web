@@ -115,7 +115,8 @@ export async function POST(request: NextRequest) {
     const userTenantId = extractTenantId((user as { tenant?: unknown })?.tenant)
 
     // Null-tenant user trying to buy a tenant-scoped product → fail closed (404)
-    if (productTenantId !== null && userTenantId === null) {
+    // Use == null (loose) to catch both null (explicit) and undefined (field absent)
+    if (productTenantId !== null && userTenantId == null) {
       return NextResponse.json({ success: false, error: 'product_not_found' }, { status: 404 })
     }
 
@@ -265,7 +266,8 @@ export async function POST(request: NextRequest) {
       const userTenantId = extractTenantId((user as { tenant?: unknown })?.tenant)
 
       // Null-tenant user trying to use a tenant-scoped coupon → fail closed (400)
-      if (couponTenantId !== null && userTenantId === null) {
+      // Use == null (loose) to catch both null (explicit) and undefined (field absent)
+      if (couponTenantId !== null && userTenantId == null) {
         return NextResponse.json({ success: false, error: 'invalid_coupon' }, { status: 400 })
       }
 

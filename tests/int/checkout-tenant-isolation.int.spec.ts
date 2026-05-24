@@ -162,7 +162,7 @@ beforeAll(async () => {
       email: studentNullTenantEmail,
       password: 'test123456',
       role: AccountRole.Student,
-      // tenant is intentionally omitted — user has no tenant
+      tenant: null, // explicitly null — user has no tenant
     } as any,
     overrideAccess: true,
   })
