@@ -1,5 +1,5 @@
 ---
-staff: [qa-engineer]
+staff: [kody, qa-engineer]
 ---
 
 # You can log in and browse the live site
