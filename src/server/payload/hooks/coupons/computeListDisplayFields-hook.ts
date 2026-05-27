@@ -26,6 +26,7 @@ type CouponDoc = {
  * Compute status label from coupon state
  */
 export function computeCouponStatus(doc: CouponDoc): string {
+  if (!doc) return ''
   if (!doc.isActive) return 'Inactive'
   if ((doc.maxUses ?? 0) > 0 && (doc.usesCount ?? 0) >= (doc.maxUses ?? 0)) return 'Exhausted'
   if (doc.validUntil) {
@@ -45,6 +46,7 @@ export function computeCouponStatus(doc: CouponDoc): string {
  * Compute usage display string
  */
 export function computeUsageDisplay(doc: CouponDoc): string {
+  if (!doc) return ''
   const used = doc.usesCount ?? 0
   const max = doc.maxUses ?? 0
   if (max === 0) return `${used} / ∞`
@@ -55,6 +57,7 @@ export function computeUsageDisplay(doc: CouponDoc): string {
  * Compute relative expiration string
  */
 export function computeExpiresDisplay(doc: CouponDoc): string {
+  if (!doc) return ''
   if (!doc.validUntil) return 'Never expires'
 
   const now = new Date()

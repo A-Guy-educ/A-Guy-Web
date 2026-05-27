@@ -1,0 +1,16 @@
+{
+  "taskId": "2115",
+  "taskType": "pr",
+  "target": "2115",
+  "outcome": "success",
+  "exitCode": 0,
+  "reason": "Fixed null-guard bug in computeCouponStatus/computeUsageDisplay/computeExpiresDisplay — all three now guard against undefined doc",
+  "prUrl": null,
+  "runUrl": "https://github.com/A-Guy-educ/A-Guy/actions/runs/26493935812",
+  "filesTouched": [
+    "src/server/payload/hooks/coupons/computeListDisplayFields-hook.ts"
+  ],
+  "sessionLog": null,
+  "startedAt": "2026-05-27T06:20:00Z",
+  "finishedAt": "2026-05-27T06:25:00Z"
+}
