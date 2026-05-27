@@ -191,6 +191,14 @@ No filler. No marketing language. Depth over brevity.>
 - If the issue is ambiguous and you cannot make progress without input, output `FAILED: <what's unclear>` instead of a plan.
 - If the Research floor cannot be met because required files are missing or unreadable, output `FAILED: <what could not be read>` instead of a half-blind plan.
 
+## Map the code first (codegraph)
+Before exploring with grep/Read, use the codegraph tools to locate symbols and trace call paths — they're faster and more precise:
+- `codegraph_search <name>` — find a symbol
+- `codegraph_callees` / `codegraph_callers` — see what a function calls or who calls it
+- `codegraph_trace <from> <to>` — the call path between two symbols
+Use grep only for things codegraph can't answer (strings, comments, config).
+
+
 <!-- kody:output-format (managed — edit above this line only) -->
 
 # Final message format (required)
