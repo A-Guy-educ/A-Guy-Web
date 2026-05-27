@@ -18,6 +18,7 @@ import { z } from 'zod'
 import config from '@payload-config'
 import { cancelPayPalOrder, createPayPalOrder } from '@/lib/payment/paypal'
 import { cancelStripeCheckout, createStripeCheckout } from '@/lib/payment/stripe'
+import { checkAuthenticatedRateLimit } from '@/server/services/rate-limit'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -48,6 +49,9 @@ function isSuperAdmin(user: { roles?: unknown } | null): boolean {
   return false
 }
 
+// Rate limit: 10 requests per 5 minutes per authenticated user
+const CHECKOUT_RATE_LIMIT_CONFIG = { maxRequests: 10, windowMs: 300_000 } as const
+
 // MongoDB ObjectId: 24 hex characters
 const objectIdRegex = /^[0-9a-fA-F]{24}$/
 
@@ -67,7 +71,32 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: 'authentication_required' }, { status: 401 })
   }
 
-  // 2. Parse and validate request body
+  // 2. Per-user rate limit (skip for super-admins who may spike during testing)
+  if (!isSuperAdmin(user as { roles?: unknown } | null)) {
+    const rateLimitResult = checkAuthenticatedRateLimit(
+      user.id,
+      '/api/payments/checkout',
+      CHECKOUT_RATE_LIMIT_CONFIG,
+    )
+
+    if (!rateLimitResult.allowed) {
+      payload.logger.warn(
+        { userId: user.id, requestCount: CHECKOUT_RATE_LIMIT_CONFIG.maxRequests },
+        'Checkout rate limit exceeded',
+      )
+
+      const retryAfterSeconds = Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000)
+      return new NextResponse(JSON.stringify({ success: false, error: 'rate_limit_exceeded' }), {
+        status: 429,
+        headers: {
+          'Content-Type': 'application/json',
+          'Retry-After': String(Math.max(1, retryAfterSeconds)),
+        },
+      })
+    }
+  }
+
+  // 3. Parse and validate request body
   let body: unknown
   try {
     body = await request.json()
