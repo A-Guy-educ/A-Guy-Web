@@ -12,7 +12,7 @@
  * @ai-summary Computes derived coupon list-display fields for admin UI
  */
 
-import type { CollectionAfterReadHook } from 'payload'
+import type { FieldHookArgs } from 'payload'
 
 type CouponDoc = {
   isActive?: boolean
@@ -75,20 +75,20 @@ export function computeExpiresDisplay(doc: CouponDoc): string {
 /**
  * afterRead hook for the status field
  */
-export const afterReadCouponStatus: CollectionAfterReadHook = async ({ doc }) => {
-  return computeCouponStatus(doc as CouponDoc)
+export const afterReadCouponStatus = async ({ siblingData }: FieldHookArgs) => {
+  return computeCouponStatus(siblingData as CouponDoc)
 }
 
 /**
  * afterRead hook for the usageDisplay field
  */
-export const afterReadCouponUsageDisplay: CollectionAfterReadHook = async ({ doc }) => {
-  return computeUsageDisplay(doc as CouponDoc)
+export const afterReadCouponUsageDisplay = async ({ siblingData }: FieldHookArgs) => {
+  return computeUsageDisplay(siblingData as CouponDoc)
 }
 
 /**
  * afterRead hook for the expiresDisplay field
  */
-export const afterReadCouponExpiresDisplay: CollectionAfterReadHook = async ({ doc }) => {
-  return computeExpiresDisplay(doc as CouponDoc)
+export const afterReadCouponExpiresDisplay = async ({ siblingData }: FieldHookArgs) => {
+  return computeExpiresDisplay(siblingData as CouponDoc)
 }

@@ -1,18 +1,18 @@
-# Task 2115 — Fix CI failure in computeListDisplayFields-hook
+# Task 2115 — Fix CI failure: field-level afterRead hooks returning empty strings
 
 ## Root Cause
 
-`computeCouponStatus`, `computeUsageDisplay`, and `computeExpiresDisplay` assumed `doc` would always be defined when called from the field-level `afterRead` hooks. However, during Payload's `createOperation`, the hooks are invoked with `doc = undefined` — likely because field-level hooks during create receive only a partial field data context rather than the full document.
+The field-level `afterRead` hooks in `computeListDisplayFields-hook.ts` were typed as `CollectionAfterReadHook` and destructured `doc` from their argument. However, Payload CMS field hooks receive `FieldHookArgs` (not `CollectionAfterReadHook`), which does NOT have a `doc` property — it has `siblingData` (the parent document) and `value` (the field's current value).
+
+Because `doc` was destructured from `FieldHookArgs` where it doesn't exist, `doc` was `undefined` at runtime. The null guard `if (!doc) return ''` then returned empty strings for all computed fields, causing all 10 tests to fail with `expected '' to be 'Active'`, etc.
+
+The `as any` cast on the hooks in `Coupons.ts` suppressed the TypeScript error but did not fix the runtime behavior.
 
 ## Fix
 
-Added `if (!doc) return ''` guard at the top of all three compute functions in:
-`src/server/payload/hooks/coupons/computeListDisplayFields-hook.ts`
+1. Changed the import from `CollectionAfterReadHook` to `FieldHookArgs`
+2. Changed each hook to destructure `siblingData` instead of `doc`
+3. Passed `siblingData` to the compute functions as the document source
+4. Removed the now-unnecessary `as any` casts from `Coupons.ts`
 
-This ensures the hooks are resilient to both the undefined doc case (returning an empty string, which the field will store) and to any sibling data being absent.
-
-## Why this is the right fix
-
-- Minimum change: only adds null guards, no type casts or structural changes
-- Correct behavior: a coupon's virtual display fields returning `''` during create is harmless (the afterRead on read will populate them correctly)
-- The hooks were already using `as any` casts, confirming the field-hook-vs-collection-hook type mismatch was already a known issue
+This matches the pattern used by other field-level `afterRead` hooks in the codebase (e.g., `configSecrets/afterRead-hook.ts`).

@@ -204,7 +204,7 @@ export const Coupons: CollectionConfig = {
         },
       },
       hooks: {
-        afterRead: [afterReadCouponStatus as any],
+        afterRead: [afterReadCouponStatus],
       },
     },
     {
