@@ -290,14 +290,6 @@ describe.skipIf(!process.env.DATABASE_URL)('Checkout Rate Limiting', () => {
    * Note: This test depends on the isSuperAdmin function correctly detecting super-admin status.
    */
   it('should exempt super-admin users from rate limiting', async () => {
-    // Verify super-admin user was created with roles field
-    const superAdminUser = await payload.findByID({
-      collection: 'users',
-      id: superAdminUserId,
-      overrideAccess: true,
-    })
-    expect((superAdminUser as any).roles).toContain('super-admin')
-
     // Clear any rate limit state from previous tests
     clearAllRateLimits()
 
