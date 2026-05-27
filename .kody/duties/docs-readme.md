@@ -1,5 +1,5 @@
 ---
-every: 30m
+every: 1d
 staff: tech-writer
 mentions: aguyaharonyair
 disabled: true
@@ -27,27 +27,28 @@ Flip to `disabled: false` once checked.
 mark of merged PRs already inspected. The first run with no cursor set should
 record "now" and exit (don't retro-scan history).
 
-**Per tick (one action max):**
+**Per tick (catch up on every PR merged since the cursor):**
 
 1. Load the feature→doc map once: read `AGENTS.md`, section "Additional
    Documentation" — it lists each documented feature and its
    `docs/<feature>/README.md`.
 2. List recently merged PRs newest-first (base branch is `dev`):
-   `gh pr list --state merged --base dev --json number,title,mergedAt,files --limit 20`
-3. Take the **oldest** PR whose `mergedAt > data.lastCheckedMergedAt`. If none,
-   idle. Inspecting one PR per tick keeps the single-action bound.
-4. Infer which documented feature(s) the PR's changed `files[].path` belong to,
-   using the map from step 1 (e.g. payment code → `docs/payment/README.md`,
-   exercise-import code → `docs/exercise-import/README.md`). A-Guy's source is
-   layered (`src/server`, `src/lib`, `src/ui`, `src/client`, `src/infra`), so
-   map by **feature**, not by a single path prefix.
-   - Touched **no** mapped feature → advance `data.lastCheckedMergedAt` to this
-     PR's `mergedAt` and exit.
+   `gh pr list --state merged --base dev --json number,title,mergedAt,files --limit 30`
+3. Take **every** PR whose `mergedAt > data.lastCheckedMergedAt`, oldest-first
+   (a daily tick may cover several merges). If none, idle. Process each in
+   turn, then advance the cursor once at the end (step 6).
+4. For each PR, infer which documented feature(s) its changed `files[].path`
+   belong to, using the map from step 1 (e.g. payment code →
+   `docs/payment/README.md`, exercise-import code →
+   `docs/exercise-import/README.md`). A-Guy's source is layered (`src/server`,
+   `src/lib`, `src/ui`, `src/client`, `src/infra`), so map by **feature**, not
+   by a single path prefix.
+   - Touched **no** mapped feature → nothing to flag; move to the next PR.
    - Touched a mapped feature **and also changed that feature's
-     `docs/<feature>/README.md`** in the same PR → author updated the doc.
-     Advance the cursor and exit.
-   - Touched a mapped feature but **left its README untouched** → drift.
-     Continue.
+     `docs/<feature>/README.md`** in the same PR → author updated the doc;
+     move on.
+   - Touched a mapped feature but **left its README untouched** → drift. Do
+     step 5 for it, then move to the next PR.
 5. Dedup, then flag (one issue + one inbox rec per drifted feature):
    - Title: `docs-drift: <feature> (#<pr>)`. If an open issue with that title
      already exists
@@ -61,7 +62,8 @@ record "now" and exit (don't retro-scan history).
        --body "<see body template>"
      ```
    - Post one inbox recommendation (format below).
-6. Advance `data.lastCheckedMergedAt` to this PR's `mergedAt`.
+6. After all PRs are processed, advance `data.lastCheckedMergedAt` to the
+   **newest** processed PR's `mergedAt` (one write, at the end).
 
 ### Issue body template
 
@@ -114,7 +116,8 @@ verb.
 - **Advisory only.** Never edit, commit, or push a doc; never open a PR; never
   merge/approve/label a PR. You flag and recommend — the operator approves the
   edit, the engine writes it.
-- **One PR inspected per tick**, **one issue + one rec** per drifted feature.
+- **Catch up on all PRs merged since the cursor** each tick (batch — it's
+  light bookkeeping), **one issue + one rec** per drifted feature.
 - **Dedup by tracking-issue title** (`docs-drift: <feature> (#<pr>)`); skip if
   an open one already exists.
 - **Never retro-scan**: the first run sets the cursor to "now" and exits. Only
