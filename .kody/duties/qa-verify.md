@@ -8,127 +8,138 @@ mentions: aguyaharonyair
 
 ## Job
 
-Re-check **fix and feature PRs against their own preview** before anyone calls
-them done. A change is only truly delivered when the *changed screen actually
-works* — a reported bug is gone, or a requested feature works as described — not
-when the author's self-written test goes green. This duty closes that loop by
-dispatching the **`ui-review`** executable on each open delivery PR: ui-review
-reads the PR diff + the linked issue, browses the exact changed routes on the
-PR's preview, exercises the loading / empty / **error** states, and returns a
-PASS / CONCERNS / FAIL verdict judged against the linked issue's goal.
+Re-check **fix and feature PRs against their own preview** before they merge,
+then route the result to the inbox for a one-tap merge. A change is only truly
+delivered when the *changed screen actually works* — a reported bug is gone, or
+a requested feature works as described — not when the author's self-written test
+goes green. This duty:
 
-`ui-review` is the right tool here (not `qa-engineer`): it is **diff-scoped** —
-it checks the screen this PR changed — whereas `qa-engineer` free-roams the whole
-app and reports whatever it stumbles on, so it can't tell whether *this* fix
-worked. (Verified 2026-05-27: a qa-engineer-based version missed 4 of 5 targeted
-bugs.) Caveat: ui-review judges what's **visible** on screen, so a purely
-background failure (e.g. a silent network retry with nothing rendered) can slip;
-that's acceptable for a fix-verification backstop.
+1. Dispatches **`ui-review`** on each open delivery PR (the engine's global
+   auto-dispatch on preview-success is off by design, so this duty is the
+   controlled trigger — one at a time). ui-review reads the PR diff + the linked
+   issue, browses the changed routes on the preview, and posts a
+   PASS / CONCERNS / FAIL verdict. The dashboard stamps `kody:ui-verified`
+   (PASS/CONCERNS) or `kody:ui-failed` (FAIL) when the verdict comment lands —
+   **reuse those labels, do not invent new ones.**
+2. On the next tick, acts on the verdict:
+   - **verified** → surface a one-tap **merge** recommendation in the inbox
+     (Approve squash-merges the PR; the dashboard does the merge). **If QA's
+     `merge` action has graduated to auto-trust (10 clean approvals in the
+     `kody:cto-decisions` ledger), merge directly — no inbox round-trip.**
+   - **failed** → surface a `@kody fix --pr <pr>` recommendation (send it back).
 
-A "delivery PR" is an **open** PR linked to an issue — its head branch follows
-the `<issue>-<slug>` convention (or the body says `Fixes/Closes #N`). That
-covers both QA bug findings (`severity:P*` + `goal:qa*`) and feature/enhancement
-issues; ui-review judges each against its own issue's goal (bug gone vs feature
-works). Each PR is re-verified once; the outcome is recorded as a label on the PR:
+`ui-review` is the right tool (not `qa-engineer`): it is **diff-scoped** — it
+checks the screen this PR changed — whereas `qa-engineer` free-roams the whole
+app. (Verified 2026-05-27: a qa-engineer version missed 4 of 5 targeted bugs.)
+Caveat: ui-review judges what's **visible**, so a purely background failure can
+slip; acceptable for a merge-gate backstop.
 
-| Outcome      | PR label                  | Meaning                                      |
-| ------------ | ------------------------- | -------------------------------------------- |
-| **verifying**| `kody:qa-verifying`       | a `ui-review` run is in flight               |
-| **verified** | `kody:qa-verified`        | ui-review verdict PASS — fix works           |
-| **failed**   | `kody:qa-verify-failed`   | verdict CONCERNS/FAIL — sent back to fixer   |
+A "delivery PR" is an **open** PR linked to an issue — head branch
+`<issue>-<slug>` (or body `Fixes/Closes #N`). Covers QA bug findings
+(`severity:P*` + `goal:qa*`) and feature/enhancement issues alike; ui-review
+judges each against its own issue's goal. Skip pure chore/docs PRs and PRs with
+no linked issue.
 
-`disabled: true` only to avoid auto-activating — this repo is already set up:
-`LOGIN_USER` variable + `LOGIN_PASSWORD` secret carry QA credentials, and the
-`.kody/context/*.md` entries tagged for `qa-engineer` carry the route list +
-flows (ui-review reads the same QA context). Flip to `disabled: false` to go
-live; no other setup needed.
+`disabled: true` only to avoid auto-activating — this repo is already set up
+(`LOGIN_USER` + `LOGIN_PASSWORD`, `.kody/context/*.md` QA flows). Flip to
+`disabled: false` to go live.
 
 **Per tick (one action max):**
 
-1. **A review is in flight** (some open PR carries `kody:qa-verifying`) → read
-   that PR's review comments:
-   `gh pr view <pr> --json comments,labels` and look for the `ui-review`
-   comment (starts with `## Verdict:` and `_UI review by kody_`):
-   - **No verdict comment yet, label added < 90 min ago** → emit
+1. **A review is in flight** (`data.inflightPr` set) → read that PR:
+   `gh pr view <pr> --json labels,comments`.
+   - **Carries `kody:ui-verified`** (verdict PASS/CONCERNS) → the change works.
+     **Check the trust ledger first:** read the `kody:cto-decisions` manifest
+     issue (`gh issue list --label kody:cto-decisions --state all --json number`
+     then `gh issue view <n> --json body`, parse the fenced JSON) and look at
+     `staff.qa.merge.mode`:
+     - **`mode === "auto"`** → squash-merge directly:
+       `gh pr merge <pr> --squash --delete-branch`, post a one-line
+       "✅ auto-merged (QA trust)" note. Clear `data.inflightPr`.
+     - **otherwise** → post the **merge recommendation** (format below) on the
+       PR so the operator gets a one-tap Approve. Clear `data.inflightPr`.
+   - **Carries `kody:ui-failed`** (verdict FAIL) → post the **fix recommendation**
+     (format below). Clear `data.inflightPr`.
+   - **Neither label yet, dispatched < 90 min ago** → emit
      `cursor: awaiting-result`, exit.
-   - **Verdict present** → read PASS | CONCERNS | FAIL (the `## Verdict:` line —
-     do not free-text guess):
-     - **PASS** → swap the PR label `kody:qa-verifying` → `kody:qa-verified` and
-       post one **informational** inbox rec (no `kody-cmd:` line — nothing to do).
-     - **CONCERNS / FAIL** → swap `kody:qa-verifying` → `kody:qa-verify-failed`
-       and post one inbox rec whose `kody-cmd:` is
-       `@kody fix --pr <pr> "<one-line: what ui-review found still broken>"` —
-       approving sends the SAME PR back to the fixer. **Never `@kody approve`**.
-   - **Stuck** (no verdict, label added ≥ 90 min ago) → remove
-     `kody:qa-verifying` (the next eligible tick re-dispatches). A stuck review
-     must never wedge the duty.
+   - **Neither, ≥ 90 min** → clear `data.inflightPr` (the next tick re-dispatches).
+     A stuck review must never wedge the duty.
 
    Exit after resolving — that is your single mutation this tick.
 
-2. **Else (nothing in flight)** → pick the **oldest open delivery PR** that is
-   linked to an issue and carries none of the three outcome labels yet:
+2. **Else (nothing in flight)** → pick the **oldest open delivery PR** linked to
+   an issue that carries none of `kody:ui-verified` / `kody:ui-failed` /
+   `kody:reviewing-ui`:
    ```
    gh pr list --state open --json number,headRefName,labels,createdAt
    ```
-   The head branch is `<issue>-...`, so the leading number is the linked issue
-   (QA bug finding **or** feature/enhancement — both qualify; ui-review reads the
-   issue and judges against its goal). Skip PRs with no linked issue number and
-   pure chore/docs PRs. If none qualify, idle. For the chosen PR:
+   The head branch is `<issue>-...`. Skip pure chore/docs PRs and any with no
+   linked issue number. If none qualify, idle. For the chosen PR:
    1. Dispatch the UI review (preview URL auto-resolves from the PR's deployment):
       `gh pr comment <pr> --body "@kody ui-review"`
-   2. Mark the PR in flight: `gh pr edit <pr> --add-label kody:qa-verifying`.
-      Set `data.inflightPr = <pr>`.
+   2. Set `data.inflightPr = <pr>`, `data.inflightSinceISO = now`.
 
-## Inbox recommendation format
+## Inbox recommendation formats
 
 One comment, terse. It **MUST** `@`-mention the operator on the first line —
-that mention is the only thing that routes it into the dashboard inbox:
+that mention is the only thing that routes it into the dashboard inbox — and
+carry the `<!-- kody-staff: qa -->` line (the inbox reads it to show the
+Approve/Reject buttons and to scope the trust ledger).
+
+**Merge rec (verdict PASS/CONCERNS):**
 
 ```
-{{mentions}} 🔁 **QA re-verify** — `<action>`
+{{mentions}} 🧪 **QA result** — `merge`
 
-<one or two sentences: which fix PR, the ui-review verdict, what's still broken (if any)>
+PR #<pr> passed UI review (linked issue #<issue> verified on its preview).
+Approve to squash-merge it.
 
-<!-- kody-cmd: @kody fix --pr <pr> "<what still reproduces>" -->
-
-_Confirm or dismiss in the dashboard inbox. QA will not act on its own._
+<!-- kody-staff: qa -->
 ```
 
-`<action>` is `verified` (PASS — fix confirmed) or `fix` (CONCERNS/FAIL).
+The action verb `merge` on the marker line is what the inbox parses; **no
+`kody-cmd:` line** — `merge` is executed by the dashboard (the GitHub squash
+merge), not by an `@kody` command, and the engine never auto-merges. Approve
+records under `staff.qa.merge` in the ledger; after 10 clean approvals it
+graduates to `auto` and step 1 stops asking.
 
-- **PASS → omit the `kody-cmd:` line entirely.** The fix is confirmed; the rec is
-  informational and the operator just dismisses it.
-- **CONCERNS / FAIL → the `kody-cmd:` line is required:**
-  `@kody fix --pr <pr> "<concern>"`. This re-opens work on the **existing** PR
-  branch with the concern as feedback. The Approve button posts the line
-  verbatim, so it MUST start with `@kody fix --pr`, be one line, ≤ 300 chars.
-  **Never emit `@kody approve`** — the engine has no `approve` verb.
+**Fix rec (verdict FAIL):**
+
+```
+{{mentions}} 🔁 **QA re-verify** — `fix`
+
+PR #<pr> still fails UI review: <one line — what ui-review found broken>.
+
+<!-- kody-staff: qa -->
+<!-- kody-cmd: @kody fix --pr <pr> "<concern>" -->
+```
+
+Approve re-opens work on the existing PR branch with the concern as feedback.
+**Never emit `@kody approve`** — the engine has no `approve` verb.
 
 ## Allowed Commands
 
-- `gh pr list`, `gh pr view`, `gh pr comment` (dispatch `@kody ui-review`),
-  `gh pr edit` (labels only).
-- `gh issue view` (to confirm a PR's linked issue is a QA finding),
-  `gh issue comment` (post the inbox rec on the linked finding issue).
+- `gh pr list`, `gh pr view`, `gh pr comment`, `gh pr merge` (squash, only when
+  the ledger says `mode === "auto"`).
+- `gh issue list`, `gh issue view` (read the `kody:cto-decisions` ledger and
+  confirm a PR's linked issue), `gh issue comment`.
 
 ## Restrictions
 
-- **Advisory on outcomes.** `ui-review` is read-only (it never commits). The
-  `fix` rec is a recommendation only — never merge, approve a PR/review, or run a
-  fix yourself. Labels and the inbox rec are the only writes.
-- **One review in flight at a time.** If any open PR carries `kody:qa-verifying`,
-  never dispatch a second `ui-review` this tick.
-- **Re-verify each PR once.** A PR carrying any of `kody:qa-verified` /
-  `kody:qa-verify-failed` / `kody:qa-verifying` is skipped. The label swap is what
-  stops re-processing.
-- If `gh ... --label kody:qa-verifying` fails because a label is missing, create
-  it (`gh label create kody:qa-verifying ...`, same for the two outcome labels)
-  and retry — the in-flight check depends on it.
+- **Advisory until trusted.** Dispatching `ui-review` is read-only. The merge
+  and fix recs are recommendations the operator confirms — **the only time this
+  duty merges on its own is when the ledger has already graduated `qa.merge` to
+  `auto` (10 human approvals).** Never approve a PR review, never edit code.
+- **One review in flight at a time.** If `data.inflightPr` is set, never
+  dispatch a second `ui-review` this tick.
+- **Re-verify each PR once.** A PR carrying `kody:ui-verified` / `kody:ui-failed`
+  / `kody:reviewing-ui` is skipped in step 2.
 - All writes go through `gh` — never `git commit`/`git push`, never open a PR.
 
 ## State
 
 - `cursor`: `idle` | `awaiting-result`.
 - `data.inflightPr`: number | null — the PR currently under review.
+- `data.inflightSinceISO`: ISO timestamp of the dispatch (for the 90-min stall).
 - `data.nextEligibleISO`: always emit — surfaced as "next run" on the dashboard.
 - `done`: always `false` — QA is evergreen.
