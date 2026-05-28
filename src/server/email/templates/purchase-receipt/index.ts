@@ -6,5 +6,5 @@
  * @pattern purchase-receipt
  */
 
-export { PurchaseReceiptEmailEN, type PurchaseReceiptData } from './purchase-receipt.en'
-export { PurchaseReceiptEmailHE } from './purchase-receipt.he'
+export { buildPurchaseReceiptEmailEN, type PurchaseReceiptData } from './purchase-receipt.en'
+export { buildPurchaseReceiptEmailHE } from './purchase-receipt.he'
