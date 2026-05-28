@@ -45,6 +45,7 @@ vi.mock('@/app/(frontend)/account/_components/TeachersProfileSection', () => ({
 // Import after mocks
 const mockUser: User = {
   id: 'user-1',
+  collection: 'users',
   email: 'test@example.com',
   name: 'Test User',
   role: 'student',
