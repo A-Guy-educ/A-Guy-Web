@@ -19,6 +19,7 @@ import config from '@payload-config'
 import { cancelPayPalOrder, createPayPalOrder } from '@/lib/payment/paypal'
 import { cancelStripeCheckout, createStripeCheckout } from '@/lib/payment/stripe'
 import { checkAuthenticatedRateLimit } from '@/server/services/rate-limit'
+import { AccountRole } from '@/server/payload/collections/Users/roles'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -39,14 +40,11 @@ function extractTenantId(tenantValue: unknown): string | null {
 
 /**
  * Checks if the user has super-admin privileges (for cross-tenant access).
- * Returns true if the user's role includes 'super-admin'.
+ * Returns true if the user's role is AccountRole.Admin (the actual field returned by payload.auth()).
  */
-function isSuperAdmin(user: { roles?: unknown } | null): boolean {
-  if (!user?.roles) return false
-  if (Array.isArray(user.roles)) {
-    return user.roles.includes('super-admin')
-  }
-  return false
+function isSuperAdmin(user: { role?: unknown } | null): boolean {
+  if (!user?.role) return false
+  return user.role === AccountRole.Admin
 }
 
 // Rate limit: 10 requests per 5 minutes per authenticated user
@@ -72,7 +70,7 @@ export async function POST(request: NextRequest) {
   }
 
   // 2. Per-user rate limit (skip for super-admins who may spike during testing)
-  if (!isSuperAdmin(user as { roles?: unknown } | null)) {
+  if (!isSuperAdmin(user as { role?: unknown } | null)) {
     const rateLimitResult = checkAuthenticatedRateLimit(
       user.id,
       '/api/payments/checkout',
@@ -139,7 +137,7 @@ export async function POST(request: NextRequest) {
   // A product with a tenant can only be purchased by users in the same tenant.
   // Super-admin users bypass this check.
   // Fail-closed: null-tenant non-super-admin users cannot buy tenant-scoped products.
-  if (!isSuperAdmin(user as { roles?: unknown } | null)) {
+  if (!isSuperAdmin(user as { role?: unknown } | null)) {
     const productTenantId = extractTenantId((product as { tenant?: unknown }).tenant)
     const userTenantId = extractTenantId((user as { tenant?: unknown })?.tenant)
 
@@ -290,7 +288,7 @@ export async function POST(request: NextRequest) {
     // A coupon with a tenant can only be used by users in the same tenant.
     // Super-admin users bypass this check.
     // Fail-closed: null-tenant non-super-admin users cannot use tenant-scoped coupons.
-    if (!isSuperAdmin(user as { roles?: unknown } | null)) {
+    if (!isSuperAdmin(user as { role?: unknown } | null)) {
       const couponTenantId = extractTenantId((coupon as { tenant?: unknown }).tenant)
       const userTenantId = extractTenantId((user as { tenant?: unknown })?.tenant)
 
