@@ -21,7 +21,7 @@ import { getPayload } from 'payload'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 
-import { startMongoContainer, stopMongoContainer } from '@/infra/utils/test/mongodb-container'
+import { startMongoContainer } from '@/infra/utils/test/mongodb-container'
 import { AccountRole } from '@/server/payload/collections/Users/roles'
 import { clearAllRateLimits } from '@/server/services/rate-limit'
 
@@ -99,18 +99,25 @@ beforeAll(async () => {
   studentUserEmail = studentEmail
   createdUserIds.push(studentUser.id)
 
-  // Create super-admin user (exempt from rate limit)
-  // The isSuperAdmin check looks for user.role === AccountRole.Admin ('admin').
-  // role is savedToJWT so payload.auth() includes it in the decoded user object.
+  // Create super-admin user (exempt from rate limit).
+  // NOTE: Users.role has a beforeChange hook (`ensureRoleOnSignup`) that forces
+  // role='student' on every create, ignoring whatever the caller passes —
+  // even with overrideAccess. To get an actual admin you MUST create first,
+  // then update the role in a separate call (update respects the value).
   const superAdminEmail = `superadmin-ratelimit-${Date.now()}@example.com`
   const superAdminUser = await payload.create({
     collection: 'users',
     data: {
       email: superAdminEmail,
       password: 'test123456',
-      role: AccountRole.Admin,
       tenant: tenant.id,
     } as any,
+    overrideAccess: true,
+  })
+  await payload.update({
+    collection: 'users',
+    id: superAdminUser.id,
+    data: { role: AccountRole.Admin } as any,
     overrideAccess: true,
   })
   superAdminUserId = superAdminUser.id
