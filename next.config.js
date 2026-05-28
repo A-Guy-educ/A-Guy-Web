@@ -100,7 +100,6 @@ const nextConfig = {
       'react-hook-form',
     ],
   },
-  eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: true },
   outputFileTracingExcludes: {
     '*': ['**/node_modules/@swc/core*/**/*'],
