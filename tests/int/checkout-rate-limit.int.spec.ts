@@ -100,8 +100,8 @@ beforeAll(async () => {
   createdUserIds.push(studentUser.id)
 
   // Create super-admin user (exempt from rate limit)
-  // Note: the isSuperAdmin check looks for user.roles array containing 'super-admin'
-  // We create the user with an additional roles field to simulate a super-admin
+  // The isSuperAdmin check looks for user.role === AccountRole.Admin ('admin').
+  // role is savedToJWT so payload.auth() includes it in the decoded user object.
   const superAdminEmail = `superadmin-ratelimit-${Date.now()}@example.com`
   const superAdminUser = await payload.create({
     collection: 'users',
@@ -110,7 +110,6 @@ beforeAll(async () => {
       password: 'test123456',
       role: AccountRole.Admin,
       tenant: tenant.id,
-      roles: ['super-admin'],
     } as any,
     overrideAccess: true,
   })
@@ -286,8 +285,8 @@ describe.skipIf(!process.env.DATABASE_URL)('Checkout Rate Limiting', () => {
 
   /**
    * Test 4: Super-admin user is exempt from rate limiting.
-   * We create a user with roles: ['super-admin'] and verify all 15 requests succeed.
-   * Note: This test depends on the isSuperAdmin function correctly detecting super-admin status.
+   * The super-admin user has role: AccountRole.Admin ('admin') which is included in the JWT.
+   * isSuperAdmin checks user.role === AccountRole.Admin, exempting them from rate limiting.
    */
   it('should exempt super-admin users from rate limiting', async () => {
     // Clear any rate limit state from previous tests
