@@ -40,11 +40,14 @@ function extractTenantId(tenantValue: unknown): string | null {
 
 /**
  * Checks if the user has super-admin privileges (for cross-tenant access).
- * Returns true if the user's role is AccountRole.Admin (the actual field returned by payload.auth()).
+ * Checks both the singular role field (AccountRole.Admin) and the roles array
+ * ('super-admin' string) for backward compatibility with payload.auth() returns.
  */
-function isSuperAdmin(user: { role?: unknown } | null): boolean {
-  if (!user?.role) return false
-  return user.role === AccountRole.Admin
+function isSuperAdmin(user: { role?: unknown; roles?: unknown } | null): boolean {
+  if (!user) return false
+  if (user.role === AccountRole.Admin) return true
+  if (Array.isArray(user.roles) && user.roles.includes('super-admin')) return true
+  return false
 }
 
 // Rate limit: 10 requests per 5 minutes per authenticated user
