@@ -3,6 +3,7 @@
 import { cn } from '@/infra/utils/ui'
 import { useMediaQuery } from '@/server/payload/hooks/useMediaQuery'
 import { ResizablePane } from '@/ui/web/components/resizable-pane'
+import { MobileChatFAB } from '@/ui/web/chat/MobileChatFAB'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 
 interface SplitPaneLayoutProps {
@@ -39,6 +40,7 @@ export function SplitPaneLayout({
   const [chatExpandedInPdf, setChatExpandedInPdf] = useState(false)
   const [pdfHeightPercent, setPdfHeightPercent] = useState(defaultSize)
   const [isDragging, setIsDragging] = useState(false)
+  const [fabPanelOpen, setFabPanelOpen] = useState(false)
 
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -75,6 +77,14 @@ export function SplitPaneLayout({
     window.addEventListener('exercise-incorrect-answer', handleIncorrectAnswer)
     return () => window.removeEventListener('exercise-incorrect-answer', handleIncorrectAnswer)
   }, [isDesktop, viewMode])
+
+  const handleFabPanelOpen = useCallback(() => {
+    setFabPanelOpen(true)
+  }, [])
+
+  const handleFabPanelClose = useCallback(() => {
+    setFabPanelOpen(false)
+  }, [])
 
   const handleModeToggle = useCallback(() => {
     setViewMode((prev) => {
@@ -205,13 +215,11 @@ export function SplitPaneLayout({
         </div>
       )}
 
-      <div
-        className={cn(
-          'bg-background flex flex-col overflow-hidden relative',
-          viewMode === 'CHAT' && 'flex-1',
-          viewMode === 'PDF' && !chatExpandedInPdf && 'flex-shrink-0 h-auto',
-          viewMode === 'PDF' && chatExpandedInPdf && 'flex-1',
-        )}
+      {/* Mobile: Use FAB-based chat panel instead of inline chat */}
+      <MobileChatFAB
+        isOpen={fabPanelOpen}
+        onOpen={handleFabPanelOpen}
+        onClose={handleFabPanelClose}
       >
         {React.cloneElement(
           chatContent as React.ReactElement<{
@@ -220,20 +228,24 @@ export function SplitPaneLayout({
             isMobile?: boolean
             viewMode?: ViewMode
             onModeToggle?: () => void
+            fabOpen?: boolean
           }>,
           {
             onChatInteraction: handleChatExpand,
             displayMode:
               viewMode === 'CHAT' || (viewMode === 'PDF' && chatExpandedInPdf)
                 ? 'full'
-                : ('input-only' as const),
+                : fabPanelOpen
+                  ? 'full'
+                  : ('input-only' as const),
             isMobile: true,
             viewMode,
             onModeToggle: handleModeToggle,
+            fabOpen: fabPanelOpen,
           },
         )}
-        {isDragging && <div className="absolute inset-0 z-10" />}
-      </div>
+      </MobileChatFAB>
+      {isDragging && <div className="absolute inset-0 z-10" />}
     </div>
   )
 }

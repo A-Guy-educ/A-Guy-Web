@@ -1,0 +1,21 @@
+{
+  "taskId": "2192",
+  "taskType": "issue",
+  "target": "2192",
+  "outcome": "success",
+  "exitCode": 0,
+  "reason": "Implemented mobile chat FAB with bottom panel, translations, and tests",
+  "prUrl": null,
+  "runUrl": null,
+  "filesTouched": [
+    "src/ui/web/chat/MobileChatFAB/index.tsx",
+    "src/ui/web/components/split-pane-layout.tsx",
+    "src/ui/web/chat/ChatInterface/index.tsx",
+    "src/i18n/en.json",
+    "src/i18n/he.json",
+    "tests/unit/components/MobileChatFAB.test.tsx"
+  ],
+  "sessionLog": ".kody/sessions/2192.jsonl",
+  "startedAt": "2026-05-29T12:00:00.000Z",
+  "finishedAt": "2026-05-29T12:10:00.000Z"
+}
