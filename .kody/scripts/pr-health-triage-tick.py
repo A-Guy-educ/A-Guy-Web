@@ -231,13 +231,31 @@ def recommend(pr_number: int, verb: str, reason: str, operator: str | None) -> b
 
 
 def auto_run(pr_number: int, verb: str, reason: str) -> bool:
-    """Dispatch comment + a silent, mention-free audit comment."""
-    if not post_comment(pr_number, f"@kody {verb} --pr {pr_number}"):
-        return False
+    """Dispatch the repair via workflow_dispatch + leave a silent audit comment.
+
+    Why not `@kody <verb> --pr <n>` as a comment? The engine drops bot-authored
+    `@kody` comments to break self-dispatch loops, so the comment fired but
+    never executed — every auto-run was a no-op. workflow_dispatch is the
+    cross-run bot-to-engine path (same shape goal-tick uses for stacked PRs);
+    the engine resolves the executable's declared int input name and forwards
+    `issue_number` as `--pr <n>` for PR primitives.
+    """
+    if DRY_RUN:
+        log(f"[dry-run] would dispatch kody.yml executable={verb} issue_number={pr_number}")
+    else:
+        res = gh([
+            "workflow", "run", "kody.yml",
+            "-f", f"executable={verb}",
+            "-f", f"issue_number={pr_number}",
+        ])
+        if res.returncode != 0:
+            log(f"workflow_dispatch failed for #{pr_number} ({verb}): {res.stderr.strip()}")
+            return False
     audit = (
         f"🧭 **CTO auto-ran** — `{verb}`\n\n"
-        f"Ran `@kody {verb} --pr {pr_number}` ({reason}). Graduated: operator "
-        f"approved `{verb}` repeatedly. A **Reject** on any `{verb}` returns me to asking."
+        f"Dispatched `{verb}` on PR #{pr_number} via workflow_dispatch ({reason}). "
+        f"Graduated: operator approved `{verb}` repeatedly. A **Reject** on any "
+        f"`{verb}` returns me to asking."
     )
     return post_comment(pr_number, audit)
 
