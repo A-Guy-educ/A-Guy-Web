@@ -37,6 +37,12 @@ export function setAuthCookie(res: NextResponse, payload: Payload, value: string
   // Also set Set-Cookie header directly (backup method for redirects)
   const sameSiteValue =
     cookieOptions.sameSite === 'lax' ? 'Lax' : cookieOptions.sameSite === 'none' ? 'None' : 'Strict'
+  // CHIPS: the manual Set-Cookie path mirrors AUTH_COOKIE_OPTIONS so the
+  // backup write also produces a partitioned cookie. Required for the
+  // cookie to be honored inside the Kody dashboard's cross-origin
+  // preview iframe (3PC deprecation).
+  const partitioned =
+    'partitioned' in cookieOptions && (cookieOptions as { partitioned?: boolean }).partitioned
   const cookieString = [
     `${cookieName}=${value}`,
     `Path=${cookieOptions.path}`,
@@ -44,6 +50,7 @@ export function setAuthCookie(res: NextResponse, payload: Payload, value: string
     cookieOptions.httpOnly ? 'HttpOnly' : '',
     cookieOptions.secure ? 'Secure' : '',
     `SameSite=${sameSiteValue}`,
+    partitioned ? 'Partitioned' : '',
     cookieOptions.domain ? `Domain=${cookieOptions.domain}` : '',
   ]
     .filter(Boolean)
