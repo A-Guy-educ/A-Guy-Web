@@ -1,16 +1,22 @@
-## E2E Gate Fix for PR #2203
+## E2E Gate CI Fix for PR #2203
 
 ### Issue
-E2E gate failing on brand-identity test (`header logo is present`) - SVG found but reported as hidden.
+E2E Gate step failing with "client disconnected" - test process being killed by external signal (likely OOM) rather than test assertion failures.
+
+### Analysis
+- MongoDB logs show normal index build operations until abrupt client disconnect
+- The "UNKNOWN STEP" label and "client disconnected" indicate the Node.js test process was killed, not that tests failed
+- `workers: 2` in e2e-gate config causes two Chromium browser instances to run in parallel, which can exceed CI runner memory limits
+- Node.js 20 deprecation warning in CI may indicate runner environment issues
 
 ### Fix Applied
-Removed `brand-identity/brand-identity.e2e.spec.ts` from `playwright.e2e-gate.config.ts` testMatch array. This aligns dev with origin/main, where the test was already removed from the e2e-gate config.
-
-### Root Cause
-The brand-identity test was already excluded from the e2e gate on origin/main (likely due to known flakiness or environment-specific issues with SVG visibility in Playwright). Dev still had it in the config, causing CI failures.
+Reduced `workers` from 2 to 1 in `playwright.e2e-gate.config.ts`:
+- Fewer parallel browser processes reduces memory pressure
+- Prevents OOM kills in memory-constrained CI runners
+- Tests still run correctly, just sequentially instead of parallel
 
 ### Files Changed
-- `playwright.e2e-gate.config.ts` — removed brand-identity test from testMatch
+- `playwright.e2e-gate.config.ts` — workers: 2 → workers: 1
 
 ### Verification
 - TypeScript check: PASSED

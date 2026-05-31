@@ -29,7 +29,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: 2,
   maxFailures: 10,
-  workers: 2,
+  workers: 1,
   reporter: 'html',
   use: {
     baseURL: process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000',
