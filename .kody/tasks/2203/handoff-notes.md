@@ -1,25 +1,20 @@
-## E2E Gate CI Fix for PR #2203
+## Root Cause
 
-### Issue
-E2E Gate step failing with "client disconnected" - test process being killed by external signal (likely OOM) rather than test assertion failures.
+The CI E2E Gate job was failing because the `webServer` command in `playwright.e2e-gate.config.ts` checked for `.next` directory existence (`test -d .next`) before starting the production server. However, the CI build job's cache restoration can produce an incomplete `.next` directory (directory exists but missing `BUILD_ID` and other build artifacts). When `next start` ran against an incomplete build, it failed with "Could not find a production build in the '.next' directory".
 
-### Analysis
-- MongoDB logs show normal index build operations until abrupt client disconnect
-- The "UNKNOWN STEP" label and "client disconnected" indicate the Node.js test process was killed, not that tests failed
-- `workers: 2` in e2e-gate config causes two Chromium browser instances to run in parallel, which can exceed CI runner memory limits
-- Node.js 20 deprecation warning in CI may indicate runner environment issues
+## Fix Applied
 
-### Fix Applied
-Reduced `workers` from 2 to 1 in `playwright.e2e-gate.config.ts`:
-- Fewer parallel browser processes reduces memory pressure
-- Prevents OOM kills in memory-constrained CI runners
-- Tests still run correctly, just sequentially instead of parallel
+Changed the webServer command from:
+```
+'(test -d .next || pnpm build) && pnpm start'
+```
+to:
+```
+'(test -f .next/BUILD_ID || pnpm build) && pnpm start'
+```
 
-### Files Changed
-- `playwright.e2e-gate.config.ts` — workers: 2 → workers: 1
+This ensures that if the `.next` directory exists but is missing the `BUILD_ID` file (indicating an incomplete or corrupted cache restore), the build will be re-run before attempting to start the server.
 
-### Verification
-- TypeScript check: PASSED
-- ESLint: PASSED
-- Format check: PASSED
-- Quality gates: PASSED via mcp__kody-verify__verify
+## Verification
+
+All quality gates pass: typecheck, lint, and tests pass locally.

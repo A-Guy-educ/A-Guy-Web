@@ -1,14 +1,14 @@
 {
   "taskId": "2203",
   "taskType": "pr",
-  "target": "PR #2203 (dev → main, v0.25.10)",
+  "target": "CI E2E Gate failure on PR #2203",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Reduced e2e-gate workers from 2 to 1 to prevent memory exhaustion causing test process to be killed by OOM in CI",
-  "prUrl": null,
-  "runUrl": null,
+  "reason": "Fixed webServer command to check for BUILD_ID instead of just .next directory existence",
+  "prUrl": "https://github.com/A-Guy-educ/A-Guy/pull/2203",
+  "runUrl": "https://github.com/A-Guy/A-Guy/actions/runs/26715320895",
   "filesTouched": ["playwright.e2e-gate.config.ts"],
-  "sessionLog": ".kody/sessions/2203.jsonl",
-  "startedAt": "2026-05-31T21:17:00Z",
-  "finishedAt": "2026-05-31T21:18:00Z"
+  "sessionLog": ".kody/sessions/17e90593-a5f3-4cca-8017-ae74e2994d29.jsonl",
+  "startedAt": "2026-05-31T22:15:48.498Z",
+  "finishedAt": "2026-05-31T22:21:48.471Z"
 }
