@@ -1,0 +1,17 @@
+{
+  "taskId": "2224",
+  "taskType": "pr",
+  "target": "2220-make-coupons-admin-form-accept-fixed-amounts-in-sh",
+  "outcome": "success",
+  "exitCode": 0,
+  "reason": "Fixed two bugs: (1) beforeChange hook had threshold <10000 preventing multiplication of values >=10000, but afterRead always divides — removed threshold. (2) Tests 1 and 3 checked create()/update() return values (afterRead-transformed) but expected stored values — changed to use findByID for stored value checks.",
+  "prUrl": null,
+  "runUrl": null,
+  "filesTouched": [
+    "src/server/payload/collections/Coupons.ts",
+    "tests/int/coupons.int.spec.ts"
+  ],
+  "sessionLog": ".kody/sessions/2224.jsonl",
+  "startedAt": "2026-05-31T13:10:00.000Z",
+  "finishedAt": "2026-05-31T13:15:00.000Z"
+}

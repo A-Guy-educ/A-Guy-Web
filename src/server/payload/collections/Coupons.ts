@@ -70,11 +70,8 @@ export const Coupons: CollectionConfig = {
 
         if (data.discountType === 'fixed') {
           // Convert shekels → agorot (×100) for storage.
-          // Threshold: values < 10000 are assumed to be shekels entered by the admin;
-          // values ≥ 10000 are assumed to already be in agorot (legacy/corrected).
-          if ((data.discountValue ?? 0) < 10000) {
-            data.discountValue = Math.round((data.discountValue ?? 0) * 100)
-          }
+          // Always multiply: admin enters shekels, we store in agorot.
+          data.discountValue = Math.round((data.discountValue ?? 0) * 100)
 
           // Warn on suspiciously large fixed values (> 100,000 shekels / 10M agorot)
           // — likely admin entered agorot by mistake instead of shekels.

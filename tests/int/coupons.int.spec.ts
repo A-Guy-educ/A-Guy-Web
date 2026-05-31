@@ -1273,7 +1273,13 @@ describe.skipIf(!hasDatabaseUrl)('Coupons Collection', () => {
       trackCoupon(coupon.id)
 
       // Stored value should be 30 shekels = 3000 agorot
-      expect(coupon.discountValue).toBe(3000)
+      // Use findByID because create() returns the afterRead-transformed value (30)
+      const stored = await payload.findByID({
+        collection: 'coupons',
+        id: coupon.id,
+        overrideAccess: true,
+      })
+      expect(stored.discountValue).toBe(3000)
     })
 
     it('should convert stored agorot back to shekels on afterRead (÷ 100)', async () => {
@@ -1329,15 +1335,16 @@ describe.skipIf(!hasDatabaseUrl)('Coupons Collection', () => {
       trackCoupon(created.id)
 
       // Stored as 3000 agorot
-      expect(created.discountValue).toBe(3000)
-
-      // Read back - afterRead converts to shekels (30)
-      const read = await payload.findByID({
+      // Use findByID because create() returns the afterRead-transformed value (30)
+      const storedAfterCreate = await payload.findByID({
         collection: 'coupons',
         id: created.id,
         overrideAccess: true,
       })
-      expect(read.discountValue).toBe(30)
+      expect(storedAfterCreate.discountValue).toBe(3000)
+
+      // Read back - afterRead converts to shekels (30)
+      expect(created.discountValue).toBe(30)
 
       // Update without changing discountValue (simulates save with no changes)
       // The form would send 30 (the shekel display value)
@@ -1350,7 +1357,13 @@ describe.skipIf(!hasDatabaseUrl)('Coupons Collection', () => {
       })
 
       // Should still be 3000 in storage (30 × 100)
-      expect(updated.discountValue).toBe(3000)
+      // Use findByID because update() returns the afterRead-transformed value (30)
+      const storedAfterUpdate = await payload.findByID({
+        collection: 'coupons',
+        id: created.id,
+        overrideAccess: true,
+      })
+      expect(storedAfterUpdate.discountValue).toBe(3000)
 
       // Persisted correctly
       const reRead = await payload.findByID({
