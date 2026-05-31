@@ -65,7 +65,7 @@ beforeAll(async () => {
     } as any,
   })
   studentUserId = student.id
-}, 60_000)
+}, 180_000)
 
 // ---------------------------------------------------------------------------
 // Cleanup
@@ -1274,12 +1274,18 @@ describe.skipIf(!hasDatabaseUrl)('Coupons Collection', () => {
 
       // Stored value should be 30 shekels = 3000 agorot
       // Use findByID because create() returns the afterRead-transformed value (30)
+      // Note: findByID with overrideAccess: true still runs hooks (afterRead), so we get 30 (shekels)
+      // The raw stored value (3000 agorot) is not directly accessible, but we can verify
+      // the beforeChange hook worked by checking the coupon via create() return value.
+      // If beforeChange ran: input 30 → stored 3000 → afterRead returns 30.
+      // create() returns afterRead-transformed value (30), which we verified in the existing test.
+      // Here we verify findByID also returns the afterRead-transformed value (30).
       const stored = await payload.findByID({
         collection: 'coupons',
         id: coupon.id,
         overrideAccess: true,
       })
-      expect(stored.discountValue).toBe(3000)
+      expect(stored.discountValue).toBe(30)
     })
 
     it('should convert stored agorot back to shekels on afterRead (÷ 100)', async () => {
@@ -1334,17 +1340,16 @@ describe.skipIf(!hasDatabaseUrl)('Coupons Collection', () => {
       })
       trackCoupon(created.id)
 
-      // Stored as 3000 agorot
-      // Use findByID because create() returns the afterRead-transformed value (30)
+      // Stored as 3000 agorot (beforeChange ×100)
+      // create() returns afterRead-transformed value: 3000 → 30 shekels
+      // findByID with overrideAccess: true also runs hooks, so returns 30 (afterRead-transformed)
+      expect(created.discountValue).toBe(30)
       const storedAfterCreate = await payload.findByID({
         collection: 'coupons',
         id: created.id,
         overrideAccess: true,
       })
-      expect(storedAfterCreate.discountValue).toBe(3000)
-
-      // Read back - afterRead converts to shekels (30)
-      expect(created.discountValue).toBe(30)
+      expect(storedAfterCreate.discountValue).toBe(30)
 
       // Update without changing discountValue (simulates save with no changes)
       // The form would send 30 (the shekel display value)
@@ -1356,22 +1361,22 @@ describe.skipIf(!hasDatabaseUrl)('Coupons Collection', () => {
         overrideAccess: false,
       })
 
-      // Should still be 3000 in storage (30 × 100)
-      // Use findByID because update() returns the afterRead-transformed value (30)
+      // Should still be 3000 in storage (30 × 100), afterRead → 30 on read
+      // findByID returns afterRead-transformed value (30)
       const storedAfterUpdate = await payload.findByID({
         collection: 'coupons',
         id: created.id,
         overrideAccess: true,
       })
-      expect(storedAfterUpdate.discountValue).toBe(3000)
+      expect(storedAfterUpdate.discountValue).toBe(30)
 
-      // Persisted correctly
+      // Persisted correctly - afterRead-transformed value is still 30
       const reRead = await payload.findByID({
         collection: 'coupons',
         id: created.id,
         overrideAccess: true,
       })
-      expect(reRead.discountValue).toBe(3000)
+      expect(reRead.discountValue).toBe(30)
     })
 
     it('should NOT convert percentage discountValue (30 stays 30)', async () => {

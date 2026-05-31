@@ -1,40 +1,53 @@
-# Handoff Notes — PR #2224 CI Fix
+# Handoff Notes — PR #2224 CI Fix (Session 2)
 
 ## Root Cause
 
-Two bugs caused the 4 failing tests:
+Two issues caused the CI failures:
 
-1. **Threshold bug in beforeChange hook** (`Coupons.ts`): The hook had `if ((data.discountValue ?? 0) < 10000)` before multiplying by 100. Values ≥ 10000 were NOT multiplied, but `afterRead` always divides by 100 for fixed coupons. This caused values like 50000 shekels to be stored as 50000 (not multiplied) then divided to 500 by afterRead — wrong!
+1. **beforeAll timeout too short** (`coupons.int.spec.ts` line 68): The `beforeAll` hook had a hardcoded `60_000` (60s) timeout, but the global vitest config has `hookTimeout: 180000`. In CI, the longer timeout allowed beforeAll to complete. Locally, the 60s timeout caused beforeAll to fail, skipping all 52 tests.
 
-2. **Test assertion bug** (`coupons.int.spec.ts`): Tests 1 and 3 checked `created.discountValue` and `updated.discountValue` (which are afterRead-transformed values returned by create/update) but expected the stored value. `create()` and `update()` return documents after `afterRead` hooks run, so they return the shekel value (30), not the stored agorot value (3000).
+2. **Test expectations incorrect** (`coupons.int.spec.ts`): The tests expected `findByID({ overrideAccess: true })` to return raw stored values (3000), but `overrideAccess: true` only bypasses access control — hooks still run. So `findByID` returns the afterRead-transformed value (30), not the raw stored value (3000).
+
+## Key Insight: `overrideAccess: true` Does NOT Bypass Hooks
+
+From the existing passing test at line 1314:
+```typescript
+// Read via findByID (with overrideAccess: true to bypass hooks?)
+// Actually afterRead runs on all reads, so discountValue should be in shekels
+const read = await payload.findByID({ collection: 'coupons', id: coupon.id, overrideAccess: true })
+expect(read.discountValue).toBe(50)  // afterRead-transformed value
+```
+
+This confirms: `overrideAccess: true` bypasses access control only, NOT hooks. All hooks (beforeChange, afterRead, etc.) still run on all operations.
 
 ## Fixes Applied
 
-### 1. Removed threshold in beforeChange (Coupons.ts)
+### 1. Increased beforeAll timeout (coupons.int.spec.ts)
 
 Changed:
 ```typescript
-if ((data.discountValue ?? 0) < 10000) {
-  data.discountValue = Math.round((data.discountValue ?? 0) * 100)
-}
+}, 60_000)  // line 68
 ```
 To:
 ```typescript
-data.discountValue = Math.round((data.discountValue ?? 0) * 100)
+}, 180_000)
 ```
 
-Always multiply by 100 for fixed coupons. The idempotency is preserved because: admin enters 30 → stored 3000 → displayed 30 (afterRead ÷100) → admin saves 30 → stored 3000 (×100) → displayed 30 (÷100). No double-multiplication.
+### 2. Corrected test expectations (coupons.int.spec.ts)
 
-### 2. Fixed test assertions to use findByID (coupons.int.spec.ts)
+Changed expectations from `3000` to `30` for all `findByID` assertions:
+- Line 1288: `expect(stored.discountValue).toBe(3000)` → `toBe(30)`
+- Line 1352: `expect(storedAfterCreate.discountValue).toBe(3000)` → `toBe(30)`
+- Line 1377: `expect(storedAfterUpdate.discountValue).toBe(3000)` → `toBe(30)`
+- Line 1385: `expect(reRead.discountValue).toBe(3000)` → `toBe(30)`
 
-Changed `expect(coupon.discountValue).toBe(3000)` to use `findByID` to get the stored value:
-```typescript
-const stored = await payload.findByID({ collection: 'coupons', id: coupon.id, overrideAccess: true })
-expect(stored.discountValue).toBe(3000)
-```
-
-Same fix applied to round-trip test for both create and update assertions.
+The round-trip logic is verified by:
+- `created.discountValue` (line 1346) correctly being 30 (afterRead-transformed)
+- The beforeChange ×100 multiplication is implied: input 30 → stored 3000 → afterRead ÷100 → 30 returned
+- If beforeChange hadn't multiplied, afterRead would compute 0.3 (not 30) for fixed coupons
 
 ## Verification
 
-- `pnpm ci:local` passed (typecheck, lint, integration tests)
+- All 52 tests in coupons.int.spec.ts pass
+- `pnpm typecheck` passes
+- `pnpm lint` passes (1 pre-existing warning in LatexDocumentViewer)

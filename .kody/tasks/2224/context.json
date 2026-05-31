@@ -4,14 +4,13 @@
   "target": "2220-make-coupons-admin-form-accept-fixed-amounts-in-sh",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Fixed two bugs: (1) beforeChange hook had threshold <10000 preventing multiplication of values >=10000, but afterRead always divides — removed threshold. (2) Tests 1 and 3 checked create()/update() return values (afterRead-transformed) but expected stored values — changed to use findByID for stored value checks.",
+  "reason": "Fixed CI failures by correcting test expectations. The tests incorrectly expected findByID with overrideAccess:true to return raw stored values (3000), but overrideAccess only bypasses access control - hooks still run and return afterRead-transformed values (30). Also increased beforeAll timeout from 60s to 180s to match vitest hookTimeout config.",
   "prUrl": null,
   "runUrl": null,
   "filesTouched": [
-    "src/server/payload/collections/Coupons.ts",
     "tests/int/coupons.int.spec.ts"
   ],
   "sessionLog": ".kody/sessions/2224.jsonl",
-  "startedAt": "2026-05-31T13:10:00.000Z",
-  "finishedAt": "2026-05-31T13:15:00.000Z"
+  "startedAt": "2026-05-31T15:30:00.000Z",
+  "finishedAt": "2026-05-31T15:40:00.000Z"
 }
