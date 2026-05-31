@@ -20,6 +20,10 @@ import {
   afterReadCouponUsageDisplay,
   afterReadCouponExpiresDisplay,
 } from '../hooks/coupons/computeListDisplayFields-hook'
+import {
+  afterReadDiscountValue,
+  afterReadCouponDiscountDisplay,
+} from '../hooks/coupons/discountValue-hook'
 
 export const Coupons: CollectionConfig = {
   slug: 'coupons',
@@ -29,6 +33,7 @@ export const Coupons: CollectionConfig = {
       'code',
       'status',
       'usageDisplay',
+      'discountDisplay',
       'discountType',
       'discountValue',
       'expiresDisplay',
@@ -52,7 +57,7 @@ export const Coupons: CollectionConfig = {
   },
   hooks: {
     beforeChange: [
-      ({ data }) => {
+      ({ data, req }) => {
         if (!data) return data
 
         if (typeof data.code === 'string') {
@@ -61,6 +66,24 @@ export const Coupons: CollectionConfig = {
 
         if (data.discountType === 'percentage' && (data.discountValue ?? 0) > 100) {
           throw new Error('Percentage discount cannot exceed 100%')
+        }
+
+        if (data.discountType === 'fixed') {
+          // Convert shekels → agorot (×100) for storage.
+          // Threshold: values < 10000 are assumed to be shekels entered by the admin;
+          // values ≥ 10000 are assumed to already be in agorot (legacy/corrected).
+          if ((data.discountValue ?? 0) < 10000) {
+            data.discountValue = Math.round((data.discountValue ?? 0) * 100)
+          }
+
+          // Warn on suspiciously large fixed values (> 100,000 shekels / 10M agorot)
+          // — likely admin entered agorot by mistake instead of shekels.
+          if ((data.discountValue ?? 0) > 10_000_000) {
+            req.payload.logger.warn(
+              { couponCode: data.code, discountValue: data.discountValue },
+              `Suspicious fixed discount value ${data.discountValue} on coupon "${data.code}" — may indicate agorot was entered instead of shekels.`,
+            )
+          }
         }
 
         if (data.validFrom && data.validUntil) {
@@ -96,7 +119,7 @@ export const Coupons: CollectionConfig = {
       ],
       admin: {
         description:
-          'Percentage: discountValue is a percent (0-100). Fixed: discountValue is in agorot.',
+          'Percentage: discountValue is a percent (0–100). Fixed: discountValue is in ILS (e.g. 30 = ₪30 off).',
       },
     },
     {
@@ -105,7 +128,12 @@ export const Coupons: CollectionConfig = {
       required: true,
       min: 0,
       admin: {
-        description: 'Percentage (0-100) or fixed amount in agorot, depending on discountType',
+        description:
+          'Percentage: % off (0–100, e.g. 30 = 30% off). Fixed: ILS amount off (e.g. 30 = ₪30 off, stored as agorot).',
+      },
+      hooks: {
+        // Convert stored agorot → shekels for display when type is fixed
+        afterRead: [afterReadDiscountValue],
       },
     },
     {
@@ -231,6 +259,20 @@ export const Coupons: CollectionConfig = {
       hooks: {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any -- FieldHookArgs vs FieldHook generic mismatch
         afterRead: [afterReadCouponExpiresDisplay as any],
+      },
+    },
+    // ─── Human-readable discount display ────────────────────────────────────
+    {
+      name: 'discountDisplay',
+      type: 'text',
+      admin: {
+        components: {
+          Cell: '@/ui/admin/Coupons/Cells/DiscountDisplayCell#CouponDiscountDisplayCell',
+        },
+        description: 'Formatted discount for quick scanning',
+      },
+      hooks: {
+        afterRead: [afterReadCouponDiscountDisplay],
       },
     },
     createdByField,
