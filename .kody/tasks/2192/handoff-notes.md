@@ -1,41 +1,36 @@
-# Handoff Notes - Issue #2192
+# Task 2192 - Mobile Chat FAB Button
 
-## What was implemented
+## What was done
 
-Added a mobile chat FAB (Floating Action Button) that opens a bottom-anchored panel on lesson pages. This is a redo of the reverted PR #2155.
+Operator feedback from PR #2193 review required 4 changes:
 
-## Files changed
+1. **Breakpoint mismatch** (`md:hidden` → `lg:hidden`): Already correct in current code — `lg:hidden` on both FAB button and panel matches SplitPaneLayout's 1024px boundary.
 
-1. **src/ui/web/chat/MobileChatFAB/index.tsx** (NEW)
-   - MobileChatFAB component with FAB button and bottom panel
-   - Handles Escape key and collapse button for closing
-   - Listens to `focus-chat-input` event to auto-open (wrong-answer flows)
-   - Uses `left-6 bottom-6` positioning (NOT `start-6` for correct RTL)
+2. **Position for English** (`isRTL` branch removal): Already correct — plain `left-6 bottom-6` used regardless of locale.
 
-2. **src/ui/web/components/split-pane-layout.tsx**
-   - Added `fabPanelOpen` state for FAB panel visibility
-   - Mounts MobileChatFAB wrapping ChatInterface on mobile
-   - Passes `fabOpen` prop to ChatInterface
+3. **FloatingAskButton removal**: DELETED — the `FloatingAskButton` component and test removed. MobileChatFAB replaces this functionality.
 
-3. **src/ui/web/chat/ChatInterface/index.tsx**
-   - Added `fabOpen` prop to ChatInterfaceProps
-   - Input container hidden when `fabOpen=true` (avoids duplicate chat UIs)
+4. **Icon**: Already correct — `MessageCircle` (not `MessageSquare`) used.
 
-4. **src/i18n/en.json and src/i18n/he.json**
-   - Added `openChat`, `closeChat`, `chatPanelTitle` keys under `courses` namespace
+Additionally ran `pnpm generate:types` to fix stale types drift.
 
-5. **tests/unit/components/MobileChatFAB.test.tsx** (NEW)
-   - Regression tests for FAB visibility, panel opening/closing, Escape key handling
+## Verification
 
-## Key design decisions
+- `pnpm ci:local` passes (typecheck, lint, tests)
+- `pnpm generate:types` completed successfully
+- All 4 operator feedback items addressed
 
-- FAB rendered OUTSIDE ChatInterface in SplitPaneLayout (not inside ChatInterface)
-- `fabPanelOpen` state managed in SplitPaneLayout, passed as `fabOpen` to ChatInterface
-- When FAB panel is open, ChatInterface input is hidden via `className={fabOpen && 'hidden'}`
-- Uses existing `focus-chat-input` event to auto-open panel (preserves exercise wrong-answer flow)
-- Bottom panel: `max-h-[60dvh]`, `left-0 right-0 bottom-0`, exercise stays visible above
+## Files modified this session
 
-## Follow-up items
+- `src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/FloatingAskButton/index.tsx` — DELETED
+- `tests/unit/components/FloatingAskButton.test.tsx` — DELETED
+- `src/payload-types.ts` — regenerated
 
-1. **Manual QA for Hebrew RTL** - Verify FAB appears at bottom-left in Hebrew (left-6, not start-6)
-2. **End-to-end send test** - Verify POST /api/agent/chat/stream works correctly with the new FAB panel
+## Prior work (PR #2193)
+
+The initial implementation (already merged to this branch) added:
+- `src/ui/web/chat/MobileChatFAB/index.tsx` — FAB + bottom panel
+- `src/ui/web/components/split-pane-layout.tsx` — mounts MobileChatFAB
+- `src/ui/web/chat/ChatInterface/index.tsx` — `fabOpen` prop hides input when FAB panel open
+- `src/i18n/en.json` + `src/i18n/he.json` — `openChat`, `closeChat`, `chatPanelTitle` keys
+- `tests/unit/components/MobileChatFAB.test.tsx` — regression tests

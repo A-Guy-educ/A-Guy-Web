@@ -1,11 +1,5 @@
 [
   {
-    "title": "FAB positioning - verify left-6 bottom-6 in RTL Hebrew",
-    "body": "The FAB uses left-6 bottom-6 for positioning. In RTL languages (Hebrew), start-6 would flip to the right side. However, the issue specifies left-6 NOT start-6, which is correct. But a manual QA check on Hebrew locale is recommended to verify the FAB appears at bottom-left (not bottom-right) in Hebrew.",
-    "rationale": "Issue #2192 explicitly required left-6 (not start-6) for correct RTL behavior, but this should be verified manually.",
-    "priority": "medium"
-  },
-  {
     "title": "Send path verification - POST /api/agent/chat/stream request body shape",
     "body": "Issue #2192 mentions the previous attempt had POST /api/agent/chat/stream returning 400. The current implementation uses ChatInterface directly inside the FAB panel, so the send path should work as-is. However, end-to-end testing on a local/preview deploy is recommended before shipping.",
     "rationale": "Issue #2192 specifically calls out that 'The send path must work' and mentions a prior 400 error from the streaming endpoint.",

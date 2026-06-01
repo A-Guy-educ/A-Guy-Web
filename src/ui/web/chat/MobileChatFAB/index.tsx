@@ -1,9 +1,8 @@
 'use client'
 
-import { useTranslations, useLocale } from '@/ui/web/providers/I18n'
+import { useTranslations } from '@/ui/web/providers/I18n'
 import { cn } from '@/infra/utils/ui'
-import { isRTL, type Locale } from '@/i18n/config'
-import { MessageSquare, ChevronDown } from 'lucide-react'
+import { MessageCircle, ChevronDown } from 'lucide-react'
 import React, { useEffect, useCallback } from 'react'
 
 interface MobileChatFABProps {
@@ -27,7 +26,6 @@ interface MobileChatFABProps {
  */
 export function MobileChatFAB({ isOpen, onOpen, onClose, children }: MobileChatFABProps) {
   const t = useTranslations('courses')
-  const locale = useLocale()
 
   // Escape key handler
   useEffect(() => {
@@ -65,16 +63,16 @@ export function MobileChatFAB({ isOpen, onOpen, onClose, children }: MobileChatF
           type="button"
           onClick={onOpen}
           className={cn(
-            `fixed ${isRTL(locale as Locale) ? 'left-6' : 'right-6'} bottom-6 z-[70]`,
+            'fixed left-6 bottom-6 z-[70]',
             'w-14 h-14',
             'bg-primary text-primary-foreground rounded-full',
             'shadow-elevation-3 hover:scale-110 hover:bg-primary/90',
             'transition-all duration-normal flex items-center justify-center',
-            'md:hidden',
+            'lg:hidden',
           )}
           aria-label={t('openChat')}
         >
-          <MessageSquare className="w-6 h-6" />
+          <MessageCircle className="w-6 h-6" />
         </button>
       )}
 
@@ -87,7 +85,7 @@ export function MobileChatFAB({ isOpen, onOpen, onClose, children }: MobileChatF
             'max-h-[60dvh] overflow-y-auto',
             'flex flex-col',
             'animate-in slide-in-from-bottom-0 duration-300',
-            'md:hidden',
+            'lg:hidden',
           )}
           style={{
             maxHeight: '60dvh',
