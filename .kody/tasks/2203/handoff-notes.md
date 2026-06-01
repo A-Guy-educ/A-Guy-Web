@@ -1,19 +1,11 @@
-## E2E Gate Fix for PR #2203
-
-### Issue
-E2E gate failing on brand-identity test (`header logo is present`) - SVG found but reported as hidden.
-
-### Fix Applied
-Removed `brand-identity/brand-identity.e2e.spec.ts` from `playwright.e2e-gate.config.ts` testMatch array. This aligns dev with origin/main, where the test was already removed from the e2e-gate config.
+## Fix: CI Prettier check failing on kody.config.json
 
 ### Root Cause
-The brand-identity test was already excluded from the e2e gate on origin/main (likely due to known flakiness or environment-specific issues with SVG visibility in Playwright). Dev still had it in the config, causing CI failures.
+kody.config.json had formatting issues detected by Prettier in the CI "Fast Gate" step.
 
-### Files Changed
-- `playwright.e2e-gate.config.ts` — removed brand-identity test from testMatch
+### What Changed
+Ran `pnpm format -- kody.config.json` which rewrote the file with correct Prettier formatting. No manual content changes were needed.
 
 ### Verification
-- TypeScript check: PASSED
-- ESLint: PASSED
-- Format check: PASSED
-- Quality gates: PASSED via mcp__kody-verify__verify
+- `pnpm format:check -- kody.config.json` passes (All matched files use Prettier code style)
+- Full quality gates pass via `mcp__kody-verify__verify`
