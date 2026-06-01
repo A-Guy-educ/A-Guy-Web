@@ -13,13 +13,6 @@
       "id": "prod-esw0",
       "label": "Prod",
       "url": "https://www.aguy.co.il"
-    },
-    {
-      "id": "copy-html-dka3",
-      "label": "עיצוב - דף תרגיל  copy.html",
-      "url": "https://kp-866cab-8111e4-st-354c19.fly.dev",
-      "staticId": "81658ebc",
-      "expiresAt": 1780913469792
     }
   ],
   "branchPreviews": [
