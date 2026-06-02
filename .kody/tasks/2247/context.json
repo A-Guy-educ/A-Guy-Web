@@ -1,0 +1,14 @@
+{
+  "taskId": "2247",
+  "taskType": "issue",
+  "target": "2247-docs-drift-admin-components-2115",
+  "outcome": "success",
+  "exitCode": 0,
+  "reason": "Updated docs/admin-components/README.md to add Coupons admin components (StatusCell, UsageCell, ExpiresCell, DiscountDisplayCell, UsageProgress, ListView) to the Current Custom Components table and added a Real Example section documenting all four new patterns introduced by PR #2115.",
+  "prUrl": null,
+  "runUrl": null,
+  "filesTouched": ["docs/admin-components/README.md"],
+  "sessionLog": ".kody/sessions/2247-docs-drift-admin-components-2115.jsonl",
+  "startedAt": "2026-06-02T05:50:00Z",
+  "finishedAt": "2026-06-02T05:51:30Z"
+}
