@@ -1,8 +1,8 @@
-# Exercises Collection - Stage 0 Implementation
+# Exercises Collection
 
-**Status**: ✅ Complete - Ready for Manual Verification
+**Status**: ✅ Complete
 
-This directory documents the **Stage 0** implementation of the Exercises collection in Payload CMS, including minimal fields and Zod validation.
+This directory documents the Exercises collection in Payload CMS, including fields, Zod validation, and rendering behavior.
 
 ---
 
@@ -12,9 +12,9 @@ The Exercises collection provides a minimal foundation for creating and managing
 
 ### Key Features
 
-- **Minimal Data Model**: Only essential fields required for v1
-- **Zod Validation**: Runtime validation of JSON structures using contracts
-- **Question Type Enforcement**: Ensures `questionType` field matches `answerSpecJson.questionType`
+- **Block-Based Content**: Each exercise's content is a stream of typed blocks (questions + presentational)
+- **Zod Validation**: Runtime validation of block structures via `ContentBlockSchema`
+- **Self-Contained Questions**: Each question block owns its own prompt, answer, and optional hint/solution
 - **Relationship to Lessons**: Each exercise belongs to a Lesson
 - **Type-Safe**: Full TypeScript integration with Payload
 
@@ -25,37 +25,33 @@ The Exercises collection provides a minimal foundation for creating and managing
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                    Payload Admin UI                      │
-│  (Manual JSON Entry - Stage 0)                          │
+│  (Block-based content via Payload Admin)                │
 └────────────────┬────────────────────────────────────────┘
                  │
                  ▼
 ┌─────────────────────────────────────────────────────────┐
 │          Exercises Collection (Payload)                  │
-│  src/collections/Exercises.ts                           │
+│  src/server/payload/collections/Exercises/index.ts      │
 │                                                          │
 │  Fields:                                                 │
-│  - title: string                                         │
-│  - lesson: relationship → Lessons                        │
-│  - questionType: "mcq" | "true_false" | "free_response" │
-│  - contentJson: JSON (ExerciseContent)                   │
-│  - answerSpecJson: JSON (AnswerSpec)                     │
+│  - title: string (optional, admin reference)            │
+│  - lesson: relationship → Lessons                       │
+│  - content: JSON { blocks: ContentBlock[] }             │
 │                                                          │
-│  beforeValidate Hook:                                    │
-│  - Validates contentJson with ExerciseContentSchema      │
-│  - Validates answerSpecJson with AnswerSpecSchema        │
-│  - Ensures questionType matches answerSpecJson           │
+│  beforeChange Hook:                                      │
+│  - Validates content.blocks with ContentBlockSchema     │
 └────────────────┬────────────────────────────────────────┘
                  │
                  ▼
 ┌─────────────────────────────────────────────────────────┐
-│             Zod Contracts (Shared Layer)                 │
-│  src/contracts/                                          │
+│             Zod Schemas (ContentBlockSchema)              │
+│  src/server/payload/collections/Exercises/schemas.ts    │
 │                                                          │
-│  - ExerciseContentSchema                                 │
-│  - AnswerSpecSchema (discriminated union)                │
-│  - ExerciseBlockSchema (5 block types)                   │
-│  - AxisSpecV1Schema                                      │
-│  - GeometrySpecV1Schema                                  │
+│  - ContentBlockSchema (discriminated union, 12 types)   │
+│  - QuestionGeometryBlockSchema / QuestionAxisBlockSchema │
+│  - QuestionMultiAxisBlockSchema                         │
+│  - QuestionSelectBlockSchema (mcq, true_false)          │
+│  - QuestionFreeResponseBlockSchema / QuestionTable...   │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -67,31 +63,14 @@ The Exercises collection provides a minimal foundation for creating and managing
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `title` | `string` | ✅ | Exercise title |
+| `title` | `string` | ❌ | Exercise title (admin reference, optional) |
 | `lesson` | `relationship` | ✅ | Reference to Lessons collection |
-| `questionType` | `select` | ✅ | One of: `mcq`, `true_false`, `free_response` |
-| `contentJson` | `json` | ✅ | Exercise content (validated by `ExerciseContentSchema`) |
-| `answerSpecJson` | `json` | ✅ | Answer specification (validated by `AnswerSpecSchema`) |
+| `content` | `json` | ✅ | Block stream `{ blocks: ContentBlock[] }` validated by `ContentBlockSchema` |
 
 ### Validation Rules
 
-1. **Content Validation**: `contentJson` must pass [`ExerciseContentSchema`](../../src/infra/contracts/exercise/content.ts)
-2. **Answer Spec Validation**: `answerSpecJson` must pass [`AnswerSpecSchema`](../../src/infra/contracts/exercise/answers.ts)
-3. **Type Consistency**: `questionType` field MUST equal `answerSpecJson.questionType`
-
-**Example Rejection**:
-```typescript
-// ❌ This will be REJECTED
-{
-  questionType: "true_false",     // Field value
-  answerSpecJson: {
-    questionType: "mcq",          // Spec value (MISMATCH!)
-    // ...
-  }
-}
-
-// Error: "Question type mismatch: field is 'true_false' but answerSpecJson.questionType is 'mcq'. These must match."
-```
+1. **Content Validation**: `content.blocks` must pass [`ContentBlockSchema`](../../../src/server/payload/collections/Exercises/schemas.ts) — a discriminated union of 12 block types.
+2. Each question block (`question_geometry`, `question_axis`, etc.) carries its own prompt, answer, and optional hint/solution inline — there is no exercise-level `questionType` or `answerSpecJson`.
 
 ---
 
@@ -123,7 +102,8 @@ Follow the complete manual verification guide:
 ### File Structure
 
 ```
-src/collections/Exercises.ts          # Payload collection config
+src/server/payload/collections/Exercises/index.ts   # Payload collection config
+src/server/payload/collections/Exercises/schemas.ts # Zod schemas (ContentBlockSchema, etc.)
 docs/exercises/
   ├── README.md                       # This file
   └── MANUAL_VERIFICATION.md          # Verification guide with samples
@@ -137,156 +117,196 @@ export const Exercises: CollectionConfig = {
   slug: 'exercises',
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'lesson', 'questionType', 'updatedAt'],
+    defaultColumns: ['order', 'title', 'lesson', 'updatedAt'],
   },
   access: {
-    read: authenticated,
+    read: anyone,
     create: authenticated,
-    update: authenticated,
-    delete: authenticated,
+    update: isAdminOrOwner,
+    delete: isAdminOrOwner,
   },
   fields: [
     // ... fields
   ],
   hooks: {
-    beforeValidate: [
-      ({ data, req }) => {
-        // Validate contentJson
-        const contentResult = ExerciseContentSchema.safeParse(data.contentJson)
-
-        // Validate answerSpecJson
-        const answerResult = AnswerSpecSchema.safeParse(data.answerSpecJson)
-
-        // Ensure questionType matches
-        if (data.questionType !== answerResult.data.questionType) {
-          throw new Error('Question type mismatch...')
-        }
-
-        return data
-      },
-    ],
+    beforeChange: [enforceContentStructure /* + auto-populate course from lesson */],
   },
 }
 ```
 
-**Zod Integration**:
+**Schema**:
 ```typescript
-import {
-  ExerciseContentSchema,
-  AnswerSpecSchema,
-} from '@/contracts'
+import { ContentBlockSchema } from './schemas'
+// ContentBlockSchema is a discriminated union of 12 block types:
+// rich_text, question_select, question_free_response, latex,
+// question_table, question_matching, svg, question_geometry,
+// question_axis, question_multi_axis, html, media
 ```
 
 ---
 
-## Supported Question Types
+## Supported Question Block Types
 
-### 1. Multiple Choice (MCQ)
+Each question type is a **block inside `content.blocks[]`**. There is no exercise-level `questionType` or `answerSpecJson` — the question block owns its own prompt, answer, and optional hint/solution.
 
-**Content Example**:
+### 1. Multiple Choice (MCQ) — `question_select` + `variant: "mcq"`
+
 ```json
 {
-  "stem": [
-    {
-      "id": "b1",
-      "type": "rich_text",
-      "format": "md-math-v1",
-      "value": "What is $2 + 2$?"
-    }
-  ]
+  "id": "q1",
+  "type": "question_select",
+  "variant": "mcq",
+  "selectionMode": "single",
+  "prompt": {
+    "format": "md-math-v1",
+    "value": "What is $2 + 2$?",
+    "mediaIds": []
+  },
+  "answer": {
+    "multiSelect": false,
+    "options": [
+      { "id": "opt1", "content": { "format": "md-math-v1", "value": "$4$", "mediaIds": [] } },
+      { "id": "opt2", "content": { "format": "md-math-v1", "value": "$5$", "mediaIds": [] } }
+    ],
+    "correctOptionIds": ["opt1"]
+  }
 }
 ```
 
-**Answer Spec Example**:
+### 2. True/False — `question_select` + `variant: "true_false"`
+
 ```json
 {
-  "questionType": "mcq",
-  "multiSelect": false,
-  "options": [
-    {
-      "id": "opt1",
-      "content": [
-        { "id": "t1", "type": "rich_text", "format": "md-math-v1", "value": "$4$" }
-      ]
-    },
-    {
-      "id": "opt2",
-      "content": [
-        { "id": "t2", "type": "rich_text", "format": "md-math-v1", "value": "$5$" }
-      ]
-    }
+  "id": "q2",
+  "type": "question_select",
+  "variant": "true_false",
+  "prompt": {
+    "format": "md-math-v1",
+    "value": "The Earth is round.",
+    "mediaIds": []
+  },
+  "answer": {
+    "correctOptionId": "true"
+  }
+}
+```
+
+### 3. Free Response — `question_free_response`
+
+```json
+{
+  "id": "q3",
+  "type": "question_free_response",
+  "prompt": {
+    "format": "md-math-v1",
+    "value": "Solve for $x$: $x + 5 = 12$",
+    "mediaIds": []
+  },
+  "answer": {
+    "responseKind": "numeric",
+    "acceptedAnswers": ["7"],
+    "tolerance": 0.01
+  }
+}
+```
+
+### 4. Table — `question_table`
+
+```json
+{
+  "id": "q4",
+  "type": "question_table",
+  "prompt": { "format": "md-math-v1", "value": "Fill in the table:", "mediaIds": [] },
+  "table": {
+    "headers": ["x", "y"],
+    "rowsData": [["1", "2"], ["3", "4"]],
+    "showBorders": true,
+    "showHeader": true,
+    "columnAlignment": ["left", "center"]
+  }
+}
+```
+
+### 5. Matching — `question_matching`
+
+```json
+{
+  "id": "q5",
+  "type": "question_matching",
+  "prompt": { "format": "md-math-v1", "value": "Match the items:", "mediaIds": [] },
+  "leftColumn": [
+    { "id": "l1", "content": { "format": "md-math-v1", "value": "$x^2$", "mediaIds": [] } }
   ],
-  "correctOptionIds": ["opt1"]
-}
-```
-
-### 2. True/False
-
-**Content Example**:
-```json
-{
-  "stem": [
-    {
-      "id": "b1",
-      "type": "rich_text",
-      "format": "md-math-v1",
-      "value": "The Earth is round. True or False?"
-    }
+  "rightColumn": [
+    { "id": "r1", "content": { "format": "md-math-v1", "value": "Quadratic", "mediaIds": [] } }
   ]
 }
 ```
 
-**Answer Spec Example**:
+### 6. Geometry — `question_geometry`
+
 ```json
 {
-  "questionType": "true_false",
-  "correct": true
+  "id": "q6",
+  "type": "question_geometry",
+  "layout": "textRight",
+  "prompt": { "format": "md-math-v1", "value": "Prove the following:", "mediaIds": [] },
+  "geometry": {
+    "specVersion": 1,
+    "spec": {
+      "kind": "euclidean",
+      "canvas": { "width": 400, "height": 400 },
+      "elements": {
+        "points": [{ "name": "A", "x": 100, "y": 100 }],
+        "lines": [{ "from": "A", "to": "B", "style": "solid" }]
+      }
+    }
+  }
 }
 ```
 
-### 3. Free Response
+### 7. Axis System — `question_axis`
 
-**Content Example**:
 ```json
 {
-  "stem": [
+  "id": "q7",
+  "type": "question_axis",
+  "layout": "textLeft",
+  "prompt": { "format": "md-math-v1", "value": "Sketch the function:", "mediaIds": [] },
+  "axis": {
+    "specVersion": 1,
+    "spec": {
+      "kind": "cartesian",
+      "units": 1,
+      "grid": { "enabled": true },
+      "axes": { "showNumbers": true, "showLabels": true, "ticks": 1, "origin": { "x": 0, "y": 0 } },
+      "elements": {
+        "points": [],
+        "graphs": [{ "id": "g1", "fn": "x^2", "style": "solid", "thickness": 1 }]
+      }
+    }
+  }
+}
+```
+
+### 8. Multi-Axis — `question_multi_axis`
+
+```json
+{
+  "id": "q8",
+  "type": "question_multi_axis",
+  "prompt": { "format": "md-math-v1", "value": "Compare the functions:", "mediaIds": [] },
+  "textPosition": "above",
+  "columnsPerRow": 2,
+  "graphs": [
     {
-      "id": "b1",
-      "type": "rich_text",
-      "format": "md-math-v1",
-      "value": "Solve for $x$: $x + 5 = 12$"
+      "id": "g1",
+      "fn": "x^2",
+      "style": "solid",
+      "thickness": 1,
+      "spec": { "kind": "cartesian", "units": 1, "grid": { "enabled": true } }
     }
   ]
-}
-```
-
-**Answer Spec Example (Numeric)**:
-```json
-{
-  "questionType": "free_response",
-  "responseKind": "numeric",
-  "acceptedAnswers": ["7"],
-  "tolerance": 0.01
-}
-```
-
-**Answer Spec Example (Algebraic)**:
-```json
-{
-  "questionType": "free_response",
-  "responseKind": "algebraic",
-  "acceptedAnswers": ["2x + 3", "3 + 2x", "3+2*x"]
-}
-```
-
-**Answer Spec Example (Text)**:
-```json
-{
-  "questionType": "free_response",
-  "responseKind": "text",
-  "acceptedAnswers": ["Paris", "paris"],
-  "caseSensitive": false,
-  "normalizeWhitespace": true
 }
 ```
 
@@ -294,9 +314,11 @@ import {
 
 ## Content Block Types
 
-Exercises support 5 block types in `contentJson.stem`:
+The `content.blocks` array supports 12 block types via a discriminated union (`ContentBlockSchema`). The question block types (geometry, axis, etc.) carry their own prompt and answer alongside the diagram/grid spec.
 
-### 1. Rich Text (Math-Aware Markdown)
+### Non-Question Blocks (presentational)
+
+### 1. Rich Text
 
 ```json
 {
@@ -307,17 +329,14 @@ Exercises support 5 block types in `contentJson.stem`:
 }
 ```
 
-### 2. Table
+### 2. LaTeX
 
 ```json
 {
   "id": "b2",
-  "type": "table",
-  "headers": ["x", "y"],
-  "rows": [["1", "2"], ["3", "4"]],
-  "showBorders": true,
-  "showHeader": true,
-  "columnAlignment": ["left", "center"]
+  "type": "latex",
+  "latex": "\\begin{aligned} a &= b \\\\ c &= d \\end{aligned}",
+  "renderMode": "block"
 }
 ```
 
@@ -327,70 +346,45 @@ Exercises support 5 block types in `contentJson.stem`:
 {
   "id": "b3",
   "type": "svg",
-  "svg": "<svg width='100' height='100'><circle cx='50' cy='50' r='40'/></svg>"
+  "value": "<svg width='100' height='100'><circle cx='50' cy='50' r='40'/></svg>",
+  "altText": "A circle"
 }
 ```
 
-### 4. Axis System (Declarative)
+### 4. HTML
 
 ```json
 {
   "id": "b4",
-  "type": "axis_system",
-  "specVersion": 1,
-  "spec": {
-    "kind": "cartesian",
-    "units": 1,
-    "grid": { "enabled": true },
-    "axes": {
-      "showNumbers": true,
-      "showLabels": true,
-      "ticks": 1,
-      "labels": { "x": "x", "y": "y" },
-      "origin": { "x": 0, "y": 0 }
-    },
-    "elements": {
-      "points": [],
-      "graphs": [
-        {
-          "id": "g1",
-          "fn": "x^2",
-          "style": "solid",
-          "thickness": 1
-        }
-      ]
-    },
-    "interactionSpec": {
-      "enabled": false,
-      "toolsAllowed": [],
-      "evaluation": { "mode": "none" }
-    }
-  }
+  "type": "html",
+  "html": "<p>Some <strong>HTML</strong> content</p>"
 }
 ```
 
-### 5. Geometry (Declarative)
+### 5. Media
 
 ```json
 {
   "id": "b5",
-  "type": "geometry",
-  "specVersion": 1,
-  "spec": {
-    "kind": "euclidean",
-    "canvas": { "width": 400, "height": 400 },
-    "elements": {
-      "points": [
-        { "name": "A", "x": 100, "y": 100 },
-        { "name": "B", "x": 300, "y": 100 }
-      ],
-      "lines": [
-        { "from": "A", "to": "B", "style": "solid" }
-      ]
-    }
-  }
+  "type": "media",
+  "mediaId": "1234abcd"
 }
 ```
+
+### Question Block Types
+
+Each question block owns: `prompt`, `answer`, and optional `hint`/`solution`/`fullSolution`. See **Supported Question Block Types** above for full examples.
+
+| Block type | Used for |
+|-----------|---------|
+| `question_select` (`variant: "mcq"`) | Multiple-choice (single or multi-select) |
+| `question_select` (`variant: "true_false"`) | True/False |
+| `question_free_response` | Free response (numeric / algebraic / text) |
+| `question_table` | Table completion |
+| `question_matching` | Two-column matching |
+| `question_geometry` | Euclidean geometry diagram |
+| `question_axis` | Cartesian axis with function graphs |
+| `question_multi_axis` | Grid of multiple axis systems |
 
 ---
 
@@ -399,26 +393,18 @@ Exercises support 5 block types in `contentJson.stem`:
 ### TypeScript Validation
 
 ```bash
-npx tsc --noEmit
+pnpm typecheck
 ```
 
-### Contract Tests
+### Exercise Tests
 
 ```bash
-pnpm test tests/int/contracts
+pnpm test:int tests/int/contracts/exercise-content-blocks.int.spec.ts
+pnpm test:int tests/int/contracts/exercise-multi-axis-block.int.spec.ts
+pnpm test:int tests/int/exercise-answer-validation.int.spec.ts
 ```
 
-**Coverage**: 54 tests passing
-- Block validation (11 tests)
-- Axis spec validation (4 tests)
-- Geometry spec validation (3 tests)
-- Content validation (3 tests)
-- MCQ answer spec (7 tests)
-- True/False answer spec (4 tests)
-- Free Response answer spec (9 tests)
-- **NEW**: Multi-section content (13 tests)
-
-### Manual Verification
+Unit tests for exercise hooks, schema idempotency, and display size are in `tests/unit/collections/`.
 
 Follow [MANUAL_VERIFICATION.md](./MANUAL_VERIFICATION.md) to test:
 1. Valid exercise creation
@@ -437,7 +423,7 @@ Follow [MANUAL_VERIFICATION.md](./MANUAL_VERIFICATION.md) to test:
 
 ---
 
-## Future Enhancements (Out of Stage 0 Scope)
+## Future Enhancements
 
 ### Custom Admin UI Components
 - Rich text editor with LaTeX preview
@@ -445,14 +431,7 @@ Follow [MANUAL_VERIFICATION.md](./MANUAL_VERIFICATION.md) to test:
 - Graph/geometry interactive editors
 - Block drag-and-drop reordering
 
-### Frontend Renderers
-- Math rendering (KaTeX/MathJax)
-- Interactive axis system renderer
-- Interactive geometry renderer
-- Student response capture
-
 ### Advanced Features
-- Multi-section exercises (sections + subSections)
 - Drawing Response grading
 - Auto-grading engine
 - Exercise versioning
@@ -466,7 +445,7 @@ Follow [MANUAL_VERIFICATION.md](./MANUAL_VERIFICATION.md) to test:
 ### Issue: Exercises collection not appearing in Admin
 
 **Solution:**
-1. Verify [`src/payload.config.ts`](../../src/payload.config.ts) includes `Exercises` in collections array
+1. Verify [`src/payload.config.ts`](../../../src/payload.config.ts) includes `Exercises` in collections array
 2. Restart Payload dev server: `pnpm dev`
 3. Clear browser cache and refresh
 
@@ -474,7 +453,7 @@ Follow [MANUAL_VERIFICATION.md](./MANUAL_VERIFICATION.md) to test:
 
 **Solution:**
 1. Check browser console for errors
-2. Verify hook is executing (add console.log in beforeValidate)
+2. Verify `enforceContentStructure` hook is executing (check Payload server logs)
 3. Check Payload server logs
 
 ### Issue: Cannot save valid exercise
@@ -482,15 +461,15 @@ Follow [MANUAL_VERIFICATION.md](./MANUAL_VERIFICATION.md) to test:
 **Solution:**
 1. Verify JSON is valid (use JSONLint)
 2. Check all required fields are filled
-3. Ensure `questionType` matches `answerSpecJson.questionType`
+3. Ensure each block has required fields for its type (e.g., `prompt` for question blocks)
 4. Review error message for specific field path
 
-### Issue: TypeScript errors in Exercises.ts
+### Issue: TypeScript errors in Exercises
 
 **Solution:**
 1. Run `pnpm install` to ensure dependencies are installed
-2. Verify contracts are exported from `src/contracts/index.ts`
-3. Check `@/contracts` path alias in `tsconfig.json`
+2. Verify schemas are exported from `src/server/payload/collections/Exercises/schemas.ts`
+3. Run `pnpm generate:types` if collection fields were changed
 
 ---
 
@@ -498,9 +477,11 @@ Follow [MANUAL_VERIFICATION.md](./MANUAL_VERIFICATION.md) to test:
 
 When extending the Exercises collection:
 
-1. **Update Contracts First**: Modify Zod schemas in `src/contracts/`
-2. **Update Tests**: Add test cases in `tests/int/contracts/`
+1. **Update Schemas First**: Modify Zod schemas in `src/server/payload/collections/Exercises/schemas.ts`
+2. **Update Tests**: Add test cases in `tests/int/contracts/` or `tests/unit/collections/`
 3. **Update Collection**: Modify `src/server/payload/collections/Exercises/index.ts`
+4. **Update Docs**: Update this README and [MANUAL_VERIFICATION.md](./MANUAL_VERIFICATION.md)
+5. **Run Validation**: `pnpm typecheck && pnpm lint`
 4. **Update Docs**: Update this README and verification guide
 5. **Run Validation**: `npx tsc --noEmit && pnpm test`
 
