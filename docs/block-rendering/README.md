@@ -1,7 +1,7 @@
 # Block Renderer Extension Guide
 
 **Status**: ✅ Complete - Production Ready
-**Last Updated**: 2026-01-07
+**Last Updated**: 2026-06-02
 
 This document describes the block-based exercise rendering architecture and provides a step-by-step guide for adding new block types.
 
@@ -52,9 +52,12 @@ This document describes the block-based exercise rendering architecture and prov
 | Block Type | Purpose | Renderer | Interactive |
 |------------|---------|----------|-------------|
 | **`rich_text`** | Content, instructions, explanations | [`RichTextRenderer`](../../src/ui/web/exerciserenderer/blocks/RichTextRenderer/index.tsx) | ❌ No |
+| **`html`** | Rich HTML content (admin-authored) | [`HtmlBlockRenderer`](../../src/ui/web/exerciserenderer/blocks/HtmlBlockRenderer/index.tsx) | ❌ No |
 | **`question_select`** (variant: `true_false`) | True/False questions | [`TrueFalseQuestion`](../../src/ui/web/exerciserenderer/questions/TrueFalseQuestion/index.tsx) | ✅ Yes |
 | **`question_select`** (variant: `mcq`) | Multiple choice questions | [`McqQuestion`](../../src/ui/web/exerciserenderer/questions/McqQuestion/index.tsx) | ✅ Yes |
 | **`question_free_response`** | Open-ended text answers | [`FreeResponseQuestion`](../../src/ui/web/exerciserenderer/questions/FreeResponseQuestion/index.tsx) | ✅ Yes |
+
+> **HTML Block Security Model**: HTML content is authored by admins only and stored verbatim. When rendered to students, it passes through [DOMPurify](https://github.com/cure53/DOMPurify) with a strict allowlist (safe formatting tags + `href`/`src`/`class`/`dir` attributes). Dangerous patterns (inline event handlers, `javascript:` URLs) are blocked at admin-input time.
 
 ---
 
@@ -684,5 +687,5 @@ When adding a new block type, ensure:
 
 ---
 
-**Last Updated**: 2026-01-07
+**Last Updated**: 2026-06-02
 **Status**: ✅ Production Ready
