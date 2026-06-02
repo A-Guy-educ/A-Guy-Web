@@ -1,0 +1,14 @@
+{
+  "taskId": "2341",
+  "taskType": "pr",
+  "target": "PR #2341 (2250-docs-drift-exercises-2154)",
+  "outcome": "success",
+  "exitCode": 0,
+  "reason": "CI failed on format check (kody.config.json) but fix was already committed in 6278b770c after the CI ran. Current HEAD ccefc945f includes the fix and all quality gates pass.",
+  "prUrl": "https://github.com/A-Guy-educ/A-Guy/pull/2341",
+  "runUrl": "https://github.com/A-Guy-educ/A-Guy/actions/runs/26801679365",
+  "filesTouched": [],
+  "sessionLog": null,
+  "startedAt": "2026-06-02T07:00:00.000Z",
+  "finishedAt": "2026-06-02T08:00:00.000Z"
+}
