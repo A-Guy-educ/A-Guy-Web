@@ -1,12 +1,8 @@
-Updated `docs/admin-components/README.md` to capture the admin component changes from PR #2115.
+Session for issue 2247 added two remaining items to docs/admin-components/README.md not covered by prior session:
 
-Added to Current Custom Components table:
-- Coupons ListView, CouponStatusCell, CouponUsageCell, CouponExpiresCell, CouponDiscountDisplayCell, CouponUsageProgress
+1. **CouponEditView** entry in Current Custom Components table (line 57) — the custom edit view component added by PR #2115
+2. **Pattern 5: View Components** section (lines 590-620) — documents how to create a custom edit view that wraps DefaultEditView, with example code showing the CouponEditView component and its registration in the Coupons collection config
 
-Added a new "Real Example: Coupons Admin Components" section documenting four patterns:
-1. Cell components for list view (color-coded StatusCell with i18n)
-2. UI field component for detail view (UsageProgress with useFormFields)
-3. i18n strings pattern via getCouponStrings(language)
-4. Computed/virtual derived fields via afterRead hooks
+Previous session had added the other Coupons components (StatusCell, UsageCell, ExpiresCell, DiscountDisplayCell, UsageProgress, ListView) and the four pattern examples.
 
-No code changes were made — only documentation.
+No code changes — documentation only.

@@ -54,6 +54,7 @@ This guide explains how to create and register custom components for the Payload
 | **CouponExpiresCell** | Cell | Relative expiration display (e.g. "in 3 days") | [`src/ui/admin/Coupons/Cells/ExpiresCell/index.tsx`](../../src/ui/admin/Coupons/Cells/ExpiresCell/index.tsx) |
 | **CouponDiscountDisplayCell** | Cell | Formatted discount display (e.g. "20% off") | [`src/ui/admin/Coupons/Cells/DiscountDisplayCell/index.tsx`](../../src/ui/admin/Coupons/Cells/DiscountDisplayCell/index.tsx) |
 | **CouponUsageProgress** | Field (UI) | Usage progress bar on coupon detail view | [`src/ui/admin/Coupons/UsageProgressField/index.tsx`](../../src/ui/admin/Coupons/UsageProgressField/index.tsx) |
+| **CouponEditView** | View | Custom edit view with usage progress on detail view | [`src/ui/admin/Coupons/EditView/index.tsx`](../../src/ui/admin/Coupons/EditView/index.tsx) |
 | **ChapterBreadcrumbField** | Field | Breadcrumb navigation for chapters | `src/components/admin/ChapterBreadcrumbField/` |
 | **LessonBreadcrumbField** | Field | Breadcrumb navigation for lessons | `src/components/admin/LessonBreadcrumbField/` |
 
@@ -585,6 +586,38 @@ export const afterReadCouponStatus: FieldAfterReadHook = ({ siblingData }) => {
 ```
 
 These fields are declared in the collection with `hooks.afterRead` but no database storage — they are computed on every read.
+
+### Pattern 5: View Components
+
+A custom `list` or `edit` view wraps the Payload default view and adds extra UI:
+
+```typescript
+// src/ui/admin/Coupons/EditView/index.tsx
+'use client'
+
+import React from 'react'
+import { DefaultEditView } from '@payloadcms/ui'
+import type { DocumentViewClientProps } from 'payload'
+
+export const CouponEditView = (props: DocumentViewClientProps) => {
+  return <DefaultEditView {...props} />
+}
+```
+
+Registration in collection config:
+
+```typescript
+// src/server/payload/collections/Coupons.ts
+admin: {
+  components: {
+    views: {
+      edit: {
+        Default: '@/ui/admin/Coupons/EditView#CouponEditView',
+      },
+    },
+  },
+},
+```
 
 ---
 
