@@ -170,10 +170,12 @@ describe('MobileChatFAB Component', () => {
       </MobileChatFAB>,
     )
 
-    const fabButton = screen.getByRole('button', { name: /Open chat/i })
+    const fabButton = screen.getByRole('button', { name: /Open chat/i }) as HTMLElement
     // FAB should always be on left side (bottom-left regardless of locale)
     expect(fabButton.className).toContain('left-6')
-    expect(fabButton.className).toContain('bottom-6')
     expect(fabButton.className).toContain('fixed')
+    // Bottom position lives in an inline style (calc with --mobile-chat-panel-h)
+    // so the button can lift above the panel when it opens.
+    expect(fabButton.style.bottom).toMatch(/var\(--mobile-chat-panel-h/)
   })
 })
