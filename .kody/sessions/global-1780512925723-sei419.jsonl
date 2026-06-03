@@ -1,1 +1,2 @@
 {"type":"meta","mode":"interactive","createdAt":"2026-06-03T18:55:26.474Z","idleExitMs":300000,"hardCapMs":1800000}
+{"role":"user","content":"[Dashboard context — the user is currently viewing the Context page (/context) in the Kody dashboard. When they say \"this page\", \"here\", or ask what they're looking at, they mean this.]\n\nhi","timestamp":"2026-06-03T18:56:15.522Z","toolCalls":[]}
