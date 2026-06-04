@@ -1677,6 +1677,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix(payments): Surface real error messages in checkout + webhook logs ([#2432](https://github.com/A-Guy-educ/A-Guy/pull/2432)) — @aguyshayb
 - #2369: Fix login page horizontal overflow on mobile (page scrolls sidew… ([#2426](https://github.com/A-Guy-educ/A-Guy/pull/2426)) — @kodyade[bot] · ✅ QA 2026-06-04
 - #2366: Fix thin white strip at top of page in dark mode (unauthenticate… ([#2367](https://github.com/A-Guy-educ/A-Guy/pull/2367)) — @kodyade[bot] · ⚠️ QA 2026-06-04 (#2422)
 - #2359: Add provider choice (Stripe / PayPal) at checkout ([#2360](https://github.com/A-Guy-educ/A-Guy/pull/2360)) — @kodyade[bot] · ⚠️ QA 2026-06-04 (#2399)
