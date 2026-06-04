@@ -1,21 +1,27 @@
-# Merge Conflict Resolution for PR #1574
+# CI Fix for PR #1574
 
 ## What I did
 
-Resolved the single conflict in `.kody/last-run.jsonl` caused by `git merge origin/dev` into branch `1570-feat-show-per-message-timestamp-in-admin-chat`.
+Fixed failing CI by running Prettier on CHANGELOGOG.md to fix formatting issues.
 
-## The conflict
+## The problem
 
-`.kody/last-run.jsonl` had two different Kody session logs embedded:
-- **HEAD (ours)**: Lines 1-96 — session `ab9ef520` from a prior merge resolution with dev
-- **origin/dev (theirs)**: Lines 97-231 — session `86afddb9` from a different branch's merge with main
+CI was failing at the `format:check` step because CHANGELOGOG.md had formatting inconsistencies (blank lines added/removed by prettier).
 
-Both were valid but different session logs from different merge sessions. Since this is an ephemeral session log file (runtime data, not application code), I took the HEAD version representing the current PR branch's session.
+## The fix
 
-## Resolution
+1. Ran `pnpm prettier --write CHANGELOGOG.md` to fix formatting
+2. Verified `pnpm format:check` now passes
+3. Committed the fix: `chore: fix formatting in CHANGELOGOG.md`
+4. Pushed to branch
 
-1. Identified the conflict structure: `<<<<<<< ours` at line 1, `=======` at line 97, `>>>>>>> theirs` at line 231
-2. Extracted HEAD content (lines 2-96) after removing the conflict markers
-3. Verified the resulting file is valid JSONL
-4. `git add`-ed the file to mark conflict resolved
-5. Typecheck passes (exit code 0)
+## Verification
+
+- **CI Run 26924695599: PASSED**
+- Fast Gate: passed
+- Build: passed
+- Integration Tests: passed
+- Unit tests: all pass (3347 tests)
+- Typecheck: passed
+- Lint: passed (warning only)
+- Format check: passes
