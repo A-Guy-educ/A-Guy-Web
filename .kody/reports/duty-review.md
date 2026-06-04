@@ -2,7 +2,7 @@
 
 _Rolling 6h cycle — one duty deep-reviewed per tick._
 
-## Cycle 8 — 0 healthy, 8 warn, 17 broken of 25 duties.
+## Cycle 7 — 0 healthy, 8 warn, 17 broken of 25 duties.
 
 | Duty | Staff | Cadence | Verdict | Note |
 |------|-------|---------|---------|------|
