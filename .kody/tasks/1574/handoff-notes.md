@@ -1,27 +1,24 @@
-# CI Fix for PR #1574
+# Feature: Show Per-Message Timestamps in Admin Chat
 
-## What I did
+## What was implemented
 
-Fixed failing CI by running Prettier on CHANGELOGOG.md to fix formatting issues.
+Added per-message timestamps to admin chat bubbles. The timestamp shows:
+- **Same day**: "14:32" (time only)
+- **Older**: "May 11, 14:32" (short date + time)
+- **Hebrew locale**: Proper Hebrew month names (e.g., "11 במאי, 14:32")
 
-## The problem
+## Key files
 
-CI was failing at the `format:check` step because CHANGELOGOG.md had formatting inconsistencies (blank lines added/removed by prettier).
+- `src/ui/web/chat/utils/formatMessageTime.ts` — New utility function
+- `src/ui/web/chat/ChatInterface/index.tsx` — Uses `formatMessageTime` at line 548-552
+- `tests/unit/ui/web/chat/utils/format-message-time.test.ts` — 9 unit tests (all passing)
 
-## The fix
+## Implementation details
 
-1. Ran `pnpm prettier --write CHANGELOGOG.md` to fix formatting
-2. Verified `pnpm format:check` now passes
-3. Committed the fix: `chore: fix formatting in CHANGELOGOG.md`
-4. Pushed to branch
+Timestamps only appear in `adminMode` for messages that have a `createdAt` field. The `createdAt` is set when messages are created via `useNotebookChat` hook.
 
 ## Verification
 
-- **CI Run 26924695599: PASSED**
-- Fast Gate: passed
-- Build: passed
-- Integration Tests: passed
-- Unit tests: all pass (3347 tests)
-- Typecheck: passed
-- Lint: passed (warning only)
-- Format check: passes
+- Unit tests: `pnpm exec vitest run --config ./vitest.config.unit.mts tests/unit/ui/web/chat/utils/format-message-time.test.ts` — 9/9 passing
+- Lint: passes (warning only on unrelated file)
+- Typecheck: passes
