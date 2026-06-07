@@ -1,7 +1,5 @@
-# Merge Conflict Resolution for PR #1806
+Resolved merge conflict in `.kody/last-run.jsonl` by taking the origin/dev version.
 
-Resolved a single conflict in `.kody/last-run.jsonl`. The conflict markers were false positives - the sequence `<<<<<<<`, `=======`, and `>>>>>>>` appeared inside a grep command string stored within a JSON object, not actual git conflict markers.
+The conflicted file is an operational log (JSONL session trace), not source code. Both sides were different session runs with no meaningful merge semantics — origin/dev's version was taken as it represents the more recent codebase state.
 
-Resolution: Took the HEAD (PR branch) version of the file. The origin/dev version had 133 lines vs HEAD's 43 lines, but since the conflict was a false positive and the file is a Kody session log (not source code), the HEAD version was appropriate.
-
-No source code conflicts required resolution.
+No source code files were touched. All conflicts are resolved; merge commit is ready to complete.
