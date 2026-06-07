@@ -1,17 +1,11 @@
-# CI Fix for #1573 — Kody Task
+# Merge Conflict Resolution — PR #1573
 
-## What was done
+## What I did
 
-1. **Prettier formatting in `kody.config.json`** — `pnpm format -- kody.config.json` fixed the CI failure.
+Resolved a single conflicted file from `git merge origin/dev` into `1568-bug-adminchat-shows-loading-conversation-spinner-f`:
 
-2. **Time-sensitive Hebrew date test** — `tests/unit/ui/web/chat/utils/format-message-time.test.ts` used `twoDaysAgo` which from June 3, 2026 returned June 1 (ביוני) instead of May (במאי). Fixed by hardcoding May 15, 2026: `new Date(2026, 4, 15, 10, 0, 0)`.
+**`.kody/reports/duty-review.md`** — symmetric conflict between two cycles of the same duty review report:
+- HEAD (PR branch): Cycle 9 — 0 healthy, 9 warn, 16 broken
+- origin/dev: Cycle 13 — 1 healthy, 4 warn, 19 broken
 
-3. **Stale `src/payload-types.ts`** — regenerated via `PAYLOAD_SECRET=test-payload-secret-for-unit-tests-only-not-real pnpm generate:types` and staged.
-
-## Root cause
-
-The CI "Fast Gate" step failed because `pnpm format:check` found Prettier formatting issues in `kody.config.json`. A secondary time-sensitive test failure was also fixed.
-
-## Verification
-
-`mcp__kody-verify__verify` passed on attempt 2 with no failures.
+Resolved by taking the **origin/dev** version. Rationale: the PR branch is a bug fix branch for `/admin/chat` loading spinner; the duty-review.md is a generated operational report. origin/dev's Cycle 13 is more recent and complete (includes `duty-review` and `type-debt` rows absent from Cycle 9). No functional code was changed.
