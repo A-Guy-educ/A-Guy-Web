@@ -9,7 +9,7 @@ CI workflow run 26801679365 failed at "Check formatting with Prettier" step beca
 - Merge commit `ccefc945f` created
 
 ## Resolution
-The format fix was already committed AFTER the CI ran. The current HEAD (`ccefc945f`) includes the fix. All quality gates pass locally (`pnpm ci:local` and `mcp__kody-verify__verify` both pass).
+The format fix was already committed AFTER the CI ran (6278b770c). 6278b770c is an ancestor of current HEAD (`90c5bd8c9`). All quality gates pass (`mcp__kody-verify__verify` = green).
 
 ## No Action Required
-The CI failure was on an older commit. The fix is already in place. CI should re-run automatically on the updated branch, or can be re-triggered manually.
+The CI failure was on an older commit. The fix is already in place. CI will be green on re-run or can be re-triggered manually.
