@@ -1,16 +1,17 @@
-# Merge Conflict Resolution for #1573
+# CI Fix for #1573 — Kody Task
 
 ## What was done
-Resolved a single conflict in `.kody/last-run.jsonl` — a runtime session log file.
 
-## Conflict details
-- File: `.kody/last-run.jsonl`
-- Type: JSONL session log from a Kody run
-- Both sides had different session logs (different session IDs)
-- Resolution: Took HEAD (current branch) version
+1. **Prettier formatting in `kody.config.json`** — `pnpm format -- kody.config.json` fixed the CI failure.
 
-## Why this approach
-`.kody/last-run.jsonl` is a runtime log file that records tool calls and responses from a Kody session. It is not source code and has no meaningful content to merge — session logs from different runs are not mergeable. Taking the HEAD version preserves the current branch's runtime context without affecting the actual bug fix code.
+2. **Time-sensitive Hebrew date test** — `tests/unit/ui/web/chat/utils/format-message-time.test.ts` used `twoDaysAgo` which from June 3, 2026 returned June 1 (ביוני) instead of May (במאי). Fixed by hardcoding May 15, 2026: `new Date(2026, 4, 15, 10, 0, 0)`.
 
-## No quality gates needed
-This was a pure conflict resolution with no code changes. The bug fix itself is in the non-conflicted source files on this branch.
+3. **Stale `src/payload-types.ts`** — regenerated via `PAYLOAD_SECRET=test-payload-secret-for-unit-tests-only-not-real pnpm generate:types` and staged.
+
+## Root cause
+
+The CI "Fast Gate" step failed because `pnpm format:check` found Prettier formatting issues in `kody.config.json`. A secondary time-sensitive test failure was also fixed.
+
+## Verification
+
+`mcp__kody-verify__verify` passed on attempt 2 with no failures.
