@@ -1677,6 +1677,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- #2247: docs-drift: Admin Components (#2115) ([#2337](https://github.com/A-Guy-educ/A-Guy/pull/2337)) — @kodyade[bot]
 - #2331: src/server/api/ — thin in-code documentation ([#2333](https://github.com/A-Guy-educ/A-Guy/pull/2333)) — @kodyade[bot]
 - #2291: [P1] Add autosave to LessonBlocksField delete operations ([#2307](https://github.com/A-Guy-educ/A-Guy/pull/2307)) — @kodyade[bot]
 - #2162: Doc gap: src/infra/utils/ — 6/27 modules carry @ai-summary ([#2164](https://github.com/A-Guy-educ/A-Guy/pull/2164)) — @kodyade[bot]
