@@ -1,11 +1,12 @@
-# Merge Conflict Resolution — PR #1573
+# Merge Conflict Resolution — PR #1573 / #1568
 
-## What I did
+## Conflict: `.kody/reports/health-check.md`
 
-Resolved a single conflicted file from `git merge origin/dev` into `1568-bug-adminchat-shows-loading-conversation-spinner-f`:
+**Type**: Asymmetric parallel edit — same four issues, different section headers and stale hour values.
 
-**`.kody/reports/duty-review.md`** — symmetric conflict between two cycles of the same duty review report:
-- HEAD (PR branch): Cycle 9 — 0 healthy, 9 warn, 16 broken
-- origin/dev: Cycle 13 — 1 healthy, 4 warn, 19 broken
+- HEAD (PR branch): `## Running` / `## Failed` headers with stale hour values (e.g. 585h for #1583)
+- origin/dev: `## kody:running` / `## kody:failed` headers with updated hour values (e.g. 660h for #1583)
 
-Resolved by taking the **origin/dev** version. Rationale: the PR branch is a bug fix branch for `/admin/chat` loading spinner; the duty-review.md is a generated operational report. origin/dev's Cycle 13 is more recent and complete (includes `duty-review` and `type-debt` rows absent from Cycle 9). No functional code was changed.
+**Resolution**: Kept PR branch's section header naming (`## Running` / `## Failed`) as the canonical structure, and merged dev's updated hour values (660h, 499h, 502h, 1052h) since dev represents the more recent baseline state.
+
+**No code files touched** — this was purely a metadata/report conflict.
