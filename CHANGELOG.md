@@ -1684,7 +1684,7 @@
 - chore(memory): Rescue orphaned knowledge from kody-memorize branches ([#1891](https://github.com/A-Guy-educ/A-Guy/pull/1891)) — @aguyaharonyair
 - #1563: feat: show app version in admin dashboard footer ([#1566](https://github.com/A-Guy-educ/A-Guy/pull/1566)) — @aguyaharonyair
 - fix(health-badge): Read 'version' field from /api/health response ([#2519](https://github.com/A-Guy-educ/A-Guy/pull/2519)) — @aguyshayb
-- #1783: [P1] Recent Transactions widget shows HTTP 404 error ([#1806](https://github.com/A-Guy-educ/A-Guy/pull/1806)) — @aguyaharonyair
+- #1783: [P1] Recent Transactions widget shows HTTP 404 error ([#1806](https://github.com/A-Guy-educ/A-Guy/pull/1806)) — @aguyaharonyair · 🔄 QA (#2522)
 - #1568: bug: /admin/chat shows 'Loading conversation...' spinner for ~3s… ([#1573](https://github.com/A-Guy-educ/A-Guy/pull/1573)) — @aguyaharonyair · ⚠️ QA 2026-06-08 (#2518)
 - #1570: feat: show per-message timestamp in admin chat ([#1574](https://github.com/A-Guy-educ/A-Guy/pull/1574)) — @aguyaharonyair · ✅ QA 2026-06-07
 - fix(checkout/success): Accept PayPal token in addition to Stripe session_id ([#2494](https://github.com/A-Guy-educ/A-Guy/pull/2494)) — @aguyshayb · ⚠️ QA 2026-06-07 (#2495)
