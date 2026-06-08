@@ -51,7 +51,13 @@ This guide explains how to create and register custom components for the Payload
 | **ExerciseContentEditor** | Field | Block-based exercise content editor | [`src/ui/admin/ExerciseContentEditor/index.tsx`](../../src/ui/admin/ExerciseContentEditor/index.tsx) |
 | **LessonBlocksField** | Field | Sortable list of exercise/content page references with inline editing | [`src/ui/admin/LessonBlocksField/index.tsx`](../../src/ui/admin/LessonBlocksField/index.tsx) |
 | **InlineExerciseEditor** | Field | Per-exercise inline editor with REST save (nested within LessonBlocksField); fetches exercise content via REST API, renders all block types inline, lazy-loads geometry/axis editors; `contentPageRef` blocks still navigate to the admin editor | [`src/ui/admin/LessonBlocksField/InlineExerciseEditor.tsx`](../../src/ui/admin/LessonBlocksField/InlineExerciseEditor.tsx) |
-| **AnswerSpecJsonField** | Field | JSON editor with syntax highlighting | *File removed* |
+| **Coupons list view** | View | Custom list view with create modal | [`src/ui/admin/Coupons/ListView/index.tsx`](../../src/ui/admin/Coupons/ListView/index.tsx) |
+| **CouponStatusCell** | Cell | Color-coded status badge (Active/Expired/Exhausted/Inactive/Scheduled) | [`src/ui/admin/Coupons/Cells/StatusCell/index.tsx`](../../src/ui/admin/Coupons/Cells/StatusCell/index.tsx) |
+| **CouponUsageCell** | Cell | Usage count display (e.g. "5 / 100") | [`src/ui/admin/Coupons/Cells/UsageCell/index.tsx`](../../src/ui/admin/Coupons/Cells/UsageCell/index.tsx) |
+| **CouponExpiresCell** | Cell | Relative expiration display (e.g. "in 3 days") | [`src/ui/admin/Coupons/Cells/ExpiresCell/index.tsx`](../../src/ui/admin/Coupons/Cells/ExpiresCell/index.tsx) |
+| **CouponDiscountDisplayCell** | Cell | Formatted discount display (e.g. "20% off") | [`src/ui/admin/Coupons/Cells/DiscountDisplayCell/index.tsx`](../../src/ui/admin/Coupons/Cells/DiscountDisplayCell/index.tsx) |
+| **CouponUsageProgress** | Field (UI) | Usage progress bar on coupon detail view | [`src/ui/admin/Coupons/UsageProgressField/index.tsx`](../../src/ui/admin/Coupons/UsageProgressField/index.tsx) |
+| **CouponEditView** | View | Custom edit view with usage progress on detail view | [`src/ui/admin/Coupons/EditView/index.tsx`](../../src/ui/admin/Coupons/EditView/index.tsx) |
 | **ChapterBreadcrumbField** | Field | Breadcrumb navigation for chapters | `src/ui/admin/ChapterBreadcrumbField/` |
 | **LessonBreadcrumbField** | Field | Breadcrumb navigation for lessons | `src/ui/admin/LessonBreadcrumbField/` |
 
@@ -407,6 +413,214 @@ export const ExerciseContentEditor: React.FC<{ path: string }> = ({ path }) => {
 2. ✅ Provide manual save button
 3. ✅ Safely access nested data (`value?.blocks || []`)
 4. ✅ Use stable IDs for blocks (`block.id`)
+
+---
+
+## 🔍 Real Example: Coupons Admin Components
+
+The Coupons collection (`src/server/payload/collections/Coupons.ts`) demonstrates several admin component patterns working together.
+
+### Pattern 1: Cell Components for List View
+
+Custom cells render computed/derived values in the list view. Each cell receives `cellData` and `fieldData` props from Payload:
+
+```typescript
+// src/ui/admin/Coupons/Cells/StatusCell/index.tsx
+'use client'
+
+import React from 'react'
+import { useTranslation } from '@payloadcms/ui'
+import { getCouponStrings } from '../../strings'
+
+type CouponStatus = 'Active' | 'Expired' | 'Exhausted' | 'Inactive' | 'Scheduled'
+
+const STATUS_CONFIG: Record<CouponStatus, { classes: string }> = {
+  Active:    { classes: 'bg-success/15 text-success border border-success/30' },
+  Expired:   { classes: 'bg-destructive/15 text-destructive border border-destructive/30' },
+  Exhausted: { classes: 'bg-warning/15 text-warning border border-warning/30' },
+  Inactive:  { classes: 'bg-muted text-muted-foreground border border-muted' },
+  Scheduled: { classes: 'bg-primary/15 text-primary border border-primary/30' },
+}
+
+export const CouponStatusCell: React.FC<{ cellData?: string; fieldData?: CouponStatus }> = ({
+  cellData, fieldData,
+}) => {
+  const { i18n } = useTranslation()
+  const s = getCouponStrings(i18n.language)
+  const status = (cellData || fieldData || 'Inactive') as CouponStatus
+  const config = STATUS_CONFIG[status] ?? STATUS_CONFIG.Inactive
+
+  const label = status === 'Active' ? s.statusActive
+    : status === 'Expired' ? s.statusExpired
+    : status === 'Exhausted' ? s.statusExhausted
+    : status === 'Inactive' ? s.statusInactive
+    : s.statusScheduled
+
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-label font-semibold ${config.classes}`}>
+      {label}
+    </span>
+  )
+}
+```
+
+Registration in collection config:
+
+```typescript
+// src/server/payload/collections/Coupons.ts
+{
+  name: 'status',
+  type: 'text',
+  admin: {
+    components: {
+      Cell: '@/ui/admin/Coupons/Cells/StatusCell#CouponStatusCell',
+    },
+  },
+  hooks: {
+    afterRead: [afterReadCouponStatus],
+  },
+},
+```
+
+### Pattern 2: UI Field Component (No Data Storage)
+
+A `type: 'ui'` field renders a component without storing data — useful for display-only sections like progress bars:
+
+```typescript
+// src/ui/admin/Coupons/UsageProgressField/index.tsx
+'use client'
+
+import React from 'react'
+import { useFormFields, useTranslation } from '@payloadcms/ui'
+import { Progress } from '@/ui/web/components/progress'
+import { getCouponStrings } from '../strings'
+
+export const CouponUsageProgress: React.FC = () => {
+  const { i18n } = useTranslation()
+  const s = getCouponStrings(i18n.language)
+
+  // Read sibling field values via useFormFields
+  const usesCountField = useFormFields(([fields]) => fields.usesCount)
+  const maxUsesField = useFormFields(([fields]) => fields.maxUses)
+
+  const usesCount = (usesCountField?.value as number) ?? 0
+  const maxUses = (maxUsesField?.value as number) ?? 0
+
+  if (maxUses <= 0) return null  // Only show when maxUses > 0
+
+  const percentage = Math.min(100, Math.round((usesCount / maxUses) * 100))
+  const isExhausted = usesCount >= maxUses
+
+  return (
+    <div className="space-y-2 p-card-padding-sm border border-border rounded-lg bg-card">
+      <div className="flex items-center justify-between">
+        <span className="text-label font-semibold text-foreground">{s.usageProgress}</span>
+        <span className={`text-label font-mono ${isExhausted ? 'text-destructive' : 'text-foreground'}`}>
+          {usesCount} / {maxUses}
+        </span>
+      </div>
+      <Progress value={percentage} className="h-2" />
+    </div>
+  )
+}
+```
+
+Registration:
+
+```typescript
+{
+  name: 'usageProgress',
+  type: 'ui',
+  admin: {
+    components: {
+      Field: '@/ui/admin/Coupons/UsageProgressField#CouponUsageProgress',
+    },
+  },
+},
+```
+
+### Pattern 3: i18n Strings for Components
+
+Admin components support English + Hebrew via `useTranslation().i18n.language`:
+
+```typescript
+// src/ui/admin/Coupons/strings.ts
+interface CouponStrings {
+  statusActive: string
+  statusExpired: string
+  usageProgress: string
+  // ...
+}
+
+const EN: CouponStrings = {
+  statusActive: 'Active',
+  statusExpired: 'Expired',
+  usageProgress: 'Usage',
+  // ...
+}
+
+const HE: CouponStrings = {
+  statusActive: 'פעיל',
+  statusExpired: 'תם תוקף',
+  usageProgress: 'שימוש',
+  // ...
+}
+
+export function getCouponStrings(lang: string): CouponStrings {
+  return lang.toLowerCase().startsWith('he') ? HE : EN
+}
+```
+
+### Pattern 4: Computed Display Fields via afterRead Hooks
+
+Virtual derived fields are computed at read time and only exist in the admin panel:
+
+```typescript
+// src/server/payload/hooks/coupons/computeListDisplayFields-hook.ts
+export const afterReadCouponStatus: FieldAfterReadHook = ({ siblingData }) => {
+  const { isActive, validFrom, validUntil, maxUses, usesCount } = siblingData
+
+  if (!isActive) return 'Inactive'
+  if (validFrom && new Date(validFrom) > new Date()) return 'Scheduled'
+  if (validUntil && new Date(validUntil) < new Date()) return 'Expired'
+  if (maxUses > 0 && usesCount >= maxUses) return 'Exhausted'
+  return 'Active'
+}
+```
+
+These fields are declared in the collection with `hooks.afterRead` but no database storage — they are computed on every read.
+
+### Pattern 5: View Components
+
+A custom `list` or `edit` view wraps the Payload default view and adds extra UI:
+
+```typescript
+// src/ui/admin/Coupons/EditView/index.tsx
+'use client'
+
+import React from 'react'
+import { DefaultEditView } from '@payloadcms/ui'
+import type { DocumentViewClientProps } from 'payload'
+
+export const CouponEditView = (props: DocumentViewClientProps) => {
+  return <DefaultEditView {...props} />
+}
+```
+
+Registration in collection config:
+
+```typescript
+// src/server/payload/collections/Coupons.ts
+admin: {
+  components: {
+    views: {
+      edit: {
+        Default: '@/ui/admin/Coupons/EditView#CouponEditView',
+      },
+    },
+  },
+},
+```
 
 ---
 
