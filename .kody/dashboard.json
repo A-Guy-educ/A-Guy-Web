@@ -5,11 +5,6 @@
   "brainFlyChatEnabled": true,
   "namedPreviews": [
     {
-      "id": "default",
-      "label": "Dev",
-      "url": "https://kp-866cab-8111e4-br-ef260e.fly.dev"
-    },
-    {
       "id": "prod-esw0",
       "label": "Prod",
       "url": "https://www.aguy.co.il"
