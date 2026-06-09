@@ -1,9 +1,29 @@
 'use server'
 
+import { cookies } from 'next/headers'
+
+import { createPasswordUser } from '@/infra/auth/web-auth'
 import { checkRateLimit } from './signup_rateLimit-action'
 import { SignupSchema, type SignupResult } from '../signup_schemas'
 
-export async function signupAction(formData: FormData): Promise<SignupResult> {
+type CookieStore = {
+  set: (
+    name: string,
+    value: string,
+    options: {
+      httpOnly: boolean
+      secure: boolean
+      sameSite: 'lax' | 'strict' | 'none'
+      path: string
+      maxAge: number
+    },
+  ) => void
+}
+
+export async function signupAction(
+  formData: FormData,
+  _cookieStore?: CookieStore,
+): Promise<SignupResult> {
   const rawData = {
     name: formData.get('name'),
     email: formData.get('email'),
@@ -44,12 +64,31 @@ export async function signupAction(formData: FormData): Promise<SignupResult> {
   if (!checkRateLimit(emailHash)) {
     return {
       success: false,
-      message: 'Too many signup attempts. Please try again later.',
+      error: 'Too many signup attempts. Please try again later.',
     }
   }
 
-  return {
-    success: false,
-    message: 'Account creation is not available without a backend.',
+  const session = await createPasswordUser({
+    name: parsed.data.name,
+    email,
+    password,
+  })
+
+  if (!session) {
+    return {
+      success: false,
+      error: 'Email is already registered',
+    }
   }
+
+  const store = _cookieStore ?? (await cookies())
+  store.set('payload-token', session.token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 7,
+  })
+
+  return { success: true, userId: session.user.id, data: { userId: session.user.id } }
 }

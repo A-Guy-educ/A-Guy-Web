@@ -155,6 +155,41 @@ export async function loginWithPassword(email: string, password: string) {
   return (await passwordMatches(password, user.salt, user.hash)) ? createSession(user) : null
 }
 
+export async function createPasswordUser(input: { name: string; email: string; password: string }) {
+  const email = input.email.trim().toLowerCase()
+  const existing = await findUserByEmail(email)
+  if (existing) return null
+
+  const password = await hashPassword(input.password)
+  const now = new Date()
+  const collection = await users()
+  let insertedId: ObjectId
+  try {
+    const result = await collection.insertOne({
+      email,
+      name: input.name.trim(),
+      role: 'student',
+      registrationMethod: 'email',
+      registeredAt: now,
+      hash: password.hash,
+      salt: password.salt,
+      sessions: [],
+      createdAt: now,
+      updatedAt: now,
+    })
+    insertedId = result.insertedId
+  } catch (error) {
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 11000) {
+      return null
+    }
+    throw error
+  }
+
+  const user = await collection.findOne({ _id: insertedId })
+  if (!user) throw new Error('Created user was not found')
+  return createSession(user)
+}
+
 export async function linkGoogleUser(
   user: UserDoc,
   google: { sub: string; email: string; name?: string; picture?: string },
