@@ -91,11 +91,13 @@ export async function createSession(user: UserDoc) {
   const sid = randomUUID()
   const now = new Date()
   const expiresAt = new Date(now.getTime() + TOKEN_MAX_AGE * 1000)
+  const collection = await users()
 
-  await (
-    await users()
-  ).updateOne({ _id: user._id }, {
+  await collection.updateOne({ _id: user._id }, {
     $pull: { sessions: { expiresAt: { $lte: now } } },
+  } as Document)
+
+  await collection.updateOne({ _id: user._id }, {
     $push: { sessions: { id: sid, createdAt: now, expiresAt } },
     $set: { updatedAt: now },
   } as Document)
