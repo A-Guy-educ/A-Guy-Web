@@ -74,6 +74,7 @@ jobs:
     env:
       KODY_APP_ID_SET: ${{ secrets.KODY_APP_ID != '' }}
       KODY_APP_PRIVATE_KEY_SET: ${{ secrets.KODY_APP_PRIVATE_KEY != '' }}
+      KODY_MASTER_KEY_SET: ${{ secrets.KODY_MASTER_KEY != '' }}
     concurrency:
       group: kody-${{ inputs.sessionId || inputs.issue_number || github.event.issue.number || github.sha }}
       cancel-in-progress: false
@@ -101,13 +102,16 @@ jobs:
           token: ${{ steps.app-token.outputs.token || github.token }}
 
       - uses: actions/setup-node@v4
+        if: ${{ env.KODY_MASTER_KEY_SET == 'true' }}
         with:
           node-version: 22
 
       - name: Write pip cache key for LiteLLM
+        if: ${{ env.KODY_MASTER_KEY_SET == 'true' }}
         run: echo "litellm[proxy]" > .kody-pip-requirements.txt
 
       - uses: actions/setup-python@v5
+        if: ${{ env.KODY_MASTER_KEY_SET == 'true' }}
         with:
           python-version: '3.12'
           cache: 'pip'
@@ -123,4 +127,9 @@ jobs:
           INIT_MESSAGE: ${{ inputs.message }}
           MODEL: ${{ inputs.model }}
           DASHBOARD_URL: ${{ inputs.dashboardUrl }}
+        if: ${{ env.KODY_MASTER_KEY_SET == 'true' }}
         run: npx -y -p @kody-ade/kody-engine@latest kody-engine
+
+      - name: Skip Kody
+        if: ${{ env.KODY_MASTER_KEY_SET != 'true' }}
+        run: echo "KODY_MASTER_KEY is not configured; skipping Kody."

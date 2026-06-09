@@ -23,7 +23,7 @@ jobs:
     timeout-minutes: 10
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL || 'mongodb://localhost:27017/test' }}
-      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN || 'mock-token-for-testing' }}
       PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET || 'test-secret-for-ci' }}
 
     steps:
@@ -76,6 +76,7 @@ jobs:
           name: coverage-unit
           path: coverage/
           retention-days: 3
+          if-no-files-found: ignore
 
       - name: Check for TODO/FIXME in production code
         run: |
@@ -94,7 +95,7 @@ jobs:
       PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET || 'test-secret-for-ci' }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || '' }}
       DEFAULT_TENANT_SLUG: default
-      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN || 'mock-token-for-testing' }}
 
     services:
       mongodb:
@@ -128,7 +129,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run integration tests
-        run: pnpm test:int:coverage
+        run: pnpm test:int
         env:
           USE_MONGO_SERVICE: 'true'
 
@@ -138,6 +139,7 @@ jobs:
           name: coverage-int
           path: coverage/
           retention-days: 3
+          if-no-files-found: ignore
 
   build:
     name: Build
@@ -149,7 +151,7 @@ jobs:
       DATABASE_URL: mongodb://localhost:27017/test
       PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET || 'test-secret-for-ci' }}
       NEXT_PUBLIC_SERVER_URL: ${{ secrets.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000' }}
-      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN || 'mock-token-for-testing' }}
 
     services:
       mongodb:
@@ -207,7 +209,7 @@ jobs:
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || '' }}
       NEXT_PUBLIC_SERVER_URL: http://localhost:3000
       NEXT_PUBLIC_BRAND: aguy
-      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN || 'mock-token-for-testing' }}
 
     services:
       mongodb:
@@ -308,7 +310,7 @@ jobs:
       DEFAULT_TENANT_SLUG: default
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || '' }}
       NEXT_PUBLIC_SERVER_URL: http://localhost:3000
-      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN || 'mock-token-for-testing' }}
 
     services:
       mongodb:
@@ -406,7 +408,7 @@ jobs:
       DEFAULT_TENANT_SLUG: default
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || '' }}
       NEXT_PUBLIC_SERVER_URL: http://localhost:3000
-      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN || 'mock-token-for-testing' }}
 
     services:
       mongodb:
@@ -490,7 +492,7 @@ jobs:
       DEFAULT_TENANT_SLUG: default
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || '' }}
       NEXT_PUBLIC_SERVER_URL: http://localhost:3000
-      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN || 'mock-token-for-testing' }}
 
     services:
       mongodb:
