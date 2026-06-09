@@ -8,7 +8,7 @@
  * - Tier 3: Highest priority published → Tier 4 (failsafe)
  */
 
-import type { Payload } from 'payload'
+import type { Payload } from '@/infra/types/backend'
 
 import { logger as rootLogger } from '@/infra/utils/logger'
 

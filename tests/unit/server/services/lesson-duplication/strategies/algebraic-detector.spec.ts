@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from 'vitest'
 import { isPurelyAlgebraic } from '@/server/services/lesson-duplication/strategies/algebraic-detector'
-import type { ContentBlock, InlineRichText } from '@/server/payload/collections/Exercises/types'
+import type { ContentBlock, InlineRichText } from '@/infra/types/exercise'
 
 // ---------------------------------------------------------------------------
 // Factory helpers (mirroring structural.spec.ts patterns)
@@ -80,7 +80,7 @@ function makeFreeResponse(promptValue: string): ContentBlock {
 }
 
 function makeExercise(...blocks: ContentBlock[]) {
-  return { id: 'ex-1', content: { blocks } } as unknown as import('@/payload-types').Exercise
+  return { id: 'ex-1', content: { blocks } } as unknown as import('@/infra/types/content').Exercise
 }
 
 // ---------------------------------------------------------------------------

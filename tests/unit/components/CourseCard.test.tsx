@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { CourseCard } from '@/app/(frontend)/courses/_components/CourseCard'
-import type { Course } from '@/payload-types'
+import type { Course } from '@/infra/types/content'
 import { I18nProvider } from '@/ui/web/providers/I18n'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'

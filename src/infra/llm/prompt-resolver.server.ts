@@ -6,10 +6,10 @@
  * 2. Default prompt (first published with isDefaultForAgentChat=true)
  * 3. Built-in fallback (logs warning)
  */
-import type { Prompt } from '@/payload-types'
+import type { Prompt } from '@/infra/types/content'
 import { logger } from '@/infra/utils/logger'
-import type { ContentLocale } from '@/server/payload/fields/contentLocale'
-import type { Payload, Where } from 'payload'
+import type { ContentLocale } from '@/infra/types/content'
+import type { Payload, Where } from '@/infra/types/backend'
 
 // Local constant - no cross-module imports to avoid circular deps
 export const BUILTIN_FALLBACK_PROMPT = `You are a helpful math and science tutor for students working on exercises.

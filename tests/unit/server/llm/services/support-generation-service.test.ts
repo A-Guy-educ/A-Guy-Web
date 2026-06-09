@@ -34,7 +34,7 @@ vi.mock('@/infra/llm/models', () => ({
 }))
 
 import { generateSupport } from '@/infra/llm/services/support-generation-service'
-import type { ContentBlock } from '@/server/payload/collections/Exercises/types'
+import type { ContentBlock } from '@/infra/types/exercise'
 
 function makeMcqBlock(): ContentBlock {
   return {

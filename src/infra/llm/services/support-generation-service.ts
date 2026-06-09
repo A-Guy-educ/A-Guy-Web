@@ -3,14 +3,14 @@
  * Generates hints, solutions, and full solutions for exercise blocks
  * Server-side only — content is persisted to DB, never sent to client
  */
-import type { Payload } from 'payload'
+import type { Payload } from '@/infra/types/backend'
 import type { AIModel, AIModelKey } from '../models'
 import { getModelRegistryEntry, getProviderModelName } from '../models'
 import { SUPPORT_GENERATION_PROMPT } from '../prompts/support-generation'
 import { LLMProviderType } from '../providers/types'
 import { buildSupportUserPrompt } from './support-generation-prompt-builder'
 import { logger } from '@/infra/utils/logger'
-import type { ContentBlock } from '@/server/payload/collections/Exercises/types'
+import type { ContentBlock } from '@/infra/types/exercise'
 
 export interface SupportGenerationInput {
   block: ContentBlock

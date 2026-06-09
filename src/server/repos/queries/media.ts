@@ -1,30 +1,28 @@
 import { cache } from 'react'
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
-import type { Media } from '@/payload-types'
 
-/**
- * Fetch multiple media documents by their IDs.
- * Returns a map of id -> Media for efficient lookup.
- */
+import type { Media } from '@/infra/types/content'
+import { findManySerialized, objectIdFromString } from '../mongo'
+
+function normalizeMedia(media: Media): Media {
+  return {
+    ...media,
+    mediaType: media.mediaType || (media.type as Media['mediaType']),
+    url: media.url || (media.filename ? `/api/media/file/${media.filename}` : undefined),
+  }
+}
+
 export const queryMediaByIds = cache(async (ids: string[]): Promise<Record<string, Media>> => {
   if (ids.length === 0) return {}
 
-  const payload = await getPayload({ config: configPromise })
-
-  const result = await payload.find({
-    collection: 'media',
-    where: {
-      id: { in: ids },
-    },
-    limit: ids.length,
-    pagination: false,
-    depth: 0,
-  })
+  const docs = await findManySerialized<Media>(
+    'media',
+    { _id: { $in: ids.map(objectIdFromString) } },
+    { limit: ids.length },
+  )
 
   const map: Record<string, Media> = {}
-  for (const doc of result.docs) {
-    map[doc.id] = doc
+  for (const doc of docs) {
+    map[doc.id] = normalizeMedia(doc)
   }
   return map
 })

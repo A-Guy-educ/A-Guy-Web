@@ -5,7 +5,7 @@ import { SystemLink } from '@/infra/loading/components/SystemLink'
 import { useRouter } from 'next/navigation'
 import { LogOut, User as UserIcon } from 'lucide-react'
 
-import type { User } from '@/payload-types'
+import type { User } from '@/infra/types/content'
 
 import { Button } from '@/ui/web/components/button'
 import { logoutAction } from '@/app/(frontend)/actions/auth-action'

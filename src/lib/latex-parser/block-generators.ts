@@ -1,4 +1,4 @@
-import { generateId } from '@/server/payload/collections/Exercises/types'
+import { generateId } from '@/infra/types/exercise'
 import type {
   RichTextBlock,
   LatexBlock,
@@ -8,7 +8,7 @@ import type {
   QuestionAxisBlock,
   QuestionGeometryBlock,
   InlineRichText,
-} from '@/server/payload/collections/Exercises/types'
+} from '@/infra/types/exercise'
 import type { AxisSpecV1 } from '@/infra/contracts/graphics/axis.v1'
 import type { GeometrySpecV1 } from '@/infra/contracts/graphics/geometry.v1'
 

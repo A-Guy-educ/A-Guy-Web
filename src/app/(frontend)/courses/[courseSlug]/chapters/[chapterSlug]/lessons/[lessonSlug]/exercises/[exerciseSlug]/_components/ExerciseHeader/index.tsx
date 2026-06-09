@@ -2,7 +2,7 @@
 
 import { isRTL } from '@/i18n/config'
 import { cn } from '@/infra/utils/ui'
-import type { User } from '@/payload-types'
+import type { User } from '@/infra/types/content'
 import { BrandLogo } from '@/ui/web/BrandLogo'
 import { UserDropdown } from '@/ui/web/UserDropdown'
 import { Button } from '@/ui/web/components/button'

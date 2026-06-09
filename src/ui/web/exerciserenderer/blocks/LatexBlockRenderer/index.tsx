@@ -1,6 +1,6 @@
 'use client'
 
-import type { LatexBlock } from '@/server/payload/collections/Exercises/types'
+import type { LatexBlock } from '@/infra/types/exercise'
 import { MathMarkdown } from '@/ui/web/shared/MathMarkdown'
 import React from 'react'
 

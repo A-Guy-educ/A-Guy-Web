@@ -11,7 +11,7 @@
  */
 import { isVercelBlobUrl } from '@/infra/blob/vercel-blob-adapter'
 import { fetchBuffer } from '@/infra/utils/http'
-import type { ContextExtraction, Lesson, Media, Prompt } from '@/payload-types'
+import type { ContextExtraction, Lesson, Media, Prompt } from '@/infra/types/content'
 import { getPdfBufferFromBlob, normalizeToAbsoluteUrl } from '@/server/services/pdf-fetcher'
 import { splitPdfIntoPages } from '@/server/utils/pdf-page-splitter'
 import { validateExtractedLatex } from './validate-latex'
@@ -22,7 +22,7 @@ import {
   type ExtractPageResult,
 } from './structured-extraction'
 import type { ExtractedExercise } from './structured-extraction-schema'
-import type { Payload, User } from 'payload'
+import type { Payload, User } from '@/infra/types/backend'
 
 // Controlled concurrency for page-by-page PDF processing
 const PAGE_CONCURRENCY = 3

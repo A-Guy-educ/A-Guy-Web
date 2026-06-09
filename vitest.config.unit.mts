@@ -56,10 +56,6 @@ export default defineConfig({
       reporter: ['text', 'html', 'lcov'],
       include: [
         'src/lib/**/*.ts',
-        'src/server/payload/access/**/*.ts',
-        'src/server/payload/collections/**/*.ts',
-        'src/server/payload/hooks/**/*.ts',
-        'src/server/payload/endpoints/**/*.ts',
         'src/server/services/**/*.ts',
         'src/infra/llm/**/*.ts',
         'src/infra/blob/**/*.ts',

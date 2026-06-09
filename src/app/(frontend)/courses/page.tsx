@@ -1,6 +1,6 @@
 import { getDirection } from '@/i18n/config'
 import { getSystemLocale } from '@/i18n/server-locale'
-import { isValidContentLocale } from '@/server/payload/fields/contentLocale'
+import { isValidContentLocale } from '@/infra/types/content'
 import { pageMetadata } from '@/infra/seo/pageMetadata'
 import { queryPublishedCourses } from '@/server/repos/queries/courses'
 import { CourseCardGrid } from './_components/CourseCardGrid'

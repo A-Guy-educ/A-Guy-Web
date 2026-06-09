@@ -1,123 +1,75 @@
-import configPromise from '@payload-config'
-import { getPayload } from 'payload'
 import { cache } from 'react'
 
-export const queryPostBySlug = cache(async ({ slug }: { slug: string }) => {
-  const payload = await getPayload({ config: configPromise })
+import type { Post } from '@/infra/types/content'
+import { countDocs, findManySerialized, findOneSerialized } from '../mongo'
+import type { PaginatedResult } from './empty'
 
-  const result = await payload.find({
-    collection: 'posts',
-    where: {
-      slug: {
-        equals: slug,
-      },
-    },
-    limit: 1,
-    pagination: false,
-    depth: 2,
-  })
+function paginated<T>(
+  docs: T[],
+  totalDocs: number,
+  limit: number,
+  page: number,
+): PaginatedResult<T> {
+  const totalPages = Math.ceil(totalDocs / limit)
+  return {
+    docs,
+    totalDocs,
+    limit,
+    totalPages,
+    page,
+    pagingCounter: totalDocs === 0 ? 0 : (page - 1) * limit + 1,
+    hasPrevPage: page > 1,
+    hasNextPage: page < totalPages,
+    prevPage: page > 1 ? page - 1 : null,
+    nextPage: page < totalPages ? page + 1 : null,
+  }
+}
 
-  return result.docs?.[0] || null
+export const queryPostBySlug = cache(async ({ slug }: { slug: string }): Promise<Post | null> => {
+  return findOneSerialized<Post>('posts', { slug })
 })
 
 export const queryPublishedPosts = cache(
   async ({ limit = 12, page = 1 }: { limit?: number; page?: number } = {}) => {
-    const payload = await getPayload({ config: configPromise })
+    const filter = { _status: 'published' }
+    const [docs, totalDocs] = await Promise.all([
+      findManySerialized<Post>('posts', filter, {
+        sort: { createdAt: -1 },
+        limit,
+        skip: (page - 1) * limit,
+      }),
+      countDocs('posts', filter),
+    ])
 
-    const result = await payload.find({
-      collection: 'posts',
-      where: {
-        _status: {
-          equals: 'published',
-        },
-      },
-      sort: '-createdAt',
-      limit,
-      page,
-      depth: 2,
-    })
-
-    return result
+    return paginated(docs, totalDocs, limit, page)
   },
 )
 
 export const searchPosts = cache(
   async ({ query, limit = 12 }: { query: string; limit?: number }) => {
-    const payload = await getPayload({ config: configPromise })
-
-    const result = await payload.find({
-      collection: 'posts',
-      where: {
-        or: [
-          {
-            title: {
-              like: query,
-            },
-          },
-          {
-            'meta.description': {
-              like: query,
-            },
-          },
-          {
-            'meta.title': {
-              like: query,
-            },
-          },
-          {
-            slug: {
-              like: query,
-            },
-          },
-        ],
-      },
-      limit,
-      depth: 1,
-      select: {
-        title: true,
-        slug: true,
-        categories: true,
-        meta: true,
-      },
-    })
-
-    return result
+    const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
+    const filter = {
+      $or: [
+        { title: regex },
+        { 'meta.description': regex },
+        { 'meta.title': regex },
+        { slug: regex },
+      ],
+    }
+    const docs = await findManySerialized<Post>('posts', filter, { limit })
+    return paginated(docs, docs.length, limit, 1)
   },
 )
 
-export const queryAllPostsForSitemap = cache(async () => {
-  const payload = await getPayload({ config: configPromise })
-
-  const result = await payload.find({
-    collection: 'posts',
-    where: {
-      _status: {
-        equals: 'published',
-      },
-    },
-    select: {
-      slug: true,
-      updatedAt: true,
-    },
-    limit: 1000,
-    pagination: false,
-  })
-
-  return result.docs
+export const queryAllPostsForSitemap = cache(async (): Promise<Post[]> => {
+  return findManySerialized<Post>(
+    'posts',
+    { _status: 'published' },
+    { projection: { slug: 1, updatedAt: 1 }, limit: 1000 },
+  )
 })
 
-export const queryAllPostSlugs = cache(async () => {
-  const payload = await getPayload({ config: configPromise })
-
-  const result = await payload.find({
-    collection: 'posts',
-    draft: false,
-    limit: 25,
-    depth: 0,
-    select: {
-      slug: true,
-    },
-  })
-
-  return result.docs.map(({ slug }) => ({ slug }))
+export const queryAllPostSlugs = cache(async (): Promise<{ slug: string }[]> => {
+  const posts = await findManySerialized<Post>('posts', {}, { projection: { slug: 1 }, limit: 25 })
+  return posts.filter((post) => post.slug).map((post) => ({ slug: post.slug as string }))
 })

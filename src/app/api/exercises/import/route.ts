@@ -1,61 +1,19 @@
-/**
- * POST /api/exercises/import?lessonId=<id>
- * Convert lesson contentFile to exercise using AI
- *
- * This is a Next.js App Router API route that wraps the Payload endpoint logic.
- * Payload 3.x custom endpoints in config don't automatically create Next.js routes,
- * so we need this explicit route file.
- */
-import { NextRequest, NextResponse } from 'next/server'
-import { getPayload } from 'payload'
-import type { PayloadRequest } from 'payload'
-import config from '@payload-config'
-import { importExerciseFromLesson } from '@/server/payload/endpoints/exercises/import-from-lesson'
-import { importExerciseFromImage } from '@/server/payload/endpoints/exercises/import-from-image'
-import { logger } from '@/infra/utils/logger'
+import { NextResponse } from 'next/server'
 
-export async function POST(request: NextRequest) {
-  try {
-    // Get Payload instance
-    const payload = await getPayload({ config })
+const disabled = { error: 'This endpoint is unavailable without the removed CMS backend.' }
 
-    // Get authenticated user
-    const { user } = await payload.auth({ headers: request.headers })
+export async function GET() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-    // Determine which handler to use based on query param
-    const url = new URL(request.url)
-    const lessonId = url.searchParams.get('lessonId')
+export async function POST() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-    // Create a PayloadRequest-like object (minimal required fields)
-    // PayloadRequest has many optional fields, so we create a partial one
-    const payloadRequest: PayloadRequest = {
-      payload,
-      user: user || undefined,
-      url: request.url,
-      headers: request.headers,
-      routeParams: {},
-      context: {},
-    } as PayloadRequest
+export async function PATCH() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-    // Route to appropriate handler
-    if (lessonId) {
-      logger.info({ lessonId }, '[API Route] Calling importExerciseFromLesson')
-      return await importExerciseFromLesson(payloadRequest)
-    } else {
-      logger.info('[API Route] Calling importExerciseFromImage')
-      return await importExerciseFromImage(payloadRequest)
-    }
-  } catch (error) {
-    logger.error({ err: error }, '[API Route] Error in /api/exercises/import')
-    const Sentry = await import('@sentry/nextjs')
-    Sentry.captureException(error, { tags: { route: '/api/exercises/import' } })
-
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 },
-    )
-  }
+export async function DELETE() {
+  return NextResponse.json(disabled, { status: 410 })
 }

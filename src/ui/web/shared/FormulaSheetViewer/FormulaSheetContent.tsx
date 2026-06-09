@@ -10,7 +10,7 @@
 'use client'
 
 import Image from 'next/image'
-import type { FormulaSheet } from '@/payload-types'
+import type { FormulaSheet } from '@/infra/types/content'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { PDFEmbed } from '../../courses/PDFViewer/PDFEmbed'
 
@@ -35,7 +35,9 @@ export function FormulaSheetContent({ sheet }: FormulaSheetContentProps) {
       if (!pdfFile || typeof pdfFile === 'string') {
         return <p className="text-muted-foreground">{t('formulaSheetEmpty')}</p>
       }
-      return <PDFEmbed pdfUrl={pdfFile.url || `/media/${pdfFile.filename}`} title={sheet.title} />
+      return (
+        <PDFEmbed pdfUrl={pdfFile.url || `/media/${pdfFile.filename}`} title={sheet.title || ''} />
+      )
 
     case 'richText':
     case 'blocks':
@@ -47,7 +49,7 @@ export function FormulaSheetContent({ sheet }: FormulaSheetContentProps) {
 
       return (
         <div className="formula-sheet-blocks space-y-4">
-          {bodyBlocks.map((block, index) => {
+          {(bodyBlocks as any[]).map((block, index) => {
             if (block.blockType === 'html' && 'html' in block) {
               return (
                 <div

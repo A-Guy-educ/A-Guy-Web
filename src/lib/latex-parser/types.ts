@@ -1,4 +1,4 @@
-import type { ContentBlock } from '@/server/payload/collections/Exercises/types'
+import type { ContentBlock } from '@/infra/types/exercise'
 
 export interface ParseWarning {
   line: number

@@ -2,7 +2,7 @@
 
 import { EmptyState } from '@/app/(frontend)/courses/_components/EmptyState'
 import { ExerciseCard } from '@/app/(frontend)/courses/_components/ExerciseCard'
-import type { Exercise, Media as MediaType } from '@/payload-types'
+import type { Exercise, Media as MediaType } from '@/infra/types/content'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { Media as MediaComponent } from '@/ui/web/media'
 import { useState } from 'react'

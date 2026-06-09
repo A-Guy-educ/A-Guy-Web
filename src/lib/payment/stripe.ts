@@ -79,7 +79,7 @@ export async function verifyStripeWebhook(
 
 /**
  * Create a Stripe refund
- * @param transactionId - Payload transaction document ID (used for idempotency key)
+ * @param transactionId - Transaction ID used for idempotency
  * @param providerTransactionId - Stripe payment intent ID
  * @param amount - Optional refund amount in smallest currency unit
  */

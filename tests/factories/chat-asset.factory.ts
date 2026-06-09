@@ -1,5 +1,5 @@
 import type { Payload } from 'payload'
-import type { ChatAsset } from '@/payload-types'
+import type { ChatAsset } from '@/infra/types/content'
 import type { TestDataTracker } from '../helpers/test-data-tracker'
 
 export interface ChatAssetFactoryInput {

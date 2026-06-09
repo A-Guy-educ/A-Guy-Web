@@ -1,6 +1,6 @@
 import React from 'react'
 
-import type { Page } from '@/payload-types'
+import type { Page } from '@/infra/types/content'
 
 import { HighImpactHero } from '@/ui/web/heros/HighImpact'
 import { LowImpactHero } from '@/ui/web/heros/LowImpact'
@@ -17,7 +17,7 @@ export const RenderHero: React.FC<Page['hero']> = (props) => {
 
   if (!type || type === 'none') return null
 
-  const HeroToRender = heroes[type]
+  const HeroToRender = heroes[type as keyof typeof heroes]
 
   if (!HeroToRender) return null
 

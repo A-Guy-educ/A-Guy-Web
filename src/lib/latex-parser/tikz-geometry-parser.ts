@@ -10,7 +10,7 @@
  */
 
 import type { GeometrySpecV1 } from '@/infra/contracts/graphics/geometry.v1'
-import type { QuestionGeometryBlock } from '@/server/payload/collections/Exercises/types'
+import type { QuestionGeometryBlock } from '@/infra/types/exercise'
 import { makeGeometryBlock } from '@/lib/latex-parser/block-generators'
 
 interface ParsedPoint {

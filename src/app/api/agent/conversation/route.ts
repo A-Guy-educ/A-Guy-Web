@@ -1,61 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getPayload } from 'payload'
-import config from '@payload-config'
-import { getConversation } from '@/server/payload/endpoints/agent/get-conversation'
-import { logger } from '@/infra/utils/logger/logger'
-import { z } from 'zod'
+import { NextResponse } from 'next/server'
 
-const bodySchema = z.object({
-  contextKey: z.string().min(1),
-})
+const disabled = { error: 'This endpoint is unavailable without the removed CMS backend.' }
 
-export async function POST(request: NextRequest) {
-  const requestId = crypto.randomUUID()
+export async function GET() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-  try {
-    logger.info({ requestId, url: request.url }, 'Get conversation request received')
+export async function POST() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-    // Parse request body early to validate
-    const body = await request.json()
+export async function PATCH() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-    // Validate required fields
-    const validated = bodySchema.parse(body)
-    const contextKey = validated.contextKey
-
-    const payload = await getPayload({ config })
-    const { user } = await payload.auth({ headers: request.headers })
-
-    const payloadRequest = {
-      payload,
-      user,
-      url: request.url,
-      headers: request.headers,
-      json: async () => body, // Return the already-parsed body
-    } as Parameters<typeof getConversation>[0]
-
-    logger.info({ requestId, contextKey }, 'Processing get conversation request')
-    return await getConversation(payloadRequest)
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation error', details: error.issues, requestId },
-        { status: 400 },
-      )
-    }
-
-    logger.error({ err: error, requestId }, 'Get conversation route error')
-    const Sentry = await import('@sentry/nextjs')
-    Sentry.captureException(error, { tags: { route: '/api/agent/conversation' } })
-
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : 'Internal server error',
-        requestId,
-        ...(process.env.NODE_ENV === 'development' && error instanceof Error
-          ? { stack: error.stack }
-          : {}),
-      },
-      { status: 500 },
-    )
-  }
+export async function DELETE() {
+  return NextResponse.json(disabled, { status: 410 })
 }

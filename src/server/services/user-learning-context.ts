@@ -5,7 +5,7 @@
  * Fetches progress, activity, and study plans to personalize agent responses.
  */
 
-import type { Payload } from 'payload'
+import type { Payload } from '@/infra/types/backend'
 
 import { logger } from '@/infra/utils/logger'
 

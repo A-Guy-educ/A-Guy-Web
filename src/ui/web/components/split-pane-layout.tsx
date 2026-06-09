@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@/infra/utils/ui'
-import { useMediaQuery } from '@/server/payload/hooks/useMediaQuery'
+import { useMediaQuery } from '@/client/hooks/useMediaQuery'
 import { ResizablePane } from '@/ui/web/components/resizable-pane'
 import { MobileChatFAB } from '@/ui/web/chat/MobileChatFAB'
 import React, { useCallback, useEffect, useRef, useState } from 'react'

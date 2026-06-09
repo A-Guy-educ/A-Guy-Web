@@ -10,7 +10,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import React from 'react'
 
-import type { QuestionAxisBlock } from '@/server/payload/collections/Exercises/types'
+import type { QuestionAxisBlock } from '@/infra/types/exercise'
 
 // Simple mock for testing the UI behavior
 const MockAxisEditor: React.FC<{

@@ -9,7 +9,7 @@ import { getUserProfile } from '@/client/state/localStorage/userProfile'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
 import { logger } from '@/infra/utils/logger'
 // cn import removed - not currently used
-import type { Chapter, Lesson } from '@/payload-types'
+import type { Chapter, Lesson } from '@/infra/types/content'
 import {
   DEFAULT_LESSON_TYPE,
   getEffectiveLessonType,

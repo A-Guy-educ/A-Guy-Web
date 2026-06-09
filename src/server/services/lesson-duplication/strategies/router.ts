@@ -7,12 +7,9 @@
  * @ai-summary Routes exercises to the appropriate variation strategy (script or AI).
  */
 
-import type { Payload } from 'payload'
-import type { Exercise } from '@/payload-types'
-import type {
-  DuplicationLevel,
-  DuplicationSubject,
-} from '@/server/payload/collections/LessonDuplications'
+import type { Payload } from '@/infra/types/backend'
+import type { Exercise } from '@/infra/types/content'
+import type { DuplicationLevel, DuplicationSubject } from '@/infra/types/backend'
 import type { VariationStrategy, VariationResult } from './types'
 import { ScriptVariationStrategy } from './script-strategy'
 

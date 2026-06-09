@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react'
-import type { Exercise } from '@/payload-types'
+import type { Exercise } from '@/infra/types/content'
 import { getExerciseUrlParam } from './getExerciseUrlParam'
 
 type PageType = 'intro' | 'about' | 'exercise' | 'outro'

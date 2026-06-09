@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import type { Chapter, Lesson } from '@/payload-types'
+import type { Chapter, Lesson } from '@/infra/types/content'
 import { getEffectiveLessonType } from '@/server/constants/lesson-types'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { useProgressMap } from '@/client/hooks/useProgressMap'

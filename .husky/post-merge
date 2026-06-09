@@ -10,12 +10,4 @@ if git diff --name-only HEAD@{1} HEAD 2>/dev/null | grep -q "pnpm-lock.yaml"; th
   echo "✅ Dependencies updated"
 fi
 
-# Check if Payload types need regeneration
-if git diff --name-only HEAD@{1} HEAD 2>/dev/null | grep -q "src/collections/\|src/globals/\|payload.config.ts"; then
-  echo ""
-  echo "🔧 Payload schema changed. Regenerating types..."
-  pnpm generate:types
-  echo "✅ Types regenerated"
-fi
-
 exit 0

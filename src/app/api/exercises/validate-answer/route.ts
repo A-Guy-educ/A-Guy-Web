@@ -1,42 +1,19 @@
-/**
- * POST /api/exercises/validate-answer
- * Next.js route wrapper for answer validation endpoint
- */
-import { NextRequest } from 'next/server'
-import { getPayload } from 'payload'
-import type { PayloadRequest } from 'payload'
-import config from '@payload-config'
-import { validateAnswer } from '@/server/payload/endpoints/exercises/validate-answer'
+import { NextResponse } from 'next/server'
 
-export async function POST(request: NextRequest) {
-  try {
-    const payload = await getPayload({ config })
-    const { user } = await payload.auth({ headers: request.headers })
+const disabled = { error: 'This endpoint is unavailable without the removed CMS backend.' }
 
-    const body = await request.json()
+export async function GET() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-    const payloadRequest = {
-      payload,
-      user: user || undefined,
-      url: request.url,
-      headers: request.headers,
-      json: async () => body,
-      routeParams: {},
-      context: {},
-    } as PayloadRequest & { json: () => Promise<unknown> }
+export async function POST() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-    return await validateAnswer(payloadRequest)
-  } catch (error) {
-    const Sentry = await import('@sentry/nextjs')
-    Sentry.captureException(error, { tags: { route: '/api/exercises/validate-answer' } })
+export async function PATCH() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-    return Response.json(
-      {
-        success: false,
-        error: 'Internal server error',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 },
-    )
-  }
+export async function DELETE() {
+  return NextResponse.json(disabled, { status: 410 })
 }

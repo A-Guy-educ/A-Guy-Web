@@ -16,7 +16,7 @@ import { UserAvatar } from '@/ui/web/UserAvatar'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { logoutAction } from '@/app/(frontend)/actions/auth-action'
 import { analytics } from '@/infra/analytics'
-import type { User } from '@/payload-types'
+import type { User } from '@/infra/types/content'
 
 export function UserDropdown({ user }: { user: User }) {
   const router = useRouter()

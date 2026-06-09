@@ -10,7 +10,7 @@ import {
   numericDifferencesOnly,
   type DiffCategory,
 } from '@/server/services/lesson-duplication/diff'
-import type { ContentBlock } from '@/server/payload/collections/Exercises/types'
+import type { ContentBlock } from '@/infra/types/exercise'
 
 // Helper to create a basic rich_text block
 function richText(id: string, value: string): ContentBlock {

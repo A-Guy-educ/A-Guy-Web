@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { buildSupportUserPrompt } from '@/infra/llm/services/support-generation-prompt-builder'
-import type { ContentBlock } from '@/server/payload/collections/Exercises/types'
+import type { ContentBlock } from '@/infra/types/exercise'
 
 function makeMcqBlock(overrides?: Partial<ContentBlock>): ContentBlock {
   return {

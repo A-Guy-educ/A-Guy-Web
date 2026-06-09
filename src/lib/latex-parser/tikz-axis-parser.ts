@@ -12,9 +12,9 @@
  */
 
 import type { AxisSpecV1 } from '@/infra/contracts/graphics/axis.v1'
-import type { QuestionAxisBlock } from '@/server/payload/collections/Exercises/types'
+import type { QuestionAxisBlock } from '@/infra/types/exercise'
 import { makeAxisBlock } from '@/lib/latex-parser/block-generators'
-import { generateId } from '@/server/payload/collections/Exercises/types'
+import { generateId } from '@/infra/types/exercise'
 
 /** Parse key=value options from [key=val, key2=val2], respecting brace groups */
 function parseOptions(optionStr: string): Record<string, string> {

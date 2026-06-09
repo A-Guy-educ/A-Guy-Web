@@ -7,7 +7,7 @@
  *   (AI calls and vector search are mocked to avoid external dependencies).
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { Exercise } from '@/payload-types'
+import type { Exercise } from '@/infra/types/content'
 import { agentChat } from '@/server/payload/endpoints/agent/chat'
 import config from '@payload-config'
 import type { Payload, PayloadRequest } from 'payload'

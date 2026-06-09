@@ -7,10 +7,10 @@
  * - Guests: Tier 2 (default) → Tier 4 (failsafe)
  */
 
-import type { Payload } from 'payload'
+import type { Payload } from '@/infra/types/backend'
 
 import { logger as rootLogger } from '@/infra/utils/logger'
-import type { UserSetting } from '@/payload-types'
+import type { UserSetting } from '@/infra/types/content'
 
 /**
  * Default teacher profile slug - hardcoded for v1.1

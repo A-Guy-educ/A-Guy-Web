@@ -1,7 +1,7 @@
 import { cookieName, defaultLocale, locales, type Locale } from '@/i18n/config'
 import { queryPageBySlug } from '@/server/repos/queries/pages'
 import { RenderHero } from '@/ui/web/heros/RenderHero'
-import { PayloadRedirects } from '@/ui/web/PayloadRedirects'
+import { Redirects } from '@/ui/web/Redirects'
 import type { Metadata } from 'next'
 import { cookies, headers } from 'next/headers'
 import { getBrand } from '@/brands'
@@ -9,10 +9,10 @@ import { getBrand } from '@/brands'
 export default async function HomepagePage() {
   // Run redirects first - if no redirect applies, we'll fall through
   const redirects = await import('@/infra/utils/getRedirects').then((m) => m.getCachedRedirects()())
-  const redirectItem = redirects.find((r) => normalizeAndMatch(r.from, '/'))
+  const redirectItem = redirects.find((r) => normalizeAndMatch(r.from || '', '/'))
 
   if (redirectItem) {
-    // Redirects will be handled by PayloadRedirects component
+    // Redirects will be handled by Redirects component
   } else {
     // No redirect, load home page from Pages collection
     const homePage = await queryPageBySlug({ slug: 'home' })
@@ -24,14 +24,13 @@ export default async function HomepagePage() {
     }
 
     // Render the home page with hero and layout
-    const { hero } = homePage
-    if (hero) {
-      return <RenderHero {...hero} />
+    if (homePage?.hero) {
+      return <RenderHero {...homePage.hero} />
     }
   }
 
-  // Fall through to PayloadRedirects which will handle redirects or notFound
-  return <PayloadRedirects disableNotFound url="/" />
+  // Fall through to Redirects which will handle redirects or notFound
+  return <Redirects disableNotFound url="/" />
 }
 
 function normalizeAndMatch(redirectFrom: string, url: string): boolean {
@@ -111,7 +110,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   // First check for redirects
   const redirects = await import('@/infra/utils/getRedirects').then((m) => m.getCachedRedirects()())
-  const redirectItem = redirects.find((r) => normalizeAndMatch(r.from, '/'))
+  const redirectItem = redirects.find((r) => normalizeAndMatch(r.from || '', '/'))
 
   // If there's a redirect, use default metadata
   if (redirectItem) {

@@ -18,7 +18,7 @@
  * @pattern connection-pool, health-check
  */
 
-import type { MongooseAdapter } from '@payloadcms/db-mongodb'
+import type { MongooseAdapter } from '@/infra/types/backend'
 
 export interface PoolStats {
   maxPoolSize: number

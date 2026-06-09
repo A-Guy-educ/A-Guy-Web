@@ -10,7 +10,7 @@
  */
 
 import { logger } from '@/infra/utils/logger'
-import type { Payload } from 'payload'
+import type { Payload } from '@/infra/types/backend'
 import type { Message } from './context-policy'
 import { getMessagesToSummarize, getRecentWindow, needsSummaryMaintenance } from './context-policy'
 import { generateSummary } from './summary'

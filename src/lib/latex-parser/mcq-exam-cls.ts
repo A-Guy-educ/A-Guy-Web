@@ -1,9 +1,5 @@
-import { generateId } from '@/server/payload/collections/Exercises/types'
-import type {
-  QuestionSelectMcqBlock,
-  InlineRichText,
-  McqOption,
-} from '@/server/payload/collections/Exercises/types'
+import { generateId } from '@/infra/types/exercise'
+import type { QuestionSelectMcqBlock, InlineRichText, McqOption } from '@/infra/types/exercise'
 
 function makeInlineRichText(value: string): InlineRichText {
   return { type: 'rich_text', format: 'md-math-v1', value: value.trim(), mediaIds: [] }

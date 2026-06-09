@@ -15,12 +15,12 @@
  */
 import { logger } from '@/infra/utils/logger'
 import { getGuestChatConfig } from '@/server/config/guest-chat-config'
-import { AccountRole } from '@/server/payload/collections/Users/roles'
-import { DEFAULT_CONTENT_LOCALE } from '@/server/payload/fields/contentLocale'
-import type { ContentLocale } from '@/server/payload/fields/contentLocale'
-import { logActivity } from '@/server/payload/hooks/stats/logActivity'
+import { AccountRole } from '@/infra/auth/roles'
+import { DEFAULT_CONTENT_LOCALE } from '@/infra/types/content'
+import type { ContentLocale } from '@/infra/types/content'
+import { logActivity } from '@/infra/types/backend'
 import { hasEntitlement } from '@/server/services/entitlement_check'
-import type { Payload, PayloadRequest } from 'payload'
+import type { Payload, PayloadRequest } from '@/infra/types/backend'
 
 export class GuestConversationLimitError extends Error {
   constructor(limit: number) {

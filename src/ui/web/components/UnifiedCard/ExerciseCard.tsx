@@ -1,6 +1,6 @@
 'use client'
 
-import type { Exercise } from '@/payload-types'
+import type { Exercise } from '@/infra/types/content'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { UnifiedCard } from '@/ui/web/components/UnifiedCard'
 import { Badge } from '@/ui/web/components/badge'

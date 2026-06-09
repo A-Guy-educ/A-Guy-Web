@@ -2,7 +2,7 @@
 
 import { useExamCountdown } from '@/client/hooks/useExamCountdown'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
-import type { Chapter, Course, Lesson } from '@/payload-types'
+import type { Chapter, Course, Lesson } from '@/infra/types/content'
 import type { LessonProgress } from '../types'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { BarChart3, GraduationCap } from 'lucide-react'
@@ -80,7 +80,7 @@ export function CoursePageContent({
                 lessons={lessons}
                 chapters={chapters}
                 courseSlug={courseSlug}
-                gradeLevel={course.courseLabel}
+                gradeLevel={course.courseLabel || ''}
                 tabColor={TAB_COLORS[activeTab]}
                 lessonProgressMap={lessonProgressMap}
                 lessonType={activeTab === 'learn' ? 'learning' : activeTab}

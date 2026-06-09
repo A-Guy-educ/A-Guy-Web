@@ -17,8 +17,8 @@
  * `LessonDuplications`. Never returns null; the worst case is "algebra".
  */
 
-import type { ContentBlock } from '@/server/payload/collections/Exercises/schemas'
-import type { DuplicationSubject } from '@/server/payload/collections/LessonDuplications'
+import type { ContentBlock } from '@/infra/types/exercise'
+import type { DuplicationSubject } from '@/infra/types/backend'
 
 /** Shape we read from each exercise — just the blocks. */
 export interface ExerciseLikeBlocks {

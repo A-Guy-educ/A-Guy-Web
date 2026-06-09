@@ -1,4 +1,4 @@
-import type { Payload } from 'payload'
+import type { Payload } from '@/infra/types/backend'
 import { getPdfBufferFromUrl, isVercelBlobUrl } from '@/infra/blob/vercel-blob-adapter'
 import { fetchBuffer } from '@/infra/utils/http'
 import { PDF_MAX_BYTES } from '@/server/config/constants'

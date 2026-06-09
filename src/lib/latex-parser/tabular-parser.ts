@@ -9,7 +9,7 @@
  *   \end{tabular}
  */
 
-import type { QuestionTableBlock } from '@/server/payload/collections/Exercises/types'
+import type { QuestionTableBlock } from '@/infra/types/exercise'
 import { makeTableBlock } from '@/lib/latex-parser/block-generators'
 
 /** Clean cell content: strip LaTeX formatting, trim whitespace */

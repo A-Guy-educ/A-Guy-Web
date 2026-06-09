@@ -2,7 +2,7 @@
  * Answer validation service using LLM for semantic equivalence
  * Server-side only — called as fallback when DB normalization fails
  */
-import type { Payload } from 'payload'
+import type { Payload } from '@/infra/types/backend'
 import type { AIModel, AIModelKey } from '../models'
 import { getModelRegistryEntry, getProviderModelName } from '../models'
 import { ANSWER_VALIDATION_PROMPT } from '../prompts/answer-validation'

@@ -3,7 +3,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { ValidationError } from 'payload'
 
 import { preventLastAdminDemotion } from '@/server/payload/collections/Users/hooks/preventLastAdminDemotion-hook'
-import { AccountRole } from '@/server/payload/collections/Users/roles'
+import { AccountRole } from '@/infra/auth/roles'
 
 describe('preventLastAdminDemotion Hook', () => {
   let mockCount: ReturnType<typeof vi.fn>

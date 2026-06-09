@@ -18,7 +18,7 @@ import type {
   QuestionTableBlock,
   RichTextBlock,
   SvgBlock,
-} from '@/server/payload/collections/Exercises/types'
+} from '@/infra/types/exercise'
 
 export interface MediaItem {
   id: string

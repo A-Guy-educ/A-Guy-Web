@@ -26,7 +26,7 @@ import { NextRequest } from 'next/server'
 import type { Payload } from 'payload'
 import { getPayload } from 'payload'
 import { startMongoContainer, stopMongoContainer } from '@/infra/utils/test/mongodb-container'
-import { AccountRole } from '@/server/payload/collections/Users/roles'
+import { AccountRole } from '@/infra/auth/roles'
 
 // Route imported dynamically in beforeAll to ensure @payload-config is cached with
 // the testcontainer DATABASE_URL before the static import chain in withApiHandler loads it.

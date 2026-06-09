@@ -11,8 +11,6 @@
 import { getDirection } from '@/i18n/config'
 import { getSystemLocale } from '@/i18n/server-locale'
 import { pageMetadata } from '@/infra/seo/pageMetadata'
-import { getPayload } from 'payload'
-import config from '@payload-config'
 import type { Metadata } from 'next'
 import { CheckoutCancelContent } from './CheckoutCancelContent'
 
@@ -38,33 +36,12 @@ export default async function CheckoutCancelPage({ searchParams: searchParamsPro
   const { product_id } = await searchParamsPromise
   const locale = await getSystemLocale()
 
-  let product = null
-
-  if (product_id) {
-    try {
-      const payload = await getPayload({ config })
-      product = await payload
-        .findByID({
-          collection: 'products',
-          id: product_id,
-          depth: 0,
-          overrideAccess: true,
-        })
-        .catch(() => null)
-    } catch {
-      product = null
-    }
-  }
-
   return (
     <div
       className="min-h-screen text-card-foreground antialiased flex items-center justify-center"
       dir={getDirection(locale)}
     >
-      <CheckoutCancelContent
-        productId={product_id}
-        product={product as { id: string; name?: string; slug?: string } | null}
-      />
+      <CheckoutCancelContent productId={product_id} product={null} />
     </div>
   )
 }

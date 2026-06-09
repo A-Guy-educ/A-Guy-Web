@@ -1,6 +1,6 @@
 'use client'
 
-import type { Product } from '@/payload-types'
+import type { Product } from '@/infra/types/content'
 import { StaggerGrid, StaggerItem } from '@/ui/web/components/motion'
 import { ProductCard } from '../ProductCard'
 
