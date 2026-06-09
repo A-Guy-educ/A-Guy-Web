@@ -8,6 +8,11 @@
       "id": "prod-esw0",
       "label": "Prod",
       "url": "https://www.aguy.co.il"
+    },
+    {
+      "id": "new-dev-zr4v",
+      "label": "New Dev",
+      "url": "https://a-guy-dev-aguy.vercel.app"
     }
   ],
   "branchPreviews": [
