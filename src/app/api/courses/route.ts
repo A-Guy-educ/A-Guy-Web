@@ -1,11 +1,19 @@
 import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
 import { getPublishedCourseList } from '@/server/services/course-list-service'
 
 export const runtime = 'nodejs'
 
-export async function GET() {
-  const docs = await getPublishedCourseList()
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams
+  const id = searchParams.get('id')
+  const courseLabel = searchParams.get('where[courseLabel][equals]')
+
+  let docs = await getPublishedCourseList()
+  if (id) docs = docs.filter((course) => course.id === id)
+  if (courseLabel) docs = docs.filter((course) => course.courseLabel === courseLabel)
+
   return NextResponse.json({
     docs,
     totalDocs: docs.length,

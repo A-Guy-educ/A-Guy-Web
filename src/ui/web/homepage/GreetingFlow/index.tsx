@@ -80,6 +80,7 @@ export function GreetingFlow({ onComplete }: { onComplete: () => void }) {
 
     setUserProfile({
       gradeLevel,
+      courseId: course.id,
       mood: selectedMood,
       lastVisit: new Date().toISOString(),
     })
