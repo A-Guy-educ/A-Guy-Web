@@ -2,42 +2,28 @@ import { describe, expect, it } from 'vitest'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { contentSecurityPolicy } from '@/infra/security/content-security-policy.js'
 
 describe('CSP frame ancestors', () => {
   const __dirname = path.dirname(fileURLToPath(import.meta.url))
   const projectRoot = path.resolve(__dirname, '../..')
   const nextConfigPath = path.join(projectRoot, 'next.config.js')
 
-  function getGeneralCsp(): string {
+  function getNextConfigContent(): string {
     const configContent = fs.readFileSync(nextConfigPath, 'utf8')
-    const match = configContent.match(
-      /source:\s*'\/\(\(\?!api\/pdfjs-viewer\)\.\*\)'[\s\S]*?Content-Security-Policy[\s\S]*?value:\s*"([^"]+)"/,
-    )
-
-    expect(match).not.toBeNull()
-    return match![1]
+    return configContent
   }
 
-  function getDirective(csp: string, directive: string): string[] {
-    const match = csp.match(new RegExp(`${directive}\\s+([^;]+)`))
-
-    expect(match).not.toBeNull()
-    return match![1].split(/\s+/)
-  }
-
-  it('only allows the site and Kody dashboard hosts to embed pages', () => {
-    const frameAncestors = getDirective(getGeneralCsp(), 'frame-ancestors')
-
-    expect(frameAncestors).toEqual([
-      "'self'",
-      'https://kody-dashboard-aguy.vercel.app',
-      'https://kody-dashboard-sable.vercel.app',
-    ])
+  it('does not restrict which preview hosts can embed pages', () => {
+    expect(contentSecurityPolicy).not.toContain('frame-ancestors')
+    expect(contentSecurityPolicy).not.toContain('kody-dashboard-aguy.vercel.app')
+    expect(contentSecurityPolicy).not.toContain('kody-dashboard-sable.vercel.app')
   })
 
-  it('does not allow every site to embed pages', () => {
-    const frameAncestors = getDirective(getGeneralCsp(), 'frame-ancestors')
+  it('keeps CSP out of next.config.js so middleware is the single source', () => {
+    const configContent = getNextConfigContent()
 
-    expect(frameAncestors).not.toContain('*')
+    expect(configContent).not.toContain('Content-Security-Policy')
+    expect(configContent).not.toContain('contentSecurityPolicy')
   })
 })
