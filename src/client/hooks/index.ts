@@ -1,5 +1,5 @@
 /**
- * @fileType utilities
+ * @filetype index
  * @domain frontend
  * @ai-summary React hooks for client-side state, authentication, search, and progress tracking.
  *
