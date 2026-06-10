@@ -4,11 +4,11 @@
   "target": "PR #34 (30-lessons-add-unified-entry-intro-page-for-all-lesso)",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Resolved metadata conflict in .ai-docs/indexes/pattern-index.json by taking origin/dev (newer timestamp, more files/patterns)",
-  "prUrl": "https://github.com/A-Guy-educ/A-Guy/pull/34",
-  "runUrl": "https://github.com/A-Guy-educ/A-Guy/actions/runs/27282015769",
-  "filesTouched": [".ai-docs/indexes/pattern-index.json"],
+  "reason": "Single asymmetric conflict in duty-review.md — took dev side (more comprehensive 28-duty report)",
+  "prUrl": null,
+  "runUrl": null,
+  "filesTouched": [".kody/reports/duty-review.md"],
   "sessionLog": null,
-  "startedAt": "2026-06-10T14:07:00Z",
-  "finishedAt": "2026-06-10T14:08:49Z"
+  "startedAt": "2026-06-10T00:00:00Z",
+  "finishedAt": "2026-06-10T00:00:00Z"
 }
