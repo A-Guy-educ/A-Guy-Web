@@ -15,14 +15,14 @@
  * @pattern orchestrator
  */
 
-import type { Payload } from 'payload'
+import type { Payload } from '@/infra/types/backend'
 
 import {
   extractFromImageV3,
   type ImageToExerciseV3Response,
 } from '@/infra/llm/services/data-extractor-service'
 import { fetchBuffer } from '@/infra/utils/http'
-import type { Lesson, Media } from '@/payload-types'
+import type { Lesson, Media } from '@/infra/types/content'
 import { getPdfBufferFromBlob, normalizeToAbsoluteUrl } from '@/server/services/pdf-fetcher'
 import { resolveExtractorPrompt } from './prompt-resolver'
 import {

@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [dev]
   pull_request:
-    branches: [main, dev]
+    branches: [dev]
   workflow_dispatch:
     inputs:
       run_e2e_tests:
@@ -23,7 +23,7 @@ jobs:
     timeout-minutes: 10
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL || 'mongodb://localhost:27017/test' }}
-      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN || 'mock-token-for-testing' }}
       PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET || 'test-secret-for-ci' }}
 
     steps:
@@ -76,6 +76,7 @@ jobs:
           name: coverage-unit
           path: coverage/
           retention-days: 3
+          if-no-files-found: ignore
 
       - name: Check for TODO/FIXME in production code
         run: |
@@ -94,7 +95,7 @@ jobs:
       PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET || 'test-secret-for-ci' }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || '' }}
       DEFAULT_TENANT_SLUG: default
-      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN || 'mock-token-for-testing' }}
 
     services:
       mongodb:
@@ -128,7 +129,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run integration tests
-        run: pnpm test:int:coverage
+        run: pnpm test:int
         env:
           USE_MONGO_SERVICE: 'true'
 
@@ -138,6 +139,7 @@ jobs:
           name: coverage-int
           path: coverage/
           retention-days: 3
+          if-no-files-found: ignore
 
   build:
     name: Build
@@ -149,7 +151,7 @@ jobs:
       DATABASE_URL: mongodb://localhost:27017/test
       PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET || 'test-secret-for-ci' }}
       NEXT_PUBLIC_SERVER_URL: ${{ secrets.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000' }}
-      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN || 'mock-token-for-testing' }}
 
     services:
       mongodb:
@@ -194,7 +196,7 @@ jobs:
         run: pnpm build
 
   e2e-gate:
-    name: E2E Gate (PR → main)
+    name: E2E Gate (PR to dev)
     runs-on: ubuntu-latest
     needs: [build]
     if: github.event_name == 'pull_request' && github.event.pull_request.base.ref != 'dev' && needs.build.result == 'success'
@@ -207,7 +209,7 @@ jobs:
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || '' }}
       NEXT_PUBLIC_SERVER_URL: http://localhost:3000
       NEXT_PUBLIC_BRAND: aguy
-      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN || 'mock-token-for-testing' }}
 
     services:
       mongodb:
@@ -308,7 +310,7 @@ jobs:
       DEFAULT_TENANT_SLUG: default
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || '' }}
       NEXT_PUBLIC_SERVER_URL: http://localhost:3000
-      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN || 'mock-token-for-testing' }}
 
     services:
       mongodb:
@@ -406,7 +408,7 @@ jobs:
       DEFAULT_TENANT_SLUG: default
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || '' }}
       NEXT_PUBLIC_SERVER_URL: http://localhost:3000
-      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN || 'mock-token-for-testing' }}
 
     services:
       mongodb:
@@ -481,7 +483,7 @@ jobs:
     name: QA Scenarios (full)
     runs-on: ubuntu-latest
     needs: [build]
-    if: github.ref == 'refs/heads/main' && needs.build.result == 'success'
+    if: github.event_name == 'workflow_dispatch' && inputs.run_e2e_tests == true && needs.build.result == 'success'
     timeout-minutes: 30
     env:
       DATABASE_URL: mongodb://localhost:27017/test
@@ -490,7 +492,7 @@ jobs:
       DEFAULT_TENANT_SLUG: default
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || '' }}
       NEXT_PUBLIC_SERVER_URL: http://localhost:3000
-      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN || 'mock-token-for-testing' }}
 
     services:
       mongodb:

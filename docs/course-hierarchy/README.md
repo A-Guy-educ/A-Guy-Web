@@ -636,7 +636,7 @@ if (isCoursePopulated(chapter.course)) {
 
 ## 🔗 Related Documentation
 
-- **[Collections](../../src/server/payload/collections/README.md)** - Collection configurations
+- **[Server Repositories](../../src/server/repos/README.md)** - Course data access
 - **[Access Control](../access-control/README.md)** - Permission patterns
 - **[AGENTS.md](../../AGENTS.md)** - Payload CMS query patterns
 

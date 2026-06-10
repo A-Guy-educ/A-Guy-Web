@@ -7,8 +7,8 @@
  * @ai-summary Pure-function detector that returns true only for exercises that can safely be varied by numeric substitution without AI.
  */
 
-import type { Exercise } from '@/payload-types'
-import type { ContentBlock } from '@/server/payload/collections/Exercises/types'
+import type { Exercise } from '@/infra/types/content'
+import type { ContentBlock } from '@/infra/types/exercise'
 
 // ---------------------------------------------------------------------------
 // Whitelists

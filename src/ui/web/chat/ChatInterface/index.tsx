@@ -46,7 +46,7 @@ interface ChatInterfaceProps {
   exerciseId?: string
 
   // Exercise context (optional - for injecting exercise context on navigation)
-  // Using loose types to accommodate Payload's Exercise type which may have slight variations
+  // Using loose types to accommodate exercise shapes from different sources.
   currentExercise?: {
     id: string
     title: string
@@ -86,7 +86,7 @@ interface ChatInterfaceProps {
   showMathTools?: boolean
 
   // Formula Sheet
-  formulaSheet?: import('@/payload-types').FormulaSheet | null
+  formulaSheet?: import('@/infra/types/content').FormulaSheet | null
 
   // Override computed contextKey (e.g. for Ask page per-session conversations)
   contextKeyOverride?: string

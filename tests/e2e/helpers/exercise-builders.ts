@@ -2,7 +2,7 @@
  * Exercise content builders for test data seeding.
  * Each function returns an exerciseContent object with blocks.
  */
-import { generateId } from '@/server/payload/collections/Exercises/types'
+import { generateId } from '@/infra/types/exercise'
 
 function richText(value: string) {
   return {

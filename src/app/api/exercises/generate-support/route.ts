@@ -1,39 +1,19 @@
-/**
- * POST /api/exercises/generate-support
- * Next.js route wrapper for AI support generation endpoint
- */
-import { NextRequest } from 'next/server'
-import { getPayload } from 'payload'
-import type { PayloadRequest } from 'payload'
-import config from '@payload-config'
-import { generateSupportEndpoint } from '@/server/payload/endpoints/exercises/generate-support'
+import { NextResponse } from 'next/server'
 
-export async function POST(request: NextRequest) {
-  try {
-    const payload = await getPayload({ config })
-    const { user } = await payload.auth({ headers: request.headers })
+const disabled = { error: 'This endpoint is unavailable without the removed CMS backend.' }
 
-    const body = await request.json()
+export async function GET() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-    const payloadRequest = {
-      payload,
-      user: user || undefined,
-      url: request.url,
-      headers: request.headers,
-      json: async () => body,
-      routeParams: {},
-      context: {},
-    } as PayloadRequest & { json: () => Promise<unknown> }
+export async function POST() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-    return await generateSupportEndpoint(payloadRequest)
-  } catch (error) {
-    return Response.json(
-      {
-        success: false,
-        error: 'Internal server error',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 },
-    )
-  }
+export async function PATCH() {
+  return NextResponse.json(disabled, { status: 410 })
+}
+
+export async function DELETE() {
+  return NextResponse.json(disabled, { status: 410 })
 }

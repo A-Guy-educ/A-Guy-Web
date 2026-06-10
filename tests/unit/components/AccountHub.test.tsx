@@ -3,7 +3,7 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { User } from '@/payload-types'
+import type { User } from '@/infra/types/content'
 import { I18nProvider } from '@/ui/web/providers/I18n'
 import enMessages from '../../../src/i18n/en.json'
 import { AccountHub } from '@/app/(frontend)/account/_components/AccountHub'

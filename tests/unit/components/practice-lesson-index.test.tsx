@@ -10,7 +10,7 @@
  * This test verifies the index calculation logic.
  */
 import { describe, expect, it, vi } from 'vitest'
-import type { Chapter, Lesson } from '@/payload-types'
+import type { Chapter, Lesson } from '@/infra/types/content'
 
 // Mock the dependencies
 vi.mock('@/infra/loading/LoadingManager', () => ({

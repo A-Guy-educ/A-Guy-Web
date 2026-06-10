@@ -15,12 +15,12 @@
  *     LaTeX conversion still uses the existing AI fallback when the
  *     deterministic parser can't handle a block.
  */
-import type { Payload, PayloadRequest, User } from 'payload'
+import type { Payload, PayloadRequest, User } from '@/infra/types/backend'
 import { fetchBuffer } from '@/infra/utils/http'
 import { isVercelBlobUrl } from '@/infra/blob/vercel-blob-adapter'
 import { logger } from '@/infra/utils/logger'
-import type { Lesson, Media } from '@/payload-types'
-import { convertLatexBlockOnExercise } from '@/server/payload/endpoints/exercises/convert-latex-block'
+import type { Lesson, Media } from '@/infra/types/content'
+import { convertLatexBlockOnExercise } from '@/infra/types/backend'
 import { getPdfBufferFromBlob, normalizeToAbsoluteUrl } from '@/server/services/pdf-fetcher'
 import { extractLessonContext } from './extract-context'
 import { createExercisesFromExtraction } from './create-exercises-from-extraction'

@@ -5,9 +5,9 @@
  * @domain chat
  * @pattern server-only
  */
-import type { Prompt } from '@/payload-types'
+import type { Prompt } from '@/infra/types/content'
 import { logger } from '@/infra/utils/logger'
-import type { Payload } from 'payload'
+import type { Payload } from '@/infra/types/backend'
 
 export type SystemPromptResult = {
   templates: string[]

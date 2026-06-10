@@ -5,7 +5,7 @@
  * Tests the session-based admin authentication override that allows
  * authenticated admin users to access MCP tools without requiring API keys.
  */
-import type { User } from '@/payload-types'
+import type { User } from '@/infra/types/content'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Store original fetch for restoration

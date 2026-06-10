@@ -3,7 +3,7 @@ import { cn } from '@/infra/utils/ui'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
 import React from 'react'
 
-import type { Page } from '@/payload-types'
+import type { Page } from '@/infra/types/content'
 
 type CMSLinkType = {
   appearance?: 'inline' | ButtonProps['variant']

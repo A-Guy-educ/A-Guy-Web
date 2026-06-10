@@ -1,192 +1,104 @@
-/**
- * User Settings API
- *
- * GET /api/user-settings
- * Returns the current user's settings including teacher profile selection
- *
- * PATCH /api/user-settings
- * Updates the current user's teacher profile selection
- */
-
-import { getPayload } from 'payload'
+import { ObjectId } from 'mongodb'
+import { NextRequest } from 'next/server'
 import { z } from 'zod'
 
-import config from '@payload-config'
-import { cookieName, defaultLocale, type Locale, locales } from '@/i18n/config'
+import { getContentDb, relationId, serializeDoc } from '@/infra/db/content-db'
+import { getWebUser } from '@/infra/web-api/mongo-payload'
+import { idCandidates } from '@/server/web-api/progress'
 
-function getLocaleFromRequest(req: Request): Locale {
-  const cookieHeader = req.headers.get('cookie') ?? ''
-  const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${cookieName}=([^;]+)`))
-  const value = match?.[1] as Locale | undefined
-  return value && locales.includes(value) ? value : defaultLocale
-}
-
-const patchSchema = z.object({
-  teacherProfileSlug: z.string(),
+const PatchSchema = z.object({
+  teacherProfileSlug: z.string().min(1),
 })
 
-export async function GET(req: Request) {
-  const payload = await getPayload({ config })
+function localeFromRequest(request: NextRequest) {
+  return (
+    request.cookies.get('NEXT_LOCALE')?.value || request.cookies.get('aguy-locale')?.value || 'he'
+  )
+}
 
-  // Auth check - return 401 if not authenticated
-  const authResult = await payload.auth({ headers: req.headers })
-  if (!authResult.user) {
-    return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+async function profileByIdOrSlug(value: unknown, locale: string) {
+  const id = relationId(value)
+  if (!id) return null
+  const db = await getContentDb()
+  const stored = ObjectId.isValid(id)
+    ? await db.collection('teacher_profiles').findOne({ _id: new ObjectId(id) })
+    : await db.collection('teacher_profiles').findOne({ slug: id })
+  const slug = stored?.slug
+  const localized = slug
+    ? await db.collection('teacher_profiles').findOne({
+        slug,
+        isEnabled: true,
+        $or: [{ locale }, { locale: { $exists: false } }],
+      })
+    : stored
+  return localized ? serializeDoc<Record<string, unknown>>(localized) : null
+}
 
-  const userId = authResult.user.id
-  const locale = getLocaleFromRequest(req)
+export async function GET(request: NextRequest) {
+  const user = await getWebUser(request.headers)
+  if (!user?.id) return Response.json({ error: 'Unauthorized' }, { status: 401 })
 
-  // Fetch user settings with populated teacher profile
-  const settings = await payload.find({
-    collection: 'user_settings',
-    where: {
-      user: { equals: userId },
-    },
-    depth: 1, // Populate teacherProfile
-    limit: 1,
-    overrideAccess: true, // Collection uses authenticatedOrOwner, but we verified user
-  })
-
-  if (settings.docs.length === 0) {
-    // No settings yet - return null for teacher profile
-    return Response.json({
-      settings: {
-        id: null,
-        teacherProfile: null,
-      },
-    })
-  }
-
-  const userSettings = settings.docs[0]
-
-  // The stored teacherProfile may be in any locale.
-  // Look up the locale-matching version by slug.
-  type PopulatedProfile = { slug?: string }
-  const storedProfile = userSettings.teacherProfile as PopulatedProfile | string | null
-
-  let teacherProfile = null
-
-  if (storedProfile && typeof storedProfile === 'object' && storedProfile.slug) {
-    const localeProfile = await payload.find({
-      collection: 'teacher_profiles',
-      where: {
-        and: [{ slug: { equals: storedProfile.slug } }, { locale: { equals: locale } }],
-      },
-      limit: 1,
-      overrideAccess: true,
-    })
-
-    const profile = localeProfile.docs[0]
-    if (profile) {
-      teacherProfile = {
-        slug: profile.slug,
-        label: profile.label,
-        description: profile.description ?? '',
-      }
-    }
-  }
+  const db = await getContentDb()
+  const settings = await db
+    .collection('user_settings')
+    .findOne({ user: { $in: idCandidates(user.id) } })
+  const profile = await profileByIdOrSlug(settings?.teacherProfile, localeFromRequest(request))
 
   return Response.json({
     settings: {
-      id: userSettings.id,
-      teacherProfile,
+      id: settings?._id?.toString() ?? null,
+      teacherProfile: profile
+        ? {
+            slug: String(profile.slug || ''),
+            label: String(profile.label || profile.slug || ''),
+            description: String(profile.description || ''),
+          }
+        : null,
     },
   })
 }
 
-export async function PATCH(req: Request) {
-  const payload = await getPayload({ config })
+export async function PATCH(request: NextRequest) {
+  const user = await getWebUser(request.headers)
+  if (!user?.id) return Response.json({ error: 'Unauthorized' }, { status: 401 })
 
-  // Auth check - return 401 if not authenticated
-  const authResult = await payload.auth({ headers: req.headers })
-  if (!authResult.user) {
-    return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  const userId = authResult.user.id
-  const locale = getLocaleFromRequest(req)
-
-  // Validate request body
-  let body: unknown
-  try {
-    body = await req.json()
-  } catch {
-    return Response.json({ error: 'Invalid JSON body' }, { status: 400 })
-  }
-
-  const validation = patchSchema.safeParse(body)
-
-  if (!validation.success) {
+  const parsed = PatchSchema.safeParse(await request.json().catch(() => null))
+  if (!parsed.success) {
     return Response.json(
-      { error: 'Invalid request', details: validation.error.flatten() },
+      { error: 'Invalid request', details: parsed.error.flatten() },
       { status: 400 },
     )
   }
 
-  const { teacherProfileSlug } = validation.data
-
-  // Verify profile exists, is enabled, and matches user's locale
-  const profileResult = await payload.find({
-    collection: 'teacher_profiles',
-    where: {
-      and: [
-        { slug: { equals: teacherProfileSlug } },
-        { isEnabled: { equals: true } },
-        { locale: { equals: locale } },
-      ],
-    },
-    limit: 1,
-    overrideAccess: true,
+  const db = await getContentDb()
+  const locale = localeFromRequest(request)
+  const profile = await db.collection('teacher_profiles').findOne({
+    slug: parsed.data.teacherProfileSlug,
+    isEnabled: true,
+    $or: [{ locale }, { locale: { $exists: false } }],
   })
-
-  if (profileResult.docs.length === 0) {
+  if (!profile)
     return Response.json({ error: 'Teacher profile not found or disabled' }, { status: 404 })
-  }
 
-  const profileId = profileResult.docs[0].id
-
-  // Find or create user settings (lazy creation)
-  const existingSettings = await payload.find({
-    collection: 'user_settings',
-    where: {
-      user: { equals: userId },
+  const now = new Date()
+  const userValue = ObjectId.isValid(user.id) ? new ObjectId(user.id) : user.id
+  await db.collection('user_settings').updateOne(
+    { user: { $in: idCandidates(user.id) } },
+    {
+      $set: { teacherProfile: profile._id, updatedAt: now },
+      $setOnInsert: { user: userValue, createdAt: now },
     },
-    limit: 1,
-    overrideAccess: true,
-  })
+    { upsert: true },
+  )
 
-  let settingsId: string
-
-  if (existingSettings.docs.length > 0) {
-    // Update existing
-    const updated = await payload.update({
-      collection: 'user_settings',
-      id: existingSettings.docs[0].id,
-      data: {
-        teacherProfile: profileId,
-      },
-      overrideAccess: true,
-    })
-    settingsId = updated.id as string
-  } else {
-    // Create new
-    const created = await payload.create({
-      collection: 'user_settings',
-      data: {
-        user: userId,
-        teacherProfile: profileId,
-      },
-      overrideAccess: true,
-    })
-    settingsId = created.id as string
-  }
-
+  const settings = await db
+    .collection('user_settings')
+    .findOne({ user: { $in: idCandidates(user.id) } })
   return Response.json({
     success: true,
     settings: {
-      id: settingsId,
-      teacherProfileSlug,
+      id: settings?._id?.toString() ?? null,
+      teacherProfileSlug: parsed.data.teacherProfileSlug,
     },
   })
 }

@@ -22,7 +22,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest
 import { NextRequest } from 'next/server'
 
 import { startMongoContainer, stopMongoContainer } from '@/infra/utils/test/mongodb-container'
-import { AccountRole } from '@/server/payload/collections/Users/roles'
+import { AccountRole } from '@/infra/auth/roles'
 
 // Mock payment providers to avoid actual payment calls
 vi.mock('@/lib/payment/stripe', () => ({

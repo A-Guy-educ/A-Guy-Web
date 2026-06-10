@@ -1,4 +1,4 @@
-import type { Header, Footer, Page } from '@/payload-types'
+import type { Header, Footer, Page } from '@/infra/types/content'
 
 type NavItemLink = {
   type?: ('reference' | 'custom') | null

@@ -10,7 +10,7 @@
  * INVARIANT: Active = archivedAt field is MISSING. Archived = archivedAt field EXISTS.
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { AccountRole } from '@/server/payload/collections/Users/roles'
+import { AccountRole } from '@/infra/auth/roles'
 import { ConversationService } from '@/server/services/conversation-service'
 import config from '@payload-config'
 import type { Payload } from 'payload'

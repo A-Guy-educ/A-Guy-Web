@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 
 import { SystemLink } from '@/infra/loading/components/SystemLink'
-import type { User } from '@/payload-types'
+import type { User } from '@/infra/types/content'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { BarChart3 } from 'lucide-react'
 import {

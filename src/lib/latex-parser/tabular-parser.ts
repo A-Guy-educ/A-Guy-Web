@@ -1,4 +1,8 @@
 /**
+ * @fileType parser
+ * @domain exercises
+ * @ai-summary Parses \tabular environments into question_table blocks. The first row is always treated as headers — if a data row is accidentally parsed as the first row due to \hline stripping, the entire table will have the wrong structure. Requires at least 2 rows.
+ *
  * Parses \begin{tabular}{|c|c|c|} environments into table blocks.
  *
  * Bagrut exam pattern:
@@ -9,7 +13,7 @@
  *   \end{tabular}
  */
 
-import type { QuestionTableBlock } from '@/server/payload/collections/Exercises/types'
+import type { QuestionTableBlock } from '@/infra/types/exercise'
 import { makeTableBlock } from '@/lib/latex-parser/block-generators'
 
 /** Clean cell content: strip LaTeX formatting, trim whitespace */

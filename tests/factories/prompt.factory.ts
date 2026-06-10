@@ -1,5 +1,5 @@
 import type { Payload } from 'payload'
-import type { Prompt } from '@/payload-types'
+import type { Prompt } from '@/infra/types/content'
 import type { TestDataTracker } from '../helpers/test-data-tracker'
 
 export interface PromptFactoryInput {

@@ -14,7 +14,7 @@
  * @ai-summary Sends purchase receipt emails after successful payment webhooks
  */
 
-import type { Payload } from 'payload'
+import type { Payload } from '@/infra/types/backend'
 
 import {
   buildPurchaseReceiptEmailEN,

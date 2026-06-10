@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { CourseCard } from '@/app/(frontend)/courses/_components/CourseCard'
-import type { Course } from '@/payload-types'
+import type { Course } from '@/infra/types/content'
 import { I18nProvider } from '@/ui/web/providers/I18n'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -104,6 +104,7 @@ describe('CourseCard component', () => {
     // Check localStorage was updated
     const storedProfile = JSON.parse(localStorageMock.getItem('a-guy:user-profile') || '{}')
     expect(storedProfile.gradeLevel).toBe('8')
+    expect(storedProfile.courseId).toBe('test-course-1')
     expect(storedProfile.lastVisit).toBeTruthy()
 
     // Check navigation was called (second arg is optional navigation options)
@@ -129,6 +130,7 @@ describe('CourseCard component', () => {
     // Check mood was preserved
     const storedProfile = JSON.parse(localStorageMock.getItem('a-guy:user-profile') || '{}')
     expect(storedProfile.gradeLevel).toBe('8')
+    expect(storedProfile.courseId).toBe('test-course-1')
     expect(storedProfile.mood).toBe('happy')
   })
 

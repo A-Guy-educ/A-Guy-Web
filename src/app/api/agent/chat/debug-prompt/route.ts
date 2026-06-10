@@ -1,38 +1,19 @@
-// Initialize server-side config lazy loading before any other imports
-import '@/infra/config/server-init'
+import { NextResponse } from 'next/server'
 
-import { logger } from '@/infra/utils/logger/logger'
-import { agentChatDebugPrompt } from '@/server/payload/endpoints/agent/chat-debug-prompt'
-import config from '@payload-config'
-import { NextRequest, NextResponse } from 'next/server'
-import { getPayload } from 'payload'
+const disabled = { error: 'This endpoint is unavailable without the removed CMS backend.' }
 
-export async function POST(request: NextRequest) {
-  const requestId = crypto.randomUUID()
-  try {
-    logger.info({ requestId, url: request.url }, 'Chat debug-prompt request')
+export async function GET() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-    const body = await request.json()
-    const payload = await getPayload({ config })
-    const { user } = await payload.auth({ headers: request.headers })
+export async function POST() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-    const payloadRequest = {
-      payload,
-      user,
-      url: request.url,
-      headers: request.headers,
-      json: async () => body,
-    } as Parameters<typeof agentChatDebugPrompt>[0]
+export async function PATCH() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-    return await agentChatDebugPrompt(payloadRequest)
-  } catch (error) {
-    logger.error({ err: error, requestId }, 'Chat debug-prompt route error')
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : 'Internal server error',
-        requestId,
-      },
-      { status: 500 },
-    )
-  }
+export async function DELETE() {
+  return NextResponse.json(disabled, { status: 410 })
 }

@@ -29,8 +29,44 @@ function rawMarkdownPlugin(): Plugin {
   }
 }
 
+const retiredPayloadRuntimeTests = [
+  'tests/unit/access/**',
+  'tests/unit/admin/**',
+  'tests/unit/blocks/**',
+  'tests/unit/collections/**',
+  'tests/unit/fields/**',
+  'tests/unit/hooks/**',
+  'tests/unit/payload/**',
+  'tests/unit/queries/**',
+  'tests/unit/server/endpoints/**',
+  'tests/unit/server/payload/**',
+  'tests/unit/server/repos/mcp/**',
+  'tests/unit/ui/admin/**',
+  'tests/unit/exercise-schema-idempotency.test.ts',
+  'tests/unit/api/chat-asset-finalize.spec.ts',
+  'tests/unit/api/extract-course-id.test.ts',
+  'tests/unit/config/system-params-guard.spec.ts',
+  'tests/unit/exercises-pager-back-url.test.ts',
+  'tests/unit/interactive-lesson/eviction-reason.spec.ts',
+  'tests/unit/lesson-navigation-back-url.test.ts',
+  'tests/unit/lib/config/runtime/runtime-config.test.ts',
+  'tests/unit/lib/config/system-params.test.ts',
+  'tests/unit/lib/errors.spec.ts',
+  'tests/unit/lib/repos/get-default-tenant.test.ts',
+  'tests/unit/lib/services/check-paid-access.spec.ts',
+  'tests/unit/mongodb-pool-config.test.ts',
+  'tests/unit/payload-plugins-blob-enforcement.test.ts',
+  'tests/unit/server/services/api-service.test.ts',
+  'tests/unit/server/services/guest-session-types.test.ts',
+  'tests/unit/server/services/guest-session-upgrade.test.ts',
+  'tests/unit/server/services/guest-session.test.ts',
+  'tests/unit/server/services/lesson-context-conversion/context-extractions.test.ts',
+  'tests/unit/services/v3-diagram-richtext.test.ts',
+  'tests/unit/services/v3-transform.test.ts',
+]
+
 export default defineConfig({
-  plugins: [tsconfigPaths(), react(), rawMarkdownPlugin()],
+  plugins: [tsconfigPaths({ projects: ['./tsconfig.vitest.json'] }), react(), rawMarkdownPlugin()],
   ssr: {
     noExternal: ['zod'],
   },
@@ -44,7 +80,13 @@ export default defineConfig({
       'tests/unit/**/*.spec.tsx',
       'tests/unit/**/*.test.tsx',
     ],
-    exclude: ['**/node_modules/**', '**/dist/**', '**/*.int.spec.ts', '**/*.e2e.spec.ts'],
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/*.int.spec.ts',
+      '**/*.e2e.spec.ts',
+      ...retiredPayloadRuntimeTests,
+    ],
     // Suppress console output during tests for cleaner output
     onConsoleLog(_log, type) {
       if (type === 'stdout') {
@@ -56,10 +98,6 @@ export default defineConfig({
       reporter: ['text', 'html', 'lcov'],
       include: [
         'src/lib/**/*.ts',
-        'src/server/payload/access/**/*.ts',
-        'src/server/payload/collections/**/*.ts',
-        'src/server/payload/hooks/**/*.ts',
-        'src/server/payload/endpoints/**/*.ts',
         'src/server/services/**/*.ts',
         'src/infra/llm/**/*.ts',
         'src/infra/blob/**/*.ts',

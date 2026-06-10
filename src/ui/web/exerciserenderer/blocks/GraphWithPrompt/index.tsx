@@ -11,7 +11,7 @@
 
 import React from 'react'
 import { cn } from '@/infra/utils/ui'
-import type { GraphLayout, InlineRichText } from '@/server/payload/collections/Exercises/types'
+import type { GraphLayout, InlineRichText } from '@/infra/types/exercise'
 import { RichTextRenderer } from '../RichTextRenderer'
 
 interface WorksheetLayoutOptions {

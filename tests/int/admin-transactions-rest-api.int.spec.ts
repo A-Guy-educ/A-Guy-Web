@@ -15,7 +15,7 @@
 // The Payload REST API catch-all route
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const REST_GET = (await import('@payloadcms/next/routes')).REST_GET
-import { AccountRole } from '@/server/payload/collections/Users/roles'
+import { AccountRole } from '@/infra/auth/roles'
 import config from '@payload-config'
 import type { Payload } from 'payload'
 import { getPayload } from 'payload'

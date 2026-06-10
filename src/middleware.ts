@@ -9,26 +9,13 @@ import {
 
 /**
  * Check if a path is a protected learning route that requires authentication.
- * Public routes: / (landing), /courses (catalog listing only)
- * Protected: /courses/[slug] (individual course pages), /study, /practice, /test, /ask, and nested paths
  */
 function isProtectedLearningPath(pathname: string): boolean {
-  // Exact public routes
-  if (pathname === '/' || pathname === '/courses') {
-    return false
-  }
-
-  // Protected learning routes
   const protectedPaths = ['/study', '/practice', '/test', '/ask']
   for (const protectedPath of protectedPaths) {
     if (pathname === protectedPath || pathname.startsWith(`${protectedPath}/`)) {
       return true
     }
-  }
-
-  // /courses/* but NOT /courses exactly - all course-specific pages require auth
-  if (pathname.startsWith('/courses/')) {
-    return true
   }
 
   return false

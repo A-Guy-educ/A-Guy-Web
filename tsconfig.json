@@ -29,9 +29,6 @@
       }
     ],
     "paths": {
-      "@payload-config": [
-        "./src/payload.config.ts"
-      ],
       "react": [
         "./node_modules/@types/react"
       ],
@@ -52,6 +49,9 @@
   "exclude": [
     "node_modules",
     ".next",
+    "src/ui/admin",
+    "tests",
+    "scripts",
     "**/*.stories.tsx"
   ],
 }

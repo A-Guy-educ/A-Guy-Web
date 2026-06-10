@@ -2,7 +2,7 @@ import { getCachedGlobal } from '@/infra/utils/getGlobals'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
 import React from 'react'
 
-import type { Footer } from '@/payload-types'
+import type { Footer } from '@/infra/types/content'
 
 import { ThemeSelector } from '@/ui/web/providers/Theme/ThemeSelector'
 import { CMSLink } from '@/ui/web/Link'

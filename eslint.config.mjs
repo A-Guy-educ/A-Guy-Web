@@ -59,13 +59,6 @@ const eslintConfig = [
   // Custom A-Guy platform rules
   {
     plugins: { aguy: aguyPlugin },
-    files: ['src/server/payload/collections/**/*.{ts,tsx}'],
-    rules: {
-      'aguy/require-collection-access': 'error',
-    },
-  },
-  {
-    plugins: { aguy: aguyPlugin },
     files: ['scripts/cody/**/*.ts'],
     rules: {
       'aguy/no-exec-sync': 'error',
@@ -146,15 +139,9 @@ const eslintConfig = [
   },
 
   // Server layer - block client and UI imports
-  // Note: Payload admin blocks, plugins, and collections are exempt - they need UI imports for admin UI
   {
     name: 'server-boundaries',
     files: ['src/server/**/*.{ts,tsx}'],
-    ignores: [
-      'src/server/payload/blocks/**',
-      'src/server/payload/plugins/**',
-      'src/server/payload/collections/**',
-    ],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -212,48 +199,6 @@ const eslintConfig = [
   // =============================================================================
   // Thin App Layer Rules (src/app/**)
   // =============================================================================
-  // Block direct Payload usage in src/app/** (client components, shared utils)
-  // Exceptions:
-  //   - Server components (page.tsx, layout.tsx), route handlers, and server actions use getPayload
-  //   - Payload blocks (RenderBlocks, RelatedPosts) are UI components housed under server/payload
-  {
-    name: 'thin-app-payload-block',
-    files: ['src/app/**/*.{ts,tsx}'],
-    ignores: [
-      'src/app/**/page.tsx',
-      'src/app/**/layout.tsx',
-      'src/app/**/route.ts',
-      'src/app/**/*-action.ts',
-      'src/app/**/*-action.tsx',
-      'src/app/**/actions/**',
-    ],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          paths: [
-            {
-              name: 'payload',
-              importNames: ['getPayload'],
-              message: 'Direct Payload access is forbidden in src/app/**. Use @/server/services/**',
-            },
-          ],
-          patterns: [
-            {
-              group: [
-                '@/server/payload/*',
-                '@/server/payload/**',
-                '!@/server/payload/blocks/*',
-                '!@/server/payload/blocks/**',
-              ],
-              message: 'Direct Payload internals are forbidden in src/app/**',
-            },
-          ],
-        },
-      ],
-    },
-  },
-
   // Block repos in route handlers and server actions
   // Exception: Some routes use lightweight repo queries directly (tenant lookup, simple queries)
   {

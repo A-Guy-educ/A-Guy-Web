@@ -10,7 +10,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- Test file requires any for PayloadRequest typing */
 
 import { decryptSecret, encryptSecret } from '@/infra/config/config-crypto'
-import type { Tenant, User } from '@/payload-types'
+import type { Tenant, User } from '@/infra/types/content'
 import config from '@payload-config'
 import { getPayload } from 'payload'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'

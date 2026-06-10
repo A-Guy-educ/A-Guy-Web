@@ -5,7 +5,7 @@
  * Migrated from factory pattern to Genkit for unified LLM operations.
  * Supports Gemini and OpenAI-compatible providers via createGenkitUnifiedAdapter.
  */
-import type { Payload } from 'payload'
+import type { Payload } from '@/infra/types/backend'
 
 import { logger } from '@/infra/utils/logger'
 

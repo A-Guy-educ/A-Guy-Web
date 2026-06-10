@@ -5,7 +5,7 @@ import {
   DEFAULT_CONTENT_LOCALE,
   contentLocaleField,
   isValidContentLocale,
-} from '@/server/payload/fields/contentLocale'
+} from '@/infra/types/content'
 
 const field = contentLocaleField as SelectField
 

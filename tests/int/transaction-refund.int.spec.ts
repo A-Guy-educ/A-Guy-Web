@@ -24,7 +24,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 
 import { startMongoContainer, stopMongoContainer } from '@/infra/utils/test/mongodb-container'
-import { AccountRole } from '@/server/payload/collections/Users/roles'
+import { AccountRole } from '@/infra/auth/roles'
 
 // Dynamic import to avoid premature @payload-config initialization
 let transactionRefundHandler: (

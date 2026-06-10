@@ -1,6 +1,6 @@
 'use client'
 
-import type { User } from '@/payload-types'
+import type { User } from '@/infra/types/content'
 import { useCallback, useEffect, useState } from 'react'
 
 interface UseCurrentUserReturn {

@@ -1,12 +1,17 @@
 import { cache } from 'react'
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
-import type { Chapter, Lesson } from '@/payload-types'
+
+import type { Chapter, ContentLocale, Lesson } from '@/infra/types/content'
 import { DEFAULT_ACCESS_TYPE, DEFAULT_PAGE_ACCESS_TYPE } from '@/server/constants/access-types'
 import { SystemParams } from '@/infra/config/system-params'
-import type { ContentLocale } from '@/server/payload/fields/contentLocale'
-import { localeWhereClause } from '@/server/payload/fields/contentLocale'
-import { queryChaptersByGrade } from './chapters'
+import {
+  findManySerialized,
+  localeFilter,
+  objectIdFromString,
+  relationId,
+  visibleContentFilter,
+  andFilter,
+} from '../mongo'
+import { queryChaptersByCourse, queryChaptersByGrade } from './chapters'
 
 export interface PrefetchedStudyData {
   chapters: Array<Chapter & { lessons: Lesson[] }>
@@ -20,91 +25,58 @@ export interface PrefetchedStudyData {
   gatedWarningMs?: number
 }
 
-/**
- * Server-side prefetch for study page data.
- * Mirrors /api/chapters/by-grade but runs as direct DB access (no HTTP round-trip).
- */
 export const prefetchStudyData = cache(
   async (
     gradeLevel: string,
     locale?: ContentLocale,
     lessonType: 'learning' | 'practice' | 'exam' = 'practice',
+    courseId?: string,
   ): Promise<PrefetchedStudyData | null> => {
-    try {
-      const [chapters, [gatedDelayMs, gatedWarningMs]] = await Promise.all([
-        queryChaptersByGrade({ gradeLevel, locale }),
-        Promise.all([SystemParams.getGatedDelayMs(), SystemParams.getGatedWarningMs()]),
-      ])
+    const [chapters, [gatedDelayMs, gatedWarningMs]] = await Promise.all([
+      courseId ? queryChaptersByCourse({ courseId }) : queryChaptersByGrade({ gradeLevel, locale }),
+      Promise.all([SystemParams.getGatedDelayMs(), SystemParams.getGatedWarningMs()]),
+    ])
 
-      const course = chapters[0]?.course
-      const courseObj = typeof course === 'object' && course !== null ? course : null
-      const courseSlug = courseObj && 'slug' in courseObj ? (courseObj.slug as string) : ''
-      const courseId = courseObj && 'id' in courseObj ? (courseObj.id as string) : ''
-      const courseTitle = courseObj && 'title' in courseObj ? (courseObj.title as string) : ''
-      const courseLabel =
-        courseObj && 'courseLabel' in courseObj ? (courseObj.courseLabel as string) : ''
-      const coursePageAccessType =
-        courseObj && 'pageAccessType' in courseObj
-          ? (courseObj.pageAccessType ?? DEFAULT_PAGE_ACCESS_TYPE)
-          : DEFAULT_PAGE_ACCESS_TYPE
-      const courseAccessType =
-        courseObj && 'accessType' in courseObj
-          ? (courseObj.accessType ?? DEFAULT_ACCESS_TYPE)
-          : DEFAULT_ACCESS_TYPE
+    const course = typeof chapters[0]?.course === 'object' ? chapters[0].course : null
+    if (!course) return null
 
-      const chapterIds = chapters.map((chapter) => chapter.id)
-      let lessons: Lesson[] = []
+    const chapterIds = chapters.map((chapter) => chapter.id)
+    const lessons =
+      chapterIds.length > 0
+        ? await findManySerialized<Lesson>(
+            'lessons',
+            andFilter(
+              visibleContentFilter({
+                chapter: { $in: chapterIds.map(objectIdFromString) },
+                type: lessonType,
+              }),
+              localeFilter(locale),
+            ),
+            { sort: { order: 1 }, limit: 1000 },
+          )
+        : []
 
-      if (chapterIds.length > 0) {
-        const payload = await getPayload({ config: configPromise })
-        const lessonsResult = await payload.find({
-          collection: 'lessons',
-          where: {
-            and: [
-              { chapter: { in: chapterIds } },
-              { status: { equals: 'published' } },
-              { isActive: { equals: true } },
-              { type: { equals: lessonType } },
-              ...(locale ? [localeWhereClause(locale)] : []),
-            ],
-          },
-          sort: 'order',
-          limit: 1000,
-          pagination: false,
-          depth: 2,
-        })
-        lessons = lessonsResult.docs
-      }
+    const lessonsByChapter: Record<string, Lesson[]> = {}
+    for (const lesson of lessons) {
+      const chapterId = relationId(lesson.chapter)
+      if (!chapterId) continue
+      lessonsByChapter[chapterId] ||= []
+      lessonsByChapter[chapterId].push(lesson)
+    }
 
-      const lessonsByChapter: Record<string, Lesson[]> = {}
-      lessons.forEach((lesson) => {
-        const chapterId = typeof lesson.chapter === 'string' ? lesson.chapter : lesson.chapter?.id
-        if (chapterId) {
-          if (!lessonsByChapter[chapterId]) {
-            lessonsByChapter[chapterId] = []
-          }
-          lessonsByChapter[chapterId].push(lesson)
-        }
-      })
-
-      const chaptersWithLessons = chapters.map((chapter) => ({
+    return {
+      chapters: chapters.map((chapter) => ({
         ...chapter,
         lessons: lessonsByChapter[chapter.id] || [],
-      }))
-
-      return {
-        chapters: chaptersWithLessons,
-        courseSlug,
-        courseId,
-        courseTitle,
-        courseLabel,
-        coursePageAccessType,
-        courseAccessType,
-        gatedDelayMs,
-        gatedWarningMs,
-      }
-    } catch {
-      return null
+      })),
+      courseSlug: course.slug || '',
+      courseId: course.id,
+      courseTitle: course.title || '',
+      courseLabel: course.courseLabel || '',
+      coursePageAccessType: course.pageAccessType || DEFAULT_PAGE_ACCESS_TYPE,
+      courseAccessType: course.accessType || DEFAULT_ACCESS_TYPE,
+      gatedDelayMs,
+      gatedWarningMs,
     }
   },
 )

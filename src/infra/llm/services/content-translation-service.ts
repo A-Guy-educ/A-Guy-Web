@@ -4,11 +4,11 @@
  * Translates exercise content blocks between languages using LLM.
  * Part of the Clone-and-Translate system for educational content localization.
  */
-import type { Payload } from 'payload'
+import type { Payload } from '@/infra/types/backend'
 
 import type { AIModel, AIModelKey } from '../models'
-import type { ContentBlock, ContentData } from '@/server/payload/collections/Exercises/types'
-import type { ContentLocale } from '@/server/payload/fields/contentLocale'
+import type { ContentBlock, ContentData } from '@/infra/types/exercise'
+import type { ContentLocale } from '@/infra/types/content'
 
 import { getModelRegistryEntry, getProviderModelName } from '../models'
 import { CONTENT_TRANSLATION_PROMPT } from '../prompts/content-translation'

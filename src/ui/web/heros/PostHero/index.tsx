@@ -1,5 +1,5 @@
 'use client'
-import type { Post } from '@/payload-types'
+import type { Post } from '@/infra/types/content'
 import { useHeaderTheme } from '@/ui/web/providers/HeaderTheme'
 import { Media } from '@/ui/web/media'
 import React, { useEffect } from 'react'

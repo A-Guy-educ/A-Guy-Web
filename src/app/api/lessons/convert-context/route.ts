@@ -1,49 +1,19 @@
-/**
- * Lesson Context Conversion API
- *
- * POST /api/lessons/convert-context
- * Extracts context text from a lesson content file using AI and stores in ContextExtractions collection
- */
-import { ApiErrors, apiSuccess } from '@/server/api/responses'
-import { withApiHandler } from '@/server/api/with-api-handler'
-import { extractLessonContext } from '@/server/services/lesson-context-conversion/extract-context'
-import { z } from 'zod'
+import { NextResponse } from 'next/server'
 
-// Request schema
-const convertContextSchema = z.object({
-  lessonId: z.string().min(1, 'lessonId is required'),
-  promptId: z.string().min(1, 'promptId is required'),
-  mediaId: z.string().min(1, 'mediaId is required'),
-  mode: z.enum(['replace', 'append']).default('replace'),
-})
+const disabled = { error: 'This endpoint is unavailable without the removed CMS backend.' }
 
-type ConvertContextBody = z.infer<typeof convertContextSchema>
+export async function GET() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-// POST handler
-export const POST = withApiHandler<ConvertContextBody, unknown>(
-  {
-    auth: 'admin',
-    bodySchema: convertContextSchema,
-  },
-  async ({ payload, user, body }) => {
-    const { lessonId, promptId, mediaId, mode } = body
+export async function POST() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-    // Call the extraction service (user is guaranteed non-null by auth: 'admin')
-    const result = await extractLessonContext(payload, user!, {
-      lessonId,
-      promptId,
-      mediaId,
-      mode,
-    })
+export async function PATCH() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-    if (!result.success) {
-      return ApiErrors.internal(result.error || 'Failed to extract context')
-    }
-
-    return apiSuccess({
-      updatedContextText: result.updatedContextText,
-      extractedChunkLength: result.extractedChunkLength,
-      warnings: result.warnings,
-    })
-  },
-)
+export async function DELETE() {
+  return NextResponse.json(disabled, { status: 410 })
+}

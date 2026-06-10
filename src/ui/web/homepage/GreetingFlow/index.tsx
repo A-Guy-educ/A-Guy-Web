@@ -10,7 +10,7 @@ import { Section } from '@/ui/web/shared/Layout/Section'
 import { Text } from '@/ui/web/shared/Typography/Text'
 import { setUserProfile } from '@/client/state/localStorage/userProfile'
 import { useTranslations } from '@/ui/web/providers/I18n'
-import type { Course } from '@/payload-types'
+import type { Course } from '@/infra/types/content'
 
 const COURSE_COLORS = [
   'hsl(217 91% 60%)',
@@ -80,6 +80,7 @@ export function GreetingFlow({ onComplete }: { onComplete: () => void }) {
 
     setUserProfile({
       gradeLevel,
+      courseId: course.id,
       mood: selectedMood,
       lastVisit: new Date().toISOString(),
     })

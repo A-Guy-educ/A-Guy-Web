@@ -14,10 +14,10 @@
  * via payload.update(), not accumulated in memory.
  */
 
-import type { Payload } from 'payload'
-import type { Exercise } from '@/payload-types'
-import type { ContentBlock } from '@/server/payload/collections/Exercises/schemas'
-import type { DuplicationSubject } from '@/server/payload/collections/LessonDuplications'
+import type { Payload } from '@/infra/types/backend'
+import type { Exercise } from '@/infra/types/content'
+import type { ContentBlock } from '@/infra/types/exercise'
+import type { DuplicationSubject } from '@/infra/types/backend'
 import { logger } from '@/infra/utils/logger'
 import {
   selectExercisesScaled,

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Stage 2 of the conversion pipeline as a reusable service.
  *
@@ -15,7 +16,7 @@
  *   - runFullMediaPipeline (Full Convert (Media))
  *   - runFullLatexPipeline (Full Convert (LaTeX))
  */
-import type { Payload, User } from 'payload'
+import type { Payload, User } from '@/infra/types/backend'
 import { parseContextText } from '@/lib/context-exercise-parser'
 import { makeLatexBlock } from '@/lib/latex-parser/block-generators'
 

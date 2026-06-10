@@ -80,7 +80,7 @@ ui/web/
 │   └── VideoMedia/
 ├── PageRange/                 # Pagination range
 ├── Pagination/                # Pagination controls
-├── PayloadRedirects/          # Client redirects
+├── Redirects/          # Client redirects
 ├── providers/                 # Context providers
 │   ├── index.tsx              # Provider composition
 │   ├── HeaderTheme/           # Header styling

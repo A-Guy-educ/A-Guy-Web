@@ -3,7 +3,7 @@
 import DOMPurify from 'dompurify'
 import { useEffect, useMemo, useState } from 'react'
 import { GuidedExplanationV1Schema } from '@/infra/contracts/guided-explanation/v1'
-import type { HtmlBlock } from '@/server/payload/collections/Exercises/types'
+import type { HtmlBlock } from '@/infra/types/exercise'
 import { registerPurifyHook, unregisterPurifyHook } from '@/ui/web/shared/DOMPurifyHooks'
 import { GuidedExplanationRunner } from '@/ui/web/GuidedExplanationRunner'
 

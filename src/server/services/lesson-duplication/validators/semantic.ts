@@ -10,13 +10,13 @@
  * Returns { ok: true } on LLM approval, { ok: false, reasons: string[] } otherwise.
  */
 
-import type { Payload } from 'payload'
+import type { Payload } from '@/infra/types/backend'
 import {
   getLLMProvider,
   getProviderModelConfig,
   getProviderTypeFromEnv,
 } from '@/infra/llm/providers/factory'
-import type { ContentBlock } from '@/server/payload/collections/Exercises/schemas'
+import type { ContentBlock } from '@/infra/types/exercise'
 
 import { withTimeout as withSharedTimeout } from '@/infra/utils/with-timeout'
 
