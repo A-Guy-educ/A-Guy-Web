@@ -11,7 +11,7 @@ import {
   visibleContentFilter,
   andFilter,
 } from '../mongo'
-import { queryChaptersByGrade } from './chapters'
+import { queryChaptersByCourse, queryChaptersByGrade } from './chapters'
 
 export interface PrefetchedStudyData {
   chapters: Array<Chapter & { lessons: Lesson[] }>
@@ -30,9 +30,10 @@ export const prefetchStudyData = cache(
     gradeLevel: string,
     locale?: ContentLocale,
     lessonType: 'learning' | 'practice' | 'exam' = 'practice',
+    courseId?: string,
   ): Promise<PrefetchedStudyData | null> => {
     const [chapters, [gatedDelayMs, gatedWarningMs]] = await Promise.all([
-      queryChaptersByGrade({ gradeLevel, locale }),
+      courseId ? queryChaptersByCourse({ courseId }) : queryChaptersByGrade({ gradeLevel, locale }),
       Promise.all([SystemParams.getGatedDelayMs(), SystemParams.getGatedWarningMs()]),
     ])
 

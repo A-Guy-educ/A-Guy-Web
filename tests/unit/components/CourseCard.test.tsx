@@ -104,6 +104,7 @@ describe('CourseCard component', () => {
     // Check localStorage was updated
     const storedProfile = JSON.parse(localStorageMock.getItem('a-guy:user-profile') || '{}')
     expect(storedProfile.gradeLevel).toBe('8')
+    expect(storedProfile.courseId).toBe('test-course-1')
     expect(storedProfile.lastVisit).toBeTruthy()
 
     // Check navigation was called (second arg is optional navigation options)
@@ -129,6 +130,7 @@ describe('CourseCard component', () => {
     // Check mood was preserved
     const storedProfile = JSON.parse(localStorageMock.getItem('a-guy:user-profile') || '{}')
     expect(storedProfile.gradeLevel).toBe('8')
+    expect(storedProfile.courseId).toBe('test-course-1')
     expect(storedProfile.mood).toBe('happy')
   })
 
