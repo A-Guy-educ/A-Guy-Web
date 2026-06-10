@@ -1,19 +1,25 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 
-const disabled = { error: 'This endpoint is unavailable without the removed CMS backend.' }
+import { appendMessage, getOrCreateConversation } from '@/server/web-api/chat'
+import {
+  getOrCreateGuestId,
+  getWebUser,
+  publicUserId,
+  withGuestCookie,
+} from '@/infra/web-api/mongo-payload'
 
-export async function GET() {
-  return NextResponse.json(disabled, { status: 410 })
-}
+const BodySchema = z.object({ contextKey: z.string().min(1), content: z.string().min(1) })
 
-export async function POST() {
-  return NextResponse.json(disabled, { status: 410 })
-}
-
-export async function PATCH() {
-  return NextResponse.json(disabled, { status: 410 })
-}
-
-export async function DELETE() {
-  return NextResponse.json(disabled, { status: 410 })
+export async function POST(request: NextRequest) {
+  const parsed = BodySchema.safeParse(await request.json().catch(() => null))
+  if (!parsed.success) return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+  const guestId = getOrCreateGuestId(request)
+  const user = await getWebUser(request.headers)
+  const conversation = await getOrCreateConversation(
+    publicUserId(user, guestId),
+    parsed.data.contextKey,
+  )
+  await appendMessage(String(conversation.id), { role: 'assistant', content: parsed.data.content })
+  return withGuestCookie(NextResponse.json({ success: true }), guestId)
 }
