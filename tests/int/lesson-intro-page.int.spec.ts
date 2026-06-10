@@ -1,6 +1,4 @@
-// Node.js environment required: payload.login() uses jose JWT signing which depends on
-// Node.js's native TextEncoder/Uint8Array. The jsdom environment can cause a
-// Uint8Array realm mismatch that breaks jose's FlattenedSign constructor check.
+// @vitest-environment node
 
 /**
  * Integration tests for the LessonIntroPage feature (issue #30).
@@ -11,14 +9,17 @@
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { getPayload, type Payload } from 'payload'
+import { ObjectId, type Db } from 'mongodb'
 import { startMongoContainer, stopMongoContainer } from '@/infra/utils/test/mongodb-container'
+import { getContentDb } from '@/server/repos/mongo'
 import { queryLessonBlocks } from '@/server/repos/queries/lesson-blocks'
 import { queryLessonBySlug } from '@/server/repos/queries/lessons'
 import { queryExercisesByLesson } from '@/server/repos/queries/exercises'
 
-let payload: Payload
+let db: Db | undefined
 let originalDatabaseUrl: string | undefined
+let categoryId: string
+let contentPageId: string
 let courseId: string
 let chapterId: string
 let blocksOnlyLessonId: string
@@ -27,149 +28,140 @@ let blocksWithContentPagesLessonId: string
 
 const TENANT_SLUG = `lesson-intro-test-tenant-${Date.now()}`
 
-async function ensureDefaultTenant(payload: Payload): Promise<string> {
-  const existing = await payload.find({
-    collection: 'tenants',
-    where: { slug: { equals: TENANT_SLUG } },
-    limit: 1,
-    overrideAccess: true,
-  })
-
-  if (existing.docs[0]) {
-    return existing.docs[0].id
-  }
-
-  const created = await payload.create({
-    collection: 'tenants',
-    data: { name: TENANT_SLUG, slug: TENANT_SLUG, status: 'active' },
-    overrideAccess: true,
-  })
-
-  return created.id
-}
-
 beforeAll(async () => {
   originalDatabaseUrl = process.env.DATABASE_URL
 
-  // @ts-expect-error: TypeScript doesn't allow delete on process.env
-  delete process.env.DATABASE_URL
+  const existingClient = await globalThis.__aguyMongoClientPromise
+  await existingClient?.close()
+  globalThis.__aguyMongoClientPromise = undefined
 
   const mongoUri = await startMongoContainer()
   process.env.DATABASE_URL = mongoUri
 
-  const config = await import('@payload-config')
-  payload = await getPayload({ config: config.default })
+  db = await getContentDb()
 
-  const tenantId = await ensureDefaultTenant(payload)
   const timestamp = Date.now()
+  const tenantObjectId = new ObjectId()
+  const categoryObjectId = new ObjectId()
+  const courseObjectId = new ObjectId()
+  const chapterObjectId = new ObjectId()
+  const blocksOnlyLessonObjectId = new ObjectId()
+  const contentPageObjectId = new ObjectId()
+  const blocksWithContentPagesLessonObjectId = new ObjectId()
 
-  const category = await payload.create({
-    collection: 'categories',
-    data: {
-      title: `LessonIntro Test Category ${timestamp}`,
-      slug: `lesson-intro-cat-${timestamp}`,
-      locale: 'he',
-    },
-    overrideAccess: true,
+  courseId = courseObjectId.toString()
+  chapterId = chapterObjectId.toString()
+  categoryId = categoryObjectId.toString()
+  contentPageId = contentPageObjectId.toString()
+  blocksOnlyLessonId = blocksOnlyLessonObjectId.toString()
+  blocksOnlyLessonSlug = `blocks-only-lesson-${timestamp}`
+  blocksWithContentPagesLessonId = blocksWithContentPagesLessonObjectId.toString()
+
+  await db.collection('tenants').insertOne({
+    _id: tenantObjectId,
+    name: TENANT_SLUG,
+    slug: TENANT_SLUG,
+    status: 'active',
   })
 
-  const course = await payload.create({
-    collection: 'courses',
-    data: {
-      courseLabel: `LI-${timestamp}`,
-      title: `LessonIntro Test Course ${timestamp}`,
-      slug: `lesson-intro-course-${timestamp}`,
-      status: 'published',
-      categories: [category.id],
-      tenant: tenantId,
-      pageAccessType: 'free',
-      accessType: 'free',
-      contentStatus: 'none',
-      contentStatusVisible: true,
-      isActive: true,
-    },
-    draft: false,
+  await db.collection('categories').insertOne({
+    _id: categoryObjectId,
+    title: `LessonIntro Test Category ${timestamp}`,
+    slug: `lesson-intro-cat-${timestamp}`,
+    locale: 'he',
   })
-  courseId = course.id
 
-  const chapter = await payload.create({
-    collection: 'chapters',
-    data: {
-      title: `LessonIntro Test Chapter ${timestamp}`,
-      chapterLabel: `LI-${timestamp}`,
-      course: courseId,
-      order: 0,
-      status: 'published',
-      isActive: true,
-      tenant: tenantId,
-      locale: 'he',
-    },
-    overrideAccess: true,
+  await db.collection('courses').insertOne({
+    _id: courseObjectId,
+    courseLabel: `LI-${timestamp}`,
+    title: `LessonIntro Test Course ${timestamp}`,
+    slug: `lesson-intro-course-${timestamp}`,
+    status: 'published',
+    categories: [categoryObjectId],
+    tenant: tenantObjectId,
+    pageAccessType: 'free',
+    accessType: 'free',
+    contentStatus: 'none',
+    contentStatusVisible: true,
+    isActive: true,
   })
-  chapterId = chapter.id
+
+  await db.collection('chapters').insertOne({
+    _id: chapterObjectId,
+    title: `LessonIntro Test Chapter ${timestamp}`,
+    chapterLabel: `LI-${timestamp}`,
+    course: courseObjectId,
+    order: 0,
+    status: 'published',
+    isActive: true,
+    tenant: tenantObjectId,
+    locale: 'he',
+  })
 
   // Lesson 1: blocks-only (no exercises, no media) — EmptyLessonPlaceholder path
-  const blocksOnlyLesson = await payload.create({
-    collection: 'lessons',
-    data: {
-      title: `Blocks Only Lesson ${timestamp}`,
-      slug: `blocks-only-lesson-${timestamp}`,
-      chapter: chapterId,
-      type: 'learning',
-      order: 1,
-      status: 'published',
-      isActive: true,
-      tenant: tenantId,
-      locale: 'he',
-      accessType: 'inherit',
-      contentStatus: 'none',
-      contentStatusVisible: true,
-      // No exercises field — exercises are stored in separate collection
-      // No contentFiles — no media/PDF files
-    },
-    draft: false,
+  await db.collection('lessons').insertOne({
+    _id: blocksOnlyLessonObjectId,
+    title: `Blocks Only Lesson ${timestamp}`,
+    slug: blocksOnlyLessonSlug,
+    chapter: chapterObjectId,
+    type: 'learning',
+    order: 1,
+    status: 'published',
+    isActive: true,
+    tenant: tenantObjectId,
+    locale: 'he',
+    accessType: 'inherit',
+    contentStatus: 'none',
+    contentStatusVisible: true,
+    contentFiles: [],
   })
-  blocksOnlyLessonId = blocksOnlyLesson.id
-  blocksOnlyLessonSlug = blocksOnlyLesson.slug as string
 
   // Lesson 2: lesson with content pages in blocks
-  const contentPage = await payload.create({
-    collection: 'contentPages',
-    data: {
-      title: `Test Content Page ${timestamp}`,
-      slug: `test-content-page-${timestamp}`,
-      status: 'published',
-      body: '<p>Test content</p>',
-      tenant: tenantId,
-      locale: 'he',
-    },
-    draft: false,
+  await db.collection('content-pages').insertOne({
+    _id: contentPageObjectId,
+    title: `Test Content Page ${timestamp}`,
+    slug: `test-content-page-${timestamp}`,
+    status: 'published',
+    isActive: true,
+    body: '<p>Test content</p>',
+    tenant: tenantObjectId,
+    locale: 'he',
   })
 
-  const blocksWithContentPagesLesson = await payload.create({
-    collection: 'lessons',
-    data: {
-      title: `Blocks With Content Pages ${timestamp}`,
-      slug: `blocks-with-content-pages-${timestamp}`,
-      chapter: chapterId,
-      type: 'learning',
-      order: 2,
-      status: 'published',
-      isActive: true,
-      tenant: tenantId,
-      locale: 'he',
-      accessType: 'inherit',
-      contentStatus: 'none',
-      contentStatusVisible: true,
-      blocks: [{ blockType: 'contentPageRef', contentPage: contentPage.id }],
-    },
-    draft: false,
+  await db.collection('lessons').insertOne({
+    _id: blocksWithContentPagesLessonObjectId,
+    title: `Blocks With Content Pages ${timestamp}`,
+    slug: `blocks-with-content-pages-${timestamp}`,
+    chapter: chapterObjectId,
+    type: 'learning',
+    order: 2,
+    status: 'published',
+    isActive: true,
+    tenant: tenantObjectId,
+    locale: 'he',
+    accessType: 'inherit',
+    contentStatus: 'none',
+    contentStatusVisible: true,
+    blocks: [{ blockType: 'contentPageRef', contentPage: contentPageObjectId }],
   })
-  blocksWithContentPagesLessonId = blocksWithContentPagesLesson.id
 }, 120_000)
 
 afterAll(async () => {
-  if (payload?.db?.destroy) await payload.db.destroy()
+  await db?.collection('lessons').deleteMany({
+    _id: {
+      $in: [blocksOnlyLessonId, blocksWithContentPagesLessonId].map((id) => new ObjectId(id)),
+    },
+  })
+  await db?.collection('content-pages').deleteOne({ _id: new ObjectId(contentPageId) })
+  await db?.collection('chapters').deleteOne({ _id: new ObjectId(chapterId) })
+  await db?.collection('courses').deleteOne({ _id: new ObjectId(courseId) })
+  await db?.collection('categories').deleteOne({ _id: new ObjectId(categoryId) })
+  await db?.collection('tenants').deleteOne({ slug: TENANT_SLUG })
+
+  const client = await globalThis.__aguyMongoClientPromise
+  await client?.close()
+  globalThis.__aguyMongoClientPromise = undefined
+
   await stopMongoContainer()
 
   if (originalDatabaseUrl !== undefined) {
