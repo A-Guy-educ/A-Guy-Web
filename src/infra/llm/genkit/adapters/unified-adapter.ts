@@ -6,6 +6,7 @@ export const __genkit_exports__ = true
  * @fileType adapter
  * @domain ai
  * @pattern abstraction, genkit, provider-abstraction
+ * @ai-summary Routes to `ai.generate()` (non-streaming) or `ai.generateStream()` (streaming). Error classification via `error-adapter.ts` maps Genkit errors to LLMError codes (auth → CONFIG_ERROR, rate limit → RATE_LIMIT_ERROR, timeout → TIMEOUT_ERROR, etc.). `raw` exposes the full Genkit GenerateResponse; `text` is the extracted string. Streaming returns `{ stream, response }` — the stream yields text chunks, response resolves to the final text. Tool calls from `ai.generate({ tools })` are extracted from `result.toolCalls` (Genkit format: `{ toolName, arguments }`) and mapped to UnifiedLLMProvider format (`{ name, args }`).
  *
  * Maintains backward compatibility with existing UnifiedLLMProvider interface
  */
@@ -433,6 +434,16 @@ export async function createGenkitUnifiedAdapter(
                 maxTurns: 5,
               })
 
+              // Extract tool calls from Genkit result.
+              // Genkit returns { toolName, arguments }[]; UnifiedLLMProvider expects { name, args }[].
+              const toolCalls: Array<{ name: string; args: Record<string, unknown> }> =
+                (
+                  result as { toolCalls?: Array<{ toolName: string; arguments?: unknown }> }
+                ).toolCalls?.map((tc) => ({
+                  name: tc.toolName,
+                  args: (tc.arguments ?? {}) as Record<string, unknown>,
+                })) ?? []
+
               // Extract usage data for cost tracking (issue #1552)
               const usage: { inputTokens: number; outputTokens: number } | undefined =
                 result.usage?.inputTokens !== undefined || result.usage?.outputTokens !== undefined
@@ -445,7 +456,7 @@ export async function createGenkitUnifiedAdapter(
               return {
                 text: result.text,
                 raw: result,
-                toolCalls: [],
+                toolCalls,
                 usage,
               }
             } catch (error) {
