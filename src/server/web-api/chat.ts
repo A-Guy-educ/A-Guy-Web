@@ -1,6 +1,14 @@
+import fs from 'fs/promises'
+
 import { ObjectId, type Document } from 'mongodb'
 
+import { resolveMediaFilePath } from '@/infra/config/storage'
 import { getContentDb, objectIdFromString, serializeDoc } from '@/infra/db/content-db'
+import {
+  CHAT_ASSET_ALLOWED_MIME_TYPES,
+  CHAT_ASSET_MAX_ATTACHMENTS,
+  CHAT_ASSET_MAX_BYTES,
+} from '@/server/chat-assets/constants'
 
 export type ChatContext = {
   exerciseId?: string
@@ -147,17 +155,99 @@ export function formatConversationResponse(
   }
 }
 
-async function loadAttachmentText(chatAssetIds?: string[], mediaIds?: string[]) {
+type GeminiPart = { text: string } | { inlineData: { mimeType: string; data: string } }
+
+type AttachmentDoc = Record<string, unknown> & {
+  filename?: unknown
+  originalFilename?: unknown
+  mimeType?: unknown
+  filesize?: unknown
+  url?: unknown
+}
+
+const SUPPORTED_INLINE_MIME_TYPES = new Set<string>(CHAT_ASSET_ALLOWED_MIME_TYPES)
+
+function cleanMimeType(mimeType: unknown) {
+  return String(mimeType || '')
+    .split(';')[0]
+    ?.trim()
+    .toLowerCase()
+}
+
+function attachmentName(attachment: AttachmentDoc) {
+  return String(
+    attachment.originalFilename || attachment.filename || attachment.url || 'attachment',
+  )
+}
+
+async function fetchAttachmentBuffer(attachment: AttachmentDoc) {
+  if (typeof attachment.url === 'string' && attachment.url) {
+    const response = await fetch(attachment.url, { signal: AbortSignal.timeout(30_000) })
+    if (!response.ok) throw new Error(`Attachment fetch failed: ${response.status}`)
+
+    return {
+      buffer: Buffer.from(await response.arrayBuffer()),
+      mimeType: cleanMimeType(attachment.mimeType || response.headers.get('content-type')),
+    }
+  }
+
+  if (typeof attachment.filename === 'string' && attachment.filename) {
+    return {
+      buffer: await fs.readFile(resolveMediaFilePath(attachment.filename)),
+      mimeType: cleanMimeType(attachment.mimeType),
+    }
+  }
+
+  return null
+}
+
+async function attachmentToInlinePart(attachment: AttachmentDoc): Promise<GeminiPart | null> {
+  const mimeType = cleanMimeType(attachment.mimeType)
+  if (!SUPPORTED_INLINE_MIME_TYPES.has(mimeType)) return null
+  if (Number(attachment.filesize || 0) > CHAT_ASSET_MAX_BYTES) return null
+
+  const loaded = await fetchAttachmentBuffer(attachment)
+  if (!loaded || !SUPPORTED_INLINE_MIME_TYPES.has(loaded.mimeType)) return null
+  if (loaded.buffer.length > CHAT_ASSET_MAX_BYTES) return null
+
+  return { inlineData: { mimeType: loaded.mimeType, data: loaded.buffer.toString('base64') } }
+}
+
+export function buildGeminiUserParts(prompt: string, attachmentParts: GeminiPart[]) {
+  return attachmentParts.length > 0 ? [...attachmentParts, { text: prompt }] : [{ text: prompt }]
+}
+
+async function loadAttachments(chatAssetIds?: string[], mediaIds?: string[]) {
   const db = await getContentDb()
   const lines: string[] = []
+  const parts: GeminiPart[] = []
+  let loadedCount = 0
+
+  async function addAttachment(attachment: AttachmentDoc, label: string) {
+    lines.push(`${label}: ${attachmentName(attachment)}`)
+    if (typeof attachment.url === 'string' && attachment.url)
+      lines.push(`File URL: ${attachment.url}`)
+
+    if (loadedCount >= CHAT_ASSET_MAX_ATTACHMENTS) return
+
+    try {
+      const part = await attachmentToInlinePart(attachment)
+      if (part) {
+        parts.push(part)
+        loadedCount += 1
+      }
+    } catch {
+      lines.push(`Attachment vision data unavailable: ${attachmentName(attachment)}`)
+    }
+  }
+
   if (chatAssetIds?.length) {
     const assets = await db
       .collection('chat-assets')
       .find({ _id: { $in: chatAssetIds.filter(ObjectId.isValid).map((id) => new ObjectId(id)) } })
       .toArray()
     for (const asset of assets) {
-      lines.push(`Attached file: ${asset.originalFilename || asset.filename || asset.url}`)
-      if (asset.url) lines.push(`File URL: ${asset.url}`)
+      await addAttachment(asset, 'Attached file')
     }
   }
   if (mediaIds?.length) {
@@ -166,11 +256,11 @@ async function loadAttachmentText(chatAssetIds?: string[], mediaIds?: string[]) 
       .find({ _id: { $in: mediaIds.filter(ObjectId.isValid).map((id) => new ObjectId(id)) } })
       .toArray()
     for (const item of media) {
-      lines.push(`Attached media: ${item.filename || item.url}`)
-      if (item.url) lines.push(`Media URL: ${item.url}`)
+      await addAttachment(item, 'Attached media')
     }
   }
-  return lines.join('\n')
+
+  return { text: lines.join('\n'), parts }
 }
 
 export async function generateAssistantReply(args: {
@@ -180,14 +270,14 @@ export async function generateAssistantReply(args: {
   chatAssetIds?: string[]
   mediaIds?: string[]
 }) {
-  const attachmentText = await loadAttachmentText(args.chatAssetIds, args.mediaIds)
+  const attachments = await loadAttachments(args.chatAssetIds, args.mediaIds)
   const system =
     'You are A-Guy, a concise math tutor. Help the student with clear steps, in the same language they use when possible.'
   const history = (args.history ?? [])
     .slice(-10)
     .map((m) => `${m.role === 'user' ? 'Student' : 'Tutor'}: ${m.content}`)
     .join('\n')
-  const prompt = [history, attachmentText, `Student: ${args.message}`, 'Tutor:']
+  const prompt = [history, attachments.text, `Student: ${args.message}`, 'Tutor:']
     .filter(Boolean)
     .join('\n\n')
 
@@ -203,7 +293,7 @@ export async function generateAssistantReply(args: {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: system }] },
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        contents: [{ role: 'user', parts: buildGeminiUserParts(prompt, attachments.parts) }],
         generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
       }),
     },

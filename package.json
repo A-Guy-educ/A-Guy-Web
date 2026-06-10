@@ -99,7 +99,9 @@
     "design:tokens:audit:fixable": "pnpm tsx scripts/design-tokens/audit.ts --fixable",
     "design:tokens:audit:verbose": "pnpm tsx scripts/design-tokens/audit.ts --verbose",
     "test:visual": "pnpm exec playwright test tests/visual/",
-    "test:visual:update": "pnpm exec playwright test tests/visual/ --update-snapshots"
+    "test:visual:update": "pnpm exec playwright test tests/visual/ --update-snapshots",
+    "smoke:web-api": "pnpm tsx scripts/smoke-web-api.ts",
+    "smoke:live": "cross-env SMOKE_BASE_URLS=https://a-guy-dev-aguy.vercel.app,https://a-guy-web.vercel.app pnpm tsx scripts/smoke-web-api.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
