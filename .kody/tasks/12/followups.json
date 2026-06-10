@@ -1,0 +1,8 @@
+[
+  {
+    "title": "CI transient ERR_MODULE_NOT_FOUND from pnpm cache corruption",
+    "body": "CI runs 27188174510 and 27201508477 failed with 'Cannot find package @/...' errors for path aliases in unit tests. The latest CI run (27302135889) passed all gates. Root cause: transient pnpm store/cache corruption in the CI runner, not a code issue. Same commit passes locally (193 test files, 2489 tests). No code changes were needed.",
+    "rationale": "If this pattern recurs, CI cache invalidation should be the first troubleshooting step before investigating code changes.",
+    "priority": "low"
+  }
+]
