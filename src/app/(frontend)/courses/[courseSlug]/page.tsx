@@ -7,10 +7,15 @@ import { queryCourseBySlug } from '@/server/repos/queries/courses'
 import { queryChaptersByCourse } from '@/server/repos/queries/chapters'
 import { queryLessonsByCourse } from '@/server/repos/queries/lessons'
 import { SystemParams } from '@/infra/config/system-params'
-import { isAuthenticatedServer } from '@/server/utils/access-gate-server'
+import {
+  getAuthenticatedUserServer,
+  isAuthenticatedServer,
+} from '@/server/utils/access-gate-server'
 import { checkPaidAccess } from '@/server/utils/check-paid-access'
 import { AccessGateProvider } from '@/ui/web/auth/AccessGateProvider'
 import { stripHtml } from '@/utils/strip-html'
+import { getContentDb, objectIdFromString, relationId } from '@/infra/db/content-db'
+import { findUserProgress } from '@/server/web-api/progress'
 import { CoursePageContent } from './_components/CoursePageContent'
 
 export const dynamic = 'force-dynamic'
@@ -110,11 +115,47 @@ export default async function CoursePage({ params }: CoursePageProps) {
  */
 async function buildLessonProgressMap(
   lessonIds: string[],
-  _gradeLevel: string,
+  gradeLevel: string,
 ): Promise<Record<string, { completed: number; total: number; percent: number }>> {
   const result: Record<string, { completed: number; total: number; percent: number }> = {}
   for (const lessonId of lessonIds) {
     result[lessonId] = { completed: 0, total: 0, percent: 0 }
+  }
+
+  const { user } = await getAuthenticatedUserServer()
+  if (!user?.id || lessonIds.length === 0) return result
+
+  const db = await getContentDb()
+  const exercises = await db
+    .collection('exercises')
+    .find({ lesson: { $in: lessonIds.map(objectIdFromString) } }, { projection: { lesson: 1 } })
+    .toArray()
+  const lessonExerciseIds = new Map<string, string[]>()
+  for (const exercise of exercises) {
+    const lessonId = relationId(exercise.lesson)
+    if (!lessonId) continue
+    const ids = lessonExerciseIds.get(lessonId) ?? []
+    ids.push(exercise._id.toString())
+    lessonExerciseIds.set(lessonId, ids)
+  }
+
+  const progress = await findUserProgress(user.id, gradeLevel || 'default')
+  const records = progress?.progressRecords ?? []
+  const completedExerciseIds = new Set(
+    records
+      .filter((record) => record.recordType === 'exercise' && record.status === 'completed')
+      .map((record) => record.recordId),
+  )
+
+  for (const lessonId of lessonIds) {
+    const exerciseIds = lessonExerciseIds.get(lessonId) ?? []
+    const completed = exerciseIds.filter((id) => completedExerciseIds.has(id)).length
+    const total = exerciseIds.length
+    result[lessonId] = {
+      completed,
+      total,
+      percent: total > 0 ? Math.round((completed / total) * 100) : 0,
+    }
   }
 
   return result

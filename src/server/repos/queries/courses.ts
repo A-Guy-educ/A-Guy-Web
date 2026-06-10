@@ -27,11 +27,7 @@ export const queryCourseBySlug = cache(
 export const queryPublishedCourses = cache(async (locale?: ContentLocale): Promise<Course[]> => {
   return findManySerialized<Course>(
     'courses',
-    andFilter(
-      visibleContentFilter({ order: { $gt: 0 } }),
-      localeFilter(locale),
-      await defaultTenantFilter(),
-    ),
+    andFilter(visibleContentFilter(), localeFilter(locale), await defaultTenantFilter()),
     { sort: { order: 1 } },
   )
 })
