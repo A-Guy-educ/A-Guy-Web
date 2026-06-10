@@ -1,0 +1,8 @@
+[
+  {
+    "title": "E2E test requires manual run",
+    "body": "The E2E test at tests/e2e/start-page-redesign.e2e.spec.ts was written to validate the new landing page sections but cannot be run in the automated CI pipeline without a running dev server. Manual verification is needed: pnpm exec playwright test tests/e2e/start-page-redesign.e2e.spec.ts",
+    "rationale": "The test file was created to define expected behavior but E2E tests require a live dev server to run",
+    "priority": "medium"
+  }
+]

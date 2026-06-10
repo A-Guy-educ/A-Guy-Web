@@ -7,9 +7,30 @@
       "cta": "Start Learning",
       "secondaryCta": "Explore Courses"
     },
+    "stats": {
+      "lessons": "Lessons",
+      "exercises": "Exercises",
+      "students": "Students",
+      "ai": "AI Support"
+    },
+    "comparison": {
+      "heading": "Why Choose Private Tutoring?",
+      "privateTitle": "Private Tutoring",
+      "traditionalTitle": "Traditional Tutoring",
+      "benefits": {
+        "personalized": "Personalized learning path adapted to your level",
+        "instantFeedback": "Instant feedback and step-by-step explanations",
+        "progressTracking": "Track your progress with detailed analytics"
+      },
+      "drawbacks": {
+        "scheduling": "Fixed schedules and limited availability",
+        "cost": "Higher cost per session",
+        "availability": "Limited access to practice materials"
+      }
+    },
     "features": {
       "heading": "Everything You Need to Succeed",
-      "subheading": "Four powerful tools designed to help you master math at your own pace",
+      "subheading": "Six powerful tools designed to help you master math at your own pace",
       "study": {
         "title": "Study",
         "description": "Structured lessons that break down complex topics into clear, digestible steps. Learn at your own pace with interactive content."
@@ -25,6 +46,22 @@
       "test": {
         "title": "Test",
         "description": "Prepare for exams with realistic practice tests. Identify your strengths and areas that need more work."
+      },
+      "aiTutor": {
+        "title": "AI Tutor",
+        "description": "Your personal AI tutor available 24/7 to answer questions and guide your learning."
+      },
+      "progress": {
+        "title": "Progress Tracking",
+        "description": "Detailed analytics and insights to help you understand your strengths and areas for improvement."
+      },
+      "exams": {
+        "title": "Exam Prep",
+        "description": "Realistic practice exams that simulate real test conditions and help you build confidence."
+      },
+      "support": {
+        "title": "24/7 Support",
+        "description": "Round-the-clock access to learning materials, practice problems, and AI assistance."
       }
     },
     "howItWorks": {
@@ -44,10 +81,39 @@
         }
       }
     },
+    "simulation": {
+      "heading": "Try It Now",
+      "dashboardTitle": "Dashboard",
+      "chatTitle": "Chat",
+      "notebookTitle": "Notebook",
+      "lessons": {
+        "lesson1": "Order of Operations",
+        "lesson2": "Algebraic Expressions",
+        "lesson3": "Linear Equations",
+        "lesson4": "Areas and Perimeters"
+      },
+      "questions": {
+        "question1": "Last question - Patterns",
+        "question2": "Question 4 - Zero and One",
+        "question3": "Question 3 - Order of Operations"
+      },
+      "completed": "completed",
+      "notebookDesc": "Practice problems and exercises will appear here."
+    },
     "cta": {
       "heading": "Ready to Start Learning?",
       "subheading": "Join and start improving your math skills today. It only takes a minute to get started.",
+      "primaryButton": "Start Free Trial",
+      "secondaryButton": "View Courses",
       "button": "Get Started Now"
+    },
+    "onboarding": {
+      "title": "Quick Tour",
+      "welcome": "Welcome! Let's take a quick tour of your learning dashboard.",
+      "question": "What would you like to do today?",
+      "answer": "Great! Let's get started with your personalized learning path.",
+      "next": "Next",
+      "done": "Let's Go"
     }
   },
   "home": {
