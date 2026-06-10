@@ -1,4 +1,3 @@
-// @vitest-environment node
 // Node.js environment required: payload.login() uses jose JWT signing which depends on
 // Node.js's native TextEncoder/Uint8Array. The jsdom environment can cause a
 // Uint8Array realm mismatch that breaks jose's FlattenedSign constructor check.
@@ -12,8 +11,7 @@
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import type { Payload } from 'payload'
-import { getPayload } from 'payload'
+import { getPayload, type Payload } from 'payload'
 import { startMongoContainer, stopMongoContainer } from '@/infra/utils/test/mongodb-container'
 import { queryLessonBlocks } from '@/server/repos/queries/lesson-blocks'
 import { queryLessonBySlug } from '@/server/repos/queries/lessons'
