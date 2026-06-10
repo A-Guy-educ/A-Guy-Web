@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
 
   const localeParam = searchParams.get('locale')
   const locale = localeParam && isValidContentLocale(localeParam) ? localeParam : undefined
+  const courseId = searchParams.get('courseId') || undefined
   const lessonTypeParam = searchParams.get('lessonType')
   const lessonType =
     lessonTypeParam &&
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
       ? (lessonTypeParam as (typeof VALID_LESSON_TYPES)[number])
       : 'practice'
 
-  const data = await prefetchStudyData(grade, locale, lessonType)
+  const data = await prefetchStudyData(grade, locale, lessonType, courseId)
 
   if (!data) {
     return NextResponse.json({

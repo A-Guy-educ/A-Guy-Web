@@ -28,12 +28,15 @@ export function LayoutClient() {
     restoreAccent()
   }, [])
 
-  // Register service worker for offline support
+  // Clear the old offline worker so stale pages cannot hide fresh server data.
   useEffect(() => {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {
-        // Silent fail - SW is optional
-      })
+      navigator.serviceWorker
+        .getRegistrations()
+        .then((registrations) =>
+          Promise.all(registrations.map((registration) => registration.unregister())),
+        )
+        .catch(() => {})
     }
   }, [])
 

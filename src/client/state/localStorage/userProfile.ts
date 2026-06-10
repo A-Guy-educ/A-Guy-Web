@@ -5,6 +5,7 @@
 
 export interface LocalUserProfile {
   gradeLevel: string // "8", "ח", etc.
+  courseId?: string
   mood?: string
   lastVisit: string // ISO date
 }
@@ -31,6 +32,7 @@ export const getUserProfile = (): LocalUserProfile | null => {
  * Mirrors gradeLevel from localStorage so server components can prefetch data.
  */
 export const GRADE_COOKIE_NAME = 'a-guy:grade'
+export const COURSE_ID_COOKIE_NAME = 'a-guy:course-id'
 
 /**
  * Set user profile in localStorage (SSR-safe)
@@ -45,6 +47,12 @@ export const setUserProfile = (profile: LocalUserProfile): void => {
     if (profile.gradeLevel) {
       document.cookie = `${GRADE_COOKIE_NAME}=${encodeURIComponent(profile.gradeLevel)}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`
     }
+
+    if (profile.courseId) {
+      document.cookie = `${COURSE_ID_COOKIE_NAME}=${encodeURIComponent(profile.courseId)}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`
+    } else {
+      document.cookie = `${COURSE_ID_COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax`
+    }
   } catch (error) {
     console.error('Failed to save user profile to localStorage:', error)
   }
@@ -57,6 +65,8 @@ export const clearUserProfile = (): void => {
   if (typeof window === 'undefined') return
   try {
     localStorage.removeItem(STORAGE_KEYS.USER_PROFILE)
+    document.cookie = `${GRADE_COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax`
+    document.cookie = `${COURSE_ID_COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax`
   } catch (error) {
     console.error('Failed to clear user profile from localStorage:', error)
   }

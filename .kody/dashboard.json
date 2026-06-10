@@ -5,14 +5,19 @@
   "brainFlyChatEnabled": true,
   "namedPreviews": [
     {
-      "id": "default",
-      "label": "Dev",
-      "url": "https://kp-866cab-8111e4-br-ef260e.fly.dev"
-    },
-    {
       "id": "prod-esw0",
       "label": "Prod",
       "url": "https://www.aguy.co.il"
+    },
+    {
+      "id": "new-dev-zr4v",
+      "label": "New Dev",
+      "url": "https://a-guy-dev-aguy.vercel.app"
+    },
+    {
+      "id": "intro-lesson-erfy",
+      "label": "intro - lesson",
+      "url": "https://www.aguy.co.il/courses/parbula/chapters/geometry/lessons/legacy-t-shyavr-20-mshvlsh-yshr-zvvyt-1775035587476"
     }
   ],
   "branchPreviews": [

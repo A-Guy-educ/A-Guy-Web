@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 
+import { AUTH_COOKIE_NAME, getSessionFromToken } from '@/infra/auth/web-auth'
 import type { User } from '@/infra/types/content'
 
 export const getMeUser = async (args?: {
@@ -9,12 +10,22 @@ export const getMeUser = async (args?: {
   token: string | null
   user: User | null
 }> => {
-  if (args?.nullUserRedirect) {
+  const { cookies } = await import('next/headers')
+  const cookieStore = await cookies()
+  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value ?? null
+  const session = await getSessionFromToken(token)
+  const user = session?.user ?? null
+
+  if (!user && args?.nullUserRedirect) {
     redirect(args.nullUserRedirect)
   }
 
+  if (user && args?.validUserRedirect) {
+    redirect(args.validUserRedirect)
+  }
+
   return {
-    token: null,
-    user: null,
+    token: session?.token ?? null,
+    user,
   }
 }
