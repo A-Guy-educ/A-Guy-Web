@@ -1677,14 +1677,19 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
-- fix(ci): Restore dependabot gates ([#19](https://github.com/A-Guy-educ/A-Guy-Web/pull/19)) — @aguyaharonyair
+- #67: [Lessons] עמוד כניסה אחיד לכל סוגי השיעורים ([#68](https://github.com/A-Guy-educ/A-Guy-Web/pull/68)) — @kodyade[bot] · ⚠️ QA 2026-06-10 (#85)
+- #30: [Lessons] Add unified entry intro page for all lessons ([#34](https://github.com/A-Guy-educ/A-Guy-Web/pull/34)) — @kodyade[bot] · ⚠️ QA 2026-06-10 (#100)
+- #35: docs: add headers to src/server/services/ (doc-coverage gap) ([#36](https://github.com/A-Guy-educ/A-Guy-Web/pull/36)) — @kodyade[bot] · ⚠️ QA 2026-06-10 (#53)
+- #44: docs-coverage: src/lib/latex-parser/ — 0/13 modules with @ai-summa… ([#45](https://github.com/A-Guy-educ/A-Guy-Web/pull/45)) — @kodyade[bot]
+- fix: allow Kody dashboard previews ([#33](https://github.com/A-Guy-educ/A-Guy-Web/pull/33)) — @aguyaharonyair · ⚠️ QA 2026-06-10 (#37)
+- fix(ci): Restore dependabot gates ([#19](https://github.com/A-Guy-educ/A-Guy-Web/pull/19)) — @aguyaharonyair · ⚠️ QA 2026-06-10 (#46)
 - #2250: docs-drift: Exercises (#2154) ([#2341](https://github.com/A-Guy-educ/A-Guy/pull/2341)) — @kodyade[bot] · ⚠️ QA 2026-06-08 (#2527)
 - #2248: docs-drift: Block Rendering (#2116) ([#2340](https://github.com/A-Guy-educ/A-Guy/pull/2340)) — @kodyade[bot] · ⚠️ QA 2026-06-08 (#2530)
 - #2246: docs-drift: Admin Components (#2108) ([#2339](https://github.com/A-Guy-educ/A-Guy/pull/2339)) — @kodyade[bot] · ✅ QA 2026-06-08
 - fix(csp): Allow *.gravatar.com subdomains in admin img-src ([#2521](https://github.com/A-Guy-educ/A-Guy/pull/2521)) — @aguyshayb · ✅ QA 2026-06-09
 - #2247: docs-drift: Admin Components (#2115) ([#2337](https://github.com/A-Guy-educ/A-Guy/pull/2337)) — @kodyade[bot] · ✅ QA 2026-06-08
 - #2331: src/server/api/ — thin in-code documentation ([#2333](https://github.com/A-Guy-educ/A-Guy/pull/2333)) — @kodyade[bot] · ⚠️ QA 2026-06-09 (#2542)
-- #2291: [P1] Add autosave to LessonBlocksField delete operations ([#2307](https://github.com/A-Guy-educ/A-Guy/pull/2307)) — @kodyade[bot]
+- #2291: [P1] Add autosave to LessonBlocksField delete operations ([#2307](https://github.com/A-Guy-educ/A-Guy/pull/2307)) — @kodyade[bot] · ⚠️ QA 2026-06-10 (#64)
 - #2162: Doc gap: src/infra/utils/ — 6/27 modules carry @ai-summary ([#2164](https://github.com/A-Guy-educ/A-Guy/pull/2164)) — @kodyade[bot]
 - chore(memory): Rescue orphaned knowledge from kody-memorize branches ([#1891](https://github.com/A-Guy-educ/A-Guy/pull/1891)) — @aguyaharonyair
 - #1563: feat: show app version in admin dashboard footer ([#1566](https://github.com/A-Guy-educ/A-Guy/pull/1566)) — @aguyaharonyair
