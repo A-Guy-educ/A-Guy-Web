@@ -19,10 +19,7 @@ export const searchCourseContent = cache(
 
     const courses = await findManySerialized<Course>(
       'courses',
-      andFilter(
-        visibleContentFilter({ title: regex, order: { $gt: 0 } }),
-        await defaultTenantFilter(),
-      ),
+      andFilter(visibleContentFilter({ title: regex }), await defaultTenantFilter()),
       { limit: 10 },
     )
     for (const course of courses) {

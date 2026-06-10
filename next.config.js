@@ -132,33 +132,15 @@ const nextConfig = {
   reactStrictMode: true,
   redirects,
   async rewrites() {
-    const blobBaseUrl = (process.env.BLOB_PUBLIC_BASE_URL || '').replace(/\/$/, '')
-    if (!blobBaseUrl) return []
-
-    return [
-      // Rewrite PDF media requests to Blob CDN at the edge (same-origin preserved for PDF.js)
-      {
-        source: '/api/media/file/:filename(.*\\.pdf$)',
-        destination: `${blobBaseUrl}/:filename`,
-      },
-      {
-        source: '/api/exercise-assets/file/:filename(.*\\.pdf$)',
-        destination: `${blobBaseUrl}/:filename`,
-      },
-    ]
+    return []
   },
   async headers() {
     return [
-      // General routes - CSP optimized for Next.js
-      // Excludes /api/pdfjs-viewer which needs to be embeddable in same-origin iframes
+      // General routes - core security headers.
+      // CSP is set by middleware so iframe preview rules cannot drift.
       {
         source: '/((?!api/pdfjs-viewer).*)',
         headers: [
-          {
-            key: 'Content-Security-Policy',
-            value:
-              "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://www.googletagmanager.com https://cdn.mxpnl.com; style-src 'self' 'unsafe-inline'; img-src 'self' *.blob.vercel-storage.com img.youtube.com avatars.githubusercontent.com github.com *.githubusercontent.com data: blob:; font-src 'self' data: https://r2cdn.perplexity.ai; connect-src 'self' https://*.vercel.app https://vercel.live wss://*.vercel.app https://blob.vercel-storage.com https://*.blob.vercel-storage.com https://api-js.mixpanel.com https://*.mxpnl.com https://www.google-analytics.com; frame-src 'self' www.youtube.com vercel.live; frame-ancestors 'self' https://kody-dashboard-aguy.vercel.app; object-src 'none'; base-uri 'self'; form-action 'self'",
-          },
           { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
