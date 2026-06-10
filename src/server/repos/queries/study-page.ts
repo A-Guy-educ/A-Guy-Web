@@ -11,7 +11,9 @@ import {
   visibleContentFilter,
   andFilter,
 } from '../mongo'
-import { queryChaptersByGrade } from './chapters'
+import { queryChaptersByCourse, queryChaptersByGrade } from './chapters'
+import { queryPublishedCourses } from './courses'
+import { orderLearningFallbackCourses } from '@/app/(frontend)/study/learningPageSelection'
 
 export interface PrefetchedStudyData {
   chapters: Array<Chapter & { lessons: Lesson[] }>
@@ -30,9 +32,10 @@ export const prefetchStudyData = cache(
     gradeLevel: string,
     locale?: ContentLocale,
     lessonType: 'learning' | 'practice' | 'exam' = 'practice',
+    courseId?: string,
   ): Promise<PrefetchedStudyData | null> => {
     const [chapters, [gatedDelayMs, gatedWarningMs]] = await Promise.all([
-      queryChaptersByGrade({ gradeLevel, locale }),
+      courseId ? queryChaptersByCourse({ courseId }) : queryChaptersByGrade({ gradeLevel, locale }),
       Promise.all([SystemParams.getGatedDelayMs(), SystemParams.getGatedWarningMs()]),
     ])
 
@@ -77,5 +80,26 @@ export const prefetchStudyData = cache(
       gatedDelayMs,
       gatedWarningMs,
     }
+  },
+)
+
+export const prefetchEmbeddedLearningFallback = cache(
+  async (
+    locale?: ContentLocale,
+    lessonType: 'learning' | 'practice' | 'exam' = 'learning',
+  ): Promise<PrefetchedStudyData | null> => {
+    const courses = orderLearningFallbackCourses(await queryPublishedCourses(locale))
+
+    for (const course of courses) {
+      const gradeLevel = course.courseLabel?.trim()
+      if (!gradeLevel) continue
+
+      const data = await prefetchStudyData(gradeLevel, locale, lessonType, course.id)
+      if (data?.chapters.some((chapter) => chapter.lessons.length > 0)) {
+        return data
+      }
+    }
+
+    return null
   },
 )

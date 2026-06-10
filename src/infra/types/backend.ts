@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export type Payload = any
 export type PayloadRequest = any
 export type User = any
@@ -13,12 +15,26 @@ export const ContentSchema = {
 }
 
 export function parseSSEData(data: string): any[] {
-  try {
-    const parsed = JSON.parse(data)
-    return Array.isArray(parsed) ? parsed : [parsed]
-  } catch {
-    return []
-  }
+  return data
+    .split(/\n\n+/)
+    .map((eventBlock) => eventBlock.trim())
+    .filter(Boolean)
+    .flatMap((eventBlock) => {
+      const lines = eventBlock.split('\n')
+      const event = lines
+        .find((line) => line.startsWith('event:'))
+        ?.slice('event:'.length)
+        .trim()
+      const dataLines = lines
+        .filter((line) => line.startsWith('data:'))
+        .map((line) => line.slice('data:'.length).trim())
+      if (!event || dataLines.length === 0) return []
+      try {
+        return [{ event, data: JSON.parse(dataLines.join('\n')) }]
+      } catch {
+        return [{ event, data: dataLines.join('\n') }]
+      }
+    })
 }
 
 export async function logActivity(..._args: any[]) {
