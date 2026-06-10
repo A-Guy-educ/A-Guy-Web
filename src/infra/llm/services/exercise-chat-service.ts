@@ -1,9 +1,16 @@
 /**
  * AI Chat Service for Exercise Help
- * Orchestrates chat with AI providers using Genkit unified adapter
  *
- * Migrated from factory pattern to Genkit for unified LLM operations.
- * Supports Gemini and OpenAI-compatible providers via createGenkitUnifiedAdapter.
+ * @ai-summary Orchestrates the full chat pipeline: prompt composition → model
+ * call → response. **Multimodal path does not support streaming** — callers
+ * must detect `mediaPartsWithPath` presence and route accordingly, or get a
+ * runtime error. Media fetching uses a public URL with forwarded auth cookies
+ * (serverless-compatible), but **no retry on 401** — stale credentials silently
+ * fail rather than refreshing.
+ *
+ * @fileType service
+ * @domain chat
+ * @pattern chat-service
  */
 import type { Payload } from '@/infra/types/backend'
 

@@ -1,13 +1,16 @@
 /**
  * LLM Provider Factory
- * Unified interface for switching between LLM providers at runtime
+ *
+ * @ai-summary Runtime provider detection (env → ConfigValues → Gemini default).
+ * **Returns a Genkit adapter unconditionally** — the factory itself doesn't switch
+ * between different backend implementations; it just resolves the provider type
+ * for telemetry and error classification. The `getLLMProvider()` call creates a
+ * new adapter per invocation, so circuit-breaker and retry state is not shared
+ * across calls unless the caller caches the result.
  *
  * @fileType factory
  * @domain ai
  * @pattern provider-factory, abstraction, dependency-injection
- *
- * Uses centralized MODEL_REGISTRY and PROVIDER_MODEL_NAMES from @/infra/llm/models.ts
- * for model configurations. This ensures a single source of truth for all model definitions.
  */
 import {
   getConfigValueByKey,

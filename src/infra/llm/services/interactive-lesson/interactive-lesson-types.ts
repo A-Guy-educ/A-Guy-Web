@@ -1,7 +1,11 @@
 /**
  * Types for the interactive lesson visualization feature.
- * Defines the structured step data that the LLM generates
- * and the player component consumes.
+ *
+ * @ai-summary Pure TypeScript interfaces consumed by both the LLM generation
+ * pipeline and the player component. **The player relies on `highlight*` arrays
+ * being optional — if the LLM returns a step with no highlights, the player
+ * renders the geometry/graph unchanged**, which is the intended progressive reveal
+ * behavior. If a future change makes these required, the player loses that behavior.
  */
 
 // ─────────────────────────────────────────────────────────────────────────────

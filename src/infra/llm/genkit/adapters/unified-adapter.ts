@@ -1,13 +1,16 @@
 export const __genkit_exports__ = true
 /**
  * Unified Adapter
- * Provides UnifiedLLMProvider interface backed by Genkit
+ *
+ * @ai-summary Genkit-backed implementation of `UnifiedLLMProvider`. Wraps
+ * circuit-breaker, retry, and timeout middleware around every call. The retry
+ * wrapper uses `errorAdapter.isRetryable` to decide which errors get retried —
+ * **if a new error type is not classified, it falls through as non-retryable
+ * by default**, silently failing instead of retrying on transient errors.
  *
  * @fileType adapter
  * @domain ai
  * @pattern abstraction, genkit, provider-abstraction
- *
- * Maintains backward compatibility with existing UnifiedLLMProvider interface
  */
 import type { AIModel, AIModelKey } from '@/infra/llm/models'
 import type { UnifiedLLMProvider } from '@/infra/llm/providers/factory'

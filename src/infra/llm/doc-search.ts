@@ -1,12 +1,14 @@
 /**
  * Simple Documentation Search
  *
- * Provides fast keyword-based search across documentation chunks.
- * No external dependencies - just JSON + smart scoring.
+ * @ai-summary Keyword + scoring search over pre-built doc chunks (no embeddings,
+ * no external APIs). Falls back to an empty result set if the chunk file is missing,
+ * so the app keeps working but users get no results. The chunk file must be
+ * regenerated after any docs change via `pnpm tsx scripts/generate-doc-chunks.ts`.
  *
- * Usage:
- *   const search = new DocSearch()
- *   const results = search.query("How do I create a published collection?")
+ * @fileType utility
+ * @domain ai
+ * @pattern keyword-search
  */
 
 import fs from 'fs'

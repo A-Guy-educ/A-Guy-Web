@@ -1,6 +1,9 @@
 /**
  * LLM Shared Utilities
- * Centralized utilities for LLM providers (retry, timeout, constants, media reading, errors)
+ *
+ * @ai-summary Barrel re-export of shared infra for retry, timeout, circuit-breaking,
+ * error classification, validation, and media reading. No logic lives here — just
+ * the public surface of sub-modules.
  *
  * @fileType module
  * @domain ai

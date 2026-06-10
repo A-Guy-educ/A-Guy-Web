@@ -1,6 +1,12 @@
 /**
  * Output schemas for the lesson-duplication variation pipeline.
  *
+ * @ai-summary Zod schemas documenting the intended output shapes of pass 1 (creative)
+ * and pass 2 (deterministic). **NOT wired to Gemini's responseSchema** — Gemini
+ * collapses nested object schemas to flat string arrays (issue #1748). Validation
+ * is post-hoc only via `safeParse`. If a future Gemini version fixes responseSchema,
+ * these schemas can be re-connected to the adapter call.
+ *
  * Status (2026-05-13):
  *  - `SolutionDerivationOutputSchema` (pass 2): POST-HOC VALIDATION ONLY.
  *    NOT passed to Genkit's outputSchema / Gemini's responseSchema — verified

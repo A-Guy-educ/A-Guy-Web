@@ -2,6 +2,12 @@
  * Version of the cached InteractiveLesson payload shape stored in the
  * `interactive_lessons` collection.
  *
+ * @ai-summary Schema version stored on each cache row. When the TypeScript types
+ * change, incrementing this value triggers automatic cache eviction on the next read —
+ * **the conversion code is NOT re-run on existing rows**, so stale cached rows
+ * remain until they are evicted. If you bump the version and the converter tolerates
+ * the old shape, some users may keep seeing the old content until natural TTL expiry.
+ *
  * BUMP this value any time the cached lesson JSON shape changes in a way
  * that would break the client converter (`interactiveLessonToGuidedExplanation`)
  * or the runner. Older cached rows whose `cacheSchemaVersion` doesn't match

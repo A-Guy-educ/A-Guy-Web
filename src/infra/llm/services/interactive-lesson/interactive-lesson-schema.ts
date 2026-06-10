@@ -1,6 +1,13 @@
 /**
  * Zod response schema for the Gemini interactive lesson call.
  *
+ * @ai-summary Schema validated post-hoc by Zod (not passed to Gemini's responseSchema).
+ * **Gemini's responseSchema does not support `$ref` or `oneOf` with discriminator** —
+ * if this schema uses those constructs, the schema is not actually enforcing shape at
+ * generation time. The stripUnsupportedKeys helper only removes `$schema` and
+ * `additionalProperties`; other JSON-Schema-only keywords pass through and may
+ * cause API errors.
+ *
  * Passed to Gemini via `responseSchema` + `responseMimeType: application/json`
  * (direct fetch in interactive-lesson-generation-service.ts) so the model
  * is constrained to produce exactly this shape. Eliminates field-name

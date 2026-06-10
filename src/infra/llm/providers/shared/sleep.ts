@@ -1,6 +1,9 @@
 /**
  * Sleep Utility
- * Simple promise-based delay
+ *
+ * @ai-summary Thin Promise setTimeout wrapper used by the retry module. No
+ * cancellation support — once started, a sleep cannot be aborted except by
+ * process termination.
  *
  * @fileType utility
  * @domain ai

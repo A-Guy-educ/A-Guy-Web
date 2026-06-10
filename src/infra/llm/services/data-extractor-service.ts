@@ -1,9 +1,15 @@
 /**
  * Data extraction service using AI models
- * Extracts structured data from images (questions, options, answers)
  *
- * Migrated to Genkit unified adapter for LLM operations.
- * Uses dynamic imports to prevent Node.js-only modules from being bundled into client code.
+ * @ai-summary Image/PDF-to-exercise extraction using Gemini's multimodal API.
+ * PDFs go directly to Gemini (native support); images are **pre-optimized via sharp**
+ * before sending to reduce API latency/cost. The V3 variant also extracts diagram
+ * position and description — if the LLM returns malformed diagram fields, the code
+ * silently defaults `diagramPosition` to `'before_question'` rather than rejecting.
+ *
+ * @fileType service
+ * @domain ai
+ * @pattern extraction
  */
 import type { Payload } from '@/infra/types/backend'
 import type { AIModel, AIModelKey } from '../models'

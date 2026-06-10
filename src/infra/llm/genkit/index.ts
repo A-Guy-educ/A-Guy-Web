@@ -1,6 +1,9 @@
 /**
  * Genkit LLM Integration
- * Unified interface for Genkit-based LLM operations
+ *
+ * @ai-summary Thin Genkit wrapper that exposes `createGenkitUnifiedAdapter()`,
+ * which is the primary entry point for AI services to get a configured LLM client.
+ * Does not add significant logic — delegates to the unified adapter.
  *
  * @fileType index
  * @domain ai

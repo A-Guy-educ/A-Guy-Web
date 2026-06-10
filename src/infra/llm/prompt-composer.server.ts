@@ -1,6 +1,12 @@
 /**
  * Composes final system instructions for AI chat
  *
+ * @ai-summary Fixed-order string assembly of 11 prompt segments. The ordering
+ * is intentional: admin prompts come first (highest authority) and math formatting
+ * last (safest fallback). Image-handling instructions are conditionally appended —
+ * **when absent, the model may respond to image-less chats with "please upload
+ * an image"** because the image rules dominate when included without a check.
+ *
  * @fileType ai-utility
  * @domain chat
  * @pattern server-only

@@ -1,12 +1,11 @@
 /**
  * Vector Search Service
- * Retrieves memory items using MongoDB Atlas Vector Search
  *
- * Key Features:
- * - Context-hierarchy policy (conversation → contextKey → parent keys → user-global)
- * - Tenant isolation (CRITICAL: always filter by userId)
- * - Graceful fallback on errors
- * - Deduplication of results with hierarchy priority
+ * @ai-summary Two-phase vector search (narrow scope first, then global) that
+ * respects a context-hierarchy policy. **Tenant isolation is the load-bearing
+ * constraint** — every query MUST include `userId` filter; omitting it exposes
+ * one user's memories to another. Phase ordering is intentional: narrow scopes
+ * consume pooled connections first so global queries don't starve them.
  *
  * @fileType service
  * @domain ai

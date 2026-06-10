@@ -1,10 +1,14 @@
 /**
  * Vector Index Runtime Guardrails
  *
- * Ensures the MongoDB Atlas vector search index exists and is ready
- * before allowing memory retrieval operations.
+ * @ai-summary Startup safety check that refuses to boot if the Atlas vector index
+ * is absent or still building. The 5-minute cache on availability checks prevents
+ * excessive Atlas API calls, but means a recently-created index may be reported
+ * unavailable for up to 5 minutes after it actually becomes READY.
  *
- * Strategy: Fail fast in production if index is missing
+ * @fileType guardrail
+ * @domain ai
+ * @pattern startup-check
  */
 
 import { logger } from '@/infra/utils/logger'

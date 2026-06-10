@@ -1,15 +1,15 @@
 /**
  * Config Resolver
- * Maps ConfigValues to Genkit model configuration
+ *
+ * @ai-summary Three-tier config hierarchy (env override → ConfigValues → MODEL_REGISTRY
+ * defaults). **maxOutputTokens uses `Math.max` across tiers**, meaning a higher
+ * value from DB config always wins over the code default — preventing truncation
+ * without requiring code changes. If ConfigValues is unavailable, the entire block
+ * silently falls through to hardcoded defaults.
  *
  * @fileType implementation
  * @domain ai
  * @pattern config-mapping, genkit
- *
- * Configuration hierarchy (highest → lowest):
- * 1. LLM_MODEL_OVERRIDE_* env vars
- * 2. ConfigValues/chat domain
- * 3. MODEL_REGISTRY defaults
  */
 import { getConfigDomain } from '@/infra/config/runtime/config-values'
 import type { Payload } from '@/infra/types/backend'

@@ -1,6 +1,13 @@
 /**
  * Shared types for documentation chunks
- * Used by both the doc-search module and the chunk generation script
+ *
+ * @ai-summary Pure data shapes shared between the doc-search runtime and the
+ * chunk generation script. No business logic here — only types that must stay
+ * in sync across both consumers.
+ *
+ * @fileType types
+ * @domain ai
+ * @pattern data-transfer
  */
 
 export interface DocChunk {

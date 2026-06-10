@@ -1,6 +1,9 @@
 /**
  * Timeout Utility
- * Race a promise against a timeout
+ *
+ * @ai-summary Promise.race against a setTimeout that rejects with `TimeoutError`.
+ * The cleanup callback runs on both timeout and success — **caller must guard
+ * against double-cleanup** if cleanup is stateful (e.g., aborting an ongoing operation).
  *
  * @fileType utility
  * @domain ai

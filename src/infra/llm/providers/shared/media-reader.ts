@@ -1,6 +1,11 @@
 /**
  * Media Reader Utility
- * Common file reading logic for multimodal mappers
+ *
+ * @ai-summary Three-tier fallback for reading media files (filesystem → Payload API
+ * → blob URL fetch). The 30s fetch timeout is load-bearing — without it, a
+ * slow blob response can hang a serverless function indefinitely. Auth headers
+ * are forwarded but **token refresh is not handled**, so long-lived uploads
+ * with expiring tokens may silently return 401.
  *
  * @fileType utility
  * @domain ai

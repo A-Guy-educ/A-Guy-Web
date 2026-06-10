@@ -1,6 +1,14 @@
 /**
  * Image optimization utilities for AI processing
- * Reusable across all AI features that accept images
+ *
+ * @ai-summary Sharp-based resize to max 2048px that strips metadata and converts
+ * to WebP for size reduction. **EXIF orientation is not re-applied** — a rotated
+ * camera photo that was auto-corrected by the browser on display may appear
+ * rotated when sharp reads the raw EXIF data before normalization.
+ *
+ * @fileType service
+ * @domain ai
+ * @pattern optimization
  */
 import sharp from 'sharp'
 

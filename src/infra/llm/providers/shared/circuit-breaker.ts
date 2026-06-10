@@ -1,9 +1,11 @@
 /**
  * Circuit Breaker for LLM API Calls
  *
- * Prevents cascading failures when an LLM provider goes down.
- * After N consecutive failures, the circuit opens and fails fast
- * for a cooldown period before allowing a single probe request.
+ * @ai-summary Per-provider failure counter that trips after 5 consecutive failures
+ * and stays open for 60s. Rate-limit errors are **excluded from failure counting**
+ * to prevent a single 429 from opening the circuit when the provider is healthy.
+ * The circuit is a process-global singleton — in serverless, each cold start gets
+ * a fresh circuit, so the breaker provides no protection across invocations.
  *
  * @fileType utility
  * @domain ai

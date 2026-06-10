@@ -1,6 +1,11 @@
 /**
  * LLM Error Handling
- * Base LLMError class and error classification utilities
+ *
+ * @ai-summary Structured error wrapper with `retryable` flag that controls whether
+ * callers attempt retries. **Rate-limit errors are marked retryable** but the
+ * circuit breaker deliberately excludes them from failure counting — the distinction
+ * matters because conflating the two causes a single 429 to trip the breaker and
+ * block all subsequent requests even when the provider is healthy.
  *
  * @fileType error-handling
  * @domain ai
