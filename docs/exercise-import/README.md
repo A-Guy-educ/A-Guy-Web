@@ -201,7 +201,7 @@ const optimized = await optimizeImageForAI(buffer)
 
 ### Stage 4: Schema Validation & Creation
 
-**Location**: [`import-from-lesson.ts`](../../src/server/payload/endpoints/exercises/import-from-lesson.ts) (lines 131-226)
+**Location**: Removed with the Payload/admin runtime; this flow is historical reference.
 
 **Process**:
 1. Detect question type (MCQ vs Free Response)

@@ -25,7 +25,7 @@ import { getPayload } from 'payload'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
 import { startMongoContainer, stopMongoContainer } from '@/infra/utils/test/mongodb-container'
-import { AccountRole } from '@/server/payload/collections/Users/roles'
+import { AccountRole } from '@/infra/auth/roles'
 
 let payload: Payload
 let originalDatabaseUrl: string | undefined

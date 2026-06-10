@@ -1,12 +1,9 @@
 import type { Metadata } from 'next'
 
-import { PayloadRedirects } from '@/ui/web/PayloadRedirects'
-import { draftMode } from 'next/headers'
+import { Redirects } from '@/ui/web/Redirects'
 
 import { generateMeta } from '@/infra/utils/generateMeta'
-import { RenderBlocks } from '@/server/payload/blocks/RenderBlocks'
 import { queryAllPageSlugs, queryPageBySlug } from '@/server/repos/queries/pages'
-import { LivePreviewListener } from '@/ui/web/LivePreviewListener'
 import { RenderHero } from '@/ui/web/heros/RenderHero'
 import PageClient from './page.client'
 
@@ -28,14 +25,6 @@ type Args = {
 }
 
 export default async function Page({ params: paramsPromise }: Args) {
-  let draft = false
-  try {
-    const draftModeResult = await draftMode()
-    draft = draftModeResult.isEnabled
-  } catch {
-    // During static generation, draftMode() is not available
-    // Default to false (not in draft mode)
-  }
   const { slug = 'home' } = await paramsPromise
   // Decode to support slugs with special characters
   const decodedSlug = decodeURIComponent(slug)
@@ -52,7 +41,7 @@ export default async function Page({ params: paramsPromise }: Args) {
     return (
       <article className="pt-section-md pb-section-lg">
         <PageClient />
-        <PayloadRedirects disableNotFound url={url} />
+        <Redirects disableNotFound url={url} />
         <div className="container">
           <p>Page content is temporarily unavailable.</p>
         </div>
@@ -61,21 +50,16 @@ export default async function Page({ params: paramsPromise }: Args) {
   }
 
   if (!page) {
-    return <PayloadRedirects url={url} />
+    return <Redirects url={url} />
   }
 
-  const { hero, layout, defaultBlockSpacing } = page
+  const { hero } = page
 
   return (
     <article className="pt-section-md pb-section-lg">
       <PageClient />
-      {/* Allows redirects for valid pages too */}
-      <PayloadRedirects disableNotFound url={url} />
-
-      {draft && <LivePreviewListener />}
-
-      <RenderHero {...hero} />
-      <RenderBlocks blocks={layout} defaultSpacing={defaultBlockSpacing} />
+      <Redirects disableNotFound url={url} />
+      {hero ? <RenderHero {...hero} /> : null}
     </article>
   )
 }

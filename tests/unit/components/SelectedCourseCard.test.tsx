@@ -51,7 +51,7 @@ import { I18nProvider } from '@/ui/web/providers/I18n'
 import enMessages from '../../../src/i18n/en.json'
 
 // Import type for Course
-import type { Course } from '@/payload-types'
+import type { Course } from '@/infra/types/content'
 
 const mockGetUserProfile = getUserProfile as ReturnType<typeof vi.fn>
 

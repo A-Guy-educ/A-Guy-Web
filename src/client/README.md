@@ -42,5 +42,4 @@ client/
 ## Related
 
 - [`src/ui/web/`](../ui/web/README.md) - Web UI components
-- [`src/ui/admin/`](../ui/admin/README.md) - Admin UI components
 - [`src/infra/`](../infra/README.md) - Shared infrastructure

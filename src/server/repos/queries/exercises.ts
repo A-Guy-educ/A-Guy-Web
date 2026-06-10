@@ -1,57 +1,30 @@
 import { cache } from 'react'
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
+
+import type { Exercise } from '@/infra/types/content'
+import {
+  findByIdSerialized,
+  findManySerialized,
+  findOneSerialized,
+  objectIdFromString,
+} from '../mongo'
 
 export const queryExercisesByLesson = cache(async ({ lessonId }: { lessonId: string }) => {
-  const payload = await getPayload({ config: configPromise })
-
-  const result = await payload.find({
-    collection: 'exercises',
-    where: {
-      lesson: {
-        equals: lessonId,
-      },
-    },
-    // Order is now defined by lesson blocks array; fall back to creation time
-    sort: 'createdAt',
-    limit: 1000,
-    pagination: false,
-    depth: 1,
-  })
-
-  return result.docs
+  return findManySerialized<Exercise>(
+    'exercises',
+    { lesson: objectIdFromString(lessonId) },
+    { sort: { order: 1, createdAt: 1 }, limit: 1000 },
+  )
 })
 
 export const queryExerciseById = cache(async ({ id }: { id: string }) => {
-  const payload = await getPayload({ config: configPromise })
-
-  try {
-    const exercise = await payload.findByID({
-      collection: 'exercises',
-      id,
-      depth: 2,
-    })
-
-    return exercise
-  } catch (error) {
-    console.error('Failed to query exercise by ID:', error)
-    return null
-  }
+  return findByIdSerialized<Exercise>('exercises', id)
 })
 
 export const queryExerciseBySlug = cache(
   async ({ lessonId, slug }: { lessonId: string; slug: string }) => {
-    const payload = await getPayload({ config: configPromise })
-
-    const result = await payload.find({
-      collection: 'exercises',
-      where: {
-        and: [{ lesson: { equals: lessonId } }, { slug: { equals: slug } }],
-      },
-      limit: 1,
-      depth: 2,
+    return findOneSerialized<Exercise>('exercises', {
+      lesson: objectIdFromString(lessonId),
+      slug,
     })
-
-    return result.docs[0] || null
   },
 )

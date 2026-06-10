@@ -9,8 +9,8 @@ import {
   isSingleArithmeticExpression,
 } from '@/server/services/lesson-duplication/strategies/script-strategy'
 import { isPurelyAlgebraic } from '@/server/services/lesson-duplication/strategies/algebraic-detector'
-import type { ContentBlock, InlineRichText } from '@/server/payload/collections/Exercises/types'
-import type { Exercise } from '@/payload-types'
+import type { ContentBlock, InlineRichText } from '@/infra/types/exercise'
+import type { Exercise } from '@/infra/types/content'
 
 // ---------------------------------------------------------------------------
 // Factory helpers
@@ -25,7 +25,7 @@ function makeAlgebraicExercise(
   correctAnswer: number,
   wrongAnswers: number[] = [],
   exerciseId?: string,
-): import('@/payload-types').Exercise {
+): import('@/infra/types/content').Exercise {
   const optionId = `opt-correct-${Math.random().toString(36).slice(2, 7)}`
   const wrongIds = wrongAnswers.map((_, i) => `opt-wrong-${i}`)
 
@@ -56,7 +56,7 @@ function makeAlgebraicExercise(
   return {
     id: exerciseId ?? `ex-${Math.random().toString(36).slice(2, 8)}`,
     content: { blocks },
-  } as unknown as import('@/payload-types').Exercise
+  } as unknown as import('@/infra/types/content').Exercise
 }
 
 // ---------------------------------------------------------------------------
@@ -109,7 +109,7 @@ describe('ScriptVariationStrategy', () => {
       const exercise = {
         id: 'ex-word',
         content: { blocks },
-      } as unknown as import('@/payload-types').Exercise
+      } as unknown as import('@/infra/types/content').Exercise
       const strategy = new ScriptVariationStrategy()
       const result = await strategy.apply(exercise, 'light')
       expect(result.needsAiFallback).toBe(true)
@@ -216,7 +216,7 @@ describe('ScriptVariationStrategy', () => {
       const exercise = {
         id: 'ex-multistep',
         content: { blocks },
-      } as unknown as import('@/payload-types').Exercise
+      } as unknown as import('@/infra/types/content').Exercise
       // Multi-step expression fails isSingleArithmeticExpression check in script strategy
       const strategy = new ScriptVariationStrategy()
       const result = await strategy.apply(exercise, 'light')

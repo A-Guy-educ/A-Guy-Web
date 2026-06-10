@@ -1,9 +1,11 @@
-import { generateId } from '@/server/payload/collections/Exercises/types'
-import type {
-  QuestionSelectMcqBlock,
-  InlineRichText,
-  McqOption,
-} from '@/server/payload/collections/Exercises/types'
+/**
+ * @fileType parser
+ * @domain exercises
+ * @ai-summary Parses inline MCQ where options follow the pattern (a) ... (b) ... (c) ... on a single \item. Supports both Latin and Hebrew letter markers. Requires at least 2 options to be recognised; first option is always treated as correct since there is no marking convention.
+ */
+
+import { generateId } from '@/infra/types/exercise'
+import type { QuestionSelectMcqBlock, InlineRichText, McqOption } from '@/infra/types/exercise'
 
 function makeInlineRichText(value: string): InlineRichText {
   return { type: 'rich_text', format: 'md-math-v1', value: value.trim(), mediaIds: [] }

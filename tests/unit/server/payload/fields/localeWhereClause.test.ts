@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { localeWhereClause } from '@/server/payload/fields/contentLocale'
+import { localeWhereClause } from '@/infra/types/content'
 
 describe('localeWhereClause', () => {
   it('returns an OR clause matching the locale or missing field', () => {

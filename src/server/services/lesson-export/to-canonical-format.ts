@@ -30,7 +30,7 @@ import type {
   ContentData,
   InlineRichText,
   QuestionAnswer,
-} from '@/server/payload/collections/Exercises/types'
+} from '@/infra/types/exercise'
 import {
   geometrySpecToSvg,
   axisSpecToSvg,
@@ -144,31 +144,27 @@ function wrapTextContent(
 
 function isRichTextBlock(
   block: ContentBlock,
-): block is import('@/server/payload/collections/Exercises/types').RichTextBlock {
+): block is import('@/infra/types/exercise').RichTextBlock {
   return block.type === 'rich_text'
 }
 
-function isLatexBlock(
-  block: ContentBlock,
-): block is import('@/server/payload/collections/Exercises/types').LatexBlock {
+function isLatexBlock(block: ContentBlock): block is import('@/infra/types/exercise').LatexBlock {
   return block.type === 'latex'
 }
 
-function isSvgBlock(
-  block: ContentBlock,
-): block is import('@/server/payload/collections/Exercises/types').SvgBlock {
+function isSvgBlock(block: ContentBlock): block is import('@/infra/types/exercise').SvgBlock {
   return block.type === 'svg'
 }
 
 function isQuestionGeometryBlock(
   block: ContentBlock,
-): block is import('@/server/payload/collections/Exercises/types').QuestionGeometryBlock {
+): block is import('@/infra/types/exercise').QuestionGeometryBlock {
   return block.type === 'question_geometry'
 }
 
 function isQuestionAxisBlock(
   block: ContentBlock,
-): block is import('@/server/payload/collections/Exercises/types').QuestionAxisBlock {
+): block is import('@/infra/types/exercise').QuestionAxisBlock {
   return block.type === 'question_axis'
 }
 
@@ -178,9 +174,9 @@ function isQuestionAxisBlock(
 
 type AnyAnswer =
   | QuestionAnswer
-  | import('@/server/payload/collections/Exercises/types').TrueFalseAnswer
-  | import('@/server/payload/collections/Exercises/types').McqAnswer
-  | import('@/server/payload/collections/Exercises/types').FreeResponseAnswer
+  | import('@/infra/types/exercise').TrueFalseAnswer
+  | import('@/infra/types/exercise').McqAnswer
+  | import('@/infra/types/exercise').FreeResponseAnswer
 
 interface QuestionContent {
   prompt: InlineRichText
@@ -253,14 +249,12 @@ function extractQuestionContent(block: ContentBlock): QuestionContent | null {
 // MCQ option splitting
 // -------------------------------------------
 
-function splitMcqOptions(
-  answer: import('@/server/payload/collections/Exercises/types').McqAnswer,
-): {
-  correct: import('@/server/payload/collections/Exercises/types').McqOption
-  wrong: import('@/server/payload/collections/Exercises/types').McqOption[]
+function splitMcqOptions(answer: import('@/infra/types/exercise').McqAnswer): {
+  correct: import('@/infra/types/exercise').McqOption
+  wrong: import('@/infra/types/exercise').McqOption[]
 } {
-  const correctOptions: import('@/server/payload/collections/Exercises/types').McqOption[] = []
-  const wrongOptions: import('@/server/payload/collections/Exercises/types').McqOption[] = []
+  const correctOptions: import('@/infra/types/exercise').McqOption[] = []
+  const wrongOptions: import('@/infra/types/exercise').McqOption[] = []
 
   for (const option of answer.options) {
     if (answer.correctOptionIds.includes(option.id)) {

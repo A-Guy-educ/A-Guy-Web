@@ -57,9 +57,10 @@ export async function generateMetadata({ params: paramsPromise }: Props) {
 
   const locale = await getSystemLocale()
   const isHebrew = locale === 'he'
+  const productName = product.name || product.title
 
   return pageMetadata({
-    title: isHebrew ? product.name : product.name,
-    description: isHebrew ? `רכוש את ${product.name} עכשיו` : `Purchase ${product.name} now`,
+    title: productName,
+    description: isHebrew ? `רכוש את ${productName} עכשיו` : `Purchase ${productName} now`,
   })
 }

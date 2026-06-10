@@ -1,40 +1,19 @@
-/**
- * Lesson Export API
- *
- * GET /api/lessons/:id/export
- *
- * Next.js App Router wrapper around the Payload endpoint
- * `exportLessonEndpoint`. Sets Content-Type and Content-Disposition
- * for browser file download.
- *
- * @fileType api-route
- * @domain lessons
- * @pattern payload-endpoint-wrapper
- * @ai-summary Forwards GET to the Payload export endpoint with auth + payload context attached.
- *
- * Access: admin only (enforced inside the endpoint handler).
- */
-import { NextRequest } from 'next/server'
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
+import { NextResponse } from 'next/server'
 
-import { exportLessonEndpoint } from '@/server/payload/endpoints/lessons/export'
+const disabled = { error: 'This endpoint is unavailable without the removed CMS backend.' }
 
-export async function GET(request: NextRequest): Promise<Response> {
-  try {
-    const payload = await getPayload({ config: configPromise })
-    const { user } = await payload.auth({ headers: request.headers })
+export async function GET() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-    const payloadRequest = {
-      payload,
-      user,
-      url: request.url,
-      headers: request.headers,
-    } as unknown as Parameters<typeof exportLessonEndpoint>[0]
+export async function POST() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-    return await exportLessonEndpoint(payloadRequest)
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    return Response.json({ error: `Export failed: ${message}` }, { status: 500 })
-  }
+export async function PATCH() {
+  return NextResponse.json(disabled, { status: 410 })
+}
+
+export async function DELETE() {
+  return NextResponse.json(disabled, { status: 410 })
 }

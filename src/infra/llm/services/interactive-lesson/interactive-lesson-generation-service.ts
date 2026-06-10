@@ -5,7 +5,7 @@
  *
  * Two-pass approach: LLM extracts geometry + proof, we render SVG deterministically.
  */
-import type { Payload } from 'payload'
+import type { Payload } from '@/infra/types/backend'
 import { z } from 'zod'
 import type { AIModel } from '../../models'
 import { getCircuitBreaker } from '../../providers/shared/circuit-breaker'

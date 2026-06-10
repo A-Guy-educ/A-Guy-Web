@@ -37,7 +37,7 @@ vi.mock('@/infra/llm/models', () => ({
 
 import { generateVariation } from '@/infra/llm/services/lesson-duplication-variation-service'
 import { VariationGenerationError } from '@/infra/llm/errors'
-import type { Exercise } from '@/payload-types'
+import type { Exercise } from '@/infra/types/content'
 import { logger } from '@/infra/utils/logger'
 import { createGenkitUnifiedAdapter } from '@/infra/llm/genkit/adapters/unified-adapter'
 

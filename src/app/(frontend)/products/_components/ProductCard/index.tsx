@@ -1,6 +1,6 @@
 'use client'
 
-import type { Product } from '@/payload-types'
+import type { Product } from '@/infra/types/content'
 import { UnifiedCard } from '@/ui/web/components/UnifiedCard'
 import { useTranslations } from '@/ui/web/providers/I18n'
 

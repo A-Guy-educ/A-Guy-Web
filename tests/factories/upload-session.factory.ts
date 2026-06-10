@@ -1,5 +1,5 @@
 import type { Payload } from 'payload'
-import type { UploadSession } from '@/payload-types'
+import type { UploadSession } from '@/infra/types/content'
 import type { TestDataTracker } from '../helpers/test-data-tracker'
 
 export interface UploadSessionFactoryInput {

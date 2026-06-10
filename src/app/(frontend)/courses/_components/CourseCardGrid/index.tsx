@@ -1,6 +1,6 @@
 'use client'
 
-import type { Course } from '@/payload-types'
+import type { Course } from '@/infra/types/content'
 import { StaggerGrid, StaggerItem } from '@/ui/web/components/motion'
 import { CourseCard } from '../CourseCard'
 

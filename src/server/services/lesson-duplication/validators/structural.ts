@@ -13,7 +13,7 @@
  *  9. MCQ blocks have correctOptionIds non-empty → MISSING_CORRECT_OPTION
  */
 
-import type { ContentBlock } from '@/server/payload/collections/Exercises/schemas'
+import type { ContentBlock } from '@/infra/types/exercise'
 import { GeometrySpecV1Schema } from '@/infra/contracts/graphics/geometry.v1'
 import { AxisSpecV1Schema } from '@/infra/contracts/graphics/axis.v1'
 import { GuidedExplanationV1Schema } from '@/infra/contracts/guided-explanation/v1'

@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid'
-import type { Tenant } from '@/payload-types'
-import type { ContentBlock } from '@/server/payload/collections/Exercises/types'
+import type { Tenant } from '@/infra/types/content'
+import type { ContentBlock } from '@/infra/types/exercise'
 
 /**
  * v2.1 Fix 5: INVARIANT - Block ID Enrichment

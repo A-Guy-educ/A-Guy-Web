@@ -3,7 +3,7 @@
  * Verifies that GuestSessionDoc is identical to the generated GuestSession type
  */
 import { describe, expectTypeOf, it } from 'vitest'
-import type { GuestSession } from '@/payload-types'
+import type { GuestSession } from '@/infra/types/content'
 import type { GuestSessionDoc } from '@/server/services/guest-session'
 import type {
   createGuestSession,

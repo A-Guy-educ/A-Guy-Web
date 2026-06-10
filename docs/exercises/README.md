@@ -92,7 +92,7 @@ The Exercises collection provides a minimal foundation for creating and managing
 
 ### Validation Rules
 
-1. **Content Validation**: `content.blocks` must pass [`ContentBlockSchema`](../../../src/server/payload/collections/Exercises/schemas.ts) — a discriminated union of 12 block types.
+1. **Content Validation**: `content.blocks` must match [`ContentBlock`](../../src/infra/types/exercise.ts) — a discriminated union of block types used by the web experience.
 2. Each question block (`question_geometry`, `question_axis`, etc.) carries its own prompt, answer, and optional hint/solution inline — there is no exercise-level `questionType` or `answerSpecJson`.
 
 ---
@@ -471,11 +471,11 @@ Follow [MANUAL_VERIFICATION.md](./MANUAL_VERIFICATION.md) to test:
 
 ## Troubleshooting
 
-### Issue: Exercises collection not appearing in Admin
+### Issue: Exercise content not appearing on the web
 
 **Solution:**
-1. Verify [`src/payload.config.ts`](../../../src/payload.config.ts) includes `Exercises` in collections array
-2. Restart Payload dev server: `pnpm dev`
+1. Verify the lesson route can read exercise blocks from the server repository
+2. Restart the Next.js dev server: `pnpm dev`
 3. Clear browser cache and refresh
 
 ### Issue: Validation errors not showing

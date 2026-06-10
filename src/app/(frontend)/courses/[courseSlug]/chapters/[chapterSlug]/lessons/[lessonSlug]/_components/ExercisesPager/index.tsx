@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { Exercise, Media as MediaType } from '@/payload-types'
+import type { Exercise, Media as MediaType } from '@/infra/types/content'
 import { Button } from '@/ui/web/components/button'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
 import { ExerciseRenderer } from '@/ui/web/exerciserenderer'
@@ -37,7 +37,7 @@ interface ExercisesPagerProps {
   /** Whether to show the chat panel (true when lesson has exercises or context text) */
   showChat?: boolean
   /** Formula sheet data (passed to ChatInterface) */
-  formulaSheet?: import('@/payload-types').FormulaSheet | null
+  formulaSheet?: import('@/infra/types/content').FormulaSheet | null
   /** Optional element rendered at the top of the primary pane (e.g. a dual-mode tab bar). */
   headerSlot?: React.ReactNode
   /** When true, forwards to ExerciseRenderer so `type: 'latex'` blocks are not rendered

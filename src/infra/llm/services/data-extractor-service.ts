@@ -5,7 +5,7 @@
  * Migrated to Genkit unified adapter for LLM operations.
  * Uses dynamic imports to prevent Node.js-only modules from being bundled into client code.
  */
-import type { Payload } from 'payload'
+import type { Payload } from '@/infra/types/backend'
 import type { AIModel, AIModelKey } from '../models'
 import { getModelRegistryEntry, getProviderModelName } from '../models'
 import { SIMPLE_TEXT_QUESTION_PROMPT } from '../prompts/simple-text-question'

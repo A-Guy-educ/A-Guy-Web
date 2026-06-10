@@ -1,142 +1,61 @@
 import { cache } from 'react'
-import { getPayload } from 'payload'
-import type { Where } from 'payload'
-import configPromise from '@payload-config'
 
-import type { ContentLocale } from '@/server/payload/fields/contentLocale'
-import { localeWhereClause } from '@/server/payload/fields/contentLocale'
+import type { Chapter, ContentLocale, Course } from '@/infra/types/content'
+import {
+  andFilter,
+  defaultTenantFilter,
+  findByIdSerialized,
+  findManySerialized,
+  findOneSerialized,
+  localeFilter,
+  objectIdFromString,
+  relationId,
+  publishedActiveFilter,
+} from '../mongo'
+
+async function withCourse(chapter: Chapter): Promise<Chapter> {
+  const courseId = relationId(chapter.course)
+  if (!courseId) return chapter
+  const course = await findByIdSerialized<Course>('courses', courseId)
+  return { ...chapter, course: course ?? courseId }
+}
 
 export const queryChaptersByCourse = cache(async ({ courseId }: { courseId: string }) => {
-  const payload = await getPayload({ config: configPromise })
+  const course = await findByIdSerialized<Course>('courses', courseId)
+  if (!course || course.status !== 'published' || !course.isActive) return []
 
-  // First verify the course is published+active (hierarchy invariant)
-  const courseResult = await payload.findByID({
-    collection: 'courses',
-    id: courseId,
-    depth: 0,
-    overrideAccess: false,
-    disableErrors: true,
-  })
+  const chapters = await findManySerialized<Chapter>(
+    'chapters',
+    publishedActiveFilter({ course: objectIdFromString(courseId) }),
+    { sort: { order: 1 } },
+  )
 
-  if (!courseResult || courseResult.status !== 'published' || !courseResult.isActive) {
-    return []
-  }
-
-  const result = await payload.find({
-    collection: 'chapters',
-    where: {
-      and: [
-        {
-          course: {
-            equals: courseId,
-          },
-        },
-        {
-          status: {
-            equals: 'published',
-          },
-        },
-        {
-          isActive: {
-            equals: true,
-          },
-        },
-      ],
-    },
-    sort: 'order',
-    limit: 1000,
-    pagination: false,
-    depth: 1,
-    overrideAccess: false,
-  })
-
-  return result.docs
+  return chapters.map((chapter) => ({ ...chapter, course }))
 })
 
 export const queryChapterBySlug = cache(async ({ slug }: { slug: string }) => {
-  const payload = await getPayload({ config: configPromise })
-
-  const result = await payload.find({
-    collection: 'chapters',
-    where: {
-      and: [
-        {
-          slug: {
-            equals: slug,
-          },
-        },
-        {
-          status: {
-            equals: 'published',
-          },
-        },
-        {
-          isActive: {
-            equals: true,
-          },
-        },
-      ],
-    },
-    limit: 1,
-    pagination: false,
-    depth: 1,
-    overrideAccess: false,
-  })
-
-  const chapter = result.docs?.[0]
+  const chapter = await findOneSerialized<Chapter>('chapters', publishedActiveFilter({ slug }))
   if (!chapter) return null
 
-  // Verify parent course is published+active (hierarchy invariant)
-  // chapter.course could be a string ID or populated object (due to depth: 1)
-  const courseId = typeof chapter.course === 'string' ? chapter.course : chapter.course?.id
+  const populated = await withCourse(chapter)
+  const course = typeof populated.course === 'object' ? populated.course : null
+  if (!course || course.status !== 'published' || !course.isActive) return null
 
-  if (!courseId) return null
-
-  const courseResult = await payload.findByID({
-    collection: 'courses',
-    id: courseId,
-    depth: 0,
-    overrideAccess: false,
-    disableErrors: true,
-  })
-
-  if (!courseResult || courseResult.status !== 'published' || !courseResult.isActive) {
-    return null
-  }
-
-  return chapter
+  return populated
 })
 
-/**
- * Fetch chapters by grade level (filters by courseLabel)
- */
 export const queryChaptersByGrade = cache(
   async ({ gradeLevel, locale }: { gradeLevel: string; locale?: ContentLocale }) => {
-    const payload = await getPayload({ config: configPromise })
-
-    const conditions: Where[] = [
-      { courseLabel: { equals: gradeLevel } },
-      { status: { equals: 'published' } },
-      { isActive: { equals: true } },
-    ]
-
-    if (locale) {
-      conditions.push(localeWhereClause(locale))
-    }
-
-    // Find course for this grade
-    const courseResult = await payload.find({
-      collection: 'courses',
-      where: { and: conditions },
-      limit: 1,
-      pagination: false,
-      overrideAccess: false,
-    })
-
-    const course = courseResult.docs?.[0]
+    const course = await findOneSerialized<Course>(
+      'courses',
+      andFilter(
+        publishedActiveFilter({ courseLabel: gradeLevel }),
+        localeFilter(locale),
+        await defaultTenantFilter(),
+      ),
+    )
     if (!course) return []
 
-    // Reuse existing function
     return queryChaptersByCourse({ courseId: course.id })
   },
 )

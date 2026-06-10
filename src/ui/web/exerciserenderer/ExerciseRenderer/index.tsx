@@ -463,11 +463,7 @@ export function ExerciseRenderer({
                       (b.layout as 'textAbove' | 'textBelow' | 'textLeft' | 'textRight') ||
                       'textRight'
                     }
-                    prompt={
-                      b.prompt as
-                        | import('@/server/payload/collections/Exercises/types').InlineRichText
-                        | undefined
-                    }
+                    prompt={b.prompt as import('@/infra/types/exercise').InlineRichText | undefined}
                   >
                     <GeometryRenderer
                       blockId={b.id}
@@ -489,11 +485,7 @@ export function ExerciseRenderer({
                       (b.layout as 'textAbove' | 'textBelow' | 'textLeft' | 'textRight') ||
                       'textRight'
                     }
-                    prompt={
-                      b.prompt as
-                        | import('@/server/payload/collections/Exercises/types').InlineRichText
-                        | undefined
-                    }
+                    prompt={b.prompt as import('@/infra/types/exercise').InlineRichText | undefined}
                   >
                     <AxisRenderer
                       blockId={b.id}

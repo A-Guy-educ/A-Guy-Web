@@ -18,7 +18,7 @@
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { GET } from '@/app/api/admin/dashboard-metrics/route'
-import { AccountRole } from '@/server/payload/collections/Users/roles'
+import { AccountRole } from '@/infra/auth/roles'
 import config from '@payload-config'
 import type { Payload } from 'payload'
 import { getPayload } from 'payload'

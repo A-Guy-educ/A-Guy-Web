@@ -1,47 +1,19 @@
-/**
- * Create Exercises from Context API
- *
- * POST /api/lessons/create-context-exercises
- * Thin wrapper over createExercisesFromExtraction. Used by the Steps
- * Convert flow (admin manually clicks "Create Exercises" in the viewer).
- * The two full-pipeline endpoints (convert-full-media, convert-full-latex)
- * call the service directly.
- */
-import { apiError, apiSuccess } from '@/server/api/responses'
-import { withApiHandler } from '@/server/api/with-api-handler'
-import { createExercisesFromExtraction } from '@/server/services/lesson-context-conversion/create-exercises-from-extraction'
-import { z } from 'zod'
+import { NextResponse } from 'next/server'
 
-const createContextExercisesSchema = z.object({
-  lessonId: z.string().min(1, 'lessonId is required'),
-})
+const disabled = { error: 'This endpoint is unavailable without the removed CMS backend.' }
 
-type CreateContextExercisesBody = z.infer<typeof createContextExercisesSchema>
+export async function GET() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-export const POST = withApiHandler<CreateContextExercisesBody, unknown>(
-  {
-    auth: 'admin',
-    bodySchema: createContextExercisesSchema,
-  },
-  async ({ payload, body, user }) => {
-    const { lessonId } = body
+export async function POST() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-    const result = await createExercisesFromExtraction({
-      payload,
-      user: user!,
-      lessonId,
-    })
+export async function PATCH() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-    if ('error' in result) {
-      return apiError('VALIDATION_ERROR', result.error.message, 400)
-    }
-
-    return apiSuccess({
-      exerciseIds: result.exerciseIds,
-      exerciseCount: result.exerciseCount,
-      source: result.source,
-      lessonBlocksUpdated: result.lessonBlocksUpdated,
-      warnings: result.warnings.length > 0 ? result.warnings : undefined,
-    })
-  },
-)
+export async function DELETE() {
+  return NextResponse.json(disabled, { status: 410 })
+}

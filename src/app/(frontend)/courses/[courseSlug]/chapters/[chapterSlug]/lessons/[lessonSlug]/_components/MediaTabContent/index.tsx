@@ -10,7 +10,7 @@
  */
 
 import React from 'react'
-import type { FormulaSheet, Media } from '@/payload-types'
+import type { FormulaSheet, Media } from '@/infra/types/content'
 import { ChatInterface } from '@/ui/web/chat'
 import { Media as MediaComponent } from '@/ui/web/media'
 import { ExerciseWorkspace } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseWorkspace'

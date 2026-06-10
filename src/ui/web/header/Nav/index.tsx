@@ -2,7 +2,7 @@
 
 import React from 'react'
 
-import type { Header as HeaderType, User } from '@/payload-types'
+import type { Header as HeaderType, User } from '@/infra/types/content'
 
 import { CMSLink } from '@/ui/web/Link'
 import { SystemLink } from '@/infra/loading/components/SystemLink'

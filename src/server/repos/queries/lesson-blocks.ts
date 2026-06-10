@@ -1,7 +1,13 @@
 import { cache } from 'react'
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
-import type { Exercise, ContentPage } from '@/payload-types'
+
+import type { ContentPage, Exercise, Lesson } from '@/infra/types/content'
+import {
+  findByIdSerialized,
+  findManySerialized,
+  objectIdFromString,
+  relationId,
+  publishedActiveFilter,
+} from '../mongo'
 
 export type ResolvedExerciseBlock = {
   type: 'exercise'
@@ -15,121 +21,73 @@ export type ResolvedContentPageBlock = {
 
 export type ResolvedLessonBlock = ResolvedExerciseBlock | ResolvedContentPageBlock
 
-/**
- * Resolves a lesson's blocks array into ordered content.
- * Batch-fetches all referenced exercises and content pages to prevent N+1 queries.
- * Returns blocks in the exact order defined by the lesson's blocks array.
- */
+function parseBlocks(rawBlocks: unknown): Array<{
+  blockType?: string
+  exercise?: string | { id: string }
+  contentPage?: string | { id: string }
+}> {
+  if (Array.isArray(rawBlocks)) return rawBlocks as ReturnType<typeof parseBlocks>
+  if (typeof rawBlocks !== 'string' || !rawBlocks.trim()) return []
+
+  try {
+    const parsed = JSON.parse(rawBlocks)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
 export const queryLessonBlocks = cache(
   async ({ lessonId }: { lessonId: string }): Promise<ResolvedLessonBlock[]> => {
-    const payload = await getPayload({ config: configPromise })
-
-    const lesson = await payload.findByID({
-      collection: 'lessons',
-      id: lessonId,
-      depth: 0,
-      overrideAccess: false,
-    })
-
-    // blocks is stored as a textarea (JSON string) or may be an array
-    const rawBlocks = lesson?.blocks
-    let parsed: unknown[]
-    if (Array.isArray(rawBlocks)) {
-      parsed = rawBlocks
-    } else if (typeof rawBlocks === 'string' && rawBlocks.trim()) {
-      try {
-        const result = JSON.parse(rawBlocks)
-        parsed = Array.isArray(result) ? result : []
-      } catch {
-        return []
-      }
-    } else {
-      return []
+    const lesson = await findByIdSerialized<Lesson>('lessons', lessonId)
+    const blocks = parseBlocks(lesson?.blocks)
+    if (blocks.length === 0) {
+      const exercises = await findManySerialized<Exercise>(
+        'exercises',
+        { lesson: objectIdFromString(lessonId) },
+        { sort: { order: 1, createdAt: 1 }, limit: 1000 },
+      )
+      return exercises.map((exercise) => ({ type: 'exercise', data: exercise }))
     }
 
-    if (parsed.length === 0) return []
+    const exerciseIds = blocks
+      .filter((block) => block.blockType === 'exerciseRef' && block.exercise)
+      .map((block) => relationId(block.exercise))
+      .filter(Boolean) as string[]
+    const contentPageIds = blocks
+      .filter((block) => block.blockType === 'contentPageRef' && block.contentPage)
+      .map((block) => relationId(block.contentPage))
+      .filter(Boolean) as string[]
 
-    const blocks = parsed as Array<{
-      blockType?: string
-      exercise?: string | { id: string }
-      contentPage?: string | { id: string }
-    }>
-
-    // Collect IDs by type
-    const exerciseIds: string[] = []
-    const contentPageIds: string[] = []
-
-    for (const block of blocks) {
-      if (block.blockType === 'exerciseRef' && block.exercise) {
-        const id = typeof block.exercise === 'string' ? block.exercise : block.exercise.id
-        exerciseIds.push(id)
-      } else if (block.blockType === 'contentPageRef' && block.contentPage) {
-        const id = typeof block.contentPage === 'string' ? block.contentPage : block.contentPage.id
-        contentPageIds.push(id)
-      }
-    }
-
-    // Batch-fetch in parallel
-    const [exercisesResult, contentPagesResult] = await Promise.all([
-      exerciseIds.length > 0
-        ? payload.find({
-            collection: 'exercises',
-            where: { id: { in: exerciseIds } },
-            limit: exerciseIds.length,
-            pagination: false,
-            depth: 1,
-            overrideAccess: false,
-          })
-        : null,
-      contentPageIds.length > 0
-        ? payload.find({
-            collection: 'content-pages',
-            where: {
-              and: [
-                { id: { in: contentPageIds } },
-                { status: { equals: 'published' } },
-                { isActive: { equals: true } },
-              ],
-            },
-            limit: contentPageIds.length,
-            pagination: false,
-            depth: 1,
-            overrideAccess: false,
-          })
-        : null,
+    const [exercises, contentPages] = await Promise.all([
+      exerciseIds.length
+        ? findManySerialized<Exercise>(
+            'exercises',
+            { _id: { $in: exerciseIds.map(objectIdFromString) } },
+            { limit: exerciseIds.length },
+          )
+        : Promise.resolve([]),
+      contentPageIds.length
+        ? findManySerialized<ContentPage>(
+            'content-pages',
+            publishedActiveFilter({ _id: { $in: contentPageIds.map(objectIdFromString) } }),
+            { limit: contentPageIds.length },
+          )
+        : Promise.resolve([]),
     ])
 
-    // Build lookup maps
-    const exerciseMap = new Map<string, Exercise>()
-    if (exercisesResult) {
-      for (const doc of exercisesResult.docs) {
-        exerciseMap.set(doc.id, doc)
-      }
-    }
-
-    const contentPageMap = new Map<string, ContentPage>()
-    if (contentPagesResult) {
-      for (const doc of contentPagesResult.docs) {
-        contentPageMap.set(doc.id, doc)
-      }
-    }
-
-    // Resolve in order, skip missing references
+    const exerciseMap = new Map(exercises.map((exercise) => [exercise.id, exercise]))
+    const contentPageMap = new Map(contentPages.map((page) => [page.id, page]))
     const resolved: ResolvedLessonBlock[] = []
 
     for (const block of blocks) {
-      if (block.blockType === 'exerciseRef' && block.exercise) {
-        const id = typeof block.exercise === 'string' ? block.exercise : block.exercise.id
-        const exercise = exerciseMap.get(id)
-        if (exercise) {
-          resolved.push({ type: 'exercise', data: exercise })
-        }
-      } else if (block.blockType === 'contentPageRef' && block.contentPage) {
-        const id = typeof block.contentPage === 'string' ? block.contentPage : block.contentPage.id
-        const contentPage = contentPageMap.get(id)
-        if (contentPage) {
-          resolved.push({ type: 'contentPage', data: contentPage })
-        }
+      if (block.blockType === 'exerciseRef') {
+        const exercise = exerciseMap.get(relationId(block.exercise) || '')
+        if (exercise) resolved.push({ type: 'exercise', data: exercise })
+      }
+      if (block.blockType === 'contentPageRef') {
+        const page = contentPageMap.get(relationId(block.contentPage) || '')
+        if (page) resolved.push({ type: 'contentPage', data: page })
       }
     }
 

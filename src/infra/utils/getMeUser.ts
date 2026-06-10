@@ -1,15 +1,7 @@
-/**
- * @fileType utility
- * @domain auth
- * @pattern current-user-resolver
- * @ai-summary Resolves the current user from JWT cookie by calling /api/users/me; redirects on auth failure only when a redirect target is supplied, otherwise returns null user silently.
- */
-
-import { cookies, headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 
-import type { User } from '../../payload-types'
-import { getServerSideURL } from './getURL'
+import { AUTH_COOKIE_NAME, getSessionFromToken } from '@/infra/auth/web-auth'
+import type { User } from '@/infra/types/content'
 
 export const getMeUser = async (args?: {
   nullUserRedirect?: string
@@ -18,75 +10,22 @@ export const getMeUser = async (args?: {
   token: string | null
   user: User | null
 }> => {
-  const { nullUserRedirect, validUserRedirect } = args || {}
+  const { cookies } = await import('next/headers')
   const cookieStore = await cookies()
-  const config = (await import('@payload-config')).default as { cookiePrefix?: string }
-  const cookiePrefix = config.cookiePrefix || 'payload'
-  const cookieName = `${cookiePrefix}-token`
-  const token = cookieStore.get(cookieName)?.value || cookieStore.get('payload-token')?.value
+  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value ?? null
+  const session = await getSessionFromToken(token)
+  const user = session?.user ?? null
 
-  if (!token) {
-    if (nullUserRedirect) {
-      redirect(nullUserRedirect)
-    }
-
-    return {
-      token: null,
-      user: null,
-    }
+  if (!user && args?.nullUserRedirect) {
+    redirect(args.nullUserRedirect)
   }
 
-  const headerList = await headers()
-  const forwardedProto = headerList.get('x-forwarded-proto')
-  const forwardedHost = headerList.get('x-forwarded-host')
-  const host = forwardedHost || headerList.get('host')
-  const origin = host ? `${forwardedProto || 'http'}://${host}` : getServerSideURL()
-
-  const cookieHeader = cookieStore.toString()
-  const headersToSend = new Headers({
-    Authorization: `JWT ${token}`,
-  })
-  if (cookieHeader) {
-    headersToSend.set('Cookie', cookieHeader)
-  }
-
-  const meUserReq = await fetch(`${origin}/api/users/me`, {
-    headers: headersToSend,
-    cache: 'no-store',
-  })
-
-  if (!meUserReq.ok) {
-    if (nullUserRedirect) {
-      redirect(nullUserRedirect)
-    }
-
-    return {
-      token,
-      user: null,
-    }
-  }
-
-  let user: User | null = null
-  try {
-    const contentType = meUserReq.headers.get('content-type') || ''
-    if (contentType.includes('application/json')) {
-      const data = (await meUserReq.json()) as { user?: User | null }
-      user = data.user ?? null
-    }
-  } catch {
-    user = null
-  }
-
-  if (validUserRedirect && meUserReq.ok && user) {
-    redirect(validUserRedirect)
-  }
-
-  if (nullUserRedirect && !user) {
-    redirect(nullUserRedirect)
+  if (user && args?.validUserRedirect) {
+    redirect(args.validUserRedirect)
   }
 
   return {
-    token,
+    token: session?.token ?? null,
     user,
   }
 }

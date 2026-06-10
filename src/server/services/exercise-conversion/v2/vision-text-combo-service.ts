@@ -15,7 +15,7 @@
  * @pattern combo-detection, vision+text
  */
 
-import type { Payload } from 'payload'
+import type { Payload } from '@/infra/types/backend'
 import type { TextLine } from './text-detection-service'
 import {
   detectExerciseStarts,

@@ -1,3 +1,9 @@
+/**
+ * @fileType pipeline
+ * @domain exercises
+ * @ai-summary LaTeX → ContentBlock pipeline. Entry: parseLatexToBlocks (single-exercise) and parseLatexToExercises (multi-exercise). Warns on unrecognized environments but never throws; silent-skip preamble content before \begin{document}.
+ */
+
 import type {
   ParseResult,
   ParseWarning,
@@ -24,7 +30,7 @@ import {
 } from '@/lib/latex-parser/tikz-axis-parser'
 import { parseTikzGeometry, hasTikzGeometry } from '@/lib/latex-parser/tikz-geometry-parser'
 import { makeRichTextBlock } from '@/lib/latex-parser/block-generators'
-import type { ContentBlock } from '@/server/payload/collections/Exercises/types'
+import type { ContentBlock } from '@/infra/types/exercise'
 
 /**
  * Splits the inner text of a `questions` environment on `\question` boundaries,

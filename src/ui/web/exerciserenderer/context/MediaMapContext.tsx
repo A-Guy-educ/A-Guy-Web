@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext } from 'react'
-import type { Media } from '@/payload-types'
+import type { Media } from '@/infra/types/content'
 
 export type MediaMap = Record<string, Media>
 

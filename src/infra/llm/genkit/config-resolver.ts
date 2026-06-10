@@ -12,7 +12,7 @@
  * 3. MODEL_REGISTRY defaults
  */
 import { getConfigDomain } from '@/infra/config/runtime/config-values'
-import type { Payload } from 'payload'
+import type { Payload } from '@/infra/types/backend'
 import type { AIModelKey } from '../models'
 import { MODEL_REGISTRY, PROVIDER_MODEL_NAMES, getModelNameOverride } from '../models'
 import type { LLMProviderType } from '../providers/types'

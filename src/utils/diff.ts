@@ -14,7 +14,7 @@
  * @pattern diff-classifier
  * @ai-summary Classifies the type of difference between two exercise block arrays.
  */
-import type { ContentBlock } from '@/server/payload/collections/Exercises/types'
+import type { ContentBlock } from '@/infra/types/exercise'
 
 /** Categories for source-vs-output block differences. */
 export type DiffCategory = 'identical' | 'numeric_only' | 'phrasing_changed' | 'structural_diff'

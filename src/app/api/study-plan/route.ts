@@ -1,22 +1,17 @@
-/**
- * Study Plan API
- *
- * GET /api/study-plan?gradeLevel=<grade>&courseId=<courseId>
- * PUT /api/study-plan - Body: { action: 'generate' | 'markComplete', ... }
- */
-import configPromise from '@payload-config'
 import { nanoid } from 'nanoid'
 import { NextRequest, NextResponse } from 'next/server'
-import { getPayload } from 'payload'
 import { z } from 'zod'
 
-import type { StudyPlanSnapshot, StudyPlanDay, TopicInput } from '@/server/services/study-plan'
 import { formatYmd, startOfDay } from '@/lib/dates'
-import { getDefaultTenantId } from '@/server/repos/tenant/get-default-tenant'
-import { generateStudyPlan } from '@/server/services/study-plan'
-import { queryUserProgressByGrade } from '@/server/repos/queries/userProgress'
+import { getWebUser } from '@/infra/web-api/mongo-payload'
+import {
+  generateStudyPlan,
+  type StudyPlanDay,
+  type StudyPlanSnapshot,
+  type TopicInput,
+} from '@/server/services/study-plan'
+import { findUserProgress, upsertUserProgress } from '@/server/web-api/progress'
 
-// Zod validation schemas
 const LessonRefSchema = z.object({
   lessonId: z.string().min(1),
   lessonSlug: z.string(),
@@ -33,7 +28,7 @@ const TopicInputSchema = z.object({
   lessonRef: LessonRefSchema.optional(),
 })
 
-const GenerateRequestSchema = z.object({
+const GenerateSchema = z.object({
   action: z.literal('generate'),
   courseId: z.string().min(1),
   examDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -41,14 +36,14 @@ const GenerateRequestSchema = z.object({
   gradeLevel: z.string().min(1),
 })
 
-const ToggleStatusSchema = z.object({
+const ToggleSchema = z.object({
   action: z.literal('toggleStatus'),
   dayId: z.string().min(1),
   courseId: z.string().min(1),
   gradeLevel: z.string().min(1),
 })
 
-const EditDaySchema = z.object({
+const EditSchema = z.object({
   action: z.literal('editDay'),
   dayId: z.string().min(1),
   courseId: z.string().min(1),
@@ -61,285 +56,103 @@ const EditDaySchema = z.object({
     .optional(),
 })
 
-const RequestSchema = z.discriminatedUnion('action', [
-  GenerateRequestSchema,
-  ToggleStatusSchema,
-  EditDaySchema,
-])
+const RequestSchema = z.discriminatedUnion('action', [GenerateSchema, ToggleSchema, EditSchema])
+type StudyPlanUpdateRequest = z.infer<typeof ToggleSchema> | z.infer<typeof EditSchema>
 
-type GenerateRequest = z.infer<typeof GenerateRequestSchema>
-type ToggleStatusRequest = z.infer<typeof ToggleStatusSchema>
-type EditDayRequest = z.infer<typeof EditDaySchema>
-type RequestBody = z.infer<typeof RequestSchema>
+function replacePlan(
+  plans: StudyPlanSnapshot[] | undefined,
+  courseId: string,
+  nextPlan: StudyPlanSnapshot,
+) {
+  const next = [...(plans ?? [])]
+  const index = next.findIndex((plan) => plan.courseId === courseId)
+  if (index >= 0) next[index] = nextPlan
+  else next.push(nextPlan)
+  return next
+}
 
-/**
- * GET /api/study-plan?gradeLevel=<grade>&courseId=<courseId>
- * Fetch existing study plan for a course
- */
 export async function GET(request: NextRequest) {
-  try {
-    const payload = await getPayload({ config: configPromise })
-    const { user } = await payload.auth({ headers: request.headers })
+  const user = await getWebUser(request.headers)
+  if (!user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const searchParams = request.nextUrl.searchParams
-    const gradeLevel = searchParams.get('gradeLevel')
-    const courseId = searchParams.get('courseId')
-
-    if (!gradeLevel || !courseId) {
-      return NextResponse.json({ error: 'gradeLevel and courseId are required' }, { status: 400 })
-    }
-
-    // Find UserProgress doc
-    const userProgress = await queryUserProgressByGrade({
-      userId: user.id,
-      gradeLevel,
-    })
-
-    if (!userProgress) {
-      return NextResponse.json({ success: true, data: null })
-    }
-
-    // Find matching plan in studyPlans array
-    const plan = userProgress.studyPlans?.find((p) => p.courseId === courseId) || null
-
-    // Validate topicIds as defensive parse
-    if (plan && plan.days) {
-      const validatedPlan = {
-        ...plan,
-        days: plan.days.map((day) => ({
-          ...day,
-          topicIds: z.array(z.string()).parse(day.topicIds),
-        })),
-      }
-
-      return NextResponse.json({ success: true, data: validatedPlan })
-    }
-
-    return NextResponse.json({ success: true, data: plan })
-  } catch (error) {
-    const { captureAndRespond } = await import('@/server/api/capture-and-respond')
-    return captureAndRespond(error, { route: '/api/study-plan GET' })
+  const gradeLevel = request.nextUrl.searchParams.get('gradeLevel')
+  const courseId = request.nextUrl.searchParams.get('courseId')
+  if (!gradeLevel || !courseId) {
+    return NextResponse.json({ error: 'gradeLevel and courseId are required' }, { status: 400 })
   }
+
+  const progress = await findUserProgress(user.id, gradeLevel)
+  const plans = (progress?.studyPlans ?? []) as StudyPlanSnapshot[]
+  return NextResponse.json({
+    success: true,
+    data: plans.find((plan) => plan.courseId === courseId) ?? null,
+  })
 }
 
-/**
- * PUT /api/study-plan
- * Generate or update study plan
- */
 export async function PUT(request: NextRequest) {
-  try {
-    const payload = await getPayload({ config: configPromise })
-    const { user } = await payload.auth({ headers: request.headers })
+  const user = await getWebUser(request.headers)
+  if (!user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const parsed = RequestSchema.safeParse(await request.json().catch(() => null))
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: 'Invalid request body', details: parsed.error.flatten() },
+      { status: 400 },
+    )
+  }
+
+  const progress = await findUserProgress(user.id, parsed.data.gradeLevel)
+  const currentPlans = (progress?.studyPlans ?? []) as StudyPlanSnapshot[]
+
+  if (parsed.data.action === 'generate') {
+    const days = generateStudyPlan({
+      today: formatYmd(startOfDay(new Date())),
+      examDate: parsed.data.examDate,
+      topics: parsed.data.topics as TopicInput[],
+      idGenerator: () => nanoid(),
+    }).map((day: StudyPlanDay) => ({
+      ...day,
+      topicIds: z.array(z.string()).parse(day.topicIds),
+    }))
+
+    const plan: StudyPlanSnapshot = {
+      courseId: parsed.data.courseId,
+      examDate: parsed.data.examDate,
+      generatedAt: formatYmd(startOfDay(new Date())),
+      topics: parsed.data.topics as TopicInput[],
+      days,
     }
-
-    const body: RequestBody = await request.json()
-    const parsedBody = RequestSchema.safeParse(body)
-
-    if (!parsedBody.success) {
-      return NextResponse.json(
-        { error: 'Invalid request body', details: parsedBody.error },
-        { status: 400 },
-      )
-    }
-
-    const { action } = parsedBody.data
-
-    if (action === 'generate') {
-      return handleGenerate(payload, user, parsedBody.data as GenerateRequest)
-    } else if (action === 'toggleStatus') {
-      return handleToggleStatus(payload, user, parsedBody.data as ToggleStatusRequest)
-    } else if (action === 'editDay') {
-      return handleEditDay(payload, user, parsedBody.data as EditDayRequest)
-    }
-
-    return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
-  } catch (error) {
-    const { captureAndRespond } = await import('@/server/api/capture-and-respond')
-    return captureAndRespond(error, { route: '/api/study-plan PUT' })
-  }
-}
-
-async function handleGenerate(
-  payload: Awaited<ReturnType<typeof getPayload>>,
-  user: { id: string },
-  data: GenerateRequest,
-) {
-  const { courseId, examDate, topics, gradeLevel } = data
-
-  // Get today in YYYY-MM-DD format
-  const today = formatYmd(startOfDay(new Date()))
-
-  // Find or create UserProgress doc
-  const userProgress = await queryUserProgressByGrade({
-    userId: user.id,
-    gradeLevel,
-  })
-
-  // Generate plan input
-  const generateInput = {
-    today,
-    examDate,
-    topics: topics as TopicInput[],
-    idGenerator: () => nanoid(),
+    const studyPlans = replacePlan(currentPlans, parsed.data.courseId, plan)
+    await upsertUserProgress(user.id, parsed.data.gradeLevel, { studyPlans })
+    return NextResponse.json({ success: true, data: plan })
   }
 
-  // Regeneration always produces a fresh plan (clears completion + overrides)
-  const days = generateStudyPlan(generateInput)
+  const data = parsed.data as StudyPlanUpdateRequest
+  const planIndex = currentPlans.findIndex((plan) => plan.courseId === data.courseId)
+  if (planIndex < 0) return NextResponse.json({ error: 'Study plan not found' }, { status: 404 })
 
-  // Validate all topicIds are string[]
-  const validatedDays = days.map((day: StudyPlanDay) => ({
-    ...day,
-    topicIds: z.array(z.string()).parse(day.topicIds),
-  }))
-
-  // Build the plan snapshot
-  const generatedAt = formatYmd(startOfDay(new Date()))
-  const newPlan: StudyPlanSnapshot = {
-    courseId,
-    examDate,
-    generatedAt,
-    topics: topics as TopicInput[],
-    days: validatedDays,
-  }
-
-  // Upsert the plan in the studyPlans array
-  const studyPlans: StudyPlanSnapshot[] = userProgress?.studyPlans
-    ? [...userProgress.studyPlans]
-    : []
-
-  // Find existing index
-  const existingIndex = studyPlans.findIndex((p) => p.courseId === courseId)
-  if (existingIndex >= 0) {
-    studyPlans[existingIndex] = newPlan
-  } else {
-    studyPlans.push(newPlan)
-  }
-
-  // Create or update UserProgress
-  if (userProgress) {
-    await payload.update({
-      collection: 'user-progress',
-      id: userProgress.id,
-      data: { studyPlans },
-      overrideAccess: false,
-      user,
-    })
-  } else {
-    // Get default tenant (required field, auto-populated by hook but needed for TypeScript)
-    const tenantId = await getDefaultTenantId(payload)
-    await payload.create({
-      collection: 'user-progress',
-      data: {
-        tenant: tenantId,
-        user: user.id,
-        gradeLevel,
-        studyPlans,
-      },
-      draft: false,
-    })
-  }
-
-  return NextResponse.json({ success: true, data: newPlan })
-}
-
-async function handleToggleStatus(
-  payload: Awaited<ReturnType<typeof getPayload>>,
-  user: { id: string },
-  data: ToggleStatusRequest,
-) {
-  const { dayId, courseId, gradeLevel } = data
-
-  // Find UserProgress doc
-  const userProgress = await queryUserProgressByGrade({
-    userId: user.id,
-    gradeLevel,
-  })
-
-  if (!userProgress?.studyPlans) {
-    return NextResponse.json({ error: 'Study plan not found' }, { status: 404 })
-  }
-
-  const planIndex = userProgress.studyPlans.findIndex((p) => p.courseId === courseId)
-  if (planIndex < 0) {
-    return NextResponse.json({ error: 'Study plan not found' }, { status: 404 })
-  }
-
-  const plan = userProgress.studyPlans[planIndex]
-
-  // Toggle: if completed → planned, else → completed
+  const plan = currentPlans[planIndex]
   const days = plan.days.map((day) => {
-    if (day.dayId === dayId) {
+    if (day.dayId !== data.dayId) return day
+    if (data.action === 'toggleStatus') {
       return {
         ...day,
-        status: day.status === 'completed' ? ('planned' as const) : ('completed' as const),
-      }
+        status: day.status === 'completed' ? 'planned' : 'completed',
+      } as StudyPlanDay
     }
-    return day
+    return {
+      ...day,
+      ...(data.userTopicIds !== undefined ? { userTopicIds: data.userTopicIds } : {}),
+      ...(data.userDurationMinutes !== undefined
+        ? { userDurationMinutes: data.userDurationMinutes }
+        : {}),
+      ...(data.userStartTime !== undefined ? { userStartTime: data.userStartTime } : {}),
+    }
   })
 
   const updatedPlan: StudyPlanSnapshot = { ...plan, days }
-  const studyPlans = [...userProgress.studyPlans]
+  const studyPlans = [...currentPlans]
   studyPlans[planIndex] = updatedPlan
-
-  await payload.update({
-    collection: 'user-progress',
-    id: userProgress.id,
-    data: { studyPlans },
-    overrideAccess: false,
-    user,
-  })
-
-  return NextResponse.json({ success: true, data: updatedPlan })
-}
-
-async function handleEditDay(
-  payload: Awaited<ReturnType<typeof getPayload>>,
-  user: { id: string },
-  data: EditDayRequest,
-) {
-  const { dayId, courseId, gradeLevel, userTopicIds, userDurationMinutes, userStartTime } = data
-
-  const userProgress = await queryUserProgressByGrade({ userId: user.id, gradeLevel })
-  if (!userProgress?.studyPlans) {
-    return NextResponse.json({ error: 'Study plan not found' }, { status: 404 })
-  }
-
-  const planIndex = userProgress.studyPlans.findIndex((p) => p.courseId === courseId)
-  if (planIndex < 0) {
-    return NextResponse.json({ error: 'Study plan not found' }, { status: 404 })
-  }
-
-  const plan = userProgress.studyPlans[planIndex]
-  const days = plan.days.map((day) => {
-    if (day.dayId === dayId) {
-      return {
-        ...day,
-        ...(userTopicIds !== undefined && { userTopicIds }),
-        ...(userDurationMinutes !== undefined && { userDurationMinutes }),
-        ...(userStartTime !== undefined && { userStartTime }),
-      }
-    }
-    return day
-  })
-
-  const updatedPlan: StudyPlanSnapshot = { ...plan, days }
-  const studyPlans = [...userProgress.studyPlans]
-  studyPlans[planIndex] = updatedPlan
-
-  await payload.update({
-    collection: 'user-progress',
-    id: userProgress.id,
-    data: { studyPlans },
-    overrideAccess: false,
-    user,
-  })
-
+  await upsertUserProgress(user.id, data.gradeLevel, { studyPlans })
   return NextResponse.json({ success: true, data: updatedPlan })
 }

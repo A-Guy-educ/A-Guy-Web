@@ -18,7 +18,7 @@
 
 import { GET } from '@/app/api/admin/recent-transactions/route'
 import { startMongoContainer, stopMongoContainer } from '@/infra/utils/test/mongodb-container'
-import { AccountRole } from '@/server/payload/collections/Users/roles'
+import { AccountRole } from '@/infra/auth/roles'
 import config from '@payload-config'
 import type { Payload } from 'payload'
 import { getPayload } from 'payload'

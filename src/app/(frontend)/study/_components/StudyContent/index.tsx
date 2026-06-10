@@ -9,7 +9,7 @@ import { getUserProfile } from '@/client/state/localStorage/userProfile'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
 import { logger } from '@/infra/utils/logger'
 // cn import removed - not currently used
-import type { Chapter, Lesson } from '@/payload-types'
+import type { Chapter, Lesson } from '@/infra/types/content'
 import {
   DEFAULT_LESSON_TYPE,
   getEffectiveLessonType,
@@ -138,9 +138,13 @@ export function StudyContent({
       }
 
       try {
-        const res = await fetch(
-          `/api/chapters/by-grade?grade=${profile.gradeLevel}&locale=${locale}`,
-        )
+        const params = new URLSearchParams({
+          grade: profile.gradeLevel,
+          locale,
+        })
+        if (profile.courseId) params.set('courseId', profile.courseId)
+
+        const res = await fetch(`/api/chapters/by-grade?${params.toString()}`)
         if (res.ok) {
           const data = await res.json()
           setChapters(data.chapters || [])
@@ -297,7 +301,7 @@ export function StudyContent({
           <div className="max-w-5xl mx-auto text-center">
             <ExamReminderBubble courseId={courseInfo?.courseId ?? ''} />
 
-            <h1 className="text-heading-xl md:text-4xl font-black text-foreground mt-4 section-accent inline-block">
+            <h1 className="text-heading-xl md:text-display-md font-black text-foreground mt-4 section-accent inline-block">
               {sectionTitle}
             </h1>
 
@@ -340,7 +344,7 @@ export function StudyContent({
                     {ts('continueLearning')}
                   </p>
                   <h3 className="text-heading-md font-bold truncate">{continueLesson.title}</h3>
-                  <div className="flex items-center gap-2 mt-1">
+                  <div className="flex items-center gap-content-gap-xs mt-1">
                     <Progress value={continueLesson.progress} className="h-1.5 flex-1 max-w-32" />
                     <span className="text-body-xs text-muted-foreground">
                       {continueLesson.progress}%
@@ -427,14 +431,14 @@ export function StudyContent({
             <div className="flex flex-wrap justify-center items-center gap-content-gap">
               <SystemLink
                 href="/stats"
-                className="flex items-center justify-center gap-2 text-body-sm font-bold text-foreground bg-card border border-border px-6 py-3 rounded-full hover:bg-muted/50 transition-all"
+                className="flex items-center justify-center gap-content-gap-xs text-body-sm font-bold text-foreground bg-card border border-border px-6 py-3 rounded-full hover:bg-muted/50 transition-all"
               >
                 <BarChart3 className="w-4 h-4" />
                 {t('statsAndPerformance')}
               </SystemLink>
               <SystemLink
                 href="/study-plan"
-                className="flex items-center justify-center gap-2 text-body-sm font-bold text-primary-foreground bg-primary px-6 py-3 rounded-full shadow-elevation-3 hover:opacity-90 transition-all"
+                className="flex items-center justify-center gap-content-gap-xs text-body-sm font-bold text-primary-foreground bg-primary px-6 py-3 rounded-full shadow-elevation-3 hover:opacity-90 transition-all"
               >
                 <GraduationCap className="w-4 h-4" />
                 {t('upcomingExam')}

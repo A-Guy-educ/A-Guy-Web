@@ -4,7 +4,7 @@ import { readFile } from 'fs/promises'
 import { join } from 'path'
 import React from 'react'
 
-import type { Header as HeaderType } from '@/payload-types'
+import type { Header as HeaderType } from '@/infra/types/content'
 
 async function getVersion(): Promise<string> {
   try {

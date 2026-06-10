@@ -1,5 +1,5 @@
 import type { Payload } from 'payload'
-import type { Tenant } from '@/payload-types'
+import type { Tenant } from '@/infra/types/content'
 import type { TestDataTracker } from '../helpers/test-data-tracker'
 
 export interface TenantFactoryInput {

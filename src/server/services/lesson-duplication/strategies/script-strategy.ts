@@ -7,12 +7,9 @@
  * @ai-summary Deterministic numeric substitution strategy for purely-algebraic exercises at light level.
  */
 
-import type { Exercise } from '@/payload-types'
-import type {
-  DuplicationLevel,
-  DuplicationSubject,
-} from '@/server/payload/collections/LessonDuplications'
-import type { ContentBlock, InlineRichText } from '@/server/payload/collections/Exercises/types'
+import type { Exercise } from '@/infra/types/content'
+import type { DuplicationLevel, DuplicationSubject } from '@/infra/types/backend'
+import type { ContentBlock, InlineRichText } from '@/infra/types/exercise'
 import type { VariationResult, VariationStrategy } from './types'
 import { isPurelyAlgebraic } from './algebraic-detector'
 

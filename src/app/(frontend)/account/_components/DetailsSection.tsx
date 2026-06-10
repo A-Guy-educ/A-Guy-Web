@@ -1,6 +1,6 @@
 'use client'
 
-import type { User } from '@/payload-types'
+import type { User } from '@/infra/types/content'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { Avatar, AvatarFallback } from '@/ui/web/components/avatar'
 

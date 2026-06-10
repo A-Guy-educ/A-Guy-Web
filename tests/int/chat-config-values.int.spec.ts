@@ -8,7 +8,7 @@
  */
 
 import { ConfigDomain } from '@/infra/config/config-constants'
-import type { Tenant, User } from '@/payload-types'
+import type { Tenant, User } from '@/infra/types/content'
 import config from '@payload-config'
 import { getPayload } from 'payload'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'

@@ -8,7 +8,7 @@
  */
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { DEFAULT_CONTENT_LOCALE } from '@/server/payload/fields/contentLocale'
+import { DEFAULT_CONTENT_LOCALE } from '@/infra/types/content'
 
 async function backfillCollection(
   payload: Awaited<ReturnType<typeof getPayload>>,

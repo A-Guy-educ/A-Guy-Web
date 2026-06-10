@@ -5,7 +5,7 @@ import { cn } from '@/infra/utils/ui'
 import { usePathname } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 
-import type { Header } from '@/payload-types'
+import type { Header } from '@/infra/types/content'
 
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { BrandLogo } from '@/ui/web/BrandLogo'

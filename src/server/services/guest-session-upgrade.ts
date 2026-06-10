@@ -13,7 +13,7 @@
  * - Cookie cleared to prevent ambiguity
  * - Idempotent: safe to retry after partial failure
  */
-import type { Payload } from 'payload'
+import type { Payload } from '@/infra/types/backend'
 import { logger } from '@/infra/utils/logger'
 import {
   acquireClaimLock,

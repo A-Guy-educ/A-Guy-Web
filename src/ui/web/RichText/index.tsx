@@ -1,54 +1,30 @@
-import {
-  DefaultNodeTypes,
-  SerializedBlockNode,
-  SerializedLinkNode,
-  type DefaultTypedEditorState,
-} from '@payloadcms/richtext-lexical'
-import {
-  RichText as ConvertRichText,
-  JSXConvertersFunction,
-  LinkJSXConverter,
-} from '@payloadcms/richtext-lexical/react'
+import type React from 'react'
 
-import { CodeBlock, CodeBlockProps } from '@/server/payload/blocks/Code/Component'
-
-import type { CallToActionBlock as CTABlockProps } from '@/payload-types'
-import { CallToActionBlock } from '@/server/payload/blocks/CallToAction/Component'
 import { cn } from '@/infra/utils/ui'
 
-type NodeTypes = DefaultNodeTypes | SerializedBlockNode<CTABlockProps | CodeBlockProps>
-
-const internalDocToHref = ({ linkNode }: { linkNode: SerializedLinkNode }) => {
-  const { value } = linkNode.fields.doc!
-  if (typeof value !== 'object') {
-    throw new Error('Expected value to be an object')
-  }
-  const slug = value.slug
-  return `/${slug}`
-}
-
-const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) => ({
-  ...defaultConverters,
-  ...LinkJSXConverter({ internalDocToHref }),
-  blocks: {
-    code: ({ node }) => <CodeBlock className="col-start-2" {...node.fields} />,
-    cta: ({ node }) => <CallToActionBlock {...node.fields} />,
-  },
-})
-
 type Props = {
-  data: DefaultTypedEditorState
+  data?: unknown
   enableGutter?: boolean
   enableProse?: boolean
 } & React.HTMLAttributes<HTMLDivElement>
 
+function toText(data: unknown): string {
+  if (typeof data === 'string') return data
+  if (!data) return ''
+  return ''
+}
+
 export default function RichText(props: Props) {
-  const { className, enableProse = true, enableGutter = true, ...rest } = props
+  const { className, data, enableProse = true, enableGutter = true, ...rest } = props
+  const text = toText(data)
+
+  if (!text) {
+    return null
+  }
+
   return (
-    <ConvertRichText
-      converters={jsxConverters}
+    <div
       className={cn(
-        'payload-richtext',
         {
           container: enableGutter,
           'max-w-none': !enableGutter,
@@ -57,6 +33,8 @@ export default function RichText(props: Props) {
         className,
       )}
       {...rest}
-    />
+    >
+      {text}
+    </div>
   )
 }
