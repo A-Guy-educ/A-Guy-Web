@@ -5,7 +5,9 @@
  * @fileType implementation
  * @domain ai
  * @pattern singleton, genkit, lazy-loading
+ * @ai-summary Caches one Genkit instance per provider type; clearing the cache mid-request causes all subsequent calls to re-initialize, which can trigger rate-limit spikes during traffic bursts.
  */
+
 import { getSecret, isConfigLoaded } from '@/infra/config/runtime/runtime-config'
 import { logger } from '@/infra/utils/logger'
 import { googleAI } from '@genkit-ai/googleai'

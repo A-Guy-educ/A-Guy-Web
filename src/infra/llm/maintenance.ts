@@ -2,11 +2,7 @@
  * Summary Maintenance Service
  * Manages conversation compression and message trimming
  *
- * Key Features:
- * - Automatic triggering based on message count thresholds
- * - Preserves recent window for immediate context
- * - Updates summary incrementally
- * - Tracks summarization metadata
+ * @ai-summary Throws on failure instead of returning an error sentinel — callers must wrap in try/catch; failures during maintenance do not break the chat response but will leave the conversation in an unmaintained state.
  */
 
 import { logger } from '@/infra/utils/logger'

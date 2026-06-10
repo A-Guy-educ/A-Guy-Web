@@ -2,9 +2,7 @@
  * Retry Utility with Exponential Backoff
  * Provides robust retry logic for LLM API calls
  *
- * @fileType utility
- * @domain ai
- * @pattern retry
+ * @ai-summary Skips retry when isRetryable() returns false — callers that throw LLMError with retryable=false will NOT be retried, even if maxRetries is set. Always pass the correct isRetryable predicate.
  */
 
 export interface RetryOptions<E extends Error> {

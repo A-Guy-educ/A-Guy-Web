@@ -1,7 +1,10 @@
 /**
  * Answer validation service using LLM for semantic equivalence
  * Server-side only — called as fallback when DB normalization fails
+ *
+ * @ai-summary A last-resort fallback after DB normalization; if the LLM also fails (network error, malformed response), the service returns success:false without a specific error message — callers must treat this as indeterminate rather than incorrect.
  */
+
 import type { Payload } from '@/infra/types/backend'
 import type { AIModel, AIModelKey } from '../models'
 import { getModelRegistryEntry, getProviderModelName } from '../models'

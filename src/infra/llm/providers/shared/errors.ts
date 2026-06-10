@@ -4,7 +4,7 @@
  *
  * @fileType error-handling
  * @domain ai
- */
+ * @ai-summary LLMError carries a retryable flag that callers must honor; passing retryable=false causes the error to surface as a hard failure rather than triggering the retry loop.
 
 /** Error codes for LLM providers */
 export const LLMErrorCode = {

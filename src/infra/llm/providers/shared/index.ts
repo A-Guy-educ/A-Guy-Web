@@ -4,6 +4,7 @@
  *
  * @fileType module
  * @domain ai
+ * @ai-summary Re-exports barrel; each individual utility has its own @ai-summary
  */
 
 export * from './circuit-breaker'

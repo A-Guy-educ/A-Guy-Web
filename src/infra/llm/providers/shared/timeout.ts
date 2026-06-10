@@ -5,6 +5,7 @@
  * @fileType utility
  * @domain ai
  * @pattern timeout
+ * @ai-summary withTimeout() calls cleanup() on timeout BEFORE rejecting — cleanup runs before the promise settles, so any state it resets is visible to the operation if it somehow races past the timeout.
  */
 
 export interface TimeoutOptions {

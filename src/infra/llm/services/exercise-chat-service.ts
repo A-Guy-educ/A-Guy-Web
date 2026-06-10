@@ -2,9 +2,9 @@
  * AI Chat Service for Exercise Help
  * Orchestrates chat with AI providers using Genkit unified adapter
  *
- * Migrated from factory pattern to Genkit for unified LLM operations.
- * Supports Gemini and OpenAI-compatible providers via createGenkitUnifiedAdapter.
+ * @ai-summary This is the primary chat entry point used by the instructor chat API; media parts are validated and resolved to absolute paths before being passed to the adapter, so the adapter never receives blob-only URLs.
  */
+
 import type { Payload } from '@/infra/types/backend'
 
 import { logger } from '@/infra/utils/logger'

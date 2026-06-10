@@ -5,7 +5,9 @@
  * @fileType module
  * @domain ai
  * @pattern genkit-tools, tool-calling, mcp-integration
+ * @ai-summary MCP tools are mapped to Genkit format at adapter layer; the tool executor receives raw args from Genkit and must handle all type-coercion internally.
  */
+
 import { logger } from '@/infra/utils/logger'
 import type { Genkit } from 'genkit'
 

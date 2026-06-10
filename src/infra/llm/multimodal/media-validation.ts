@@ -3,7 +3,10 @@
  * Media Validation for Chat Messages
  * Validates media exists, belongs to tenant, not expired, valid type/size
  * Returns resolved paths for Gemini mapper (no extra DB lookups)
+ *
+ * @ai-summary Validates ownership via createdBy=userId — this is the only access control check; if a media record has no createdBy, it passes validation and returns a valid path regardless of actual ownership.
  */
+
 import type { Payload } from '@/infra/types/backend'
 
 import { resolveMediaFilePath, resolveMediaPublicUrl } from '@/infra/config/storage'

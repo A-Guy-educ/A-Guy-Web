@@ -2,13 +2,7 @@
  * Context Policy Module
  * Deterministic prompt composition for AI chat
  *
- * Policy V1 Contract:
- * 1. System message (static)
- * 2. Conversation summary (if exists)
- * 3. Retrieved memory items (Top-K)
- * 4. Recent messages window (last N messages)
- *
- * CRITICAL: No ad-hoc insertions. No reordering. No message duplication.
+ * @ai-summary composePrompt() is the only function that assembles a prompt; its fixed order (system → summary → memory → messages) is a contract — violating it breaks context windows and memory injection.
  */
 
 import type { MemoryItem } from './vector-search'

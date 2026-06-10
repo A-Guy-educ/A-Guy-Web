@@ -2,6 +2,8 @@
  * Types for the interactive lesson visualization feature.
  * Defines the structured step data that the LLM generates
  * and the player component consumes.
+ *
+ * @ai-summary Pure types only — no runtime behavior
  */
 
 // ─────────────────────────────────────────────────────────────────────────────

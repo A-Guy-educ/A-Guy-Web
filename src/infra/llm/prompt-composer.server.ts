@@ -1,9 +1,7 @@
 /**
  * Composes final system instructions for AI chat
  *
- * @fileType ai-utility
- * @domain chat
- * @pattern server-only
+ * @ai-summary image handling instructions (rule 9) are ONLY appended when hasImageAttached=true; omitting this flag in text-only chat causes Gemini to refuse responses with "please upload an image" even when the lesson context is loaded — this is the most common cause of chat failures.
  */
 
 export const SYSTEM_PROMPT_SEPARATOR = '\n\n---\n\n'

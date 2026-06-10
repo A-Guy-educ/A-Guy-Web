@@ -5,6 +5,7 @@
  *
  * @fileType types
  * @domain ai
+ * @ai-summary Pure type definitions only — no runtime behavior
  */
 
 // Provider types - matches LLM_PROVIDER env var values

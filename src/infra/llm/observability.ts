@@ -1,11 +1,7 @@
 /**
  * Observability & Logging for Chat Context System
  *
- * Provides structured logging for:
- * - Context usage per model call
- * - Feature flag status
- * - Performance metrics
- * - Debug snapshots (dev only)
+ * @ai-summary logPromptSnapshot() only fires in NODE_ENV=development; setting NODE_ENV=production silently drops all snapshot logs even when debugging prompt composition.
  */
 
 import { logger } from '@/infra/utils/logger'

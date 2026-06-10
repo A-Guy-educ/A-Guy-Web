@@ -1,8 +1,7 @@
 /**
  * LLM Model Registry - Single Source of Truth for All Model Definitions
  *
- * This module centralizes all model configurations to eliminate duplication
- * and enable proper provider switching at runtime.
+ * @ai-summary MODEL_REGISTRY is the only place temperature, maxTokens, and capabilities are defined; PROVIDER_MODEL_NAMES is the only place provider-specific model names live. Adding a model means updating both — never hardcode elsewhere.
  *
  * Architecture:
  * - MODEL_REGISTRY: Provider-agnostic configs (temperature, maxTokens, capabilities)

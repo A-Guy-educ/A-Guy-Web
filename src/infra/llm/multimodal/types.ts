@@ -1,6 +1,8 @@
 /**
  * Multimodal Types for Chat Media
  * Types for handling media attachments in chat messages
+ *
+ * @ai-summary Pure types only
  */
 
 export type MediaPartType = 'image' | 'pdf'

@@ -2,6 +2,8 @@
 /**
  * Prompt builder for support generation
  * Extracts block context into a structured user prompt
+ *
+ * @ai-summary Pure prompt-building utility with no runtime side effects; the @ts-nocheck suppresses type errors from accessing dynamic block properties, which is intentional since block shapes vary across the 12 exercise block types.
  */
 import type { ContentBlock } from '@/infra/types/exercise'
 

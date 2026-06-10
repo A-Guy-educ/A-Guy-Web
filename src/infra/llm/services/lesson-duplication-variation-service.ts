@@ -2,18 +2,9 @@
 /**
  * Lesson Duplication Variation Service
  *
- * Generates variations for a single exercise at a time with light, medium, or deep
- * transformation levels. Called by the orchestrator in a concurrency-limited loop.
- *
- * Service signature: generateVariation({ exercise, level, subject }): Promise<{ exercise: Exercise }>
- *
- * Two-pass approach:
- * - Pass 1 (creative): generates new question/hint/phrasing at temp 0.7
- * - Pass 2 (deterministic): re-derives solution at temp 0.0
- *
- * One bad exercise must not sink the whole duplication run — invalid JSON gets one retry,
- * then the exercise is marked failed and the loop continues.
+ * @ai-summary Gemini 2.5-pro silently collapses nested object schemas to string literals in responseSchema mode — this is why pass 1 uses outputJsonSchema with a derived schema, not Zod, and why the exercise service validates with Zod post-parse instead of relying on schema-constrained output.
  */
+
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import type { Payload } from '@/infra/types/backend'

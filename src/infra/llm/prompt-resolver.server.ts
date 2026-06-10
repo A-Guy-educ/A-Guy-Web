@@ -1,11 +1,9 @@
 /**
  * Resolves system prompt for AI tutor
  *
- * Priority:
- * 1. Lesson.prompt (if provided and published)
- * 2. Default prompt (first published with isDefaultForAgentChat=true)
- * 3. Built-in fallback (logs warning)
+ * @ai-summary Priority order (lesson → default → fallback) is a contract; adding a new priority level here requires updating all callers and the prompt-composer. The built-in fallback is deliberately minimal and should never be reached in production.
  */
+
 import type { Prompt } from '@/infra/types/content'
 import { logger } from '@/infra/utils/logger'
 import type { ContentLocale } from '@/infra/types/content'

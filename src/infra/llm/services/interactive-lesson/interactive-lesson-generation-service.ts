@@ -3,8 +3,9 @@
  * Takes an image of a geometry problem and generates structured
  * geometry data + proof table steps using the LLM.
  *
- * Two-pass approach: LLM extracts geometry + proof, we render SVG deterministically.
+ * @ai-summary Uses a direct Gemini API call (not Genkit) with a pinned model version (gemini-3.1-pro-preview); if the model name changes, the thinking budget and schema constraints may no longer be compatible and the call will fail silently.
  */
+
 import type { Payload } from '@/infra/types/backend'
 import { z } from 'zod'
 import type { AIModel } from '../../models'

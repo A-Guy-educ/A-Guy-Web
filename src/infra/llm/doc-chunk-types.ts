@@ -1,6 +1,8 @@
 /**
  * Shared types for documentation chunks
  * Used by both the doc-search module and the chunk generation script
+ *
+ * @ai-summary Pure types only — no runtime behavior to document
  */
 
 export interface DocChunk {

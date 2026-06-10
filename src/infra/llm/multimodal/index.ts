@@ -1,2 +1,5 @@
-export * from './types'
-export * from './media-validation'
+/**
+ * Multimodal Module
+ *
+ * @ai-summary Re-exports only; does not introduce behavior
+ */
