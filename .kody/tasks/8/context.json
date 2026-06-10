@@ -1,0 +1,14 @@
+{
+  "taskId": "8",
+  "taskType": "pr",
+  "target": "dependabot/npm_and_yang/dev-dependencies-786a574765",
+  "outcome": "success",
+  "exitCode": 0,
+  "reason": "Lock file was stale — dependabot bumped package.json but did not update pnpm-lock.yaml. CI runs with --frozen-lockfile, installing vite-tsconfig-paths 6.0.3 which has a path-resolution regression with @/ aliases. Fixed by running pnpm install --no-frozen-lockfile to update the lock file.",
+  "prUrl": null,
+  "runUrl": null,
+  "filesTouched": ["pnpm-lock.yaml"],
+  "sessionLog": ".kody/sessions/8.jsonl",
+  "startedAt": "2026-06-10T00:00:00.000Z",
+  "finishedAt": "2026-06-10T00:00:00.000Z"
+}

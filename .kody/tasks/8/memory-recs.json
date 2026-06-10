@@ -1,0 +1,10 @@
+[
+  {
+    "type": "lesson",
+    "name": "dependabot-lock-file-sync",
+    "hook": "Dependabot PRs need lock file updates for --frozen-lockfile CI",
+    "body": "When dependabot bumps dev dependency versions in package.json, the pnpm-lock.yaml must also be updated. CI runs with --frozen-lockfile which installs the OLD versions from the stale lock file, not the new versions dependabot proposed. Always run `pnpm install --no-frozen-lockfile` after dependabot dependency bumps before merging.",
+    "why": "CI will silently install old package versions from the stale lock file, causing ERR_MODULE_NOT_FOUND or other compatibility issues even though package.json has the correct newer versions. This masquerades as a test/code problem when it's purely a lock file sync issue.",
+    "confidence": 0.95
+  }
+]
