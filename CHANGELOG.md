@@ -1677,8 +1677,10 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
-- fix: allow Kody dashboard previews ([#33](https://github.com/A-Guy-educ/A-Guy-Web/pull/33)) — @aguyaharonyair
-- fix(ci): Restore dependabot gates ([#19](https://github.com/A-Guy-educ/A-Guy-Web/pull/19)) — @aguyaharonyair
+- #35: docs: add headers to src/server/services/ (doc-coverage gap) ([#36](https://github.com/A-Guy-educ/A-Guy-Web/pull/36)) — @kodyade[bot]
+- #44: docs-coverage: src/lib/latex-parser/ — 0/13 modules with @ai-summa… ([#45](https://github.com/A-Guy-educ/A-Guy-Web/pull/45)) — @kodyade[bot]
+- fix: allow Kody dashboard previews ([#33](https://github.com/A-Guy-educ/A-Guy-Web/pull/33)) — @aguyaharonyair · ⚠️ QA 2026-06-10 (#37)
+- fix(ci): Restore dependabot gates ([#19](https://github.com/A-Guy-educ/A-Guy-Web/pull/19)) — @aguyaharonyair · ⚠️ QA 2026-06-10 (#46)
 - #2250: docs-drift: Exercises (#2154) ([#2341](https://github.com/A-Guy-educ/A-Guy/pull/2341)) — @kodyade[bot] · ⚠️ QA 2026-06-08 (#2527)
 - #2248: docs-drift: Block Rendering (#2116) ([#2340](https://github.com/A-Guy-educ/A-Guy/pull/2340)) — @kodyade[bot] · ⚠️ QA 2026-06-08 (#2530)
 - #2246: docs-drift: Admin Components (#2108) ([#2339](https://github.com/A-Guy-educ/A-Guy/pull/2339)) — @kodyade[bot] · ✅ QA 2026-06-08
