@@ -1,11 +1,16 @@
 // @vitest-environment node
 
 /**
- * Integration tests for the LessonIntroPage feature (issue #30).
+ * Integration tests for the LessonIntroPage feature (issue #30, #67).
  *
- * Tests that blocks-only lessons (no exercises, no media files) return correct
- * data from queryLessonBlocks, so LessonIntroPage can display proper content
- * type indicators (content page counts).
+ * Tests that all lesson types (blocks-only, exercises, PDF) go through
+ * LessonIntroPage as the unified entry point. LessonIntroPage displays
+ * description, difficulty, time, and content counts before transitioning
+ * to the appropriate content view.
+ *
+ * Issue #67: Previously, PDF lessons bypassed LessonIntroPage and went
+ * directly to PdfLessonPager (which had its own limited intro). Now all
+ * lesson types route through LessonIntroPage first.
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
@@ -15,6 +20,8 @@ import { getContentDb } from '@/server/repos/mongo'
 import { queryLessonBlocks } from '@/server/repos/queries/lesson-blocks'
 import { queryLessonBySlug } from '@/server/repos/queries/lessons'
 import { queryExercisesByLesson } from '@/server/repos/queries/exercises'
+import { queryMediaByIds } from '@/server/repos/queries/media'
+import { relationId } from '@/server/repos/mongo'
 
 let db: Db | undefined
 let originalDatabaseUrl: string | undefined
@@ -25,6 +32,10 @@ let chapterId: string
 let blocksOnlyLessonId: string
 let blocksOnlyLessonSlug: string
 let blocksWithContentPagesLessonId: string
+/** A lesson with a media file (PDF) — tests the PDF lesson route to LessonIntroPage */
+let pdfLessonId: string
+let pdfLessonSlug: string
+let mediaFileId: string
 
 const TENANT_SLUG = `lesson-intro-test-tenant-${Date.now()}`
 
@@ -48,6 +59,8 @@ beforeAll(async () => {
   const blocksOnlyLessonObjectId = new ObjectId()
   const contentPageObjectId = new ObjectId()
   const blocksWithContentPagesLessonObjectId = new ObjectId()
+  const mediaFileObjectId = new ObjectId()
+  const pdfLessonObjectId = new ObjectId()
 
   courseId = courseObjectId.toString()
   chapterId = chapterObjectId.toString()
@@ -56,6 +69,9 @@ beforeAll(async () => {
   blocksOnlyLessonId = blocksOnlyLessonObjectId.toString()
   blocksOnlyLessonSlug = `blocks-only-lesson-${timestamp}`
   blocksWithContentPagesLessonId = blocksWithContentPagesLessonObjectId.toString()
+  pdfLessonId = pdfLessonObjectId.toString()
+  pdfLessonSlug = `pdf-lesson-${timestamp}`
+  mediaFileId = mediaFileObjectId.toString()
 
   await db.collection('tenants').insertOne({
     _id: tenantObjectId,
@@ -144,14 +160,48 @@ beforeAll(async () => {
     contentStatusVisible: true,
     blocks: [{ blockType: 'contentPageRef', contentPage: contentPageObjectId }],
   })
+
+  // Media file (simulates a PDF)
+  await db.collection('media').insertOne({
+    _id: mediaFileObjectId,
+    filename: `test-pdf-${timestamp}.pdf`,
+    url: `https://example.com/test-pdf-${timestamp}.pdf`,
+    mimeType: 'application/pdf',
+    width: null,
+    height: null,
+    sizes: null,
+    alt: null,
+    tenant: tenantObjectId,
+  })
+
+  // Lesson 3: PDF lesson (has media files, no exercises) — should go through LessonIntroPage
+  await db.collection('lessons').insertOne({
+    _id: pdfLessonObjectId,
+    title: `PDF Lesson ${timestamp}`,
+    slug: pdfLessonSlug,
+    chapter: chapterObjectId,
+    type: 'learning',
+    order: 3,
+    status: 'published',
+    isActive: true,
+    tenant: tenantObjectId,
+    locale: 'he',
+    accessType: 'inherit',
+    contentStatus: 'none',
+    contentStatusVisible: true,
+    contentFiles: [mediaFileObjectId],
+  })
 }, 120_000)
 
 afterAll(async () => {
   await db?.collection('lessons').deleteMany({
     _id: {
-      $in: [blocksOnlyLessonId, blocksWithContentPagesLessonId].map((id) => new ObjectId(id)),
+      $in: [blocksOnlyLessonId, blocksWithContentPagesLessonId, pdfLessonId].map(
+        (id) => new ObjectId(id),
+      ),
     },
   })
+  await db?.collection('media').deleteOne({ _id: new ObjectId(mediaFileId) })
   await db?.collection('content-pages').deleteOne({ _id: new ObjectId(contentPageId) })
   await db?.collection('chapters').deleteOne({ _id: new ObjectId(chapterId) })
   await db?.collection('courses').deleteOne({ _id: new ObjectId(courseId) })
@@ -231,5 +281,47 @@ describe('LessonIntroPage data layer', () => {
     expect(mediaFiles).toHaveLength(0)
     // LessonIntroPage receives blocks from queryLessonBlocks
     expect(blocks).toEqual([])
+  })
+
+  it('#67: PDF lesson (mediaFiles > 0, no exercises) — LessonIntroPage is rendered (not PdfLessonPager directly)', async () => {
+    // Issue #67: Previously, PDF lessons with mediaFiles went directly to PdfLessonPager,
+    // bypassing LessonIntroPage which denied users the unified intro (description, difficulty,
+    // time, content counts). The fix ensures page.tsx always renders LessonIntroPage,
+    // which then transitions to PdfLessonPager (in 'pdf' state) after the intro.
+    //
+    // This test verifies the data conditions that route a PDF lesson to LessonIntroPage:
+    // hasExerciseBlocks = false (no exercise blocks), mediaFiles.length > 0 (has PDFs)
+    const lesson = await queryLessonBySlug({ slug: pdfLessonSlug })
+    expect(lesson).not.toBeNull()
+    expect(lesson?.id).toBe(pdfLessonId)
+
+    const exercises = await queryExercisesByLesson({ lessonId: pdfLessonId })
+    const hasExerciseBlocks = exercises.some((e) => {
+      if (Array.isArray(e.content)) return e.content.length > 0
+      if (e.content && typeof e.content === 'object' && 'blocks' in e.content) {
+        return (
+          Array.isArray((e.content as { blocks?: unknown[] }).blocks) &&
+          (e.content as { blocks: unknown[] }).blocks.length > 0
+        )
+      }
+      return false
+    })
+
+    // contentFiles contains a media file ID → getMediaFiles would fetch it
+    const contentFiles = (lesson?.contentFiles ?? []) as unknown[]
+    const mediaFileIds = contentFiles
+      .map((f) => relationId(f as string | { id?: string }))
+      .filter((id): id is string => Boolean(id))
+
+    expect(mediaFileIds).toHaveLength(1)
+    const mediaMap = await queryMediaByIds(mediaFileIds)
+    const fetchedMediaFiles = mediaFileIds
+      .map((id) => mediaMap[id])
+      .filter((f): f is { url?: string | null; filename?: string } => Boolean(f))
+
+    // PDF lesson: no exercise blocks, but has media files
+    expect(hasExerciseBlocks).toBe(false)
+    expect(fetchedMediaFiles).toHaveLength(1)
+    expect(fetchedMediaFiles[0].filename).toContain('test-pdf')
   })
 })

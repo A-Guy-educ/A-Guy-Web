@@ -1,9 +1,11 @@
 'use client'
 
-import { ExerciseWorkspace } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseWorkspace'
 import { EmptyLessonPlaceholder } from '../EmptyLessonPlaceholder'
-import type { Lesson } from '@/infra/types/content'
+import type { Lesson, Media } from '@/infra/types/content'
 import type { ResolvedLessonBlock } from '@/server/repos/queries/lesson-blocks'
+import { ExerciseWorkspace } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseWorkspace'
+import { ExercisesPager } from '../ExercisesPager'
+import { PdfLessonPager } from '../PdfLessonPager'
 import { ChatInterface } from '@/ui/web/chat'
 import { Button } from '@/ui/web/components/button'
 import { useTranslations } from '@/ui/web/providers/I18n'
@@ -18,6 +20,16 @@ interface LessonIntroPageProps {
   backUrl: string
   showChat: boolean
   formulaSheet?: import('@/infra/types/content').FormulaSheet | null
+  /** Exercises for this lesson (used to determine if lesson has exercises) */
+  exercises?: import('@/infra/types/content').Exercise[]
+  /** Media files (PDFs) for this lesson */
+  mediaFiles?: Media[]
+  mediaMap?: Record<string, Media>
+  courseSlug?: string
+  chapterSlug?: string
+  lessonSlug?: string
+  lessonId?: string
+  gradeLevel?: string
 }
 
 export function LessonIntroPage({
@@ -26,6 +38,14 @@ export function LessonIntroPage({
   backUrl,
   showChat,
   formulaSheet,
+  exercises = [],
+  mediaFiles = [],
+  mediaMap = {},
+  courseSlug = '',
+  chapterSlug = '',
+  lessonSlug = '',
+  lessonId = '',
+  gradeLevel = '',
 }: LessonIntroPageProps) {
   const t = useTranslations('courses')
   const searchParams = useSearchParams()
@@ -40,6 +60,20 @@ export function LessonIntroPage({
     () => blocks.filter((b) => b.type === 'contentPage').length,
     [blocks],
   )
+  const pdfCount = mediaFiles.length
+
+  const hasExerciseContent = exercises.some((e) => {
+    if (Array.isArray(e.content)) return e.content.length > 0
+    if (e.content && typeof e.content === 'object' && 'blocks' in e.content) {
+      return (
+        Array.isArray((e.content as { blocks?: unknown[] }).blocks) &&
+        (e.content as { blocks: unknown[] }).blocks.length > 0
+      )
+    }
+    return false
+  })
+
+  const contentType = hasExerciseContent ? 'exercises' : pdfCount > 0 ? 'pdf' : 'scroll'
 
   const workspaceChatContent = showChat ? (
     <ChatInterface
@@ -57,6 +91,43 @@ export function LessonIntroPage({
         backUrl={backUrl}
         primaryContent={<EmptyLessonPlaceholder lessonTitle={lesson.title} />}
         chatContent={workspaceChatContent}
+      />
+    )
+  }
+
+  if (pageState === 'exercises') {
+    return (
+      <ExercisesPager
+        exercises={exercises}
+        lessonTitle={lesson.title}
+        backUrl={backUrl}
+        courseSlug={courseSlug}
+        chapterSlug={chapterSlug}
+        lessonSlug={lessonSlug}
+        lessonId={lessonId}
+        gradeLevel={gradeLevel}
+        mediaMap={mediaMap}
+        showChat={showChat}
+        formulaSheet={formulaSheet}
+      />
+    )
+  }
+
+  if (pageState === 'pdf') {
+    return (
+      <PdfLessonPager
+        validFiles={mediaFiles}
+        lessonTitle={lesson.title}
+        backUrl={backUrl}
+        courseSlug={courseSlug}
+        chapterSlug={chapterSlug}
+        lessonSlug={lessonSlug}
+        lessonId={lessonId}
+        gradeLevel={gradeLevel}
+        chatLessonId={lesson.id}
+        showChat={showChat}
+        formulaSheet={formulaSheet}
+        initialPageState={{ type: 'pdf', pageNumber: 1 }}
       />
     )
   }
@@ -91,7 +162,7 @@ export function LessonIntroPage({
               </h2>
 
               {/* Content type indicators */}
-              {(exerciseCount > 0 || contentPageCount > 0) && (
+              {(exerciseCount > 0 || contentPageCount > 0 || pdfCount > 0) && (
                 <div className="inline-flex items-center gap-3 px-5 py-3 bg-muted rounded-2xl border border-border/60 mb-10">
                   {exerciseCount > 0 && (
                     <div className="flex items-center gap-2">
@@ -104,7 +175,17 @@ export function LessonIntroPage({
                       </span>
                     </div>
                   )}
-                  {exerciseCount > 0 && contentPageCount > 0 && (
+                  {exerciseCount > 0 && pdfCount > 0 && <div className="w-px h-5 bg-border/60" />}
+                  {pdfCount > 0 && (
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-5 h-5 text-primary" />
+                      <span className="text-primary text-heading-xl font-medium">{pdfCount}</span>
+                      <span className="text-label text-muted-foreground uppercase tracking-wider">
+                        {t('pdfLessonPagerDocuments')}
+                      </span>
+                    </div>
+                  )}
+                  {(exerciseCount > 0 || pdfCount > 0) && contentPageCount > 0 && (
                     <div className="w-px h-5 bg-border/60" />
                   )}
                   {contentPageCount > 0 && (
@@ -122,7 +203,7 @@ export function LessonIntroPage({
               )}
 
               <Button
-                onClick={handleStart}
+                onClick={() => handleStart(contentType)}
                 size="lg"
                 className="w-full py-section-sm rounded-2xl text-body-lg shadow-card shadow-primary/20 hover:shadow-card-hover hover:shadow-primary/30 transition-all duration-slow cursor-pointer"
               >
