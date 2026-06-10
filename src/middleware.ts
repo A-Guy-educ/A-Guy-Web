@@ -31,6 +31,18 @@ function hasAuthToken(request: NextRequest): boolean {
   return cookieStore.get('payload-token')?.value !== undefined
 }
 
+function isKodyFlyPreviewHost(host: string): boolean {
+  const hostname = host.split(':')[0]?.toLowerCase() ?? ''
+  return hostname.startsWith('kp-') && hostname.endsWith('.fly.dev')
+}
+
+function allowsPreviewAuthBypass(request: NextRequest): boolean {
+  if (process.env.KODY_PREVIEW_AUTH_BYPASS !== 'true') return false
+
+  const host = request.headers.get('host') || request.nextUrl.host
+  return isKodyFlyPreviewHost(host)
+}
+
 function resolveCookieDomain(host: string): string | undefined {
   // If you're on *.vercel.app, sharing cookies across subdomains via Domain=.vercel.app
   // is typically blocked (public suffix). In that case, keep host-only cookie.
@@ -72,7 +84,11 @@ export function middleware(request: NextRequest) {
   }
 
   // Auth guard: redirect unauthenticated users to login for protected learning routes
-  if (isProtectedLearningPath(pathname) && !hasAuthToken(request)) {
+  if (
+    isProtectedLearningPath(pathname) &&
+    !hasAuthToken(request) &&
+    !allowsPreviewAuthBypass(request)
+  ) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('returnTo', pathname)
     return NextResponse.redirect(loginUrl)

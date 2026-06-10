@@ -22,6 +22,7 @@ RUN mkdir -p public
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 ENV password_login_enabled=true
+ENV KODY_PREVIEW_AUTH_BYPASS=true
 ENV PORT=8080
 ENV HOSTNAME=0.0.0.0
 ENV NODE_OPTIONS="--max-old-space-size=7168"
