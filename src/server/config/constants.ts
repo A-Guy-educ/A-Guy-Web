@@ -1,6 +1,25 @@
-export function readIntEnv(name: string, fallback: number): number {
-  const value = Number.parseInt(process.env[name] || '', 10)
-  return Number.isFinite(value) ? value : fallback
+export function readIntEnv(
+  name: string,
+  fallback: number,
+  options: { min?: number; max?: number } = {},
+): number {
+  const raw = process.env[name]
+  if (!raw) return fallback
+
+  const value = Number(raw)
+  if (!Number.isInteger(value)) {
+    throw new Error(`Invalid ${name}: expected an integer`)
+  }
+
+  if (options.min !== undefined && value < options.min) {
+    throw new Error(`Invalid ${name}: below minimum ${options.min}`)
+  }
+
+  if (options.max !== undefined && value > options.max) {
+    throw new Error(`Invalid ${name}: exceeds maximum ${options.max}`)
+  }
+
+  return value
 }
 
 export const HEARTBEAT_INTERVAL_MS = readIntEnv('JOB_HEARTBEAT_INTERVAL_MS', 10_000)
