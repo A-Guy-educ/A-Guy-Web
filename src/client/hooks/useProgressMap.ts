@@ -1,3 +1,10 @@
+/**
+ * @fileType hook
+ * @domain progress
+ * @pattern progress-map
+ * @ai-summary Batch-fetches completion progress for lessons/exercises/chapters; gradeLevel defaults to localStorage userProfile if not provided — dashboards that use the wrong grade bucket will get stale/incorrect progress
+ */
+
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'

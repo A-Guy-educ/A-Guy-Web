@@ -1,3 +1,10 @@
+/**
+ * @fileType hook
+ * @domain auth
+ * @pattern current-user
+ * @ai-summary Fetches the current user from /api/users/me and subscribes to auth:changed events for live updates
+ */
+
 'use client'
 
 import type { User } from '@/infra/types/content'

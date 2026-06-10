@@ -1,3 +1,10 @@
+/**
+ * @fileType hook
+ * @domain courses
+ * @pattern course-search
+ * @ai-summary Searches courses/lessons/exercises via /api/course-search with 300ms debounce and 2-character minimum query length; aborts in-flight requests on rapid re-searches
+ */
+
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
