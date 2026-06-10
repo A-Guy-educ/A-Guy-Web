@@ -1,3 +1,3 @@
-Resolved one conflict in `.kody/reports/duty-review.md`. 
+Fixed CI Prettier failure in `.ai-docs/indexes/pattern-index.json`.
 
-The conflict was asymmetric: HEAD (PR branch) had a 25-duty table with older formatting, while origin/dev had a more comprehensive 28-duty table with improved notes and staff assignments. Took the dev version since it is the more complete and current snapshot of the duty review system.
+The `metadata.generatedAt` line lost its indentation during asymmetric merge conflict resolution (was unindented `"generatedAt` instead of `    "generatedAt"`). Prettier's `--check` caught it. Fixed by re-indenting the line to match the surrounding JSON structure. No other changes.
