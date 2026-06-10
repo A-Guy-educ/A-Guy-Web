@@ -1,10 +1,7 @@
 /**
- * Mixpanel Script Loader
+ * @ai-summary Loads Mixpanel SDK via inline stub + CDN (beforeInteractive). Session recording at 100%.
  *
- * Loads Mixpanel SDK
- * Only loads when analytics is enabled
- *
- * Session recording enabled at 100% to capture all user sessions
+ * TRAP: Uses sendBeacon for reliable delivery during page unload. Uses cookie_expiration: 365 for persistence.
  */
 
 'use client'

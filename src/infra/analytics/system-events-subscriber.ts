@@ -1,8 +1,14 @@
 /**
- * System Events Analytics Subscriber
+ * @ai-summary Wires the system event bus to analytics.track() — the sole non-test caller of analytics.track().
  *
- * Subscribes to the system event bus and maps events to analytics.track() calls.
- * This is the ONLY place where analytics.track() is called outside of tests.
+ * Subscribes to all system events and forwards them as product analytics events.
+ *
+ * GOTCHA (Payload build): `refreshUserEntitlementsInMixpanel()` runs in the browser bundle
+ * because `initAnalyticsSubscriber()` is called from `AnalyticsProvider` on mount.
+ * Calling Payload directly here drags grpc/fs/tls into the client bundle and breaks the build.
+ * Read user entitlements from `/api/users/me` instead — never import from `@/server/payload` or similar.
+ *
+ * TRAP: Idempotent — second call returns a no-op cleanup; first call wins.
  */
 
 import type { SystemEventEnvelope, SystemEventName, Unsubscribe } from '@/infra/system-events'

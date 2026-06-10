@@ -1,7 +1,7 @@
 /**
- * Anonymous ID Management
+ * @ai-summary Manages the Mixpanel anonymous ID cookie (mp_anon_id) — persists across sessions before signup.
  *
- * Generates and manages persistent anonymous IDs for tracking users before authentication
+ * Format: anon_<uuid-v4>. Stored in a 1-year cookie. Cleared on logout via clearAnonymousIdCookie().
  */
 
 import { getCookie, setCookie, deleteCookie } from './cookies'

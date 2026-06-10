@@ -1,8 +1,7 @@
 /**
- * Page View Tracking Hook
+ * @ai-summary Auto-tracks page views by emitting systemEventBus.PAGE_VIEWED on Next.js route changes.
  *
- * Automatically tracks page views on route changes
- * CRITICAL: Should only be used in ONE place (app layout) to avoid duplicates
+ * CRITICAL: Use in only ONE place (root layout) — multiple instances cause duplicate events.
  */
 
 'use client'

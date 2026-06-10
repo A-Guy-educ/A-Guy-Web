@@ -1,8 +1,8 @@
 /**
- * Analytics Configuration
+ * @ai-summary Environment-driven analytics config — presence of token enables platform.
  *
- * Environment-based configuration for analytics system
- * Simplified: presence of token/key enables the platform
+ * Uses NEXT_PUBLIC_GA4_MEASUREMENT_ID and NEXT_PUBLIC_MIXPANEL_TOKEN to gate platforms.
+ * Supports E2E override via window.__analyticsEnabled to toggle without rebuilding.
  */
 
 import type { AnalyticsConfig } from './types'

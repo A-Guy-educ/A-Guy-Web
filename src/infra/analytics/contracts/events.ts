@@ -1,16 +1,8 @@
 /**
- * Canonical Product Events (v1)
+ * @ai-summary Canonical event constant registry — the authoritative list of allowed analytics events.
  *
- * These are the ONLY allowed events in this phase.
- * Adding a new event requires:
- * 1. Update this file
- * 2. Add schema in schemas.ts
- * 3. Add destination in destinations.ts
- * 4. Update documentation
- *
- * Naming Convention: lowercase_with_underscores
- * - Past tense for completed actions: lesson_completed
- * - Present tense for ongoing: page_view
+ * TRAP: Adding events requires updating 3 files (events.ts, schemas.ts, destinations.ts) and docs.
+ * Naming: lowercase_with_underscores, past tense for completions (lesson_completed), present for states (page_view).
  */
 
 export const PRODUCT_EVENTS = {
