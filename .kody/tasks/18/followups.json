@@ -1,0 +1,8 @@
+[
+  {
+    "title": "Delete orphaned MCP test files",
+    "body": "These test files import from source modules that don't exist (removed in Payload runtime cleanup): tests/unit/server/payload/plugins/mcp-auth.test.ts, tests/unit/server/repos/mcp/mcp-client.test.ts, tests/unit/server/repos/mcp/tool-allowlist.test.ts. They are excluded via retiredPayloadRuntimeTests but should be deleted rather than maintained as dead code.",
+    "rationale": "Dead test files that import non-existent modules create confusion and maintenance burden. They should either be deleted or replaced with tests that validate the actual current behavior.",
+    "priority": "low"
+  }
+]
