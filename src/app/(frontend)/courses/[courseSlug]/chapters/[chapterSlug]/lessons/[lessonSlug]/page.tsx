@@ -16,15 +16,14 @@ import { checkPaidAccess } from '@/server/utils/check-paid-access'
 import type { Chapter, Course, Exercise, Media } from '@/infra/types/content'
 import { isValidContentLocale } from '@/infra/types/content'
 import { AccessGateProvider } from '@/ui/web/auth/AccessGateProvider'
-import { ChatInterface } from '@/ui/web/chat'
 import { extractAllMediaIds } from '@/ui/web/exerciserenderer/utils/extractMediaIds'
 import { stripHtml } from '@/utils/strip-html'
 
-import { ExerciseWorkspace } from './exercises/[exerciseSlug]/_components/ExerciseWorkspace'
-import { EmptyLessonPlaceholder } from './_components/EmptyLessonPlaceholder'
 import { ExercisesPager } from './_components/ExercisesPager'
 import { LessonAnalytics } from './_components/LessonAnalytics'
+import { LessonIntroPage } from './_components/LessonIntroPage'
 import { PdfLessonPager } from './_components/PdfLessonPager'
+import { queryLessonBlocks } from '@/server/repos/queries/lesson-blocks'
 
 export const dynamic = 'force-dynamic'
 
@@ -110,7 +109,9 @@ async function getLessonData({
     return null
   }
 
-  return { contentLocale, course, chapter, lesson }
+  const blocks = await queryLessonBlocks({ lessonId: lesson.id })
+
+  return { contentLocale, course, chapter, lesson, blocks }
 }
 
 export default async function LessonPage({ params }: LessonPageProps) {
@@ -121,7 +122,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
     notFound()
   }
 
-  const { contentLocale, course, lesson } = lessonData
+  const { contentLocale, course, lesson, blocks } = lessonData
   const accessType = resolveAccessType(lesson.accessType, course.accessType)
   const [gatedDelayMs, gatedWarningMs] = await Promise.all([
     SystemParams.getGatedDelayMs(),
@@ -221,20 +222,12 @@ export default async function LessonPage({ params }: LessonPageProps) {
           formulaSheet={formulaSheet}
         />
       ) : (
-        <ExerciseWorkspace
-          exerciseTitle={lesson.title}
+        <LessonIntroPage
+          lesson={lesson}
+          blocks={blocks}
           backUrl={backUrl}
-          primaryContent={<EmptyLessonPlaceholder lessonTitle={lesson.title} />}
-          chatContent={
-            showChat ? (
-              <ChatInterface
-                lessonId={lesson.id}
-                translationNamespace="courses"
-                showMathTools={true}
-                formulaSheet={formulaSheet}
-              />
-            ) : null
-          }
+          showChat={showChat}
+          formulaSheet={formulaSheet}
         />
       )}
     </AccessGateProvider>
