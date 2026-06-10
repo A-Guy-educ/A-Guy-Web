@@ -18,26 +18,11 @@ describe('CSP frame ancestors', () => {
     return match![1]
   }
 
-  function getDirective(csp: string, directive: string): string[] {
-    const match = csp.match(new RegExp(`${directive}\\s+([^;]+)`))
+  it('does not restrict which preview hosts can embed pages', () => {
+    const csp = getGeneralCsp()
 
-    expect(match).not.toBeNull()
-    return match![1].split(/\s+/)
-  }
-
-  it('only allows the site and Kody dashboard hosts to embed pages', () => {
-    const frameAncestors = getDirective(getGeneralCsp(), 'frame-ancestors')
-
-    expect(frameAncestors).toEqual([
-      "'self'",
-      'https://kody-dashboard-aguy.vercel.app',
-      'https://kody-dashboard-sable.vercel.app',
-    ])
-  })
-
-  it('does not allow every site to embed pages', () => {
-    const frameAncestors = getDirective(getGeneralCsp(), 'frame-ancestors')
-
-    expect(frameAncestors).not.toContain('*')
+    expect(csp).not.toContain('frame-ancestors')
+    expect(csp).not.toContain('kody-dashboard-aguy.vercel.app')
+    expect(csp).not.toContain('kody-dashboard-sable.vercel.app')
   })
 })
