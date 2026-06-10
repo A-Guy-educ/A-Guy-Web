@@ -1677,7 +1677,8 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
-- #35: docs: add headers to src/server/services/ (doc-coverage gap) ([#36](https://github.com/A-Guy-educ/A-Guy-Web/pull/36)) — @kodyade[bot]
+- #30: [Lessons] Add unified entry intro page for all lessons ([#34](https://github.com/A-Guy-educ/A-Guy-Web/pull/34)) — @kodyade[bot]
+- #35: docs: add headers to src/server/services/ (doc-coverage gap) ([#36](https://github.com/A-Guy-educ/A-Guy-Web/pull/36)) — @kodyade[bot] · ⚠️ QA 2026-06-10 (#53)
 - #44: docs-coverage: src/lib/latex-parser/ — 0/13 modules with @ai-summa… ([#45](https://github.com/A-Guy-educ/A-Guy-Web/pull/45)) — @kodyade[bot]
 - fix: allow Kody dashboard previews ([#33](https://github.com/A-Guy-educ/A-Guy-Web/pull/33)) — @aguyaharonyair · ⚠️ QA 2026-06-10 (#37)
 - fix(ci): Restore dependabot gates ([#19](https://github.com/A-Guy-educ/A-Guy-Web/pull/19)) — @aguyaharonyair · ⚠️ QA 2026-06-10 (#46)
