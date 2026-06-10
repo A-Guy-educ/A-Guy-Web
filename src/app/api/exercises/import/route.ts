@@ -1,19 +1,30 @@
-import { NextResponse } from 'next/server'
+import { ObjectId } from 'mongodb'
+import { NextRequest, NextResponse } from 'next/server'
 
-const disabled = { error: 'This endpoint is unavailable without the removed CMS backend.' }
+import { getContentDb } from '@/infra/db/content-db'
 
-export async function GET() {
-  return NextResponse.json(disabled, { status: 410 })
+function idCandidates(id: string) {
+  return ObjectId.isValid(id) ? [id, new ObjectId(id)] : [id]
 }
 
-export async function POST() {
-  return NextResponse.json(disabled, { status: 410 })
-}
+export async function POST(request: NextRequest) {
+  const lessonId = request.nextUrl.searchParams.get('lessonId')
+  if (!lessonId) return NextResponse.json({ error: 'lessonId is required' }, { status: 400 })
 
-export async function PATCH() {
-  return NextResponse.json(disabled, { status: 410 })
-}
+  const db = await getContentDb()
+  const lesson = await db.collection('lessons').findOne({
+    _id: ObjectId.isValid(lessonId) ? new ObjectId(lessonId) : lessonId,
+  } as never)
+  if (!lesson) return NextResponse.json({ error: 'Lesson not found' }, { status: 404 })
 
-export async function DELETE() {
-  return NextResponse.json(disabled, { status: 410 })
+  const existingCount = await db
+    .collection('exercises')
+    .countDocuments({ lesson: { $in: idCandidates(lessonId) } })
+
+  return NextResponse.json({
+    success: true,
+    imported: 0,
+    existingCount,
+    message: 'Exercise conversion is not available in the web-only build.',
+  })
 }

@@ -1,19 +1,70 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 
-const disabled = { error: 'This endpoint is unavailable without the removed CMS backend.' }
+import {
+  appendMessage,
+  generateAssistantReply,
+  getOrCreateConversation,
+  resolveContextKey,
+} from '@/server/web-api/chat'
+import {
+  getOrCreateGuestId,
+  getWebUser,
+  publicUserId,
+  withGuestCookie,
+} from '@/infra/web-api/mongo-payload'
 
-export async function GET() {
-  return NextResponse.json(disabled, { status: 410 })
-}
+const BodySchema = z.object({
+  message: z.string().min(1),
+  acknowledgment: z.string().optional(),
+  exerciseId: z.string().optional(),
+  lessonId: z.string().optional(),
+  chapterId: z.string().optional(),
+  courseId: z.string().optional(),
+  categoryId: z.string().optional(),
+  mediaIds: z.array(z.string()).optional(),
+  chatAssetIds: z.array(z.string()).optional(),
+  contextKeyOverride: z.string().optional(),
+})
 
-export async function POST() {
-  return NextResponse.json(disabled, { status: 410 })
-}
+export async function POST(request: NextRequest) {
+  const parsed = BodySchema.safeParse(await request.json().catch(() => null))
+  if (!parsed.success) return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
 
-export async function PATCH() {
-  return NextResponse.json(disabled, { status: 410 })
-}
+  const body = parsed.data
+  const contextKey = resolveContextKey(body, body.contextKeyOverride)
+  if (!contextKey) return NextResponse.json({ error: 'Missing context ID' }, { status: 400 })
 
-export async function DELETE() {
-  return NextResponse.json(disabled, { status: 410 })
+  const guestId = getOrCreateGuestId(request)
+  const user = await getWebUser(request.headers)
+  const ownerId = publicUserId(user, guestId)
+  const conversation = await getOrCreateConversation(ownerId, contextKey)
+
+  await appendMessage(String(conversation.id), {
+    role: 'user',
+    content: body.message,
+    media: body.mediaIds?.map((mediaId) => ({ mediaId })),
+    chatAssets: body.chatAssetIds?.map((chatAssetId) => ({ chatAssetId })),
+  })
+
+  const message = await generateAssistantReply({
+    message: body.message,
+    acknowledgment: body.acknowledgment,
+    history: Array.isArray(conversation.messages) ? conversation.messages : [],
+    mediaIds: body.mediaIds,
+    chatAssetIds: body.chatAssetIds,
+  })
+
+  await appendMessage(String(conversation.id), { role: 'assistant', content: message })
+
+  return withGuestCookie(
+    NextResponse.json({
+      success: true,
+      message,
+      conversationId: conversation.id,
+      contextKey,
+      isGuestMode: !user,
+    }),
+    guestId,
+  )
 }

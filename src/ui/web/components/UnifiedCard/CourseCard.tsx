@@ -76,6 +76,7 @@ export function CourseCard({ course, isOwned = false }: CourseCardProps) {
     const existingProfile = getUserProfile()
     setUserProfile({
       gradeLevel,
+      courseId: course.id,
       mood: existingProfile?.mood || '',
       lastVisit: new Date().toISOString(),
     })

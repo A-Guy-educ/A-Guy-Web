@@ -14,6 +14,8 @@ export const SignupSchema = z.object({
 export interface SignupResult {
   success: boolean
   message?: string
+  error?: string
   errors?: Record<string, string>
   userId?: string
+  data?: { userId: string }
 }

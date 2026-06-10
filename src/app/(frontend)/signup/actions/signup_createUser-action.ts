@@ -1,9 +1,17 @@
 'use server'
 
+import { cookies } from 'next/headers'
+
+import { createPasswordUser, setAuthCookie } from '@/infra/auth/web-auth'
 import { checkRateLimit } from './signup_rateLimit-action'
 import { SignupSchema, type SignupResult } from '../signup_schemas'
 
-export async function signupAction(formData: FormData): Promise<SignupResult> {
+type CookieStore = Parameters<typeof setAuthCookie>[0]['cookies']
+
+export async function signupAction(
+  formData: FormData,
+  _cookieStore?: CookieStore,
+): Promise<SignupResult> {
   const rawData = {
     name: formData.get('name'),
     email: formData.get('email'),
@@ -44,12 +52,25 @@ export async function signupAction(formData: FormData): Promise<SignupResult> {
   if (!checkRateLimit(emailHash)) {
     return {
       success: false,
-      message: 'Too many signup attempts. Please try again later.',
+      error: 'Too many signup attempts. Please try again later.',
     }
   }
 
-  return {
-    success: false,
-    message: 'Account creation is not available without a backend.',
+  const session = await createPasswordUser({
+    name: parsed.data.name,
+    email,
+    password,
+  })
+
+  if (!session) {
+    return {
+      success: false,
+      error: 'Email is already registered',
+    }
   }
+
+  const store = _cookieStore ?? (await cookies())
+  setAuthCookie({ cookies: store }, session.token)
+
+  return { success: true, userId: session.user.id, data: { userId: session.user.id } }
 }

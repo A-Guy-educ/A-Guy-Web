@@ -1,13 +1,13 @@
 name: Publish Complete
 
-# Triggered when a PR targeting main is closed (merged)
+# Triggered when a PR targeting dev is closed (merged)
 # Closes the associated publish issue since GitHub's "Closes #N"
-# only works for PRs merged into the default branch (dev), not main.
+# only works for PRs merged into the default branch.
 
 on:
   pull_request:
     types: [closed]
-    branches: [main]
+    branches: [dev]
 
 permissions:
   issues: write
@@ -38,7 +38,7 @@ jobs:
         run: |
           gh issue comment "$ISSUE_NUMBER" \
             --repo "${{ github.repository }}" \
-            --body "✅ Published to production! PR #${{ github.event.pull_request.number }} merged to \`main\`."
+            --body "✅ Published to production! PR #${{ github.event.pull_request.number }} merged to \`dev\`."
           gh issue close "$ISSUE_NUMBER" \
             --repo "${{ github.repository }}" \
             --reason completed
@@ -61,7 +61,7 @@ jobs:
             echo "Closing publish issue #$ISSUE"
             gh issue comment "$ISSUE" \
               --repo "${{ github.repository }}" \
-              --body "✅ Published to production! PR #${{ github.event.pull_request.number }} merged to \`main\`."
+              --body "✅ Published to production! PR #${{ github.event.pull_request.number }} merged to \`dev\`."
             gh issue close "$ISSUE" \
               --repo "${{ github.repository }}" \
               --reason completed
