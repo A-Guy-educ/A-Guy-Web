@@ -19,10 +19,8 @@ import { AccessGateProvider } from '@/ui/web/auth/AccessGateProvider'
 import { extractAllMediaIds } from '@/ui/web/exerciserenderer/utils/extractMediaIds'
 import { stripHtml } from '@/utils/strip-html'
 
-import { ExercisesPager } from './_components/ExercisesPager'
 import { LessonAnalytics } from './_components/LessonAnalytics'
 import { LessonIntroPage } from './_components/LessonIntroPage'
-import { PdfLessonPager } from './_components/PdfLessonPager'
 import { queryLessonBlocks } from '@/server/repos/queries/lesson-blocks'
 
 export const dynamic = 'force-dynamic'
@@ -193,43 +191,21 @@ export default async function LessonPage({ params }: LessonPageProps) {
         lessonTitle={lesson.title}
         contentType={contentType}
       />
-      {hasExerciseBlocks ? (
-        <ExercisesPager
-          exercises={exercises}
-          lessonTitle={lesson.title}
-          backUrl={backUrl}
-          courseSlug={courseSlug}
-          chapterSlug={chapterSlug}
-          lessonSlug={lessonSlug}
-          lessonId={lesson.id}
-          gradeLevel={course.courseLabel || ''}
-          mediaMap={mediaMap}
-          showChat={showChat}
-          formulaSheet={formulaSheet}
-        />
-      ) : mediaFiles.length > 0 ? (
-        <PdfLessonPager
-          validFiles={mediaFiles}
-          lessonTitle={lesson.title}
-          backUrl={backUrl}
-          courseSlug={courseSlug}
-          chapterSlug={chapterSlug}
-          lessonSlug={lessonSlug}
-          lessonId={lesson.id}
-          gradeLevel={course.courseLabel || ''}
-          chatLessonId={lesson.id}
-          showChat={showChat}
-          formulaSheet={formulaSheet}
-        />
-      ) : (
-        <LessonIntroPage
-          lesson={lesson}
-          blocks={blocks}
-          backUrl={backUrl}
-          showChat={showChat}
-          formulaSheet={formulaSheet}
-        />
-      )}
+      <LessonIntroPage
+        lesson={lesson}
+        blocks={blocks}
+        backUrl={backUrl}
+        showChat={showChat}
+        formulaSheet={formulaSheet}
+        exercises={exercises}
+        mediaFiles={mediaFiles}
+        mediaMap={mediaMap}
+        courseSlug={courseSlug}
+        chapterSlug={chapterSlug}
+        lessonSlug={lessonSlug}
+        lessonId={lesson.id}
+        gradeLevel={course.courseLabel || ''}
+      />
     </AccessGateProvider>
   )
 }
