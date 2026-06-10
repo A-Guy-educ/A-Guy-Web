@@ -1,6 +1,6 @@
 'use client'
 
-import type { User } from '@/payload-types'
+import type { User } from '@/infra/types/content'
 import { PageTransition } from '@/ui/web/components/page-transition'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { AccountHub } from './_components/AccountHub'

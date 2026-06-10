@@ -3,7 +3,7 @@
 import React from 'react'
 import { cn } from '@/infra/utils/ui'
 import { getMediaUrl } from '@/infra/utils/getMediaUrl'
-import type { Media } from '@/payload-types'
+import type { Media } from '@/infra/types/content'
 import { useMediaMap } from '../../context/MediaMapContext'
 
 interface MediaAttachmentsProps {

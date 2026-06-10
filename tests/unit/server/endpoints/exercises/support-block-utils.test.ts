@@ -4,7 +4,7 @@ import {
   hasExistingSupport,
   applyGeneratedSupport,
 } from '@/server/payload/endpoints/exercises/generate-support/support-block-utils'
-import type { ContentBlock, InlineRichText } from '@/server/payload/collections/Exercises/types'
+import type { ContentBlock, InlineRichText } from '@/infra/types/exercise'
 
 function makeRichText(value: string): InlineRichText {
   return { type: 'rich_text', format: 'md-math-v1', value, mediaIds: [] }

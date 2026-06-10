@@ -12,7 +12,7 @@ import type {
   MatchingPair,
   SvgHotspot,
   MediaBlock,
-} from '@/server/payload/collections/Exercises/types'
+} from '@/infra/types/exercise'
 
 export type {
   LatexBlock,
@@ -206,7 +206,7 @@ export interface ExerciseRendererProps {
   showCheckAnswer?: boolean
   className?: string
   /** Pre-resolved media objects keyed by ID, for rendering mediaIds in blocks */
-  mediaMap?: Record<string, import('@/payload-types').Media>
+  mediaMap?: Record<string, import('@/infra/types/content').Media>
   /** Exercise number to display in the bubble (defaults to 1) */
   exerciseNumber?: number
   /** Whether to show the exercise number bubble (defaults to false — enable when multiple exercises share a page) */

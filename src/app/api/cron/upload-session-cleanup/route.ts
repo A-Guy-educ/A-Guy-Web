@@ -1,27 +1,19 @@
-/**
- * POST /api/cron/upload-session-cleanup
- * API route for upload session cleanup cron job
- */
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
+import { NextResponse } from 'next/server'
 
-import { ENV } from '@/server/config/constants'
-import { uploadSessionCleanupEndpoint } from '@/server/payload/endpoints/cron/upload-session-cleanup'
+const disabled = { error: 'This endpoint is unavailable without the removed CMS backend.' }
 
-export async function POST(request: Request) {
-  const authHeader = request.headers.get('authorization')
-  const cronSecret = process.env[ENV.CRON_SECRET]
+export async function GET() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
-    return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+export async function POST() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-  const payload = await getPayload({ config: configPromise })
+export async function PATCH() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-  const payloadRequest = {
-    payload,
-    headers: request.headers,
-  } as Parameters<typeof uploadSessionCleanupEndpoint.handler>[0]
-
-  return await uploadSessionCleanupEndpoint.handler(payloadRequest)
+export async function DELETE() {
+  return NextResponse.json(disabled, { status: 410 })
 }

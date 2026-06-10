@@ -14,9 +14,9 @@
  */
 
 import { logger } from '@/infra/utils/logger'
-import { MongooseAdapter } from '@payloadcms/db-mongodb'
+import { MongooseAdapter } from '@/infra/types/backend'
 import type { Db } from 'mongodb'
-import { Payload } from 'payload'
+import { Payload } from '@/infra/types/backend'
 import { buildContextHierarchy } from '../../server/services/conversation-service'
 import { ChatRole } from './chat-message-role'
 import { generateEmbedding } from './embeddings'

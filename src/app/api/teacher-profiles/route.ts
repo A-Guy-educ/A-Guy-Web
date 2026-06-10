@@ -1,59 +1,41 @@
-/**
- * Teacher Profiles API
- *
- * GET /api/teacher-profiles
- * Returns list of active teacher profiles for profile selection UI
- */
+import { NextRequest, NextResponse } from 'next/server'
 
-import { getPayload } from 'payload'
+import { getContentDb, serializeDoc } from '@/infra/db/content-db'
 
-import config from '@payload-config'
-import { cookieName, defaultLocale, type Locale, locales } from '@/i18n/config'
-
-function getLocaleFromRequest(req: Request): Locale {
-  const cookieHeader = req.headers.get('cookie') ?? ''
-  const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${cookieName}=([^;]+)`))
-  const value = match?.[1] as Locale | undefined
-  return value && locales.includes(value) ? value : defaultLocale
+function localeFromRequest(request: NextRequest) {
+  return (
+    request.cookies.get('NEXT_LOCALE')?.value || request.cookies.get('aguy-locale')?.value || 'he'
+  )
 }
 
-export async function GET(req: Request) {
-  const payload = await getPayload({ config })
-
-  // Auth check - return 401 if not authenticated
-  const authResult = await payload.auth({ headers: req.headers })
-  if (!authResult.user) {
-    return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  const locale = getLocaleFromRequest(req)
-
-  // Fetch active teacher profiles for the user's locale
-  const profiles = await payload.find({
-    collection: 'teacher_profiles',
-    where: {
-      and: [{ isEnabled: { equals: true } }, { locale: { equals: locale } }],
-    },
-    sort: 'label',
-    overrideAccess: true, // Collection is adminOnly, but we're authenticated
-  })
-
-  // Map to safe response (no systemPrompt/template), deduplicate by slug
-  const seen = new Set<string>()
-  const responseProfiles = profiles.docs
-    .filter((profile) => {
-      if (seen.has(profile.slug)) return false
-      seen.add(profile.slug)
-      return true
+export async function GET(request: NextRequest) {
+  const db = await getContentDb()
+  const locale = localeFromRequest(request)
+  const docs = await db
+    .collection('teacher_profiles')
+    .find({
+      isEnabled: true,
+      $or: [{ locale }, { locale: { $exists: false } }],
     })
-    .map((profile) => ({
-      slug: profile.slug,
-      label: profile.label,
-      description: profile.description ?? '',
-      isEnabled: profile.isEnabled,
-    }))
+    .sort({ locale: -1, createdAt: 1 })
+    .toArray()
 
-  return Response.json({
-    profiles: responseProfiles,
+  const seen = new Set<string>()
+  const profiles = docs.flatMap((doc) => {
+    const profile = serializeDoc<Record<string, unknown>>(doc)
+    const slug = String(profile.slug || '')
+    if (!slug || seen.has(slug)) return []
+    seen.add(slug)
+    return [
+      {
+        id: String(profile.id),
+        slug,
+        label: String(profile.label || slug),
+        description: String(profile.description || ''),
+        isEnabled: profile.isEnabled !== false,
+      },
+    ]
   })
+
+  return NextResponse.json({ profiles })
 }

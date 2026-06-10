@@ -4,7 +4,7 @@ import type { Props } from './types'
 
 import { inferMediaType } from '@/infra/media/inferMediaType'
 import { MediaType } from '@/infra/media/types'
-import type { Media as PayloadMedia } from '@/payload-types'
+import type { Media as ContentMedia } from '@/infra/types/content'
 import { AudioMedia } from './AudioMedia'
 import { DocumentMedia } from './DocumentMedia'
 import { ExternalMedia } from './ExternalMedia'
@@ -17,7 +17,7 @@ import { VideoMedia } from './VideoMedia'
 
 function isLatexFile(resource: unknown): boolean {
   if (typeof resource === 'object' && resource) {
-    const filename = (resource as PayloadMedia).filename
+    const filename = (resource as ContentMedia).filename
     return !!filename && /\.tex$/i.test(filename)
   }
   return false
@@ -38,7 +38,7 @@ export const Media: React.FC<Props> = (props) => {
   let mediaType: MediaType = MediaType.Other
 
   if (typeof resource === 'object' && resource) {
-    const mediaResource = resource as PayloadMedia
+    const mediaResource = resource as ContentMedia
     if (mediaResource.type) {
       mediaType = mediaResource.type as MediaType
     } else if (mediaResource.mimeType) {

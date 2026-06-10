@@ -7,7 +7,7 @@
  *             Used by practice/exam lessons to present all LaTeX content as one document.
  */
 
-import type { LatexBlock } from '@/server/payload/collections/Exercises/types'
+import type { LatexBlock } from '@/infra/types/exercise'
 
 /** Shape of an exercise block carrying LaTeX source. Loosely typed to match Exercise.content. */
 interface LooseBlock {

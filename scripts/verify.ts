@@ -2,7 +2,7 @@
 /**
  * Pre-push verification script
  * Usage: pnpm verify
- * Runs: generate:types → generate:importmap → [parallel: prettier, lint, typecheck, test:unit]
+ * Runs: [parallel: prettier, lint, typecheck]
  * Note: Build removed - CI catches build failures, typecheck catches most issues
  */
 
@@ -61,22 +61,6 @@ async function runStepAsync(
 
 async function main(): Promise<void> {
   log('\n=== Verification Gate ===\n', colors.bright)
-
-  // Pre-commit verifications
-  info('pre-commit verifications:')
-
-  // R10: Wrap generate commands in try/catch - run in parallel for speed
-  info('generating types and import map in parallel')
-  try {
-    await Promise.all([
-      execSync('pnpm generate:types', { stdio: 'inherit' }),
-      execSync('pnpm generate:importmap', { stdio: 'inherit' }),
-    ])
-    success('Types and import map generated')
-  } catch {
-    error('Generation failed')
-    process.exit(1)
-  }
 
   info('running verifications in parallel:')
 

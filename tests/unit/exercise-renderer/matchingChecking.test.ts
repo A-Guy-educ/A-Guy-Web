@@ -3,7 +3,7 @@ import {
   checkQuestionAnswer,
   getInitialAnswer,
 } from '@/ui/web/exerciserenderer/utils/answerChecking'
-import type { QuestionMatchingBlock } from '@/server/payload/collections/Exercises/types'
+import type { QuestionMatchingBlock } from '@/infra/types/exercise'
 import type { UserAnswer } from '@/ui/web/exerciserenderer/types'
 
 const MESSAGES = {

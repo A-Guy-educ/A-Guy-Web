@@ -5,7 +5,7 @@ import { useLoadingState } from '@/infra/loading/hooks/useLoadingState'
 import { useRouterWithLoading } from '@/infra/loading/hooks/useRouterWithLoading'
 import { LOADING_KEYS } from '@/infra/loading/keys'
 import { SYSTEM_EVENTS, systemEventBus } from '@/infra/system-events'
-import type { Course } from '@/payload-types'
+import type { Course } from '@/infra/types/content'
 import { UnifiedCard } from '@/ui/web/components/UnifiedCard'
 import { SafeHtml } from '@/ui/web/SafeHtml'
 import { useTranslations } from '@/ui/web/providers/I18n'
@@ -76,6 +76,7 @@ export function CourseCard({ course, isOwned = false }: CourseCardProps) {
     const existingProfile = getUserProfile()
     setUserProfile({
       gradeLevel,
+      courseId: course.id,
       mood: existingProfile?.mood || '',
       lastVisit: new Date().toISOString(),
     })

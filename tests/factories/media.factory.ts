@@ -1,5 +1,5 @@
 import type { Payload } from 'payload'
-import type { Media } from '@/payload-types'
+import type { Media } from '@/infra/types/content'
 import type { TestDataTracker } from '../helpers/test-data-tracker'
 
 export interface MediaFactoryInput {

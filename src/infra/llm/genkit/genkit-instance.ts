@@ -12,7 +12,7 @@ import { googleAI } from '@genkit-ai/googleai'
 import type { Genkit } from 'genkit'
 import { genkit } from 'genkit'
 import { openAI } from 'genkitx-openai'
-import type { Payload } from 'payload'
+import type { Payload } from '@/infra/types/backend'
 import { LLMProviderType } from '../providers/types'
 
 /**

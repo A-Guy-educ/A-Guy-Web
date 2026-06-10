@@ -8,7 +8,7 @@
 import { z } from 'zod'
 import { logger } from '@/infra/utils/logger'
 import { isConfigLoaded, getSecret } from '@/infra/config/runtime/runtime-config'
-import type { Payload } from 'payload'
+import type { Payload } from '@/infra/types/backend'
 
 export const synthesizeRequestSchema = z.object({
   text: z.string().min(1).max(5000),

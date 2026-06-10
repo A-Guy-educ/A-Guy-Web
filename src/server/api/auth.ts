@@ -5,15 +5,14 @@
  * @domain api
  * @ai-summary Authentication guards for API routes — throws on failure rather than returning false for admin/auth checks (use hasValidTestSecret explicitly to allow test secret bypass).
  */
-import { isUsersCollectionUser } from '@/server/payload/access/isUsersCollectionUser'
-import { AccountRole } from '@/server/payload/collections/Users/roles'
-import type { User } from 'payload'
+import { AccountRole } from '@/infra/auth/roles'
+import type { User } from '@/infra/types/backend'
 
 /**
  * Check if user is authenticated (non-null and is a valid user collection user)
  */
 export function isAuthenticated(user: User | null): user is User & { collection: 'users' } {
-  return isUsersCollectionUser(user)
+  return Boolean(user && user.collection === 'users')
 }
 
 /**

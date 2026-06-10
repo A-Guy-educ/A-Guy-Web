@@ -1,4 +1,10 @@
-import { generateId } from '@/server/payload/collections/Exercises/types'
+/**
+ * @fileType utility
+ * @domain exercises
+ * @ai-summary Factory functions for ContentBlock subtypes (rich_text, latex, question_free_response, question_table, question_axis, question_geometry, question_select/mcq). All IDs are generated via generateId — if that function is not deterministic, block identity will vary across parses of the same source.
+ */
+
+import { generateId } from '@/infra/types/exercise'
 import type {
   RichTextBlock,
   LatexBlock,
@@ -8,7 +14,7 @@ import type {
   QuestionAxisBlock,
   QuestionGeometryBlock,
   InlineRichText,
-} from '@/server/payload/collections/Exercises/types'
+} from '@/infra/types/exercise'
 import type { AxisSpecV1 } from '@/infra/contracts/graphics/axis.v1'
 import type { GeometrySpecV1 } from '@/infra/contracts/graphics/geometry.v1'
 

@@ -1,6 +1,6 @@
 import type { Payload } from 'payload'
-import type { User } from '@/payload-types'
-import { AccountRole } from '@/server/payload/collections/Users/roles'
+import type { User } from '@/infra/types/content'
+import { AccountRole } from '@/infra/auth/roles'
 import type { TestDataTracker } from '../helpers/test-data-tracker'
 
 export interface UserFactoryInput {

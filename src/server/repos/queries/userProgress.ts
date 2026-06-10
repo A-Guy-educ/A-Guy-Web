@@ -1,99 +1,36 @@
-import configPromise from '@payload-config'
-import { getPayload } from 'payload'
 import { cache } from 'react'
 
-interface UserProgressRecord {
-  recordType: string
-  recordId: string
-  completionPercentage?: number | null
-  status?: string
-  score?: number | null
-  lastAccessedAt?: string | null
-}
+import { findUserProgress, type ProgressRecord } from '@/server/web-api/progress'
 
-// Study plan types (mirrored from lib/study-plan/types.ts to avoid import issues)
-interface StudyPlanTopicInput {
-  topicId: string
-  topicLabel: string
-  mastery: 'weak' | 'medium' | 'strong'
-}
-
-interface StudyPlanDay {
-  dayId: string
-  date: string
-  activityType: 'practice' | 'hybrid' | 'full_simulation' | 'reinforcement' | 'warmup'
-  topicIds: string[]
-  status: 'planned' | 'completed'
-  estimatedDurationMinutes: number
-}
-
-interface StudyPlanSnapshot {
-  courseId: string
-  examDate: string
-  generatedAt: string
-  topics: StudyPlanTopicInput[]
-  days: StudyPlanDay[]
-}
-
-interface UserProgressDoc {
-  id: string
-  user: string
-  gradeLevel: string
-  progressRecords?: UserProgressRecord[]
-  studyPlans?: StudyPlanSnapshot[]
-}
-
-/**
- * Get user progress by grade level
- */
 export const queryUserProgressByGrade = cache(
-  async ({ userId, gradeLevel }: { userId: string; gradeLevel: string }) => {
-    const payload = await getPayload({ config: configPromise })
-
-    const result = await payload.find({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      collection: 'user-progress' as any,
-      where: {
-        and: [{ user: { equals: userId } }, { gradeLevel: { equals: gradeLevel } }],
-      },
-      limit: 1,
-      pagination: false,
-    })
-
-    return (result.docs?.[0] as UserProgressDoc | undefined) || null
-  },
+  async ({ userId, gradeLevel }: { userId: string; gradeLevel: string }) =>
+    findUserProgress(userId, gradeLevel),
 )
 
-/**
- * Get progress for specific chapters (returns map: chapterId → percentage)
- */
 export const queryChapterProgress = cache(
   async ({
     userId,
-    chapterIds,
+    chapterIds: _chapterIds,
     gradeLevel,
   }: {
     userId: string
     chapterIds: string[]
     gradeLevel: string
   }) => {
-    const progressData = await queryUserProgressByGrade({ userId, gradeLevel })
-    if (!progressData) return {}
-
-    const progressMap: Record<string, number> = {}
-    progressData.progressRecords?.forEach((record: UserProgressRecord) => {
-      if (record.recordType === 'chapter' && chapterIds.includes(record.recordId)) {
-        progressMap[record.recordId] = record.completionPercentage || 0
-      }
-    })
-
-    return progressMap
+    const progress = await findUserProgress(userId, gradeLevel)
+    const records = progress?.progressRecords ?? []
+    return records
+      .filter((record: ProgressRecord) => record.recordType === 'chapter')
+      .reduce<Record<string, { completionPercentage: number; status: string }>>((acc, record) => {
+        acc[record.recordId] = {
+          completionPercentage: record.completionPercentage ?? 0,
+          status: record.status ?? 'not_started',
+        }
+        return acc
+      }, {})
   },
 )
 
-/**
- * Get study plan for a specific course
- */
 export const queryStudyPlan = cache(
   async ({
     userId,
@@ -104,10 +41,14 @@ export const queryStudyPlan = cache(
     gradeLevel: string
     courseId: string
   }) => {
-    const doc = await queryUserProgressByGrade({ userId, gradeLevel })
+    const progress = await findUserProgress(userId, gradeLevel)
+    const plans = Array.isArray(progress?.studyPlans) ? progress.studyPlans : []
     return (
-      (doc?.studyPlans?.find((p) => p.courseId === courseId) as StudyPlanSnapshot | undefined) ||
-      null
+      plans.find((plan) => {
+        return Boolean(
+          plan && typeof plan === 'object' && (plan as { courseId?: string }).courseId === courseId,
+        )
+      }) ?? null
     )
   },
 )

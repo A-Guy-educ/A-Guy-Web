@@ -3,7 +3,7 @@
 import { storeLessonOpenTimestamp } from '@/infra/analytics/utils/lesson-load-timing'
 import { SYSTEM_EVENTS, systemEventBus } from '@/infra/system-events'
 import { SafeHtml } from '@/ui/web/SafeHtml'
-import type { Lesson } from '@/payload-types'
+import type { Lesson } from '@/infra/types/content'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { UnifiedCard } from '@/ui/web/components/UnifiedCard'
 import { toast } from 'sonner'

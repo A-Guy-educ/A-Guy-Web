@@ -15,7 +15,7 @@
  * which is acceptable for a feature where lesson generation is rare.
  */
 
-import type { Payload } from 'payload'
+import type { Payload } from '@/infra/types/backend'
 
 export interface PublishedInteractiveLessonPrompt {
   id: string

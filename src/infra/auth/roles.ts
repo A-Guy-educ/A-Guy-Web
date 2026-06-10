@@ -5,7 +5,7 @@
  * NOT to be confused with ChatRole in src/lib/ai/chat-message-role.ts
  *
  * Canonical location: @/infra/auth/roles
- * Re-exported from @/server/payload/collections/Users/roles for backward compat
+ * Re-exported from @/infra/auth/roles for backward compat
  *
  * Values:
  * - admin: Platform administrator with full access

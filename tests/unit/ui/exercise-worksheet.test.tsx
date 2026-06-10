@@ -13,7 +13,7 @@ import enMessages from '../../../src/i18n/en.json'
 import heMessages from '../../../src/i18n/he.json'
 import { I18nProvider } from '@/ui/web/providers/I18n'
 import { ExerciseWorksheet } from '@/ui/web/exerciserenderer/ExerciseWorksheet'
-import type { ContentBlock } from '@/server/payload/collections/Exercises/types'
+import type { ContentBlock } from '@/infra/types/exercise'
 
 vi.mock('@/ui/web/exerciserenderer/blocks/RichTextRenderer', () => ({
   RichTextRenderer: ({ block }: { block: { value: string } }) => (

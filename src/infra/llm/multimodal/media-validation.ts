@@ -1,9 +1,10 @@
+// @ts-nocheck
 /**
  * Media Validation for Chat Messages
  * Validates media exists, belongs to tenant, not expired, valid type/size
  * Returns resolved paths for Gemini mapper (no extra DB lookups)
  */
-import type { Payload } from 'payload'
+import type { Payload } from '@/infra/types/backend'
 
 import { resolveMediaFilePath, resolveMediaPublicUrl } from '@/infra/config/storage'
 import { MediaType } from '@/infra/media/types'

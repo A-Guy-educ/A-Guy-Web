@@ -9,11 +9,7 @@ import '@testing-library/jest-dom'
 import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import React from 'react'
-import type {
-  ContentBlock,
-  QuestionAxisBlock,
-  RichTextBlock,
-} from '@/server/payload/collections/Exercises/types'
+import type { ContentBlock, QuestionAxisBlock, RichTextBlock } from '@/infra/types/exercise'
 
 interface ExerciseContent {
   blocks: ContentBlock[]

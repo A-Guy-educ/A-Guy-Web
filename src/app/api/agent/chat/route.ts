@@ -1,94 +1,70 @@
-// Initialize server-side config lazy loading before any other imports
-// This ensures config values can be lazily loaded when accessed
-import '@/infra/config/server-init'
-
-import { logger } from '@/infra/utils/logger/logger'
-import { agentChat } from '@/server/payload/endpoints/agent/chat'
-import config from '@payload-config'
 import { NextRequest, NextResponse } from 'next/server'
-import { getPayload } from 'payload'
+import { z } from 'zod'
+
+import {
+  appendMessage,
+  generateAssistantReply,
+  getOrCreateConversation,
+  resolveContextKey,
+} from '@/server/web-api/chat'
+import {
+  getOrCreateGuestId,
+  getWebUser,
+  publicUserId,
+  withGuestCookie,
+} from '@/infra/web-api/mongo-payload'
+
+const BodySchema = z.object({
+  message: z.string().min(1),
+  acknowledgment: z.string().optional(),
+  exerciseId: z.string().optional(),
+  lessonId: z.string().optional(),
+  chapterId: z.string().optional(),
+  courseId: z.string().optional(),
+  categoryId: z.string().optional(),
+  mediaIds: z.array(z.string()).optional(),
+  chatAssetIds: z.array(z.string()).optional(),
+  contextKeyOverride: z.string().optional(),
+})
 
 export async function POST(request: NextRequest) {
-  const requestId = crypto.randomUUID()
+  const parsed = BodySchema.safeParse(await request.json().catch(() => null))
+  if (!parsed.success) return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
 
-  try {
-    logger.info({ requestId, url: request.url }, 'Chat request received')
+  const body = parsed.data
+  const contextKey = resolveContextKey(body, body.contextKeyOverride)
+  if (!contextKey) return NextResponse.json({ error: 'Missing context ID' }, { status: 400 })
 
-    // Parse request body early to validate
-    const body = await request.json()
+  const guestId = getOrCreateGuestId(request)
+  const user = await getWebUser(request.headers)
+  const ownerId = publicUserId(user, guestId)
+  const conversation = await getOrCreateConversation(ownerId, contextKey)
 
-    // Validate required fields
-    // At least one context ID must be provided OR adminMode must be true
-    const hasContext =
-      body.exerciseId || body.lessonId || body.chapterId || body.courseId || body.categoryId
-    const hasAdminMode = body.adminMode === true
+  await appendMessage(String(conversation.id), {
+    role: 'user',
+    content: body.message,
+    media: body.mediaIds?.map((mediaId) => ({ mediaId })),
+    chatAssets: body.chatAssetIds?.map((chatAssetId) => ({ chatAssetId })),
+  })
 
-    if (!hasContext && !hasAdminMode) {
-      logger.warn(
-        {
-          requestId,
-          body: {
-            exerciseId: body.exerciseId,
-            lessonId: body.lessonId,
-            chapterId: body.chapterId,
-            courseId: body.courseId,
-            categoryId: body.categoryId,
-            adminMode: body.adminMode,
-          },
-        },
-        'Missing context ID in chat request (requires exerciseId, lessonId, chapterId, courseId, categoryId, or adminMode)',
-      )
-      return NextResponse.json(
-        {
-          error:
-            'Missing context ID (requires exerciseId, lessonId, chapterId, courseId, categoryId, or adminMode)',
-          requestId,
-        },
-        { status: 400 },
-      )
-    }
+  const message = await generateAssistantReply({
+    message: body.message,
+    acknowledgment: body.acknowledgment,
+    history: Array.isArray(conversation.messages) ? conversation.messages : [],
+    mediaIds: body.mediaIds,
+    chatAssetIds: body.chatAssetIds,
+  })
 
-    if (!body.message?.trim()) {
-      logger.warn({ requestId }, 'Missing or empty message in chat request')
-      return NextResponse.json({ error: 'Missing message', requestId }, { status: 400 })
-    }
+  await appendMessage(String(conversation.id), { role: 'assistant', content: message })
 
-    const payload = await getPayload({ config })
-    const { user } = await payload.auth({ headers: request.headers })
-
-    const payloadRequest = {
-      payload,
-      user,
-      url: request.url,
-      headers: request.headers,
-      json: async () => body, // Return the already-parsed body
-    } as Parameters<typeof agentChat>[0]
-
-    logger.info(
-      {
-        requestId,
-        exerciseId: body.exerciseId,
-        lessonId: body.lessonId,
-        chapterId: body.chapterId,
-        courseId: body.courseId,
-      },
-      'Processing chat request',
-    )
-    return await agentChat(payloadRequest)
-  } catch (error) {
-    logger.error({ err: error, requestId }, 'Agent chat route error')
-    const Sentry = await import('@sentry/nextjs')
-    Sentry.captureException(error, { tags: { route: '/api/agent/chat' } })
-
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : 'Internal server error',
-        requestId,
-        ...(process.env.NODE_ENV === 'development' && error instanceof Error
-          ? { stack: error.stack }
-          : {}),
-      },
-      { status: 500 },
-    )
-  }
+  return withGuestCookie(
+    NextResponse.json({
+      success: true,
+      message,
+      conversationId: conversation.id,
+      contextKey,
+      isGuestMode: !user,
+    }),
+    guestId,
+  )
 }

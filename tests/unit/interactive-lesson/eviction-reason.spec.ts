@@ -15,7 +15,7 @@ import {
 import * as promptCacheModule from '@/infra/llm/services/interactive-lesson/published-prompt-cache'
 import { INTERACTIVE_LESSON_CACHE_SCHEMA_VERSION } from '@/infra/llm/services/interactive-lesson/cache-schema-version'
 import type { Payload } from 'payload'
-import type { InteractiveLesson as CachedLessonDoc } from '@/payload-types'
+import type { InteractiveLesson as CachedLessonDoc } from '@/infra/types/content'
 
 // A minimal "well-formed" lesson body — everything else can be stubs.
 const goodLesson = {

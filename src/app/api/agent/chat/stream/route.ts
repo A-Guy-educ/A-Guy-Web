@@ -1,108 +1,79 @@
-// Initialize server-side config lazy loading before any other imports
-// This ensures config values can be lazily loaded when accessed
-import '@/infra/config/server-init'
+import { NextRequest } from 'next/server'
+import { z } from 'zod'
 
-import { logger } from '@/infra/utils/logger/logger'
-import { agentChatStream } from '@/server/payload/endpoints/agent/chat-stream'
-import config from '@payload-config'
-import { NextRequest, NextResponse } from 'next/server'
-import { getPayload } from 'payload'
+import {
+  appendMessage,
+  generateAssistantReply,
+  getOrCreateConversation,
+  resolveContextKey,
+  toSse,
+} from '@/server/web-api/chat'
+import {
+  GUEST_SESSION_COOKIE,
+  getOrCreateGuestId,
+  getWebUser,
+  publicUserId,
+} from '@/infra/web-api/mongo-payload'
+
+const BodySchema = z.object({
+  message: z.string().min(1),
+  acknowledgment: z.string().optional(),
+  exerciseId: z.string().optional(),
+  lessonId: z.string().optional(),
+  chapterId: z.string().optional(),
+  courseId: z.string().optional(),
+  categoryId: z.string().optional(),
+  contextKeyOverride: z.string().optional(),
+})
 
 export async function POST(request: NextRequest) {
-  const requestId = crypto.randomUUID()
+  const parsed = BodySchema.safeParse(await request.json().catch(() => null))
+  if (!parsed.success) return Response.json({ error: 'Invalid request' }, { status: 400 })
 
-  try {
-    logger.info({ requestId, url: request.url }, 'Streaming chat request received')
+  const body = parsed.data
+  const contextKey = resolveContextKey(body, body.contextKeyOverride)
+  if (!contextKey) return Response.json({ error: 'Missing context ID' }, { status: 400 })
 
-    // Parse request body early to validate
-    const body = await request.json()
+  const guestId = getOrCreateGuestId(request)
+  const user = await getWebUser(request.headers)
+  const ownerId = publicUserId(user, guestId)
+  const conversation = await getOrCreateConversation(ownerId, contextKey)
 
-    // Validate required fields
-    const hasContext =
-      body.exerciseId || body.lessonId || body.chapterId || body.courseId || body.categoryId
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      const encoder = new TextEncoder()
+      try {
+        await appendMessage(String(conversation.id), { role: 'user', content: body.message })
+        const reply = await generateAssistantReply({
+          message: body.message,
+          acknowledgment: body.acknowledgment,
+          history: Array.isArray(conversation.messages) ? conversation.messages : [],
+        })
+        await appendMessage(String(conversation.id), { role: 'assistant', content: reply })
 
-    if (!hasContext) {
-      logger.warn(
-        {
-          requestId,
-          body: {
-            exerciseId: body.exerciseId,
-            lessonId: body.lessonId,
-            chapterId: body.chapterId,
-            courseId: body.courseId,
-            categoryId: body.categoryId,
-            adminMode: body.adminMode,
-          },
-        },
-        'Missing context ID in streaming chat request (requires exerciseId, lessonId, chapterId, courseId, categoryId, or adminMode)',
-      )
-      return NextResponse.json(
-        {
-          error:
-            'Missing context ID (requires exerciseId, lessonId, chapterId, courseId, categoryId, or adminMode)',
-          requestId,
-        },
-        { status: 400 },
-      )
-    }
+        const chunks = reply.match(/.{1,80}(\s|$)/g) || [reply]
+        for (const chunk of chunks)
+          controller.enqueue(encoder.encode(toSse('chunk', { text: chunk })))
+        controller.enqueue(
+          encoder.encode(toSse('done', { conversationId: conversation.id, contextKey })),
+        )
+      } catch (error) {
+        controller.enqueue(
+          encoder.encode(
+            toSse('error', { error: error instanceof Error ? error.message : 'Chat failed' }),
+          ),
+        )
+      } finally {
+        controller.close()
+      }
+    },
+  })
 
-    // Reject media attachments for streaming
-    if (body.mediaIds && body.mediaIds.length > 0) {
-      logger.warn(
-        { requestId, mediaIds: body.mediaIds },
-        'Media attachments not supported in streaming mode',
-      )
-      return NextResponse.json(
-        {
-          error: 'Media attachments are not supported in streaming mode',
-          requestId,
-        },
-        { status: 400 },
-      )
-    }
-
-    // Get Payload instance and authenticate
-    const payload = await getPayload({ config })
-    const { user } = await payload.auth({ headers: request.headers })
-
-    const payloadRequest = {
-      payload,
-      user,
-      url: request.url,
-      headers: request.headers,
-      json: async () => body,
-    } as Parameters<typeof agentChatStream>[0]
-
-    logger.info(
-      {
-        requestId,
-        exerciseId: body.exerciseId,
-        lessonId: body.lessonId,
-        chapterId: body.chapterId,
-        courseId: body.courseId,
-      },
-      'Processing streaming chat request',
-    )
-
-    return await agentChatStream(payloadRequest)
-  } catch (error) {
-    logger.error({ err: error, requestId }, 'Streaming chat route error')
-    const Sentry = await import('@sentry/nextjs')
-    Sentry.captureException(error, { tags: { route: '/api/agent/chat/stream' } })
-
-    if (error instanceof Error && error.message.includes('Authentication')) {
-      return NextResponse.json({ error: 'Authentication required', requestId }, { status: 401 })
-    }
-
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : 'Internal server error',
-        requestId,
-        ...(process.env.NODE_ENV === 'development' && error instanceof Error
-          ? { stack: error.stack }
-          : {}),
-      },
-      { status: 500 },
-    )
-  }
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-store',
+      'Set-Cookie': `${GUEST_SESSION_COOKIE}=${guestId}; Path=/; Max-Age=2592000; SameSite=Lax`,
+    },
+  })
 }

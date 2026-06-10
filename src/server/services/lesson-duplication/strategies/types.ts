@@ -7,11 +7,8 @@
  * @ai-summary Defines the VariationStrategy interface and VariationResult type used by the duplication router.
  */
 
-import type { Exercise } from '@/payload-types'
-import type {
-  DuplicationLevel,
-  DuplicationSubject,
-} from '@/server/payload/collections/LessonDuplications'
+import type { Exercise } from '@/infra/types/content'
+import type { DuplicationLevel, DuplicationSubject } from '@/infra/types/backend'
 
 /**
  * Return type for all variation strategies.

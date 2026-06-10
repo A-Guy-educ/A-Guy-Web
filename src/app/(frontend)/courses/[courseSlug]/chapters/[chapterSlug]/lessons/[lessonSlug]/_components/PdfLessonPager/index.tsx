@@ -2,7 +2,7 @@
 
 import { ExerciseWorkspace } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseWorkspace'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
-import type { Media } from '@/payload-types'
+import type { Media } from '@/infra/types/content'
 import { ChatInterface } from '@/ui/web/chat'
 import { Button } from '@/ui/web/components/button'
 import { Progress } from '@/ui/web/components/progress'
@@ -25,7 +25,10 @@ interface PdfLessonPagerProps {
   /** Whether to show the chat panel (true when lesson has exercises or context text) */
   showChat?: boolean
   /** Formula sheet data (passed to ChatInterface) */
-  formulaSheet?: import('@/payload-types').FormulaSheet | null
+  formulaSheet?: import('@/infra/types/content').FormulaSheet | null
+  /** When provided, overrides URL-based state initialization — used when PdfLessonPager
+   *  is rendered as a child after LessonIntroPage (skip the intro page). */
+  initialPageState?: { type: 'intro' | 'pdf' | 'outro'; pageNumber: number }
 }
 
 export function PdfLessonPager({
@@ -40,6 +43,7 @@ export function PdfLessonPager({
   chatLessonId,
   showChat,
   formulaSheet,
+  initialPageState,
 }: PdfLessonPagerProps) {
   const t = useTranslations('courses')
   const {
@@ -59,6 +63,7 @@ export function PdfLessonPager({
     lessonSlug,
     lessonId,
     gradeLevel,
+    initialPageState,
   })
 
   if (pageState.type === 'pdf') {

@@ -6,10 +6,9 @@
  * @ai-summary Wrap every Next.js API route with this instead of writing auth/parsing/error-handling inline — it owns the try/catch and treats operational errors (ValidationError, "not found", "already exists") as 400s and all others as 500s.
  */
 import * as Sentry from '@sentry/nextjs'
-import configPromise from '@payload-config'
 import { NextRequest, NextResponse } from 'next/server'
-import type { User } from 'payload'
-import { getPayload } from 'payload'
+import type { User } from '@/infra/types/backend'
+import { getPayload } from '@/infra/types/backend'
 import type { ZodSchema } from 'zod'
 import { requireAdmin, requireAdminOrTestSecret, requireAuthenticated } from './auth'
 import { createApiLogger } from './logger'
@@ -40,7 +39,7 @@ export function withApiHandler<TBody = unknown, TQuery = unknown>(
     const requestId = request.headers.get('x-request-id') || crypto.randomUUID()
 
     try {
-      const payload = await getPayload({ config: configPromise })
+      const payload = await getPayload()
       const { user } = await payload.auth({ headers: request.headers })
       const authHeader = request.headers.get('authorization')
 

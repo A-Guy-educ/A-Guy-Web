@@ -1,7 +1,7 @@
 'use client'
 
 import { SystemLink } from '@/infra/loading/components/SystemLink'
-import type { Chapter } from '@/payload-types'
+import type { Chapter } from '@/infra/types/content'
 import { Card, CardHeader, CardTitle, CardDescription } from '@/ui/web/components/card'
 import { ProgressCircle } from '@/ui/web/shared/ProgressCircle'
 

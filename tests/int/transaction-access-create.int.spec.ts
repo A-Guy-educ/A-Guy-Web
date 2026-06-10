@@ -8,7 +8,7 @@
  * overrideAccess: true, so legitimate creation paths still work.
  */
 
-import { AccountRole } from '@/server/payload/collections/Users/roles'
+import { AccountRole } from '@/infra/auth/roles'
 import config from '@payload-config'
 import type { Payload } from 'payload'
 import { getPayload } from 'payload'

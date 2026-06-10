@@ -9,8 +9,8 @@
  * @pattern prompt-resolution
  */
 
-import type { Payload } from 'payload'
-import type { Prompt } from '@/payload-types'
+import type { Payload } from '@/infra/types/backend'
+import type { Prompt } from '@/infra/types/content'
 
 export interface ResolvedPrompt {
   prompt: Prompt

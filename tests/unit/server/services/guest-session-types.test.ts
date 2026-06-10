@@ -48,10 +48,10 @@ describe('guest-session.ts type safety', () => {
 
     it('should be a type alias to GuestSession from payload-types', () => {
       // After fix, GuestSessionDoc should reference the generated GuestSession type
-      // import type { GuestSession } from '@/payload-types'
+      // import type { GuestSession } from '@/infra/types/content'
       // export type GuestSessionDoc = GuestSession
       const hasPayloadTypesImport = sourceCode.includes(
-        "import type { GuestSession } from '@/payload-types'",
+        "import type { GuestSession } from '@/infra/types/content'",
       )
 
       expect(hasPayloadTypesImport).toBe(true)

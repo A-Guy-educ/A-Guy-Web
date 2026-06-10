@@ -1,4 +1,8 @@
 /**
+ * @fileType parser
+ * @domain exercises
+ * @ai-summary Parses \enumerate environments into question_free_response blocks. isExerciseEnumerate uses spacing heuristics (itemsep ≥ 1cm) to distinguish exercise lists from MCQ sub-option lists — fragile if Bagrut exam format conventions change.
+ *
  * Parses \begin{enumerate}[label=\alph*.] environments into question blocks.
  *
  * Bagrut exam pattern:
@@ -11,7 +15,7 @@
  *   \begin{enumerate}[label=\textbf{\alph*.}, start=2]
  */
 
-import type { ContentBlock } from '@/server/payload/collections/Exercises/types'
+import type { ContentBlock } from '@/infra/types/exercise'
 import { makeFreeResponseBlock, makeRichTextBlock } from '@/lib/latex-parser/block-generators'
 
 /** Extract the start index from enumerate options like [label=\alph*., start=3] */

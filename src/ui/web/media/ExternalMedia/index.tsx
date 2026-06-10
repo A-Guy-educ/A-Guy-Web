@@ -3,7 +3,7 @@
 import { cn } from '@/infra/utils/ui'
 import React from 'react'
 
-import type { Media } from '@/payload-types'
+import type { Media } from '@/infra/types/content'
 import type { Props as MediaProps } from '../types'
 
 /**
