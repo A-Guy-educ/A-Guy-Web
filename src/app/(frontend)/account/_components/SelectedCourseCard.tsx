@@ -36,24 +36,26 @@ export function SelectedCourseCard() {
       return
     }
 
-    fetchCourse(profile.gradeLevel, controller.signal)
+    fetchCourse(profile.gradeLevel, profile.courseId, controller.signal)
 
     return () => {
       controller.abort()
     }
   }, [])
 
-  const fetchCourse = async (gradeLevel: string, signal?: AbortSignal) => {
+  const fetchCourse = async (gradeLevel: string, courseId?: string, signal?: AbortSignal) => {
     setLoadingState('loading')
     try {
       const baseUrl = getClientSideURL()
-      const params = new URLSearchParams({
-        'where[courseLabel][equals]': gradeLevel,
-        'where[status][equals]': 'published',
-        'where[isActive][equals]': 'true',
-        limit: '1',
-        depth: '1',
-      })
+      const params = courseId
+        ? new URLSearchParams({ id: courseId })
+        : new URLSearchParams({
+            'where[courseLabel][equals]': gradeLevel,
+            'where[status][equals]': 'published',
+            'where[isActive][equals]': 'true',
+            limit: '1',
+            depth: '1',
+          })
 
       const response = await fetch(`${baseUrl}/api/courses?${params.toString()}`, { signal })
 
@@ -93,7 +95,7 @@ export function SelectedCourseCard() {
     const controller = new AbortController()
     const profile = getUserProfile()
     if (profile?.gradeLevel) {
-      fetchCourse(profile.gradeLevel, controller.signal)
+      fetchCourse(profile.gradeLevel, profile.courseId, controller.signal)
     }
   }
 

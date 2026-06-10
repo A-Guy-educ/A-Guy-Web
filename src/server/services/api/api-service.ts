@@ -6,7 +6,7 @@
  */
 import { ChatRole } from '@/infra/llm/chat-message-role'
 import { logger } from '@/infra/utils/logger'
-import { parseSSEData } from '@/server/payload/endpoints/agent/chat/sse-helpers'
+import { parseSSEData } from '@/infra/types/backend'
 
 export interface ChatApiResponse {
   success: boolean

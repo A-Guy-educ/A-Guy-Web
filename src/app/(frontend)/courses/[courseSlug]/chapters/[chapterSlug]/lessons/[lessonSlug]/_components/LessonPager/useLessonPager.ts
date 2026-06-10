@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react'
 import type { ResolvedLessonBlock } from '@/server/repos/queries/lesson-blocks'
-import type { Exercise, ContentPage } from '@/payload-types'
+import type { Exercise, ContentPage } from '@/infra/types/content'
 
 type PageType = 'intro' | 'block' | 'pdf' | 'outro'
 

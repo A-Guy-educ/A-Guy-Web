@@ -8,7 +8,7 @@
  */
 
 import type { NextRequest, NextResponse } from 'next/server'
-import type { Payload } from 'payload'
+import type { Payload } from '@/infra/types/backend'
 import { AUTH_COOKIE_OPTIONS, STATE_COOKIE_OPTIONS, getCookieName } from './oauth_constants'
 
 export function readCookie(req: NextRequest, name: string): string | undefined {

@@ -1,6 +1,6 @@
 import React from 'react'
 
-import type { Page } from '@/payload-types'
+import type { Hero } from '@/infra/types/content'
 
 import RichText from '@/ui/web/RichText'
 
@@ -9,16 +9,16 @@ type LowImpactHeroType =
       children?: React.ReactNode
       richText?: never
     }
-  | (Omit<Page['hero'], 'richText'> & {
+  | (Omit<Hero, 'richText'> & {
       children?: never
-      richText?: Page['hero']['richText']
+      richText?: Hero['richText']
     })
 
 export const LowImpactHero: React.FC<LowImpactHeroType> = ({ children, richText }) => {
   return (
     <div className="container mt-section-md">
       <div className="max-w-[48rem]">
-        {children || (richText && <RichText data={richText} enableGutter={false} />)}
+        {children || (Boolean(richText) && <RichText data={richText} enableGutter={false} />)}
       </div>
     </div>
   )

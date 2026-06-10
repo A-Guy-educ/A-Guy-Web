@@ -1,32 +1,20 @@
-/**
- * @fileType utility
- * @domain payload
- * @pattern cached-redirect-rules
- * @ai-summary Fetches all redirect rules from Payload and caches them as a single lump-sum tag; adding or removing a redirect invalidates the entire cache, not just the changed entry.
- */
-
-import configPromise from '@payload-config'
-import { getPayload } from 'payload'
 import { unstable_cache } from 'next/cache'
 
-export async function getRedirects(depth = 1) {
-  const payload = await getPayload({ config: configPromise })
-
-  const { docs: redirects } = await payload.find({
-    collection: 'redirects',
-    depth,
-    limit: 0,
-    pagination: false,
-  })
-
-  return redirects
+export interface RedirectRule {
+  from?: string | null
+  to?: {
+    url?: string | null
+    reference?: {
+      relationTo: string
+      value: string | { slug?: string | null }
+    } | null
+  } | null
 }
 
-/**
- * Returns a unstable_cache function mapped with the cache tag for 'redirects'.
- *
- * Cache all redirects together to avoid multiple fetches.
- */
+export async function getRedirects(_depth = 1): Promise<RedirectRule[]> {
+  return []
+}
+
 export const getCachedRedirects = () =>
   unstable_cache(async () => getRedirects(), ['redirects'], {
     tags: ['redirects'],

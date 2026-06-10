@@ -12,7 +12,7 @@ import {
   ContentBlockSchema,
   ContentSchema,
 } from '@/server/payload/collections/Exercises/schemas'
-import type { MediaBlock } from '@/server/payload/collections/Exercises/types'
+import type { MediaBlock } from '@/infra/types/exercise'
 import { ExerciseBlockDefaults, generateId } from '@/server/payload/collections/Exercises/defaults'
 
 describe('MediaBlock Schema Validation', () => {

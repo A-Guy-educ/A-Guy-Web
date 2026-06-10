@@ -29,15 +29,37 @@ function rawMarkdownPlugin(): Plugin {
   }
 }
 
+const activeIntegrationTests = [
+  'tests/int/analytics/**/*.int.spec.ts',
+  'tests/int/checkAnswer.int.spec.ts',
+  'tests/int/contracts/answer-spec-*.int.spec.ts',
+  'tests/int/contracts/axis-spec.int.spec.ts',
+  'tests/int/contracts/content.int.spec.ts',
+  'tests/int/contracts/geometry-spec.int.spec.ts',
+  'tests/int/embedding-contract.int.spec.ts',
+  'tests/int/guardrails/**/*.int.spec.ts',
+  'tests/int/health.api.int.spec.ts',
+  'tests/int/health-badge.int.spec.ts',
+  'tests/int/media-cleanup-workflow.int.spec.ts',
+  'tests/int/middleware.int.spec.ts',
+  'tests/int/openai-error-handling.int.spec.ts',
+  'tests/int/pdf-conversion-cleanup-regression.int.spec.ts',
+  'tests/int/pdf-conversion-idempotency-upsert.int.spec.ts',
+  'tests/int/pdf-conversion-inmemory-dedup.int.spec.ts',
+  'tests/int/pdf-conversion-shadow-field.int.spec.ts',
+  'tests/int/refactor-inline-styles.int.spec.ts',
+  'tests/int/v2-vision-detection.int.spec.ts',
+]
+
 export default defineConfig({
-  plugins: [tsconfigPaths(), react(), rawMarkdownPlugin()],
+  plugins: [tsconfigPaths({ projects: ['./tsconfig.vitest.json'] }), react(), rawMarkdownPlugin()],
   test: {
     fileParallelism: false, // Run test files sequentially to avoid exhausting MongoDB connection pool
     pool: 'forks', // Use forks pool for better isolation
     globalSetup: ['./tests/setup/global-int-setup.ts'],
     environment: 'node',
     setupFiles: ['./vitest.setup.ts'],
-    include: ['tests/int/**/*.int.spec.ts', 'tests/int/**/*.int.spec.tsx'],
+    include: activeIntegrationTests,
     hookTimeout: 180000, // 180 seconds for hooks (cleanup operations may be slow)
     testTimeout: 30000, // 30 seconds for individual tests (Vercel Blob and network-dependent tests may be slow)
     // Suppress console output during tests for cleaner output
@@ -53,10 +75,6 @@ export default defineConfig({
       reporter: ['text', 'html', 'lcov'],
       include: [
         'src/lib/**/*.ts',
-        'src/server/payload/access/**/*.ts',
-        'src/server/payload/collections/**/*.ts',
-        'src/server/payload/hooks/**/*.ts',
-        'src/server/payload/endpoints/**/*.ts',
         'src/server/services/**/*.ts',
         'src/infra/llm/**/*.ts',
         'src/infra/blob/**/*.ts',

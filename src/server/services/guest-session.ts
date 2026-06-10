@@ -14,8 +14,8 @@
  */
 
 import { ObjectId, type Collection, type Document } from 'mongodb'
-import type { Payload } from 'payload'
-import type { GuestSession } from '@/payload-types'
+import type { Payload } from '@/infra/types/backend'
+import type { GuestSession } from '@/infra/types/content'
 import crypto from 'crypto'
 import { logger } from '@/infra/utils/logger'
 import { getGuestChatConfig } from '@/server/config/guest-chat-config'

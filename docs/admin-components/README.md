@@ -46,18 +46,20 @@ This guide explains how to create and register custom components for the Payload
 
 ## 🎯 Current Custom Components
 
+Payload admin components were removed with the Payload/admin runtime; this table is historical reference.
+
 | Component | Type | Purpose | Location |
 |-----------|------|---------|----------|
-| **ExerciseContentEditor** | Field | Block-based exercise content editor | [`src/ui/admin/ExerciseContentEditor/index.tsx`](../../src/ui/admin/ExerciseContentEditor/index.tsx) |
-| **LessonBlocksField** | Field | Sortable list of exercise/content page references with inline editing | [`src/ui/admin/LessonBlocksField/index.tsx`](../../src/ui/admin/LessonBlocksField/index.tsx) |
-| **InlineExerciseEditor** | Field | Per-exercise inline editor with REST save (nested within LessonBlocksField); fetches exercise content via REST API, renders all block types inline, lazy-loads geometry/axis editors; `contentPageRef` blocks still navigate to the admin editor | [`src/ui/admin/LessonBlocksField/InlineExerciseEditor.tsx`](../../src/ui/admin/LessonBlocksField/InlineExerciseEditor.tsx) |
-| **Coupons list view** | View | Custom list view with create modal | [`src/ui/admin/Coupons/ListView/index.tsx`](../../src/ui/admin/Coupons/ListView/index.tsx) |
-| **CouponStatusCell** | Cell | Color-coded status badge (Active/Expired/Exhausted/Inactive/Scheduled) | [`src/ui/admin/Coupons/Cells/StatusCell/index.tsx`](../../src/ui/admin/Coupons/Cells/StatusCell/index.tsx) |
-| **CouponUsageCell** | Cell | Usage count display (e.g. "5 / 100") | [`src/ui/admin/Coupons/Cells/UsageCell/index.tsx`](../../src/ui/admin/Coupons/Cells/UsageCell/index.tsx) |
-| **CouponExpiresCell** | Cell | Relative expiration display (e.g. "in 3 days") | [`src/ui/admin/Coupons/Cells/ExpiresCell/index.tsx`](../../src/ui/admin/Coupons/Cells/ExpiresCell/index.tsx) |
-| **CouponDiscountDisplayCell** | Cell | Formatted discount display (e.g. "20% off") | [`src/ui/admin/Coupons/Cells/DiscountDisplayCell/index.tsx`](../../src/ui/admin/Coupons/Cells/DiscountDisplayCell/index.tsx) |
-| **CouponUsageProgress** | Field (UI) | Usage progress bar on coupon detail view | [`src/ui/admin/Coupons/UsageProgressField/index.tsx`](../../src/ui/admin/Coupons/UsageProgressField/index.tsx) |
-| **CouponEditView** | View | Custom edit view with usage progress on detail view | [`src/ui/admin/Coupons/EditView/index.tsx`](../../src/ui/admin/Coupons/EditView/index.tsx) |
+| **ExerciseContentEditor** | Field | Block-based exercise content editor | Removed with Payload admin |
+| **LessonBlocksField** | Field | Sortable list of exercise/content page references with inline editing | Removed with Payload admin |
+| **InlineExerciseEditor** | Field | Per-exercise inline editor with REST save (nested within LessonBlocksField); fetches exercise content via REST API, renders all block types inline, lazy-loads geometry/axis editors; `contentPageRef` blocks still navigate to the admin editor | Removed with Payload admin |
+| **Coupons list view** | View | Custom list view with create modal | Removed with Payload admin |
+| **CouponStatusCell** | Cell | Color-coded status badge (Active/Expired/Exhausted/Inactive/Scheduled) | Removed with Payload admin |
+| **CouponUsageCell** | Cell | Usage count display (e.g. "5 / 100") | Removed with Payload admin |
+| **CouponExpiresCell** | Cell | Relative expiration display (e.g. "in 3 days") | Removed with Payload admin |
+| **CouponDiscountDisplayCell** | Cell | Formatted discount display (e.g. "20% off") | Removed with Payload admin |
+| **CouponUsageProgress** | Field (UI) | Usage progress bar on coupon detail view | Removed with Payload admin |
+| **CouponEditView** | View | Custom edit view with usage progress on detail view | Removed with Payload admin |
 | **ChapterBreadcrumbField** | Field | Breadcrumb navigation for chapters | `src/ui/admin/ChapterBreadcrumbField/` |
 | **LessonBreadcrumbField** | Field | Breadcrumb navigation for lessons | `src/ui/admin/LessonBreadcrumbField/` |
 

@@ -1,4 +1,3 @@
-import { withPayload } from '@payloadcms/next/withPayload'
 import { withSentryConfig } from '@sentry/nextjs'
 
 import redirects from './redirects.js'
@@ -38,8 +37,6 @@ const nextConfig = {
     'thriftrw',
 
     // Heavy server-only packages
-    // graphql — large (~200KB) transitive dep from Payload, load from node_modules at runtime
-    'graphql',
     // googleapis — 109MB transitive via @genkit-ai/firebase → @google-cloud/opentelemetry,
     // we never import it directly. Externalizing it saves significant build time.
     'googleapis',
@@ -100,13 +97,7 @@ const nextConfig = {
   },
   experimental: {
     // Tree-shake barrel exports to avoid parsing entire packages on each import
-    optimizePackageImports: [
-      'lucide-react',
-      'framer-motion',
-      'date-fns',
-      '@payloadcms/ui',
-      'react-hook-form',
-    ],
+    optimizePackageImports: ['lucide-react', 'framer-motion', 'date-fns', 'react-hook-form'],
   },
   eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: true },
@@ -141,20 +132,7 @@ const nextConfig = {
   reactStrictMode: true,
   redirects,
   async rewrites() {
-    const blobBaseUrl = (process.env.BLOB_PUBLIC_BASE_URL || '').replace(/\/$/, '')
-    if (!blobBaseUrl) return []
-
-    return [
-      // Rewrite PDF media requests to Blob CDN at the edge (same-origin preserved for PDF.js)
-      {
-        source: '/api/media/file/:filename(.*\\.pdf$)',
-        destination: `${blobBaseUrl}/:filename`,
-      },
-      {
-        source: '/api/exercise-assets/file/:filename(.*\\.pdf$)',
-        destination: `${blobBaseUrl}/:filename`,
-      },
-    ]
+    return []
   },
   async headers() {
     return [
@@ -166,23 +144,7 @@ const nextConfig = {
           {
             key: 'Content-Security-Policy',
             value:
-              "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://www.googletagmanager.com https://cdn.mxpnl.com; style-src 'self' 'unsafe-inline'; img-src 'self' *.blob.vercel-storage.com img.youtube.com avatars.githubusercontent.com github.com *.githubusercontent.com data: blob:; font-src 'self' data: https://r2cdn.perplexity.ai; connect-src 'self' https://*.vercel.app https://vercel.live wss://*.vercel.app https://blob.vercel-storage.com https://*.blob.vercel-storage.com https://api-js.mixpanel.com https://*.mxpnl.com https://www.google-analytics.com; frame-src 'self' www.youtube.com vercel.live; frame-ancestors 'self' https://kody-dashboard-aguy.vercel.app; object-src 'none'; base-uri 'self'; form-action 'self'",
-          },
-          { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
-          { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
-          { key: 'X-DNS-Prefetch-Control', value: 'on' },
-        ],
-      },
-      // Admin routes - permissive CSP (Payload admin requires unsafe-eval)
-      {
-        source: '/admin/:path*',
-        headers: [
-          {
-            key: 'Content-Security-Policy',
-            value:
-              "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://www.googletagmanager.com https://cdn.mxpnl.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' *.blob.vercel-storage.com img.youtube.com avatars.githubusercontent.com github.com *.githubusercontent.com *.gravatar.com data: blob:; font-src 'self' data:; connect-src 'self' *.sentry.io https://vercel.live https://blob.vercel-storage.com https://*.blob.vercel-storage.com https://api-js.mixpanel.com https://*.mxpnl.com; frame-src 'self' www.youtube.com vercel.live; frame-ancestors 'self' https://kody-dashboard-aguy.vercel.app; object-src 'none'; base-uri 'self'; form-action 'self'",
+              "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://www.googletagmanager.com https://cdn.mxpnl.com; style-src 'self' 'unsafe-inline'; img-src 'self' *.blob.vercel-storage.com img.youtube.com avatars.githubusercontent.com github.com *.githubusercontent.com data: blob:; font-src 'self' data: https://r2cdn.perplexity.ai; connect-src 'self' https://*.vercel.app https://vercel.live wss://*.vercel.app https://blob.vercel-storage.com https://*.blob.vercel-storage.com https://api-js.mixpanel.com https://*.mxpnl.com https://www.google-analytics.com; frame-src 'self' www.youtube.com vercel.live; frame-ancestors 'self' https://kody-dashboard-aguy.vercel.app https://kody-dashboard-sable.vercel.app; object-src 'none'; base-uri 'self'; form-action 'self'",
           },
           { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
@@ -195,9 +157,7 @@ const nextConfig = {
   },
 }
 
-const configWithPayload = withPayload(nextConfig, { devBundleServerPackages: true })
-
-export default withSentryConfig(configWithPayload, {
+export default withSentryConfig(nextConfig, {
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
   silent: !process.env.CI,

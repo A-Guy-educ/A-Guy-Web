@@ -2,7 +2,7 @@ import '@/infra/config/server-init'
 
 import { notFound } from 'next/navigation'
 import { getSystemLocale } from '@/i18n/server-locale'
-import { isValidContentLocale } from '@/server/payload/fields/contentLocale'
+import { isValidContentLocale } from '@/infra/types/content'
 import { queryCourseBySlug } from '@/server/repos/queries/courses'
 import { queryChapterBySlug } from '@/server/repos/queries/chapters'
 import { queryLessonsByChapter } from '@/server/repos/queries/lessons'

@@ -1,67 +1,87 @@
-// Initialize server-side config lazy loading before any other imports
-// This ensures config values can be lazily loaded when accessed
-import '@/infra/config/server-init'
+import { NextRequest } from 'next/server'
+import { z } from 'zod'
 
-import { logger } from '@/infra/utils/logger/logger'
-import { agentLearningChat } from '@/server/payload/endpoints/agent/learning-chat'
-import config from '@payload-config'
-import { NextRequest, NextResponse } from 'next/server'
-import { getPayload } from 'payload'
+import {
+  appendMessage,
+  generateAssistantReply,
+  getOrCreateConversation,
+  type WebChatMessage,
+} from '@/server/web-api/chat'
+import {
+  GUEST_SESSION_COOKIE,
+  getOrCreateGuestId,
+  getWebUser,
+  publicUserId,
+} from '@/infra/web-api/mongo-payload'
+
+const BodySchema = z.object({
+  message: z.string().trim().min(1),
+  acknowledgment: z.string().optional(),
+  conversationId: z.string().optional().nullable(),
+  gradeLevel: z.string().trim().min(1),
+})
+
+function chunkText(text: string) {
+  const chunks = text.match(/.{1,80}(\s|$)/g)
+  return chunks?.map((chunk) => chunk.trimEnd()).filter(Boolean) ?? [text]
+}
 
 export async function POST(request: NextRequest) {
-  const requestId = crypto.randomUUID()
-
-  try {
-    logger.info({ requestId, url: request.url }, 'Learning chat request received')
-
-    // Parse request body early to validate
-    const body = await request.json()
-
-    // Validate required fields
-    if (!body.message?.trim()) {
-      logger.warn({ requestId }, 'Missing or empty message in learning chat request')
-      return NextResponse.json({ error: 'Missing message', requestId }, { status: 400 })
-    }
-
-    // gradeLevel is required for user learning context
-    if (!body.gradeLevel?.trim()) {
-      logger.warn({ requestId }, 'Missing gradeLevel in learning chat request')
-      return NextResponse.json({ error: 'Missing gradeLevel', requestId }, { status: 400 })
-    }
-
-    const payload = await getPayload({ config })
-    const { user } = await payload.auth({ headers: request.headers })
-
-    // Learning agent requires authentication
-    if (!user) {
-      logger.warn({ requestId }, 'Unauthenticated learning chat request')
-      return NextResponse.json({ error: 'Authentication required', requestId }, { status: 401 })
-    }
-
-    const payloadRequest = {
-      payload,
-      user,
-      url: request.url,
-      headers: request.headers,
-      json: async () => body,
-    } as Parameters<typeof agentLearningChat>[0]
-
-    logger.info({ requestId, userId: user.id }, 'Processing learning chat request')
-    return await agentLearningChat(payloadRequest)
-  } catch (error) {
-    logger.error({ err: error, requestId }, 'Learning chat route error')
-    const Sentry = await import('@sentry/nextjs')
-    Sentry.captureException(error, { tags: { route: '/api/agent/learning-chat' } })
-
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : 'Internal server error',
-        requestId,
-        ...(process.env.NODE_ENV === 'development' && error instanceof Error
-          ? { stack: error.stack }
-          : {}),
-      },
-      { status: 500 },
-    )
+  const parsed = BodySchema.safeParse(await request.json().catch(() => null))
+  if (!parsed.success) {
+    return Response.json({ error: 'Missing message or gradeLevel' }, { status: 400 })
   }
+
+  const user = await getWebUser(request.headers)
+  const guestId = getOrCreateGuestId(request)
+  const ownerId = publicUserId(user, guestId)
+  const contextKey = `learning:${parsed.data.gradeLevel}`
+  const conversation = await getOrCreateConversation(ownerId, contextKey)
+  const messages = Array.isArray(conversation.messages)
+    ? (conversation.messages as WebChatMessage[])
+    : []
+
+  await appendMessage(String(conversation.id), {
+    role: 'user',
+    content: parsed.data.message,
+  })
+
+  const reply = await generateAssistantReply({
+    message: parsed.data.message,
+    acknowledgment: parsed.data.acknowledgment,
+    history: messages,
+  })
+
+  await appendMessage(String(conversation.id), {
+    role: 'assistant',
+    content: reply,
+  })
+
+  const stream = new ReadableStream({
+    start(controller) {
+      const encoder = new TextEncoder()
+      for (const chunk of chunkText(reply)) {
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify({ type: 'chunk', text: chunk })}\n\n`),
+        )
+      }
+      controller.enqueue(
+        encoder.encode(
+          `data: ${JSON.stringify({ type: 'done', conversationId: conversation.id })}\n\n`,
+        ),
+      )
+      controller.close()
+    },
+  })
+
+  const response = new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream; charset=utf-8',
+      'Cache-Control': 'no-cache, no-transform',
+      Connection: 'keep-alive',
+      'Set-Cookie': `${GUEST_SESSION_COOKIE}=${guestId}; Path=/; Max-Age=2592000; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}; HttpOnly`,
+    },
+  })
+
+  return response
 }

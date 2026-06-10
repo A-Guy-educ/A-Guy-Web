@@ -2,12 +2,12 @@
  * @fileType utility
  * @domain seo
  * @pattern nextjs-metadata-generator
- * @ai-summary Generates Next.js Metadata from Payload page docs; title defaults to the generic "Payload Website Template" when no doc is provided.
+ * @ai-summary Generates Next.js metadata from optional page-like docs.
  */
 
 import type { Metadata } from 'next'
 
-import type { Page } from '../../payload-types'
+import type { Page } from '@/infra/types/content'
 
 import { mergeOpenGraph } from './mergeOpenGraph'
 import { getServerSideURL } from './getURL'
@@ -22,9 +22,7 @@ export const generateMeta = async (args: { doc: Partial<Page> | null }): Promise
 
   const ogImage = getImageURL()
 
-  const title = doc?.meta?.title
-    ? doc?.meta?.title + ' | Payload Website Template'
-    : 'Payload Website Template'
+  const title = doc?.meta?.title ? `${doc.meta.title} | A-Guy` : 'A-Guy'
 
   return {
     description: doc?.meta?.description,

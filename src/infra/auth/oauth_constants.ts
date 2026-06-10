@@ -7,7 +7,7 @@
  * @ai-summary Cookie configuration and constants for OAuth authentication
  */
 
-import type { Payload } from 'payload'
+import type { Payload } from '@/infra/types/backend'
 
 export function getCookieName(payload: Payload): string {
   return `${payload.config.cookiePrefix}-token`

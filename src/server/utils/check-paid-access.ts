@@ -1,40 +1,44 @@
-/**
- * Shared paid access check for server-rendered pages
- *
- * @fileType utility
- * @domain entitlements
- * @ai-summary Checks if current user has paid access to a course, returns gate props
- */
+import { ObjectId, type Document } from 'mongodb'
 
-import { hasEntitlement } from '@/server/services/entitlement_check'
-import { getAuthenticatedUserServer } from '@/server/utils/access-gate-server'
+import { getContentDb, relationId } from '@/infra/db/content-db'
+import { idCandidates } from '@/server/web-api/progress'
+import { getAuthenticatedUserServer } from './access-gate-server'
 
 interface PaidAccessResult {
   requiresEntitlement: boolean
   isAuthenticated: boolean
 }
 
-/**
- * Check if the current user has paid access to a course.
- * Admins always bypass. Unauthenticated users are always blocked.
- */
 export async function checkPaidAccess(courseId: string): Promise<PaidAccessResult> {
-  const { user, payload } = await getAuthenticatedUserServer()
-  const isAdmin = user?.role === 'admin'
-
-  if (isAdmin) {
+  const { user } = await getAuthenticatedUserServer()
+  if (!user?.id) return { requiresEntitlement: true, isAuthenticated: false }
+  if (user.role === 'admin' || user.roles?.includes('admin')) {
     return { requiresEntitlement: false, isAuthenticated: true }
   }
 
-  if (!user) {
-    return { requiresEntitlement: true, isAuthenticated: false }
-  }
+  const db = await getContentDb()
+  const userIds = idCandidates(user.id)
+  const courseIds = idCandidates(courseId)
+  const [entitlement, enrollment, userDoc] = await Promise.all([
+    db.collection('user-entitlements').findOne({
+      user: { $in: userIds },
+      course: { $in: courseIds },
+    }),
+    db.collection('enrollments').findOne({
+      user: { $in: userIds },
+      course: { $in: courseIds },
+      status: { $ne: 'cancelled' },
+    }),
+    db
+      .collection('users')
+      .findOne({ _id: ObjectId.isValid(user.id) ? new ObjectId(user.id) : user.id } as Document),
+  ])
+  const legacy = Array.isArray(userDoc?.courseEntitlements)
+    ? userDoc.courseEntitlements.some((entry: unknown) => {
+        if (!entry || typeof entry !== 'object') return false
+        return relationId((entry as { course?: unknown }).course) === courseId
+      })
+    : false
 
-  const hasAccess = await hasEntitlement({
-    payload,
-    userId: user.id,
-    courseId,
-  })
-
-  return { requiresEntitlement: !hasAccess, isAuthenticated: true }
+  return { requiresEntitlement: !(entitlement || enrollment || legacy), isAuthenticated: true }
 }

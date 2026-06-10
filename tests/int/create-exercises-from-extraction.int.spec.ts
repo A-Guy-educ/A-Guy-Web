@@ -9,7 +9,7 @@
  * @domain content-pipeline
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { AccountRole } from '@/server/payload/collections/Users/roles'
+import { AccountRole } from '@/infra/auth/roles'
 import { createExercisesFromExtraction } from '@/server/services/lesson-context-conversion/create-exercises-from-extraction'
 import config from '@payload-config'
 import type { Payload, User } from 'payload'

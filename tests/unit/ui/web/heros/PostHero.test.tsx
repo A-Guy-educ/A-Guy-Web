@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { cleanup, render } from '@testing-library/react'
-import type { Post } from '@/payload-types'
+import type { Post } from '@/infra/types/content'
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 
 // Mock useHeaderTheme before importing PostHero

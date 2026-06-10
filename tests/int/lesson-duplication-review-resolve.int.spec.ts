@@ -17,7 +17,7 @@ import config from '@payload-config'
 
 import { POST as resolvePOST } from '@/app/api/lesson-duplications/[id]/resolve/route'
 import { getDefaultTenantSlug } from '@/server/repos/tenant/get-default-tenant'
-import { AccountRole } from '@/server/payload/collections/Users/roles'
+import { AccountRole } from '@/infra/auth/roles'
 
 async function ensureDefaultTenant(payload: Payload): Promise<string> {
   const slug = getDefaultTenantSlug()

@@ -228,4 +228,4 @@ const result = validate({
 - [`.ai-docs/`](../../.ai-docs/BOOTSTRAP.md) - AI optimization system
 - [`AGENTS.md`](../../AGENTS.md) - Complete patterns
 - [`src/server/`](../server/README.md) - Server configuration
-- [`src/ui/admin/exercise/README.md`](../ui/admin/exercise/README.md) - Admin components
+- [`src/ui/web/`](../ui/web/README.md) - Web UI components

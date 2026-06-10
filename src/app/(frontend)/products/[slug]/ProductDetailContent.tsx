@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 
-import type { Product } from '@/payload-types'
+import type { Product } from '@/infra/types/content'
 import { BuyButton } from './BuyButton'
 import { CouponInput } from './CouponInput'
 import { useTranslations } from '@/ui/web/providers/I18n'

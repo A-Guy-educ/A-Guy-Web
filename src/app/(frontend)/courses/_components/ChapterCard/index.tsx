@@ -1,7 +1,7 @@
 'use client'
 
 import { SystemLink } from '@/infra/loading/components/SystemLink'
-import type { Chapter } from '@/payload-types'
+import type { Chapter } from '@/infra/types/content'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { Card, CardFooter, CardHeader, CardTitle } from '@/ui/web/components/card'
 import { Button } from '@/ui/web/components/button'

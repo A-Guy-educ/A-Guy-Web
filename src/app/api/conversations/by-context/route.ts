@@ -1,161 +1,152 @@
+import { ObjectId } from 'mongodb'
 import { NextRequest, NextResponse } from 'next/server'
-import { getPayload } from 'payload'
-import config from '@payload-config'
-import { DEFAULT_CONTENT_LOCALE, isValidContentLocale } from '@/server/payload/fields/contentLocale'
-import type { ContentLocale } from '@/server/payload/fields/contentLocale'
+import { z } from 'zod'
+
+import { getContentDb, serializeDoc } from '@/infra/db/content-db'
+import {
+  getOrCreateGuestId,
+  getWebUser,
+  publicUserId,
+  withGuestCookie,
+} from '@/infra/web-api/mongo-payload'
+
+const CreateConversationSchema = z.object({
+  courseId: z.string().min(1),
+  locale: z.enum(['he', 'en']).optional(),
+})
+
+function ownerFilter(ownerId: string) {
+  if (ownerId.startsWith('guest:')) {
+    return { guestSession: ownerId.slice('guest:'.length) }
+  }
+  return {
+    user: ObjectId.isValid(ownerId) ? { $in: [ownerId, new ObjectId(ownerId)] } : ownerId,
+  }
+}
+
+function previewTitle(messages: unknown) {
+  if (!Array.isArray(messages)) return ''
+  const first = messages.find((message) => {
+    if (!message || typeof message !== 'object') return false
+    const entry = message as { role?: unknown; hidden?: unknown; content?: unknown }
+    return entry.role === 'user' && !entry.hidden && typeof entry.content === 'string'
+  }) as { content?: string } | undefined
+  if (!first?.content) return ''
+  return first.content.slice(0, 50) + (first.content.length > 50 ? '...' : '')
+}
+
+function contextFilter(contextKey: string | null, contextKeyPrefix: string | null) {
+  if (contextKey) return { contextKey }
+  return { contextKey: { $regex: `^${escapeRegex(contextKeyPrefix ?? '')}`, $options: 'i' } }
+}
+
+function escapeRegex(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
 
 export async function GET(request: NextRequest) {
-  try {
-    const payload = await getPayload({ config })
-    const { user } = await payload.auth({ headers: request.headers })
+  const user = await getWebUser(request.headers)
+  const guestId = getOrCreateGuestId(request)
+  const ownerId = publicUserId(user, guestId)
+  const searchParams = request.nextUrl.searchParams
+  const contextKey = searchParams.get('contextKey')
+  const contextKeyPrefix = searchParams.get('contextKeyPrefix')
+  const limit = Math.min(Number(searchParams.get('limit') ?? 100), 100)
 
-    if (!user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-    }
-
-    const searchParams = request.nextUrl.searchParams
-    const contextKey = searchParams.get('contextKey')
-    const contextKeyPrefix = searchParams.get('contextKeyPrefix')
-    const limit = Math.min(Number(searchParams.get('limit') ?? 100), 100)
-
-    if (!contextKey && !contextKeyPrefix) {
-      return NextResponse.json(
-        { error: 'contextKey or contextKeyPrefix is required' },
-        { status: 400 },
-      )
-    }
-
-    const contextFilter = contextKey
-      ? { contextKey: { equals: contextKey } }
-      : { contextKey: { like: contextKeyPrefix } }
-
-    const result = await payload.find({
-      collection: 'conversations',
-      where: {
-        and: [{ user: { equals: user.id } }, contextFilter, { archivedAt: { exists: false } }],
-      },
-      sort: '-lastMessageAt',
-      limit,
-      pagination: false,
-      depth: 0,
-      user,
-      overrideAccess: false,
-    })
-
-    const conversations = result.docs.map((doc) => {
-      const docTitle = (doc as unknown as { title?: string }).title
-      return {
-        id: doc.id,
-        contextKey: doc.contextKey,
-        title: docTitle ?? getPreviewTitle(doc.messages ?? undefined),
-        lastMessageAt: doc.lastMessageAt,
-        messageCount: doc.messages?.filter((m) => !m.hidden).length ?? 0,
-      }
-    })
-
-    return NextResponse.json({ conversations, total: result.totalDocs })
-  } catch (error) {
-    const { captureAndRespond } = await import('@/server/api/capture-and-respond')
-    return captureAndRespond(error, { route: '/api/conversations/by-context GET' })
+  if (!contextKey && !contextKeyPrefix) {
+    return NextResponse.json(
+      { error: 'contextKey or contextKeyPrefix is required' },
+      { status: 400 },
+    )
   }
+
+  const db = await getContentDb()
+  const query = {
+    ...ownerFilter(ownerId),
+    ...contextFilter(contextKey, contextKeyPrefix),
+    archivedAt: { $exists: false },
+  }
+  const docs = await db
+    .collection('conversations')
+    .find(query)
+    .sort({ lastMessageAt: -1, updatedAt: -1 })
+    .limit(limit)
+    .toArray()
+  const total = await db.collection('conversations').countDocuments(query)
+
+  const conversations = docs.map((doc) => {
+    const serialized = serializeDoc<Record<string, unknown>>(doc)
+    const messages = Array.isArray(serialized.messages) ? serialized.messages : []
+    return {
+      id: String(serialized.id),
+      contextKey: String(serialized.contextKey ?? ''),
+      title: String(serialized.title || previewTitle(messages)),
+      lastMessageAt: String(
+        serialized.lastMessageAt || serialized.updatedAt || serialized.createdAt || '',
+      ),
+      messageCount: messages.filter((message) => {
+        return Boolean(
+          message && typeof message === 'object' && !(message as { hidden?: unknown }).hidden,
+        )
+      }).length,
+    }
+  })
+
+  return withGuestCookie(NextResponse.json({ conversations, total }), guestId)
 }
 
 export async function POST(request: NextRequest) {
-  try {
-    const payload = await getPayload({ config })
-    const { user } = await payload.auth({ headers: request.headers })
-
-    if (!user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-    }
-
-    const body = await request.json()
-    const courseId = body.courseId as string | undefined
-    const requestLocale = body.locale as string | undefined
-
-    if (!courseId) {
-      return NextResponse.json({ error: 'courseId is required' }, { status: 400 })
-    }
-
-    // Resolve preferredLocale: request body → course locale → DEFAULT_CONTENT_LOCALE
-    let resolvedLocale: ContentLocale = DEFAULT_CONTENT_LOCALE
-    if (requestLocale && isValidContentLocale(requestLocale)) {
-      resolvedLocale = requestLocale
-    } else {
-      // Derive from course's locale field
-      const course = await payload.findByID({
-        collection: 'courses',
-        id: courseId,
-        depth: 0,
-        select: { locale: true },
-      })
-      if (course && typeof course === 'object' && 'locale' in course) {
-        const courseLocale = (course as { locale?: string }).locale
-        if (courseLocale && isValidContentLocale(courseLocale)) {
-          resolvedLocale = courseLocale
-        }
-      }
-    }
-
-    const contextKey = `ask:${courseId}:${Date.now()}`
-
-    const conversation = await payload.create({
-      collection: 'conversations',
-      data: {
-        user: user.id,
-        contextRef: { relationTo: 'courses', value: courseId },
-        contextKey,
-        messages: [],
-        lastMessageAt: new Date().toISOString(),
-        contextPolicyVersion: 'v1',
-        preferredLocale: resolvedLocale,
-      },
-      draft: false,
-      user,
-      overrideAccess: false,
-    })
-
-    return NextResponse.json({ id: conversation.id, contextKey })
-  } catch (error) {
-    const { captureAndRespond } = await import('@/server/api/capture-and-respond')
-    return captureAndRespond(error, { route: '/api/conversations/by-context POST' })
+  const parsed = CreateConversationSchema.safeParse(await request.json().catch(() => null))
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
+
+  const user = await getWebUser(request.headers)
+  const guestId = getOrCreateGuestId(request)
+  const ownerId = publicUserId(user, guestId)
+  const db = await getContentDb()
+  const now = new Date()
+  const contextKey = `ask:${parsed.data.courseId}:${now.getTime()}`
+  const owner = ownerId.startsWith('guest:')
+    ? { guestSession: ownerId.slice('guest:'.length) }
+    : { user: ObjectId.isValid(ownerId) ? new ObjectId(ownerId) : ownerId }
+
+  const result = await db.collection('conversations').insertOne({
+    ...owner,
+    contextRef: { relationTo: 'courses', value: parsed.data.courseId },
+    contextKey,
+    preferredLocale: parsed.data.locale ?? 'he',
+    messages: [],
+    lastMessageAt: now,
+    contextPolicyVersion: 'web-v1',
+    createdAt: now,
+    updatedAt: now,
+  })
+
+  return withGuestCookie(
+    NextResponse.json({ id: result.insertedId.toString(), contextKey }),
+    guestId,
+  )
 }
 
 export async function DELETE(request: NextRequest) {
-  try {
-    const payload = await getPayload({ config })
-    const { user } = await payload.auth({ headers: request.headers })
-
-    if (!user) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
-    }
-
-    const id = request.nextUrl.searchParams.get('id')
-    if (!id) {
-      return NextResponse.json({ error: 'id is required' }, { status: 400 })
-    }
-
-    await payload.update({
-      collection: 'conversations',
-      id,
-      data: { archivedAt: new Date().toISOString() } as Record<string, unknown>,
-      user,
-      overrideAccess: false,
-      context: { allowArchive: true },
-    })
-
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    const { captureAndRespond } = await import('@/server/api/capture-and-respond')
-    return captureAndRespond(error, { route: '/api/conversations/by-context DELETE' })
+  const id = request.nextUrl.searchParams.get('id')
+  if (!id || !ObjectId.isValid(id)) {
+    return NextResponse.json({ error: 'id is required' }, { status: 400 })
   }
-}
 
-function getPreviewTitle(
-  messages?: Array<{ role: string; content: string; hidden?: boolean | null }>,
-) {
-  const firstUserMsg = messages?.find((m) => m.role === 'user' && !m.hidden)
-  if (!firstUserMsg) return ''
-  return firstUserMsg.content.slice(0, 50) + (firstUserMsg.content.length > 50 ? '...' : '')
+  const user = await getWebUser(request.headers)
+  const guestId = getOrCreateGuestId(request)
+  const ownerId = publicUserId(user, guestId)
+  const db = await getContentDb()
+
+  const result = await db
+    .collection('conversations')
+    .updateOne(
+      { _id: new ObjectId(id), ...ownerFilter(ownerId) },
+      { $set: { archivedAt: new Date(), updatedAt: new Date() } },
+    )
+
+  if (!result.matchedCount) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  return withGuestCookie(NextResponse.json({ success: true }), guestId)
 }

@@ -13,7 +13,7 @@
 'use client'
 
 import React from 'react'
-import type { Exercise, FormulaSheet, Media as MediaType } from '@/payload-types'
+import type { Exercise, FormulaSheet, Media as MediaType } from '@/infra/types/content'
 import type { ResolvedLessonBlock } from '@/server/repos/queries/lesson-blocks'
 import { ChatInterface } from '@/ui/web/chat'
 import { useTranslations } from '@/ui/web/providers/I18n'

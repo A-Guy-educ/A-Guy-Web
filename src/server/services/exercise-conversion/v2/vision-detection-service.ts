@@ -10,7 +10,7 @@
  * @pattern vision-detection, pdf-processing
  */
 
-import type { Payload } from 'payload'
+import type { Payload } from '@/infra/types/backend'
 import {
   getLLMProvider,
   getProviderModelConfig,

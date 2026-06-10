@@ -1,116 +1,59 @@
-/**
- * Stats Streak API
- *
- * POST /api/stats/streak
- * Updates user's daily streak based on activity
- */
+import { NextRequest, NextResponse } from 'next/server'
 
-import { getPayload } from 'payload'
+import { getContentDb } from '@/infra/db/content-db'
+import { getWebUser } from '@/infra/web-api/mongo-payload'
+import { getOrCreateUserStats } from '@/server/web-api/progress'
 
-import config from '@payload-config'
-
-function getTodayDateString(): string {
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const day = String(now.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
+function ymd(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
+    date.getDate(),
+  ).padStart(2, '0')}`
 }
 
-function getYesterdayDateString(): string {
-  const now = new Date()
-  now.setDate(now.getDate() - 1)
-  const year = now.getFullYear()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const day = String(now.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
+export async function GET(request: NextRequest) {
+  const user = await getWebUser(request.headers)
+  if (!user?.id) return NextResponse.json({ streak: 0 })
+  const stats = await getOrCreateUserStats(user.id)
+  return NextResponse.json({
+    streak: Number(stats?.currentStreak || 0),
+    currentStreak: Number(stats?.currentStreak || 0),
+    longestStreak: Number(stats?.longestStreak || 0),
+  })
 }
 
-export async function POST(req: Request) {
-  const payload = await getPayload({ config })
+export async function POST(request: NextRequest) {
+  const user = await getWebUser(request.headers)
+  if (!user?.id) return Response.json({ error: 'Unauthorized' }, { status: 401 })
 
-  // Auth check - return 401 if not authenticated
-  const authResult = await payload.auth({ headers: req.headers })
-  if (!authResult.user) {
-    return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const today = ymd(new Date())
+  const yesterdayDate = new Date()
+  yesterdayDate.setDate(yesterdayDate.getDate() - 1)
+  const yesterday = ymd(yesterdayDate)
+  const stats = await getOrCreateUserStats(user.id)
+
+  if (stats?.lastActiveDate === today) {
+    return Response.json({
+      success: true,
+      currentStreak: Number(stats.currentStreak || 0),
+      longestStreak: Number(stats.longestStreak || 0),
+    })
   }
 
-  const userId = authResult.user.id
-  const today = getTodayDateString()
-  const yesterday = getYesterdayDateString()
-
-  // Find or create UserStats for user
-  const existingStats = await payload.find({
-    collection: 'user-stats',
-    where: {
-      user: { equals: userId },
+  const currentStreak =
+    stats?.lastActiveDate === yesterday ? Number(stats.currentStreak || 0) + 1 : 1
+  const longestStreak = Math.max(Number(stats?.longestStreak || 0), currentStreak)
+  const db = await getContentDb()
+  await db.collection('user-stats').updateOne(
+    { _id: stats?._id },
+    {
+      $set: {
+        currentStreak,
+        longestStreak,
+        lastActiveDate: today,
+        updatedAt: new Date(),
+      },
     },
-    limit: 1,
-    overrideAccess: true,
-  })
+  )
 
-  let statsId: string
-  let currentStreak: number
-  let longestStreak: number
-
-  if (existingStats.docs.length > 0) {
-    const stats = existingStats.docs[0]
-    statsId = stats.id as string
-    const lastActiveDate = stats.lastActiveDate
-
-    // If already counted today, no-op (idempotent)
-    if (lastActiveDate === today) {
-      return Response.json({
-        success: true,
-        currentStreak: stats.currentStreak || 0,
-        longestStreak: stats.longestStreak || 0,
-      })
-    }
-
-    // Calculate new streak
-    if (lastActiveDate === yesterday) {
-      // Consecutive day - increment streak
-      currentStreak = (stats.currentStreak || 0) + 1
-    } else {
-      // Gap in days - reset streak to 1
-      currentStreak = 1
-    }
-
-    longestStreak = Math.max(stats.longestStreak || 0, currentStreak)
-
-    // Update stats - use type assertion to bypass Payload type issues
-    await payload.update({
-      collection: 'user-stats',
-      id: statsId,
-      data: {
-        currentStreak,
-        longestStreak,
-        lastActiveDate: today,
-      },
-      overrideAccess: true,
-    } as never)
-  } else {
-    // First time - create new stats with streak = 1
-    currentStreak = 1
-    longestStreak = 1
-
-    const created = (await payload.create({
-      collection: 'user-stats',
-      data: {
-        user: userId,
-        currentStreak,
-        longestStreak,
-        lastActiveDate: today,
-        totalTimeSpentSeconds: 0,
-      },
-      overrideAccess: true,
-    } as never)) as unknown as { id: string }
-    statsId = created.id
-  }
-
-  return Response.json({
-    success: true,
-    currentStreak,
-    longestStreak,
-  })
+  return Response.json({ success: true, currentStreak, longestStreak })
 }

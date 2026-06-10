@@ -4,9 +4,14 @@ import useClickableCard from '@/infra/utils/useClickableCard'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
 import React, { Fragment } from 'react'
 
-import type { Course, Post } from '@/payload-types'
+import type { Category, Meta } from '@/infra/types/content'
 
-export type CardPostData = Pick<Course | Post, 'slug' | 'categories' | 'meta' | 'title'>
+export type CardPostData = {
+  slug?: string | null
+  categories?: Category[] | null
+  meta?: Meta | null
+  title?: string | null
+}
 
 export const Card: React.FC<{
   alignItems?: 'center'

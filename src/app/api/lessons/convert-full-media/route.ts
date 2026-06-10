@@ -1,49 +1,19 @@
-/**
- * POST /api/lessons/convert-full-media
- *
- * One-button "Full Convert (Media)" path: runs Stage 1 (Gemini schema-mode
- * extraction) + Stage 2 (create exercises) + Stage 3 (convert each LaTeX
- * block to typed blocks) sequentially. Returns counts so the UI can show
- * a single status line instead of three.
- */
-import { apiError, apiSuccess } from '@/server/api/responses'
-import { withApiHandler } from '@/server/api/with-api-handler'
-import { runFullMediaPipeline } from '@/server/services/lesson-context-conversion/full-pipeline'
-import { z } from 'zod'
+import { NextResponse } from 'next/server'
 
-const bodySchema = z.object({
-  lessonId: z.string().min(1),
-  mediaId: z.string().min(1),
-  promptId: z.string().min(1),
-})
+const disabled = { error: 'This endpoint is unavailable without the removed CMS backend.' }
 
-type Body = z.infer<typeof bodySchema>
+export async function GET() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-export const POST = withApiHandler<Body, unknown>(
-  {
-    auth: 'admin',
-    bodySchema,
-  },
-  async ({ payload, body, user, request }) => {
-    const result = await runFullMediaPipeline({
-      payload,
-      user: user!,
-      lessonId: body.lessonId,
-      mediaId: body.mediaId,
-      promptId: body.promptId,
-      request,
-    })
+export async function POST() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-    if (!result.success) {
-      return apiError('UPSTREAM_ERROR', result.error || 'Full media conversion failed', 400)
-    }
+export async function PATCH() {
+  return NextResponse.json(disabled, { status: 410 })
+}
 
-    return apiSuccess({
-      exerciseCount: result.exerciseCount,
-      exerciseIds: result.exerciseIds,
-      latexBlocksConverted: result.latexBlocksConverted,
-      latexBlocksFailed: result.latexBlocksFailed,
-      warnings: result.warnings.length > 0 ? result.warnings : undefined,
-    })
-  },
-)
+export async function DELETE() {
+  return NextResponse.json(disabled, { status: 410 })
+}

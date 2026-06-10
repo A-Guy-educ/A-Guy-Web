@@ -9,7 +9,7 @@
 import { ObjectId, type Collection, type Document } from 'mongodb'
 import { getChatConfig } from '@/infra/llm/providers/shared/chat-config'
 import { hoursToMs } from '@/infra/utils/time'
-import type { Payload } from 'payload'
+import type { Payload } from '@/infra/types/backend'
 
 const QUOTA_DEFAULTS = { maxQuestions: 15, windowHours: 12 }
 

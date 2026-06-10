@@ -8,8 +8,7 @@
  */
 
 import crypto from 'crypto'
-import { getPayload } from 'payload'
-import config from '@payload-config'
+import { getPayload } from '@/infra/types/backend'
 import { SignJWT } from 'jose'
 import { decrypt } from './oauth_crypto'
 
@@ -76,7 +75,7 @@ export interface SessionResult {
  * @returns Session token
  */
 export async function issueSession(email: string, encryptedSecret: string): Promise<SessionResult> {
-  const payload = await getPayload({ config })
+  const payload = await getPayload()
 
   // Decrypt the stored secret
   const plainSecret = decrypt(encryptedSecret)
@@ -104,7 +103,7 @@ export async function issueSessionWithPlainSecret(
   email: string,
   plainSecret: string,
 ): Promise<SessionResult> {
-  const payload = await getPayload({ config })
+  const payload = await getPayload()
 
   const loginResult = await payload.login({
     collection: 'users',
@@ -136,7 +135,7 @@ export async function issueSessionWithPlainSecret(
  * @returns Session token
  */
 export async function issueSessionForLinkedAccount(userId: string): Promise<SessionResult> {
-  const payload = await getPayload({ config })
+  const payload = await getPayload()
 
   // CRITICAL: Payload's auth system strips hash/salt from findByID for security
   // We must read directly from MongoDB to access these fields

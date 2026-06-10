@@ -10,7 +10,7 @@ import {
   QuestionAxisBlockSchema,
   ContentBlockSchema,
 } from '@/server/payload/collections/Exercises/schemas'
-import type { QuestionAxisBlock } from '@/server/payload/collections/Exercises/types'
+import type { QuestionAxisBlock } from '@/infra/types/exercise'
 import { ExerciseBlockDefaults } from '@/server/payload/collections/Exercises/defaults'
 
 // Valid axis block base for testing

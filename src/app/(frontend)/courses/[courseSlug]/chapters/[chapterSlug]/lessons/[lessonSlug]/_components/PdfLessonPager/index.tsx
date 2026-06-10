@@ -2,7 +2,7 @@
 
 import { ExerciseWorkspace } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseWorkspace'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
-import type { Media } from '@/payload-types'
+import type { Media } from '@/infra/types/content'
 import { ChatInterface } from '@/ui/web/chat'
 import { Button } from '@/ui/web/components/button'
 import { Progress } from '@/ui/web/components/progress'
@@ -25,7 +25,7 @@ interface PdfLessonPagerProps {
   /** Whether to show the chat panel (true when lesson has exercises or context text) */
   showChat?: boolean
   /** Formula sheet data (passed to ChatInterface) */
-  formulaSheet?: import('@/payload-types').FormulaSheet | null
+  formulaSheet?: import('@/infra/types/content').FormulaSheet | null
 }
 
 export function PdfLessonPager({

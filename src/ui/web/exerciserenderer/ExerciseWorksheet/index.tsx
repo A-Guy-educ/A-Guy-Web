@@ -39,7 +39,7 @@ import { MultiAxisRenderer } from '../blocks/MultiAxisRenderer'
 import { LatexBlockRenderer } from '../blocks/LatexBlockRenderer'
 import { getMediaUrl } from '@/infra/utils/getMediaUrl'
 import { HEBREW_LETTERS } from '../constants'
-import type { Media } from '@/payload-types'
+import type { Media } from '@/infra/types/content'
 import type {
   ContentBlock,
   GraphLayout,
@@ -55,7 +55,7 @@ import type {
   QuestionTableBlock,
   RichTextBlock,
   SvgBlock,
-} from '@/server/payload/collections/Exercises/types'
+} from '@/infra/types/exercise'
 
 interface ExerciseWorksheetProps {
   blocks: ContentBlock[]
@@ -179,11 +179,7 @@ function renderBlockContent({
 }: Omit<RenderBlockParams, 'isRtl' | 'questionIndex'>): React.ReactNode {
   if (block.type === 'latex') {
     if (hideLatexBlocks) return null
-    return (
-      <LatexBlockRenderer
-        block={block as import('@/server/payload/collections/Exercises/types').LatexBlock}
-      />
-    )
+    return <LatexBlockRenderer block={block as import('@/infra/types/exercise').LatexBlock} />
   }
 
   if (block.type === 'rich_text') {

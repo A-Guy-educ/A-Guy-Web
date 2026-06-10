@@ -1,272 +1,79 @@
 import { cache } from 'react'
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
+
+import type { Chapter, Course, Lesson } from '@/infra/types/content'
+import {
+  findByIdSerialized,
+  findManySerialized,
+  findOneSerialized,
+  objectIdFromString,
+  relationId,
+  visibleContentFilter,
+} from '../mongo'
 import { queryChaptersByCourse } from './chapters'
 
+async function populateLesson(lesson: Lesson): Promise<Lesson | null> {
+  const chapterId = relationId(lesson.chapter)
+  if (!chapterId) return null
+
+  const chapter = await findByIdSerialized<Chapter>('chapters', chapterId)
+  if (!chapter || chapter.status !== 'published' || !chapter.isActive) return null
+
+  const courseId = relationId(chapter.course)
+  if (!courseId) return null
+
+  const course = await findByIdSerialized<Course>('courses', courseId)
+  if (!course || course.status !== 'published' || !course.isActive) return null
+
+  return { ...lesson, chapter: { ...chapter, course } }
+}
+
 export const queryLessonsByChapter = cache(async ({ chapterId }: { chapterId: string }) => {
-  const payload = await getPayload({ config: configPromise })
+  const chapter = await findByIdSerialized<Chapter>('chapters', chapterId)
+  if (!chapter || chapter.status !== 'published' || !chapter.isActive) return []
 
-  // Verify chapter is published+active
-  const chapterResult = await payload.findByID({
-    collection: 'chapters',
-    id: chapterId,
-    depth: 0,
-    overrideAccess: false,
-    disableErrors: true,
-  })
+  const course = await findByIdSerialized<Course>('courses', relationId(chapter.course) || '')
+  if (!course || course.status !== 'published' || !course.isActive) return []
 
-  if (!chapterResult || chapterResult.status !== 'published' || !chapterResult.isActive) {
-    return []
-  }
+  const lessons = await findManySerialized<Lesson>(
+    'lessons',
+    visibleContentFilter({ chapter: objectIdFromString(chapterId) }),
+    { sort: { order: 1 } },
+  )
 
-  // Verify parent course and fetch lessons in parallel — both depend only on chapter data
-  const courseId =
-    typeof chapterResult.course === 'string' ? chapterResult.course : chapterResult.course?.id
-
-  if (!courseId) return []
-
-  const [courseResult, lessonsResult] = await Promise.all([
-    payload.findByID({
-      collection: 'courses',
-      id: courseId,
-      depth: 0,
-      overrideAccess: false,
-      disableErrors: true,
-    }),
-    payload.find({
-      collection: 'lessons',
-      where: {
-        and: [
-          {
-            chapter: {
-              equals: chapterId,
-            },
-          },
-          {
-            status: {
-              equals: 'published',
-            },
-          },
-          {
-            isActive: {
-              equals: true,
-            },
-          },
-          // Exclude "Soon" content that is not visible to students
-          {
-            or: [
-              { contentStatus: { not_equals: 'soon' } },
-              { contentStatusVisible: { equals: true } },
-            ],
-          },
-        ],
-      },
-      sort: 'order',
-      limit: 1000,
-      pagination: false,
-      depth: 1,
-      overrideAccess: false,
-    }),
-  ])
-
-  if (!courseResult || courseResult.status !== 'published' || !courseResult.isActive) {
-    return []
-  }
-
-  return lessonsResult.docs
+  return lessons.map((lesson) => ({ ...lesson, chapter: { ...chapter, course } }))
 })
 
 export const queryLessonBySlug = cache(async ({ slug }: { slug: string }) => {
-  const payload = await getPayload({ config: configPromise })
-
-  const result = await payload.find({
-    collection: 'lessons',
-    where: {
-      and: [
-        {
-          slug: {
-            equals: slug,
-          },
-        },
-        {
-          status: {
-            equals: 'published',
-          },
-        },
-        {
-          isActive: {
-            equals: true,
-          },
-        },
-        // Exclude "Soon" content that is not visible to students
-        {
-          or: [
-            { contentStatus: { not_equals: 'soon' } },
-            { contentStatusVisible: { equals: true } },
-          ],
-        },
-      ],
-    },
-    limit: 1,
-    pagination: false,
-    depth: 1,
-    overrideAccess: false,
-  })
-
-  const lesson = result.docs?.[0]
-  if (!lesson) return null
-
-  // Verify parent chapter is published+active
-  // lesson.chapter is populated (depth: 1), so check directly when possible
-  const chapterObj =
-    typeof lesson.chapter === 'object' && lesson.chapter !== null ? lesson.chapter : null
-  const chapterId = chapterObj?.id ?? (typeof lesson.chapter === 'string' ? lesson.chapter : null)
-
-  if (!chapterId) return null
-
-  // If chapter is populated, validate inline and skip the extra DB call
-  if (chapterObj && 'status' in chapterObj) {
-    if (chapterObj.status !== 'published' || !chapterObj.isActive) return null
-
-    const courseId =
-      typeof chapterObj.course === 'string' ? chapterObj.course : chapterObj.course?.id
-    if (!courseId) return null
-
-    const courseResult = await payload.findByID({
-      collection: 'courses',
-      id: courseId,
-      depth: 0,
-      overrideAccess: false,
-      disableErrors: true,
-    })
-
-    if (!courseResult || courseResult.status !== 'published' || !courseResult.isActive) {
-      return null
-    }
-
-    return lesson
-  }
-
-  // Fallback: chapter not populated, fetch it
-  const chapterResult = await payload.findByID({
-    collection: 'chapters',
-    id: chapterId,
-    depth: 0,
-    overrideAccess: false,
-    disableErrors: true,
-  })
-
-  if (!chapterResult || chapterResult.status !== 'published' || !chapterResult.isActive) {
-    return null
-  }
-
-  const courseId =
-    typeof chapterResult.course === 'string' ? chapterResult.course : chapterResult.course?.id
-
-  if (!courseId) return null
-
-  const courseResult = await payload.findByID({
-    collection: 'courses',
-    id: courseId,
-    depth: 0,
-    overrideAccess: false,
-    disableErrors: true,
-  })
-
-  if (!courseResult || courseResult.status !== 'published' || !courseResult.isActive) {
-    return null
-  }
-
-  return lesson
+  const lesson = await findOneSerialized<Lesson>('lessons', visibleContentFilter({ slug }))
+  return lesson ? populateLesson(lesson) : null
 })
 
-/**
- * Get all lessons for a course, organized by chapters
- * This is a helper function to maintain backward compatibility while transitioning to chapter-based hierarchy
- */
 export const queryLessonsByCourse = cache(async ({ courseId }: { courseId: string }) => {
-  const payload = await getPayload({ config: configPromise })
-
-  // First verify the course is published+active (hierarchy invariant)
-  const courseResult = await payload.findByID({
-    collection: 'courses',
-    id: courseId,
-    depth: 0,
-    overrideAccess: false,
-    disableErrors: true,
-  })
-
-  if (!courseResult || courseResult.status !== 'published' || !courseResult.isActive) {
-    return []
-  }
+  const course = await findByIdSerialized<Course>('courses', courseId)
+  if (!course || course.status !== 'published' || !course.isActive) return []
 
   const chapters = await queryChaptersByCourse({ courseId })
-
-  // Get all lessons for all chapters in this course
   const chapterIds = chapters.map((chapter) => chapter.id)
+  if (chapterIds.length === 0) return []
 
-  if (chapterIds.length === 0) {
-    return []
-  }
+  const lessons = await findManySerialized<Lesson>(
+    'lessons',
+    visibleContentFilter({ chapter: { $in: chapterIds.map(objectIdFromString) } }),
+    { sort: { order: 1 } },
+  )
 
-  const result = await payload.find({
-    collection: 'lessons',
-    where: {
-      and: [
-        {
-          chapter: {
-            in: chapterIds,
-          },
-        },
-        {
-          status: {
-            equals: 'published',
-          },
-        },
-        {
-          isActive: {
-            equals: true,
-          },
-        },
-        // Exclude "Soon" content that is not visible to students
-        {
-          or: [
-            { contentStatus: { not_equals: 'soon' } },
-            { contentStatusVisible: { equals: true } },
-          ],
-        },
-      ],
-    },
-    sort: 'order',
-    limit: 1000,
-    pagination: false,
-    depth: 1,
-    overrideAccess: false,
-  })
+  const chapterMap = new Map(chapters.map((chapter, index) => [chapter.id, { chapter, index }]))
 
-  // Sort lessons by chapter order (primary) then by lesson order (secondary)
-  // This ensures lessons are grouped by chapter and ordered correctly within each chapter
-  // chapters is already sorted by chapter.order (from queryChaptersByCourse)
-  const chapterOrderMap = new Map(chapters.map((ch, idx) => [ch.id, idx]))
-
-  const sortedDocs = [...result.docs].sort((a, b) => {
-    const chapterIdA = typeof a.chapter === 'string' ? a.chapter : a.chapter?.id
-    const chapterIdB = typeof b.chapter === 'string' ? b.chapter : b.chapter?.id
-
-    const chapterOrderA = chapterOrderMap.get(chapterIdA ?? '') ?? Infinity
-    const chapterOrderB = chapterOrderMap.get(chapterIdB ?? '') ?? Infinity
-
-    // Primary sort: by chapter order
-    if (chapterOrderA !== chapterOrderB) {
-      return chapterOrderA - chapterOrderB
-    }
-
-    // Secondary sort: by lesson order within the same chapter
-    // Treat undefined order as Infinity so lessons with defined order come first
-    const orderA = a.order !== undefined ? a.order : Infinity
-    const orderB = b.order !== undefined ? b.order : Infinity
-    return orderA - orderB
-  })
-
-  return sortedDocs
+  return lessons
+    .map((lesson) => {
+      const chapterId = relationId(lesson.chapter)
+      const item = chapterId ? chapterMap.get(chapterId) : null
+      return item ? { ...lesson, chapter: item.chapter } : lesson
+    })
+    .sort((a, b) => {
+      const chapterA = chapterMap.get(relationId(a.chapter) || '')?.index ?? Infinity
+      const chapterB = chapterMap.get(relationId(b.chapter) || '')?.index ?? Infinity
+      if (chapterA !== chapterB) return chapterA - chapterB
+      return (a.order ?? Infinity) - (b.order ?? Infinity)
+    })
 })

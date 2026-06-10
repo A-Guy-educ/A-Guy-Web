@@ -1,130 +1,19 @@
-/**
- * Lesson Duplication Record API
- *
- * GET /api/lesson-duplications/:id/record
- *
- * Returns the full LessonDuplications document with resolved relationships.
- * Also embeds source and output exercise content for the diff preview.
- * Used by the LessonDuplicationReview admin component.
- *
- * Access: admin only.
- */
-import { withApiHandler } from '@/server/api/with-api-handler'
-import { apiSuccess, ApiErrors } from '@/server/api/responses'
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
+import { NextResponse } from 'next/server'
 
-interface OutputExerciseEntry {
-  sourceExerciseId: string
-  outputExerciseId: string
-  strategy: string
+const disabled = { error: 'This endpoint is unavailable without the removed CMS backend.' }
+
+export async function GET() {
+  return NextResponse.json(disabled, { status: 410 })
 }
 
-interface EmbeddedExercise {
-  id: string
-  content?: { blocks: unknown[] }
+export async function POST() {
+  return NextResponse.json(disabled, { status: 410 })
 }
 
-interface ExercisePair {
-  sourceExerciseId: string
-  outputExerciseId: string
-  strategy: string
-  sourceContent: { blocks: unknown[] }
-  outputContent: { blocks: unknown[] }
+export async function PATCH() {
+  return NextResponse.json(disabled, { status: 410 })
 }
 
-interface ExtendedRecord {
-  id: string
-  sourceLesson?: { id: string; title?: string } | string
-  outputLesson?: { id: string } | string | null
-  level: string
-  status: string
-  outputExercises: OutputExerciseEntry[]
-  failures: unknown[]
-  warnings: unknown[]
-  // Embedded exercise pairs for diff preview
-  exercisePairs: ExercisePair[]
+export async function DELETE() {
+  return NextResponse.json(disabled, { status: 410 })
 }
-
-export const GET = withApiHandler<unknown, unknown>({ auth: 'admin' }, async ({ request }) => {
-  const payload = await getPayload({ config: configPromise })
-
-  // Extract id from route: /api/lesson-duplications/:id/record
-  const url = new URL(request.url || 'http://localhost')
-  const match = url.pathname.match(/\/lesson-duplications\/([^/]+)\/record/)
-  const duplicationId = match?.[1]
-  if (!duplicationId) {
-    return ApiErrors.notFound('duplication id')
-  }
-
-  // overrideAccess: true is safe — `withApiHandler({ auth: 'admin' })` above
-  // has already verified the caller is an admin. Without overrideAccess the
-  // Local API call has no `req.user` context, the `adminOnly` access function
-  // returns false, and Payload throws "You are not allowed to perform this
-  // action." — which withApiHandler's operational-error classifier doesn't
-  // recognise, so it surfaces as HTTP 500 to the review UI. Mirrors the
-  // resolve route's pattern.
-  const record = await payload.findByID({
-    collection: 'lesson-duplications',
-    id: duplicationId,
-    depth: 2, // resolve sourceLesson, outputLesson
-    overrideAccess: true,
-  })
-  if (!record) return ApiErrors.notFound('LessonDuplications record')
-
-  const outputExercises = [
-    ...((record.outputExercises as unknown[]) ?? []),
-  ] as OutputExerciseEntry[]
-
-  // Batch-fetch all exercises referenced in outputExercises
-  const allExerciseIds = new Set<string>()
-  for (const entry of outputExercises) {
-    allExerciseIds.add(entry.sourceExerciseId)
-    allExerciseIds.add(entry.outputExerciseId)
-  }
-
-  // Fetch all exercises in parallel
-  const exerciseFetches = Array.from(allExerciseIds).map((id) =>
-    payload
-      .findByID({
-        collection: 'exercises',
-        id,
-        depth: 0,
-        overrideAccess: true,
-      })
-      .catch(() => null),
-  )
-
-  const exerciseResults = await Promise.all(exerciseFetches)
-  const exerciseMap = new Map<string, EmbeddedExercise | null>()
-  for (let i = 0; i < Array.from(allExerciseIds).length; i++) {
-    exerciseMap.set(Array.from(allExerciseIds)[i], exerciseResults[i] as EmbeddedExercise | null)
-  }
-
-  // Build exercise pairs with embedded content
-  const exercisePairs: ExercisePair[] = outputExercises.map((entry) => {
-    const source = exerciseMap.get(entry.sourceExerciseId)
-    const output = exerciseMap.get(entry.outputExerciseId)
-    return {
-      sourceExerciseId: entry.sourceExerciseId,
-      outputExerciseId: entry.outputExerciseId,
-      strategy: entry.strategy,
-      sourceContent: source?.content ?? { blocks: [] },
-      outputContent: output?.content ?? { blocks: [] },
-    }
-  })
-
-  const extendedRecord: ExtendedRecord = {
-    id: record.id as string,
-    sourceLesson: record.sourceLesson as ExtendedRecord['sourceLesson'],
-    outputLesson: record.outputLesson as ExtendedRecord['outputLesson'],
-    level: record.level as string,
-    status: record.status as string,
-    outputExercises,
-    failures: (record.failures as unknown[]) ?? [],
-    warnings: ((record as unknown as Record<string, unknown>).warnings as unknown[]) ?? [],
-    exercisePairs,
-  }
-
-  return apiSuccess(extendedRecord)
-})

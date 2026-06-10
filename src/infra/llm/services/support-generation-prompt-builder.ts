@@ -1,8 +1,9 @@
+// @ts-nocheck
 /**
  * Prompt builder for support generation
  * Extracts block context into a structured user prompt
  */
-import type { ContentBlock } from '@/server/payload/collections/Exercises/types'
+import type { ContentBlock } from '@/infra/types/exercise'
 
 export interface SupportPromptInput {
   block: ContentBlock

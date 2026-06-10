@@ -1,4 +1,8 @@
 /**
+ * @fileType parser
+ * @domain exercises
+ * @ai-summary Parses TikZ axis environments and raw \draw ... plot expressions into question_axis blocks. parseTikzDrawPlot (raw plots without \begin{axis}) infers viewport from axis-drawing commands — if those are absent, defaults to [-10, 10] for both axes, which may not match the exercise intent.
+ *
  * Parses TikZ \begin{axis}[...] environments into AxisSpecV1 blocks.
  *
  * Handles:
@@ -12,9 +16,9 @@
  */
 
 import type { AxisSpecV1 } from '@/infra/contracts/graphics/axis.v1'
-import type { QuestionAxisBlock } from '@/server/payload/collections/Exercises/types'
+import type { QuestionAxisBlock } from '@/infra/types/exercise'
 import { makeAxisBlock } from '@/lib/latex-parser/block-generators'
-import { generateId } from '@/server/payload/collections/Exercises/types'
+import { generateId } from '@/infra/types/exercise'
 
 /** Parse key=value options from [key=val, key2=val2], respecting brace groups */
 function parseOptions(optionStr: string): Record<string, string> {

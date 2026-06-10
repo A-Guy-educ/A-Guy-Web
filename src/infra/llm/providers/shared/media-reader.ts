@@ -6,7 +6,7 @@
  * @domain ai
  * @pattern data-transformation
  */
-import type { Payload } from 'payload'
+import type { Payload } from '@/infra/types/backend'
 
 import { isVercelBlobUrl } from '@/infra/blob/vercel-blob-adapter'
 import type { MediaPartWithPath } from '@/infra/llm/multimodal/types'
