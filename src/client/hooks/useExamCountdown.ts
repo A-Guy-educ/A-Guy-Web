@@ -1,3 +1,9 @@
+/**
+ * @fileType hook
+ * @domain frontend
+ * @ai-summary Manages exam countdown state backed by localStorage — auto-refreshes every 60 s to keep `daysUntil` accurate across page refreshes.
+ */
+
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
