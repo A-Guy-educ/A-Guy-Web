@@ -1,3 +1,5 @@
+// @ai-summary Wraps an async action with loading state registration and duplicate-submission guard (enabled by default). Always unregisters the key in finally — callers must do the same if they extend this directly.
+
 import { loadingManager, type LoadingManagerInstance } from './LoadingManager'
 
 export interface ActionResult<T = unknown> {
