@@ -1,7 +1,12 @@
 /**
- * Central registry of loading keys
- * Only includes keys actually used in this task
+ * @ai-summary Central registry of well-known loading keys — guards against typos
+ * and accidental key collisions across the codebase. Route keys and auth keys are
+ * wired here; data-fetching keys are added as integrations are built.
+ *
+ * @ai-trap Keys not listed here are still usable as raw strings, but any key
+ * used across more than one call site should be added here first to avoid collisions.
  */
+// Only includes keys actually used in this task
 export const LOADING_KEYS = {
   // Route transitions
   ROUTE_TRANSITION: 'route:transition',

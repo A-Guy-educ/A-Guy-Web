@@ -1,3 +1,12 @@
+/**
+ * @ai-summary Wraps an async action with register/unregister on a loading key,
+ * normalizes the result to {success, data?, error?}, and prevents duplicate submissions
+ * by default. Uses the singleton loadingManager unless a custom manager is injected (for testing).
+ *
+ * @ai-trap preventDuplicate defaults to true — callers that expect concurrent calls
+ * must pass false or they'll get a silent "Action already in progress" rejection
+ * instead of an error thrown. Registration happens at call time, not at async start.
+ */
 import { loadingManager, type LoadingManagerInstance } from './LoadingManager'
 
 export interface ActionResult<T = unknown> {

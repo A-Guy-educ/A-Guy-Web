@@ -1,4 +1,14 @@
-// Core store (singleton + factory for testing)
+/**
+ * @ai-summary Centralized client-side loading state management — singleton LoadingManager
+ * backed by useSyncExternalStore, with React hooks, router wrappers, and UI components.
+ *
+ * Entry point: this file. Core contract: register a key before an async operation,
+ * unregister after. Route transitions use a 15-second safety timeout to prevent stuck state.
+ *
+ * @ai-trap The singleton manager is shared across the entire app — calling register()
+ * without a matching unregister() leaks loading state. SystemLink/useRouterWithLoading
+ * handle this correctly; raw usage must pair register/unregister in finally blocks.
+ */
 export {
   loadingManager,
   createLoadingManager,
