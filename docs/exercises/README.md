@@ -45,6 +45,17 @@ The Exercises collection provides a minimal foundation for creating and managing
                  │
                  ▼
 ┌─────────────────────────────────────────────────────────┐
+│          Lesson Entry Page (LessonIntroPage)              │
+│  src/app/(frontend)/courses/.../LessonIntroPage/        │
+│                                                          │
+│  - Unified entry for all lesson types (#30, #67)        │
+│  - Displays lesson title, description, content counts   │
+│  - Routes to ExercisesPager / PdfLessonPager / workspace│
+│  - Deep-link support via ?exerciseId= search param      │
+└────────────────┬────────────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────────────┐
 │             Scroll View (BlocksDocumentLessonView)       │
 │  src/app/(frontend)/courses/.../BlocksDocumentLessonView│
 │                                                          │
@@ -117,6 +128,53 @@ Ensure you have:
 
 Follow the complete manual verification guide:
 - [📋 MANUAL_VERIFICATION.md](./MANUAL_VERIFICATION.md)
+
+---
+
+## Lesson Entry Point (#30, #67)
+
+All lesson types (exercises, PDF, blocks-only) now route through `LessonIntroPage` as the unified entry point. Previously, PDF lessons bypassed `LessonIntroPage` and went directly to `PdfLessonPager` (#67 fix).
+
+### Routing Logic
+
+`LessonIntroPage` determines content type from lesson data:
+
+| Condition | Content Type | Navigation |
+|-----------|-------------|------------|
+| `exercises.some(hasBlocks)` | `exercises` | → `ExercisesPager` |
+| `mediaFiles.length > 0` | `pdf` | → `PdfLessonPager` |
+| Otherwise | `scroll` | → `ExerciseWorkspace` (empty/placeholder) |
+
+### Deep-Linking
+
+`LessonIntroPage` supports deep-linking to a specific exercise via the `?exerciseId=` search param. When present, the intro screen is skipped and `ExerciseWorkspace` is shown directly.
+
+```typescript
+// useLessonIntroPage.ts
+const { pageState, handleStart } = useLessonIntroPage({
+  deepLinkedExerciseId: searchParams.get('exerciseId'),
+})
+// pageState: 'intro' | 'exercises' | 'pdf' | 'workspace'
+```
+
+### Content Type Indicators
+
+The intro screen displays counts for each content type present in the lesson (exercise count, PDF count, content page count) before the user selects where to go.
+
+### File Structure
+
+```
+src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/
+  lessons/[lessonSlug]/
+    _components/
+      LessonIntroPage/
+        index.tsx             # LessonIntroPage React component
+        useLessonIntroPage.ts # State hook (pageState + handleStart)
+    page.tsx                 # Lesson page — queries data, renders LessonIntroPage
+    exercises/[exerciseSlug]/
+      _components/
+        ExerciseWorkspace/    # Interactive exercise workspace (with chat)
+```
 
 ---
 
