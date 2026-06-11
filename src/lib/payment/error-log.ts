@@ -10,6 +10,10 @@
  * to see in production logs, regardless of which provider SDK threw and
  * regardless of which pino key the caller chose. Use it as
  * `{ err: serializePaymentError(error), ...context }`.
+ *
+ * @ai-summary Serializes payment errors for pino. Must be used as `{ err: serializePaymentError(error) }`
+ *            — passing it directly under any other key still produces `{}` since that's pino's default
+ *            error serializer behaviour for non-`err` keys.
  */
 
 interface SerializedPaymentError {

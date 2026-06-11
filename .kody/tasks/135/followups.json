@@ -1,0 +1,8 @@
+[
+  {
+    "title": "grantProductEntitlements is a stub",
+    "body": "grant-entitlements.ts exports an async function that is currently a no-op. Its @ai-summary documents this. When the entitlement system is wired up, the stub should be replaced with the actual grant logic and the @ai-summary updated to reflect the real behaviour.",
+    "rationale": "Payment completions will silently not grant entitlements until this is implemented — checkout will succeed but users won't get access.",
+    "priority": "high"
+  }
+]

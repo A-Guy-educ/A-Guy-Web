@@ -3,6 +3,11 @@
  *
  * Provides order creation, webhook verification, and refund operations.
  * Uses getPaymentEnv() for environment variable access.
+ *
+ * @ai-summary PayPal Checkout v2 integration. The access token is lazy-cached with a 60s buffer.
+ *              Gotcha: capturePayPalOrder must be called explicitly after buyer approval —
+ *              the order is NOT auto-captured; skipping this step means no funds are moved.
+ *              422 ORDER_ALREADY_CAPTURED on reload is treated as a benign no-op.
  */
 
 import { getPaymentEnv } from './env'
