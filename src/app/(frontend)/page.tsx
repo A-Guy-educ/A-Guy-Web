@@ -17,12 +17,6 @@ export default async function HomepagePage() {
     // No redirect, load home page from Pages collection
     const homePage = await queryPageBySlug({ slug: 'home' })
 
-    if (!homePage) {
-      // Fall back to /start if no home page
-      const { redirect } = await import('next/navigation')
-      redirect('/start')
-    }
-
     // Render the home page with hero and layout
     if (homePage?.hero) {
       return <RenderHero {...homePage.hero} />
