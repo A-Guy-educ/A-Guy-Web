@@ -2,22 +2,21 @@
 
 _Cadence: weekly — delivery of owned responsibilities, not subjective quality._
 
-Three of seven staff produced output this week; tech-writer and ux-designer remain idle.
+Two of seven staff delivered output this week; tech-writer has no active duties and ux-designer produced no output.
 
 | Staff | Owned duties | Delivery | Consistency | Signal | Grade |
 |-------|-------------|----------|-------------|--------|-------|
-| ceo   | 1 (1 active) | Low      | Low         | Med    | weak |
-| coo   | 4 (1 active) | Low      | Low         | Low    | weak |
-| cto   | 6 (0 active) | Low      | Low         | Low    | weak |
-| kody  | 6 (1 active) | Med      | Low         | Med    | weak |
-| qa    | 3 (2 active) | Med      | Med         | Med    | steady |
-| tech-writer | 2 (0 active) | —      | —           | —      | idle |
-| ux-designer | 1 (0 active) | Low    | Low         | Low    | weak |
+| ceo   | 2 (2 active) | Low      | Low         | Med    | weak |
+| coo   | 4 (4 active) | Low      | Low         | Low    | weak |
+| cto   | 5 (5 active) | Low      | Low         | Low    | weak |
+| kody  | 2 (2 active) | Med      | Med         | Med    | steady |
+| qa    | 3 (3 active) | Med      | Low         | Med    | steady |
+| tech-writer | 2 (2 active) | —      | —           | —      | idle |
+| ux-designer | 1 (1 active) | Low    | Low         | Low    | weak |
 
-- **ceo — weak:** job-gap-scan state never properly created; report proposal from May 31, no state advancement since. No delivery this cycle.
-- **coo — weak:** duty-review ran (weekly refresh in git), but cleanup-branches, system-audit, task-memory-extractor all show frozen state since May 23 with no output.
-- **cto — weak:** All six duties lack state infrastructure (never created) or show no output. security-audit stalled since May 23, pr-health-triage idle since May 23. No delivery this cycle.
-- **kody — weak:** health-check report refreshed today (June 11) — one live duty. But coverage-floor, dead-code-sweep, dependency-bump, flaky-test-quarantine, type-debt all show lastRun May 8–11 with no advancement.
+- **ceo — weak:** job-gap-scan state frozen since 2026-05-31 (11+ days); no advancement on its 1d cadence. ceo-performance-review (this duty) is running now.
+- **coo — weak:** cleanup-branches, system-audit, task-memory-extractor all show no state files and no report output this week. duty-review ran (weekly refresh) but no substantive review content.
+- **cto — weak:** approval-gate, dev-ci-health, pr-health-triage, publish-release all lack state files and produced no reports. security-audit state frozen since 2026-05-08.
 - **ux-designer — weak:** design-review has no state file and no output. No delivery this cycle.
 
-- Changes since last week: qa strong→steady (no state advancement since May 23 despite weekly commits); all others unchanged.
+- Changes since last week: all grades unchanged; qa steady→steady (no improvement despite recent QA marker swaps — qa-sweep and qa state still frozen May 23; signal from actual QA work is real but cadence-missed).
