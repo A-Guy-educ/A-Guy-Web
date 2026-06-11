@@ -2,24 +2,24 @@
 
 _Cadence: weekly — delivery of owned responsibilities, not subjective quality._
 
-All seven staff graded. Six of seven showed no delivery evidence this week; only qa produced active output. The broader picture is a **system-wide execution stall**: every duty state file in the system — qa, qa-sweep, pr-health-triage, system-audit, task-memory-extractor, security-audit — has a lastRunISO or lastFiredAt frozen at **2026-05-23**, 19 days ago. The sole exception is duty-review (cycle 17 report committed June 4), which remains active.
+All seven staff graded. System-wide execution stall persists: nearly every active duty has a lastFiredAt or lastRunISO frozen at 2026-05-23 (19 days ago). kody is the sole exception — health-check ran today (June 11). Four of seven staff produced no observable output this cycle.
 
 | Staff | Owned duties | Delivery | Consistency | Signal | Grade |
 |-------|-------------|----------|-------------|--------|-------|
-| ceo   | 3 (1 active) | Med | Med | Med | steady |
-| coo   | 5 (3 active) | Low | Low | Low | weak |
-| cto   | 12 (7 active) | Low | Low | Low | weak |
-| kody  | 6 (1 active) | Low | Low | Low | weak |
-| qa    | 4 (1 active) | High | High | High | strong |
-| tech-writer | 2 (0 active) | None | None | None | weak |
-| ux-designer | 1 (0 active) | None | None | None | weak |
+| ceo   | 2 (2 active) | Med | Med | Med | steady |
+| coo   | 4 (3 active) | Low | Low | Low | weak |
+| cto   | 6 (5 active) | Low | Low | Low | weak |
+| kody  | 2 (2 active) | Med | Med | High | steady |
+| qa    | 3 (3 active) | Low | Low | Low | weak |
+| tech-writer | 2 (2 active) | None | None | None | idle |
+| ux-designer | 1 (1 active) | None | None | None | idle |
 
-- **ceo — steady:** job-gap-scan report last updated 2026-05-31 (11 days stale); architecture-audit and publish-release broken/disabled. Weekly review itself ran on schedule — the only delivery this cycle.
-- **coo — weak:** duty-review active (cycle 17, June 4). system-audit, task-memory-extractor, cleanup-branches: state frozen at 2026-05-23 with no commits since. **Effect:** 3 of 3 coo-owned active duties silently idled.
-- **cto — weak:** pr-health-triage state lastFiredAt 2026-05-23; security-audit cursor stalled; design-review, docs-code, health-check all broken with no state history. **Effect:** 7 of 7 active cto duties broken or stalled.
-- **kody — weak:** health-check is the only active duty (no state history); coverage-floor, dead-code-sweep, dependency-bump, flaky-test-quarantine, type-debt all disabled. **Effect:** zero observable output this week.
-- **qa — strong:** qa-verify broken (state never created); qa and qa-sweep state frozen at 2026-05-23. However, qa produced active QA markers on two PRs (#165, #176) committed June 3–4, the only staff member with direct code-output evidence this cycle.
-- **tech-writer — weak:** docs-code broken (no state), docs-readme warn (no state). No commits to either duty in over 19 days. **Effect:** both duties silently dead.
-- **ux-designer — weak:** design-review broken (cadence contradiction, no state). No output this cycle. **Effect:** sole duty unobservable.
+- **ceo — steady:** ceo-performance-review ran on schedule (June 3). job-gap-scan last report May 31, now 20 days stale — missed ~9 daily runs. Only real output this cycle alongside kody.
+- **coo — weak:** duty-review active (last cycle June 4). system-audit, task-memory-extractor, cleanup-branches: state frozen at 2026-05-23 with no commits since. **Effect:** 3 of 3 coo-owned active duties silently idled.
+- **cto — weak:** pr-health-triage and security-audit state frozen at 2026-05-23 (security-audit cursor stalled); approval-gate, publish-release, dev-ci-health have no state history. **Effect:** 5 of 5 active cto duties broken or stalled.
+- **kody — steady:** health-check ran today (June 11) — daily cadence met. redispatch state cursor from 2026-05-06 (36 days old) with all dry-run logs from early May — effectively stalled, but health-check output is real and current.
+- **qa — weak:** qa and qa-sweep state frozen at 2026-05-23; qa-verify no state history. Last QA markers on PRs #165, #176 were June 3–4 — no fresh evidence in 19 days. **Effect:** regressions ship unreviewed.
+- **tech-writer — idle:** docs-code and docs-readme have no state files, no reports, no commits. No active output to measure.
+- **ux-designer — idle:** design-review has no state file, no output. No active work to measure.
 
-- Changes since last week: qa strong→strong (unchanged); coo weak→weak (unchanged); cto weak→weak (unchanged); tech-writer idle→weak (tech-writer was idle last cycle — both docs-code and docs-readme were already broken/disabled then, reclassified to reflect active-but-broken state); ux-designer weak→weak (unchanged).
+- Changes since last week: kody weak→steady (health-check now confirmed running daily with fresh output); qa strong→weak (no fresh evidence in 19 days); ceo steady→steady (unchanged); coo weak→weak (unchanged); cto weak→weak (unchanged); tech-writer weak→idle (no active duties measurable); ux-designer weak→weak (unchanged).
