@@ -2,24 +2,30 @@
 
 _Cadence: weekly — delivery of owned responsibilities, not subjective quality._
 
-One of seven staff delivered output this week; six produced no verifiable delivery.
+Three of seven staff produced output this week; cto, kody, coo, and ceo each ran one duty while four staff show frozen or missing state.
+
+## Scores
 
 | Staff | Owned duties | Delivery | Consistency | Signal | Grade |
 |-------|-------------|----------|-------------|--------|-------|
-| ceo   | 1 (1 active) | Low | Low | Med | weak |
-| coo   | 4 (4 active) | Low | Low | Low | weak |
-| cto   | 5 (5 active) | Low | Low | Low | weak |
-| kody  | 1 (1 active) | Med | Med | Med | steady |
-| qa    | 3 (3 active) | Low | Low | Low | weak |
-| tech-writer | 2 (2 active) | Low | Low | Low | weak |
-| ux-designer | 1 (1 active) | Low | Low | Low | weak |
+| ceo | 2 (2 active) | Med | Low | Med | weak |
+| coo | 4 (4 active) | Low | Low | Med | weak |
+| cto | 6 (6 active) | None | Low | Low | weak |
+| kody | 7 (7 active) | Low | Low | Med | weak |
+| qa | 3 (3 active) | Unclear | Low | Unclear | unclear |
+| tech-writer | 2 (2 active) | Unclear | Low | Unclear | unclear |
+| ux-designer | 1 (1 active) | None | Low | None | idle |
 
-- **ceo — weak:** job-gap-scan lastRunISO frozen 2026-05-20 (22 days); report last updated 2026-05-31. No delivery since late May. **Effect:** the one new duty proposal (sentry-digest) sits un actioned.
-- **coo — weak:** system-audit and task-memory-extractor state frozen 2026-05-23; cleanup-branches and duty-review state files never created. **Effect:** no systematic cleanup, no duty quality review, no memory extraction running.
-- **cto — weak:** pr-health-triage and security-audit state frozen 2026-05-23; approval-gate, dev-ci-health, and publish-release state files never created. **Effect:** PR health unsupervised; security posture unaudited for 19 days.
-- **kody — steady:** health-check report refreshed 2026-06-10, last commit to health-check.md 2026-06-10T21:39Z — active this week. State file absent (warn in duty-review), but output is real and recent. **Effect:** system health visible.
-- **qa — weak:** qa-sweep lastRunISO frozen 2026-05-23; qa state stale; qa-verify state file never created. **Effect:** regressions and concerns not being swept; QA for #1566, #45, #30 ongoing but driven manually by operator.
-- **tech-writer — weak:** docs-code and docs-readme state files never created; no report output. Duties updated 2026-05-27 but no runs recorded. **Effect:** doc drift and coverage gaps accumulating unseen.
-- **ux-designer — weak:** design-review state file never created; no report output. **Effect:** design decisions unreviewed.
+## Per-staff notes
 
-- Changes since last week: qa strong→weak (state frozen, no sweep runs); tech-writer idle→weak (newly assigned duties with no delivery); kody steady→strong (health-check report confirmed running as of June 10).
+- **cto — weak:** dev-ci-health, pr-health-triage, publish-release, approval-gate, architecture-audit, security-audit all show last state update 2026-05-23 (~19 days). Six active duties, zero commits this week. Effect: no CTO-level observability running.
+- **kody — weak:** Only health-check ran this week (refresh report commit). dead-code-sweep, dependency-bump, coverage-floor, type-debt, redispatch all frozen. Effect: maintenance surface dark.
+- **coo — weak:** Only duty-review ran this week. system-audit, task-memory-extractor, cleanup-branches frozen 2026-05-23. Effect: COO audit and memory duties not advancing.
+- **ceo — weak:** ceo-performance-review ran; job-gap-scan report last updated 2026-05-31, not refreshed this week. Effect: job-gap-scan advisory not current.
+- **qa — unclear:** All three QA duties (qa-sweep, qa, qa-verify) show frozen state at 2026-05-23 per duty-review broken callout. However, recent commits show active PR-level QA work (QA started, markers swapped). The broken duties are a structural problem owned by the operator, not qa's miss. Signal ambiguous — duties broken vs. work happening.
+- **tech-writer — unclear:** docs-code and docs-readme formal duties have no state updates. However, recent git history shows real doc PRs merged (#36 docs: add @ai-summary headers, #45 docs: add @ai-summary to latex-parser modules). Signal ambiguous — duty structure broken vs. docs work happening.
+- **ux-designer — idle:** design-review is the only ux-designer duty; no state updates or commits this week. No output to assess.
+
+## Delta
+
+- Changes since last week: tech-writer idle→unclear (git commits show docs activity despite broken duty structure); kody steady→weak (only 1 of 7 duties ran); all others unchanged.
