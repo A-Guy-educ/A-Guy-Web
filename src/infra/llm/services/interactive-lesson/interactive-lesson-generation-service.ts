@@ -266,8 +266,8 @@ export async function callGeminiWithSchema(args: {
  * Wrap `callGeminiWithSchema` in the same reliability primitives the Genkit
  * adapter uses (timeout + retry + circuit breaker) so a transient 5xx/429
  * doesn't fail the user's request on first try. Shared by the service and
- * the route — both go through the same circuit breaker instance (keyed by
- * name in the registry) so they fail-fast together when Gemini is down.
+ * the route — both import this module so they hit the same module-level
+ * circuit breaker instance and fail-fast together when Gemini is down.
  */
 export async function callGeminiResiliently(args: {
   apiKey: string

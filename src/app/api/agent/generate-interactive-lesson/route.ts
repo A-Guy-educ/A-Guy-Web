@@ -101,7 +101,7 @@ async function generateWithGemini(
   buffer: Buffer,
   mimeType: string,
   locale: 'he' | 'en',
-): Promise<InteractiveLesson | null> {
+): Promise<{ lesson: InteractiveLesson; sizeBytes: number } | null> {
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) return null
 
@@ -110,7 +110,11 @@ async function generateWithGemini(
       ? 'נתח את תרגיל המתמטיקה בתמונה והחזר JSON בלבד לפי הסכמה: title, geometry, graph, numberLine, steps. כל הטקסט בעברית. אם אין גרף או ציר מספרים החזר מערכים ריקים.'
       : 'Analyze the math exercise in the image and return JSON only with: title, geometry, graph, numberLine, steps. Use English. Use empty arrays for graph or numberLine when absent.'
 
-  const { attachmentData } = await prepareImage(buffer, mimeType)
+  // prepareImage runs sharp on non-PDF inputs; sharp preserves the input
+  // format on `.toBuffer()` so passing the original mimeType to Gemini is
+  // safe today. If the optimizer ever normalizes to WebP/JPEG, the route
+  // must read an effective mimeType back from prepareImage instead.
+  const { attachmentData, sizeBytes } = await prepareImage(buffer, mimeType)
   const responseText = await callGeminiResiliently({
     apiKey,
     prompt,
@@ -119,7 +123,7 @@ async function generateWithGemini(
   })
   if (!responseText) return null
 
-  return validateLesson(parseResponse(responseText), locale)
+  return { lesson: validateLesson(parseResponse(responseText), locale), sizeBytes }
 }
 
 export async function POST(request: NextRequest) {
@@ -133,17 +137,19 @@ export async function POST(request: NextRequest) {
     if (!media)
       return NextResponse.json({ success: false, error: 'Media not found' }, { status: 404 })
 
-    const lesson =
-      (await generateWithGemini(media.buffer, media.mimeType, parsed.data.locale).catch(
-        () => null,
-      )) ?? fallbackLesson(parsed.data.locale)
+    const result = await generateWithGemini(
+      media.buffer,
+      media.mimeType,
+      parsed.data.locale,
+    ).catch(() => null)
+    const lesson = result?.lesson ?? fallbackLesson(parsed.data.locale)
 
     return NextResponse.json({
       success: true,
       data: lesson,
       metadata: {
         model: process.env.GEMINI_API_KEY ? GEMINI_CONFIG.modelName : 'fallback',
-        imageSizeBytes: media.buffer.length,
+        imageSizeBytes: result?.sizeBytes ?? media.buffer.length,
         processingTimeMs: 0,
       },
     })
