@@ -137,11 +137,9 @@ export async function POST(request: NextRequest) {
     if (!media)
       return NextResponse.json({ success: false, error: 'Media not found' }, { status: 404 })
 
-    const result = await generateWithGemini(
-      media.buffer,
-      media.mimeType,
-      parsed.data.locale,
-    ).catch(() => null)
+    const result = await generateWithGemini(media.buffer, media.mimeType, parsed.data.locale).catch(
+      () => null,
+    )
     const lesson = result?.lesson ?? fallbackLesson(parsed.data.locale)
 
     return NextResponse.json({
