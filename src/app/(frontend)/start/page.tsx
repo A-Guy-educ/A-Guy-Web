@@ -1,5 +1,5 @@
-import { HomePage } from '@/app/(frontend)/_components/HomePage'
+import { NewStartPage } from './_components/NewStartPage'
 
 export default function StartPage() {
-  return <HomePage />
+  return <NewStartPage />
 }

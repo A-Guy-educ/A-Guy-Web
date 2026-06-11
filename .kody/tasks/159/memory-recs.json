@@ -1,0 +1,26 @@
+[
+  {
+    "type": "lesson",
+    "name": "hebrew-apostrophe-in-test-strings",
+    "hook": "Hebrew geresh (פיצ'רים) inside single-quoted strings breaks prettier",
+    "body": "Hebrew text contains a geresh (single quote variant, Unicode \\u2019) which looks like an apostrophe. When Hebrew text with geresh is inside a single-quoted JavaScript string, Prettier interprets the geresh as a string terminator and fails with 'SyntaxError: comma expected'. Fix: use double-quoted strings for the outer delimiters, or escape the geresh. Example: `page.locator(\"a:text(\\\"פיצ'רים\\\")\")` works but single-quoted `a:text('פיצ'רים')` breaks.",
+    "why": "Hebrew geresh (Unicode 2019, not ASCII 27) is visually identical to an ASCII apostrophe but is a different character. Prettier correctly parses it as a string terminator when the string delimiter is ASCII single-quote, causing the rest of the string to be interpreted as new syntax.",
+    "confidence": 0.95
+  },
+  {
+    "type": "decision",
+    "name": "inline-style-keyframes-for-landing-pages",
+    "hook": "Inline keyframes via <style> tag for landing page animations",
+    "body": "For landing page animations (like the float effect), adding a <style> tag with @keyframes directly in the component is acceptable and avoids modifying globals.css. The keyframes defined: @keyframes float (hero visual bobbing), @keyframes fadeInUp (onboarding bubble).",
+    "why": "The landing page is a standalone experience with its own design language. Injecting the small number of keyframes it needs via <style> tag is simpler than adding to globals.css and avoids potential conflicts with existing styles.",
+    "confidence": 0.8
+  },
+  {
+    "type": "decision",
+    "name": "landing-page-body-class-hides-header-footer",
+    "hook": "body.landing-page class hides header and footer via CSS",
+    "body": "The NewStartPage adds 'landing-page' class to document.body on mount (and removes on unmount). This class is defined in globals.css as `body.landing-page header, body.landing-page footer { display: none !important }`. This pattern was already used by the previous HomePage/LandingPage.",
+    "why": "The new /start page has its own navigation built-in and doesn't want the site's header/footer. Using the existing body class pattern avoids duplicating nav CSS and keeps the concern at the page level.",
+    "confidence": 0.95
+  }
+]
