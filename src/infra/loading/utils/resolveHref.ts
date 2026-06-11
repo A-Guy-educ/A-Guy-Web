@@ -1,6 +1,11 @@
 import type { UrlObject } from 'url'
 
 /**
+ * @fileType utility
+ * @domain frontend
+ * @ai-summary Normalizes Next.js hrefs (string or UrlObject) for reliable route comparison; when ignoreHash=true a hash-only href collapses to '/', so same-page anchors never register as route changes.
+ */
+/**
  * Resolve Next.js href (string or UrlObject) to normalized string
  * Handles edge cases: hash-only, trailing slashes, query strings
  *

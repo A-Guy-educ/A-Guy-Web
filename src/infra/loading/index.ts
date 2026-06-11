@@ -1,3 +1,8 @@
+/**
+ * @fileType utility
+ * @domain frontend
+ * @ai-summary Client-side loading state management: singleton store, hooks, router integration, and UI indicators.
+ */
 // Core store (singleton + factory for testing)
 export {
   loadingManager,

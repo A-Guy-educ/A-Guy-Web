@@ -2,6 +2,11 @@
 
 import { cn } from '@/infra/utils/ui'
 
+/**
+ * @fileType component
+ * @domain frontend
+ * @ai-summary Animated SVG spinner with three size variants; pure presentational, no loading state integration.
+ */
 interface SpinnerProps {
   size?: 'sm' | 'md' | 'lg'
   className?: string
