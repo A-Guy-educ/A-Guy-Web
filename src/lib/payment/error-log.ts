@@ -10,6 +10,10 @@
  * to see in production logs, regardless of which provider SDK threw and
  * regardless of which pino key the caller chose. Use it as
  * `{ err: serializePaymentError(error), ...context }`.
+ *
+ * @ai-summary Always use `serializePaymentError` when logging payment errors,
+ * even when the SDK throws a typed error. Without it, pino logs `{}` for any
+ * Error object because `message` and `stack` are non-enumerable properties.
  */
 
 interface SerializedPaymentError {

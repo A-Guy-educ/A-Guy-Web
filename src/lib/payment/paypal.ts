@@ -3,6 +3,11 @@
  *
  * Provides order creation, webhook verification, and refund operations.
  * Uses getPaymentEnv() for environment variable access.
+ *
+ * @ai-summary PayPal orders require explicit fund capture via
+ * `capturePayPalOrder` after buyer approval — the `createPayPalOrder` call
+ * alone does NOT move money. Skipping capture means the payment is never
+ * completed and entitlements will not be granted.
  */
 
 import { getPaymentEnv } from './env'

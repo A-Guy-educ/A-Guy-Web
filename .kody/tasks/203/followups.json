@@ -1,0 +1,14 @@
+[
+  {
+    "title": "Implement grantProductEntitlements stub",
+    "body": "grant-entitlements.ts is a no-op stub. Payment confirmation handlers should call this to actually unlock product access for buyers — currently they do not.",
+    "rationale": "Successful payments do not grant product entitlements until this is implemented.",
+    "priority": "high"
+  },
+  {
+    "title": "PayPal token cache concurrent refresh",
+    "body": "The PayPal token cache in paypal.ts can issue multiple concurrent tokens when a token expires under load. Consider adding a mutex/lock if token issuance becomes a bottleneck.",
+    "rationale": "Safe but wasteful — documented in index.ts gotcha, but worth addressing if scale increases.",
+    "priority": "low"
+  }
+]
