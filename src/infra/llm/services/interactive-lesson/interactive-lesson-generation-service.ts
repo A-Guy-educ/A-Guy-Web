@@ -230,7 +230,7 @@ function isRetryableGeminiError(err: Error): boolean {
  * label, p1 vs from, etc.) at the source. Timeout/retry/circuit-breaker
  * are applied by the caller.
  */
-async function callGeminiWithSchema(args: {
+export async function callGeminiWithSchema(args: {
   apiKey: string
   prompt: string
   attachmentData: string
@@ -326,7 +326,7 @@ function fixLatexEscapes(text: string): string {
   return text.replace(/\\([^"\\/bfnrtu])/g, '\\\\$1')
 }
 
-function parseResponse(responseText: string): Record<string, unknown> {
+export function parseResponse(responseText: string): Record<string, unknown> {
   const cleaned = responseText
     .trim()
     .replace(/^```json\s*/i, '')
@@ -341,7 +341,10 @@ function parseResponse(responseText: string): Record<string, unknown> {
   }
 }
 
-function validateLesson(parsed: Record<string, unknown>, locale: 'he' | 'en'): InteractiveLesson {
+export function validateLesson(
+  parsed: Record<string, unknown>,
+  locale: 'he' | 'en',
+): InteractiveLesson {
   const steps = Array.isArray(parsed.steps) ? parsed.steps : []
   const geo = (parsed.geometry || {}) as Record<string, unknown>
   const graph = parsed.graph as Record<string, unknown> | undefined

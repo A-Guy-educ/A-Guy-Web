@@ -6,7 +6,11 @@ import { z } from 'zod'
 
 import { resolveMediaFilePath } from '@/infra/config/storage'
 import { getContentDb, objectIdFromString } from '@/infra/db/content-db'
-import { InteractiveLessonResponseSchema } from '@/infra/llm/services/interactive-lesson/interactive-lesson-schema'
+import {
+  callGeminiWithSchema,
+  parseResponse,
+  validateLesson,
+} from '@/infra/llm/services/interactive-lesson/interactive-lesson-generation-service'
 import type { InteractiveLesson } from '@/infra/llm/services/interactive-lesson/interactive-lesson-types'
 
 const BodySchema = z.object({
@@ -91,64 +95,28 @@ async function loadMedia(mediaId: string) {
   return null
 }
 
-function cleanJson(text: string) {
-  return text
-    .trim()
-    .replace(/^```json\s*/i, '')
-    .replace(/^```\s*/, '')
-    .replace(/```\s*$/, '')
-    .trim()
-}
-
 async function generateWithGemini(
   buffer: Buffer,
   mimeType: string,
   locale: 'he' | 'en',
 ): Promise<InteractiveLesson | null> {
-  if (!process.env.GEMINI_API_KEY) return null
+  const apiKey = process.env.GEMINI_API_KEY
+  if (!apiKey) return null
 
   const prompt =
     locale === 'he'
       ? 'נתח את תרגיל המתמטיקה בתמונה והחזר JSON בלבד לפי הסכמה: title, geometry, graph, numberLine, steps. כל הטקסט בעברית. אם אין גרף או ציר מספרים החזר מערכים ריקים.'
       : 'Analyze the math exercise in the image and return JSON only with: title, geometry, graph, numberLine, steps. Use English. Use empty arrays for graph or numberLine when absent.'
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              { inlineData: { mimeType, data: buffer.toString('base64') } },
-              { text: prompt },
-            ],
-          },
-        ],
-        generationConfig: {
-          temperature: 0,
-          maxOutputTokens: 8192,
-          responseMimeType: 'application/json',
-        },
-      }),
-    },
-  )
+  const responseText = await callGeminiWithSchema({
+    apiKey,
+    prompt,
+    attachmentData: buffer.toString('base64'),
+    attachmentMimeType: mimeType,
+  })
+  if (!responseText) return null
 
-  if (!response.ok) return null
-  const json = (await response.json()) as {
-    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>
-  }
-  const text =
-    json.candidates?.[0]?.content?.parts
-      ?.map((part) => part.text)
-      .filter(Boolean)
-      .join('') ?? ''
-  if (!text) return null
-
-  const parsed = InteractiveLessonResponseSchema.safeParse(JSON.parse(cleanJson(text)))
-  if (!parsed.success) return null
-  return { ...parsed.data, locale } as unknown as InteractiveLesson
+  return validateLesson(parseResponse(responseText), locale)
 }
 
 export async function POST(request: NextRequest) {
