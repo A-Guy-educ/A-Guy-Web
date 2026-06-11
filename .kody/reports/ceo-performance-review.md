@@ -1,31 +1,30 @@
 # Kody Performance Review
-
 _Cadence: weekly — delivery of owned responsibilities, not subjective quality._
 
-Three of seven staff produced output this week; cto, kody, coo, and ceo each ran one duty while four staff show frozen or missing state.
-
-## Scores
+One of seven staff delivered this week; kody (health-check) ran daily and produced output. Every other active duty has a stale or frozen state — most last advanced 19+ days ago.
 
 | Staff | Owned duties | Delivery | Consistency | Signal | Grade |
 |-------|-------------|----------|-------------|--------|-------|
-| ceo | 2 (2 active) | Med | Low | Med | weak |
-| coo | 4 (4 active) | Low | Low | Med | weak |
-| cto | 6 (6 active) | None | Low | Low | weak |
-| kody | 7 (7 active) | Low | Low | Med | weak |
-| qa | 3 (3 active) | Unclear | Low | Unclear | unclear |
-| tech-writer | 2 (2 active) | Unclear | Low | Unclear | unclear |
-| ux-designer | 1 (1 active) | None | Low | None | idle |
+| ceo   | 1 (1 active) | Low | Low | Low | weak |
+| coo   | 4 (4 active) | Low | Low | Low | weak |
+| cto   | 5 (5 active) | Low | Low | Med | weak |
+| kody  | 1 (1 active) | High | High | High | strong |
+| qa    | 3 (3 active) | Low | Low | High | weak |
+| tech-writer | 2 (2 active) | Low | Low | Low | weak |
+| ux-designer | 1 (1 active) | Low | Low | Low | weak |
 
-## Per-staff notes
+Notes on staff not steady or strong:
 
-- **cto — weak:** dev-ci-health, pr-health-triage, publish-release, approval-gate, architecture-audit, security-audit all show last state update 2026-05-23 (~19 days). Six active duties, zero commits this week. Effect: no CTO-level observability running.
-- **kody — weak:** Only health-check ran this week (refresh report commit). dead-code-sweep, dependency-bump, coverage-floor, type-debt, redispatch all frozen. Effect: maintenance surface dark.
-- **coo — weak:** Only duty-review ran this week. system-audit, task-memory-extractor, cleanup-branches frozen 2026-05-23. Effect: COO audit and memory duties not advancing.
-- **ceo — weak:** ceo-performance-review ran; job-gap-scan report last updated 2026-05-31, not refreshed this week. Effect: job-gap-scan advisory not current.
-- **qa — unclear:** All three QA duties (qa-sweep, qa, qa-verify) show frozen state at 2026-05-23 per duty-review broken callout. However, recent commits show active PR-level QA work (QA started, markers swapped). The broken duties are a structural problem owned by the operator, not qa's miss. Signal ambiguous — duties broken vs. work happening.
-- **tech-writer — unclear:** docs-code and docs-readme formal duties have no state updates. However, recent git history shows real doc PRs merged (#36 docs: add @ai-summary headers, #45 docs: add @ai-summary to latex-parser modules). Signal ambiguous — duty structure broken vs. docs work happening.
-- **ux-designer — idle:** design-review is the only ux-designer duty; no state updates or commits this week. No output to assess.
+- **ceo — weak:** job-gap-scan last ran 2026-05-31 (11 days ago); state stalled. Effect: no new duty proposals this cycle.
+- **coo — weak:** cleanup-branches, duty-review, system-audit, task-memory-extractor — all state frozen since 2026-05-23 (19 days). duty-review correctly self-reports as broken. Effect: no integrity checks or memory extraction running.
+- **cto — weak:** approval-gate, dev-ci-health, pr-health-triage, publish-release, security-audit — no state advancement since 2026-05-23. dev-ci-health received code improvements 2026-06-01–02 but the duty itself is broken per duty-review. Effect: no CI monitoring or PR health triage running.
+- **qa — weak:** qa, qa-sweep, qa-verify state frozen 2026-05-23 (19 days). Recent QA commits on #1891, #1566, #45 (2026-06-10–11) show real qa work, but not via the duty mechanism. Effect: the qa duty loop is broken; manual qa work is happening but the automated duty is not.
+- **tech-writer — weak:** docs-code, docs-readme — no state advancement since created. Effect: documentation duties not running.
+- **ux-designer — weak:** design-review — no state file, no commits. Effect: design review not running.
 
-## Delta
+Delta versus last week:
 
-- Changes since last week: tech-writer idle→unclear (git commits show docs activity despite broken duty structure); kody steady→weak (only 1 of 7 duties ran); all others unchanged.
+- kody: steady to strong
+- coo: steady to weak
+- qa: strong to weak
+- ceo, cto, tech-writer, ux-designer: unchanged
