@@ -2,11 +2,11 @@
 
 _Rolling 6h cycle — one duty deep-reviewed per tick._
 
-Cycle 18 — 1 healthy, 9 warn, 16 broken of 26 duties.
+Cycle 17 — 1 healthy, 9 warn, 16 broken of 26 duties.
 
 | Duty | Staff | Cadence | Verdict | Note |
 |------|-------|---------|---------|------|
-| approval-gate | cto | 15m | broken | state.json never created; procedure cannot persist per-PR stage |
+| approval-gate | cto | 15m | broken | state.json never created (0 commits); procedure cannot emit unchanged state on no-PR tick — no prior state exists |
 | architecture-audit | cto | 7d | broken | script never implemented (404); body references deprecated .kody/jobs/ path; no kody-job-next-state block in procedure |
 | ceo-performance-review | ceo | 30d | broken | kody-job-next-state block never emitted by procedure; state file never created |
 | cleanup-branches | dev-infra | 3d | healthy | passes every check |
@@ -30,4 +30,4 @@ Cycle 18 — 1 healthy, 9 warn, 16 broken of 26 duties.
 | security-audit | cto | 30d (disabled) | warn | no kody-job-next-state block; disabled=true so idle by design |
 | system-audit | dev-infra | 6h | warn | no kody-job-next-state block; state never created |
 | task-memory-extractor | cto | 7d | warn | no kody-job-next-state block; state never created |
-| type-debt | dev-infra | 7d (disabled) | warn | no kody-job-next-state block; state never created; disabled=true so idle by design
+| type-debt | dev-infra | 7d (disabled) | warn | no kody-job-next-state block; state never created; disabled=true so idle by design |
