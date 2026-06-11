@@ -1,6 +1,7 @@
 /**
- * Genkit Instance Manager
- * Singleton Genkit instance with lazy plugin loading per provider type
+ * Genkit instance manager (singleton per provider)
+ *
+ * @ai-summary Caches Genkit instances by provider type. Each serverless instance gets its own copy at cold start — the cache is process-scoped, not shared across instances.
  *
  * @fileType implementation
  * @domain ai

@@ -1,13 +1,10 @@
 /**
- * Memory Extraction Service
- * Extracts important information from conversations to store as long-term memory
+ * AI-powered memory extraction from conversations
  *
- * Key Features:
- * - AI-powered extraction of preferences, decisions, facts
- * - Server-side filtering for quality control
- * - Deduplication via vector similarity
- * - Selective storage (quality over quantity)
- * - Context-scoped memory items
+ * @ai-summary Runs in the background after chat responses. Deduplicates via vector similarity (0.9 threshold). Concurrency is capped at 2 to avoid exhausting the MongoDB pool (maxPoolSize=3) — vector search calls are the bottleneck.
+ *
+ * @fileType service
+ * @domain ai
  */
 
 import { logger } from '@/infra/utils/logger'

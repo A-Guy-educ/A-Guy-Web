@@ -1,9 +1,7 @@
 /**
- * Data extraction service using AI models
- * Extracts structured data from images (questions, options, answers)
+ * Structured exercise extraction from images (Genkit multimodal)
  *
- * Migrated to Genkit unified adapter for LLM operations.
- * Uses dynamic imports to prevent Node.js-only modules from being bundled into client code.
+ * @ai-summary Uses Genkit's multimodal adapter. Dynamic imports prevent Node.js-only modules from being bundled into client code. v3 (`extractFromImageV3`) handles multi-part exercises with diagram detection; v1 (`extractFromImage`) handles simple single-question images.
  */
 import type { Payload } from '@/infra/types/backend'
 import type { AIModel, AIModelKey } from '../models'

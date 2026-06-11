@@ -1,6 +1,7 @@
 /**
- * Multimodal Types for Chat Media
- * Types for handling media attachments in chat messages
+ * Multimodal media attachment types
+ *
+ * @ai-summary Defines `MediaPartWithPath` which carries both the resolved filesystem path and the public URL — the reader chooses which to use based on environment (fs for local, URL for serverless).
  */
 
 export type MediaPartType = 'image' | 'pdf'

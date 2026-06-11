@@ -1,12 +1,10 @@
 /**
- * Summary Maintenance Service
- * Manages conversation compression and message trimming
+ * Conversation summary maintenance
  *
- * Key Features:
- * - Automatic triggering based on message count thresholds
- * - Preserves recent window for immediate context
- * - Updates summary incrementally
- * - Tracks summarization metadata
+ * @ai-summary Triggers at >40 messages (or >80 as a safety cutoff). Summarizes all but the last 20 messages, then replaces the conversation's message array with the window. Failures are non-fatal — maintenance errors don't break the chat.
+ *
+ * @fileType service
+ * @domain ai
  */
 
 import { logger } from '@/infra/utils/logger'

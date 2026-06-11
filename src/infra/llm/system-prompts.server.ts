@@ -1,5 +1,7 @@
 /**
- * Fetches all published system prompts in deterministic order
+ * Fetches published system prompts in ASC createdAt order
+ *
+ * @ai-summary Returns prompts in createdAt ASC + id ASC order (oldest first). The sort tiebreaker ensures fully deterministic ordering even when multiple prompts share the same timestamp.
  *
  * @fileType ai-utility
  * @domain chat

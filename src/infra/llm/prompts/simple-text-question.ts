@@ -1,8 +1,7 @@
 /**
- * System prompt for simple text-based question extraction
- * Protocol: Extracts questions with multiple-choice or free-response answers
- * Use case: Converting static exercise images to structured JSON
- * Note: This prompt expects ONLY the image - no additional context text
+ * System prompt for v1 exercise extraction (single-question, no diagrams)
+ *
+ * @ai-summary v1 prompt — handles simple single-question images. For multi-part exercises or diagrams, use `v3-exercise-with-diagrams.ts` instead.
  */
 
 export const SIMPLE_TEXT_QUESTION_PROMPT = `You are an expert at converting exercise images into structured JSON format for an educational platform.

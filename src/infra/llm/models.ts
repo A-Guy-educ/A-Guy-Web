@@ -1,30 +1,10 @@
 /**
- * LLM Model Registry - Single Source of Truth for All Model Definitions
+ * LLM Model Registry
  *
- * This module centralizes all model configurations to eliminate duplication
- * and enable proper provider switching at runtime.
+ * @ai-summary Single source of truth for all model configs (temperature, maxTokens, capabilities). Runtime env overrides (`LLM_MODEL_OVERRIDE_<KEY>`) take precedence over the registry — always resolve via `getProviderModelConfig()`.
  *
- * Architecture:
- * - MODEL_REGISTRY: Provider-agnostic configs (temperature, maxTokens, capabilities)
- * - PROVIDER_MODEL_NAMES: Provider-specific model name mappings
- * - AI_MODELS: Convenience export for backward compatibility (Gemini defaults)
- *
- * Usage:
- * ```typescript
- * import { MODEL_REGISTRY, PROVIDER_MODEL_NAMES, AI_MODELS, getProviderModelConfig } from '@/infra/llm/models'
- * import { LLMProviderType } from '@/infra/llm/providers/factory'
- *
- * // Get model config for specific provider
- * const config = getProviderModelConfig(LLMProviderType.GEMINI, 'EXERCISE_CHAT')
- *
- * // Access raw registry for custom logic
- * const registry = MODEL_REGISTRY.EXERCISE_CHAT
- * ```
- *
- * Runtime Model Overrides:
- * Set LLM_MODEL_OVERRIDE_<MODEL_KEY> environment variables to override models:
- * - LLM_MODEL_OVERRIDE_EXERCISE_CHAT=gemini-1.5-pro
- * - LLM_MODEL_OVERRIDE_DEFAULT=gpt-4o
+ * @fileType implementation
+ * @domain ai
  */
 
 import { LLMProviderType } from './providers/types'

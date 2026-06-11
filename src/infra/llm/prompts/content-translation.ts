@@ -1,8 +1,7 @@
 /**
- * System prompt for the Clone-and-Translate content translation service.
+ * System prompt for Clone-and-Translate block-level translation
  *
- * Translates educational content blocks between Hebrew and English while
- * preserving pedagogical logic, mathematical notation, and structural IDs.
+ * @ai-summary Preserves structural IDs, block order, and LaTeX math notation. Translates only text content fields. Glossary entries override default terminology.
  */
 export const CONTENT_TRANSLATION_PROMPT = `You are an expert educational content translator specializing in mathematics and science education.
 

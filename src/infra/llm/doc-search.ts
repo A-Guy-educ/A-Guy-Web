@@ -1,12 +1,10 @@
 /**
- * Simple Documentation Search
+ * Keyword-based documentation search
  *
- * Provides fast keyword-based search across documentation chunks.
- * No external dependencies - just JSON + smart scoring.
+ * @ai-summary Loads from `docs/ai/indexes/doc-chunks.json` at startup. If the file is missing, the singleton returns empty results — it does not crash, so missing chunks silently degrade search.
  *
- * Usage:
- *   const search = new DocSearch()
- *   const results = search.query("How do I create a published collection?")
+ * @fileType service
+ * @domain ai
  */
 
 import fs from 'fs'

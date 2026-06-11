@@ -1,9 +1,7 @@
 /**
- * Interactive lesson generation service.
- * Takes an image of a geometry problem and generates structured
- * geometry data + proof table steps using the LLM.
+ * Interactive lesson generation from geometry problem images
  *
- * Two-pass approach: LLM extracts geometry + proof, we render SVG deterministically.
+ * @ai-summary Calls Gemini directly via `generateContent` (bypassing Genkit) to pass `responseSchema`. Bakes TTS audio per step with a lesson-level 8MB budget — steps that exceed the budget skip audio caching and fall through to live TTS at playback. Per-step failures are also non-fatal.
  */
 import type { Payload } from '@/infra/types/backend'
 import { z } from 'zod'

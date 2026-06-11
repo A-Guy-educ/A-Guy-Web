@@ -1,14 +1,7 @@
 /**
- * Context Policy Module
- * Deterministic prompt composition for AI chat
+ * Deterministic prompt composition policy
  *
- * Policy V1 Contract:
- * 1. System message (static)
- * 2. Conversation summary (if exists)
- * 3. Retrieved memory items (Top-K)
- * 4. Recent messages window (last N messages)
- *
- * CRITICAL: No ad-hoc insertions. No reordering. No message duplication.
+ * @ai-summary Enforces a fixed order: system → summary → memory items → recent messages. No ad-hoc insertions, no reordering, no duplication. Any new context source must append at the end of the system message.
  */
 
 import type { MemoryItem } from './vector-search'

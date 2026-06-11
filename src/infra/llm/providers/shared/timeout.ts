@@ -1,6 +1,7 @@
 /**
- * Timeout Utility
- * Race a promise against a timeout
+ * Promise.race against timeout
+ *
+ * @ai-summary Uses `Promise.race` with a cleanup callback that always fires (via `clearTimeout`). `createAbortSignal` wires an AbortController to the timeout so fetch/etc. can be cancelled cooperatively.
  *
  * @fileType utility
  * @domain ai

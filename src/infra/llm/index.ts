@@ -1,11 +1,10 @@
 /**
  * AI Service Layer - Public API
- * Centralized exports for all AI functionality
  *
- * Future-ready: Easy to extend with new features like:
- * - Exercise editing suggestions
- * - Content generation
- * - Auto-grading assistance
+ * @ai-summary Centralizes all AI functionality (LLM chat, embeddings, vector search, lesson generation). Exists so callers import from one place — new sub-modules must add their exports here to be accessible.
+ *
+ * @fileType index
+ * @domain ai
  */
 
 // Genkit-based provider exports

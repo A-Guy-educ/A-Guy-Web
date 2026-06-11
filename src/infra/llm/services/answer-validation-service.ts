@@ -1,6 +1,7 @@
 /**
- * Answer validation service using LLM for semantic equivalence
- * Server-side only — called as fallback when DB normalization fails
+ * LLM-based semantic answer validation (fallback when DB normalization fails)
+ *
+ * @ai-summary Server-side-only. Called as fallback when exact DB matching can't determine correctness. Uses GPT-4o-mini for cost efficiency. On failure, returns `success: false` — callers handle gracefully.
  */
 import type { Payload } from '@/infra/types/backend'
 import type { AIModel, AIModelKey } from '../models'

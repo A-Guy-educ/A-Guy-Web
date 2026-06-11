@@ -1,6 +1,7 @@
 /**
- * Shared types for documentation chunks
- * Used by both the doc-search module and the chunk generation script
+ * Shared DocChunk contract between doc-search and chunk generation
+ *
+ * @ai-summary This is the shared schema contract. If the shape changes, both the doc-search consumer and the chunk generation script must be updated together.
  */
 
 export interface DocChunk {

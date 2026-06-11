@@ -1,6 +1,7 @@
 /**
- * Input Validation for LLM Providers
- * Validates chat input before sending to LLM APIs
+ * Input validation for LLM providers
+ *
+ * @ai-summary Validates messages array, roles, temperature range, maxOutputTokens ceiling. Errors are thrown as LLMError with VALIDATION_ERROR code — callers handle them distinctly from retryable API errors.
  *
  * @fileType validation
  * @domain ai
