@@ -7,8 +7,10 @@ import { z } from 'zod'
 import { resolveMediaFilePath } from '@/infra/config/storage'
 import { getContentDb, objectIdFromString } from '@/infra/db/content-db'
 import {
-  callGeminiWithSchema,
+  callGeminiResiliently,
+  GEMINI_CONFIG,
   parseResponse,
+  prepareImage,
   validateLesson,
 } from '@/infra/llm/services/interactive-lesson/interactive-lesson-generation-service'
 import type { InteractiveLesson } from '@/infra/llm/services/interactive-lesson/interactive-lesson-types'
@@ -108,10 +110,11 @@ async function generateWithGemini(
       ? 'נתח את תרגיל המתמטיקה בתמונה והחזר JSON בלבד לפי הסכמה: title, geometry, graph, numberLine, steps. כל הטקסט בעברית. אם אין גרף או ציר מספרים החזר מערכים ריקים.'
       : 'Analyze the math exercise in the image and return JSON only with: title, geometry, graph, numberLine, steps. Use English. Use empty arrays for graph or numberLine when absent.'
 
-  const responseText = await callGeminiWithSchema({
+  const { attachmentData } = await prepareImage(buffer, mimeType)
+  const responseText = await callGeminiResiliently({
     apiKey,
     prompt,
-    attachmentData: buffer.toString('base64'),
+    attachmentData,
     attachmentMimeType: mimeType,
   })
   if (!responseText) return null
@@ -139,7 +142,7 @@ export async function POST(request: NextRequest) {
       success: true,
       data: lesson,
       metadata: {
-        model: process.env.GEMINI_API_KEY ? 'gemini-2.5-flash' : 'fallback',
+        model: process.env.GEMINI_API_KEY ? GEMINI_CONFIG.modelName : 'fallback',
         imageSizeBytes: media.buffer.length,
         processingTimeMs: 0,
       },
