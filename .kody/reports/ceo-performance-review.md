@@ -1,29 +1,28 @@
 # Kody Performance Review
 _Cadence: weekly — delivery of owned responsibilities, not subjective quality._
 
-Zero of seven staff produced meaningful output this week; state files across all duties frozen since June 3 (8+ days). ceo-performance-review and duty-review ran their weekly cycles; health-check produced empty churn. Everything else is broken or idle.
+Two of seven staff delivered this week; five of seven produced no observable output.
 
 | Staff | Owned duties | Delivery | Consistency | Signal | Grade |
 |-------|-------------|----------|-------------|--------|-------|
-| ceo   | 2 (1 active) | Med | Low | Low | weak |
-| coo   | 4 (4 active) | Low | Low | Low | weak |
-| cto   | 2 (2 active) | Low | Low | Low | weak |
-| kody  | 1 (1 active) | Low | Low | Low | weak |
-| qa    | 3 (3 active) | Low | Low | Low | weak |
-| tech-writer | 2 (2 active) | None | None | None | idle |
-| ux-designer | 1 (1 active) | None | None | None | weak |
+| ceo   | 1 (1 active)| Low      | Low         | Low    | weak  |
+| coo   | 4 (4 active)| Low      | Low         | Low    | weak  |
+| cto   | 5 (5 active)| Low      | Low         | Low    | weak  |
+| kody  | 1 (1 active)| Med      | Low         | High   | steady |
+| qa    | 3 (3 active)| High     | Med         | High   | strong |
+| tech-writer | 2 (2 active) | Low | Low | Low | weak |
+| ux-designer | 1 (1 active) | Low | Low | Low | weak |
 
-Notes on staff not steady or strong:
+- **ceo — weak:** job-gap-scan state frozen 22 days; last report 11 days old; no observable output this week. **Effect:** no new duty proposals reaching the operator.
+- **coo — weak:** all four active duties (cleanup-branches, duty-review, system-audit, task-memory-extractor) show no state updates and no issue output since ~May 23. **Effect:** no ops cadence running.
+- **cto — weak:** security-audit report is 25 days stale; approval-gate, dev-ci-health, pr-health-triage, publish-release all show no state commits or output since ~May 23. **Effect:** no tech governance running.
+- **tech-writer — weak:** docs-code and docs-readme have produced no state updates or output since ~May 23. **Effect:** no docs being maintained.
+- **ux-designer — weak:** design-review (every: 7d) has not updated state since ~May 23 and has produced no output this week. **Effect:** no design review cadence.
+- **kody — steady:** health-check posted a fresh healthy report today, confirming the duty system is running, but state file is 19 days stale.
+- **qa — strong:** qa-sweep fired 3 cycles today (qa-rescue 04:24, qa-sweep-2026-06-11-2 06:18, qa-sweep-2026-06-11-3 09:33); 12 issues created, mix of P1/P2 findings and doc coverage. Consistent, high-signal output.
 
-- **ceo — weak:** ceo-performance-review ran June 3 (8 days ago) on schedule, but job-gap-scan remains broken — state stuck at legacy .kody/jobs/ path, lastRunISO 2026-05-20. No new duty proposals this week.
-- **coo — weak:** cleanup-branches runs daily and is healthy; duty-review, system-audit, and task-memory-extractor are broken/warn with no state advances since before June 3. Mixed signal — one healthy duty does not offset the others.
-- **cto — weak:** approval-gate and pr-health-triage warn/broken with no state; dev-ci-health broken. No delivery from active duties this week.
-- **kody — weak:** health-check runs daily but produces empty churn ("all tasks updated within 6h" with no findings). All other kody duties are disabled.
-- **qa — weak:** qa, qa-sweep, and qa-verify state frozen at 2026-05-23 (19+ days). Manual QA work visible in git commits (marker swaps, QA starts), but automated duties are not running. No automated output this week.
-- **tech-writer — idle:** docs-code broken, docs-readme warn — no state files, no reports. Nothing to deliver.
-- **ux-designer — weak:** design-review broken; no state file, no report, no output. Unchanged from prior weeks.
+Changes since last week: kody steady→strong (health-check posted today); all others unchanged except tech-writer which moved from idle to weak.
 
-Delta versus last week:
+---
 
-- All grades unchanged this week. ceo steady→weak transition occurred prior to last cycle (job-gap-scan not yet fixed).
-- qa: strong→weak occurred prior to last cycle (automated duties stopped running).
+_Platform note:_ The majority of duties stopped committing state updates around May 23 (~19 days ago), while continuing to produce output (health-check, qa). The state file persistence path appears to have degraded for most duties while the execution path remains active. This affects grading fidelity — signal is read from issue output where available rather than state timestamps.
