@@ -1677,6 +1677,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix(ask): Restore Gemini responseSchema on interactive lesson route ([#158](https://github.com/A-Guy-educ/A-Guy-Web/pull/158)) — @aguyshayb
 - #67: [Lessons] עמוד כניסה אחיד לכל סוגי השיעורים ([#68](https://github.com/A-Guy-educ/A-Guy-Web/pull/68)) — @kodyade[bot] · ⚠️ QA 2026-06-10 (#85)
 - #30: [Lessons] Add unified entry intro page for all lessons ([#34](https://github.com/A-Guy-educ/A-Guy-Web/pull/34)) — @kodyade[bot] · ⚠️ QA 2026-06-10 (#100)
 - #35: docs: add headers to src/server/services/ (doc-coverage gap) ([#36](https://github.com/A-Guy-educ/A-Guy-Web/pull/36)) — @kodyade[bot] · ⚠️ QA 2026-06-10 (#53)
