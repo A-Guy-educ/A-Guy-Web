@@ -2,19 +2,25 @@
 
 _Cadence: weekly — delivery of owned responsibilities, not subjective quality._
 
-System-wide execution stall persists: no duty state files advanced this cycle. coo (duty-review) and kody (health-check) are the sole exceptions — both produced fresh output today (June 11). Four of seven staff delivered nothing measurable this cycle.
+One of seven staff delivered this week (kody); four are weak, two are idle.
 
 | Staff | Owned duties | Delivery | Consistency | Signal | Grade |
 |-------|-------------|----------|-------------|--------|-------|
-| ceo   | 2 (2 active) | Low | Med | Med | steady |
-| coo   | 4 (3 active) | Med | Low | Med | steady |
-| cto   | 6 (5 active) | None | Low | Low | weak |
-| kody  | 2 (1 active) | Med | Med | High | steady |
-| qa    | 3 (3 active) | None | None | Low | weak |
-| tech-writer | 2 (2 active) | None | None | None | idle |
-| ux-designer | 1 (1 active) | None | None | None | idle |
+| ceo   | 1 (1 active)| Low      | Low         | Med    | weak  |
+| coo   | 4 (4 active)| Low      | Low         | Low    | weak  |
+| cto   | 7 (6 active)| Low      | Low         | Low    | weak  |
+| kody  | 2 (2 active)| Med      | Med         | Med    | steady |
+| qa    | 3 (3 active)| Low      | Low         | Low    | weak  |
+| tech-writer | 2 (2 active) | -     | -           | -      | idle  |
+| ux-designer | 1 (1 active) | -    | -           | -      | idle  |
 
-- **cto — weak:** approval-gate, dev-ci-health, pr-health-triage, publish-release, security-audit — all five active duties show state frozen or absent. No fresh output this cycle. **Effect:** PR queue, CI monitoring, security review, and release process all delegated to operator with no automation.
-- **qa — weak:** qa, qa-sweep, qa-verify — state still frozen at 2026-05-23 (19 days). QA markers on PRs last seen June 3–4 (7+ days cold). No fresh evidence this cycle. **Effect:** regressions ship unreviewed; delivery PRs merge without QA gate.
+- **ceo — weak:** job-gap-scan state frozen 2026-05-20; report last refreshed 2026-05-31 (11 days stale on a daily cadence). **Effect:** no new duty proposals reaching the operator.
+- **coo — weak:** system-audit and task-memory-extractor state frozen 2026-05-23 (19 days); cleanup-branches and duty-review have no state files at all. **Effect:** COO responsibilities have produced no output in nearly three weeks.
+- **cto — weak:** five of six active duties (approval-gate, dev-ci-health, pr-health-triage, publish-release, security-audit) have state frozen or absent from 2026-05-23. CTO report itself is from 2026-05-18. **Effect:** CTO's entire operational layer has gone silent.
+- **qa — weak:** qa-sweep is 18 days overdue on its daily cadence; qa and qa-verify state frozen 2026-05-23. No reports produced. **Effect:** QA visibility into regressions is gone; the changelog-verification loop is not running.
+- **tech-writer — idle:** docs-code and docs-readme have no state files and no reports. No active delivery, no penalty — nothing to measure.
+- **ux-designer — idle:** design-review has no state and no report. No active delivery, no penalty — nothing to measure.
 
-- Changes since last week: qa strong→weak (state remains frozen May 23; no fresh evidence in cycle; second consecutive decline); coo steady→steady (unchanged); kody steady→steady (unchanged); ceo steady→steady (unchanged); cto weak→weak (unchanged); tech-writer idle→idle (unchanged); ux-designer idle→idle (unchanged).
+- Changes since last week: kody weak to steady (health-check report refreshing today, 2026-06-11); qa strong to weak (all three QA duties now 19+ days stale with no output); ceo steady to weak (job-gap-scan missed 11+ days of daily cadence); ux-designer weak to idle (no duties producing evidence).
+
+Systemic note: nearly every state file is frozen at 2026-05-23. The kodyade bot is the only executor showing signs of life today (health-check, duty-review). If kody is the only active worker, the system is running on one cylinder.
