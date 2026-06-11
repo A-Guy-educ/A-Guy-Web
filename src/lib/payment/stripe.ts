@@ -1,8 +1,9 @@
 /**
  * Stripe Payment Service
  *
- * Provides checkout session creation, webhook verification, and refund operations.
- * Uses getPaymentEnv() for environment variable access.
+ * @fileType utility
+ * @domain payment
+ * @ai-summary Stripe checkout sessions, webhook verification, and refunds. Lazy client init avoids requiring env vars at import time. Use cancelStripeCheckout ONLY as cleanup when DB write fails after session creation — it voids the provider session, not the DB record.
  */
 
 import Stripe from 'stripe'

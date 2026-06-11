@@ -1,8 +1,9 @@
 /**
  * Payment Service Types
  *
- * Shared types for Stripe and PayPal payment providers.
- * Used by checkout creation, webhook verification, and refund operations.
+ * @fileType utility
+ * @domain payment
+ * @ai-summary Shared payment types for Stripe and PayPal: CreateCheckoutOptions, CheckoutResult, TransactionStatus, PaymentProvider. All amounts are in smallest currency unit (agorot/cents).
  */
 
 export type PaymentProvider = 'stripe' | 'paypal'
