@@ -4,8 +4,8 @@ import { EmptyLessonPlaceholder } from '../EmptyLessonPlaceholder'
 import type { Lesson, Media } from '@/infra/types/content'
 import type { ResolvedLessonBlock } from '@/server/repos/queries/lesson-blocks'
 import { ExerciseWorkspace } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseWorkspace'
-import { ExercisesPager } from '../ExercisesPager'
-import { PdfLessonPager } from '../PdfLessonPager'
+import { DualModeLessonView } from '../DualModeLessonView'
+import type { LessonMode } from '../DualModeLessonView/useLessonViewMode'
 import { ChatInterface } from '@/ui/web/chat'
 import { Button } from '@/ui/web/components/button'
 import { useTranslations } from '@/ui/web/providers/I18n'
@@ -72,8 +72,14 @@ export function LessonIntroPage({
     }
     return false
   })
+  const hasMedia = pdfCount > 0
 
-  const contentType = hasExerciseContent ? 'exercises' : pdfCount > 0 ? 'pdf' : 'scroll'
+  // Which tabs the DualModeLessonView should expose for this lesson.
+  // Media tab needs attached files; PDF (worksheet from blocks) and Interactive
+  // (exercise pager) both render from exercise blocks, so they need exercises.
+  const visibleRenderers: LessonMode[] = []
+  if (hasMedia) visibleRenderers.push('media')
+  if (hasExerciseContent) visibleRenderers.push('pdf', 'interactive')
 
   const workspaceChatContent = showChat ? (
     <ChatInterface
@@ -95,39 +101,38 @@ export function LessonIntroPage({
     )
   }
 
-  if (pageState === 'exercises') {
-    return (
-      <ExercisesPager
-        exercises={exercises}
-        lessonTitle={lesson.title}
-        backUrl={backUrl}
-        courseSlug={courseSlug}
-        chapterSlug={chapterSlug}
-        lessonSlug={lessonSlug}
-        lessonId={lessonId}
-        gradeLevel={gradeLevel}
-        mediaMap={mediaMap}
-        showChat={showChat}
-        formulaSheet={formulaSheet}
-      />
-    )
-  }
+  if (pageState === 'content') {
+    // Lessons with neither media nor exercises (e.g. blocks-only that didn't
+    // resolve into the exercises list) fall back to the empty workspace so the
+    // student still sees the chat affordance.
+    if (visibleRenderers.length === 0) {
+      return (
+        <ExerciseWorkspace
+          exerciseTitle={lesson.title}
+          backUrl={backUrl}
+          primaryContent={<EmptyLessonPlaceholder lessonTitle={lesson.title} />}
+          chatContent={workspaceChatContent}
+        />
+      )
+    }
 
-  if (pageState === 'pdf') {
     return (
-      <PdfLessonPager
-        validFiles={mediaFiles}
+      <DualModeLessonView
+        lessonId={lessonId}
         lessonTitle={lesson.title}
         backUrl={backUrl}
         courseSlug={courseSlug}
         chapterSlug={chapterSlug}
         lessonSlug={lessonSlug}
-        lessonId={lessonId}
         gradeLevel={gradeLevel}
+        exercises={exercises}
+        interactive={{ kind: 'exercises', exercises }}
+        validFiles={mediaFiles}
+        mediaMap={mediaMap}
         chatLessonId={lesson.id}
         showChat={showChat}
         formulaSheet={formulaSheet}
-        initialPageState={{ type: 'pdf', pageNumber: 1 }}
+        visibleRenderers={visibleRenderers}
       />
     )
   }
@@ -203,7 +208,7 @@ export function LessonIntroPage({
               )}
 
               <Button
-                onClick={() => handleStart(contentType)}
+                onClick={() => handleStart()}
                 size="lg"
                 className="w-full py-section-sm rounded-2xl text-body-lg shadow-card shadow-primary/20 hover:shadow-card-hover hover:shadow-primary/30 transition-all duration-slow cursor-pointer"
               >

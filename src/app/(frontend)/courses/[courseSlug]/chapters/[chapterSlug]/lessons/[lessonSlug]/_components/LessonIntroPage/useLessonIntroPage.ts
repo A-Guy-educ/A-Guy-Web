@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-type LessonIntroPageState = 'intro' | 'exercises' | 'pdf' | 'workspace'
+type LessonIntroPageState = 'intro' | 'content' | 'workspace'
 
 interface UseLessonIntroPageOptions {
   /**
@@ -17,15 +17,7 @@ export function useLessonIntroPage({ deepLinkedExerciseId }: UseLessonIntroPageO
     deepLinkedExerciseId ? 'workspace' : 'intro',
   )
 
-  const handleStart = (contentType: 'exercises' | 'pdf' | 'scroll' = 'scroll') => {
-    if (contentType === 'exercises') {
-      setPageState('exercises')
-    } else if (contentType === 'pdf') {
-      setPageState('pdf')
-    } else {
-      setPageState('workspace')
-    }
-  }
+  const handleStart = () => setPageState('content')
 
   return {
     pageState,
