@@ -212,7 +212,7 @@ export function NewStartPage() {
                 {/* CTA Buttons */}
                 <div className="flex flex-wrap gap-4">
                   <button
-                    onClick={scrollToSimulation}
+                    onClick={() => router.push('/start')}
                     className="group px-8 py-4 bg-white text-sky-700 rounded-2xl font-bold text-lg hover:shadow-2xl transition-all flex items-center gap-2"
                   >
                     <span>התחל ניסיון חינם</span>
@@ -994,7 +994,7 @@ export function NewStartPage() {
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <button
-                onClick={scrollToSimulation}
+                onClick={() => router.push('/start')}
                 className="px-10 py-5 text-white rounded-2xl font-bold text-lg transition-all shadow-lg flex items-center gap-2"
                 style={{
                   background: 'linear-gradient(135deg, #0284c7, #9333ea)',
