@@ -5,24 +5,24 @@ Two of seven staff delivered this week; five of seven produced no observable out
 
 | Staff | Owned duties | Delivery | Consistency | Signal | Grade |
 |-------|-------------|----------|-------------|--------|-------|
-| ceo   | 1 (1 active)| Low      | Low         | Low    | weak  |
+| ceo   | 2 (2 active)| Med      | Low         | Low    | weak  |
 | coo   | 4 (4 active)| Low      | Low         | Low    | weak  |
-| cto   | 5 (5 active)| Low      | Low         | Low    | weak  |
-| kody  | 1 (1 active)| Med      | Low         | High   | steady |
+| cto   | 6 (6 active)| Low      | Low         | Low    | weak  |
+| kody  | 2 (2 active)| Med      | Low         | High   | steady |
 | qa    | 3 (3 active)| High     | Med         | High   | strong |
 | tech-writer | 2 (2 active) | Low | Low | Low | weak |
 | ux-designer | 1 (1 active) | Low | Low | Low | weak |
 
-- **ceo — weak:** job-gap-scan state frozen 22 days; last report 11 days old; no observable output this week. **Effect:** no new duty proposals reaching the operator.
-- **coo — weak:** all four active duties (cleanup-branches, duty-review, system-audit, task-memory-extractor) show no state updates and no issue output since ~May 23. **Effect:** no ops cadence running.
-- **cto — weak:** security-audit report is 25 days stale; approval-gate, dev-ci-health, pr-health-triage, publish-release all show no state commits or output since ~May 23. **Effect:** no tech governance running.
-- **tech-writer — weak:** docs-code and docs-readme have produced no state updates or output since ~May 23. **Effect:** no docs being maintained.
-- **ux-designer — weak:** design-review (every: 7d) has not updated state since ~May 23 and has produced no output this week. **Effect:** no design review cadence.
-- **kody — steady:** health-check posted a fresh healthy report today, confirming the duty system is running, but state file is 19 days stale.
-- **qa — strong:** qa-sweep fired 3 cycles today (qa-rescue 04:24, qa-sweep-2026-06-11-2 06:18, qa-sweep-2026-06-11-3 09:33); 12 issues created, mix of P1/P2 findings and doc coverage. Consistent, high-signal output.
+- **ceo — weak:** job-gap-scan last report 2026-05-31 (~11 days old); no new proposals reaching the operator this week.
+- **coo — weak:** cleanup-branches (manual), duty-review, system-audit (lastRunISO 2026-05-23), task-memory-extractor — all show no state updates or issue output this week.
+- **cto — weak:** approval-gate (broken: state never created), dev-ci-health, pr-health-triage, publish-release, security-audit (report 25 days stale) — no active output this week.
+- **tech-writer — weak:** docs-code and docs-readme (every: 1d) have produced no state updates or output since ~May 23. No docs maintenance running.
+- **ux-designer — weak:** design-review (every: 7d) has not updated state and has produced no output since ~May 23. No design review cadence.
+- **kody — steady:** health-check posted fresh report today confirming healthy system, but state files remain stale. High signal, low state persistence.
+- **qa — strong:** qa-sweep fired 3 cycles today (04:24, 06:18, 09:33); 12 issues created with P1/P2 findings and doc coverage. Consistent, high-signal output.
 
-Changes since last week: kody steady→strong (health-check posted today); all others unchanged except tech-writer which moved from idle to weak.
+Changes since last week: all grades unchanged. qa sustained strong delivery; kody sustained steady. No improvements or regressions this cycle.
 
 ---
 
-_Platform note:_ The majority of duties stopped committing state updates around May 23 (~19 days ago), while continuing to produce output (health-check, qa). The state file persistence path appears to have degraded for most duties while the execution path remains active. This affects grading fidelity — signal is read from issue output where available rather than state timestamps.
+_Platform note:_ The majority of duties stopped committing state updates around May 23 (~19 days ago), while a subset continue to produce output (health-check, qa). The state file persistence layer appears degraded for most duties while execution paths remain partially active. Signal is read from issue output where available rather than state timestamps.
