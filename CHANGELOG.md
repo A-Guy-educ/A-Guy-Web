@@ -1678,7 +1678,7 @@
 ## [Unreleased]
 
 - #164: Remove /start fallback from root page ([#165](https://github.com/A-Guy-educ/A-Guy-Web/pull/165)) — @kodyade[bot] · ⚠️ QA 2026-06-11 (#176)
-- fix(lessons): Show Prev/Next nav buttons unconditionally (revert #1766) ([#163](https://github.com/A-Guy-educ/A-Guy-Web/pull/163)) — @aguyshayb
+- fix(lessons): Show Prev/Next nav buttons unconditionally (revert #1766) ([#163](https://github.com/A-Guy-educ/A-Guy-Web/pull/163)) — @aguyshayb · 🔄 QA (#190)
 - fix(ask): Restore Gemini responseSchema on interactive lesson route ([#158](https://github.com/A-Guy-educ/A-Guy-Web/pull/158)) — @aguyshayb
 - #67: [Lessons] עמוד כניסה אחיד לכל סוגי השיעורים ([#68](https://github.com/A-Guy-educ/A-Guy-Web/pull/68)) — @kodyade[bot] · ⚠️ QA 2026-06-10 (#85)
 - #30: [Lessons] Add unified entry intro page for all lessons ([#34](https://github.com/A-Guy-educ/A-Guy-Web/pull/34)) — @kodyade[bot] · ⚠️ QA 2026-06-10 (#100)
