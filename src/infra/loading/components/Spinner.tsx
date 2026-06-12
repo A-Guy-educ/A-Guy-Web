@@ -1,3 +1,6 @@
+/**
+ * @ai-summary Animated SVG spinner with size variants — uses CSS animate-spin for GPU-accelerated animation; preferred over gif/png for crisp rendering at any scale.
+ */
 'use client'
 
 import { cn } from '@/infra/utils/ui'

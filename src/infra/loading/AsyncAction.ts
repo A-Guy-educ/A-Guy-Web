@@ -1,3 +1,6 @@
+/**
+ * @ai-summary Wraps async actions with loading state registration and optional duplicate-submission guard — returns normalized { success, data, error } contract; server action results are unwrapped automatically.
+ */
 import { loadingManager, type LoadingManagerInstance } from './LoadingManager'
 
 export interface ActionResult<T = unknown> {

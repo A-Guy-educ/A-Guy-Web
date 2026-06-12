@@ -1,3 +1,6 @@
+/**
+ * @ai-summary Singleton store for all client-side loading operations — useSyncExternalStore compatible with 15s route safety timeout to prevent stuck navigation state.
+ */
 // Types
 export type LoadingType = 'route' | 'screen' | 'inline' | 'action'
 
