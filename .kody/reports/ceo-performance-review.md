@@ -4,30 +4,36 @@ _Cadence: weekly — delivery of owned responsibilities, not subjective quality.
 
 ## Headline
 
-Systemic stall: virtually every duty last fired 12–20 days ago; no active duty produced output this week. This is a platform failure, not individual misses.
+Two of seven staff produced output this week; five show stale or missing delivery evidence.
 
 ## Scoring Table
 
 | Staff | Owned duties | Delivery | Consistency | Signal | Grade |
 |-------|-------------|----------|-------------|--------|-------|
-| ceo   | 1 (1 active) | None    | Low         | None   | unclear |
-| coo   | 4 (2 active, 2 no-state) | None | Low | None | weak |
-| cto   | 6 (1 active, 5 no-state) | None | Low | None | weak |
-| kody  | 6 (5 active, 1 no-state) | None | Low | None | weak |
-| qa    | 3 (3 active) | None    | Low         | None   | weak |
-| tech-writer | 2 (0 active) | Idle | — | — | idle |
-| ux-designer | 1 (0 active) | Idle | — | — | idle |
+| ceo | 2 (2 active) | Med | Weak | Med | weak |
+| coo | 4 (1 active) | Med | Weak | Med | weak |
+| cto | 6 (1 active) | Low | Weak | Low | weak |
+| kody | 7 (1 active) | Med | Weak | Med | weak |
+| qa | 3 (1 active) | Low | Weak | Low | weak |
+| tech-writer | 2 (0 active) | — | — | — | idle |
+| ux-designer | 1 (0 active) | Low | Weak | Low | weak |
 
-## Annotations
+## Notes
 
-- **ceo — unclear:** job-gap-scan (duties/) last ran May 20; jobs/ version last ran May 31. No evidence of output this week. Signal too stale to grade.
-- **coo — weak:** system-audit and task-memory-extractor last fired May 23. cleanup-branches and duty-review have no state files — no evidence of execution. **Effect:** no COO output for ~20 days.
-- **cto — weak:** pr-health-triage last fired May 23. approval-gate, architecture-audit, dev-ci-health, publish-release, security-audit all have no current state (security-audit frozen since May 8). **Effect:** no CTO output for 12–20 days.
-- **kody — weak:** health-check last fired May 23; coverage-floor, dead-code-sweep, dependency-bump, flaky-test-quarantine, type-debt all frozen since May 8. **Effect:** no sweep/maintenance output for 20 days.
-- **qa — weak:** qa, qa-sweep, qa-verify all last fired May 23. **Effect:** no QA review output for 20 days.
-- **tech-writer — idle:** docs-code and docs-readme have no state files and no output this week.
-- **ux-designer — idle:** design-review has no state file and no output this week.
+- **ceo — weak:** job-gap-scan state frozen 2026-05-20; report from 2026-05-31 (12 days stale). ceo-performance-review ran this cycle. **Effect:** no new duty proposals.
+- **coo — weak:** duty-review ran today (report committed 2026-06-12); system-audit state frozen 2026-05-23; cleanup-branches and task-memory-extractor have no state or report. **Effect:** coo visibility into duty health is stale.
+- **cto — weak:** security-audit state from 2026-05-23; cto report from 2026-05-18 (25 days stale); approval-gate, architecture-audit, dev-ci-health, pr-health-triage, publish-release show no state or output. **Effect:** PR health monitoring non-functional.
+- **kody — weak:** health-check ran today (report committed 2026-06-12); coverage-floor, dead-code-sweep, dependency-bump, flaky-test-quarantine, type-debt all state-frozen 2026-05-08; redispatch state empty. **Effect:** most kody automations idle.
+- **qa — weak:** qa-sweep state frozen 2026-05-23 (~20 days); qa-verify and qa have no state. **Effect:** regression coverage unmonitored.
+- **ux-designer — weak:** design-review has no state or report. **Effect:** no design review cadence.
+- **tech-writer — idle:** docs-code and docs-readme have no active output.
 
-## Delta
+## Changes Since Last Week
 
-- Changes since last week: ceo steady→unclear; coo weak→weak (still no output); cto weak→weak (still no output); kody steady→weak; qa strong→weak; tech-writer idle→idle; ux-designer weak→idle.
+- ceo: steady→weak (job-gap-scan went stale)
+- coo: weak→weak (duty-review ran but overall unchanged)
+- cto: weak→weak (no change)
+- kody: steady→weak (most duties went stale)
+- qa: strong→weak (qa-sweep went stale)
+- tech-writer: idle→idle (no change)
+- ux-designer: weak→weak (no change)
