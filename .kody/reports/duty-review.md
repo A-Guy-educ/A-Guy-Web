@@ -6,7 +6,7 @@ Cycle 17 — 1 healthy, 10 warn, 15 broken of 26 duties.
 
 | Duty | Staff | Cadence | Verdict | Note |
 |------|-------|---------|---------|------|
-| approval-gate | cto | 15m | broken | state file never created (404, 0 commits); cadence guard not formalized in body |
+| approval-gate | cto | 15m | broken | state file never created (404, 0 commits); cadence guard not formalized in body; procedure never emits kody-job-next-state |
 | architecture-audit | ceo | 1d | broken | script never implemented (404); body references deprecated .kody/jobs/ path; no kody-job-next-state block in procedure |
 | ceo-performance-review | ceo | 7d | broken | kody-job-next-state block never emitted by procedure; state file never created |
 | cleanup-branches | coo | 7d | healthy | passes every check |
