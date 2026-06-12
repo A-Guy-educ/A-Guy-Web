@@ -1,37 +1,34 @@
 # Kody Performance Review
-
 _Cadence: weekly — delivery of owned responsibilities, not subjective quality._
 
 ## Headline
+Two of seven staff produced active output this week (health-check, duty-review); four staff have at least one duty with state frozen 16+ days or no verifiable output.
 
-Three of seven staff delivered output this week; cto, qa, tech-writer, and ux-designer are silent on all responsibilities.
-
-## Scoring
+## Scoring table
 
 | Staff | Owned duties | Delivery | Consistency | Signal | Grade |
 |-------|-------------|----------|-------------|--------|-------|
-| ceo | 2 (1 active) | Med | Med | Med | steady |
-| coo | 4 (1 disabled, 1 active) | Med | Med | Med | steady |
-| cto | 6 (1 disabled) | None | None | None | weak |
-| kody | 5 (4 disabled) | Med | Med | Med | steady |
-| qa | 3 (0 active) | None | None | None | weak |
-| tech-writer | 2 (0 active) | None | None | None | weak |
-| ux-designer | 1 (0 active) | None | None | None | weak |
+| ceo   | 2 active    | Med      | Med         | Med    | steady |
+| coo   | 4 active    | Med      | Low         | Med    | weak   |
+| cto   | 5 active, 1 disabled | Low | Low         | Low    | weak   |
+| kody  | 2 active, 5 disabled | Med | Med         | High   | steady |
+| qa    | 3 active    | Low      | Low         | Low    | weak   |
+| tech-writer | 2 active | Unclear | Unclear     | Low    | unclear |
+| ux-designer | 1 active | Low    | Low         | Low    | weak   |
 
-## Notes
+## Notable misses
 
-- **coo — steady:** duty-review actively cycling (report refreshed June 11-12, finds 1 healthy / 10 warn / 14 broken across all duties); system-audit and task-memory-extractor frozen May 23. Mixed signal but duty-review itself is delivering.
-- **cto — weak:** approval-gate and dev-ci-health state files never created; pr-health-triage frozen May 23 with no report output; publish-release is manual and has not fired; security-audit frozen May 23. Zero active duty produced output this week. **Effect:** PR health, CI, and security surfaces unreviewed.
-- **qa — weak:** qa, qa-sweep, qa-verify — all three frozen since May 23; qa-verify state never created. No QA verification on any recent change. **Effect:** regressions and bugs ship without review.
-- **tech-writer — weak:** docs-code and docs-readme — no state files, no reports, duties appear never to have produced output. **Effect:** documentation drift unchecked.
-- **ux-designer — weak:** design-review — no state file, no report output, never ran. **Effect:** design coherence unchecked.
-- **kody — steady:** health-check running (report refreshed June 11-12, 1 running task flagged); redispatch state migrated but cursor stalled May 6. Disabled duties excluded. Signal is real but thin.
-- **ceo — steady:** ceo-performance-review actively cycling (multiple refreshes June 11-12); job-gap-scan report last updated May 31 (12 days stale). One active output, one stale.
+- **qa — weak:** qa, qa-sweep, qa-verify all have lastRunISO frozen 2026-05-23 — 20 days. No state advance on any 1d/7d cadence. **Effect:** PR quality gate unattended.
+- **cto — weak:** security-audit lastRunISO 2026-05-08 (35 days stale); dev-ci-health and pr-health-triage last commit 10-16 days ago with no report output; cto report from 2026-05-18 (25 days stale). **Effect:** security and CI blind spots.
+- **coo — weak:** system-audit, task-memory-extractor, cleanup-branches — no state files, no reports, last commits 16-21 days ago. Only duty-review is active (report refreshed today). **Effect:** operational hygiene duties unattended.
+- **ux-designer — weak:** design-review last commit 2026-05-23, no state file, no report output. **Effect:** design review loop silent.
+- **tech-writer — unclear:** docs-code and docs-readme last commit 2026-05-27, but no state files or reports to verify output. **Effect:** documentation contribution unverifiable.
 
-## System Note
+## Active runners (signal-positive)
 
-Nearly all duties froze around May 22-23. Only ceo-performance-review, health-check, and duty-review show recent commits (June 11-12). This appears to be a systemic infrastructure event, not individual failure across cto/qa/tech-writer/ux-designer simultaneously.
+- **kody (health-check):** Report refreshed 2026-06-12T00:59Z — running item visible.
+- **coo (duty-review):** Report cycle 17 refreshed 2026-06-12T01:52Z — active triage.
 
-## Delta
+## Delta vs last week
 
-- Changes since last week: coo weak→steady (duty-review now actively cycling, finding 14 broken duties across the system — this is real signal); qa weak→weak (no change); cto weak→weak (no change); tech-writer weak→weak (no change); ux-designer weak→weak (no change); kody steady→steady (health-check running); ceo steady→steady (ceo-performance-review actively cycling, job-gap-scan stale).
+- Changes since last week: tech-writer idle→unclear (no state files ever created); all other grades unchanged.
