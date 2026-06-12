@@ -2,33 +2,32 @@
 _Cadence: weekly — delivery of owned responsibilities, not subjective quality._
 
 ## Headline
-Two of seven staff produced active output this week (health-check, duty-review); four staff have at least one duty with state frozen 16+ days or no verifiable output.
+Two of seven staff produced active output this week (kody/health-check, coo/duty-review); qa and cto duties remain frozen at May 23 with no state advance; tech-writer and ux-designer idle.
 
 ## Scoring table
 
 | Staff | Owned duties | Delivery | Consistency | Signal | Grade |
 |-------|-------------|----------|-------------|--------|-------|
-| ceo   | 2 active    | Med      | Med         | Med    | steady |
-| coo   | 4 active    | Med      | Low         | Med    | weak   |
-| cto   | 5 active, 1 disabled | Low | Low         | Low    | weak   |
-| kody  | 2 active, 5 disabled | Med | Med         | High   | steady |
-| qa    | 3 active    | Low      | Low         | Low    | weak   |
-| tech-writer | 2 active | Unclear | Unclear     | Low    | unclear |
-| ux-designer | 1 active | Low    | Low         | Low    | weak   |
+| ceo   | 2 active     | Med      | Med         | Med    | steady |
+| coo   | 4 active     | Med      | Med         | Med    | steady |
+| cto   | 5 active, 1 disabled | Low | Low         | Low    | weak |
+| kody  | 1 active, 6 disabled | High | High        | High   | strong |
+| qa    | 3 active     | Low      | Low         | Low    | weak |
+| tech-writer | 2 active | None   | None        | None   | idle |
+| ux-designer | 1 active | None   | None        | None   | idle |
 
 ## Notable misses
 
-- **qa — weak:** qa, qa-sweep, qa-verify all have lastRunISO frozen 2026-05-23 — 20 days. No state advance on any 1d/7d cadence. **Effect:** PR quality gate unattended.
-- **cto — weak:** security-audit lastRunISO 2026-05-08 (35 days stale); dev-ci-health and pr-health-triage last commit 10-16 days ago with no report output; cto report from 2026-05-18 (25 days stale). **Effect:** security and CI blind spots.
-- **coo — weak:** system-audit, task-memory-extractor, cleanup-branches — no state files, no reports, last commits 16-21 days ago. Only duty-review is active (report refreshed today). **Effect:** operational hygiene duties unattended.
-- **ux-designer — weak:** design-review last commit 2026-05-23, no state file, no report output. **Effect:** design review loop silent.
-- **tech-writer — unclear:** docs-code and docs-readme last commit 2026-05-27, but no state files or reports to verify output. **Effect:** documentation contribution unverifiable.
+- **qa — weak:** qa, qa-sweep, qa-verify state frozen at 2026-05-23 (20 days); QA marker commits on June 11 did not advance state. **Effect:** PR quality gate state not advancing.
+- **cto — weak:** security-audit (cursor stalled) and pr-health-triage (cursor idle) both frozen at May 23; cto report from May 18 (25 days); approval-gate and publish-release have no state or output. **Effect:** security and release gates unattended.
+- **coo — steady:** system-audit and task-memory-extractor frozen May 23, but duty-review active and memory extractor produced output June 11. **Effect:** partial coverage, improving.
+- **ceo — steady:** job-gap-scan state frozen May 31 (12 days), but ceo-performance-review self-report active. **Effect:** monitoring loop intact.
 
 ## Active runners (signal-positive)
 
-- **kody (health-check):** Report refreshed 2026-06-12T00:59Z — running item visible.
-- **coo (duty-review):** Report cycle 17 refreshed 2026-06-12T01:52Z — active triage.
+- **kody (health-check):** Daily commits June 11-12, report refreshed today — highest consistency in the roster.
+- **coo (duty-review):** Daily commits June 11-12, report refreshed today — active triage.
 
 ## Delta vs last week
 
-- Changes since last week: tech-writer idle→unclear (no state files ever created); all other grades unchanged.
+- Changes since last week: coo weak→steady (duty-review active + task-memory-extractor produced output June 11); qa strong→weak (state frozen May 23 with no advance); tech-writer unclear→idle (no state files ever created, no output); ux-designer weak→idle (design-review state frozen May 23, no active duty output to measure).
