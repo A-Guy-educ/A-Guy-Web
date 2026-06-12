@@ -2,24 +2,24 @@
 
 _Cadence: weekly — delivery of owned responsibilities, not subjective quality._
 
-Zero of seven staff produced verifiable delivery this week; systemic infrastructure breakage persists across nearly all duties per duty-review's cycle-18 finding (26 duties, 2 healthy, 10 warn, 14 broken).
+Two of seven staff produced verifiable output this week: coo (duty-review) and kody (health-check) both refreshed their reports. All other staff show frozen or absent delivery evidence.
 
 | Staff | Owned duties | Delivery | Consistency | Signal | Grade |
 |-------|-------------|----------|-------------|--------|-------|
-| ceo | 1 active (job-gap-scan) | Low | Low | Low | weak |
-| coo | 3 active | Low | Low | Low | weak |
-| cto | 5 active | Low | Low | Low | weak |
-| kody | 1 active (health-check) | Med | Med | Med | steady |
-| qa | 3 active | Low | Low | Low | weak |
+| ceo | 2 active (ceo-performance-review, job-gap-scan) | Med | Low | Med | weak |
+| coo | 4 active (duty-review, system-audit, task-memory-extractor, cleanup-branches) | Low | Low | Low | weak |
+| cto | 5 active (approval-gate, dev-ci-health, pr-health-triage, publish-release, security-audit) | Low | Low | Low | weak |
+| kody | 2 active (health-check, redispatch) | Med | Med | Med | steady |
+| qa | 3 active (qa, qa-sweep, qa-verify) | Low | Low | Low | weak |
 | tech-writer | 2 active (docs-code, docs-readme) | Low | Low | Low | weak |
 | ux-designer | 1 active (design-review) | Low | Low | Low | weak |
 
-- **ceo — weak:** job-gap-scan state frozen at lastRunISO 2026-05-20; no fresh output. ceo-performance-review itself ran this week but only produces a self-report.
-- **coo — weak:** duty-review, system-audit, task-memory-extractor — state frozen since May 23 (~20 days); no active runs this cycle.
-- **cto — weak:** approval-gate, dev-ci-health, pr-health-triage, security-audit — all structurally broken per duty-review (missing state files, missing kody-job-next-state blocks); zero verifiable output this week.
-- **kody — steady:** health-check produced fresh report this tick; redispatch state present but shows dry-run skips only (no active resume actions needed).
-- **qa — weak:** qa-sweep, qa-verify, qa — all three QA duties structurally broken per duty-review; state frozen since May 23.
-- **tech-writer — weak:** docs-code, docs-readme — no state files created; no output produced this cycle despite being active duties.
-- **ux-designer — weak:** design-review state file never created; cadence guard references deprecated 6-day check; no output this week.
+- **ceo — weak:** ceo-performance-review report refreshed this tick; job-gap-scan state frozen at lastRunISO 2026-05-31, no fresh output in 12 days. Two duties, one delivered.
+- **coo — weak:** duty-review report refreshed today; system-audit and task-memory-extractor state frozen since 2026-05-23 (~20 days); cleanup-branches has no state file. Four duties, one delivered.
+- **cto — weak:** five active duties, zero fresh output this week. approval-gate, dev-ci-health, and publish-release have no state files; pr-health-triage state frozen May 23; security-audit report stale since May 17.
+- **kody — steady:** health-check report refreshed today with one running item; redispatch state frozen at cursor 2026-05-06, dry-run logs only (no active dispatches). Two duties, one delivered.
+- **qa — weak:** qa, qa-sweep state frozen since 2026-05-23; qa-verify has no state file. Three duties, zero delivered.
+- **tech-writer — weak:** docs-code and docs-readme have no state files and no reports. Two duties, zero delivered.
+- **ux-designer — weak:** design-review has no state file and no report. One duty, zero delivered.
 
-- Changes since last week: kody steady→steady (no change); coo weak→weak (no change); ceo weak→weak (no change); cto weak→weak (no change); qa weak→weak (no change); tech-writer idle→weak (now showing as active — prior report incorrectly listed both duties as disabled); ux-designer weak→weak (no change).
+- Changes since last week: qa strong→weak (all three QA duties broken/frozen, prior "strong" grade inconsistent with evidence); kody steady→steady (no change); coo weak→weak (no change); ceo steady→weak (job-gap-scan not delivering); cto weak→weak (no change); tech-writer weak→weak (no change, both duties still absent); ux-designer weak→weak (no change).
