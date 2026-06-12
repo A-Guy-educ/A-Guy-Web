@@ -2,11 +2,11 @@
 
 _Rolling 6h cycle — one duty deep-reviewed per tick._
 
-Cycle 17 — **2 healthy, 10 warn, 14 broken** of 26 duties.
+Cycle 18 — **2 healthy, 10 warn, 14 broken** of 26 duties.
 
 | Duty | Staff | Cadence | Verdict | Note |
 |------|-------|---------|---------|------|
-| approval-gate | cto | 15m | broken | state file never created (0 commits to state path); engine comment-dispatch mechanism may never fire autonomously |
+| approval-gate | cto | 15m | broken | state file never created (0 commits to state path); kody-job-next-state block missing lastRunISO/nextEligibleISO fields |
 | architecture-audit | ceo | 7d | broken | script never implemented (404); body references deprecated .kody/jobs/ path; no kody-job-next-state block in procedure |
 | ceo-performance-review | ceo | 7d | broken | kody-job-next-state block never emitted by procedure; state file never created |
 | cleanup-branches | cto | 1h | healthy | passes every check |
