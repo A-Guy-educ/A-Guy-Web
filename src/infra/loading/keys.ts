@@ -1,4 +1,9 @@
 /**
+ * @fileType utility
+ * @domain frontend
+ * @ai-summary Canonical string keys for loading operations — collocates all keys in one place so duplicate-key bugs surface early.
+ */
+/**
  * Central registry of loading keys
  * Only includes keys actually used in this task
  */
