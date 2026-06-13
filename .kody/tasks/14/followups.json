@@ -1,0 +1,8 @@
+[
+  {
+    "title": "Investigate transient CI failure (ERR_MODULE_NOT_FOUND on @/ path aliases)",
+    "body": "CI run 27201511693 failed with ERR_MODULE_NOT_FOUND for all @/ path alias imports in unit tests. The immediate retry (27256230573) succeeded with no code changes. Suspected cause: runner environment issue (incomplete node_modules install, pnpm store corruption, or network glitch during pnpm install --frozen-lockfile). A third run (27302123491) is currently in_progress. If this recurs, check pnpm store integrity and runner disk space.",
+    "rationale": "Transient CI failures waste CI resources and obscure real failures. Understanding the root cause can prevent future silent retries.",
+    "priority": "low"
+  }
+]
