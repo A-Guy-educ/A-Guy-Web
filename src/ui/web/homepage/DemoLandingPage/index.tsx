@@ -94,24 +94,24 @@ export function DemoLandingPage() {
           --landing-surface: #181716;
           --landing-surface-soft: #201f1d;
           --landing-surface-muted: #262420;
-          --landing-text: #f8f3ec;
-          --landing-text-soft: #e4d8cb;
-          --landing-muted: #b9afa4;
-          --landing-muted-strong: #d4c8bb;
-          --landing-border: rgba(255, 255, 255, 0.12);
-          --landing-border-soft: rgba(255, 255, 255, 0.08);
-          --landing-red: #c9636d;
-          --landing-red-hover: #d87880;
-          --landing-red-soft: rgba(145, 38, 44, 0.24);
-          --landing-green: #9daf96;
-          --landing-green-soft: rgba(93, 114, 91, 0.26);
+          --landing-text: #fff7ec;
+          --landing-text-soft: #eee1d3;
+          --landing-muted: #cbbdaf;
+          --landing-muted-strong: #e3d6c8;
+          --landing-border: rgba(255, 247, 236, 0.16);
+          --landing-border-soft: rgba(255, 247, 236, 0.1);
+          --landing-red: #d06a73;
+          --landing-red-hover: #e18089;
+          --landing-red-soft: rgba(208, 106, 115, 0.18);
+          --landing-green: #a8b79f;
+          --landing-green-soft: rgba(168, 183, 159, 0.18);
           --landing-dark: #11100f;
           --landing-dark-deep: #0b0a09;
-          --landing-dark-card: #1c1a18;
+          --landing-dark-card: #1b1917;
           --landing-dark-card-2: #121110;
-          --landing-dark-border: rgba(255, 255, 255, 0.12);
-          --landing-glow: rgba(201, 99, 109, 0.28);
-          --landing-browser-shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+          --landing-dark-border: rgba(255, 247, 236, 0.16);
+          --landing-glow: rgba(208, 106, 115, 0.22);
+          --landing-browser-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
         }
 
         .demo-landing,
@@ -281,6 +281,35 @@ export function DemoLandingPage() {
             linear-gradient(to right, var(--landing-border) 1px, transparent 1px),
             linear-gradient(to bottom, var(--landing-border) 1px, transparent 1px);
           background-size: 20px 20px;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-comparison,
+        html[data-theme='dark'] .demo-landing .landing-simulation {
+          background-color: var(--landing-bg) !important;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-comparison .bg-white,
+        html[data-theme='dark'] .demo-landing .landing-comparison [class*='to-white'],
+        html[data-theme='dark'] .demo-landing .landing-simulation .bg-white,
+        html[data-theme='dark'] .demo-landing .landing-simulation [class*='to-white'] {
+          background-color: var(--landing-surface) !important;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-comparison [class*='from-[#EAEFEA]'],
+        html[data-theme='dark'] .demo-landing .landing-simulation [class*='from-[#EAEFEA]'] {
+          --tw-gradient-from: var(--landing-green-soft) var(--tw-gradient-from-position) !important;
+          --tw-gradient-to: var(--landing-surface) var(--tw-gradient-to-position) !important;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-simulation .bg-gray-50,
+        html[data-theme='dark'] .demo-landing .landing-simulation .bg-gray-50\\/50 {
+          background-color: var(--landing-surface-soft) !important;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-simulation .bg-gray-900,
+        html[data-theme='dark'] .demo-landing .landing-simulation .from-gray-800,
+        html[data-theme='dark'] .demo-landing .landing-simulation .to-gray-900 {
+          background-color: var(--landing-dark-card-2) !important;
         }
       `}</style>
       <Hero />
