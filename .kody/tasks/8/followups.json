@@ -1,0 +1,8 @@
+[
+  {
+    "title": "Dependabot lock file auto-sync",
+    "body": "Configure dependabot to automatically update pnpm-lock.yaml when it bumps dependency versions, or add a CI step that runs `pnpm install --no-frozen-lockfile` before tests on dependabot PRs.",
+    "rationale": "This is the second time a dependabot dependency bump caused CI failures due to a stale lock file. The root cause is structural — CI enforces exact lock file versions but dependabot only updates package.json.",
+    "priority": "medium"
+  }
+]
