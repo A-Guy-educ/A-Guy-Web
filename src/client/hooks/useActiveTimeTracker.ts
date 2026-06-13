@@ -1,9 +1,7 @@
 /**
- * Active Time Tracker Hook
- *
- * Tracks user active time with heartbeat mechanism.
- * Pauses when user switches to a different browser tab.
- * Sends current lessonId for per-lesson time tracking.
+ * @fileType hook
+ * @domain frontend
+ * @ai-summary Sends a heartbeat ping to the Stats API every 30 s while the tab is visible; tracks cumulative time and fires a streak update once per day at midnight — silently swallows network failures so tracking never blocks the UI.
  */
 
 'use client'

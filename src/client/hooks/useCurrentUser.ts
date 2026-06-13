@@ -1,3 +1,9 @@
+/**
+ * @fileType hook
+ * @domain frontend
+ * @ai-summary Fetches the authenticated user from `/api/users/me` — returns `null` user (not an error) for unauthenticated requests; re-fetches on every `auth:changed` event.
+ */
+
 'use client'
 
 import type { User } from '@/infra/types/content'

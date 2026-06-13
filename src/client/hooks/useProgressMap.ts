@@ -1,3 +1,9 @@
+/**
+ * @fileType hook
+ * @domain frontend
+ * @ai-summary Batch-fetches completion percentages for a list of record IDs from the Progress API keyed by `gradeLevel` — silently returns empty maps for unauthenticated users, so guard with `useCurrentUser` first.
+ */
+
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
