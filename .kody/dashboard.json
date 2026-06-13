@@ -53,6 +53,21 @@
         "outline": "header: Aguy מחובר למורה אתחול ↺\nbutton: אתחול ↺\nmain: מערכת הלמידה האישית למתמטיקה ללמוד מתמטיקה בדרך החכמה שיעורים אינטראקטיביים, תרגול מונחה, תשובות מיידיות לפענח שאלות שלך\nh1: ללמוד מתמטיקה בדרך החכמה\nbutton: להתחיל ללמוד\nh2: מוכנים להצליח?\nbutton: המשך עם Google\nbutton: הרשמה ללא עלות\nh2: מחבר אותך למערכת...\nfooter: Aguy Onboarding Platform © 2026. כל הזכויות שמורות.",
         "textPreview": "Aguy מחובר למורה אתחול ↺ מערכת הלמידה האישית למתמטיקה ללמוד מתמטיקה בדרך החכמה שיעורים אינטראקטיביים, תרגול מונחה, תשובות מיידיות לפענח שאלות שלך, הכוונה למבחנים – הכל במקום אחד. להתחיל ללמוד 🚀 מוכנים להצליח? Aguy המורה הפרטי שלכם המשך עם Google הרשמה ללא עלות רישום מהיר / ללא התחייבות, בלחיצת כפתור אחת בלבד. מחבר אותך למערכת... Aguy Onboarding Platform © 2026. כל הזכויות שמורות. // Soft audio synthesiser let audioEnabled = true; let audioCtx = null; function initAudio() { if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } } function playSoftTone(freq, duration, vol) { if (!audioEnabled) return; try { initAudio(); if (audioCtx.state === 'suspended') { audioCtx.resume(); } const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(freq || 440, audioCtx.currentTime); gainNode.gain.setValueAtTime(vol || 0.08, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration); osc.connect(gainNode); gainNode.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + duration); } catch (e) { console.log(\"Audio not supported in this frame.\"); } } function toggleAudio() { audioEnabled = !audioEnabled; document.getElementById('audio-icon-on').classList.toggle('hidden', !audioEnabled); document.getElementById('audio-icon-off').classList.toggle('hidden', audioEnabled); if (audioEnabled) { playSoftTone(580, 0.12, 0.05); } }"
       }
+    },
+    {
+      "id": "lesson-login-page-html-9xiv",
+      "label": "lesson login page.html",
+      "url": "https://kp-866cab-523991-st-557d4c.fly.dev",
+      "staticId": "59f3a958",
+      "expiresAt": 1781954738924,
+      "uploadContext": {
+        "name": "lesson login page.html",
+        "mimeType": "text/html",
+        "size": 15625,
+        "title": "סדר פעולות חשבון - כניסה לשיעור",
+        "outline": "header: Aguy שלום, Guy@guykoren.co.il קורסים עברית G\nbutton: קורסים\nmain: ברוכים הבאים לשיעור סדר פעולות חשבון מתמטיקה כיתה ז' • אלגברה תקציר השיעור בשיעור זה נלמד את הכללים הבסיסיים לפתרון תרגי\nh1: ברוכים הבאים לשיעור\nh2: סדר פעולות חשבון\nh3: תקציר השיעור\nh4: ידע נדרש לפני שמתחילים (מומלץ לחזור במידת הצורך):\na href=\"#\": שיעור 1: לוח הכפל למתקדמים\na href=\"#\": חיבור וחיסור מספרים מכוונים\na href=\"#\": הצצה\nh3: ההתקדמות שלך:\nbutton#main-action-btn: המשך שיעור\nbutton#restart-btn: התחל מחדש\nbutton: החלף מצב (התחל / המשך)",
+        "textPreview": "Aguy שלום, Guy@guykoren.co.il קורסים עברית G ברוכים הבאים לשיעור סדר פעולות חשבון מתמטיקה כיתה ז' • אלגברה תקציר השיעור בשיעור זה נלמד את הכללים הבסיסיים לפתרון תרגילים מורכבים. נבין מדוע פעולות כפל וחילוק קודמות לחיבור וחיסור, ואיצד סוגריים יכולים לשנות לחלוטין את התוצאה הסופית של התרגיל. ידע נדרש לפני שמתחילים (מומלץ לחזור במידת הצורך): שיעור 1: לוח הכפל למתקדמים חיבור וחיסור מספרים מכוונים השיעור הבא בקורס שיעור 3: חזקות ושורשים הצצה ההתקדמות שלך: 3 / 10 תרגילים השלמת 30% מהשיעור. עוד קצת מאמץ! המשך שיעור התחל מחדש החלף מצב (התחל / המשך) // המצב ההתחלתי let isLessonStarted = true; function updateUI() { const btnText = document.getElementById('action-btn-text'); const progressSection = document.getElementById('progress-section'); const restartBtn = document.getElementById('restart-btn'); if (isLessonStarted) { // מצב: ממשיכים שיעור btnText.textContent = 'המשך שיעור'; progressSection.style.display = 'block'; // מציג את אזור ההתקדמות restartBtn.style.display = 'flex'; // מציג את כפתור \"התחל מחדש\" } else { // מצב: מתחילים שיעור חדש btnText.textContent = 'התחל שיעור'; progressSection.style.display = 'none'; // מסתיר את אזור ההתקדמות restartBtn.style.display = 'none'; // מסתיר את כפתור \"התחל מחדש\" } } function toggleLessonState() { isLessonStarted = !isLessonStarted; updateUI(); } // קריאה לפונקציה כשהעמוד נטען document.addEventListener('DOMContentLoaded', updateUI);"
+      }
     }
   ],
   "branchPreviews": [
