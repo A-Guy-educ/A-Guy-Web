@@ -1,12 +1,7 @@
 /**
  * Simple Documentation Search
  *
- * Provides fast keyword-based search across documentation chunks.
- * No external dependencies - just JSON + smart scoring.
- *
- * Usage:
- *   const search = new DocSearch()
- *   const results = search.query("How do I create a published collection?")
+ * @ai-summary Loads doc-chunks.json at construction time; if the file is absent the search returns empty results rather than throwing — callers must handle an empty result set gracefully.
  */
 
 import fs from 'fs'

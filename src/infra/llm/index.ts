@@ -2,10 +2,9 @@
  * AI Service Layer - Public API
  * Centralized exports for all AI functionality
  *
- * Future-ready: Easy to extend with new features like:
- * - Exercise editing suggestions
- * - Content generation
- * - Auto-grading assistance
+ * @fileType module
+ * @domain ai
+ * @ai-summary Single import point for all LLM functionality; abstracts provider switching and shields callers from genkit internals
  */
 
 // Genkit-based provider exports

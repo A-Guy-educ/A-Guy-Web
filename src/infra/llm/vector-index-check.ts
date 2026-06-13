@@ -1,10 +1,7 @@
 /**
  * Vector Index Runtime Guardrails
  *
- * Ensures the MongoDB Atlas vector search index exists and is ready
- * before allowing memory retrieval operations.
- *
- * Strategy: Fail fast in production if index is missing
+ * @ai-summary enforceVectorIndexRequirement() throws if the index is missing — this is a startup check, not a per-request guard; use isVectorIndexAvailable() in request handlers for graceful degradation without crashing the process.
  */
 
 import { logger } from '@/infra/utils/logger'

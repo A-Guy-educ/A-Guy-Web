@@ -1,7 +1,10 @@
 /**
  * Image optimization utilities for AI processing
  * Reusable across all AI features that accept images
+ *
+ * @ai-summary sharp is imported at module level — if sharp fails to initialize (missing native binding), the import itself throws and the module is unusable. No graceful fallback.
  */
+
 import sharp from 'sharp'
 
 export interface OptimizedImage {

@@ -6,9 +6,9 @@ export const __genkit_exports__ = true
  * @fileType adapter
  * @domain ai
  * @pattern abstraction, genkit, provider-abstraction
- *
- * Maintains backward compatibility with existing UnifiedLLMProvider interface
+ * @ai-summary output and outputJsonSchema both set Gemini's responseSchema; prefer output (Zod) over outputJsonSchema (raw) — the Zod path goes through Genkit's schema validator while the raw path passes directly to the provider API and is more brittle.
  */
+
 import type { AIModel, AIModelKey } from '@/infra/llm/models'
 import type { UnifiedLLMProvider } from '@/infra/llm/providers/factory'
 import { getCircuitBreaker } from '@/infra/llm/providers/shared/circuit-breaker'

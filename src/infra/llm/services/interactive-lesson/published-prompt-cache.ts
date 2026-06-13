@@ -1,18 +1,7 @@
 /**
  * Module-scope cache of the currently-published `interactive_lesson` prompt.
  *
- * Both lesson generation (which needs the template) and lesson cache
- * eviction (which needs the source provenance) hit this on every request.
- * Without memoization, every cached-lesson read pays an extra DB round-trip
- * to look up the prompt — defeating the point of the cache. Cache for a
- * short TTL and let a Prompts afterChange hook invalidate it eagerly when
- * an admin actually edits the row.
- *
- * Lives at module scope (per Node process). Each serverless instance has
- * its own copy; staleness is bounded by the TTL plus the eager invalidate
- * within a single instance. With a 30s TTL, the worst-case window where a
- * non-edit-source instance is still serving the stale prompt id is 30s,
- * which is acceptable for a feature where lesson generation is rare.
+ * @ai-summary Lives at module scope — each serverless instance has its own cache; the 30s TTL means a prompt edit on instance A is not visible on instance B for up to 30s. The Prompts afterChange hook invalidates eagerly only within the same instance.
  */
 
 import type { Payload } from '@/infra/types/backend'

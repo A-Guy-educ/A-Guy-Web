@@ -1,9 +1,9 @@
 /**
  * Content Translation Service
  *
- * Translates exercise content blocks between languages using LLM.
- * Part of the Clone-and-Translate system for educational content localization.
+ * @ai-summary Part of the Clone-and-Translate pipeline; the glossary parameter is optional and only used when provided — omitting it causes the LLM to use its own terminology choices, which may be inconsistent with course-specific terms already localized.
  */
+
 import type { Payload } from '@/infra/types/backend'
 
 import type { AIModel, AIModelKey } from '../models'

@@ -2,12 +2,7 @@
  * Memory Extraction Service
  * Extracts important information from conversations to store as long-term memory
  *
- * Key Features:
- * - AI-powered extraction of preferences, decisions, facts
- * - Server-side filtering for quality control
- * - Deduplication via vector similarity
- * - Selective storage (quality over quantity)
- * - Context-scoped memory items
+ * @ai-summary Runs post-response in the background with a concurrency cap of 2 to avoid exhausting MongoDB's pool; graceful degradation if OPENAI_API_KEY is absent or vector search fails — it logs and returns 0 persisted items rather than surfacing an error.
  */
 
 import { logger } from '@/infra/utils/logger'

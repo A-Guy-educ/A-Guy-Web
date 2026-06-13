@@ -2,9 +2,9 @@
  * Data extraction service using AI models
  * Extracts structured data from images (questions, options, answers)
  *
- * Migrated to Genkit unified adapter for LLM operations.
- * Uses dynamic imports to prevent Node.js-only modules from being bundled into client code.
+ * @ai-summary Migrated to Genkit — delegates to createGenkitUnifiedAdapter internally; calling the adapter directly bypasses the retry/circuit-breaker that this service applies.
  */
+
 import type { Payload } from '@/infra/types/backend'
 import type { AIModel, AIModelKey } from '../models'
 import { getModelRegistryEntry, getProviderModelName } from '../models'

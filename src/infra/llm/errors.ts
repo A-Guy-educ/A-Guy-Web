@@ -1,7 +1,7 @@
 /**
  * LLM Service Errors
  *
- * Custom error types for LLM service operations.
+ * @ai-summary VariationGenerationError signals a failed exercise variation, not an LLM failure; it is thrown by the variation service and caught by the orchestrator for admin review, not for retry.
  */
 
 export class VariationGenerationError extends Error {

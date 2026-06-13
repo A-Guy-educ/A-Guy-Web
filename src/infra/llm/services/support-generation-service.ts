@@ -2,6 +2,8 @@
  * Educational Support Generation Service
  * Generates hints, solutions, and full solutions for exercise blocks
  * Server-side only — content is persisted to DB, never sent to client
+ *
+ * @ai-summary Generated support content is stored server-side and never transmitted to the client — a client requesting support and receiving nothing is a service misconfiguration, not a client-side rendering issue.
  */
 import type { Payload } from '@/infra/types/backend'
 import type { AIModel, AIModelKey } from '../models'

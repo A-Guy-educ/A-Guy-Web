@@ -1,9 +1,9 @@
 /**
  * System prompt for the Clone-and-Translate content translation service.
  *
- * Translates educational content blocks between Hebrew and English while
- * preserving pedagogical logic, mathematical notation, and structural IDs.
+ * @ai-summary The prompt instructs the LLM to return ONLY raw JSON without fences; any markdown wrapper from the model causes JSON.parse to throw — callers must strip fences before parsing.
  */
+
 export const CONTENT_TRANSLATION_PROMPT = `You are an expert educational content translator specializing in mathematics and science education.
 
 ## Task

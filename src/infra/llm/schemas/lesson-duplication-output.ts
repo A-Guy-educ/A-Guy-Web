@@ -1,6 +1,8 @@
 /**
  * Output schemas for the lesson-duplication variation pipeline.
  *
+ * @ai-summary Both schemas are POST-HOC VALIDATION ONLY; neither is passed to Genkit's outputSchema. If Gemini's schema support improves and these are wired back in, the key trap is that `LessonVariationOutputSchema`'s envelope must NOT use `.passthrough()` — doing so causes Gemini to emit `{ "content": "blocks" }` as a literal string instead of the intended object.
+ *
  * Status (2026-05-13):
  *  - `SolutionDerivationOutputSchema` (pass 2): POST-HOC VALIDATION ONLY.
  *    NOT passed to Genkit's outputSchema / Gemini's responseSchema — verified

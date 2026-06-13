@@ -5,7 +5,9 @@
  * @fileType utility
  * @domain ai
  * @pattern data-transformation
+ * @ai-summary Falls back through three strategies (filesystem → Payload API → blob URL fetch) in sequence; a failure in an earlier strategy masks later ones — if the filesystem read partially succeeds but returns garbage, the Payload API fallback never runs.
  */
+
 import type { Payload } from '@/infra/types/backend'
 
 import { isVercelBlobUrl } from '@/infra/blob/vercel-blob-adapter'

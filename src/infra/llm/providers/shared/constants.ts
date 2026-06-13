@@ -4,6 +4,7 @@
  *
  * @fileType constants
  * @domain ai
+ * @ai-summary Static constants only — no runtime behavior to document
  */
 
 // Timeouts for different operation types (in milliseconds)

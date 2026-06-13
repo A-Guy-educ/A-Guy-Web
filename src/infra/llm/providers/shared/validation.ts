@@ -4,6 +4,7 @@
  *
  * @fileType validation
  * @domain ai
+ * @ai-summary Validates input shape only — does not call the LLM or check API key validity; callers must still handle CONFIG_ERROR from the provider.
  */
 import { LLM_CONSTANTS } from './constants'
 import { LLMError, LLMErrorCode } from './errors'

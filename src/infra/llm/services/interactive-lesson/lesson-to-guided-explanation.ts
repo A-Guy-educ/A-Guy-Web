@@ -4,13 +4,9 @@
  * can execute. This bridges the two systems: the LLM generates structured
  * primitives, and the GuidedExplanationRunner renders them.
  *
- * Two scene kinds:
- *  - geometry: segments/points/angles from a diagram.
- *  - equation: a stack of big centered text elements, one per step. Used
- *    when the lesson has no geometric figure (algebra, calculus, etc.) —
- *    step actions fade the previous claim out and the next one in, so the
- *    scene pane stays visually active instead of sitting empty.
+ * @ai-summary This converter handles untrusted LLM output — color names are allowlisted to prevent SVG attribute breakout, and all text is XML-escaped before injection. The output is trusted by the renderer, not the LLM.
  */
+
 import type {
   GuidedExplanationV1,
   GuidedExplanationAction,

@@ -1,6 +1,8 @@
 /**
  * System prompt for answer validation via LLM
  * Evaluates semantic equivalence of student answers
+ *
+ * @ai-summary The prompt instructs raw JSON output only; any wrapping from the model causes parse failure — callers must strip markdown fences before calling JSON.parse.
  */
 
 export const ANSWER_VALIDATION_PROMPT = `You are an expert grader for educational exercises.

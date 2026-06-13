@@ -5,12 +5,9 @@
  * @fileType implementation
  * @domain ai
  * @pattern config-mapping, genkit
- *
- * Configuration hierarchy (highest → lowest):
- * 1. LLM_MODEL_OVERRIDE_* env vars
- * 2. ConfigValues/chat domain
- * 3. MODEL_REGISTRY defaults
+ * @ai-summary Configuration priority (highest→lowest): LLM_MODEL_OVERRIDE_* env vars → ConfigValues → MODEL_REGISTRY. Skipping the env-var check and passing a model name directly bypasses the override mechanism — always go through resolveGenkitConfig().
  */
+
 import { getConfigDomain } from '@/infra/config/runtime/config-values'
 import type { Payload } from '@/infra/types/backend'
 import type { AIModelKey } from '../models'
