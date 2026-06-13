@@ -1,0 +1,8 @@
+[
+  {
+    "title": "Clear CI cache for dependabot/npm_and_yarn/lint-staged-17.0.7 workflow",
+    "body": "Go to GitHub Actions > CI workflow > Invalidate and remove the pnpm store cache for this workflow. The stale cache is causing ERR_MODULE_NOT_FOUND errors for @/ path aliases in unit tests even though the lockfile and node_modules are correct.",
+    "rationale": "The CI failure is environmental — all quality gates pass locally. The stale cache must be cleared for CI to reflect the correct dependency state.",
+    "priority": "high"
+  }
+]

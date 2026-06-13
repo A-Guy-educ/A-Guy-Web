@@ -1,0 +1,14 @@
+{
+  "taskId": "17",
+  "taskType": "pr",
+  "target": "dependabot/npm_and_yarn/lint-staged-17.0.7",
+  "outcome": "partial",
+  "exitCode": 0,
+  "reason": "CI failure is environmental — ERR_MODULE_NOT_FOUND for @/ path aliases due to stale CI cache. Code is correct: local tests pass (193 files, 2489 tests), typecheck passes, lint passes, pnpm install --frozen-lockfile passes.",
+  "prUrl": "https://github.com/A-Guy-educ/A-Guy-Web/pull/17",
+  "runUrl": "https://github.com/A-Guy-educ/A-Guy-Web/actions/runs/27201553731",
+  "filesTouched": [],
+  "sessionLog": ".kody/sessions/unknown.jsonl",
+  "startedAt": "2026-06-10T23:24:00Z",
+  "finishedAt": "2026-06-10T23:30:00Z"
+}

@@ -1,0 +1,10 @@
+[
+  {
+    "type": "lesson",
+    "name": "ci-err-module-not-found-is-cache",
+    "hook": "ERR_MODULE_NOT_FOUND for @/ aliases in CI = stale cache, not code",
+    "body": "When CI fails with `ERR_MODULE_NOT_FOUND` for path aliases like `@/infra/...` but tests pass locally, this is a CI cache inconsistency — not a code bug. The `vite-tsconfig-paths` plugin correctly resolves aliases (verified locally). The CI environment has a stale `node_modules` that doesn't match the lockfile. Solution: invalidate CI cache for the workflow.",
+    "why": "Spent time investigating whether vite-tsconfig-paths or tsconfig had regressed, when the real issue was CI cache state.",
+    "confidence": 0.95
+  }
+]
