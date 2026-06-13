@@ -1,0 +1,10 @@
+[
+  {
+    "type": "lesson",
+    "name": "genkit-toolcall-shape-mapping",
+    "hook": "Genkit toolCalls: {toolName, arguments} ≠ UnifiedLLMProvider: {name, args}",
+    "body": "When extracting tool calls from Genkit's GenerateResponse, Genkit uses `{ toolName: string; arguments?: any }[]` while UnifiedLLMProvider expects `{ name: string; args: Record<string, unknown> }[]`. A mapping is required — not a direct assignment.\n\nWhy: The shape mismatch means directly assigning `result.toolCalls` would cause type errors and wrong field names at runtime.\n\nHow to apply: When editing generateChatCompletionWithTools or any code that bridges Genkit tool calls to the UnifiedLLMProvider interface, always map `toolName → name` and `arguments → args`.",
+    "why": "Without this mapping, tool call extraction would silently produce wrong field names, causing tool executors to receive empty args.",
+    "confidence": 0.95
+  }
+]
