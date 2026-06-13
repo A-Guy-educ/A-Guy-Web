@@ -120,6 +120,24 @@ export function DemoLandingPage() {
           color: var(--landing-text-soft);
         }
 
+        .demo-landing .landing-hero,
+        .demo-landing .landing-simulation {
+          background-color: var(--landing-surface) !important;
+          border-color: var(--landing-border) !important;
+        }
+
+        .demo-landing .landing-comparison {
+          background-color: var(--landing-bg) !important;
+        }
+
+        .demo-landing .landing-features {
+          background-color: var(--landing-dark-deep) !important;
+        }
+
+        .demo-landing .landing-cta {
+          background-color: var(--landing-red) !important;
+        }
+
         .demo-landing .bg-white,
         .demo-landing [class*='to-white'] {
           background-color: var(--landing-surface) !important;
@@ -276,7 +294,7 @@ export function DemoLandingPage() {
 
 function Hero() {
   return (
-    <section className="relative flex min-h-[80vh] flex-col items-center overflow-hidden border-b border-gray-100 bg-white px-4 pb-20 pt-16 text-center">
+    <section className="landing-hero relative flex min-h-[80vh] flex-col items-center overflow-hidden border-b border-gray-100 bg-white px-4 pb-20 pt-16 text-center">
       <div className="pointer-events-none absolute top-0 left-1/2 h-[500px] w-full max-w-5xl -translate-x-1/2 rounded-full bg-gradient-to-b from-[#F5E6E8]/40 to-transparent opacity-80 blur-3xl" />
 
       <div className="relative z-10 mx-auto mt-8 flex w-full max-w-4xl flex-col items-center">
@@ -333,7 +351,7 @@ function Hero() {
 
 function Comparison() {
   return (
-    <section className="relative bg-[#F9FAFB] px-4 py-section-xl">
+    <section className="landing-comparison relative bg-[#F9FAFB] px-4 py-section-xl">
       <div className="mx-auto max-w-5xl">
         <div className="mb-14 text-center">
           <h2 className="mb-4 text-display-sm font-extrabold text-gray-900 md:text-display-lg">
@@ -385,7 +403,7 @@ function Comparison() {
 
 function KnowledgeAndFeatures() {
   return (
-    <section className="relative overflow-hidden bg-gray-900 bg-dots px-4 py-section-xl text-white">
+    <section className="landing-features relative overflow-hidden bg-gray-900 bg-dots px-4 py-section-xl text-white">
       <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-gray-900/95 to-gray-950" />
       <div className="relative z-10 mx-auto max-w-6xl">
         <div className="mb-16 grid items-center gap-12 md:grid-cols-2">
@@ -491,7 +509,7 @@ function Simulation({
   return (
     <section
       id="simulations-section"
-      className="relative overflow-hidden border-b border-gray-100 bg-white py-section-xl"
+      className="landing-simulation relative overflow-hidden border-b border-gray-100 bg-white py-section-xl"
     >
       <div className="mx-auto max-w-6xl px-4">
         <div className="mb-10 text-center">
@@ -547,7 +565,7 @@ function Simulation({
 
 function BottomCta() {
   return (
-    <section className="bg-[#91262C] px-4 py-20 text-center text-white">
+    <section className="landing-cta bg-[#91262C] px-4 py-20 text-center text-white">
       <h2 className="mb-4 text-display-sm font-extrabold md:text-display-lg">
         כל אחד יכול ללמוד מתמטיקה לבד.
       </h2>
