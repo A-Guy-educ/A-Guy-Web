@@ -160,6 +160,7 @@ export function LessonIntroPage({
         visibleRenderers={visibleRenderers}
         initialExerciseIndex={pageState.initialExerciseIndex}
         initialMode={hasExerciseContent ? 'interactive' : undefined}
+        nextLesson={nextLesson}
       />
     )
   }

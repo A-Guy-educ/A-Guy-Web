@@ -56,6 +56,7 @@ interface DualModeLessonViewProps {
   visibleRenderers?: LessonMode[]
   initialExerciseIndex?: number
   initialMode?: LessonMode
+  nextLesson?: { title?: string | null; slug?: string | null } | null
 }
 
 /**
@@ -99,6 +100,7 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
     visibleRenderers,
     initialExerciseIndex,
     initialMode,
+    nextLesson,
   } = props
 
   const t = useTranslations('courses')
@@ -258,6 +260,7 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
         hideLatexBlocks
         skipIntro
         initialExerciseIndex={initialExerciseIndex}
+        nextLesson={nextLesson}
       />
     </section>
   )
