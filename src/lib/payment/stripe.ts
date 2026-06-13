@@ -3,6 +3,11 @@
  *
  * Provides checkout session creation, webhook verification, and refund operations.
  * Uses getPaymentEnv() for environment variable access.
+ *
+ * @ai-summary Stripe checkout session + webhook integration. The Stripe client is
+ *              lazy-loaded so the module stays importable even when env vars are missing.
+ *              Gotcha: cancelStripeCheckout is idempotent — calling it after a session
+ *              already expired is a no-op, not an error.
  */
 
 import Stripe from 'stripe'

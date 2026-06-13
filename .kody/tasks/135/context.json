@@ -1,0 +1,21 @@
+{
+  "taskId": "135",
+  "taskType": "issue",
+  "target": "135",
+  "outcome": "success",
+  "exitCode": 0,
+  "reason": "All 6 files updated with @ai-summary headers; folder-level header added to env.ts",
+  "prUrl": null,
+  "runUrl": null,
+  "filesTouched": [
+    "src/lib/payment/env.ts",
+    "src/lib/payment/types.ts",
+    "src/lib/payment/stripe.ts",
+    "src/lib/payment/grant-entitlements.ts",
+    "src/lib/payment/error-log.ts",
+    "src/lib/payment/paypal.ts"
+  ],
+  "sessionLog": ".kody/runs/gh-27320447185-1/events.jsonl",
+  "startedAt": "2026-06-11T00:00:00Z",
+  "finishedAt": "2026-06-11T00:10:00Z"
+}

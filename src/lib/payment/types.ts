@@ -3,6 +3,10 @@
  *
  * Shared types for Stripe and PayPal payment providers.
  * Used by checkout creation, webhook verification, and refund operations.
+ *
+ * @ai-summary Shared interfaces for Stripe and PayPal. All amount fields are in the
+ *              smallest currency unit (agorot for ILS, cents for USD/EUR) — mixing up the
+ *              unit with a decimal amount silently creates 100× payment errors.
  */
 
 export type PaymentProvider = 'stripe' | 'paypal'
