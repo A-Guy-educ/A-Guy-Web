@@ -1,3 +1,5 @@
+// @ai-summary Singleton store of active loading operations; route entries auto-unregister after 15 s safety timeout to prevent stuck progress bars. SSR-safe via getServerSnapshot returning an empty snapshot.
+
 // Types
 export type LoadingType = 'route' | 'screen' | 'inline' | 'action'
 
