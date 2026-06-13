@@ -1,10 +1,7 @@
 /**
- * Exercise Context Formatting Utility
+ * Exercise content formatter for LLM prompts
  *
- * Formats exercise content into a readable message for the LLM.
- * - Strips solutions and correct answers (prevent leakage)
- * - Includes hints (helps LLM guide student)
- * - Caps output at 2000 characters
+ * @ai-summary Strips solutions and correct answers from exercise blocks before sending to the LLM — prevents the model from leaking answers. Output is capped at 2000 characters.
  */
 
 import type {

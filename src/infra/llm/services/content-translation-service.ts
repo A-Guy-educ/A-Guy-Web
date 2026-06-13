@@ -1,8 +1,7 @@
 /**
- * Content Translation Service
+ * Clone-and-Translate block-level translation service
  *
- * Translates exercise content blocks between languages using LLM.
- * Part of the Clone-and-Translate system for educational content localization.
+ * @ai-summary Translates between Hebrew and English. Retries on block count mismatch (Gemini sometimes returns wrong count). Text strings fall back to original on failure; blocks require a successful parse.
  */
 import type { Payload } from '@/infra/types/backend'
 

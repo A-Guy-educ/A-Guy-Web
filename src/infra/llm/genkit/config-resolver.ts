@@ -1,15 +1,11 @@
 /**
- * Config Resolver
- * Maps ConfigValues to Genkit model configuration
+ * ConfigValues → Genkit model configuration
+ *
+ * @ai-summary Configuration hierarchy (highest → lowest): `LLM_MODEL_OVERRIDE_*` env vars → ConfigValues → MODEL_REGISTRY defaults. Always resolve through this function, never import MODEL_REGISTRY directly for runtime config.
  *
  * @fileType implementation
  * @domain ai
  * @pattern config-mapping, genkit
- *
- * Configuration hierarchy (highest → lowest):
- * 1. LLM_MODEL_OVERRIDE_* env vars
- * 2. ConfigValues/chat domain
- * 3. MODEL_REGISTRY defaults
  */
 import { getConfigDomain } from '@/infra/config/runtime/config-values'
 import type { Payload } from '@/infra/types/backend'

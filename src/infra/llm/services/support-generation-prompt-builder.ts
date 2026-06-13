@@ -1,7 +1,8 @@
 // @ts-nocheck
 /**
- * Prompt builder for support generation
- * Extracts block context into a structured user prompt
+ * Block context → support generation user prompt builder
+ *
+ * @ai-summary Extracts prompt text, answer text, and options from a ContentBlock into a structured user prompt for the support generation LLM call.
  */
 import type { ContentBlock } from '@/infra/types/exercise'
 

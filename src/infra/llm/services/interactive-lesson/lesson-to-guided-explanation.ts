@@ -1,15 +1,7 @@
 /**
- * Converts an InteractiveLesson (from the Gemini generation pipeline)
- * into a GuidedExplanationV1 payload that the trusted HTML block renderer
- * can execute. This bridges the two systems: the LLM generates structured
- * primitives, and the GuidedExplanationRunner renders them.
+ * InteractiveLesson → GuidedExplanationV1 converter
  *
- * Two scene kinds:
- *  - geometry: segments/points/angles from a diagram.
- *  - equation: a stack of big centered text elements, one per step. Used
- *    when the lesson has no geometric figure (algebra, calculus, etc.) —
- *    step actions fade the previous claim out and the next one in, so the
- *    scene pane stays visually active instead of sitting empty.
+ * @ai-summary Renders geometry/graph/numberLine/equation scenes as SVG. Logs a warning when multiple scene kinds are populated (the renderer shows only the first). Equation scene is the fallback when no diagram is present.
  */
 import type {
   GuidedExplanationV1,

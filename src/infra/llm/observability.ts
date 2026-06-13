@@ -1,11 +1,7 @@
 /**
- * Observability & Logging for Chat Context System
+ * Structured logging for context usage and feature flags
  *
- * Provides structured logging for:
- * - Context usage per model call
- * - Feature flag status
- * - Performance metrics
- * - Debug snapshots (dev only)
+ * @ai-summary Provides structured log helpers for context usage (memory counts, retrieval latency), maintenance operations, and prompt snapshots. Prompt snapshots are dev-only and silently skip in production.
  */
 
 import { logger } from '@/infra/utils/logger'

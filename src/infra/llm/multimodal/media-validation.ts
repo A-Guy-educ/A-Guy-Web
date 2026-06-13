@@ -1,8 +1,8 @@
 // @ts-nocheck
 /**
- * Media Validation for Chat Messages
- * Validates media exists, belongs to tenant, not expired, valid type/size
- * Returns resolved paths for Gemini mapper (no extra DB lookups)
+ * Chat media validation (tenant ownership, expiry, type, size)
+ *
+ * @ai-summary Relies on Payload access control for ownership filtering — `createdBy: equals: userId` is the tenant isolation gate. If Payload access rules are misconfigured, ownership checks could be bypassed.
  */
 import type { Payload } from '@/infra/types/backend'
 

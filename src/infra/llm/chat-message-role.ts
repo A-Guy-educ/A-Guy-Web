@@ -1,13 +1,7 @@
 /**
- * Chat Role Enum
+ * ChatRole enum and Gemini API converter
  *
- * Represents the role of a message sender in AI conversations.
- * Follows industry standards: 'user' (human) and 'assistant' (AI).
- * NOT to be confused with AccountRole in src/collections/Users/roles.ts
- *
- * Values:
- * - user: Message from the human (student/learner)
- * - assistant: Message from the AI tutor
+ * @ai-summary Converts between internal `ChatRole` (user/assistant) and Gemini API format (user/model). Deprecated aliases (`ChatMessageRole`) exist for backward compatibility but will be removed.
  */
 export enum ChatRole {
   User = 'user',

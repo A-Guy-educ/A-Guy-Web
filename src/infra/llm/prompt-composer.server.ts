@@ -1,5 +1,7 @@
 /**
- * Composes final system instructions for AI chat
+ * Final system instruction composer
+ *
+ * @ai-summary Composes 11 sections in fixed order. IMAGE_HANDLING_INSTRUCTIONS are injected only when `hasImageAttached=true` — when absent, omitting them prevents the model from refusing text-only chats with "please upload an image" responses.
  *
  * @fileType ai-utility
  * @domain chat

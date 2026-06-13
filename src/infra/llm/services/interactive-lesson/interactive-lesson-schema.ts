@@ -1,22 +1,7 @@
 /**
- * Zod response schema for the Gemini interactive lesson call.
+ * Zod + Gemini JSON schema for interactive lesson generation
  *
- * Passed to Gemini via `responseSchema` + `responseMimeType: application/json`
- * (direct fetch in interactive-lesson-generation-service.ts) so the model
- * is constrained to produce exactly this shape. Eliminates field-name
- * variations (`id` vs `label`, `p1`/`p2` vs `from`/`to`, etc.) at the
- * source instead of normalizing them defensively after the fact.
- *
- * Schema complexity constraint: Gemini's responseSchema endpoint accepts
- * a strict OpenAPI 3.0 subset. Keep this schema flat — avoid `$ref`,
- * `$defs`, `oneOf` with discriminator, etc. The `stripUnsupportedKeys`
- * helper only strips `$schema` and `additionalProperties`; other
- * JSON-Schema-only constructs will pass through and cause API errors.
- *
- * NOTE: the existing validators/normalizers in the service still run as
- * a safety net for:
- *   - Rare cases where Gemini ignores the schema
- *   - Error responses (IMAGE_UNCLEAR, NOT_MATH) that bypass the schema
+ * @ai-summary Must be kept flat (no `$ref`, `$defs`, `oneOf`) — Gemini's `responseSchema` endpoint accepts only a strict OpenAPI 3.0 subset. `stripUnsupportedKeys` removes `$schema` and `additionalProperties`; anything else JSON-Schema-only will cause API errors.
  */
 import { z } from 'zod'
 

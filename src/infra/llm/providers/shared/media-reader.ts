@@ -1,6 +1,7 @@
 /**
- * Media Reader Utility
- * Common file reading logic for multimodal mappers
+ * Multi-strategy media file reader for multimodal LLM calls
+ *
+ * @ai-summary Tries filesystem first (local dev), then falls back to Payload Local API. For serverless (no filesystem), the Payload API is the only path — media must be accessible via its stored URL.
  *
  * @fileType utility
  * @domain ai

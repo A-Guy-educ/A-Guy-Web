@@ -1,13 +1,12 @@
 export const __genkit_exports__ = true
 /**
- * Unified Adapter
- * Provides UnifiedLLMProvider interface backed by Genkit
+ * Genkit-backed UnifiedLLMProvider
+ *
+ * @ai-summary The streaming implementation uses `ReadableStream.from()` to bridge Genkit's AsyncIterable to Node.js ReadableStream. This is required for Node.js 22 compatibility — direct iteration inside a `start()` callback throws a TypeError.
  *
  * @fileType adapter
  * @domain ai
  * @pattern abstraction, genkit, provider-abstraction
- *
- * Maintains backward compatibility with existing UnifiedLLMProvider interface
  */
 import type { AIModel, AIModelKey } from '@/infra/llm/models'
 import type { UnifiedLLMProvider } from '@/infra/llm/providers/factory'

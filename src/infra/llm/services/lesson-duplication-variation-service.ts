@@ -1,18 +1,11 @@
 // @ts-nocheck
 /**
- * Lesson Duplication Variation Service
+ * Two-pass lesson duplication (creative + deterministic) per exercise
  *
- * Generates variations for a single exercise at a time with light, medium, or deep
- * transformation levels. Called by the orchestrator in a concurrency-limited loop.
+ * @ai-summary Pins to `gemini-3.1-pro-preview` — only model where schema-constrained output on content.blocks is reliable (2.5-pro silently collapses structured output). Per-call timeout is 600s. Output is sanitized via Zod safeParse + targeted field migrations before writing to Payload.
  *
- * Service signature: generateVariation({ exercise, level, subject }): Promise<{ exercise: Exercise }>
- *
- * Two-pass approach:
- * - Pass 1 (creative): generates new question/hint/phrasing at temp 0.7
- * - Pass 2 (deterministic): re-derives solution at temp 0.0
- *
- * One bad exercise must not sink the whole duplication run — invalid JSON gets one retry,
- * then the exercise is marked failed and the loop continues.
+ * @fileType service
+ * @domain ai
  */
 import { readFileSync } from 'fs'
 import { join } from 'path'

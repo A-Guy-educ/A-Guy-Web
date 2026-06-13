@@ -1,6 +1,7 @@
 /**
- * Retry Utility with Exponential Backoff
- * Provides robust retry logic for LLM API calls
+ * Exponential backoff retry with jitter
+ *
+ * @ai-summary Retries transient failures with exponential delay and 10% jitter. The `isRetryable` predicate gates which errors trigger retry — callers must supply it based on error type/message.
  *
  * @fileType utility
  * @domain ai

@@ -1,13 +1,11 @@
 /**
- * LLM Provider Factory
- * Unified interface for switching between LLM providers at runtime
+ * Provider factory for runtime LLM switching (Gemini / OpenAI-compatible)
+ *
+ * @ai-summary Resolves provider at runtime from `LLM_PROVIDER` env var first, then ConfigValues. Model names come from `PROVIDER_MODEL_NAMES` (single source of truth) — never hardcode model strings in callers.
  *
  * @fileType factory
  * @domain ai
  * @pattern provider-factory, abstraction, dependency-injection
- *
- * Uses centralized MODEL_REGISTRY and PROVIDER_MODEL_NAMES from @/infra/llm/models.ts
- * for model configurations. This ensures a single source of truth for all model definitions.
  */
 import {
   getConfigValueByKey,

@@ -1,10 +1,7 @@
 /**
- * System prompt for generating educational support content (hints, guiding questions, full solutions)
- * Used by the EducationalSupportService to produce pedagogically sound scaffolding
+ * System prompt for support content generation (Hebrew hints, guiding questions, solutions)
  *
- * The "solution" field is a GUIDING QUESTION (שאלה מכוונת) — not a direct answer.
- * This matches the student-facing help system where the purple "guiding question" button
- * asks thought-provoking questions that help students think without giving the answer.
+ * @ai-summary The `solution` field must always be a guiding question (שאלה מכוונת), never a direct answer. Defaults to Hebrew unless the question contains zero Hebrew text.
  */
 
 export const SUPPORT_GENERATION_PROMPT = `You are an expert educational content creator for an Israeli education platform.

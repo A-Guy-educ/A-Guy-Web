@@ -1,6 +1,7 @@
 /**
- * Image optimization utilities for AI processing
- * Reusable across all AI features that accept images
+ * Image optimization for AI processing (sharp-based resize to max 2048px)
+ *
+ * @ai-summary Resizes to max 2048px preserving aspect ratio. PDFs are passed through unchanged — only image buffers are resized.
  */
 import sharp from 'sharp'
 

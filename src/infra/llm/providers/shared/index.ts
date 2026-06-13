@@ -1,6 +1,7 @@
 /**
- * LLM Shared Utilities
- * Centralized utilities for LLM providers (retry, timeout, constants, media reading, errors)
+ * LLM shared utilities re-exports
+ *
+ * @ai-summary Re-exports circuit-breaker, retry, timeout, media-reader, constants, errors, validation. Callers should import from here rather than reaching into sub-modules directly.
  *
  * @fileType module
  * @domain ai

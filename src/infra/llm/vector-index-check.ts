@@ -1,10 +1,7 @@
 /**
- * Vector Index Runtime Guardrails
+ * Runtime guardrail for MongoDB Atlas vector search index
  *
- * Ensures the MongoDB Atlas vector search index exists and is ready
- * before allowing memory retrieval operations.
- *
- * Strategy: Fail fast in production if index is missing
+ * @ai-summary Fail-fast on startup if the index is missing or not READY — memory retrieval is disabled rather than silently degraded. Result is cached for 5 minutes.
  */
 
 import { logger } from '@/infra/utils/logger'

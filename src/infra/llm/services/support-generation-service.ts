@@ -1,7 +1,7 @@
 /**
- * Educational Support Generation Service
- * Generates hints, solutions, and full solutions for exercise blocks
- * Server-side only — content is persisted to DB, never sent to client
+ * Hints/solutions/fullSolutions generation (Hebrew, Genkit)
+ *
+ * @ai-summary Retries once if any of the three required fields (hints, solution, fullSolution) are missing from the LLM response. `solution` must always be a guiding question, never a direct answer.
  */
 import type { Payload } from '@/infra/types/backend'
 import type { AIModel, AIModelKey } from '../models'

@@ -1,6 +1,7 @@
 /**
- * Chat Config
- * Loads configuration from ConfigValues (chat domain)
+ * Chat ConfigValues loader
+ *
+ * @ai-summary Loads settings from ConfigValues (chat domain). Replaces hardcoded MODEL_REGISTRY values with runtime config — callers should use this instead of importing registry constants directly.
  */
 import { ConfigDomain } from '@/infra/config/config-constants'
 import { getConfigDomain } from '@/infra/config/runtime'

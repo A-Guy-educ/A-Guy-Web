@@ -1,6 +1,7 @@
 /**
- * System prompt for answer validation via LLM
- * Evaluates semantic equivalence of student answers
+ * System prompt for LLM-based semantic answer validation
+ *
+ * @ai-summary Focuses on meaning equivalence, not exact wording. Accepts numeric equivalents (3.14 ≈ π), algebraic rewrites (2x = x+x), and cross-language matches (Hebrew ↔ English).
  */
 
 export const ANSWER_VALIDATION_PROMPT = `You are an expert grader for educational exercises.
