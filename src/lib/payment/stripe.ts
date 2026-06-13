@@ -3,6 +3,11 @@
  *
  * Provides checkout session creation, webhook verification, and refund operations.
  * Uses getPaymentEnv() for environment variable access.
+ *
+ * @ai-summary Stripe checkout sessions use the Payment Intent flow
+ * (`mode: 'payment'`). The session ID (`providerSessionId`) is NOT a
+ * PaymentIntent ID — do not pass it to refund functions that expect a
+ * PaymentIntent ID, or Stripe will return a "no such payment intent" error.
  */
 
 import Stripe from 'stripe'

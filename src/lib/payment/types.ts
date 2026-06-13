@@ -3,6 +3,10 @@
  *
  * Shared types for Stripe and PayPal payment providers.
  * Used by checkout creation, webhook verification, and refund operations.
+ *
+ * @ai-summary Canonical types for the payment layer. `CreateCheckoutOptions.amount`
+ * is always in smallest currency unit (agorot/cents) — never round units; mixing
+ * units is the most common payment integration bug.
  */
 
 export type PaymentProvider = 'stripe' | 'paypal'
