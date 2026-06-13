@@ -1,3 +1,10 @@
+/**
+ * @fileType hook
+ * @domain utilities
+ * @pattern media-query
+ * @ai-summary Subscribes to window.matchMedia changes and returns the current match state; SSR-safe (returns null until mounted)
+ */
+
 import { useEffect, useState } from 'react'
 
 export function useMediaQuery(query: string): boolean {

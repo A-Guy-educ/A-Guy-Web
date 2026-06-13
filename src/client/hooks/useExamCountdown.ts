@@ -1,3 +1,10 @@
+/**
+ * @fileType hook
+ * @domain courses
+ * @pattern exam-countdown
+ * @ai-summary Manages exam dates stored in localStorage per course; polls every 60s and returns upcoming/past exams sorted by date
+ */
+
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'

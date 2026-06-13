@@ -1,3 +1,10 @@
+/**
+ * @fileType hook
+ * @domain auth
+ * @pattern access-gate-timer
+ * @ai-summary Enforces timed access gates for gated/mandatory content using localStorage timers that survive page reloads but pause while warning modals are open
+ */
+
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
