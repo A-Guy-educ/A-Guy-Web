@@ -1,0 +1,8 @@
+[
+  {
+    "title": "CI: add node_modules cleanup before pnpm install",
+    "body": "The CI workflow uses `pnpm install --frozen-lockfile` without first removing stale node_modules. When the lockfile changes significantly (e.g., a major version bump like mathjs 13→15), a pre-existing corrupted node_modules may not be properly rebuilt. Consider adding `rm -rf node_modules` before `pnpm install --frozen-lockfile`, or using `pnpm install --frozen-lockfile --force` to ensure a clean install.",
+    "rationale": "The CI failure showed ERR_MODULE_NOT_FOUND for @/ path aliases — vite-tsconfig-paths modules were not found — because node_modules was in an inconsistent state from a previous run. The runner's node_modules did not match the new lockfile.",
+    "priority": "low"
+  }
+]
