@@ -1,0 +1,14 @@
+[
+  {
+    "title": "Investigate CI pnpm install reliability",
+    "body": "CI runs show ERR_MODULE_NOT_FOUND for @/ path aliases in unit tests (vitest), but tests pass locally with identical code. This suggests the CI runner's pnpm install step may be failing or producing incomplete node_modules. The 'Fast Gate' job does not cache node_modules — consider adding a cache step or investigating the install output.",
+    "rationale": "Module resolution failures in CI but not locally indicate a CI infrastructure problem, not a code bug. This pattern appeared on PR #16 (dependabot commitlint bump) but is unrelated to the code changes.",
+    "priority": "medium"
+  },
+  {
+    "title": "Align @commitlint/cli and @commitlint/config-conventional versions",
+    "body": "The PR bumps @commitlint/config-conventional to 21.0.2 but leaves @commitlint/cli at ^20.5.0. While semver-compatible, version 21.x of config-conventional likely requires a matching 21.x cli for full compatibility. Consider bumping cli alongside config.",
+    "rationale": "Mismatched commitlint tool versions could cause unexpected behavior, even if not the root cause of the CI failure.",
+    "priority": "low"
+  }
+]
