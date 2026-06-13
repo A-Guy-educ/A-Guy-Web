@@ -335,10 +335,7 @@ function Hero() {
         </div>
 
         <h1 className="mb-6 text-display-md font-extrabold leading-[1.1] tracking-tight text-gray-900 md:text-6xl lg:text-7xl">
-          ממש כמו{' '}
-          <span className="bg-gradient-to-l from-[#91262C] to-[#b3333b] bg-clip-text text-transparent">
-            מורה פרטי
-          </span>
+          ממש כמו <span className="text-[#91262C]">מורה פרטי</span>
           <span className="mt-3 block text-heading-xl font-bold text-gray-500 md:mt-4 md:text-display-sm lg:text-display-md">
             רק זמין יותר, משתלם יותר ומותאם בדיוק בשבילך
           </span>
