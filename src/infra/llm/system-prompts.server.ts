@@ -1,6 +1,11 @@
 /**
  * Fetches all published system prompts in deterministic order
  *
+ * @ai-summary Returns published system prompts ordered by `createdAt ASC, id ASC`
+ * (oldest first). The tiebreaker is intentional: if two prompts share a timestamp,
+ * `id` as tiebreaker ensures the sort is stable across DB restarts or replica lag.
+ * Returns an empty array gracefully when none exist — callers must handle that case.
+ *
  * @fileType ai-utility
  * @domain chat
  * @pattern server-only

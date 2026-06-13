@@ -1,8 +1,16 @@
 /**
- * LLM Model Registry - Single Source of Truth for All Model Definitions
+ * LLM Model Registry — single source of truth for all model definitions.
  *
- * This module centralizes all model configurations to eliminate duplication
- * and enable proper provider switching at runtime.
+ * @ai-summary Eliminates model-name duplication by separating registry
+ * (temperature, tokens, capabilities) from provider-specific name mappings.
+ * The split means adding a new model requires touching THREE places:
+ * `AIModelKey`, `MODEL_REGISTRY`, and `PROVIDER_MODEL_NAMES` — missing any
+ * one causes a runtime `undefined` crash at the call site, not a compile-time
+ * error.
+ *
+ * @fileType config
+ * @domain ai
+ * @pattern central-registry
  *
  * Architecture:
  * - MODEL_REGISTRY: Provider-agnostic configs (temperature, maxTokens, capabilities)

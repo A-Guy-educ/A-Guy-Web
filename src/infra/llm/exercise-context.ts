@@ -1,10 +1,15 @@
 /**
  * Exercise Context Formatting Utility
  *
- * Formats exercise content into a readable message for the LLM.
- * - Strips solutions and correct answers (prevent leakage)
- * - Includes hints (helps LLM guide student)
- * - Caps output at 2000 characters
+ * @ai-summary Serializes exercise blocks into a text prompt for the LLM, with
+ * **solution leakage prevention as the load-bearing concern**. Correct answers
+ * and accepted answers are stripped from MCQ, free-response, and matching blocks.
+ * If the stripping logic is bypassed, the model gets answer keys and student
+ * chats become auto-gradeable — which is not the intended flow.
+ *
+ * @fileType utility
+ * @domain chat
+ * @pattern content-serialization
  */
 
 import type {

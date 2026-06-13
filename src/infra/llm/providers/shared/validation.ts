@@ -1,6 +1,10 @@
 /**
  * Input Validation for LLM Providers
- * Validates chat input before sending to LLM APIs
+ *
+ * @ai-summary Pre-flight validation of messages array and model config. **All
+ * validation errors are thrown as `LLMError` with `retryable=false`** — they
+ * represent programmer errors or bad input, not transient failures. Throwing
+ * (not returning) means callers that forget to wrap will see an unhandled rejection.
  *
  * @fileType validation
  * @domain ai

@@ -1,6 +1,10 @@
 /**
  * Genkit Instance Manager
- * Singleton Genkit instance with lazy plugin loading per provider type
+ *
+ * @ai-summary Per-provider-type Genkit singleton with lazy initialization. Once
+ * instantiated, instances are cached indefinitely — **config changes after first
+ * boot (API key rotation, new base URL) require a process restart** to take effect
+ * in serverless environments where each invocation may be a cold start.
  *
  * @fileType implementation
  * @domain ai

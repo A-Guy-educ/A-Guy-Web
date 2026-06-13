@@ -1,13 +1,15 @@
 /**
  * Memory Extraction Service
- * Extracts important information from conversations to store as long-term memory
  *
- * Key Features:
- * - AI-powered extraction of preferences, decisions, facts
- * - Server-side filtering for quality control
- * - Deduplication via vector similarity
- * - Selective storage (quality over quantity)
- * - Context-scoped memory items
+ * @ai-summary Post-chat, fire-and-forget memory candidate extraction. Runs in
+ * the background after the response is sent (zero user-facing latency impact).
+ * **Deduplication via vector similarity is the load-bearing step** — without it,
+ * every chat round produces a new memory item even when the fact was already
+ * stored, flooding the vector index with near-duplicates that corrupt retrieval.
+ *
+ * @fileType service
+ * @domain ai
+ * @pattern memory-extraction
  */
 
 import { logger } from '@/infra/utils/logger'

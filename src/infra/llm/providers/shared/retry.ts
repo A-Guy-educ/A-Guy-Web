@@ -1,6 +1,11 @@
 /**
  * Retry Utility with Exponential Backoff
- * Provides robust retry logic for LLM API calls
+ *
+ * @ai-summary Retry loop that uses `isRetryable` as the gate. **When `isRetryable`
+ * is not supplied, every error is retried**, which can turn a non-transient
+ * validation error (bad input, missing field) into a storm of redundant calls.
+ * The jitter factor (10%) prevents thundering-herd when multiple clients back off
+ * simultaneously.
  *
  * @fileType utility
  * @domain ai

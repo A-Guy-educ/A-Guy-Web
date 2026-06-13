@@ -1,6 +1,12 @@
 /**
  * Module-scope cache of the currently-published `interactive_lesson` prompt.
  *
+ * @ai-summary 30-second TTL memoization of the published prompt id. **The cache
+ * key is `updatedAt`, not `id`** — edits to a prompt's text without touching updatedAt
+ * will not invalidate the cache. The afterChange hook fires on every row change,
+ * so this is only a protection against repeated DB queries within a single Lambda
+ * invocation; cross-instance staleness is bounded by the 30s TTL.
+ *
  * Both lesson generation (which needs the template) and lesson cache
  * eviction (which needs the source provenance) hit this on every request.
  * Without memoization, every cached-lesson read pays an extra DB round-trip

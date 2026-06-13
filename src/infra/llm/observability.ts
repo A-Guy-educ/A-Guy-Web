@@ -1,11 +1,14 @@
 /**
  * Observability & Logging for Chat Context System
  *
- * Provides structured logging for:
- * - Context usage per model call
- * - Feature flag status
- * - Performance metrics
- * - Debug snapshots (dev only)
+ * @ai-summary Structured log helpers for context-usage and maintenance events.
+ * Does not throw — callers should treat all logging as non-blocking. Snapshot
+ * logging is gated behind `NODE_ENV=development` so prod traces never include
+ * prompt content.
+ *
+ * @fileType utility
+ * @domain observability
+ * @pattern structured-logging
  */
 
 import { logger } from '@/infra/utils/logger'

@@ -1,6 +1,11 @@
 /**
  * Genkit Tools Module
- * Provides tool calling abstraction for Genkit with MCP integration
+ *
+ * @ai-summary Maps MCP tool definitions to Genkit-compatible tools and executes
+ * them via a provided executor. The `executeToolCalls` loop is sequential — if
+ * multiple tools are called in one turn, long-running tools block subsequent ones.
+ * Errors in one tool do not abort the loop, so a failing tool leaves results for
+ * the others.
  *
  * @fileType module
  * @domain ai

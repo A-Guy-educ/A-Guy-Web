@@ -1,8 +1,15 @@
 /**
  * Content Translation Service
  *
- * Translates exercise content blocks between languages using LLM.
- * Part of the Clone-and-Translate system for educational content localization.
+ * @ai-summary Block-level LLM translation with one-shot retry on count mismatch.
+ * **Retry is triggered by block count only** — a silently corrupted block that
+ * happens to have the same count will pass through undetected. For safety,
+ * `translateText` degrades gracefully (returns original on failure), but
+ * `translateContentBlocks` throws and must be caught by callers.
+ *
+ * @fileType service
+ * @domain ai
+ * @pattern translation
  */
 import type { Payload } from '@/infra/types/backend'
 

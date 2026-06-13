@@ -2,17 +2,15 @@
 /**
  * Lesson Duplication Variation Service
  *
- * Generates variations for a single exercise at a time with light, medium, or deep
- * transformation levels. Called by the orchestrator in a concurrency-limited loop.
+ * @ai-summary Two-pass variation (creative → deterministic re-derivation). The
+ * separation is intentional: pass 1 rewrites phrasing at 0.7 temp, pass 2 re-solves
+ * at 0.0 temp so the model cannot carry forward an incorrect answer from pass 1.
+ * **If pass 2 returns an empty patch, the pass-1 answer is kept as-is** — correct
+ * for non-question blocks but risky if pass 1 hallucinated a wrong solution. The
+ * `sanitizeAiBlocks` strip is the safety net for unrecognized keys, but it cannot
+ * fix a semantically wrong answer.
  *
  * Service signature: generateVariation({ exercise, level, subject }): Promise<{ exercise: Exercise }>
- *
- * Two-pass approach:
- * - Pass 1 (creative): generates new question/hint/phrasing at temp 0.7
- * - Pass 2 (deterministic): re-derives solution at temp 0.0
- *
- * One bad exercise must not sink the whole duplication run — invalid JSON gets one retry,
- * then the exercise is marked failed and the loop continues.
  */
 import { readFileSync } from 'fs'
 import { join } from 'path'

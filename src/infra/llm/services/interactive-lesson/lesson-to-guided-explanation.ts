@@ -1,8 +1,11 @@
 /**
- * Converts an InteractiveLesson (from the Gemini generation pipeline)
- * into a GuidedExplanationV1 payload that the trusted HTML block renderer
- * can execute. This bridges the two systems: the LLM generates structured
- * primitives, and the GuidedExplanationRunner renders them.
+ * Converts an InteractiveLesson into a GuidedExplanationV1 payload.
+ *
+ * @ai-summary Deterministic SVG rendering from LLM-provided primitives (no AI in
+ * the renderer). **When the LLM populates more than one scene kind**, only the
+ * first by priority (graph > numberLine > geometry > equation) is rendered —
+ * the rest are silently dropped. The `pickSceneKind` warning is the only signal
+ * of this, so monitor server logs for it.
  *
  * Two scene kinds:
  *  - geometry: segments/points/angles from a diagram.

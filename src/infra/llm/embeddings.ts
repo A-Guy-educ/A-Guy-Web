@@ -1,12 +1,14 @@
 /**
  * Embeddings Service
- * Generates vector embeddings using OpenAI's text-embedding-3-small model
  *
- * Key Features:
- * - 1536 dimensions (matches Atlas vector index)
- * - Dimension validation (critical guardrail)
- * - Batch generation support
- * - Error handling and logging
+ * @ai-summary Lazy OpenAI client that generates 1536-dimension embeddings
+ * matching the Atlas vector index. **Dimension validation is non-negotiable** —
+ * a mismatch silently breaks vector search (closest-match becomes meaningless).
+ * Batch API is preferred over single-call loop for token efficiency.
+ *
+ * @fileType service
+ * @domain ai
+ * @pattern embeddings
  */
 
 import { logger } from '@/infra/utils/logger'

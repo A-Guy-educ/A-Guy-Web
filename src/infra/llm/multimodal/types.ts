@@ -1,6 +1,9 @@
 /**
  * Multimodal Types for Chat Media
- * Types for handling media attachments in chat messages
+ *
+ * @ai-summary Pure data types for chat media attachments. No business logic —
+ * interfaces used across chat service, data extractor, and media reader to keep
+ * the shape consistent without circular dependencies.
  */
 
 export type MediaPartType = 'image' | 'pdf'

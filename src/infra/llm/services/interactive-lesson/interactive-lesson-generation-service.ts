@@ -1,7 +1,12 @@
 /**
  * Interactive lesson generation service.
- * Takes an image of a geometry problem and generates structured
- * geometry data + proof table steps using the LLM.
+ *
+ * @ai-summary Direct Gemini API call (bypasses Genkit adapter) with responseSchema
+ * constraint to force structured JSON output. **Audio is baked into the cache row**
+ * so replay doesn't re-call TTS — but oversized audio is silently dropped with a
+ * warning, meaning a lesson that exceeded the budget will re-generate audio on
+ * every load. The per-lesson 8MB budget is set to keep the total document under
+ * Mongo's 16MB limit; if the JSON alone approaches that, the document is at risk.
  *
  * Two-pass approach: LLM extracts geometry + proof, we render SVG deterministically.
  */

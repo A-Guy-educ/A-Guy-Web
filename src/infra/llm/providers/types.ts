@@ -1,7 +1,9 @@
 /**
  * LLM Provider Types
- * Centralized type definitions for LLM providers
- * Used by both factory.ts and models.ts to avoid circular dependencies
+ *
+ * @ai-summary Two-variant enum (Gemini / OpenAI-compatible). Adding a third
+ * provider requires updating this file, the error adapter, the instance manager,
+ * and every place that does string-switching on provider type — search carefully.
  *
  * @fileType types
  * @domain ai

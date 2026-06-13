@@ -1,12 +1,14 @@
 /**
  * Error Adapter
- * Maps Genkit errors to LLMError for consistent error handling
+ *
+ * @ai-summary Maps Genkit error messages to `LLMErrorCode` using string matching.
+ * **String-matching is inherently fragile** — if a provider changes error wording,
+ * the mapping silently breaks and errors become generic `UNKNOWN`. The raw error
+ * text is preserved in `err.cause()` for debugging but not for classification.
  *
  * @fileType adapter
  * @domain ai
  * @pattern error-handling, genkit
- *
- * Reuses existing LLMError and createErrorClassifier from shared/errors.ts
  */
 import { LLMError, LLMErrorCode, createErrorClassifier } from '@/infra/llm/providers/shared/errors'
 import { LLMProviderType } from '@/infra/llm/providers/types'

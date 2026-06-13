@@ -1,10 +1,15 @@
 /**
  * Resolves system prompt for AI tutor
  *
- * Priority:
- * 1. Lesson.prompt (if provided and published)
- * 2. Default prompt (first published with isDefaultForAgentChat=true)
- * 3. Built-in fallback (logs warning)
+ * @ai-summary Three-tier fallback chain (lesson prompt → default prompt → built-in).
+ * Each tier logs at a lower level when it falls through, so the warning count
+ * tells you whether lesson-level prompting is actually being used. **Locale
+ * fallback is one-way** — if a locale-specific prompt exists but is not published,
+ * the query silently falls through to locale-unaware default rather than raising.
+ *
+ * @fileType ai-utility
+ * @domain chat
+ * @pattern server-only
  */
 import type { Prompt } from '@/infra/types/content'
 import { logger } from '@/infra/utils/logger'

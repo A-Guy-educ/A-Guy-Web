@@ -1,14 +1,14 @@
 /**
  * Context Policy Module
- * Deterministic prompt composition for AI chat
  *
- * Policy V1 Contract:
- * 1. System message (static)
- * 2. Conversation summary (if exists)
- * 3. Retrieved memory items (Top-K)
- * 4. Recent messages window (last N messages)
+ * @ai-summary Fixed-order prompt composition contract (V1). The ordering is
+ * load-bearing: summary before memory ensures authoritative context isn't diluted
+ * by noisy retrieved items. Changing the order without updating all consumers
+ * silently breaks memory prioritization across the app.
  *
- * CRITICAL: No ad-hoc insertions. No reordering. No message duplication.
+ * @fileType policy
+ * @domain ai
+ * @pattern context-composition
  */
 
 import type { MemoryItem } from './vector-search'
