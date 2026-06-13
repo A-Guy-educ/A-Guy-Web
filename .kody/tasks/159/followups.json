@@ -1,0 +1,14 @@
+[
+  {
+    "title": "Verify E2E tests pass with dev server running",
+    "body": "The test file tests/e2e/start-redesign.e2e.spec.ts was created but could not be run because the dev server is not running. When the dev server is available, run `pnpm test:e2e` to verify all 10 test cases pass.",
+    "rationale": "The E2E tests cover all major sections of the new page (nav, hero, comparison, stats, features, tabs, simulation, CTA, onboarding overlay) and verify the CTA buttons stay on /start (not navigate to /study). These need an actual browser environment to validate.",
+    "priority": "medium"
+  },
+  {
+    "title": "Consider extracting common gradient values to design tokens",
+    "body": "The new page uses hardcoded hex gradients like 'linear-gradient(135deg, #0ea5e9, #a855f7)' repeatedly. The existing design system uses CSS variables. Consider adding these gradients as reusable design tokens if this pattern is used elsewhere.",
+    "rationale": "The primary-to-accent gradient appears in multiple places (nav buttons, feature icons, tab active state, stats section, etc.). A CSS variable would make it consistent and easier to change in one place.",
+    "priority": "low"
+  }
+]
