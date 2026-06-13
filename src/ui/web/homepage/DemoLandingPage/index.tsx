@@ -282,6 +282,83 @@ export function DemoLandingPage() {
             linear-gradient(to bottom, var(--landing-border) 1px, transparent 1px);
           background-size: 20px 20px;
         }
+
+        html[data-theme='dark'] .demo-landing .landing-comparison {
+          background: #f9fafb !important;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-comparison h2,
+        html[data-theme='dark'] .demo-landing .landing-comparison h3,
+        html[data-theme='dark'] .demo-landing .landing-comparison strong {
+          color: #111827 !important;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-comparison p,
+        html[data-theme='dark'] .demo-landing .landing-comparison span {
+          color: #4b5563 !important;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-comparison [class*='text-[#5D725B]'],
+        html[data-theme='dark'] .demo-landing .landing-comparison .text-green-600,
+        html[data-theme='dark'] .demo-landing .landing-comparison .text-green-700 {
+          color: #5d725b !important;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-comparison [class*='text-[#91262C]'],
+        html[data-theme='dark'] .demo-landing .landing-comparison .text-red-500 {
+          color: #91262c !important;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-comparison .bg-white,
+        html[data-theme='dark'] .demo-landing .landing-comparison [class*='to-white'] {
+          background-color: #ffffff !important;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-comparison [class*='bg-[#EAEFEA]'],
+        html[data-theme='dark'] .demo-landing .landing-comparison .bg-green-100 {
+          background-color: #eaefea !important;
+          color: #2f5d34 !important;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-simulation {
+          background: #ffffff !important;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-simulation h2,
+        html[data-theme='dark'] .demo-landing .landing-simulation h3,
+        html[data-theme='dark'] .demo-landing .landing-simulation h4,
+        html[data-theme='dark'] .demo-landing .landing-simulation h5,
+        html[data-theme='dark'] .demo-landing .landing-simulation strong {
+          color: #111827 !important;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-simulation p,
+        html[data-theme='dark'] .demo-landing .landing-simulation span {
+          color: #4b5563 !important;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-simulation > div > div:last-child {
+          background-color: #ffffff !important;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-simulation .bg-gray-50,
+        html[data-theme='dark'] .demo-landing .landing-simulation .bg-gray-50\\/50 {
+          background-color: #f9fafb !important;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-simulation .bg-white {
+          background-color: #ffffff !important;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-simulation .bg-gray-900,
+        html[data-theme='dark'] .demo-landing .landing-simulation .from-gray-800,
+        html[data-theme='dark'] .demo-landing .landing-simulation .to-gray-900 {
+          background-color: #111111 !important;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-simulation [class*='bg-[#91262C]'] {
+          background-color: #c9636d !important;
+        }
       `}</style>
       <Hero />
       <Comparison />
