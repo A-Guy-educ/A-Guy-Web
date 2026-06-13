@@ -1,3 +1,6 @@
+/**
+ * @ai-summary Selector-based subscription to LoadingManager state — accepts 'busy' | 'screen' | 'route' or { key } and re-renders only when that specific condition changes, avoiding global re-renders.
+ */
 'use client'
 
 import { useSyncExternalStore, useCallback, useMemo } from 'react'

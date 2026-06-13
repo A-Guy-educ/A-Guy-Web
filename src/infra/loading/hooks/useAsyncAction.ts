@@ -1,3 +1,6 @@
+/**
+ * @ai-summary Hook wrapper for asyncAction — binds the action function and returns { execute, isLoading } tuple; isLoading subscribes to the specific key so re-renders are scoped to that operation only.
+ */
 'use client'
 
 import { useCallback, useMemo } from 'react'

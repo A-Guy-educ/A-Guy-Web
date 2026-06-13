@@ -1,3 +1,6 @@
+/**
+ * @ai-summary Top progress bar for route transitions — shows only after 300ms delay (skips fast navigations), enforces 500ms minimum visible time (prevents flicker), and auto-unregisters via LoadingManager safety timeout to handle hung navigation.
+ */
 'use client'
 
 import { useEffect, useState, useRef, useCallback } from 'react'

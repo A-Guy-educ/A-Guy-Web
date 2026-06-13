@@ -1,3 +1,6 @@
+/**
+ * @ai-summary useRouter wrapper that registers route loading at trigger time — compares normalized paths (ignoring hash) to avoid false positives on same-page anchors; must replace useRouter in components that need loading indicators.
+ */
 'use client'
 
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
