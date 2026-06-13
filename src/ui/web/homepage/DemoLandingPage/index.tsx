@@ -138,6 +138,26 @@ export function DemoLandingPage() {
           background-color: var(--landing-red) !important;
         }
 
+        .demo-landing .landing-cta-primary {
+          background-color: #fff7ec !important;
+          color: #91262c !important;
+          box-shadow: 0 18px 40px rgba(55, 16, 19, 0.18) !important;
+        }
+
+        .demo-landing .landing-cta-primary:hover {
+          background-color: #ffffff !important;
+        }
+
+        .demo-landing .landing-cta-secondary {
+          background-color: rgba(255, 255, 255, 0.12) !important;
+          border-color: rgba(255, 255, 255, 0.42) !important;
+          color: #ffffff !important;
+        }
+
+        .demo-landing .landing-cta-secondary:hover {
+          background-color: rgba(255, 255, 255, 0.2) !important;
+        }
+
         .demo-landing .bg-white,
         .demo-landing [class*='to-white'] {
           background-color: var(--landing-surface) !important;
@@ -310,6 +330,85 @@ export function DemoLandingPage() {
         html[data-theme='dark'] .demo-landing .landing-simulation .from-gray-800,
         html[data-theme='dark'] .demo-landing .landing-simulation .to-gray-900 {
           background-color: var(--landing-dark-card-2) !important;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-simulation-frame {
+          border-color: rgba(255, 247, 236, 0.2) !important;
+          background:
+            radial-gradient(circle at 50% 0%, rgba(208, 106, 115, 0.12), transparent 34%), #12100f !important;
+          box-shadow:
+            0 26px 80px rgba(0, 0, 0, 0.55),
+            inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-browser-bar {
+          border-color: rgba(255, 247, 236, 0.12) !important;
+          background-color: #211f1c !important;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-url-pill {
+          background-color: #0f0e0d !important;
+          color: #d8cabd !important;
+          box-shadow: inset 0 0 0 1px rgba(255, 247, 236, 0.1) !important;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-dashboard-preview {
+          background:
+            linear-gradient(180deg, rgba(255, 247, 236, 0.04), transparent 42%), #171513 !important;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-dashboard-progress {
+          background-color: rgba(255, 247, 236, 0.16) !important;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-dashboard-progress-label {
+          color: #f1dfcb !important;
+          text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-dashboard-continue {
+          border-color: rgba(208, 106, 115, 0.42) !important;
+          background:
+            linear-gradient(90deg, rgba(208, 106, 115, 0.22), rgba(255, 247, 236, 0.07)), #211f1c !important;
+          box-shadow:
+            0 18px 42px rgba(0, 0, 0, 0.28),
+            inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-dashboard-play {
+          background-color: rgba(208, 106, 115, 0.22) !important;
+          color: #f09aa2 !important;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-dashboard-card {
+          border-color: rgba(255, 247, 236, 0.12) !important;
+          background-color: #11100f !important;
+          box-shadow:
+            0 18px 40px rgba(0, 0, 0, 0.25),
+            inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+        }
+
+        html[data-theme='dark'] .demo-landing .landing-card-progress {
+          border-color: rgba(255, 247, 236, 0.18) !important;
+          color: #efe1d1 !important;
+        }
+
+        .demo-landing .landing-cta .landing-cta-primary,
+        html[data-theme='dark'] .demo-landing .landing-cta .landing-cta-primary {
+          background-color: #fff7ec !important;
+          color: #91262c !important;
+        }
+
+        .demo-landing .landing-cta .landing-cta-primary:hover,
+        html[data-theme='dark'] .demo-landing .landing-cta .landing-cta-primary:hover {
+          background-color: #ffffff !important;
+        }
+
+        .demo-landing .landing-cta .landing-cta-secondary,
+        html[data-theme='dark'] .demo-landing .landing-cta .landing-cta-secondary {
+          background-color: rgba(255, 255, 255, 0.12) !important;
+          border-color: rgba(255, 255, 255, 0.42) !important;
+          color: #ffffff !important;
         }
       `}</style>
       <Hero />
@@ -567,14 +666,14 @@ function Simulation({
             className="absolute -inset-4 bg-gradient-to-r from-[#F5E6E8] to-[#EAEFEA] opacity-40 blur-xl"
             style={{ borderRadius: '3rem' }}
           />
-          <div className="relative flex min-h-[580px] flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-[0_20px_50px_rgba(0,0,0,0.1)]">
-            <div className="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-5 py-section-xs">
+          <div className="landing-simulation-frame relative flex min-h-[580px] flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-[0_20px_50px_rgba(0,0,0,0.1)]">
+            <div className="landing-browser-bar flex items-center justify-between border-b border-gray-200 bg-gray-50 px-5 py-section-xs">
               <div className="flex gap-content-gap-xs">
                 <span className="h-3 w-3 rounded-full bg-red-400" />
                 <span className="h-3 w-3 rounded-full bg-yellow-400" />
                 <span className="h-3 w-3 rounded-full bg-green-400" />
               </div>
-              <div className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1 font-mono text-[11px] text-gray-400 shadow-elevation-1">
+              <div className="landing-url-pill flex items-center gap-1.5 rounded-full bg-white px-3 py-1 font-mono text-[11px] text-gray-400 shadow-elevation-1">
                 app.aguy.co.il/math/dashboard
               </div>
             </div>
@@ -599,13 +698,13 @@ function BottomCta() {
       <div className="flex flex-col justify-center gap-content-gap sm:flex-row">
         <Link
           href="/start"
-          className="rounded-xl bg-white px-8 py-section-xs text-body-lg font-bold text-[#91262C] shadow-card-hover transition-all hover:-translate-y-1 hover:shadow-2xl"
+          className="landing-cta-primary rounded-xl bg-white px-8 py-section-xs text-body-lg font-bold text-[#91262C] shadow-card-hover transition-all hover:-translate-y-1 hover:shadow-2xl"
         >
           הצטרפו עכשיו
         </Link>
         <Link
           href="/start"
-          className="rounded-xl border border-white/30 bg-white/10 px-8 py-section-xs text-body-lg font-bold text-white transition-all hover:bg-white/20"
+          className="landing-cta-secondary rounded-xl border border-white/30 bg-white/10 px-8 py-section-xs text-body-lg font-bold text-white transition-all hover:bg-white/20"
         >
           ניסיון חינם
         </Link>
@@ -763,22 +862,22 @@ function SimButton({
 
 function DashboardPreview() {
   return (
-    <div className="flex-grow bg-gray-50/50 p-card-padding-sm md:p-card-padding-lg">
+    <div className="landing-dashboard-preview flex-grow bg-gray-50/50 p-card-padding-sm md:p-card-padding-lg">
       <div className="mb-6 text-center">
         <h3 className="mb-1 text-display-xl font-extrabold text-gray-900 md:text-display-sm">
           כיתה ז׳
         </h3>
-        <div className="relative mx-auto mt-2 h-2.5 w-full max-w-md overflow-hidden rounded-full bg-gray-200">
+        <div className="landing-dashboard-progress relative mx-auto mt-2 h-2.5 w-full max-w-md overflow-hidden rounded-full bg-gray-200">
           <div className="h-full w-[3%] rounded-full bg-blue-600" />
-          <span className="absolute left-2 -top-1.5 text-[9px] font-bold text-gray-600">
+          <span className="landing-dashboard-progress-label absolute left-2 -top-1.5 text-[9px] font-bold text-gray-600">
             3% הושלמו
           </span>
         </div>
       </div>
 
-      <div className="mb-8 flex flex-col items-center justify-between gap-content-gap rounded-3xl border border-red-100 bg-gradient-to-r from-red-50/40 to-white p-card-padding shadow-elevation-1 md:flex-row">
+      <div className="landing-dashboard-continue mb-8 flex flex-col items-center justify-between gap-content-gap rounded-3xl border border-red-100 bg-gradient-to-r from-red-50/40 to-white p-card-padding shadow-elevation-1 md:flex-row">
         <div className="flex items-center gap-content-gap">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-[#91262C]">
+          <div className="landing-dashboard-play flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-[#91262C]">
             <Play className="h-6 w-6 fill-current" aria-hidden="true" />
           </div>
           <div>
@@ -803,7 +902,7 @@ function DashboardPreview() {
         ].map(([lesson, title]) => (
           <div
             key={title}
-            className="rounded-2xl border border-gray-100 bg-white p-5 shadow-elevation-1"
+            className="landing-dashboard-card rounded-2xl border border-gray-100 bg-white p-5 shadow-elevation-1"
           >
             <div className="mb-4 flex items-start justify-between">
               <span className="rounded-full bg-green-100 px-2.5 py-1 text-body-xs font-bold text-green-700">
@@ -813,7 +912,7 @@ function DashboardPreview() {
             </div>
             <h5 className="mb-2 text-body-lg font-bold text-gray-800">{title}</h5>
             <div className="mt-4 flex items-center gap-3 border-t border-gray-50 pt-4 text-body-xs text-gray-400">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-gray-200 text-[10px] font-bold">
+              <div className="landing-card-progress flex h-8 w-8 items-center justify-center rounded-full border-2 border-gray-200 text-[10px] font-bold">
                 0%
               </div>
               <span>עדיין לא התחלת</span>
