@@ -1,5 +1,8 @@
 /**
- * Shared TypeScript types for analytics system
+ * @ai-summary Shared TypeScript interfaces for the analytics layer.
+ *
+ * Defines AnalyticsConfig, EventPayload, and the Analytics interface (track/identify/alias/reset).
+ * Consumed by tracker.ts, validator.ts, adapters, and the public API.
  */
 
 import type { ProductEvent } from './contracts/events'

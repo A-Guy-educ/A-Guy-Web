@@ -1,9 +1,8 @@
 /**
- * Event Property Schemas
+ * @ai-summary Zod schemas defining the canonical shape of each product event payload.
  *
- * CRITICAL: No PII/content allowed
- * - ❌ NO: raw chat text, PDF contents, emails, passwords, tokens
- * - ✅ YES: IDs, counters, durations, sanitized metadata
+ * PRIVACY RULE: No PII, chat content, PDF text, or answers — only IDs, counters, durations, and metadata.
+ * Every event maps through eventSchemas for validation before routing.
  */
 
 import { z } from 'zod'

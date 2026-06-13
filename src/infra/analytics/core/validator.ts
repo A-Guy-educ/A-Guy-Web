@@ -1,8 +1,8 @@
 /**
- * Event Validation
+ * @ai-summary Zod schema validation layer — enforces canonical event contracts before routing.
  *
- * Validates events against their Zod schemas
- * Enforces strict contracts and prevents invalid data
+ * Development: throws on unknown/invalid events. Production: warns and continues best-effort.
+ * NEVER breaks user flows in production.
  */
 
 import { ZodError, type ZodIssue } from 'zod'

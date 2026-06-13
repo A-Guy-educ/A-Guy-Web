@@ -1,11 +1,10 @@
 /**
- * Core Analytics Tracker
+ * @ai-summary Singleton analytics tracker — the only non-test caller of adapter send methods.
  *
- * Single entrypoint for all analytics tracking
- * Handles validation, routing, and platform adapters
+ * Handles validation, session enrichment, queuing before adapter init, and routing to GA4/Mixpanel.
  *
- * CRITICAL: This is the ONLY way product code should track events
- * No direct SDK calls allowed (no window.gtag or window.mixpanel)
+ * TRAP: Fires before adapters init (dynamic import) are queued (up to 100) and flushed on adapter ready.
+ * GOTCHA: track()/identify()/alias() are all fire-and-return; no await — adapter calls are async.
  */
 
 'use client'

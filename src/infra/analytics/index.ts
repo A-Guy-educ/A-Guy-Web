@@ -1,8 +1,11 @@
 /**
- * Analytics Public API
+ * @ai-summary Analytics Public API — single import path for all product tracking.
  *
- * This is the ONLY import path product code should use
- * Import from '@/lib/analytics' and nothing else
+ * Entry point for product code. All analytics tracking MUST go through `analytics.track()`
+ * or via `systemEventBus.emit()` (which feeds into analytics.track()).
+ *
+ * TRAP: Never call window.gtag/window.mixpanel directly — always route through here.
+ * GOTCHA: `initializeAnalytics()` must be called before any track() calls.
  */
 
 // Core API

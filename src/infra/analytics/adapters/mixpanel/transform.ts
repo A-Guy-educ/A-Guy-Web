@@ -1,8 +1,5 @@
 /**
- * Mixpanel Event Transformation
- *
- * Transforms canonical events to Mixpanel format
- * Mixpanel uses canonical names as-is (no name mapping needed)
+ * @ai-summary Mixpanel transform — passes canonical event names through unchanged, enriches with $current_url/$referrer/page context.
  */
 
 import type { EventPayload } from '../../types'

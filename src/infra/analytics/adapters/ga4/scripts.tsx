@@ -1,8 +1,5 @@
 /**
- * GA4 Script Loader
- *
- * Loads Google Analytics 4 scripts
- * Only loads when analytics is enabled
+ * @ai-summary Loads gtag.js via Next.js Script (beforeInteractive) so the function is ready before app code fires events.
  */
 
 'use client'
