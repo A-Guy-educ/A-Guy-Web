@@ -8,16 +8,20 @@ import { SystemParams } from '@/infra/config/system-params'
 import { queryCourseBySlug } from '@/server/repos/queries/courses'
 import { queryExercisesByLesson } from '@/server/repos/queries/exercises'
 import { resolveFormulaSheet } from '@/server/repos/queries/formula-sheets'
-import { queryLessonBySlug } from '@/server/repos/queries/lessons'
+import { queryLessonBySlug, queryLessonsByCourse } from '@/server/repos/queries/lessons'
 import { queryMediaByIds } from '@/server/repos/queries/media'
 import { relationId } from '@/server/repos/mongo'
-import { isAuthenticatedServer } from '@/server/utils/access-gate-server'
+import {
+  getAuthenticatedUserServer,
+  isAuthenticatedServer,
+} from '@/server/utils/access-gate-server'
 import { checkPaidAccess } from '@/server/utils/check-paid-access'
 import type { Chapter, Course, Exercise, Media } from '@/infra/types/content'
 import { isValidContentLocale } from '@/infra/types/content'
 import { AccessGateProvider } from '@/ui/web/auth/AccessGateProvider'
 import { extractAllMediaIds } from '@/ui/web/exerciserenderer/utils/extractMediaIds'
 import { stripHtml } from '@/utils/strip-html'
+import { findUserProgress } from '@/server/web-api/progress'
 
 import { LessonAnalytics } from './_components/LessonAnalytics'
 import { LessonIntroPage } from './_components/LessonIntroPage'
@@ -75,6 +79,45 @@ async function getMediaFiles(contentFiles: Array<string | Media> | null | undefi
   return [...inlineFiles, ...fetchedFiles].filter(
     (file, index, files) => files.findIndex((item) => item.id === file.id) === index,
   )
+}
+
+async function getLessonProgress({
+  lessonId,
+  exercises,
+  gradeLevel,
+}: {
+  lessonId: string
+  exercises: Exercise[]
+  gradeLevel: string
+}) {
+  const total = exercises.length
+  const fallback = { completed: 0, total, percent: 0, status: 'not_started' }
+  const { user } = await getAuthenticatedUserServer()
+
+  if (!user?.id) return fallback
+
+  const progress = await findUserProgress(user.id, gradeLevel || 'default')
+  const records = progress?.progressRecords ?? []
+  const completedExerciseIds = new Set(
+    records
+      .filter((record) => record.recordType === 'exercise' && record.status === 'completed')
+      .map((record) => record.recordId),
+  )
+  const completed = exercises.filter((exercise) => completedExerciseIds.has(exercise.id)).length
+  const lessonRecord = records.find(
+    (record) => record.recordType === 'lesson' && record.recordId === lessonId,
+  )
+  const percent =
+    total > 0
+      ? Math.round((completed / total) * 100)
+      : Math.round(lessonRecord?.completionPercentage ?? 0)
+
+  return {
+    completed,
+    total,
+    percent,
+    status: lessonRecord?.status ?? fallback.status,
+  }
 }
 
 async function getLessonData({
@@ -172,6 +215,16 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const mediaMap = await queryMediaByIds(
     extractAllMediaIds(exercises.map((exercise) => ({ content: exercise.content ?? null }))),
   )
+  const [courseLessons, progress] = await Promise.all([
+    queryLessonsByCourse({ courseId: course.id }),
+    getLessonProgress({
+      lessonId: lesson.id,
+      exercises,
+      gradeLevel: course.courseLabel || '',
+    }),
+  ])
+  const lessonIndex = courseLessons.findIndex((courseLesson) => courseLesson.id === lesson.id)
+  const nextLesson = lessonIndex >= 0 ? courseLessons[lessonIndex + 1] : null
   const backUrl = `/courses/${courseSlug}/chapters/${chapterSlug}`
   const formulaSheet = formulaSheetResult?.sheet ?? null
   const showChat = exercises.length > 0 || Boolean(lesson.lessonContextText?.trim())
@@ -205,6 +258,8 @@ export default async function LessonPage({ params }: LessonPageProps) {
         lessonSlug={lessonSlug}
         lessonId={lesson.id}
         gradeLevel={course.courseLabel || ''}
+        progress={progress}
+        nextLesson={nextLesson}
       />
     </AccessGateProvider>
   )

@@ -44,6 +44,8 @@ interface ExercisesPagerProps {
    * inside individual exercises (used by the dual-mode lesson view where LaTeX lives
    * at the lesson level). */
   hideLatexBlocks?: boolean
+  skipIntro?: boolean
+  initialExerciseIndex?: number
 }
 
 export function ExercisesPager({
@@ -60,6 +62,8 @@ export function ExercisesPager({
   formulaSheet,
   headerSlot,
   hideLatexBlocks,
+  skipIntro,
+  initialExerciseIndex,
 }: ExercisesPagerProps) {
   const t = useTranslations('courses')
   const {
@@ -73,7 +77,16 @@ export function ExercisesPager({
     handleStart,
     getExerciseOrdinal,
     totalExercises,
-  } = useExercisesPager({ exercises, courseSlug, chapterSlug, lessonSlug, lessonId, gradeLevel })
+  } = useExercisesPager({
+    exercises,
+    courseSlug,
+    chapterSlug,
+    lessonSlug,
+    lessonId,
+    gradeLevel,
+    skipIntro,
+    initialExerciseIndex,
+  })
 
   const [showConfetti, setShowConfetti] = useState(false)
   const [touchStart, setTouchStart] = useState<number | null>(null)

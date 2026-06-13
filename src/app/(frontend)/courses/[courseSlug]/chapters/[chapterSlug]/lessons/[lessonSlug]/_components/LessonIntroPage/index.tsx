@@ -1,18 +1,28 @@
 'use client'
 
-import { EmptyLessonPlaceholder } from '../EmptyLessonPlaceholder'
+import { useMemo } from 'react'
+import { BookOpen, ChevronLeft, FileText, Layers, RotateCcw, Sparkles } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
+
+import { ExerciseWorkspace } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseWorkspace'
 import type { Lesson, Media } from '@/infra/types/content'
 import type { ResolvedLessonBlock } from '@/server/repos/queries/lesson-blocks'
-import { ExerciseWorkspace } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseWorkspace'
-import { DualModeLessonView } from '../DualModeLessonView'
-import type { LessonMode } from '../DualModeLessonView/useLessonViewMode'
 import { ChatInterface } from '@/ui/web/chat'
 import { Button } from '@/ui/web/components/button'
+import { Progress } from '@/ui/web/components/progress'
 import { useTranslations } from '@/ui/web/providers/I18n'
-import { BookOpen, ChevronLeft, FileText, Layers } from 'lucide-react'
-import { useSearchParams } from 'next/navigation'
-import { useMemo } from 'react'
+
+import { DualModeLessonView } from '../DualModeLessonView'
+import type { LessonMode } from '../DualModeLessonView/useLessonViewMode'
+import { EmptyLessonPlaceholder } from '../EmptyLessonPlaceholder'
 import { useLessonIntroPage } from './useLessonIntroPage'
+
+interface LessonProgressSummary {
+  completed: number
+  total: number
+  percent: number
+  status?: string
+}
 
 interface LessonIntroPageProps {
   lesson: Lesson
@@ -30,6 +40,17 @@ interface LessonIntroPageProps {
   lessonSlug?: string
   lessonId?: string
   gradeLevel?: string
+  progress?: LessonProgressSummary
+  nextLesson?: Pick<Lesson, 'title' | 'slug'> | null
+}
+
+function plainText(value?: string | null) {
+  return (
+    value
+      ?.replace(/<[^>]*>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim() ?? ''
+  )
 }
 
 export function LessonIntroPage({
@@ -46,40 +67,47 @@ export function LessonIntroPage({
   lessonSlug = '',
   lessonId = '',
   gradeLevel = '',
+  progress,
+  nextLesson,
 }: LessonIntroPageProps) {
   const t = useTranslations('courses')
   const searchParams = useSearchParams()
   const deepLinkedExerciseId = searchParams.get('exerciseId')
+  const { pageState, handleStart } = useLessonIntroPage({ deepLinkedExerciseId })
 
-  const { pageState, handleStart } = useLessonIntroPage({
-    deepLinkedExerciseId,
-  })
-
-  const exerciseCount = useMemo(() => blocks.filter((b) => b.type === 'exercise').length, [blocks])
-  const contentPageCount = useMemo(
-    () => blocks.filter((b) => b.type === 'contentPage').length,
-    [blocks],
-  )
+  const exerciseCount = exercises.length
+  const contentPageCount = useMemo(() => (Array.isArray(blocks) ? blocks.length : 0), [blocks])
   const pdfCount = mediaFiles.length
+  const description = plainText(lesson.description)
 
-  const hasExerciseContent = exercises.some((e) => {
-    if (Array.isArray(e.content)) return e.content.length > 0
-    if (e.content && typeof e.content === 'object' && 'blocks' in e.content) {
+  const hasExerciseContent = exercises.some((exercise) => {
+    if (Array.isArray(exercise.content)) return exercise.content.length > 0
+    if (exercise.content && typeof exercise.content === 'object' && 'blocks' in exercise.content) {
       return (
-        Array.isArray((e.content as { blocks?: unknown[] }).blocks) &&
-        (e.content as { blocks: unknown[] }).blocks.length > 0
+        Array.isArray((exercise.content as { blocks?: unknown[] }).blocks) &&
+        (exercise.content as { blocks: unknown[] }).blocks.length > 0
       )
     }
     return false
   })
-  const hasMedia = pdfCount > 0
 
-  // Which tabs the DualModeLessonView should expose for this lesson.
-  // Media tab needs attached files; PDF (worksheet from blocks) and Interactive
-  // (exercise pager) both render from exercise blocks, so they need exercises.
+  const hasMedia = pdfCount > 0
   const visibleRenderers: LessonMode[] = []
   if (hasMedia) visibleRenderers.push('media')
   if (hasExerciseContent) visibleRenderers.push('pdf', 'interactive')
+
+  const completed = progress?.completed ?? 0
+  const total = progress?.total ?? exerciseCount
+  const percent = progress?.percent ?? 0
+  const hasProgress = percent > 0 || completed > 0
+  const isComplete = percent >= 100
+  const resumeExerciseIndex = total > 0 ? Math.min(completed, total - 1) : 0
+  const primaryExerciseIndex = isComplete ? 0 : hasProgress ? resumeExerciseIndex : 0
+  const primaryLabel = isComplete
+    ? t('lessonLobbyReview')
+    : hasProgress
+      ? t('lessonLobbyContinue')
+      : t('lessonIntroStart')
 
   const workspaceChatContent = showChat ? (
     <ChatInterface
@@ -90,7 +118,7 @@ export function LessonIntroPage({
     />
   ) : null
 
-  if (pageState === 'workspace') {
+  if (pageState.type === 'workspace') {
     return (
       <ExerciseWorkspace
         exerciseTitle={lesson.title}
@@ -101,10 +129,7 @@ export function LessonIntroPage({
     )
   }
 
-  if (pageState === 'content') {
-    // Lessons with neither media nor exercises (e.g. blocks-only that didn't
-    // resolve into the exercises list) fall back to the empty workspace so the
-    // student still sees the chat affordance.
+  if (pageState.type === 'content') {
     if (visibleRenderers.length === 0) {
       return (
         <ExerciseWorkspace
@@ -133,91 +158,115 @@ export function LessonIntroPage({
         showChat={showChat}
         formulaSheet={formulaSheet}
         visibleRenderers={visibleRenderers}
+        initialExerciseIndex={pageState.initialExerciseIndex}
+        initialMode={hasExerciseContent ? 'interactive' : undefined}
       />
     )
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <main className="flex-1 overflow-y-auto">
-        <div className="container mx-auto px-4 sm:px-6 py-section-md md:py-section-lg max-w-3xl">
-          <div className="space-y-8">
-            <header className="text-center">
-              <span className="inline-block px-4 py-1.5 bg-muted text-muted-foreground rounded-full text-label tracking-[0.2em] uppercase mb-5 border border-border/40">
-                {t('lessonIntro')}
-              </span>
-              <h1 className="text-display-md md:text-display-lg font-medium leading-tight text-foreground mb-3">
+    <div className="min-h-screen bg-background">
+      <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 py-section-md sm:px-6 md:py-section-lg">
+        <section className="grid flex-1 items-center gap-content-gap-lg lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+          <div className="space-y-6">
+            <div className="inline-flex items-center gap-content-gap-xs rounded-full border border-border bg-muted px-4 py-2 text-label uppercase tracking-wider text-muted-foreground">
+              <Sparkles className="h-4 w-4 text-primary" />
+              {t('lessonIntro')}
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-body-md text-muted-foreground">{gradeLevel}</p>
+              <h1 className="text-display-md font-medium leading-tight text-foreground md:text-display-lg">
                 {lesson.title}
               </h1>
-              {lesson.description ? (
-                <p className="text-muted-foreground text-body-md mt-3 max-w-xl mx-auto">
-                  {lesson.description}
-                </p>
-              ) : null}
-              <div className="w-20 h-1 bg-primary mx-auto rounded-full mt-5" />
-            </header>
-
-            <div className="bg-card rounded-3xl p-card-padding-lg md:p-10 border border-border/60 shadow-card-hover shadow-muted/50 text-center">
-              <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-card shadow-primary/10 border border-primary/20">
-                <BookOpen className="w-9 h-9 text-primary" />
-              </div>
-
-              <h2 className="text-display-xl font-medium mb-4 text-foreground">
-                {t('lessonIntroWelcome')}
-              </h2>
-
-              {/* Content type indicators */}
-              {(exerciseCount > 0 || contentPageCount > 0 || pdfCount > 0) && (
-                <div className="inline-flex items-center gap-3 px-5 py-3 bg-muted rounded-2xl border border-border/60 mb-10">
-                  {exerciseCount > 0 && (
-                    <div className="flex items-center gap-2">
-                      <Layers className="w-5 h-5 text-primary" />
-                      <span className="text-primary text-heading-xl font-medium">
-                        {exerciseCount}
-                      </span>
-                      <span className="text-label text-muted-foreground uppercase tracking-wider">
-                        {t('exercise')}
-                      </span>
-                    </div>
-                  )}
-                  {exerciseCount > 0 && pdfCount > 0 && <div className="w-px h-5 bg-border/60" />}
-                  {pdfCount > 0 && (
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-5 h-5 text-primary" />
-                      <span className="text-primary text-heading-xl font-medium">{pdfCount}</span>
-                      <span className="text-label text-muted-foreground uppercase tracking-wider">
-                        {t('pdfLessonPagerDocuments')}
-                      </span>
-                    </div>
-                  )}
-                  {(exerciseCount > 0 || pdfCount > 0) && contentPageCount > 0 && (
-                    <div className="w-px h-5 bg-border/60" />
-                  )}
-                  {contentPageCount > 0 && (
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-5 h-5 text-primary" />
-                      <span className="text-primary text-heading-xl font-medium">
-                        {contentPageCount}
-                      </span>
-                      <span className="text-label text-muted-foreground uppercase tracking-wider">
-                        {t('pages')}
-                      </span>
-                    </div>
-                  )}
+              {description ? (
+                <div className="max-w-2xl space-y-2">
+                  <h2 className="text-heading-md font-medium text-foreground">
+                    {t('lessonLobbySummary')}
+                  </h2>
+                  <p className="text-body-md leading-relaxed text-muted-foreground">
+                    {description}
+                  </p>
                 </div>
-              )}
+              ) : null}
+            </div>
 
-              <Button
-                onClick={() => handleStart()}
-                size="lg"
-                className="w-full py-section-sm rounded-2xl text-body-lg shadow-card shadow-primary/20 hover:shadow-card-hover hover:shadow-primary/30 transition-all duration-slow cursor-pointer"
-              >
-                {t('lessonIntroStart')}{' '}
-                <ChevronLeft className="w-5 h-5 ms-2 rtl:rotate-0 ltr:rotate-180" />
-              </Button>
+            <div className="grid gap-content-gap-sm sm:grid-cols-3">
+              <div className="rounded-lg border border-border bg-card p-card-padding shadow-elevation-1">
+                <Layers className="mb-3 h-5 w-5 text-primary" />
+                <p className="text-heading-lg font-medium text-foreground">{exerciseCount}</p>
+                <p className="text-body-sm text-muted-foreground">{t('exercise')}</p>
+              </div>
+              <div className="rounded-lg border border-border bg-card p-card-padding shadow-elevation-1">
+                <FileText className="mb-3 h-5 w-5 text-primary" />
+                <p className="text-heading-lg font-medium text-foreground">{pdfCount}</p>
+                <p className="text-body-sm text-muted-foreground">{t('pdfLessonPagerDocuments')}</p>
+              </div>
+              <div className="rounded-lg border border-border bg-card p-card-padding shadow-elevation-1">
+                <BookOpen className="mb-3 h-5 w-5 text-primary" />
+                <p className="text-heading-lg font-medium text-foreground">{contentPageCount}</p>
+                <p className="text-body-sm text-muted-foreground">{t('pages')}</p>
+              </div>
             </div>
           </div>
-        </div>
+
+          <aside className="space-y-4">
+            <div className="rounded-lg border border-border bg-card p-card-padding-lg shadow-card">
+              <div className="space-y-5">
+                <div>
+                  <h2 className="text-heading-lg font-medium text-foreground">
+                    {t('lessonLobbyProgress')}
+                  </h2>
+                  <p className="mt-1 text-body-sm text-muted-foreground">
+                    {total > 0
+                      ? `${completed} / ${total} ${t('exercise')}`
+                      : t('lessonLobbyNoProgress')}
+                  </p>
+                </div>
+
+                <Progress value={percent} className="h-2" />
+                <p className="text-body-sm text-muted-foreground">
+                  {isComplete
+                    ? t('lessonLobbyComplete')
+                    : percent > 0
+                      ? t('lessonLobbyInProgress')
+                      : t('lessonLobbyReady')}
+                </p>
+
+                <div className="flex flex-col gap-content-gap-sm">
+                  <Button
+                    onClick={() => handleStart(primaryExerciseIndex)}
+                    size="lg"
+                    className="w-full transition-all duration-normal"
+                  >
+                    {primaryLabel}
+                    <ChevronLeft className="ms-2 h-5 w-5 rtl:rotate-0 ltr:rotate-180" />
+                  </Button>
+                  {hasProgress ? (
+                    <Button
+                      onClick={() => handleStart(0)}
+                      variant="outline"
+                      size="lg"
+                      className="w-full transition-all duration-normal"
+                    >
+                      <RotateCcw className="me-2 h-4 w-4" />
+                      {t('lessonLobbyRestart')}
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+
+            {nextLesson?.title ? (
+              <div className="rounded-lg border border-border bg-muted p-card-padding">
+                <p className="text-label uppercase tracking-wider text-muted-foreground">
+                  {t('lessonLobbyNextLesson')}
+                </p>
+                <p className="mt-2 text-body-md font-medium text-foreground">{nextLesson.title}</p>
+              </div>
+            ) : null}
+          </aside>
+        </section>
       </main>
     </div>
   )
