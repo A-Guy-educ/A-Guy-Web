@@ -118,14 +118,14 @@ function Hero() {
 
         <div className="flex w-full max-w-md flex-col gap-content-gap sm:flex-row sm:justify-center">
           <Link
-            href="/products"
+            href="/start"
             className="flex flex-1 items-center justify-center gap-content-gap-xs rounded-xl border-2 border-[#91262C] bg-[#91262C] px-8 py-section-xs text-body-lg font-bold text-white shadow-card-hover shadow-red-900/20 transition-all hover:-translate-y-1 hover:bg-red-900 hover:shadow-2xl"
           >
             מסלולים והרשמה
             <Plus className="h-5 w-5" aria-hidden="true" />
           </Link>
           <Link
-            href="/signup"
+            href="/start"
             className="flex flex-1 items-center justify-center gap-content-gap-xs rounded-xl border-2 border-[#5D725B]/30 bg-white px-8 py-section-xs text-body-lg font-bold text-[#5D725B] shadow-elevation-1 transition-all hover:-translate-y-1 hover:border-[#5D725B] hover:shadow-card-hover"
           >
             ניסיון (חינם)
@@ -133,7 +133,7 @@ function Hero() {
         </div>
 
         <Link
-          href="/login"
+          href="/start"
           className="mt-6 text-body-sm font-medium text-gray-500 underline underline-offset-4 transition-colors hover:text-[#91262C]"
         >
           כבר מנויים? היכנסו למערכת
@@ -366,13 +366,13 @@ function BottomCta() {
       <p className="mb-8 text-heading-xl text-white/80">זה הזמן להתחיל.</p>
       <div className="flex flex-col justify-center gap-content-gap sm:flex-row">
         <Link
-          href="/products"
+          href="/start"
           className="rounded-xl bg-white px-8 py-section-xs text-body-lg font-bold text-[#91262C] shadow-card-hover transition-all hover:-translate-y-1 hover:shadow-2xl"
         >
           הצטרפו עכשיו
         </Link>
         <Link
-          href="/signup"
+          href="/start"
           className="rounded-xl border border-white/30 bg-white/10 px-8 py-section-xs text-body-lg font-bold text-white transition-all hover:bg-white/20"
         >
           ניסיון חינם
@@ -555,12 +555,12 @@ function DashboardPreview() {
             <p className="text-body-sm text-gray-500">50% הושלמו</p>
           </div>
         </div>
-        <button
-          type="button"
+        <Link
+          href="/start"
           className="self-stretch rounded-2xl bg-[#91262C] px-8 py-3 text-center font-bold text-white shadow-elevation-3 transition-all hover:bg-red-900 md:self-auto"
         >
           המשך שיעור
-        </button>
+        </Link>
       </div>
 
       <div className="grid gap-content-gap-lg text-right md:grid-cols-3">
@@ -628,12 +628,18 @@ function ChatPreview() {
           <span className="mb-1 block text-[10px] font-bold text-gray-400">
             תגובות נפוצות בשיעור:
           </span>
-          <button className="w-full rounded-xl border border-gray-100 bg-gray-50 px-3 py-2 text-right text-body-xs text-gray-500">
+          <Link
+            href="/start"
+            className="block w-full rounded-xl border border-gray-100 bg-gray-50 px-3 py-2 text-right text-body-xs text-gray-500"
+          >
             אני רוצה לקבל רמז להמשך הפתרון.
-          </button>
-          <button className="w-full rounded-xl border border-gray-100 bg-gray-50 px-3 py-2 text-right text-body-xs text-gray-500">
+          </Link>
+          <Link
+            href="/start"
+            className="block w-full rounded-xl border border-gray-100 bg-gray-50 px-3 py-2 text-right text-body-xs text-gray-500"
+          >
             מה קורה כאשר אנחנו עוברים את ה-0 ימינה?
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -648,9 +654,12 @@ function ChatPreview() {
           <p className="mb-6 text-body-xs text-gray-400">מבט על הציר הפתור במערכת:</p>
           <NumberLine />
         </div>
-        <button className="rounded-2xl bg-[#5D725B] px-6 py-3 font-bold text-white shadow-elevation-3">
+        <Link
+          href="/start"
+          className="inline-block rounded-2xl bg-[#5D725B] px-6 py-3 font-bold text-white shadow-elevation-3"
+        >
           תרגול הבא ←
-        </button>
+        </Link>
       </div>
     </div>
   )
