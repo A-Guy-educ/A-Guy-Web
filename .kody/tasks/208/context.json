@@ -1,0 +1,17 @@
+{
+  "taskId": "208",
+  "taskType": "pr",
+  "target": "207-doc-coverage-srclibpayment-payment-provider-integr",
+  "outcome": "success",
+  "exitCode": 0,
+  "reason": "Resolved doc-header merge conflicts in paypal.ts and stripe.ts by taking HEAD (doc-coverage PR) headers",
+  "prUrl": null,
+  "runUrl": null,
+  "filesTouched": [
+    "src/lib/payment/paypal.ts",
+    "src/lib/payment/stripe.ts"
+  ],
+  "sessionLog": ".kody/sessions/208.jsonl",
+  "startedAt": "2026-06-15T00:00:00.000Z",
+  "finishedAt": "2026-06-15T00:01:00.000Z"
+}

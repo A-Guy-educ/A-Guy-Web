@@ -6,14 +6,14 @@
  * @ai-summary PayPal order creation, capture, webhook verification, and refunds. Lazy token cache with 60s expiry buffer. capturePayPalOrder is idempotent — 422 ORDER_ALREADY_CAPTURED is treated as success (benign reload).
  */
 
-import { getPaymentEnv } from './env'
+import { getPayPalEnv } from './env'
 import type { CreateCheckoutOptions, CheckoutResult } from './types'
 
 const PAYPAL_SANDBOX_BASE = 'https://api-m.sandbox.paypal.com'
 const PAYPAL_PRODUCTION_BASE = 'https://api-m.paypal.com'
 
 function getPayPalApiBase(): string {
-  const { paypalSandbox } = getPaymentEnv()
+  const { paypalSandbox } = getPayPalEnv()
   return paypalSandbox ? PAYPAL_SANDBOX_BASE : PAYPAL_PRODUCTION_BASE
 }
 
@@ -50,7 +50,7 @@ async function getPayPalAccessToken(): Promise<string> {
     return _cachedToken.token
   }
 
-  const { paypalClientId, paypalClientSecret } = getPaymentEnv()
+  const { paypalClientId, paypalClientSecret } = getPayPalEnv()
 
   const credentials = Buffer.from(`${paypalClientId}:${paypalClientSecret}`).toString('base64')
 
@@ -132,7 +132,7 @@ export async function createPayPalOrder(options: CreateCheckoutOptions): Promise
  * Uses PayPal's verify-webhook-signature API
  */
 export async function verifyPayPalWebhook(body: object, headers: object): Promise<boolean> {
-  const { paypalWebhookId } = getPaymentEnv()
+  const { paypalWebhookId } = getPayPalEnv()
   if (!paypalWebhookId) {
     throw new Error('Missing PAYPAL_WEBHOOK_ID environment variable')
   }
@@ -218,7 +218,7 @@ export async function capturePayPalOrder(orderId: string): Promise<void> {
 export async function refundPayPal(
   providerTransactionId: string,
   amount?: number,
-  currency: 'ILS' | 'USD' | 'EUR' = 'USD',
+  currency: string = 'USD',
 ): Promise<void> {
   const token = await getPayPalAccessToken()
 
