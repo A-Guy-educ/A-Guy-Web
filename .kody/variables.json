@@ -15,6 +15,11 @@
       "value": "https://dev.aguy.co.il",
       "updatedAt": "2026-05-22T11:46:29.479Z",
       "updatedBy": "aguyaharonyair"
+    },
+    "RELEASE_FLOW": {
+      "value": "{\"integrationBranch\":\"main\",\"productionBranch\":\"main\"}",
+      "updatedAt": "2026-06-15T13:20:00.000Z",
+      "updatedBy": "codex"
     }
   }
 }
