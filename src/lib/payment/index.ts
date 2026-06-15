@@ -7,7 +7,7 @@
  * `grantProductEntitlements` for post-payment access granting.
  *
  * Load-bearing gotchas:
- * - `getPaymentEnv()` (env.ts) must be called before any payment operation —
+ * - `getStripeEnv()` / `getPayPalEnv()` (env.ts) must be called before any payment operation —
  *   the SDK clients are lazy-loaded and will throw if their required env vars
  *   are absent, but not until first use.
  * - `grantProductEntitlements` (grant-entitlements.ts) is a stub — no-op in
@@ -25,7 +25,7 @@ export type {
   CheckoutResult,
 } from './types'
 
-export { getPaymentEnv, resetPaymentEnvCache } from './env'
+export { resetPaymentEnvCache } from './env'
 
 export {
   createStripeCheckout,
