@@ -11,6 +11,15 @@
   "smallChangeMaxFiles": "20",
   "staleReviewHours": "4",
   "blockAutoMergeLabel": "status:needs-review",
+  "releaseAutoMergeTitlePrefix": "chore(release):",
+  "releaseAutoMergeBranchPrefix": "release/v",
+  "releaseAutoMergeAllowedPaths": {
+    "item": [
+      "package.json",
+      "pnpm-lock.yaml",
+      "CHANGELOG.md"
+    ]
+  },
   "dispatchComment": "@kody",
   "tripwirePaths": {
     "item": [
