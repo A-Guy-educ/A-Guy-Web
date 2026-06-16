@@ -19,6 +19,12 @@ export interface LearningPageSelection {
   grade?: string
 }
 
+export interface LearningCourseSummary {
+  courseLabel?: string | null
+  id: string
+  order?: number | null
+}
+
 function firstParam(value: string | string[] | undefined): string | undefined {
   const raw = Array.isArray(value) ? value[0] : value
   const trimmed = raw?.trim()
@@ -46,4 +52,32 @@ export function resolveLearningPageSelection({
     courseId: queryCourseId ?? cookieCourseId,
     grade: queryGrade ?? cookieGrade,
   }
+}
+
+export function isEmbeddedLearningRequest(headersList: Pick<Headers, 'get'>): boolean {
+  return headersList.get('sec-fetch-dest')?.toLowerCase() === 'iframe'
+}
+
+export function shouldUseEmbeddedLearningFallback({
+  headersList,
+  selection,
+}: {
+  headersList: Pick<Headers, 'get'>
+  selection: LearningPageSelection
+}): boolean {
+  if (!isEmbeddedLearningRequest(headersList)) return false
+  return !selection.grade && !selection.courseId
+}
+
+function isStructuredCourseLabel(label: string | null | undefined): boolean {
+  return Boolean(label?.trim().match(/^\d+$/))
+}
+
+export function orderLearningFallbackCourses<T extends LearningCourseSummary>(courses: T[]): T[] {
+  return [...courses].sort((a, b) => {
+    const aStructured = isStructuredCourseLabel(a.courseLabel)
+    const bStructured = isStructuredCourseLabel(b.courseLabel)
+    if (aStructured !== bStructured) return aStructured ? -1 : 1
+    return (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER)
+  })
 }
