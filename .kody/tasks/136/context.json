@@ -1,21 +1,14 @@
 {
   "taskId": "136",
   "taskType": "pr",
-  "target": "135-doc-coverage-srclibpayment-stripe-paypal-integrati",
+  "target": "gh-27651774598-1",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Asymmetric delete-vs-modify conflicts: PR branch deleted 6 unrelated kody infrastructure files while origin/dev modified them. Took HEAD (deletion) side since origin/dev changes were organizational additions, not security/correctness fixes, and the files are unrelated to PR purpose (doc coverage for payment integration)",
+  "reason": "Single asymmetric conflict: dev restructured .kody/duties/dev-ci-health.md into dev-ci-health/duty.md + profile.json; resolved by accepting dev's deletion (removing stale single-file from index) and keeping the directory form.",
   "prUrl": null,
   "runUrl": null,
-  "filesTouched": [
-    ".kody/duties/vercel-production-deploy/profile.json",
-    ".kody/executables/task-leader/skills/task-leader-rules/SKILL.md",
-    ".kody/executables/vercel-dev-deploy/profile.json",
-    ".kody/executables/vercel-dev-deploy/vercel-dev-deploy.sh",
-    ".kody/executables/vercel-production-deploy/profile.json",
-    ".kody/executables/vercel-production-deploy/vercel-production-deploy.sh"
-  ],
+  "filesTouched": [".kody/duties/dev-ci-health.md"],
   "sessionLog": null,
-  "startedAt": "2026-06-16T10:17:00Z",
-  "finishedAt": "2026-06-16T10:20:00Z"
+  "startedAt": "2026-06-16T10:25:00Z",
+  "finishedAt": "2026-06-16T10:25:30Z"
 }
