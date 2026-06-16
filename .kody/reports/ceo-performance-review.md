@@ -1,28 +1,39 @@
 # Kody Performance Review
+
 _Cadence: weekly — delivery of owned responsibilities, not subjective quality._
 
-Two of seven staff delivered this week; five of seven produced no observable output.
+## Headline
+
+Two of seven staff produced output this week; five show stale or missing delivery evidence.
+
+## Scoring Table
 
 | Staff | Owned duties | Delivery | Consistency | Signal | Grade |
 |-------|-------------|----------|-------------|--------|-------|
-| ceo   | 2 (2 active)| Med      | Low         | Low    | weak  |
-| coo   | 4 (4 active)| Low      | Low         | Low    | weak  |
-| cto   | 6 (6 active)| Low      | Low         | Low    | weak  |
-| kody  | 2 (2 active)| Med      | Low         | High   | steady |
-| qa    | 3 (3 active)| High     | Med         | High   | strong |
-| tech-writer | 2 (2 active) | Low | Low | Low | weak |
-| ux-designer | 1 (1 active) | Low | Low | Low | weak |
+| ceo | 2 (2 active) | Med | Weak | Med | weak |
+| coo | 4 (1 active) | Med | Weak | Med | weak |
+| cto | 6 (1 active) | Low | Weak | Low | weak |
+| kody | 7 (1 active) | Med | Weak | Med | weak |
+| qa | 3 (1 active) | Low | Weak | Low | weak |
+| tech-writer | 2 (0 active) | — | — | — | idle |
+| ux-designer | 1 (0 active) | Low | Weak | Low | weak |
 
-- **ceo — weak:** job-gap-scan last report 2026-05-31 (~11 days old); no new proposals reaching the operator this week.
-- **coo — weak:** cleanup-branches (manual), duty-review, system-audit (lastRunISO 2026-05-23), task-memory-extractor — all show no state updates or issue output this week.
-- **cto — weak:** approval-gate (broken: state never created), dev-ci-health, pr-health-triage, publish-release, security-audit (report 25 days stale) — no active output this week.
-- **tech-writer — weak:** docs-code and docs-readme (every: 1d) have produced no state updates or output since ~May 23. No docs maintenance running.
-- **ux-designer — weak:** design-review (every: 7d) has not updated state and has produced no output since ~May 23. No design review cadence.
-- **kody — steady:** health-check posted fresh report today confirming healthy system, but state files remain stale. High signal, low state persistence.
-- **qa — strong:** qa-sweep fired 3 cycles today (04:24, 06:18, 09:33); 12 issues created with P1/P2 findings and doc coverage. Consistent, high-signal output.
+## Notes
 
-Changes since last week: all grades unchanged. qa sustained strong delivery; kody sustained steady. No improvements or regressions this cycle.
+- **ceo — weak:** job-gap-scan state frozen 2026-05-20; report from 2026-05-31 (12 days stale). ceo-performance-review ran this cycle. **Effect:** no new duty proposals.
+- **coo — weak:** duty-review ran today (report committed 2026-06-12); system-audit state frozen 2026-05-23; cleanup-branches and task-memory-extractor have no state or report. **Effect:** coo visibility into duty health is stale.
+- **cto — weak:** security-audit state from 2026-05-23; cto report from 2026-05-18 (25 days stale); approval-gate, architecture-audit, dev-ci-health, pr-health-triage, publish-release show no state or output. **Effect:** PR health monitoring non-functional.
+- **kody — weak:** health-check ran today (report committed 2026-06-12); coverage-floor, dead-code-sweep, dependency-bump, flaky-test-quarantine, type-debt all state-frozen 2026-05-08; redispatch state empty. **Effect:** most kody automations idle.
+- **qa — weak:** qa-sweep state frozen 2026-05-23 (~20 days); qa-verify and qa have no state. **Effect:** regression coverage unmonitored.
+- **ux-designer — weak:** design-review has no state or report. **Effect:** no design review cadence.
+- **tech-writer — idle:** docs-code and docs-readme have no active output.
 
----
+## Changes Since Last Week
 
-_Platform note:_ The majority of duties stopped committing state updates around May 23 (~19 days ago), while a subset continue to produce output (health-check, qa). The state file persistence layer appears degraded for most duties while execution paths remain partially active. Signal is read from issue output where available rather than state timestamps.
+- ceo: steady→weak (job-gap-scan went stale)
+- coo: weak→weak (duty-review ran but overall unchanged)
+- cto: weak→weak (no change)
+- kody: steady→weak (most duties went stale)
+- qa: strong→weak (qa-sweep went stale)
+- tech-writer: idle→idle (no change)
+- ux-designer: weak→weak (no change)

@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.25.11 — 2026-06-15
+
+### Features
+
+### Fixes
+
+### Chores
+
 ## v0.25.10 — 2026-05-29
 
 ### Features
@@ -1677,9 +1685,17 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
-- #164: Remove /start fallback from root page ([#165](https://github.com/A-Guy-educ/A-Guy-Web/pull/165)) — @kodyade[bot]
-- fix(lessons): Show Prev/Next nav buttons unconditionally (revert #1766) ([#163](https://github.com/A-Guy-educ/A-Guy-Web/pull/163)) — @aguyshayb
-- fix(ask): Restore Gemini responseSchema on interactive lesson route ([#158](https://github.com/A-Guy-educ/A-Guy-Web/pull/158)) — @aguyshayb
+- fix: Make Vercel deploy duties install CLI ([#272](https://github.com/A-Guy-educ/A-Guy-Web/pull/272)) — @aguyaharonyair
+- chore(release): promote dev to main for v0.25.11 ([#270](https://github.com/A-Guy-educ/A-Guy-Web/pull/270)) — @kodyade[bot]
+## [v0.25.11] - 2026-06-15
+
+- chore(release): v0.25.11 ([#269](https://github.com/A-Guy-educ/A-Guy-Web/pull/269)) — @kodyade[bot]
+- fix: Wire up PayPal in /api/payments/checkout ([#265](https://github.com/A-Guy-educ/A-Guy-Web/pull/265)) — @aguyshayb
+- fix: Force dynamic rendering for /products/[slug] ([#251](https://github.com/A-Guy-educ/A-Guy-Web/pull/251)) — @aguyshayb
+- fix: Clear stale auth cookie on /api/users/me 401 ([#249](https://github.com/A-Guy-educ/A-Guy-Web/pull/249)) — @aguyshayb
+- #164: Remove /start fallback from root page ([#165](https://github.com/A-Guy-educ/A-Guy-Web/pull/165)) — @kodyade[bot] · ⚠️ QA 2026-06-11 (#176)
+- fix(lessons): Show Prev/Next nav buttons unconditionally (revert #1766) ([#163](https://github.com/A-Guy-educ/A-Guy-Web/pull/163)) — @aguyshayb · ⚠️ QA 2026-06-11 (#190)
+- fix(ask): Restore Gemini responseSchema on interactive lesson route ([#158](https://github.com/A-Guy-educ/A-Guy-Web/pull/158)) — @aguyshayb · ⚠️ QA 2026-06-11 (#205)
 - #67: [Lessons] עמוד כניסה אחיד לכל סוגי השיעורים ([#68](https://github.com/A-Guy-educ/A-Guy-Web/pull/68)) — @kodyade[bot] · ⚠️ QA 2026-06-10 (#85)
 - #30: [Lessons] Add unified entry intro page for all lessons ([#34](https://github.com/A-Guy-educ/A-Guy-Web/pull/34)) — @kodyade[bot] · ⚠️ QA 2026-06-10 (#100)
 - #35: docs: add headers to src/server/services/ (doc-coverage gap) ([#36](https://github.com/A-Guy-educ/A-Guy-Web/pull/36)) — @kodyade[bot] · ⚠️ QA 2026-06-10 (#53)
