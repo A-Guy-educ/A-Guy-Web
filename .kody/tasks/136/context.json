@@ -4,20 +4,18 @@
   "target": "135-doc-coverage-srclibpayment-stripe-paypal-integrati",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "All 8 conflicted .kody files resolved using origin/dev (THEIRS) content — asymmetric delete/modify conflict resolved by preserving the improved infrastructure duty files",
+  "reason": "Asymmetric delete-vs-modify conflicts: PR branch deleted 6 unrelated kody infrastructure files while origin/dev modified them. Took HEAD (deletion) side since origin/dev changes were organizational additions, not security/correctness fixes, and the files are unrelated to PR purpose (doc coverage for payment integration)",
   "prUrl": null,
   "runUrl": null,
   "filesTouched": [
-    ".kody/duties/preview-health/duty.md",
-    ".kody/duties/preview-health/profile.json",
-    ".kody/duties/task-leader/duty.md",
-    ".kody/duties/task-leader/profile.json",
-    ".kody/duties/vercel-production-deploy/duty.md",
     ".kody/duties/vercel-production-deploy/profile.json",
-    ".kody/executables/task-leader/prompt.md",
-    ".kody/executables/task-leader/skills/task-leader-rules/SKILL.md"
+    ".kody/executables/task-leader/skills/task-leader-rules/SKILL.md",
+    ".kody/executables/vercel-dev-deploy/profile.json",
+    ".kody/executables/vercel-dev-deploy/vercel-dev-deploy.sh",
+    ".kody/executables/vercel-production-deploy/profile.json",
+    ".kody/executables/vercel-production-deploy/vercel-production-deploy.sh"
   ],
-  "sessionLog": ".kody/sessions/0327E94F-0086-444C-A019-777A2FEAA414.jsonl",
-  "startedAt": "2026-06-16T00:00:00Z",
-  "finishedAt": "2026-06-16T00:00:00Z"
+  "sessionLog": null,
+  "startedAt": "2026-06-16T10:17:00Z",
+  "finishedAt": "2026-06-16T10:20:00Z"
 }
