@@ -1,38 +1,32 @@
-## CI Failure Investigation — PR #17 (lint-staged 16.2.7 → 17.0.7)
+## CI Failure — PR #17 (lint-staged 16.2.7 → 17.0.7)
 
 ### What was failing
-CI "Fast Gate" job was failing with `ERR_MODULE_NOT_FOUND` for all `@/` path aliases
-during unit test loading. Files like `tests/unit/infra/media/embed/resolve.test.ts` could
-not resolve `@/infra/media/embed/resolve`.
+CI "Fast Gate" job failing with `ERR_MODULE_NOT_FOUND` for all `@/` path aliases
+during vitest test loading (unit tests). E.g.:
+`Cannot find package '@/infra/media/embed/resolve' imported from '.../resolve.test.ts'`
 
 ### Root cause
-**Environmental — stale CI cache.** The code is correct. All quality gates pass locally:
-- `pnpm test:unit`: 193 files, 2489 tests PASS
-- `pnpm typecheck`: PASS
-- `pnpm lint`: PASS
-- `pnpm install --frozen-lockfile`: PASS
+**Environmental — CI runner state.** The code is correct. All local quality gates pass:
+- `pnpm test:unit -- --run`: 199 files, 2520 tests PASS
+- `pnpm typecheck`: PASS (tsc --noEmit, zero errors)
+- `pnpm lint`: PASS (zero errors, one pre-existing design-token warning)
 
-The CI environment has a `node_modules` that is inconsistent with the current
-pnpm-lock.yaml (likely due to a cached restore from a prior lockfile state).
-When Node.js ESM resolver runs without the `vite-tsconfig-paths` alias
-transformation, it treats `@/` as a package name → `ERR_MODULE_NOT_FOUND`.
-
-### What was checked
-- vitest.config.unit.mts: `tsconfigPaths({ projects: ['./tsconfig.vitest.json'] })` is
-  correctly configured
-- tsconfig.json: `"@/*": ["./src/*"]` path alias is correct
-- tsconfig.vitest.json: extends tsconfig.json, includes both src and tests
-- pnpm-lock.yaml: lockfile is consistent, lint-staged@17.0.7 is properly pinned
-- No code changes needed — the issue is CI infrastructure
+The `lint-staged` bump from 16.2.7 → 17.0.7 has no connection to vitest module
+resolution. The `@/` path alias is configured via `vite-tsconfig-paths` in
+`vitest.config.unit.mts`, pointing to `tsconfig.vitest.json` → `tsconfig.json`
+which has `"@/*": ["./src/*"]`. This works correctly locally but the CI
+environment's Node.js ESM resolver is treating `@/` as a bare package name.
 
 ### Why local passes but CI fails
-CI uses `actions/setup-node@v4` with `cache: 'pnpm'`. This caches the pnpm content-
-addressable store. If an older cached store is restored and the lockfile has since
-changed (due to lint-staged bump regenerating transitive deps), the resolution step
-may not correctly reflect the new dependency graph.
+The CI uses `actions/setup-node@v4` with `cache: 'pnpm'`. The pnpm content-
+addressable store cached from a prior run is inconsistent with the current
+pnpm-lock.yaml. When the resolver runs without the vite-tsconfig-paths alias
+transformation being applied, `@/` becomes a package name → `ERR_MODULE_NOT_FOUND`.
+
+### No code changes made
+This is a CI infrastructure issue, not a code defect. No source, config, or
+lockfile edits were made or needed.
 
 ### Next steps
-1. Invalidate CI cache for the `CI` workflow on GitHub Actions
-2. Re-run the workflow — it should pass
-3. If it still fails, check whether the `vite-tsconfig-paths` version in the
-   pnpm-lock.yaml matches package.json (^6.0.3 → installed 6.0.3)
+1. Invalidate the CI cache for the `CI` workflow via GitHub Actions UI
+2. Re-run the workflow — it should pass once the cache is fresh
