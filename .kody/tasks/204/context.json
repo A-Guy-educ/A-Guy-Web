@@ -1,21 +1,16 @@
 {
   "taskId": "204",
   "taskType": "pr",
-  "target": "gh-27610574050-1-1",
+  "target": "203-doc-coverage-srclibpayment-payment-provider-integr",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "resolved all 6 DU conflicts by taking origin/dev version — PR branch was based before these .kody/ files were added",
-  "prUrl": null,
-  "runUrl": ".kody/runs/gh-27610574050-1/",
+  "reason": "Single asymmetric conflict: origin/dev restructured dev-ci-health from single .md file to directory with duty.md+profile.json. Took origin/dev's deletion of the old file and kept the new directory structure (both files identical to origin/dev).",
+  "prUrl": "https://github.com/A-Guy-educ/A-Guy-Web/pull/204",
+  "runUrl": "https://github.com/A-Guy-educ/A-Guy-Web/actions/runs/gh-27651769003-1",
   "filesTouched": [
-    ".kody/duties/vercel-production-deploy/profile.json",
-    ".kody/executables/task-leader/skills/task-leader-rules/SKILL.md",
-    ".kody/executables/vercel-dev-deploy/profile.json",
-    ".kody/executables/vercel-dev-deploy/vercel-dev-deploy.sh",
-    ".kody/executables/vercel-production-deploy/profile.json",
-    ".kody/executables/vercel-production-deploy/vercel-production-deploy.sh"
+    ".kody/duties/dev-ci-health.md"
   ],
-  "sessionLog": null,
-  "startedAt": "2026-06-16T10:19:00Z",
-  "finishedAt": "2026-06-16T10:19:23Z"
+  "sessionLog": ".kody/sessions/gh-27651769003-1-1.jsonl",
+  "startedAt": "2026-06-16T00:00:00Z",
+  "finishedAt": "2026-06-16T00:05:00Z"
 }

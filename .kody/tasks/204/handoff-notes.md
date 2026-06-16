@@ -1,1 +1,14 @@
-Resolved merge conflicts between PR #204 branch and origin/dev for 6 .kody/ infrastructure files. The PR branch (203-doc-coverage-srclibpayment-payment-provider-integr) was branched from a commit before these .kody/ files existed in origin/dev. Origin/dev later added them via chore(duties) commits. Git treated this as a "both sides added" conflict since base didn't have them, HEAD (PR) didn't have them, and origin/dev added them. Resolution: took origin/dev's version for all 6 files via `git checkout --theirs` then staged them.
+Resolved one asymmetric conflict in `.kody/duties/dev-ci-health.md`.
+
+origin/dev restructured the dev-ci-health duty from a single markdown file
+(`.kody/duties/dev-ci-health.md`) into a directory bundle
+(`.kody/duties/dev-ci-health/duty.md` + `profile.json`). Our PR branch
+still had the old single-file format.
+
+Resolution: deleted the old single-file `.kody/duties/dev-ci-health.md` and
+adopted the new directory structure. The `duty.md` and `profile.json` files
+in the directory are byte-identical to origin/dev — no content changes
+needed.
+
+All other files in the merge were already resolved (staged) before this
+session.
