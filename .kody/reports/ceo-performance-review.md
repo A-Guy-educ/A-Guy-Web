@@ -2,23 +2,38 @@
 
 _Cadence: weekly — delivery of owned responsibilities, not subjective quality._
 
-One of seven staff delivered this week; kody produced observable output through health-check; all others showed no fresh delivery.
+## Headline
+
+Two of seven staff produced output this week; five show stale or missing delivery evidence.
+
+## Scoring Table
 
 | Staff | Owned duties | Delivery | Consistency | Signal | Grade |
 |-------|-------------|----------|-------------|--------|-------|
-| ceo | 2 active | Low | Low | Med | weak |
-| coo | 3 active | Med | Low | Med | weak |
-| cto | 5 active | Low | Low | Low | weak |
-| kody | 2 active | Med | Med | Med | steady |
-| qa | 3 active | Low | Low | Low | weak |
-| tech-writer | 2 (both disabled) | — | — | idle | idle |
-| ux-designer | 1 active | Low | Low | Low | weak |
+| ceo | 2 (2 active) | Med | Weak | Med | weak |
+| coo | 4 (1 active) | Med | Weak | Med | weak |
+| cto | 6 (1 active) | Low | Weak | Low | weak |
+| kody | 7 (1 active) | Med | Weak | Med | weak |
+| qa | 3 (1 active) | Low | Weak | Low | weak |
+| tech-writer | 2 (0 active) | — | — | — | idle |
+| ux-designer | 1 (0 active) | Low | Weak | Low | weak |
 
-- **ceo — weak:** ceo-performance-review ran this tick; job-gap-scan state frozen since May 20 (23 days). No fresh job-gap-scan output this week.
-- **coo — weak:** duty-review produced today's report; system-audit and task-memory-extractor state frozen since May 23 (20 days).
-- **cto — weak:** five active duties — approval-gate, dev-ci-health, pr-health-triage, publish-release, security-audit — zero state updates this week; pr-health-triage and security-audit state frozen since May 23.
-- **kody — steady:** health-check produced today's report; redispatch has no state file, making cadence unverifiable.
-- **qa — weak:** qa-sweep, qa-verify, qa — all three QA duties show no fresh state; qa-sweep and qa state frozen since May 23.
-- **ux-designer — weak:** design-review state file never created; no output this week.
+## Notes
 
-- Changes since last week: kody steady→steady (health-check ran, no change); coo steady→weak (duty-review ran but system-audit/task-memory-extractor remain stale); ceo steady→weak (job-gap-scan remains frozen); qa steady→weak (all three QA duties stalled); cto weak→weak (no change); tech-writer idle→idle (no change); ux-designer weak→weak (no change).
+- **ceo — weak:** job-gap-scan state frozen 2026-05-20; report from 2026-05-31 (12 days stale). ceo-performance-review ran this cycle. **Effect:** no new duty proposals.
+- **coo — weak:** duty-review ran today (report committed 2026-06-12); system-audit state frozen 2026-05-23; cleanup-branches and task-memory-extractor have no state or report. **Effect:** coo visibility into duty health is stale.
+- **cto — weak:** security-audit state from 2026-05-23; cto report from 2026-05-18 (25 days stale); approval-gate, architecture-audit, dev-ci-health, pr-health-triage, publish-release show no state or output. **Effect:** PR health monitoring non-functional.
+- **kody — weak:** health-check ran today (report committed 2026-06-12); coverage-floor, dead-code-sweep, dependency-bump, flaky-test-quarantine, type-debt all state-frozen 2026-05-08; redispatch state empty. **Effect:** most kody automations idle.
+- **qa — weak:** qa-sweep state frozen 2026-05-23 (~20 days); qa-verify and qa have no state. **Effect:** regression coverage unmonitored.
+- **ux-designer — weak:** design-review has no state or report. **Effect:** no design review cadence.
+- **tech-writer — idle:** docs-code and docs-readme have no active output.
+
+## Changes Since Last Week
+
+- ceo: steady→weak (job-gap-scan went stale)
+- coo: weak→weak (duty-review ran but overall unchanged)
+- cto: weak→weak (no change)
+- kody: steady→weak (most duties went stale)
+- qa: strong→weak (qa-sweep went stale)
+- tech-writer: idle→idle (no change)
+- ux-designer: weak→weak (no change)
