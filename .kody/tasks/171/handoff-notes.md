@@ -1,13 +1,7 @@
-Resolved 8 merge conflicts between PR #171 (159--start-html) and origin/dev for kody duty/executable files.
+Resolved 6 asymmetric DU (delete/modify) merge conflicts between PR #171 (159--start-html) and origin/dev.
 
-Resolution strategy per file:
-- preview-health/duty.md: Took dev (elaborate script-based triage approach — more mature)
-- preview-health/profile.json: Took dev (adds tickScript field)
-- task-leader/duty.md: Took PR (slightly richer phrasing around release lanes)
-- task-leader/profile.json: Took PR (adds releasePromotionTitlePrefix field dev lacked)
-- vercel-production-deploy/duty.md: Took dev (fuller title/description)
-- vercel-production-deploy/profile.json: Took dev (adds runner/reviewer fields)
-- task-leader/prompt.md: Took PR (lists full knob set including releasePromotionTitlePrefix)
-- SKILL.md: Took PR (adds Lane C for Release Promotion PR — dev was missing this gate)
+Conflict type: PR branch deleted 6 Kody duty/executable files; origin/dev had improved versions (npx CLI fallback, postflight activity recording, staff field on vercel-production-deploy).
+
+Resolution: Took origin/dev's versions via `git checkout --theirs` and `git add`. Reason: dev improvements (npx fallback for Vercel CLI, postflight appendCompanyActivity script, staff: cto field) are legitimate enhancements unrelated to the PR's /start HTML redesign purpose. The PR branch never intentionally targeted these infrastructure files.
 
 All conflict markers removed; no further action needed. Wrapper handles the merge commit.

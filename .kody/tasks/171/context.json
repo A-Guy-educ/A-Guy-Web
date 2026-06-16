@@ -1,23 +1,21 @@
 {
   "taskId": "171",
   "taskType": "pr",
-  "target": "171",
+  "target": "159--start-html",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Resolved 8 conflicted kody duty/executable files — merged dev's matured infrastructure with PR's richer feature set (releasePromotionTitlePrefix, Lane C)",
+  "reason": "Resolved 6 asymmetric DU conflicts — PR branch deleted Kody infra files, origin/dev had improved versions. Restored dev's versions.",
   "prUrl": null,
   "runUrl": null,
   "filesTouched": [
-    ".kody/duties/preview-health/duty.md",
-    ".kody/duties/preview-health/profile.json",
-    ".kody/duties/task-leader/duty.md",
-    ".kody/duties/task-leader/profile.json",
-    ".kody/duties/vercel-production-deploy/duty.md",
     ".kody/duties/vercel-production-deploy/profile.json",
-    ".kody/executables/task-leader/prompt.md",
-    ".kody/executables/task-leader/skills/task-leader-rules/SKILL.md"
+    ".kody/executables/task-leader/skills/task-leader-rules/SKILL.md",
+    ".kody/executables/vercel-dev-deploy/profile.json",
+    ".kody/executables/vercel-dev-deploy/vercel-dev-deploy.sh",
+    ".kody/executables/vercel-production-deploy/profile.json",
+    ".kody/executables/vercel-production-deploy/vercel-production-deploy.sh"
   ],
   "sessionLog": ".kody/last-run.jsonl",
-  "startedAt": "2026-06-16T03:31:00Z",
-  "finishedAt": "2026-06-16T03:31:00Z"
+  "startedAt": "2026-06-16T12:00:00Z",
+  "finishedAt": "2026-06-16T12:05:00Z"
 }
