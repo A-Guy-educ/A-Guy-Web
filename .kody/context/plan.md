@@ -2,52 +2,17 @@
 staff: [kody]
 ---
 
-תוכנית עבודה - הכנה כיתה ז
+# Grade 7 Prep — TODO
 
-
-
-דרישה 
-מצב נוכחי
-רצוי
-עמוד נחיתה חדש
-יש ישן, ויש דמו ב-HTML
-עמוד נחיתה זהה לדמו - במקום הישן
-המשך כניסה עם שאלות - איך אתה ואיזה כיתה
-יש ישן, יש דמו ב-ב-HTML
-התצוגה של הדמו במקום הישן
-עמוד מבוא אחיד לפי מבנה קבוע (בתצוגה בדיוק לפי הדמו שיש)- כולל עריכה באדמין  	
-קיים דמו של התצוגה, חסר ניהול של השדות באדמין וחסר עמוד ב-web 
-עמוד מבוא לשיעור, מוצג לאחר עמוד כניסה לשיעור, שמוצג בדיוק לפי הדמו וניתן לעריכה באדמין
-שיפור חווית למידה בנייד
-כרגע, הצט לא נפתח לא אחיד, יש 2 כפתורי צט שונים ….. 
-רצוי, תצוגה של התרגילים במסך מלא, צט משתלב בצורה שניתן לצפות בתרגיל, דף הנוסחאות והערות משתלבים גם (הכין דמו)
-הצגת התרגילים בקונטקסט כתרגילי מערכת	
-כרגע יש 10 תרגילים בכל שיעור בקונטקסט, במבנה האחיד 
-המרה של התרגילים לתרגילים במערכת 
-מערכת תשלום אוטמטית עבור קורס הכנה לכיתה ז, תשלום חד פעמי ופתיחת המערכת ל-3 חודשים, אפשרות גם לעשות הנחה, עם גישה נוחה לתשלום (עדיף apple/goggle)..
-קבלת חשבונית במייל
-אפשרות ביטול במקרה הצורך 
-כרגע יש מערכת תשלום ששי עשה, עדין לא נבדקה 
-מערכת נגישה פשוטה ואוטמטית לתשלום וקבלת חשבונית במייל והסבר על המערכת במייל או ווצאפ
-תיקון באגים
-
-
-
-
-
-
-לא מעכב עלייה
-
-
-אפשרות בנית בניית תוכנית למידה 
-כרגע, אפשר ליצור תוכנית לבחינה, אבל סטטית - ולא נגישה מספיק (חושב שאין הרבה עבודה 
-אפשרות למשתמש - בנית תוכנית למידה לפי דרישה 
-והתגת השיעורים הרולוונטים 
-מערכת נוחה לדיווח באגים או הערות
-כרגע יש כפתור של סוכן - לא פעיל 
-אפשרות דווח של תקלות או הערות, דרך כפתור הצט 
-שיפוע הפיצועים של הצט והצגת התשובות 
-כרגע, מענה יחסית טוב, אבל לפעמים לא מוצג בצורה ברורה 
-התגת הסברים, פתרון, והערות בצורה יותר ברורה, והצגת svg, גרפים או שרטוטים
-
-
+- [x] ✅ Landing page — Old page exists, HTML demo exists | Replace old page with demo
+- [x] ✅ Entry flow (who/which grade) — Old + demo exists | Replace old with demo
+- [ ] Unified intro page — Demo exists, but admin field management + web page missing | Intro page matching demo, editable in admin
+- [ ] Lesson intro page — Demo exists | Displayed after entry, editable in admin
+- [ ] Mobile learning UX — Non-unified, 2 different question buttons | Fullscreen exercises, formulas + notes embedded (demo ready)
+- [ ] Exercises as system exercises — 10 exercises per lesson, non-unified structure | Convert to system exercises in unified format
+- [ ] Automated payment — Shi's system exists, untested | One-time payment → 3-month access, discounts, Apple/Google Pay
+- [ ] Invoice + cancellation — System untested | Accessible automated payment, invoice by email, cancellation option
+- [ ] Bug fixes — Non-blocking for launch
+- [ ] Learning plan builder — Static, not accessible enough | User-facing plan builder by requirement → relevant lessons tagged
+- [ ] Bug/feedback reporting — Agent button exists, inactive | Report issues + feedback via question button
+- [ ] Answer explanation quality — Sometimes unclear | Clear explanations, solutions, notes + SVG/graphs/diagrams
