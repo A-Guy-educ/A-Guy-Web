@@ -1,6 +1,7 @@
-Resolved merge conflicts with origin/dev in two files — both were symmetric conflicts in the top-of-file JSDoc block only.
+Resolved 8 merge conflicts in `.kody/` infrastructure duty/executable files. All conflicts were asymmetric — the PR branch deleted these files while `origin/dev` updated them with improved content. Took THEIRS (origin/dev) in every case since the PR's deletion had no security or correctness justification, and the dev versions are the live running infrastructure.
 
-- `src/lib/payment/paypal.ts`: conflict between `getPaymentEnv()` (HEAD, richer `@ai-summary`) vs `getPayPalEnv()` (origin/dev). Took HEAD — the PR intent is doc coverage and the HEAD comment is more informative.
-- `src/lib/payment/stripe.ts`: same pattern. Took HEAD — richer `@ai-summary` aligns with PR intent.
-
-Typecheck and lint pass cleanly. No functional code changed.
+Key changes from dev preserved:
+- preview-health: simplified policy prose (dropped Python script tick, kept shell script approach)
+- task-leader: expanded allowed-commands list, `releasePromotionTitlePrefix` knob added to profile.json, Lane C (release promotion) added to SKILL.md
+- vercel-production-deploy: simplified profile (removed `runner`/`reviewer` fields)
+- prompt.md: extended knob list in step 1 to include `releaseAutoMergeBranchPrefix`, `releasePromotionTitlePrefix`, `releaseAutoMergeAllowedPaths`
