@@ -8,13 +8,12 @@ The CI failure was **environmental**, not a code bug. The runner had a stale nod
 
 ### Verification
 
-- `pnpm test:unit`: 193 files, 2489 tests — all pass
-- `pnpm test:int`: 23 files, 195 tests — all pass
+- `pnpm test:unit`: 199 files, 2520 tests — all pass
 - `pnpm typecheck`: passes
 - `pnpm lint`: passes (warnings only, pre-existing)
 
 No code changes were needed. The current code state is correct.
 
-### Followup (low priority)
+### Fix Applied
 
-The CI install step could be hardened: `pnpm install --frozen-lockfile` does not clean a stale node_modules. Consider `rm -rf node_modules && pnpm install --frozen-lockfile` or `--force` flag to guarantee a clean sync with the lockfile.
+Added `rm -rf node_modules &&` before every `pnpm install --frozen-lockfile` step in `.github/workflows/ci.yml` (7 jobs). This guarantees a clean install on every CI run.
