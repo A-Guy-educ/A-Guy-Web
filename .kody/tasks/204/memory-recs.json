@@ -1,10 +1,1 @@
-[
-  {
-    "type": "lesson",
-    "name": "getpaymentenv-does-not-exist",
-    "hook": "getPaymentEnv() does not exist in env.ts — the actual functions are getStripeEnv() and getPayPalEnv()",
-    "body": "When adding @ai-summary headers to payment modules in PR #204, the PR incorrectly changed JSDoc references from getStripeEnv()/getPayPalEnv() to getPaymentEnv(). The env.ts module does not export a getPaymentEnv function. Always verify function names against the actual implementation before updating documentation.",
-    "why": "The PR author (or AI) assumed a getPaymentEnv() wrapper existed that doesn't. This would have caused a runtime crash if merged. The typecheck caught it post-merge.",
-    "confidence": 0.95
-  }
-]
+[]

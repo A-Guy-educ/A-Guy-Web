@@ -1,9 +1,12 @@
-Resolved merge conflicts in PR #204 (doc coverage: src/lib/payment/).
+Resolved remaining merge conflicts in PR #204.
 
-Three files had conflict markers:
+Eight files had an unusual git state after the merge commit 0af10bff1: index showed them as deleted (stage 2 missing) while stages 1 and 3 remained unmerged. Working tree contained dev's version of these files.
 
-- `src/lib/payment/paypal.ts` — HEAD side added @ai-summary but incorrectly changed `getPayPalEnv()` to `getPaymentEnv()` in JSDoc. Resolved by keeping @ai-summary with correct function name.
-- `src/lib/payment/stripe.ts` — Same pattern. Resolved same way.
-- `src/lib/payment/index.ts` — Not flagged as conflicted but had same bug: exported a non-existent `getPaymentEnv` from env.ts, and JSDoc referenced it. Fixed both issues.
+- preview-health/duty.md, preview-health/profile.json
+- task-leader/duty.md, task-leader/profile.json
+- vercel-production-deploy/duty.md, vercel-production-deploy/profile.json
+- task-leader/prompt.md, task-leader/skills/task-leader-rules/SKILL.md
 
-Root cause: the PR added @ai-summary documentation but used a function name (`getPaymentEnv`) that does not exist in env.ts. env.ts only exports `getStripeEnv`, `getPayPalEnv`, and `resetPaymentEnvCache`. Typecheck now passes cleanly. Lint/format also clean.
+Resolution: accepted deletion (HEAD side). These kody duty files are infrastructure unrelated to the PR's doc-coverage scope. Removed untracked working tree copies to restore clean state. No remaining unmerged files.
+
+The prior merge commit (0af10bff1) already resolved the src/lib/payment/ conflicts (paypal.ts, stripe.ts, index.ts).
