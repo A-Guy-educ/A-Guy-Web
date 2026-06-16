@@ -2,30 +2,38 @@
 
 _Cadence: weekly — delivery of owned responsibilities, not subjective quality._
 
-Three of seven staff produced output this week; cto, kody, coo, and ceo each ran one duty while four staff show frozen or missing state.
+## Headline
 
-## Scores
+Two of seven staff produced output this week; five show stale or missing delivery evidence.
+
+## Scoring Table
 
 | Staff | Owned duties | Delivery | Consistency | Signal | Grade |
 |-------|-------------|----------|-------------|--------|-------|
-| ceo | 2 (2 active) | Med | Low | Med | weak |
-| coo | 4 (4 active) | Low | Low | Med | weak |
-| cto | 6 (6 active) | None | Low | Low | weak |
-| kody | 7 (7 active) | Low | Low | Med | weak |
-| qa | 3 (3 active) | Unclear | Low | Unclear | unclear |
-| tech-writer | 2 (2 active) | Unclear | Low | Unclear | unclear |
-| ux-designer | 1 (1 active) | None | Low | None | idle |
+| ceo | 2 (2 active) | Med | Weak | Med | weak |
+| coo | 4 (1 active) | Med | Weak | Med | weak |
+| cto | 6 (1 active) | Low | Weak | Low | weak |
+| kody | 7 (1 active) | Med | Weak | Med | weak |
+| qa | 3 (1 active) | Low | Weak | Low | weak |
+| tech-writer | 2 (0 active) | — | — | — | idle |
+| ux-designer | 1 (0 active) | Low | Weak | Low | weak |
 
-## Per-staff notes
+## Notes
 
-- **cto — weak:** dev-ci-health, pr-health-triage, publish-release, approval-gate, architecture-audit, security-audit all show last state update 2026-05-23 (~19 days). Six active duties, zero commits this week. Effect: no CTO-level observability running.
-- **kody — weak:** Only health-check ran this week (refresh report commit). dead-code-sweep, dependency-bump, coverage-floor, type-debt, redispatch all frozen. Effect: maintenance surface dark.
-- **coo — weak:** Only duty-review ran this week. system-audit, task-memory-extractor, cleanup-branches frozen 2026-05-23. Effect: COO audit and memory duties not advancing.
-- **ceo — weak:** ceo-performance-review ran; job-gap-scan report last updated 2026-05-31, not refreshed this week. Effect: job-gap-scan advisory not current.
-- **qa — unclear:** All three QA duties (qa-sweep, qa, qa-verify) show frozen state at 2026-05-23 per duty-review broken callout. However, recent commits show active PR-level QA work (QA started, markers swapped). The broken duties are a structural problem owned by the operator, not qa's miss. Signal ambiguous — duties broken vs. work happening.
-- **tech-writer — unclear:** docs-code and docs-readme formal duties have no state updates. However, recent git history shows real doc PRs merged (#36 docs: add @ai-summary headers, #45 docs: add @ai-summary to latex-parser modules). Signal ambiguous — duty structure broken vs. docs work happening.
-- **ux-designer — idle:** design-review is the only ux-designer duty; no state updates or commits this week. No output to assess.
+- **ceo — weak:** job-gap-scan state frozen 2026-05-20; report from 2026-05-31 (12 days stale). ceo-performance-review ran this cycle. **Effect:** no new duty proposals.
+- **coo — weak:** duty-review ran today (report committed 2026-06-12); system-audit state frozen 2026-05-23; cleanup-branches and task-memory-extractor have no state or report. **Effect:** coo visibility into duty health is stale.
+- **cto — weak:** security-audit state from 2026-05-23; cto report from 2026-05-18 (25 days stale); approval-gate, architecture-audit, dev-ci-health, pr-health-triage, publish-release show no state or output. **Effect:** PR health monitoring non-functional.
+- **kody — weak:** health-check ran today (report committed 2026-06-12); coverage-floor, dead-code-sweep, dependency-bump, flaky-test-quarantine, type-debt all state-frozen 2026-05-08; redispatch state empty. **Effect:** most kody automations idle.
+- **qa — weak:** qa-sweep state frozen 2026-05-23 (~20 days); qa-verify and qa have no state. **Effect:** regression coverage unmonitored.
+- **ux-designer — weak:** design-review has no state or report. **Effect:** no design review cadence.
+- **tech-writer — idle:** docs-code and docs-readme have no active output.
 
-## Delta
+## Changes Since Last Week
 
-- Changes since last week: tech-writer idle→unclear (git commits show docs activity despite broken duty structure); kody steady→weak (only 1 of 7 duties ran); all others unchanged.
+- ceo: steady→weak (job-gap-scan went stale)
+- coo: weak→weak (duty-review ran but overall unchanged)
+- cto: weak→weak (no change)
+- kody: steady→weak (most duties went stale)
+- qa: strong→weak (qa-sweep went stale)
+- tech-writer: idle→idle (no change)
+- ux-designer: weak→weak (no change)
