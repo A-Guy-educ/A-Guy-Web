@@ -9,10 +9,14 @@
 
 import type { UrlObject } from 'url'
 
+// @ai-summary Normalizes Next.js hrefs (string or UrlObject) for reliable route comparison: strips trailing slashes, normalizes query strings, and optionally ignores hash fragments.
+
 /**
  * @ai-summary Normalizes Next.js href (string or UrlObject) into a comparable
  * string path. Strips trailing slashes, merges search params, and optionally strips
  * hash fragments for reliable same-page anchor detection.
+ *
+ * Handles edge cases: hash-only, trailing slashes, query strings
  *
  * @ai-trap ignoreHash must be explicitly set to true when using these functions
  * for route-transition detection — SystemLink and useRouterWithLoading pass true
