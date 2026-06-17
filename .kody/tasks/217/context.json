@@ -4,7 +4,7 @@
   "target": "216-doc-coverage-srcinfraloading-client-side-loading-s",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "All three conflicted files resolved cleanly — conflicts were JSDoc metadata only, no implementation divergence",
+  "reason": "All three conflicted files resolved cleanly — conflicts were JSDoc metadata only, no implementation divergence. Review feedback: no actionable items; preview-down note is non-blocking for doc-only PR.",
   "prUrl": null,
   "runUrl": null,
   "filesTouched": [
