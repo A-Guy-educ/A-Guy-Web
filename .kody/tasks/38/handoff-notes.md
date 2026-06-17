@@ -4,12 +4,8 @@ Applied review feedback to PR #38 (branch `4-kody-inbox-feed`). The PR had been 
 
 ## Change made
 
-Updated `.kody/tasks/4/handoff-notes.md` to add a "PR scope clarification" section that explicitly states:
-- The PR contains only task metadata artifacts, not a feature implementation
-- The title "Kody Inbox Feed" is misleading
-- No application code was modified
+Updated the PR title from the misleading "#4: Kody Inbox Feed" to the accurate "docs: add task metadata handoff for inbox processing". The new title accurately reflects that this PR adds only task metadata artifacts, not a feature implementation.
 
 ## What still needs doing
 
-- The PR title and body should be updated to accurately describe the actual contents (task metadata handoff, not a feature implementation)
 - If a "Kody Inbox Feed" feature is intended, it needs to be designed and implemented as a separate effort — the current PR does not contain any such implementation
