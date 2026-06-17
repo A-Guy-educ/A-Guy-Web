@@ -1,24 +1,33 @@
----
-title: Loading State Management
-domain: ui
-fileType: infrastructure
-aiSummary: Global loading state system for route transitions, async actions, and UI spinners. The singleton LoadingManager auto-unregisters route operations after 15 s to prevent stuck progress bars. All hooks are SSR-safe via useSyncExternalStore.
+# Loading State Manager
+
+**@domain** ui
+**@fileType** infrastructure
+**@ai-summary** Singleton store + hooks + components for coordinating loading indicators across routes, actions, screens, and inline contexts
+
 ---
 
 ## Entry Point
 
-```typescript
-import {
-  loadingManager, // Singleton store
-  useLoadingState, // Subscribe to specific loading conditions
-  useAsyncAction, // Wrap async operations with loading state
-  useRouterWithLoading, // useRouter replacement with loading registration
-  asyncAction, // Standalone wrapper for async operations
-  RouteLoadingIndicator, // Progress bar component
-  SystemLink, // Link that shows loading state
-  Spinner, // Animated loading indicator
-  LOADING_KEYS, // Central registry of loading key constants
-} from '@/infra/loading'
+[`index.ts`](index.ts) — public API exports
+
+## Architecture
+
+```
+src/infra/loading/
+├── index.ts                      # Public API exports
+├── LoadingManager.ts             # Singleton store (useSyncExternalStore compatible)
+├── AsyncAction.ts                # asyncAction wrapper with duplicate prevention
+├── keys.ts                      # Central LOADING_KEYS registry
+├── hooks/
+│   ├── useLoadingState.ts       # Subscribe to loading state from store
+│   ├── useAsyncAction.ts        # Hook wrapper for asyncAction
+│   └── useRouterWithLoading.ts  # useRouter that registers route loading
+├── components/
+│   ├── RouteLoadingIndicator.tsx # Global indeterminate progress bar
+│   ├── SystemLink.tsx           # Link with local loading indication
+│   └── Spinner.tsx             # Animated spinner
+└── utils/
+    └── resolveHref.ts          # Next.js href normalization (ignores hash)
 ```
 
 ## Core Concepts
@@ -63,24 +72,11 @@ const { execute, isLoading } = useAsyncAction((formData: FormData) => loginActio
 - **preventDuplicate defaults to true.** `asyncAction` returns `{ success: false, error: 'Action already in progress' }` for duplicate calls unless `preventDuplicate: false` is passed.
 - **SSR safe.** All hooks return `false` from `getServerSnapshot`. No server-client hydration mismatches.
 - **Keys are not automatically unregistered on error.** `asyncAction` always calls `manager.unregister(key)` in `finally`, but custom callers must ensure they do the same.
+- `loadingManager` is a **module singleton** — not reset between tests unless `createLoadingManager()` is used for DI
+- Route loading is registered at **trigger time** (click/push), not when navigation completes — if navigation is instant, the indicator may not appear due to threshold/flicker guards
+- `useRouterWithLoading` only registers loading for cross-page navigation — same-path changes (hash anchors, query-only changes) are intentionally ignored
 
-## File Structure
+## Related Documentation
 
-```
-src/infra/loading/
-├── README.md                        # This file
-├── index.ts                         # Public API exports
-├── LoadingManager.ts                # Singleton store + types
-├── AsyncAction.ts                   # asyncAction wrapper factory
-├── keys.ts                          # LOADING_KEYS constants
-├── hooks/
-│   ├── useLoadingState.ts           # Subscribe to loading conditions
-│   ├── useAsyncAction.ts            # Hook for async + loading
-│   └── useRouterWithLoading.ts      # useRouter with loading registration
-├── components/
-│   ├── RouteLoadingIndicator.tsx    # Progress bar component
-│   ├── SystemLink.tsx               # Link with loading feedback
-│   └── Spinner.tsx                  # Animated spinner
-└── utils/
-    └── resolveHref.ts               # Normalize hrefs for route comparison
-```
+- [AGENTS.md](../../AGENTS.md) — Complete Payload patterns
+- [`src/infra/README.md`](../README.md) — Infrastructure layer overview

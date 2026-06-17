@@ -1,4 +1,11 @@
-// @ai-summary Wraps an async action with loading state registration and duplicate-submission guard (enabled by default). Always unregisters the key in finally — callers must do the same if they extend this directly.
+/**
+ * asyncAction factory and singleton — wraps async operations with loading state management
+ *
+ * @fileType utility
+ * @domain ui
+ * @pattern async-action
+ * @ai-summary Wraps async actions with loading state registration and duplicate prevention; returns normalized { success, data, error } contract; server action results with a `success` field are passed through unchanged
+ */
 
 import { loadingManager, type LoadingManagerInstance } from './LoadingManager'
 
