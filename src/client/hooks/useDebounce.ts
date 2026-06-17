@@ -1,8 +1,7 @@
 /**
  * @fileType hook
- * @domain utilities
- * @pattern debounce
- * @ai-summary Delays propagating a value until it has stopped changing for delay ms; clears pending timeout on each change
+ * @domain frontend
+ * @ai-summary Debounce a value by a fixed delay — delays the returned value until the input stops changing for the specified duration.
  */
 
 import { useState, useEffect } from 'react'

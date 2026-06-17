@@ -1,8 +1,7 @@
 /**
  * @fileType hook
- * @domain progress
- * @pattern progress-map
- * @ai-summary Batch-fetches completion progress for lessons/exercises/chapters; gradeLevel defaults to localStorage userProfile if not provided — dashboards that use the wrong grade bucket will get stale/incorrect progress
+ * @domain frontend
+ * @ai-summary Per-grade progress batch-fetch — `gradeLevel` must be the content's grade bucket, not the user's onboarding grade; silently returns empty maps for unauthenticated users.
  */
 
 'use client'

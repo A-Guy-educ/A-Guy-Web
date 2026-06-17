@@ -1,8 +1,7 @@
 /**
  * @fileType hook
- * @domain courses
- * @pattern course-search
- * @ai-summary Searches courses/lessons/exercises via /api/course-search with 300ms debounce and 2-character minimum query length; aborts in-flight requests on rapid re-searches
+ * @domain frontend
+ * @ai-summary Debounced course search — aborts in-flight requests on each new query via AbortController; requires `courseSlug` for scoped results, or returns global results if null.
  */
 
 'use client'

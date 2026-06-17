@@ -1,8 +1,7 @@
 /**
  * @fileType hook
- * @domain courses
- * @pattern exam-countdown
- * @ai-summary Manages exam dates stored in localStorage per course; polls every 60s and returns upcoming/past exams sorted by date
+ * @domain frontend
+ * @ai-summary Exam countdown from localStorage — polls every 60 s; dates are local-only and not synced to the server.
  */
 
 'use client'

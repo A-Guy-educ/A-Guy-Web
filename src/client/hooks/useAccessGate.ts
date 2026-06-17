@@ -1,8 +1,7 @@
 /**
  * @fileType hook
- * @domain auth
- * @pattern access-gate-timer
- * @ai-summary Enforces timed access gates for gated/mandatory content using localStorage timers that survive page reloads but pause while warning modals are open
+ * @domain frontend
+ * @ai-summary Timed content lock for anonymous users — gate timer survives page refresh via localStorage and pauses during the warning modal so users aren't phantom-locked while dismissing it.
  */
 
 'use client'

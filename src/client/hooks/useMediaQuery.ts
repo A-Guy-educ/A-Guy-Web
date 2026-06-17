@@ -1,8 +1,7 @@
 /**
  * @fileType hook
- * @domain utilities
- * @pattern media-query
- * @ai-summary Subscribes to window.matchMedia changes and returns the current match state; SSR-safe (returns null until mounted)
+ * @domain frontend
+ * @ai-summary Responsive breakpoint hook — returns false on first render (SSR-safe), then the actual match state once the client hydrates.
  */
 
 import { useEffect, useState } from 'react'
