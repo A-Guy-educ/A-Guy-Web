@@ -4,11 +4,11 @@
   "target": "207-doc-coverage-srclibpayment-payment-provider-integr",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Single file conflicted (.kody/duties/dev-ci-health.md); both HEAD and MERGE_HEAD blobs were identical 57-line files — resolved by taking HEAD version",
+  "reason": "Single file conflicted (.kody/executables/task-leader/skills/task-leader-rules/SKILL.md); asymmetric add conflict — origin/dev added new file, PR branch never had it; resolved by taking dev version",
   "prUrl": null,
   "runUrl": null,
-  "filesTouched": [".kody/duties/dev-ci-health.md"],
-  "sessionLog": ".kody/sessions/gh-27651768153-1-1.jsonl",
-  "startedAt": "2026-06-16T00:00:00Z",
-  "finishedAt": "2026-06-16T00:00:00Z"
+  "filesTouched": [".kody/executables/task-leader/skills/task-leader-rules/SKILL.md"],
+  "sessionLog": ".kody/sessions/gh-27684201787-1-1.jsonl",
+  "startedAt": "2026-06-17T00:00:00Z",
+  "finishedAt": "2026-06-17T00:00:00Z"
 }
