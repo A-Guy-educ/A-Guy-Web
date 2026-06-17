@@ -78,5 +78,5 @@ const { execute, isLoading } = useAsyncAction((formData: FormData) => loginActio
 
 ## Related Documentation
 
-- [AGENTS.md](../../AGENTS.md) — Complete Payload patterns
+- [AGENTS.md](../../../AGENTS.md) — Complete Payload patterns
 - [`src/infra/README.md`](../README.md) — Infrastructure layer overview
