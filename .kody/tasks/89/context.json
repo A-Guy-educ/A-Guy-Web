@@ -1,0 +1,16 @@
+{
+  "taskId": "89",
+  "taskType": "pr",
+  "target": "71-doc-gap-srcinfrallm-21-files-10-ai-summary-coverag",
+  "outcome": "success",
+  "exitCode": 0,
+  "reason": "Fixed unclosed JSDoc block in providers/shared/errors.ts — added missing */ between @ai-summary and next /** block. All quality gates pass.",
+  "prUrl": null,
+  "runUrl": null,
+  "filesTouched": [
+    "src/infra/llm/providers/shared/errors.ts"
+  ],
+  "sessionLog": ".kody/sessions/current.jsonl",
+  "startedAt": "2026-06-17T00:00:00.000Z",
+  "finishedAt": "2026-06-17T00:00:00.000Z"
+}
