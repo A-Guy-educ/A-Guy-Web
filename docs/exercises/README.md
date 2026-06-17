@@ -50,7 +50,7 @@ The Exercises collection provides a minimal foundation for creating and managing
 │                                                          │
 │  - Unified entry for all lesson types (#30, #67)        │
 │  - Displays lesson title, description, content counts   │
-│  - Routes to ExercisesPager / PdfLessonPager / workspace│
+│  - Routes to DualModeLessonView or ExerciseWorkspace    │
 │  - Deep-link support via ?exerciseId= search param      │
 └────────────────┬────────────────────────────────────────┘
                  │
@@ -137,13 +137,15 @@ All lesson types (exercises, PDF, blocks-only) now route through `LessonIntroPag
 
 ### Routing Logic
 
-`LessonIntroPage` determines content type from lesson data:
+`LessonIntroPage` determines content type from lesson data and passes renderer modes to `DualModeLessonView`:
 
-| Condition | Content Type | Navigation |
-|-----------|-------------|------------|
-| `exercises.some(hasBlocks)` | `exercises` | → `ExercisesPager` |
-| `mediaFiles.length > 0` | `pdf` | → `PdfLessonPager` |
-| Otherwise | `scroll` | → `ExerciseWorkspace` (empty/placeholder) |
+| Condition | Visible Renderers | Navigation |
+|-----------|-----------------|------------|
+| `hasMedia` (`mediaFiles.length > 0`) | `['media']` | → `DualModeLessonView` (PDF tab) |
+| `hasExerciseContent` (`exercises.some(hasBlocks)`) | `['pdf', 'interactive']` | → `DualModeLessonView` (PDF + Interactive tabs) |
+| No content | `[]` | → `ExerciseWorkspace` (empty/placeholder) |
+
+`DualModeLessonView` internally uses `ExercisesPager` and `PdfLessonPager` for their respective tabs. When `hasExerciseContent` is true, both `'pdf'` and `'interactive'` renderers are registered — the user can switch between PDF view and interactive exercise view.
 
 ### Deep-Linking
 
@@ -154,7 +156,10 @@ All lesson types (exercises, PDF, blocks-only) now route through `LessonIntroPag
 const { pageState, handleStart } = useLessonIntroPage({
   deepLinkedExerciseId: searchParams.get('exerciseId'),
 })
-// pageState: 'intro' | 'exercises' | 'pdf' | 'workspace'
+// pageState:
+//   | { type: 'intro' }
+//   | { type: 'content'; initialExerciseIndex: number }
+//   | { type: 'workspace' }
 ```
 
 ### Content Type Indicators
