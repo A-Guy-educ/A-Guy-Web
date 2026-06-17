@@ -1,20 +1,21 @@
-# Merge Conflict Resolution - Task #136 (Session 2)
+# Merge Conflict Resolution - Task 136
 
-## What Was Done
+## What I did
 
 Resolved a single asymmetric merge conflict in `.kody/executables/task-leader/skills/task-leader-rules/SKILL.md`.
 
-## Conflict Pattern
+## The conflict
 
-`.kody/executables/task-leader/skills/task-leader-rules/SKILL.md` was deleted by us (PR branch) but modified by origin/dev.
+The PR branch `135-doc-coverage-srclibpayment-stripe-paypal-integrati` never had this file (created from an older dev base). `origin/dev` added the file in commit `5286ec63d` ("fix: Close task-leader review approval loop"). When merging `origin/dev` into the PR branch, git detected this as an asymmetric add/delete conflict.
 
-- **origin/dev**: retains and modified the SKILL.md (244 lines, Kody task-leader skill rules)
-- **PR branch (HEAD)**: deleted the file (file absent from HEAD tree, stage 2 is empty blob)
+## How I resolved it
 
-## Resolution
+Took the `origin/dev` version (353 lines, 12515 bytes) — the task-leader SKILL.md is infrastructure unrelated to the PR's doc-coverage scope (Stripe/PayPal payment integration). The PR branch should adopt dev's task-leader rules as-is.
 
-Accepted dev's version. Rationale: the task-leader SKILL.md is Kody infrastructure (not documentation coverage for payment/Stripe/PayPal), so its deletion was not intentional to this PR's scope. The file on disk was already correctly resolved to the dev version with no conflict markers.
+## Files changed
 
-## Result
+- `.kody/executables/task-leader/skills/task-leader-rules/SKILL.md` — resolved, added to index
 
-File `.kody/executables/task-leader/skills/task-leader-rules/SKILL.md` resolved — working copy matches origin/dev. All conflicts resolved. Merge ready to commit.
+## Status
+
+No conflict markers remain. File staged and ready for merge commit.
