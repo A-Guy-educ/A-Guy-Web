@@ -1,7 +1,7 @@
 /**
  * @fileType hook
  * @domain frontend
- * @ai-summary Tracks `window.matchMedia` query matches reactively — initial state is `null` (SSR-safe), then `false` until the media query matches.
+ * @ai-summary Responsive breakpoint hook — tracks `window.matchMedia` reactively; returns null on first render (SSR-safe), then the actual match state once the client hydrates.
  */
 
 import { useEffect, useState } from 'react'

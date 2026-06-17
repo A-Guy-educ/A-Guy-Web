@@ -1,7 +1,7 @@
 /**
  * @fileType hook
  * @domain frontend
- * @ai-summary Enforces timed course access gates — shows warning/gated modals after elapsed anonymous time, pauses the timer while the warning modal is visible to prevent lock-out race conditions.
+ * @ai-summary Enforces timed course access gates — gate timer survives page refresh via localStorage, shows warning/gated modals after elapsed anonymous time, pauses the timer while the warning modal is visible to prevent lock-out race conditions.
  */
 
 'use client'

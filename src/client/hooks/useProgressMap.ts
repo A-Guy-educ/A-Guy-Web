@@ -1,7 +1,7 @@
 /**
  * @fileType hook
  * @domain frontend
- * @ai-summary Batch-fetches completion percentages for a list of record IDs from the Progress API keyed by `gradeLevel` — silently returns empty maps for unauthenticated users, so guard with `useCurrentUser` first.
+ * @ai-summary Per-grade progress batch-fetch from the Progress API — `gradeLevel` must be the content's grade bucket, not the user's onboarding grade; silently returns empty maps for unauthenticated users.
  */
 
 'use client'

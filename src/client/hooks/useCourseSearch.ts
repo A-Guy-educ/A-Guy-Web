@@ -1,7 +1,7 @@
 /**
  * @fileType hook
  * @domain frontend
- * @ai-summary Debounced course-scoped search via `/api/course-search` — cancels in-flight requests via `AbortController` when a new query arrives, so results always match the latest input.
+ * @ai-summary Debounced course-scoped search via `/api/course-search` — cancels in-flight requests via `AbortController` when a new query arrives; requires `courseSlug` for scoped results, or returns global results if null.
  */
 
 'use client'

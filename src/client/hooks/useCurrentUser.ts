@@ -1,7 +1,7 @@
 /**
  * @fileType hook
  * @domain frontend
- * @ai-summary Fetches the authenticated user from `/api/users/me` — returns `null` user (not an error) for unauthenticated requests; re-fetches on every `auth:changed` event.
+ * @ai-summary Fetches the authenticated user from `/api/users/me` — listens to the `auth:changed` window event; returns `user: null` (never throws) when unauthenticated; do not use in server components.
  */
 
 'use client'

@@ -1,7 +1,7 @@
 /**
  * @fileType hook
  * @domain frontend
- * @ai-summary Delays propagating a value by `delay` ms — useful to throttle rapid user input before triggering expensive operations like search or validation.
+ * @ai-summary Delays propagating a value by `delay` ms — delays the returned value until the input stops changing for the specified duration.
  */
 
 import { useState, useEffect } from 'react'

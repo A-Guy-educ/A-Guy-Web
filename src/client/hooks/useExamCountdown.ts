@@ -1,7 +1,7 @@
 /**
  * @fileType hook
  * @domain frontend
- * @ai-summary Manages exam countdown state backed by localStorage — auto-refreshes every 60 s to keep `daysUntil` accurate across page refreshes.
+ * @ai-summary Manages exam countdown state backed by localStorage — polls every 60 s to keep `daysUntil` accurate across page refreshes; dates are local-only and not synced to the server.
  */
 
 'use client'
