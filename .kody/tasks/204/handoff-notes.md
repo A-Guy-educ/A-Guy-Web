@@ -1,14 +1,7 @@
-Resolved one asymmetric conflict in `.kody/duties/dev-ci-health.md`.
+Resolved one asymmetric conflict in `.kody/executables/task-leader/skills/task-leader-rules/SKILL.md`.
 
-origin/dev restructured the dev-ci-health duty from a single markdown file
-(`.kody/duties/dev-ci-health.md`) into a directory bundle
-(`.kody/duties/dev-ci-health/duty.md` + `profile.json`). Our PR branch
-still had the old single-file format.
+Our branch (203-doc-coverage-srclibpayment-payment-provider-integr) had the file deleted (stage 2 = 0 lines), while origin/dev modified it with 244 lines (added Kody review verdict CONCERNS handling in Step 3 and Step 4).
 
-Resolution: deleted the old single-file `.kody/duties/dev-ci-health.md` and
-adopted the new directory structure. The `duty.md` and `profile.json` files
-in the directory are byte-identical to origin/dev — no content changes
-needed.
+Resolution: took origin/dev's version. The file is now identical to origin/dev (244 lines). PR #204 is about doc coverage for payment library, so the task-leader rules deletion was unrelated to the PR's intent — accepting origin/dev's improvements preserves the Kody review functionality.
 
-All other files in the merge were already resolved (staged) before this
-session.
+All other files in the merge were already resolved before this session.

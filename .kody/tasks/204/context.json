@@ -4,13 +4,13 @@
   "target": "203-doc-coverage-srclibpayment-payment-provider-integr",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Single asymmetric conflict: origin/dev restructured dev-ci-health from single .md file to directory with duty.md+profile.json. Took origin/dev's deletion of the old file and kept the new directory structure (both files identical to origin/dev).",
+  "reason": "Single asymmetric conflict: task-leader rules SKILL.md was deleted on our branch (never modified here) but modified on origin/dev with Kody review verdict handling additions. Took origin/dev's version (the file now has 244 lines).",
   "prUrl": "https://github.com/A-Guy-educ/A-Guy-Web/pull/204",
-  "runUrl": "https://github.com/A-Guy-educ/A-Guy-Web/actions/runs/gh-27651769003-1",
+  "runUrl": null,
   "filesTouched": [
-    ".kody/duties/dev-ci-health.md"
+    ".kody/executables/task-leader/skills/task-leader-rules/SKILL.md"
   ],
-  "sessionLog": ".kody/sessions/gh-27651769003-1-1.jsonl",
-  "startedAt": "2026-06-16T00:00:00Z",
-  "finishedAt": "2026-06-16T00:05:00Z"
+  "sessionLog": null,
+  "startedAt": "2026-06-17T00:00:00Z",
+  "finishedAt": "2026-06-17T00:05:00Z"
 }
