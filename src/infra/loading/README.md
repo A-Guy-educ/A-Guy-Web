@@ -1,34 +1,41 @@
-# Loading State Management
+# Loading State Manager
 
-**@domain** frontend
+**@domain** ui
 **@fileType** infrastructure
-**@ai-summary** Singleton LoadingManager with useSyncExternalStore — tracks route/action/screen/inline loading ops with 15s route safety timeout
+**@ai-summary** Singleton store + hooks + components for coordinating loading indicators across routes, actions, screens, and inline contexts
 
 ---
+
+## Entry Point
+
+[`index.ts`](index.ts) — public API exports
 
 ## Architecture
 
 ```
 src/infra/loading/
-├── index.ts                    # Public API (entry point)
-├── LoadingManager.ts          # Core singleton store
-├── AsyncAction.ts             # asyncAction() wrapper with duplicate prevention
-├── keys.ts                    # Central LOADING_KEYS registry
+├── index.ts                      # Public API exports
+├── LoadingManager.ts             # Singleton store (useSyncExternalStore compatible)
+├── AsyncAction.ts                # asyncAction wrapper with duplicate prevention
+├── keys.ts                      # Central LOADING_KEYS registry
 ├── hooks/
-│   ├── useLoadingState.ts     # Selector-based state subscription
-│   ├── useAsyncAction.ts      # Hook wrapper for asyncAction
-│   └── useRouterWithLoading.ts # Router hook with loading registration
+│   ├── useLoadingState.ts       # Subscribe to loading state from store
+│   ├── useAsyncAction.ts        # Hook wrapper for asyncAction
+│   └── useRouterWithLoading.ts  # useRouter that registers route loading
 ├── components/
-│   ├── RouteLoadingIndicator.tsx  # Top progress bar
-│   ├── Spinner.tsx            # Animated SVG spinner
-│   └── SystemLink.tsx         # Link with loading state
+│   ├── RouteLoadingIndicator.tsx # Global indeterminate progress bar
+│   ├── SystemLink.tsx            # Link with local loading indication
+│   └── Spinner.tsx              # Animated spinner
 └── utils/
-    └── resolveHref.ts        # URL normalization for route comparison
+    └── resolveHref.ts           # Next.js href normalization (ignores hash)
 ```
 
-## Core Concept
+## Core Concepts
 
-`LoadingManager` is a singleton that tracks in-flight loading operations by key. React hooks subscribe via `useSyncExternalStore` for SSR-safe reactivity without React context.
+- **Singleton store** (`loadingManager`): module-level Map of active operations with versioned snapshots for React `useSyncExternalStore`
+- **Route safety timeout**: 15s auto-unregister guard against stuck navigation state
+- **Duplicate prevention**: `asyncAction` refuses to re-run the same key while busy
+- **Hash-safe comparison**: `resolveHrefToString` strips hash so same-page anchor links don't trigger loading
 
 ## Loading Types
 
@@ -39,12 +46,11 @@ src/infra/loading/
 | `inline` | Inline/component-level operations | None                |
 | `action` | Form submissions, async actions   | None                |
 
-## Key Gotchas
+## Gotchas
 
-1. **Route safety timeout**: Route transitions auto-unregister after 15s to prevent stuck state — do not rely on manual unregister for navigation
-2. **Hash-only links**: Same-page anchors (`#section`) must NOT register loading — `resolveHrefToString(href, true)` strips hash for comparison
-3. **Duplicate prevention**: `asyncAction` defaults to `preventDuplicate: true` — returns early if key already busy
-4. **SSR safe**: `getServerSnapshot` returns `{ version: 0, operationCount: 0 }` — no hydration mismatches
+- `loadingManager` is a **module singleton** — not reset between tests unless `createLoadingManager()` is used for DI
+- Route loading is registered at **trigger time** (click/push), not when navigation completes — if navigation is instant, the indicator may not appear due to threshold/flicker guards
+- `useRouterWithLoading` only registers loading for cross-page navigation — same-path changes (hash anchors, query-only changes) are intentionally ignored
 
 ## Entry Point
 
@@ -59,7 +65,7 @@ import {
 } from '@/infra/loading'
 ```
 
-## Related
+## Related Documentation
 
-- [`src/client/README.md`](../../client/README.md) — Client-side hooks and state
-- [`src/ui/web/`](../../ui/web/README.md) — Web UI components
+- [AGENTS.md](../../AGENTS.md) — Complete Payload patterns
+- [`src/infra/README.md`](../README.md) — Infrastructure layer overview

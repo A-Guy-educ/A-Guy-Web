@@ -1,6 +1,10 @@
 /**
- * @ai-summary Canonical key registry for loading operations — prevents key collisions across the app; future keys must be added here before use to avoid silent key conflicts.
- * Only includes keys actually used in this task
+ * Central registry of loading keys
+ *
+ * @fileType constant
+ * @domain ui
+ * @pattern loading-keys
+ * @ai-summary Single source of truth for all loading keys — prevents key collisions across the app
  */
 export const LOADING_KEYS = {
   // Route transitions

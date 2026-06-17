@@ -1,6 +1,12 @@
 /**
- * @ai-summary Top progress bar for route transitions — shows only after 300ms delay (skips fast navigations), enforces 500ms minimum visible time (prevents flicker), and auto-unregisters via LoadingManager safety timeout to handle hung navigation.
+ * Global route loading indicator
+ *
+ * @fileType component
+ * @domain ui
+ * @pattern loading-indicator
+ * @ai-summary Indeterminate progress bar that only shows after 300ms of route loading, hides 150ms after navigation completes, enforces 500ms minimum visible time to prevent flicker, and auto-clears via LoadingManager's 15s safety timeout
  */
+
 'use client'
 
 import { useEffect, useState, useRef, useCallback } from 'react'

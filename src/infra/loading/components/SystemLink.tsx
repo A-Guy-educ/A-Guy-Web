@@ -1,6 +1,12 @@
 /**
- * @ai-summary Next.js Link wrapper that registers route loading on click — compares normalized paths (ignoring hash) and skips external/anchor links; applies opacity-60 during active navigation for immediate feedback.
+ * Link component that registers route loading at trigger time
+ *
+ * @fileType component
+ * @domain ui
+ * @pattern system-link
+ * @ai-summary next/link wrapper that registers loading before navigation and reduces opacity on the link itself while loading; intentionally skips external links, hash-only anchors, and same-path navigations (preserving anchor-scroll behavior)
  */
+
 'use client'
 
 import React, { forwardRef, useCallback, useState } from 'react'

@@ -1,6 +1,13 @@
 /**
- * @ai-summary Animated SVG spinner with size variants — uses CSS animate-spin for GPU-accelerated animation; preferred over gif/png for crisp rendering at any scale.
+ * Animated spinner component with size variants
+ * Uses CSS animation for performance
+ *
+ * @fileType component
+ * @domain ui
+ * @pattern spinner
+ * @ai-summary Lightweight CSS-animated loading spinner — no JS state, no dependencies
  */
+
 'use client'
 
 import { cn } from '@/infra/utils/ui'

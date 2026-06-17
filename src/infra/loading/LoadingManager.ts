@@ -1,6 +1,12 @@
 /**
- * @ai-summary Singleton store for all client-side loading operations — useSyncExternalStore compatible with 15s route safety timeout to prevent stuck navigation state.
+ * Singleton loading state store with immutable snapshots for useSyncExternalStore
+ *
+ * @fileType store
+ * @domain ui
+ * @pattern loading-state-manager
+ * @ai-summary Module-level singleton Map of active loading operations with 15s safety timeout on route transitions to prevent stuck loading state; not reset between test runs — use createLoadingManager() for DI
  */
+
 // Types
 export type LoadingType = 'route' | 'screen' | 'inline' | 'action'
 
