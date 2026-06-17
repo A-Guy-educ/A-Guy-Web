@@ -1,68 +1,47 @@
-# Client-Side Loading State Management
+# Loading State Manager
 
-**@domain** frontend
+**@domain** ui
 **@fileType** infrastructure
-**@ai-summary** Centralized client-side loading state: singleton store, React hooks, router integration, and UI indicators for route/action loading.
+**@ai-summary** Singleton store + hooks + components for coordinating loading indicators across routes, actions, screens, and inline contexts
 
 ---
 
-## Entry Point
+[`index.ts`](index.ts) — public API exports
 
-[`index.ts`](./index.ts) — barrel export for the entire module.
-
-## Core Concept
-
-`LoadingManager` is a singleton store (backed by `useSyncExternalStore`) that tracks in-flight operations by string key and type (`route | screen | inline | action`). All other modules — hooks, components, utilities — are thin wrappers around it.
-
-## The Load-Bearing Gotcha
-
-**`loadingManager` is a process-wide singleton.** In tests, pass a custom manager from `createLoadingManager()` to `createAsyncAction(manager)` — calling the exported `asyncAction` directly hits the real singleton and can cause cross-test pollution. Route operations carry a 15-second safety timeout to auto-unregister if navigation hangs.
-
-## Structure
+## Architecture
 
 ```
-loading/
-├── index.ts                      # Barrel export
-├── LoadingManager.ts             # Singleton store (useSyncExternalStore)
-├── AsyncAction.ts               # asyncAction / createAsyncAction factory
-├── keys.ts                      # Canonical loading key constants
+src/infra/loading/
+├── index.ts                      # Public API exports
+├── LoadingManager.ts             # Singleton store (useSyncExternalStore compatible)
+├── AsyncAction.ts                # asyncAction wrapper with duplicate prevention
+├── keys.ts                      # Central LOADING_KEYS registry
 ├── hooks/
-│   ├── useLoadingState.ts       # Subscribe to specific loading states
-│   ├── useAsyncAction.ts        # Hook + asyncAction combo
-│   └── useRouterWithLoading.ts  # useRouter with loading registration
+│   ├── useLoadingState.ts       # Subscribe to loading state from store
+│   ├── useAsyncAction.ts        # Hook wrapper for asyncAction
+│   └── useRouterWithLoading.ts  # useRouter that registers route loading
 ├── components/
-│   ├── RouteLoadingIndicator.tsx # Top progress bar (route transitions)
-│   ├── SystemLink.tsx            # Next.js Link with loading feedback
-│   └── Spinner.tsx              # Animated SVG spinner
+│   ├── RouteLoadingIndicator.tsx # Global indeterminate progress bar
+│   ├── SystemLink.tsx           # Link with local loading indication
+│   └── Spinner.tsx             # Animated spinner
 └── utils/
-    └── resolveHref.ts           # Normalize Next.js href for comparison
+    └── resolveHref.ts          # Next.js href normalization (ignores hash)
 ```
 
-## Key Files
+## Core Concepts
 
-| File                                                               | Purpose                                                                   |
-| ------------------------------------------------------------------ | ------------------------------------------------------------------------- |
-| [`LoadingManager.ts`](./LoadingManager.ts)                         | Singleton store — register/unregister operations, selectors, subscription |
-| [`AsyncAction.ts`](./AsyncAction.ts)                               | Wrap async actions with loading state + duplicate-submission guard        |
-| [`hooks/useRouterWithLoading.ts`](./hooks/useRouterWithLoading.ts) | Programmatic navigation with loading state                                |
-| [`components/SystemLink.tsx`](./components/SystemLink.tsx)         | Declarative navigation with loading feedback                              |
+- **Singleton store** (`loadingManager`): module-level Map of active operations with versioned snapshots for React `useSyncExternalStore`
+- **Route safety timeout**: 15s auto-unregister guard against stuck navigation state
+- **Duplicate prevention**: `asyncAction` refuses to re-run the same key while busy
+- **Hash-safe comparison**: `resolveHrefToString` strips hash so same-page anchor links don't trigger loading
 
-## Loading Types
+## Gotchas
 
-| Type     | Who uses it                          | Auto-cleanup        |
-| -------- | ------------------------------------ | ------------------- |
-| `route`  | `SystemLink`, `useRouterWithLoading` | 15s safety timeout  |
-| `action` | `asyncAction`                        | `finally` block     |
-| `screen` | Manual `register('key', 'screen')`   | Manual `unregister` |
-| `inline` | Manual `register('key', 'inline')`   | Manual `unregister` |
+- `loadingManager` is a **module singleton** — not reset between tests unless `createLoadingManager()` is used for DI
+- Route loading is registered at **trigger time** (click/push), not when navigation completes — if navigation is instant, the indicator may not appear due to threshold/flicker guards
+- `useRouterWithLoading` only registers loading for cross-page navigation — same-path changes (hash anchors, query-only changes) are intentionally ignored
 
-## Common Tasks
+## Related Documentation
 
-| Task                           | File                     | Notes                                       |
-| ------------------------------ | ------------------------ | ------------------------------------------- |
-| Track a button submit          | `useAsyncAction`         | Sets `isLoading` from key                   |
-| Navigate with loading bar      | `useRouterWithLoading`   | Replaces `useRouter`                        |
-| Link with loading feedback     | `SystemLink`             | Adds `opacity-60` while loading             |
-| Prevent double-submit          | `asyncAction`            | `preventDuplicate: true` (default)          |
-| Add a new loading key          | `keys.ts`                | Follows `'<domain>:<action>'` pattern       |
-| Test a component using loading | `createLoadingManager()` | Pass custom manager via `createAsyncAction` |
+- [AGENTS.md](../../AGENTS.md) — Complete Payload patterns
+- [`src/infra/README.md`](../README.md) — Infrastructure layer overview
