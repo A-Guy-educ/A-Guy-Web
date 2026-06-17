@@ -1,0 +1,1 @@
+Resolved merge conflicts in four files under src/infra/loading/ by adopting the origin/dev JSDoc format (project standard with @fileType/@domain/@pattern/@ai-summary fields) over the PR's @ai-summary/@ai-trap only headers. All implementation code was identical on both sides — no functional changes were needed. TypeScript passes cleanly.

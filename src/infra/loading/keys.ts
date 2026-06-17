@@ -1,10 +1,10 @@
 /**
- * @ai-summary Central registry of well-known loading keys — guards against typos
- * and accidental key collisions across the codebase. Route keys and auth keys are
- * wired here; data-fetching keys are added as integrations are built.
+ * Central registry of loading keys
  *
- * @ai-trap Keys not listed here are still usable as raw strings, but any key
- * used across more than one call site should be added here first to avoid collisions.
+ * @fileType constant
+ * @domain ui
+ * @pattern loading-keys
+ * @ai-summary Single source of truth for all loading keys — prevents key collisions across the app
  */
 // Only includes keys actually used in this task
 export const LOADING_KEYS = {

@@ -1,11 +1,10 @@
 /**
- * @ai-summary Wraps an async action with register/unregister on a loading key,
- * normalizes the result to {success, data?, error?}, and prevents duplicate submissions
- * by default. Uses the singleton loadingManager unless a custom manager is injected (for testing).
+ * asyncAction factory and singleton — wraps async operations with loading state management
  *
- * @ai-trap preventDuplicate defaults to true — callers that expect concurrent calls
- * must pass false or they'll get a silent "Action already in progress" rejection
- * instead of an error thrown. Registration happens at call time, not at async start.
+ * @fileType utility
+ * @domain ui
+ * @pattern async-action
+ * @ai-summary Wraps async actions with loading state registration and duplicate prevention; returns normalized { success, data, error } contract; server action results with a `success` field are passed through unchanged
  */
 import { loadingManager, type LoadingManagerInstance } from './LoadingManager'
 

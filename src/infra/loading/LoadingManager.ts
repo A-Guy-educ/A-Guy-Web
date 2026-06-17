@@ -1,11 +1,10 @@
 /**
- * @ai-summary Singleton store + factory — tracks in-flight loading operations per key
- * using a Map, with useSyncExternalStore-compatible snapshots for React subscription.
- * Route operations get a 15-second safety timeout to auto-cleanup if navigation hangs.
+ * Singleton loading state store with immutable snapshots for useSyncExternalStore
  *
- * @ai-trap getSnapshot() returns a new object on every call to force re-renders;
- * do NOT spread it into state — pass it directly to useSyncExternalStore.
- * getServerSnapshot returns {version:0, operationCount:0} so SSR never shows stale state.
+ * @fileType store
+ * @domain ui
+ * @pattern loading-state-manager
+ * @ai-summary Module-level singleton Map of active loading operations with 15s safety timeout on route transitions to prevent stuck loading state; not reset between test runs — use createLoadingManager() for DI
  */
 // Types
 export type LoadingType = 'route' | 'screen' | 'inline' | 'action'
