@@ -436,26 +436,18 @@ export async function createGenkitUnifiedAdapter(
 
               // Extract tool calls from Genkit result.
               // Genkit returns { toolName, arguments }[]; UnifiedLLMProvider expects { name, args }[].
-              const toolCalls: Array<{ name: string; args: Record<string, unknown> }> =
-                (
-                  result as { toolCalls?: Array<{ toolName: string; arguments?: unknown }> }
+              // Also check result.messages for toolRequest content parts (secondary source).
+              const toolCalls: Array<{ name: string; args: Record<string, unknown> }> = [
+                ...((
+                  result as {
+                    toolCalls?: Array<{ toolName: string; arguments?: unknown }>
+                  }
                 ).toolCalls?.map((tc) => ({
                   name: tc.toolName,
                   args: (tc.arguments ?? {}) as Record<string, unknown>,
-                })) ?? []
+                })) ?? []),
+              ]
 
-              // Extract usage data for cost tracking (issue #1552)
-              const usage: { inputTokens: number; outputTokens: number } | undefined =
-                result.usage?.inputTokens !== undefined || result.usage?.outputTokens !== undefined
-                  ? {
-                      inputTokens: result.usage?.inputTokens ?? 0,
-                      outputTokens: result.usage?.outputTokens ?? 0,
-                    }
-                  : undefined
-
-              // Extract tool calls from Genkit response messages.
-              // Genkit stores tool requests in result.messages as content parts with toolRequest.
-              const toolCalls: Array<{ name: string; args: Record<string, unknown> }> = []
               const responseMessages = result.messages as
                 | Array<{ role: string; content: Array<Record<string, unknown>> }>
                 | undefined
@@ -477,6 +469,15 @@ export async function createGenkitUnifiedAdapter(
                   }
                 }
               }
+
+              // Extract usage data for cost tracking (issue #1552)
+              const usage: { inputTokens: number; outputTokens: number } | undefined =
+                result.usage?.inputTokens !== undefined || result.usage?.outputTokens !== undefined
+                  ? {
+                      inputTokens: result.usage?.inputTokens ?? 0,
+                      outputTokens: result.usage?.outputTokens ?? 0,
+                    }
+                  : undefined
 
               return {
                 text: result.text,

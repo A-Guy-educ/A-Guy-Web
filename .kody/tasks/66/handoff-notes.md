@@ -1,16 +1,11 @@
-Review feedback application for PR #66.
+CI failure on PR #66: TypeScript TS2451 — duplicate `toolCalls` declaration in same scope.
 
-**Review verdict**: CONCERNS (environmental — no code issues found)
+**Root cause**: The PR added a new `const toolCalls` extraction from `result.toolCalls` at lines 437-445, but `unified-adapter.ts` already had an extraction from `result.messages` at lines 456-479 that also declared `const toolCalls`. Two `const` declarations with the same name in the same function scope = TS2451.
 
-**Code findings** (all satisfactory):
-- Bug fix correctness: toolCalls mapping at unified-adapter.ts:437-445 correctly transforms Genkit's `{ toolName, arguments }` → UnifiedLLMProvider's `{ name, args }`. The cast is safe and `arguments ?? {}` prevents undefined args.
-- @ai-summary quality: Headers capture non-obvious gotchas (e.g., ChatRole vs AccountRole distinction, strict ordering requirements, fallback behavior). Convention followed correctly.
-- Task artifacts: Appropriate for this PR.
+**Fix applied**: Merged into a single declaration:
+- Line 440: `const toolCalls: Array<...> = [...(result.toolCalls?.map(...)) ?? []]`
+- Lines 453-473: The existing `result.messages` loop now pushes into the same array instead of re-declaring
 
-**Environmental gaps noted by reviewer** (not code issues):
-- Preview unreachable (ERR_CONNECTION_REFUSED) — could not browser-verify runtime behavior
-- No QA credentials confirmed — auth-gated surfaces not checked
+**Verification**: `pnpm typecheck` passes cleanly. `pnpm lint` passes (pre-existing warnings only, unrelated to this change).
 
-**No code changes required.** The PR was already correct; the review confirmed this by code inspection.
-
-Quality gates: pnpm ci:local passes (typecheck + lint green).
+**Scope of change**: Only `src/infra/llm/genkit/adapters/unified-adapter.ts`. No new files, no behavior changes beyond eliminating the type error.
