@@ -1,8 +1,8 @@
-Fixed 3 technical inaccuracies in docs/exercises/README.md flagged in the review of PR #141.
+Verified that all three feedback items were already addressed by commit b24e9a8cf on this branch.
 
-Changes:
-- Corrected pageState type: doc showed 'exercises' | 'pdf' | 'workspace', actual is { type: 'intro' } | { type: 'content'; initialExerciseIndex: number } | { type: 'workspace' }
-- Corrected routing table: replaced direct ExercisesPager/PdfLessonPager routing with accurate DualModeLessonView + visibleRenderers description
-- Fixed diagram description: "Routes to ExercisesPager / PdfLessonPager / workspace" → "Routes to DualModeLessonView or ExerciseWorkspace"
+Verified against useLessonIntroPage.ts:5-8 and LessonIntroPage/index.tsx:94-98:
+1. pageState type (doc lines 159-162): Correct discriminated union — `{ type: 'intro' } | { type: 'content'; initialExerciseIndex: number } | { type: 'workspace' }`
+2. Routing table (doc lines 142-146): Correct — hasExerciseContent → `['pdf', 'interactive']` → DualModeLessonView
+3. Diagram caption (doc line 53): Correct — "Routes to DualModeLessonView or ExerciseWorkspace"
 
-Verified against: useLessonIntroPage.ts:5-8 and LessonIntroPage/index.tsx:94-98.
+The review feedback was written before commit b24e9a8cf was applied. All corrections are already in the current branch. No new edits were required. Quality gates passed (typecheck, lint, tests).
