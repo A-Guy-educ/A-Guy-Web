@@ -4,11 +4,11 @@
   "target": "207-doc-coverage-srclibpayment-payment-provider-integr",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Single file conflicted (.kody/executables/task-leader/skills/task-leader-rules/SKILL.md); asymmetric add conflict — origin/dev added new file, PR branch never had it; resolved by taking dev version",
+  "reason": "Single asymmetric conflict resolved by taking origin/dev version (newer SKILL.md with freshness model) since the file is unrelated to PR scope",
   "prUrl": null,
   "runUrl": null,
   "filesTouched": [".kody/executables/task-leader/skills/task-leader-rules/SKILL.md"],
-  "sessionLog": ".kody/sessions/gh-27684201787-1-1.jsonl",
-  "startedAt": "2026-06-17T00:00:00Z",
-  "finishedAt": "2026-06-17T00:00:00Z"
+  "sessionLog": ".kody/sessions/gh-27720880233-1-1-1.jsonl",
+  "startedAt": "2026-06-17T00:00:00.000Z",
+  "finishedAt": "2026-06-17T00:01:00.000Z"
 }
