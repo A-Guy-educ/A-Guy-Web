@@ -1,7 +1,7 @@
-Resolved 6 asymmetric DU (delete/modify) merge conflicts between PR #171 (159--start-html) and origin/dev.
+Resolved 1 asymmetric DU (delete/modify) merge conflict in task-leader SKILL.md between PR #171 (159--start-html) and origin/dev.
 
-Conflict type: PR branch deleted 6 Kody duty/executable files; origin/dev had improved versions (npx CLI fallback, postflight activity recording, staff field on vercel-production-deploy).
+Conflict type: PR branch deleted the file; origin/dev had an improved version (244 lines vs 228 on base).
 
-Resolution: Took origin/dev's versions via `git checkout --theirs` and `git add`. Reason: dev improvements (npx fallback for Vercel CLI, postflight appendCompanyActivity script, staff: cto field) are legitimate enhancements unrelated to the PR's /start HTML redesign purpose. The PR branch never intentionally targeted these infrastructure files.
+Resolution: Took origin/dev's version by restoring the file from origin/dev. Reason: the file is Kody infrastructure unrelated to PR #171's /start HTML redesign scope; dev's improvements should be preserved.
 
-All conflict markers removed; no further action needed. Wrapper handles the merge commit.
+No conflict markers remain. Wrapper handles the merge commit.
