@@ -1,7 +1,10 @@
 /**
  * @fileType hook
- * @domain frontend
+ * @domain search
+ * @pattern course-search
  * @ai-summary Debounced course-scoped search via `/api/course-search` — cancels in-flight requests via `AbortController` when a new query arrives; requires `courseSlug` for scoped results, or returns global results if null.
+ *
+ * Gotcha: When `courseSlug` is provided, results are scoped to that course and the response has no `courses` collection. When `courseSlug` is `null`, search is global across all courses.
  */
 
 'use client'

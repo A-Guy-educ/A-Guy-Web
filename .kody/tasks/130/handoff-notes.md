@@ -1,16 +1,19 @@
-## Merge Conflict Resolution: PR #130 → dev
+## Merge Conflict Resolution: PR #130
 
-**What:** `git merge origin/dev` into `129-doc-coverage-srcclienthooks-client-side-react-hook` produced conflicts in 8 hook files under `src/client/hooks/`.
+`git merge origin/dev` into `129-doc-coverage-srcclienthooks-client-side-react-hook` produced conflicts in 8 hook files under `src/client/hooks/`.
 
-**Resolution approach:** All conflicts were asymmetric — only the `@ai-summary` JSDoc field differed between HEAD and origin/dev (the actual TypeScript code was identical on both sides). Merged by taking the more informative description from each side:
+All conflicts were in JSDoc headers — HEAD (PR) added `@ai-summary` tags for doc coverage; `origin/dev` had richer metadata (`@domain`, `@pattern`, `Gotcha` sections).
 
-- **useAccessGate** — merged: added "survives page refresh via localStorage" from dev to HEAD's framing.
-- **useActiveTimeTracker** — dev's multi-line descriptive JSDoc block was richer; kept it as-is.
-- **useCourseSearch** — merged both: HEAD's "debounced course-scoped search via `/api/course-search`" + dev's "requires `courseSlug` for scoped results" clause.
-- **useCurrentUser** — merged: HEAD's endpoint emphasis + dev's "do not use in server components" note.
-- **useDebounce** — merged: HEAD's "delays propagating a value" + dev's "until the input stops changing" phrasing.
-- **useExamCountdown** — merged: HEAD's "auto-refreshes every 60s" + dev's "dates are local-only" caveat.
-- **useMediaQuery** — merged: HEAD's `window.matchMedia` technical detail + dev's "SSR-safe" framing.
-- **useProgressMap** — merged: HEAD's "batch-fetches completion percentages" + dev's gradeLevel distinction.
+**Resolution strategy:** Took PR's `@ai-summary` additions (the new content this PR introduces) merged with dev's structured domain/pattern/gotcha fields. This preserves the PR's doc-coverage intent while keeping the richer semantic metadata from dev.
 
-**Verification:** `pnpm typecheck` passes with zero errors. No code changes beyond JSDoc fields.
+Files resolved:
+- **README.md** — took PR's comprehensive hooks table over dev's bare description
+- **useAccessGate.ts** — merged dev's `@domain access-control`, `@pattern access-gate`, Gotcha alongside PR summary
+- **useCourseSearch.ts** — merged dev's `@domain search`, `@pattern course-search`, Gotcha alongside PR summary
+- **useCurrentUser.ts** — merged dev's `@domain auth`, `@pattern user-context`, Gotcha alongside PR summary
+- **useDebounce.ts** — merged dev's `@domain utility`, `@pattern debounce` alongside PR summary
+- **useExamCountdown.ts** — merged dev's `@domain exam`, `@pattern countdown`, Gotcha alongside PR summary
+- **useMediaQuery.ts** — merged dev's `@domain utility`, `@pattern media-query`, Gotcha alongside PR summary
+- **useProgressMap.ts** — merged dev's `@domain progress`, `@pattern progress-map`, Gotcha alongside PR summary
+
+**Verification:** `pnpm typecheck` and `pnpm lint` pass cleanly. No code changes beyond JSDoc header fields.

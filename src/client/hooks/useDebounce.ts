@@ -1,6 +1,7 @@
 /**
  * @fileType hook
- * @domain frontend
+ * @domain utility
+ * @pattern debounce
  * @ai-summary Delays propagating a value by `delay` ms — delays the returned value until the input stops changing for the specified duration.
  */
 

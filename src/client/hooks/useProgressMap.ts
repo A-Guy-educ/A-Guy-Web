@@ -1,7 +1,10 @@
 /**
  * @fileType hook
- * @domain frontend
+ * @domain progress
+ * @pattern progress-map
  * @ai-summary Per-grade progress batch-fetch from the Progress API — `gradeLevel` must be the content's grade bucket, not the user's onboarding grade; silently returns empty maps for unauthenticated users.
+ *
+ * Gotcha: When `gradeLevel` is not passed, the hook falls back to `getUserProfile()?.gradeLevel` from localStorage. That is the content grade bucket, not necessarily the user's onboarding grade.
  */
 
 'use client'

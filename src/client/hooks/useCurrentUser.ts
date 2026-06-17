@@ -1,7 +1,10 @@
 /**
  * @fileType hook
- * @domain frontend
+ * @domain auth
+ * @pattern user-context
  * @ai-summary Fetches the authenticated user from `/api/users/me` — listens to the `auth:changed` window event; returns `user: null` (never throws) when unauthenticated; do not use in server components.
+ *
+ * Gotcha: OAuth callback flows can briefly observe `user: null` before the auth change event fires, so callers should keep loading/anonymous states distinct.
  */
 
 'use client'
