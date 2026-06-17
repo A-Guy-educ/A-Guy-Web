@@ -1,20 +1,20 @@
-# Merge Conflict Resolution - Task #136
+# Merge Conflict Resolution - Task #136 (Session 2)
 
 ## What Was Done
 
-Resolved a single asymmetric merge conflict in `.kody/duties/dev-ci-health.md`.
+Resolved a single asymmetric merge conflict in `.kody/executables/task-leader/skills/task-leader-rules/SKILL.md`.
 
 ## Conflict Pattern
 
-`.kody/duties/dev-ci-health.md` was an unmerged path — deleted by them (origin/dev) but present in the PR branch.
+`.kody/executables/task-leader/skills/task-leader-rules/SKILL.md` was deleted by us (PR branch) but modified by origin/dev.
 
-- **origin/dev**: restructured the old single-file `dev-ci-health.md` into `dev-ci-health/duty.md` + `dev-ci-health/profile.json`
-- **PR branch (HEAD)**: still had the old single-file `dev-ci-health.md`
+- **origin/dev**: retains and modified the SKILL.md (244 lines, Kody task-leader skill rules)
+- **PR branch (HEAD)**: deleted the file (file absent from HEAD tree, stage 2 is empty blob)
 
 ## Resolution
 
-`git rm .kody/duties/dev-ci-health.md` — accepted dev's deletion of the stale single-file, keeping the new directory form (already staged via `git add .kody/duties/dev-ci-health/duty.md` and `profile.json`).
+Accepted dev's version. Rationale: the task-leader SKILL.md is Kody infrastructure (not documentation coverage for payment/Stripe/PayPal), so its deletion was not intentional to this PR's scope. The file on disk was already correctly resolved to the dev version with no conflict markers.
 
 ## Result
 
-All conflicts fixed. Merge ready to commit. No remaining conflicts.
+File `.kody/executables/task-leader/skills/task-leader-rules/SKILL.md` resolved — working copy matches origin/dev. All conflicts resolved. Merge ready to commit.
