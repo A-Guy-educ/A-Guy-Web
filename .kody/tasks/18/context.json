@@ -4,11 +4,11 @@
   "target": "dependabot/npm_and_yarn/prod-dependencies-d049d0058b",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "CI failure was pre-existing and already fixed by commit 39142bb31 (retiredPayloadRuntimeTests exclusion) merged to dev before the latest CI run",
-  "prUrl": null,
+  "reason": "Resolved package.json conflict by merging resend addition from dev and slugify bump from PR; regenerated pnpm-lock.yaml",
+  "prUrl": "https://github.com/A-Guy-educ/A-Guy-Web/pull/18",
   "runUrl": null,
-  "filesTouched": [],
-  "sessionLog": ".kody/sessions/847f0fa9-ced6-4686-8197-277bf6ad8cb9.jsonl",
-  "startedAt": "2026-06-10T23:25:00Z",
-  "finishedAt": "2026-06-10T23:28:00Z"
+  "filesTouched": ["package.json", "pnpm-lock.yaml"],
+  "sessionLog": null,
+  "startedAt": "2026-06-18T07:23:00Z",
+  "finishedAt": "2026-06-18T07:23:40Z"
 }
