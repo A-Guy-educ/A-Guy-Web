@@ -1,19 +1,20 @@
-# Fix review feedback — Task 136 (round 2)
+# Fix review feedback — Task 136 (round 3)
 
 ## What I did
 
-Addressed the review feedback CONCERNS for PR #135 (doc coverage: src/lib/payment/).
+Addressed the reviewer's CONCERNS for PR #135 about an inaccurate gotcha in stripe.ts.
 
 ## The problem
 
-The `@gotcha` block in env.ts used a standalone JSDoc `@gotcha` tag, while `stripe.ts` and `paypal.ts` both use inline `Gotcha:` prose inside their `@ai-summary` blocks. This was a style inconsistency within the payment module.
+The `@ai-summary` gotcha in stripe.ts:9-10 claimed `cancelStripeCheckout` is *"idempotent — calling it after a session already expired is a no-op, not an error."* This is inaccurate: Stripe's `checkout.sessions.expire` API throws `StripeInvalidRequestError` with code `resource_already_expired` when called on an already-expired session.
 
 ## Changes made
 
-- **src/lib/payment/env.ts** — Converted the standalone `@gotcha` JSDoc tag into inline `Gotcha:` prose folded into the `@ai-summary` block, matching the established sibling pattern in stripe.ts and paypal.ts.
-
-The gotcha content itself is unchanged: it still warns that importing at module-load time throws if payment env vars are unset.
+- **src/lib/payment/stripe.ts** — Corrected the gotcha to accurately reflect that:
+  - Stripe throws `resource_already_expired` on already-expired sessions
+  - The error is caught at `route.ts:204` and treated as a benign reconciliation failure
+  - It is not a silent no-op as previously documented
 
 ## Verification
 
-Quality gates passed (typecheck, lint, verify). No runtime code changed — style alignment only.
+Quality gates passed (typecheck, lint, verify). Documentation-only fix — no runtime behavior changed.

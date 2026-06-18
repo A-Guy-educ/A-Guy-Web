@@ -6,8 +6,9 @@
  *
  * @ai-summary Stripe checkout session + webhook integration. The Stripe client is
  *              lazy-loaded so the module stays importable even when env vars are missing.
- *              Gotcha: cancelStripeCheckout is idempotent — calling it after a session
- *              already expired is a no-op, not an error.
+ *              Gotcha: cancelStripeCheckout throws `StripeInvalidRequestError` with code
+ *              `resource_already_expired` if the session is already expired; the error is
+ *              caught at `route.ts:204` and treated as a benign reconciliation failure.
  */
 
 import Stripe from 'stripe'

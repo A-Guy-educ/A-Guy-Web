@@ -7,5 +7,14 @@
     "why": "stripe.ts and paypal.ts both use inline Gotcha: prose in their @ai-summary blocks. env.ts used a standalone @gotcha tag — a style gap flagged in PR #136 review. Aligning env.ts by folding the gotcha into @ai-summary resolves the inconsistency with minimal diff.",
     "how_to_apply": "When adding gotcha notes to @ai-summary blocks, prefer inline `Gotcha:` prose. Reserve standalone `@gotcha` tags for cases where no @ai-summary exists or where the gotcha applies to the whole file rather than a specific function.",
     "confidence": 0.85
+  },
+  {
+    "type": "lesson",
+    "name": "gotcha-must-match-actual-api-behavior",
+    "hook": "Gotcha claims about API behaviour must be verified against the actual API",
+    "body": "The cancelStripeCheckout gotcha in stripe.ts claimed Stripe's expire API is a 'no-op' on already-expired sessions — but Stripe actually throws `resource_already_expired`. The error was safely caught at route.ts:204 so there was no runtime crash, but the documentation was wrong. A reviewer caught it. Gotcha claims about third-party API behaviour need to be verified against actual API semantics, not assumed.",
+    "why": "A wrong gotcha misleads developers about actual API semantics. In this case the runtime was safe because the error was caught, but a wrong gotcha elsewhere could cause someone to not handle a real error correctly.",
+    "how_to_apply": "When writing a gotcha about third-party API behaviour, verify against the actual API docs or behaviour. If uncertain, describe what the code does (catches and handles) rather than what the API guarantees.",
+    "confidence": 0.9
   }
 ]
