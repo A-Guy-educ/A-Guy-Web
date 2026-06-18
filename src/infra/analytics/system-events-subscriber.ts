@@ -1,5 +1,5 @@
 /**
- * @ai-summary Wires the system event bus to analytics.track() — the sole non-test caller of analytics.track().
+ * @ai-summary Wires the system event bus to analytics.track() — the bridge between the systemEventBus and analytics.track(). Other hooks (usePageAbandonment, useSessionDuration) call analytics.track() directly; this module is the only subscriber that is triggered by system events.
  *
  * Subscribes to all system events and forwards them as product analytics events.
  *

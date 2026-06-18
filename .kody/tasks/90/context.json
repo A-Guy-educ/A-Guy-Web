@@ -4,7 +4,7 @@
   "target": "doc-gap-srcinfraanalytics-0-ai-summary-coverage",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Added @ai-summary headers to all 20 source files in src/infra/analytics/, capturing purpose and load-bearing gotchas (notably the Payload-build trap in refreshUserEntitlementsInMixpanel).",
+  "reason": "Added @ai-summary headers to all 24 source files in src/infra/analytics/, capturing purpose and load-bearing gotchas (notably the Payload-build trap in refreshUserEntitlementsInMixpanel).",
   "prUrl": null,
   "runUrl": null,
   "filesTouched": [
