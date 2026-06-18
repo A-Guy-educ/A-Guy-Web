@@ -4,11 +4,11 @@
   "target": "174",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Removed duplicate footer from docs/ai-services/README.md; other review items (VARIATION_MODEL_VERSION inconsistency, Interactive Lesson model key gap) require code changes to models.ts and are out of scope for this docs-only PR.",
+  "reason": "PR #177 review passed — duplicate footer removed from docs/ai-services/README.md; all docs drift items addressed; VARIATION_MODEL_VERSION and INTERACTIVE_LESSON model key gaps flagged as out-of-scope followups.",
   "prUrl": null,
   "runUrl": null,
   "filesTouched": ["docs/ai-services/README.md"],
   "sessionLog": ".kody/last-run.jsonl",
   "startedAt": "2026-06-18T00:00:00Z",
-  "finishedAt": "2026-06-18T00:00:00Z"
+  "finishedAt": "2026-06-18T22:50:50Z"
 }
