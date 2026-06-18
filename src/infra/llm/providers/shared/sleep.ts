@@ -7,6 +7,7 @@
  *
  * @fileType utility
  * @domain ai
+ * @pattern utility
  */
 
 /**

@@ -7,6 +7,10 @@
  * is post-hoc only via `safeParse`. If a future Gemini version fixes responseSchema,
  * these schemas can be re-connected to the adapter call.
  *
+ * @fileType schema
+ * @domain ai
+ * @pattern schema
+ *
  * Status (2026-05-13):
  *  - `SolutionDerivationOutputSchema` (pass 2): POST-HOC VALIDATION ONLY.
  *    NOT passed to Genkit's outputSchema / Gemini's responseSchema — verified

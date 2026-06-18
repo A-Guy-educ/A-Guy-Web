@@ -8,6 +8,7 @@
  *
  * @fileType validation
  * @domain ai
+ * @pattern validation
  */
 import { LLM_CONSTANTS } from './constants'
 import { LLMError, LLMErrorCode } from './errors'

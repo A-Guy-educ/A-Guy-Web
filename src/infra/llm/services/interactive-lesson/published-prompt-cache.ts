@@ -18,6 +18,10 @@
  * its own copy; staleness is bounded by the TTL plus the eager invalidate
  * within a single instance. With a 30s TTL, the worst-case window where a
  * non-edit-source instance is still serving the stale prompt id is 30s,
+ *
+ * @fileType utility
+ * @domain ai
+ * @pattern cache
  * which is acceptable for a feature where lesson generation is rare.
  */
 

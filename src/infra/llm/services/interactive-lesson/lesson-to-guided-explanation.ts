@@ -7,6 +7,10 @@
  * the rest are silently dropped. The `pickSceneKind` warning is the only signal
  * of this, so monitor server logs for it.
  *
+ * @fileType utility
+ * @domain ai
+ * @pattern renderer
+ *
  * Two scene kinds:
  *  - geometry: segments/points/angles from a diagram.
  *  - equation: a stack of big centered text elements, one per step. Used

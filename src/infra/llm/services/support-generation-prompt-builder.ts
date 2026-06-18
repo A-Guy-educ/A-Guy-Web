@@ -6,6 +6,10 @@
  * hint/solution/fullSolution generation. **Passes correct answers to the LLM** —
  * callers must ensure this service is never exposed to students, only to teacher-
  * facing or server-side flows.
+ *
+ * @fileType utility
+ * @domain ai
+ * @pattern prompt-builder
  */
 import type { ContentBlock } from '@/infra/types/exercise'
 

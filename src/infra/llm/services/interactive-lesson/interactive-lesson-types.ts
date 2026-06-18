@@ -6,6 +6,10 @@
  * being optional — if the LLM returns a step with no highlights, the player
  * renders the geometry/graph unchanged**, which is the intended progressive reveal
  * behavior. If a future change makes these required, the player loses that behavior.
+ *
+ * @fileType types
+ * @domain ai
+ * @pattern data-transfer
  */
 
 // ─────────────────────────────────────────────────────────────────────────────

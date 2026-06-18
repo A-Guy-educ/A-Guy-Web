@@ -7,6 +7,7 @@
  *
  * @fileType constants
  * @domain ai
+ * @pattern constants
  */
 
 // Timeouts for different operation types (in milliseconds)

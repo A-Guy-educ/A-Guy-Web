@@ -1,0 +1,25 @@
+{
+  "taskId": "102",
+  "taskType": "pr",
+  "target": "PR #102",
+  "outcome": "success",
+  "exitCode": 0,
+  "reason": "Added missing @fileType/@domain/@pattern annotation tags to 10 files in src/infra/llm/. Typecheck, lint, and format all pass.",
+  "prUrl": null,
+  "runUrl": null,
+  "filesTouched": [
+    "src/infra/llm/services/interactive-lesson/interactive-lesson-types.ts",
+    "src/infra/llm/services/lesson-duplication-variation-service.ts",
+    "src/infra/llm/schemas/lesson-duplication-output.ts",
+    "src/infra/llm/services/interactive-lesson/interactive-lesson-generation-service.ts",
+    "src/infra/llm/services/interactive-lesson/lesson-to-guided-explanation.ts",
+    "src/infra/llm/services/interactive-lesson/published-prompt-cache.ts",
+    "src/infra/llm/services/support-generation-prompt-builder.ts",
+    "src/infra/llm/providers/shared/sleep.ts",
+    "src/infra/llm/providers/shared/constants.ts",
+    "src/infra/llm/providers/shared/validation.ts"
+  ],
+  "sessionLog": null,
+  "startedAt": "2026-06-18T07:00:00.000Z",
+  "finishedAt": "2026-06-18T07:45:51.000Z"
+}

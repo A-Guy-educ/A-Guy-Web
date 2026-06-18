@@ -11,6 +11,10 @@
  * fix a semantically wrong answer.
  *
  * Service signature: generateVariation({ exercise, level, subject }): Promise<{ exercise: Exercise }>
+ *
+ * @fileType service
+ * @domain ai
+ * @pattern variation
  */
 import { readFileSync } from 'fs'
 import { join } from 'path'

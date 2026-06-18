@@ -9,6 +9,10 @@
  * Mongo's 16MB limit; if the JSON alone approaches that, the document is at risk.
  *
  * Two-pass approach: LLM extracts geometry + proof, we render SVG deterministically.
+ *
+ * @fileType service
+ * @domain ai
+ * @pattern generation
  */
 import type { Payload } from '@/infra/types/backend'
 import { z } from 'zod'
