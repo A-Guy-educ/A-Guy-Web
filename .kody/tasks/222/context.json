@@ -1,21 +1,24 @@
 {
   "taskId": "222",
   "taskType": "pr",
-  "target": "gh-27786394128-1-1",
+  "target": "gh-27793946096-1-1",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Fixed 6 unresolved git merge conflict markers in src/infra/llm/services/interactive-lesson/. Quality gates pass (typecheck, lint, format all clean).",
+  "reason": "Fixed BLOCK: removed false hook claim from published-prompt-cache.ts @ai-summary. Fixed WARN: synthesized duplicate @ai-summary tags in 8 files. All quality gates pass.",
   "prUrl": null,
   "runUrl": null,
   "filesTouched": [
-    "src/infra/llm/services/interactive-lesson/cache-schema-version.ts",
-    "src/infra/llm/services/interactive-lesson/interactive-lesson-generation-service.ts",
-    "src/infra/llm/services/interactive-lesson/interactive-lesson-schema.ts",
-    "src/infra/llm/services/interactive-lesson/interactive-lesson-types.ts",
-    "src/infra/llm/services/interactive-lesson/lesson-to-guided-explanation.ts",
-    "src/infra/llm/services/interactive-lesson/published-prompt-cache.ts"
+    "src/infra/llm/services/interactive-lesson/published-prompt-cache.ts",
+    "src/infra/llm/genkit/genkit-instance.ts",
+    "src/infra/llm/providers/shared/retry.ts",
+    "src/infra/llm/providers/shared/timeout.ts",
+    "src/infra/llm/providers/shared/media-reader.ts",
+    "src/infra/llm/providers/shared/index.ts",
+    "src/infra/llm/prompt-composer.server.ts",
+    "src/infra/llm/providers/shared/validation.ts",
+    "src/infra/llm/system-prompts.server.ts"
   ],
-  "sessionLog": ".kody/sessions/inline-222.jsonl",
+  "sessionLog": ".kody/sessions/gh-27793946096-1-1.jsonl",
   "startedAt": "2026-06-18T00:00:00.000Z",
   "finishedAt": "2026-06-18T00:00:00.000Z"
 }

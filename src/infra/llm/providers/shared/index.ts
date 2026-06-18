@@ -1,11 +1,10 @@
 /**
  * LLM shared utilities re-exports
  *
- * @ai-summary Re-exports circuit-breaker, retry, timeout, media-reader, constants, errors, validation. Callers should import from here rather than reaching into sub-modules directly.
+ * @ai-summary Barrel re-export of circuit-breaker, retry, timeout, media-reader, constants, errors, validation. Consuming code imports from here rather than sub-modules — this isolates callers from internal file structure changes. All utilities are provider-agnostic; none know about Genkit specifics.
  *
  * @fileType module
  * @domain ai
- * @ai-summary Re-exports barrel — consuming code only imports from here, not individual sub-modules. This isolates callers from internal file structure changes. All utilities are provider-agnostic; none know about Genkit specifics.
  */
 
 export * from './circuit-breaker'

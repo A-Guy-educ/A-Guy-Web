@@ -1,15 +1,19 @@
 ## What was done
 
-Resolved 6 files in `src/infra/llm/services/interactive-lesson/` that still contained unresolved git merge conflict markers (`<<<<<<< HEAD`, `=======`, `>>>>>>> origin/dev`) from the prior merge. All 6 were symmetric JSDoc-only conflicts — both competing `@ai-summary` descriptions were retained inside the markers.
+Applied review feedback to PR #222 (task 103 doc-coverage + task 222 merge conflict resolution).
 
-Resolution approach per file:
-- **cache-schema-version.ts**: Synthesized HEAD's focus on eviction behavior with origin/dev's guidance on what does/doesn't need a bump.
-- **interactive-lesson-generation-service.ts**: Merged both summaries — responseSchema constraint + reliability primitives + TTS budget/non-fatal notes.
-- **interactive-lesson-schema.ts**: Merged both summaries — keep flat (no $ref/$defs/oneOf) + stripUnsupportedKeys note + Zod validators as safety net.
-- **interactive-lesson-types.ts**: Merged scene types description with audioBase64/TTS fallback note and rendering precedence rule.
-- **lesson-to-guided-explanation.ts**: Merged scene rendering note with XSS guard (XML-escaping) and segment ID canonicalization.
-- **published-prompt-cache.ts**: Merged TTL memoization with eager invalidation via afterChange hook, noting serverless instance isolation.
+Two types of fixes:
 
-No functional TypeScript code was modified — only JSDoc comment blocks.
+1. **BLOCK fix — published-prompt-cache.ts**: Removed the false claim that "Prompts afterChange/afterDelete hook eagerly calls invalidatePublishedInteractiveLessonPrompt()". Verified by cross-file grep: the function has zero callers. Replaced with "invalidatePublishedInteractiveLessonPrompt() exists for manual use but has no hook wiring it."
 
-Quality gates: `pnpm typecheck` clean, `pnpm lint` shows pre-existing warnings only, `pnpm format:check` all clean. `verify` passes.
+2. **WARN fix — 8 files with duplicate @ai-summary tags**: The prior merge concatenated two JSDoc blocks rather than synthesizing one. Each file now has a single synthesized @ai-summary:
+   - genkit-instance.ts: merged process-scoped cache description with 30s ConfigValues TTL note
+   - retry.ts: merged exponential backoff description with error-wrap / cause-chain note
+   - timeout.ts: merged Promise.race description with background-operation / AbortController note
+   - media-reader.ts: merged two-tier description with blob URL fetch tier and 30s timeout note
+   - shared/index.ts: merged barrel re-export description with internal-file-structure-isolation note
+   - prompt-composer.server.ts: merged 11-section description with budget-truncation specifics
+   - validation.ts: merged input validation description with LLMError / boundary-note note
+   - system-prompts.server.ts: merged ASC order description with graceful-degradation / overrideAccess note
+
+Quality gates: `verify` passes (typecheck, lint, format all clean).

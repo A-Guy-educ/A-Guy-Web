@@ -1,7 +1,7 @@
 /**
  * Module-scope cache of the published `interactive_lesson` prompt (30s TTL)
  *
- * @ai-summary Short-TTL memoization avoids a DB round-trip on every cached-lesson read. Negative caching (null = no prompt) is also cached. The Prompts afterChange/afterDelete hook eagerly calls invalidatePublishedInteractiveLessonPrompt() to drop the cache on admin edits — without this, a 30s TTL means edits take up to 30s to propagate. Each serverless instance has its own copy; edits on one instance don't auto-evict other instances' caches within the TTL window.
+ * @ai-summary Short-TTL memoization avoids a DB round-trip on every cached-lesson read. Negative caching (null = no prompt) is also cached. The 30s TTL bounds staleness — each serverless instance has its own copy; edits on one instance don't auto-evict other instances' caches within the TTL window. invalidatePublishedInteractiveLessonPrompt() exists for manual use but has no hook wiring it.
  */
 
 import type { Payload } from '@/infra/types/backend'

@@ -1,1 +1,10 @@
-[]
+[
+  {
+    "type": "lesson",
+    "name": "ai-summary-must-match-actual-code",
+    "hook": "@ai-summary must not document non-existent behavior",
+    "body": "When documenting a function or mechanism in @ai-summary, verify the described behavior actually exists in the code. The invalidatePublishedInteractiveLessonPrompt() function was documented as being called by a Prompts hook, but grep across the entire src/ tree showed zero callers — the function exists but has no hook wiring it. This is a correctness-level bug in documentation.\n\n**Why:** @ai-summary is consumed by AI agents to understand code behavior. False documentation leads to incorrect assumptions, wasted investigation, and broken tool use.\n\n**How to apply:** Before finalizing an @ai-summary that describes hook-based or event-driven behavior, grep the codebase for the function/hook name to confirm it is actually invoked somewhere.",
+    "why": "published-prompt-cache.ts @ai-summary claimed a hook calls invalidatePublishedInteractiveLessonPrompt(), but the function has zero callers — verified by cross-file grep.",
+    "confidence": 1.0
+  }
+]

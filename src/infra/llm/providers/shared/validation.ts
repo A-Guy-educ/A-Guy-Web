@@ -1,11 +1,10 @@
 /**
  * Input validation for LLM providers
  *
- * @ai-summary Validates messages array, roles, temperature range, maxOutputTokens ceiling. Errors are thrown as LLMError with VALIDATION_ERROR code — callers handle them distinctly from retryable API errors.
+ * @ai-summary Validates messages array, roles, temperature range, maxOutputTokens ceiling. Only validates input shape, not output or API availability. Throws LLMError (not a built-in Error) with VALIDATION_ERROR code so callers can distinguish validation failures from network failures. Run at the boundary before any I/O.
  *
  * @fileType validation
  * @domain ai
- * @ai-summary Only validates input shape, not output or API availability. Throws LLMError (not a built-in Error) so callers can distinguish validation failures from network failures. Run at the boundary before any I/O.
  */
 import { LLM_CONSTANTS } from './constants'
 import { LLMError, LLMErrorCode } from './errors'
