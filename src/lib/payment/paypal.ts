@@ -7,7 +7,9 @@
  * @ai-summary PayPal orders require explicit fund capture via
  * `capturePayPalOrder` after buyer approval — the `createPayPalOrder` call
  * alone does NOT move money. Skipping capture means the payment is never
- * completed and entitlements will not be granted.
+ * completed and entitlements will not be granted. The token cache can issue
+ * multiple concurrent tokens when a token expires under load; consider mutex-locking
+ * if token issuance becomes a bottleneck.
  */
 
 import { getPayPalEnv } from './env'
@@ -38,6 +40,8 @@ let _cachedToken: { token: string; expiresAt: number } | null = null
 
 /**
  * Reset the token cache (useful for testing)
+ *
+ * @returns void
  */
 export function resetPayPalTokenCache(): void {
   _cachedToken = null
@@ -83,6 +87,9 @@ async function getPayPalAccessToken(): Promise<string> {
 
 /**
  * Create a PayPal order
+ *
+ * @param options - Checkout options including productId, amount, userId, and URLs
+ * @returns Checkout result with approval URL and PayPal order ID
  */
 export async function createPayPalOrder(options: CreateCheckoutOptions): Promise<CheckoutResult> {
   const { productId, productName, amount, currency, userId, successUrl, cancelUrl } = options
@@ -134,6 +141,10 @@ export async function createPayPalOrder(options: CreateCheckoutOptions): Promise
 /**
  * Verify a PayPal webhook signature
  * Uses PayPal's verify-webhook-signature API
+ *
+ * @param body - Parsed webhook event body
+ * @param headers - Raw webhook headers object
+ * @returns True if signature is valid, false otherwise
  */
 export async function verifyPayPalWebhook(body: object, headers: object): Promise<boolean> {
   const { paypalWebhookId } = getPayPalEnv()
@@ -236,6 +247,10 @@ export async function capturePayPalOrder(orderId: string): Promise<{ captureId: 
 
 /**
  * Refund a PayPal capture
+ *
+ * @param providerTransactionId - PayPal capture ID to refund
+ * @param amount - Optional refund amount in smallest currency unit
+ * @param currency - Currency code (default USD)
  */
 export async function refundPayPal(
   providerTransactionId: string,
@@ -273,6 +288,9 @@ export async function refundPayPal(
 /**
  * Cancel/void a PayPal order
  * Used when transaction record creation fails after order was created
+ *
+ * @param providerTransactionId - PayPal order ID to void
+ * @returns void
  */
 export async function cancelPayPalOrder(providerTransactionId: string): Promise<void> {
   const token = await getPayPalAccessToken()

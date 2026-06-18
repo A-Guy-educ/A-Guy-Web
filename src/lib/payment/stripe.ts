@@ -30,6 +30,9 @@ function getStripeClient(): Stripe {
 
 /**
  * Create a Stripe checkout session
+ *
+ * @param options - Checkout options including productId, amount, userId, and URLs
+ * @returns Checkout result with redirect URL and provider session ID
  */
 export async function createStripeCheckout(
   options: CreateCheckoutOptions,
@@ -66,6 +69,11 @@ export async function createStripeCheckout(
 
 /**
  * Verify and parse a Stripe webhook event
+ *
+ * @param payload - Raw request body as a Buffer
+ * @param signature - Stripe-Signature header value
+ * @param tolerance - Optional timestamp tolerance in seconds (default 300)
+ * @returns Parsed Stripe Event object
  */
 export async function verifyStripeWebhook(
   payload: Buffer,
