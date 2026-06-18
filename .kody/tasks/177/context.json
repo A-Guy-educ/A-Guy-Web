@@ -4,7 +4,7 @@
   "target": "174",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Applied review feedback: corrected EXERCISE_CHAT model to gemini-3.1-flash-lite-preview, corrected Lesson Duplication model to gemini-3.1-pro-preview (matching VARIATION_MODEL_VERSION), synced both LESSON_DUPLICATION_VARIATION_CREATIVE and DETERMINISTIC table entries to gemini-3.1-pro-preview, and removed hardcoded gemini-2.0-flash-001 from CORRECT code example.",
+  "reason": "Removed duplicate footer from docs/ai-services/README.md; other review items (VARIATION_MODEL_VERSION inconsistency, Interactive Lesson model key gap) require code changes to models.ts and are out of scope for this docs-only PR.",
   "prUrl": null,
   "runUrl": null,
   "filesTouched": ["docs/ai-services/README.md"],

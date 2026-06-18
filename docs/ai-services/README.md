@@ -970,6 +970,3 @@ describe('Data Extractor Service', () => {
 4. Upgrade Gemini API quota if needed
 
 ---
-
-**Last Updated**: 2026-06-11
-**Status**: ✅ Production Ready
