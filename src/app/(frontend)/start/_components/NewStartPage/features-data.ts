@@ -1,15 +1,18 @@
-import { MessageCircle, Lightbulb, Check, BookOpen, Zap, BarChart3 } from 'lucide-react'
-import type { ForwardRefExoticComponent, RefAttributes, SVGProps } from 'react'
-
-type LucideIconComponent = ForwardRefExoticComponent<
-  Omit<SVGProps<SVGSVGElement>, 'ref'> & RefAttributes<SVGSVGElement>
->
+import {
+  MessageCircle,
+  Lightbulb,
+  Check,
+  BookOpen,
+  Zap,
+  BarChart3,
+  type LucideIcon,
+} from 'lucide-react'
 
 export interface Feature {
   title: string
   desc: string
   gradient: string
-  Icon: LucideIconComponent
+  Icon: LucideIcon
   delay: number
 }
 

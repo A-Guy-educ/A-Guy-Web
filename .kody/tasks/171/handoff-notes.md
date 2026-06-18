@@ -1,51 +1,36 @@
-## Applied PR #171 (159--start-html) Review Feedback — Session 2 (kody)
+## Applied PR #171 (159--start-html) Review Feedback — Session 3 (kody)
 
-### Additional fixes applied this session
+### Session 2 prior handoff (blocks already addressed)
+- BLOCK: Wrong URL assertion in E2E test — FIXED
+- BLOCK: Auth gateway regression — FIXED
+- BLOCK: Nav "ניסיון חינם" no-op — FIXED
+- BLOCK: "צפה בהדגמה" missing handler — FIXED
+- BLOCK: Final CTA "מסלולים והרשמה" no-op — FIXED
 
-1. **BLOCK: Wrong URL assertion in E2E test** — `tests/e2e/start-redesign.e2e.spec.ts` line 122: The test `hero CTA buttons navigate to /start` asserted `toHaveURL(/\/start/)` but implementation correctly uses `/courses` at 4 call sites in NewStartPage. Fixed: changed test name to `hero CTA buttons navigate to /courses` and assertion to `toHaveURL(/\/courses/)`.
+### 4 items addressed this session
 
-2. **WARN: setTimeout without error handling** — `NewStartPage/index.tsx:47` in `handleSimulationSend`: Wrapped `setSimulationMessages` state update inside `setTimeout` with try/catch + console.error for safety.
+**Item 2 — LucideIcon type (WARN)**
+`features-data.ts`: Replaced verbose custom `LucideIconComponent = ForwardRefExoticComponent<...>` type with the standard `LucideIcon` type imported directly from `lucide-react`. Verified correct by checking `src/ui/web/shared/Icon/Icon.tsx` which uses `type LucideIcon` from lucide-react.
 
-### Prior session fixes (already landed)
+**Item 3 — console.error (WARN)**
+`index.tsx:58`: Replaced `console.error('Failed to add simulation message:', error)` with structured `logger.error({ err: error }, 'Failed to add simulation AI message')` using `@/infra/utils/logger`.
 
-- Auth gateway in page.tsx restored
-- Nav CTA /courses routing fixed
-- "צפה בהדגמה" scroll handler added
-- Final CTA routing fixed
-- File decomposition (OnboardingOverlay + features-data extracted)
-- Custom SVG icons → lucide-react
-- @keyframes moved to globals.css
-- rgba() → Tailwind classes
-- Body class documented
+**Item 4 — setTimeout error UX (WARN/correctness)**
+`handleSimulationSend`: Fixed the error case where the user message was added but the AI response failed — user would see a one-sided conversation. Now uses `pendingAiRef` (useRef) to track the in-flight AI message text. On error: logs with logger, clears pendingAiRef, and rolls back by filtering the user message out of state with `setSimulationMessages((prev) => prev.filter((m) => m.text !== text || m.role !== 'user'))`.
 
-### BLOCK items fixed
+**Item 1 — File decomposition (WARN)**
+`index.tsx`: Reduced from 1027 lines → ~120 lines by extracting 9 sub-components:
+- `NavigationBar.tsx` (nav with logo + links + CTA)
+- `HeroSection.tsx` (hero with chat visual)
+- `ComparisonSection.tsx` (traditional vs A-Guy comparison)
+- `StatsSection.tsx` (gradient stats bar)
+- `FeaturesSection.tsx` (grid of feature cards using FEATURES data)
+- `TabsSection.tsx` (3-tab dashboard/chat/notebook preview)
+- `SimulationSection.tsx` (interactive chat simulation)
+- `CtaSection.tsx` (final CTA with two buttons)
+- `Footer.tsx` (footer)
+`index.tsx` now composes these, holds all shared state, and manages the onboarding overlay.
 
-1. **Auth gateway regression** — Restored auth-aware routing in `page.tsx` using the same pattern as `home/page.tsx`: `getMeUser()` + `COURSE_ID_COOKIE_NAME` + `resolveHomeRedirect()`. Authenticated users with a selected course now correctly redirect to `/study` instead of landing on `/start`.
-
-2. **Nav "ניסיון חינם" no-op** — Changed `router.push('/start')` → `router.push('/courses')`.
-
-3. **"צפה בהדגמה" missing handler** — Added `onClick={scrollToSimulation}` to scroll to the `#simulation` section.
-
-4. **Final CTA "מסלולים והרשמה" no-op** — Changed `router.push('/start')` → `router.push('/courses')`. Also fixed the "התחל ניסיון חינם" CTA in the same section.
-
-### WARN items fixed
-
-5. **File decomposition** — Extracted `OnboardingOverlay` into its own component (`OnboardingOverlay.tsx`) and `FEATURES` data + `ONBOARDING_STEPS` into `features-data.ts`. Reduced main file from 1267 → ~1023 lines. Still above 800-line convention — see followups.
-
-6. **Custom SVG icons replaced** — Replaced 6 custom inline SVG icon components (`IconChat`, `IconLightbulb`, `IconCheck`, `IconBook`, `IconBolt`, `IconChart`) with lucide-react equivalents (`MessageCircle`, `Lightbulb`, `Check`, `BookOpen`, `Zap`, `BarChart3`).
-
-7. **@keyframes moved to globals.css** — Removed inline `<style>` tag containing `float` and `fadeInUp` keyframes. Added them to `globals.css` under a `/* Start page animations */` section. Also moved `.onboarding-bubble` class there.
-
-8. **rgba() replaced with Tailwind** — Replaced `rgba(255,255,255,0.1)` patterns with `bg-white/10` Tailwind classes throughout. Replaced onboarding `rgba(14,165,233,0.05)` etc. with `bg-sky-50` and `border-sky-200` classes. Many rgba() values remain — see followups.
-
-10. **FEATURES moved to data file** — Now in `features-data.ts` at the top of the component tree.
-
-11. **Quick-question scroll no-op removed** — Removed `scrollToSimulation()` call from quick-question buttons since they're already inside `#simulation`.
-
-12. **Body class documented** — Added comment explaining `.landing-page` body class is defined in globals.css.
-
-### WARN items NOT addressed (see followups)
-
-- File still 1023 lines (decomposition incomplete)
-- Many rgba() values remain
-- E2E test gaps (onboarding, tabs, simulation)
+### Remaining open items (low/medium priority)
+- rgba() hardcoded values throughout sub-components (low)
+- E2E test gaps for onboarding, tab switching, simulation (medium)

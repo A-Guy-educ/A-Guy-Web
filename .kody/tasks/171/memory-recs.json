@@ -1,26 +1,26 @@
 [
   {
     "type": "lesson",
-    "name": "auth-gateway-resolveHomeRedirect",
-    "hook": "Use resolveHomeRedirect in page.tsx for auth-aware routing",
-    "body": "When a /start page serves both authenticated and unauthenticated users, restore the auth gateway pattern from home/page.tsx: call getMeUser(), check COURSE_ID_COOKIE_NAME, call resolveHomeRedirect(), redirect if destination !== '/start'.\n\nWhy: The previous PR removed this logic, creating a BLOCK regression where authenticated users with a selected course would land on /start instead of being redirected to /study.\n\nHow to apply: See src/app/(frontend)/start/page.tsx for the exact pattern — getMeUser() + cookies() + resolveHomeRedirect() + redirect().",
-    "why": "Auth routing regressions are silent and high-impact; the auth gateway must always be preserved in page route files.",
+    "name": "lucide-icon-type-is-lucideicon",
+    "hook": "Use LucideIcon type from lucide-react, not ForwardRefExoticComponent",
+    "body": "When typing icon props that accept lucide-react icons, import `LucideIcon` directly:\n\n  import { type LucideIcon } from 'lucide-react'\n\nDo NOT use `ForwardRefExoticComponent<...>` for this purpose. `LucideIcon` is the correct named type exported by lucide-react (verified in node_modules). Confirmed by inspecting Icon.tsx in src/ui/web/shared/Icon which also uses `type LucideIcon`.\n\nWhy: The ForwardRefExoticComponent pattern is the underlying implementation detail; LucideIcon is the public-facing type alias that lucide-react exports for this purpose.\n\nHow to apply: See src/app/(frontend)/start/_components/NewStartPage/features-data.ts for the correct usage.",
+    "why": "Using the correct LucideIcon type avoids verbose type definitions and is the documented approach in the project's own Icon component.",
     "confidence": 0.95
   },
   {
     "type": "lesson",
-    "name": "lucide-icon-component-type",
-    "hook": "Correct TypeScript type for lucide-react icon components",
-    "body": "When using lucide-react icons as component types (e.g. in a Feature data structure), the correct type is:\n\n  import type { ForwardRefExoticComponent, RefAttributes, SVGProps } from 'react'\n  type LucideIconComponent = ForwardRefExoticComponent<\n    Omit<SVGProps<SVGSVGElement>, 'ref'> & RefAttributes<SVGSVGElement>\n  >\n\nDo NOT use 'Icon' from lucide-react (it doesn't exist as a type). Do NOT use 'typeof Icon'.\n\nWhy: lucide-react exports ForwardRefExoticComponent-based icons. The IconNode/Icon interface is internal.\n\nHow to apply: See src/app/(frontend)/start/_components/NewStartPage/features-data.ts for usage.",
-    "why": "Using 'Icon' as a type causes TS2749: 'Icon' refers to a value, not a type. The ForwardRefExoticComponent type is the correct programmatic type for lucide icons.",
+    "name": "body-class-landing-page",
+    "hook": "Document body class side effects with a comment",
+    "body": "When using document.body.classList.add('landing-page') to hide header/footer, add a comment explaining what the class does and where it is defined.\n\nWhy: 'landing-page' is a side effect that is invisible in the component tree and easy to accidentally break.\n\nHow to apply: Add a comment like '// .landing-page body class hides site header/footer (defined in globals.css)' before the useEffect.",
+    "why": "Without documentation, future developers may remove this useEffect assuming it's dead code.",
     "confidence": 0.9
   },
   {
-    "type": "preference",
-    "name": "body-class-landing-page",
-    "hook": "Document body class side effects with a comment",
-    "body": "When using document.body.classList.add('landing-page') to hide header/footer, add a comment explaining what the class does and where it is defined.\n\nWhy: 'landing-page' is a side effect that is invisible in the component tree and easy to accidentally break. The comment in NewStartPage now explains it's defined in globals.css.\n\nHow to apply: Add a comment like '// .landing-page body class hides site header/footer (defined in globals.css)' before the useEffect.",
-    "why": "Without documentation, future developers may remove this useEffect assuming it's dead code.",
+    "type": "lesson",
+    "name": "ref-for-pending-state-in-timeout",
+    "hook": "Use useRef to track pending state in setTimeout callbacks",
+    "body": "When updating state inside a setTimeout and the state update could fail (e.g. due to React batch limits), use a useRef to track the pending value so it can be rolled back on error.\n\nWhy: A setTimeout closure captures stale state if the enclosing state updates. Using a ref (not state) for the pending value lets the error handler access the current pending value even after the enclosing state has changed. The error handler then rolls back by filtering the user message out of state.\n\nHow to apply: See handleSimulationSend in NewStartPage/index.tsx — pendingAiRef tracks the AI message text while the user message is in-flight.",
+    "why": "Without a ref, the error handler would not know what text was pending, making it impossible to correctly roll back a partially-applied state update.",
     "confidence": 0.9
   }
 ]

@@ -1,26 +1,20 @@
 [
   {
-    "title": "E2E test URL assertion now fixed — was BLOCK",
-    "body": "The BLOCK-level test at line 122 was asserting /start but implementation uses /courses. Fixed in this session.",
-    "rationale": "This was a BLOCK issue preventing merge.",
-    "priority": "high"
-  },
-  {
-    "title": "NewStartPage/index.tsx still 1023 lines — complete decomposition",
-    "body": "The file was reduced from 1267 → 1023 lines via extraction of OnboardingOverlay and FEATURES data into separate files, but 1023 still exceeds the 800-line convention. The remaining sections that could be extracted into separate components: HeroSection, ComparisonSection, StatsSection, FeaturesSection (grid+card), TabsSection (with 3 tab panes), SimulationSection, FinalCTA, Footer, and the NavBar. Each could be its own file in the NewStartPage directory.",
-    "rationale": "File size convention is 200-400 lines typical, 800 max. A 1023-line component is hard to navigate and review.",
-    "priority": "medium"
-  },
-  {
-    "title": "Remaining rgba() values still in NewStartPage",
-    "body": "Many hardcoded rgba() values remain throughout NewStartPage (e.g. rgba(14,165,233,0.2), rgba(168,85,247,0.2), rgba(255,255,255,0.8), etc.). These should be replaced with Tailwind bg-white/X classes or CSS custom properties for consistency with the design system. Run: grep -n 'rgba(' src/app/(frontend)/start/_components/NewStartPage/index.tsx to find all instances.",
+    "title": "rgba() values throughout NewStartPage sub-components",
+    "body": "Many hardcoded rgba() values remain across the extracted sub-components (FeaturesSection, TabsSection, SimulationSection, CtaSection, etc.). E.g. rgba(14,165,233,0.2), rgba(168,85,247,0.2), rgba(255,255,255,0.8). These should be replaced with Tailwind bg-white/X classes or CSS custom properties for design system consistency. Run: grep -n 'rgba(' src/app/(frontend)/start/_components/NewStartPage/",
     "rationale": "Hardcoded rgba() values bypass the design token system and make theme changes difficult.",
     "priority": "low"
   },
   {
     "title": "E2E test gaps — onboarding overlay and tab switching not covered",
-    "body": "The existing test suite (tests/e2e/start-redesign.e2e.spec.ts) is missing: (1) onboarding overlay dismissal flow, (2) tab switching between dashboard/chat/notebook, (3) full simulation message exchange with multiple messages. Add test cases for these user interactions to achieve complete coverage of the NewStartPage component.",
-    "rationale": "WARN item 9 from review explicitly flagged missing E2E coverage for onboarding, tabs, and simulation flows.",
+    "body": "The existing test suite (tests/e2e/start-redesign.e2e.spec.ts) is missing: (1) onboarding overlay dismissal flow, (2) tab switching between dashboard/chat/notebook, (3) full simulation message exchange with multiple messages.",
+    "rationale": "Review item 9 from the specialist review explicitly flagged missing E2E coverage.",
     "priority": "medium"
+  },
+  {
+    "title": "onScrollToSimulation prop removed from NavigationBar — verify no dead links",
+    "body": "NavigationBar previously accepted onScrollToSimulation prop but never used it (the nav has no scroll-to-simulation button). The prop was removed to fix a lint @typescript-eslint/no-unused-vars error. If a future design adds such a button to the nav, the prop pattern should be restored from the prior handoff.",
+    "rationale": "The prop was dead code — the scroll button is in HeroSection instead. Removing it fixed lint.",
+    "priority": "low"
   }
 ]
