@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "type": "decision",
+    "name": "ai-summary-gotcha-inline-vs-standalone",
+    "hook": "Inline Gotcha: in @ai-summary matches sibling payment files",
+    "body": "For AI-summary doc blocks in this codebase, inline `Gotcha:` prose inside `@ai-summary` is preferred over a standalone `@gotcha` JSDoc tag when sibling files use the inline form. This maintains visual consistency across a module.",
+    "why": "stripe.ts and paypal.ts both use inline Gotcha: prose in their @ai-summary blocks. env.ts used a standalone @gotcha tag — a style gap flagged in PR #136 review. Aligning env.ts by folding the gotcha into @ai-summary resolves the inconsistency with minimal diff.",
+    "how_to_apply": "When adding gotcha notes to @ai-summary blocks, prefer inline `Gotcha:` prose. Reserve standalone `@gotcha` tags for cases where no @ai-summary exists or where the gotcha applies to the whole file rather than a specific function.",
+    "confidence": 0.85
+  }
+]

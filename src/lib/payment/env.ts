@@ -1,9 +1,6 @@
 /**
  * @folder Stripe + PayPal integration — checkout sessions, webhook verification, refunds.
  * @entry getStripeEnv() / getPayPalEnv() — validates secrets on first call; throws if required vars missing.
- * @gotcha Never import this module at module-load time in client code — getStripeEnv()
- *          / getPayPalEnv() throw if STRIPE_SECRET_KEY / PAYPAL_CLIENT_ID are unset, which breaks
- *          Next.js bundling for pages that never hit the payment flow.
  *
  * Payment Environment Variables Helper
  *
@@ -11,6 +8,10 @@
  * @domain payment
  * @pattern env-vault
  * @ai-summary Validates and exposes payment provider environment variables.
+ *            Gotcha: Never import this module at module-load time in client code —
+ *            getStripeEnv() / getPayPalEnv() throw if STRIPE_SECRET_KEY /
+ *            PAYPAL_CLIENT_ID are unset, which breaks Next.js bundling for pages
+ *            that never hit the payment flow.
  *
  * Validates per provider so a deployment can ship with only one provider
  * configured (e.g. PayPal-only) without the other provider's secrets failing

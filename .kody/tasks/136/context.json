@@ -4,7 +4,7 @@
   "target": "135-doc-coverage-srclibpayment-stripe-paypal-integrati",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Fixed the remaining getPaymentEnv() reference in env.ts @gotcha block; stripe.ts and paypal.ts were already correct in current branch state",
+  "reason": "Round 2: Aligned env.ts @gotcha tag format with sibling stripe.ts/paypal.ts pattern — converted standalone @gotcha to inline Gotcha: prose inside @ai-summary",
   "prUrl": null,
   "runUrl": null,
   "filesTouched": [
@@ -12,5 +12,5 @@
   ],
   "sessionLog": null,
   "startedAt": "2026-06-18T00:00:00Z",
-  "finishedAt": "2026-06-18T00:10:00Z"
+  "finishedAt": "2026-06-18T00:20:00Z"
 }
