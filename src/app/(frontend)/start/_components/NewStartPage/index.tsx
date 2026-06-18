@@ -45,13 +45,17 @@ export function NewStartPage() {
     setSimulationMessages((prev) => [...prev, { role: 'user', text }])
     setSimulationInput('')
     setTimeout(() => {
-      setSimulationMessages((prev) => [
-        ...prev,
-        {
-          role: 'ai',
-          text: 'תודה על השאלה! 🤔 אני אשמח לעזור. הקלד עוד פרטים או שאלה ספציפית יותר, ואענה לך בדיוק על מה שאתה צריך.',
-        },
-      ])
+      try {
+        setSimulationMessages((prev) => [
+          ...prev,
+          {
+            role: 'ai',
+            text: 'תודה על השאלה! 🤔 אני אשמח לעזור. הקלד עוד פרטים או שאלה ספציפית יותר, ואענה לך בדיוק על מה שאתה צריך.',
+          },
+        ])
+      } catch (error) {
+        console.error('Failed to add simulation message:', error)
+      }
     }, 800)
   }
 

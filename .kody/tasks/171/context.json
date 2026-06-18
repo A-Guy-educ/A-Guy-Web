@@ -4,7 +4,7 @@
   "target": "159--start-html (PR #171)",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "All BLOCK items fixed, all WARN items addressed, verify passes",
+  "reason": "Fixed BLOCK test assertion (wrong URL /start → /courses in E2E test) and added try/catch around setTimeout in handleSimulationSend. All quality gates pass.",
   "prUrl": "https://github.com/A-Guy-educ/A-Guy-Web/pull/171",
   "runUrl": null,
   "filesTouched": [
@@ -12,7 +12,8 @@
     "src/app/(frontend)/start/_components/NewStartPage/index.tsx",
     "src/app/(frontend)/start/_components/NewStartPage/OnboardingOverlay.tsx",
     "src/app/(frontend)/start/_components/NewStartPage/features-data.ts",
-    "src/app/(frontend)/globals.css"
+    "src/app/(frontend)/globals.css",
+    "tests/e2e/start-redesign.e2e.spec.ts"
   ],
   "sessionLog": ".kody/sessions/6d9ef5f0-ffca-423e-8f46-99c9d6bcb03e.jsonl",
   "startedAt": "2026-06-18T00:00:00.000Z",

@@ -119,11 +119,11 @@ test.describe('Start Page Redesign (#159)', () => {
     await expect(page.locator('button:has-text("הבא →")')).toBeVisible()
   })
 
-  test('hero CTA buttons navigate to /start (not /study or GreetingFlow)', async ({ page }) => {
+  test('hero CTA buttons navigate to /courses', async ({ page }) => {
     // Click the primary CTA button
     await page.locator('button:has-text("התחל ניסיון חינם")').first().click()
 
-    // Should navigate to /start, not /study
-    await expect(page).toHaveURL(/\/start/)
+    // Should navigate to /courses
+    await expect(page).toHaveURL(/\/courses/)
   })
 })

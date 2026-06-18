@@ -1,5 +1,11 @@
 [
   {
+    "title": "E2E test URL assertion now fixed — was BLOCK",
+    "body": "The BLOCK-level test at line 122 was asserting /start but implementation uses /courses. Fixed in this session.",
+    "rationale": "This was a BLOCK issue preventing merge.",
+    "priority": "high"
+  },
+  {
     "title": "NewStartPage/index.tsx still 1023 lines — complete decomposition",
     "body": "The file was reduced from 1267 → 1023 lines via extraction of OnboardingOverlay and FEATURES data into separate files, but 1023 still exceeds the 800-line convention. The remaining sections that could be extracted into separate components: HeroSection, ComparisonSection, StatsSection, FeaturesSection (grid+card), TabsSection (with 3 tab panes), SimulationSection, FinalCTA, Footer, and the NavBar. Each could be its own file in the NewStartPage directory.",
     "rationale": "File size convention is 200-400 lines typical, 800 max. A 1023-line component is hard to navigate and review.",

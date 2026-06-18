@@ -1,4 +1,22 @@
-## Applied PR #171 (159--start-html) Review Feedback
+## Applied PR #171 (159--start-html) Review Feedback — Session 2 (kody)
+
+### Additional fixes applied this session
+
+1. **BLOCK: Wrong URL assertion in E2E test** — `tests/e2e/start-redesign.e2e.spec.ts` line 122: The test `hero CTA buttons navigate to /start` asserted `toHaveURL(/\/start/)` but implementation correctly uses `/courses` at 4 call sites in NewStartPage. Fixed: changed test name to `hero CTA buttons navigate to /courses` and assertion to `toHaveURL(/\/courses/)`.
+
+2. **WARN: setTimeout without error handling** — `NewStartPage/index.tsx:47` in `handleSimulationSend`: Wrapped `setSimulationMessages` state update inside `setTimeout` with try/catch + console.error for safety.
+
+### Prior session fixes (already landed)
+
+- Auth gateway in page.tsx restored
+- Nav CTA /courses routing fixed
+- "צפה בהדגמה" scroll handler added
+- Final CTA routing fixed
+- File decomposition (OnboardingOverlay + features-data extracted)
+- Custom SVG icons → lucide-react
+- @keyframes moved to globals.css
+- rgba() → Tailwind classes
+- Body class documented
 
 ### BLOCK items fixed
 
