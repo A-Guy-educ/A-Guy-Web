@@ -2,7 +2,7 @@
  * Stripe Payment Service
  *
  * Provides checkout session creation, webhook verification, and refund operations.
- * Uses getPaymentEnv() for environment variable access.
+ * Uses getStripeEnv() for environment variable access.
  *
  * @ai-summary Stripe checkout session + webhook integration. The Stripe client is
  *              lazy-loaded so the module stays importable even when env vars are missing.

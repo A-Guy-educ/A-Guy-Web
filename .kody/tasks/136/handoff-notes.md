@@ -1,21 +1,21 @@
-# Merge Conflict Resolution - Task 136
+# Fix review feedback — Task 136
 
 ## What I did
 
-Resolved a single asymmetric merge conflict in `.kody/executables/task-leader/skills/task-leader-rules/SKILL.md`.
+Addressed the three CONCERNS raised in the review feedback for PR #135 (doc coverage: src/lib/payment/).
 
-## The conflict
+## The problem
 
-The PR branch `135-doc-coverage-srclibpayment-stripe-paypal-integrati` never had this file (created from an older dev base). `origin/dev` added the file in commit `5286ec63d` ("fix: Close task-leader review approval loop"). When merging `origin/dev` into the PR branch, git detected this as an asymmetric add/delete conflict.
+Three doc blocks referenced `getPaymentEnv()`, a function that does not exist in the codebase. The module exports `getStripeEnv()` and `getPayPalEnv()` only.
 
-## How I resolved it
+## Changes made
 
-Took the `origin/dev` version (353 lines, 12515 bytes) — the task-leader SKILL.md is infrastructure unrelated to the PR's doc-coverage scope (Stripe/PayPal payment integration). The PR branch should adopt dev's task-leader rules as-is.
+1. **src/lib/payment/env.ts:3** — Changed `@entry getPaymentEnv()` to `@entry getStripeEnv() / getPayPalEnv()` to accurately name the module's actual exports.
 
-## Files changed
+2. **src/lib/payment/stripe.ts:5** — Changed `Uses getPaymentEnv()` to `Uses getStripeEnv()` in the @ai-summary block. The actual call at line 23 is `getStripeEnv()`.
 
-- `.kody/executables/task-leader/skills/task-leader-rules/SKILL.md` — resolved, added to index
+3. **src/lib/payment/paypal.ts:5** — Changed `Uses getPaymentEnv()` to `Uses getPayPalEnv()` in the @ai-summary block. The actual calls at lines 20 and 57 are `getPayPalEnv()`.
 
-## Status
+## Verification
 
-No conflict markers remain. File staged and ready for merge commit.
+Quality gates passed (typecheck, lint, verify). No runtime code changed — doc-accuracy only.

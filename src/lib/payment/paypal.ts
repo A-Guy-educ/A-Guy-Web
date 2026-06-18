@@ -2,7 +2,7 @@
  * PayPal Payment Service
  *
  * Provides order creation, webhook verification, and refund operations.
- * Uses getPaymentEnv() for environment variable access.
+ * Uses getPayPalEnv() for environment variable access.
  *
  * @ai-summary PayPal Checkout v2 integration. The access token is lazy-cached with a 60s buffer.
  *              Gotcha: capturePayPalOrder must be called explicitly after buyer approval —
