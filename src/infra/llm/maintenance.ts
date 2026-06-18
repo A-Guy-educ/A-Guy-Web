@@ -6,7 +6,13 @@
  * The replacement is the load-bearing step — without it, messages pile up and
  * eventually exceed the model's context window. Failures are non-fatal (logged
  * and returned, never thrown) so chat remains available even when summarization
- * is broken.
+ * is broken. Runs AFTER the chat response is already sent to the user — failures are silent and do not affect the response. Thresholds: normal at 40 messages, safety cutoff at 80. After summarization, older messages are permanently deleted from the conversation (only the last 20 remain). This is irreversible — if summarization fails mid-write, some messages could be lost.
+ *
+ * Key Features:
+ * - Automatic triggering based on message count thresholds
+ * - Preserves recent window for immediate context
+ * - Updates summary incrementally
+ * - Tracks summarization metadata
  *
  * @fileType service
  * @domain ai

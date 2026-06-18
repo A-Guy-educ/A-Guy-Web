@@ -6,7 +6,10 @@
  * between different backend implementations; it just resolves the provider type
  * for telemetry and error classification. The `getLLMProvider()` call creates a
  * new adapter per invocation, so circuit-breaker and retry state is not shared
- * across calls unless the caller caches the result.
+ * across calls unless the caller caches the result. Env var LLM_PROVIDER is checked FIRST — it takes precedence over runtime ConfigValues. If you set the env var, runtime config is ignored entirely. Always delegates to Genkit adapter; the factory pattern is now a thin wrapper.
+ *
+ * Uses centralized MODEL_REGISTRY and PROVIDER_MODEL_NAMES from @/infra/llm/models.ts
+ * for model configurations. This ensures a single source of truth for all model definitions.
  *
  * @fileType factory
  * @domain ai

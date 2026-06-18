@@ -5,7 +5,7 @@
  * @ai-summary Builds a user prompt from a ContentBlock, injecting answer text for
  * hint/solution/fullSolution generation. **Passes correct answers to the LLM** —
  * callers must ensure this service is never exposed to students, only to teacher-
- * facing or server-side flows.
+ * facing or server-side flows. @ts-nocheck — if block types change, no compile errors will catch mismatches. The prompt format must stay compatible with what SUPPORT_GENERATION_PROMPT expects (three keys: hints, solution, fullSolution). Adding a new block type here with a different answer extraction path requires updating the prompt template too.
  *
  * @fileType utility
  * @domain ai

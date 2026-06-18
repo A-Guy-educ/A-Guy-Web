@@ -5,6 +5,7 @@
  * normalization fails. The LLM call adds latency and cost to every validation
  * that misses the cache, so persistent cache misses should be investigated before
  * blaming the model — the issue is often a missing accepted-answer entry, not the LLM.
+ * LLM is a last resort after DB-based normalization. If the LLM call fails, the service returns success: false with an error string — it does NOT throw. This means a failed LLM call looks identical to a failed answer from the student's perspective. The prompt instructs the LLM to accept equivalent forms (e.g., 3.14 ≈ π, x+x = 2*x).
  *
  * @fileType service
  * @domain ai

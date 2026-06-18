@@ -5,6 +5,9 @@
  * is absent or still building. The 5-minute cache on availability checks prevents
  * excessive Atlas API calls, but means a recently-created index may be reported
  * unavailable for up to 5 minutes after it actually becomes READY.
+ * enforceVectorIndexRequirement throws and refuses to start if the index is missing — this is fail-fast in production. isVectorIndexAvailable is the graceful counterpart (returns boolean, caches for 5 min). The index requires MongoDB Atlas M10+ cluster — standard MongoDB does not support vector search. Index name: memory_items_embedding_v1, dimensions: 1536, similarity: cosine.
+ *
+ * Strategy: Fail fast in production if index is missing
  *
  * @fileType guardrail
  * @domain ai

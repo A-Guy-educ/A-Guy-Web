@@ -6,6 +6,7 @@
  * and accepted answers are stripped from MCQ, free-response, and matching blocks.
  * If the stripping logic is bypassed, the model gets answer keys and student
  * chats become auto-gradeable — which is not the intended flow.
+ * Strips answer data to prevent LLM from seeing solutions. The 2000-char cap means very long exercises are truncated mid-block — the LLM gets partial context. If the LLM needs full exercise content, this cap must be raised (with cost/latency implications).
  *
  * @fileType utility
  * @domain chat

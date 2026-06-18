@@ -5,6 +5,7 @@
  * to WebP for size reduction. **EXIF orientation is not re-applied** — a rotated
  * camera photo that was auto-corrected by the browser on display may appear
  * rotated when sharp reads the raw EXIF data before normalization.
+ * Only resizes when the largest dimension exceeds maxDimension (default 2048). Smaller images pass through unchanged. Aspect ratio is always preserved; the image is never cropped or distorted.
  *
  * @fileType service
  * @domain ai

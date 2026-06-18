@@ -6,6 +6,7 @@
  * before sending to reduce API latency/cost. The V3 variant also extracts diagram
  * position and description — if the LLM returns malformed diagram fields, the code
  * silently defaults `diagramPosition` to `'before_question'` rather than rejecting.
+ * Migrated to Genkit — call createGenkitUnifiedAdapter via dynamic import to prevent server-only code from being bundled into the client. PDF is passed directly to Gemini (native support); images are pre-optimized via sharp (max 2048px). JSON responses are stripped of markdown fences before parsing. Throws on JSON parse failure — callers must handle gracefully.
  *
  * @fileType service
  * @domain ai

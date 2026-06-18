@@ -4,11 +4,7 @@
  * @ai-summary Centralized facade over Genkit adapters and a provider factory.
  * Hides which LLM is actually running (Gemini, OpenAI-compatible, etc.) behind
  * a unified interface. All AI services in `src/infra/llm/services/` depend on
- * this API rather than calling Genkit or the provider directly.
- *
- * @fileType ai-utility
- * @domain chat
- * @pattern facade
+ * this API rather than calling Genkit or the provider directly. Entry point for all AI services in the infra layer. Import from here rather than reaching into submodules — this is the stable public contract. Submodule imports may shift as the codebase evolves.
  *
  * ## Entry points
  * - `createGenkitUnifiedAdapter()` — builds the Genkit-backed provider used by most services
@@ -20,6 +16,10 @@
  * - The error classifier (`createErrorClassifier`) maps provider-specific errors
  *   to `LLMErrorCode` — missing a new error shape in one provider means it
  *   bleeds through as a generic `UNKNOWN` error until the mapping is extended
+ *
+ * @fileType ai-utility
+ * @domain chat
+ * @pattern facade
  */
 
 // Genkit-based provider exports

@@ -6,6 +6,7 @@
  * happens to have the same count will pass through undetected. For safety,
  * `translateText` degrades gracefully (returns original on failure), but
  * `translateContentBlocks` throws and must be caught by callers.
+ * Translates text fields only — structural fields (ids, types, numeric values, LaTeX math) are preserved exactly. Block count mismatch triggers a retry with the original prompt + LLM's previous response + explicit count correction. Empty blocks array is a success (not an error). translateText falls back to original text on failure (no error throw).
  *
  * @fileType service
  * @domain ai

@@ -4,7 +4,13 @@
  * @ai-summary Structured log helpers for context-usage and maintenance events.
  * Does not throw — callers should treat all logging as non-blocking. Snapshot
  * logging is gated behind `NODE_ENV=development` so prod traces never include
- * prompt content.
+ * prompt content. logPromptSnapshot is development-only (NODE_ENV !== 'development' is a no-op). logContextUsage is always active and is the primary observability signal for production context composition. logMaintenance is the primary signal for summary and extraction operations.
+ *
+ * Provides structured logging for:
+ * - Context usage per model call
+ * - Feature flag status
+ * - Performance metrics
+ * - Debug snapshots (dev only)
  *
  * @fileType utility
  * @domain observability

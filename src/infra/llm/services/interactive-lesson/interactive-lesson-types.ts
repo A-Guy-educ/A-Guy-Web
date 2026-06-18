@@ -6,6 +6,7 @@
  * being optional — if the LLM returns a step with no highlights, the player
  * renders the geometry/graph unchanged**, which is the intended progressive reveal
  * behavior. If a future change makes these required, the player loses that behavior.
+ * The types here are consumed by both the generation pipeline (Gemini output) and the player component (GuidedExplanationRunner). audioBase64 is optional and generated server-side at lesson creation time — the player falls back to live cloud TTS when absent (for older cached lessons). geometry, graph, and numberLine are mutually exclusive rendering modes; geometry takes precedence if present.
  *
  * @fileType types
  * @domain ai

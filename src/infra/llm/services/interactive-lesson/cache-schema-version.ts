@@ -7,6 +7,7 @@
  * **the conversion code is NOT re-run on existing rows**, so stale cached rows
  * remain until they are evicted. If you bump the version and the converter tolerates
  * the old shape, some users may keep seeing the old content until natural TTL expiry.
+ * Bump this string when the InteractiveLesson/InteractiveLessonStep shape changes — mismatched rows are evicted on read and regenerated. Prompt template changes do NOT need a bump (they're tracked by promptId + updatedAt separately). A new optional field doesn't need a bump if the converter tolerates its absence.
  *
  * BUMP this value any time the cached lesson JSON shape changes in a way
  * that would break the client converter (`interactiveLessonToGuidedExplanation`)

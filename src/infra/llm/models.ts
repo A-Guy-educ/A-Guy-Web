@@ -6,11 +6,10 @@
  * The split means adding a new model requires touching THREE places:
  * `AIModelKey`, `MODEL_REGISTRY`, and `PROVIDER_MODEL_NAMES` — missing any
  * one causes a runtime `undefined` crash at the call site, not a compile-time
- * error.
+ * error. Changing a temperature or maxOutputTokens here affects ALL providers unless overridden by LLM_MODEL_OVERRIDE_* env vars. The same model key can map to different model names per provider (see PROVIDER_MODEL_NAMES). THINKING_BUDGET is per-model and opt-in (Gemini 2.5+ only) — setting it on unsupported models is silently ignored.
  *
- * @fileType config
- * @domain ai
- * @pattern central-registry
+ * This module centralizes all model configurations to eliminate duplication
+ * and enable proper provider switching at runtime.
  *
  * Architecture:
  * - MODEL_REGISTRY: Provider-agnostic configs (temperature, maxTokens, capabilities)
@@ -33,6 +32,10 @@
  * Set LLM_MODEL_OVERRIDE_<MODEL_KEY> environment variables to override models:
  * - LLM_MODEL_OVERRIDE_EXERCISE_CHAT=gemini-1.5-pro
  * - LLM_MODEL_OVERRIDE_DEFAULT=gpt-4o
+ *
+ * @fileType config
+ * @domain ai
+ * @pattern central-registry
  */
 
 import { LLMProviderType } from './providers/types'

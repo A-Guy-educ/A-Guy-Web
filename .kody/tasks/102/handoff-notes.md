@@ -1,29 +1,24 @@
-## What was done
+## Merge Conflict Resolution — PR #102
 
-Added the missing `@fileType`/`@domain`/`@pattern` annotation trio to 10 files flagged in the PR #102 review. All 10 now carry the same consistent tag set as their peer files:
+Resolved 34 conflicted files in `src/infra/llm/` where HEAD (PR branch) added standardized `@fileType`, `@domain`, `@pattern` JSDoc tags and origin/dev had more detailed `@ai-summary` descriptions.
 
-- 7 files missing all three tags: added `@fileType`, `@domain`, `@domain` (or appropriate type), and `@pattern`
-- 3 files (`sleep.ts`, `constants.ts`, `validation.ts`) missing only `@pattern` — added that single tag
+### Resolution Strategy
+All conflicts were asymmetric — HEAD added structured metadata tags while origin/dev added descriptive `@ai-summary` content. Resolution: take HEAD's `@fileType/@domain/@pattern` tags and merge in origin/dev's additional `@ai-summary` detail as extra sentences/paragraphs within the same tag block.
 
-## Pattern choices
+### Files Resolved
+All 34 conflicted files in the PR:
+- `chat-message-role.ts`, `context-policy.ts`, `doc-chunk-types.ts`, `doc-search.ts`, `embeddings.ts`
+- `errors.ts`, `exercise-context.ts`
+- `genkit/adapters/unified-adapter.ts`, `genkit/config-resolver.ts`
+- `index.ts`, `maintenance.ts`, `memory-extraction.ts`, `models.ts`
+- `multimodal/types.ts`, `observability.ts`, `prompt-resolver.server.ts`
+- `providers/factory.ts`, `providers/shared/constants.ts`, `providers/shared/sleep.ts`, `providers/shared/validation.ts`
+- `schemas/lesson-duplication-output.ts`
+- `services/answer-validation-service.ts`, `services/content-translation-service.ts`, `services/data-extractor-service.ts`, `services/exercise-chat-service.ts`, `services/image-optimizer-service.ts`
+- `services/interactive-lesson/cache-schema-version.ts`, `interactive-lesson-schema.ts`, `interactive-lesson-types.ts`, `published-prompt-cache.ts`
+- `services/support-generation-prompt-builder.ts`, `summary.ts`, `vector-index-check.ts`
 
-| File | @fileType | @pattern |
-|------|-----------|----------|
-| interactive-lesson-types.ts | types | data-transfer |
-| lesson-duplication-variation-service.ts | service | variation |
-| schemas/lesson-duplication-output.ts | schema | schema |
-| interactive-lesson-generation-service.ts | service | generation |
-| lesson-to-guided-explanation.ts | utility | renderer |
-| published-prompt-cache.ts | utility | cache |
-| support-generation-prompt-builder.ts | utility | prompt-builder |
-| sleep.ts | utility | utility |
-| constants.ts | constants | constants |
-| validation.ts | validation | validation |
-
-## Bug fixed
-
-`published-prompt-cache.ts` had an additional issue: my initial tag insertion truncated the doc comment too early, leaving an orphaned `* which is acceptable...` line dangling inside the closed JSDoc block. Fixed by merging it into the closing `*/` line.
-
-## Verification
-
-`pnpm ci:local` — typecheck, lint, format all pass (attempt 2). The pre-existing lint warnings in `FormulaSheetContent.tsx` and `LatexDocumentViewer/index.tsx` are unrelated to this change.
+### Verification
+- `pnpm typecheck` — pass
+- `pnpm lint` — pass (pre-existing warnings only, unrelated to changes)
+- No conflict markers remain in any file

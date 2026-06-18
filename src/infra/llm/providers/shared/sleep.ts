@@ -3,7 +3,7 @@
  *
  * @ai-summary Thin Promise setTimeout wrapper used by the retry module. No
  * cancellation support — once started, a sleep cannot be aborted except by
- * process termination.
+ * process termination. Utility only — no error paths. randomSleep and exponentialSleep are the main entry points; plain sleep is used internally by retry logic. No-op for non-positive input.
  *
  * @fileType utility
  * @domain ai

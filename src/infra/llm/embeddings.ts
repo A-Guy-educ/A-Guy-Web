@@ -5,6 +5,13 @@
  * matching the Atlas vector index. **Dimension validation is non-negotiable** —
  * a mismatch silently breaks vector search (closest-match becomes meaningless).
  * Batch API is preferred over single-call loop for token efficiency.
+ * Output is always exactly 1536 dimensions — if the Atlas vector index definition changes this number, embeddings will fail silently at storage time or fail loudly at query time. cosineSimilarity() requires equal-length vectors and throws on mismatch.
+ *
+ * Key Features:
+ * - 1536 dimensions (matches Atlas vector index)
+ * - Dimension validation (critical guardrail)
+ * - Batch generation support
+ * - Error handling and logging
  *
  * @fileType service
  * @domain ai

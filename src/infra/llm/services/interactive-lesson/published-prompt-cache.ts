@@ -6,6 +6,7 @@
  * will not invalidate the cache. The afterChange hook fires on every row change,
  * so this is only a protection against repeated DB queries within a single Lambda
  * invocation; cross-instance staleness is bounded by the 30s TTL.
+ * The afterChange/afterDelete hook in the Prompts collection calls invalidatePublishedInteractiveLessonPrompt() to drop the cache eagerly. Without this, a 30s TTL means admin edits take up to 30s to propagate. Each serverless instance has its own copy — edits on one instance don't auto-evict other instances' caches within the TTL window.
  *
  * Both lesson generation (which needs the template) and lesson cache
  * eviction (which needs the source provenance) hit this on every request.
@@ -18,11 +19,11 @@
  * its own copy; staleness is bounded by the TTL plus the eager invalidate
  * within a single instance. With a 30s TTL, the worst-case window where a
  * non-edit-source instance is still serving the stale prompt id is 30s,
+ * which is acceptable for a feature where lesson generation is rare.
  *
  * @fileType utility
  * @domain ai
  * @pattern cache
- * which is acceptable for a feature where lesson generation is rare.
  */
 
 import type { Payload } from '@/infra/types/backend'
