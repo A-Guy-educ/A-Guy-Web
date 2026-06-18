@@ -4,17 +4,11 @@
   "target": "216-doc-coverage-srcinfraloading-client-side-loading-s",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "All 5 conflicted files resolved by taking HEAD's richer doc comments; typecheck passes",
+  "reason": "Single asymmetric conflict in JSDoc comment — origin/dev consolidated @ai-summary taken over HEAD's split comment blocks; code was identical",
   "prUrl": null,
   "runUrl": null,
-  "filesTouched": [
-    "src/infra/loading/components/Spinner.tsx",
-    "src/infra/loading/components/SystemLink.tsx",
-    "src/infra/loading/hooks/useAsyncAction.ts",
-    "src/infra/loading/hooks/useLoadingState.ts",
-    "src/infra/loading/utils/resolveHref.ts"
-  ],
-  "sessionLog": ".kody/sessions/current.jsonl",
-  "startedAt": "2026-06-17T00:00:00.000Z",
-  "finishedAt": "2026-06-17T00:00:30.000Z"
+  "filesTouched": ["src/infra/loading/utils/resolveHref.ts"],
+  "sessionLog": ".kody/sessions/gh-27727978527-1-1.jsonl",
+  "startedAt": "2026-06-18T00:00:00.000Z",
+  "finishedAt": "2026-06-18T00:00:30.000Z"
 }
