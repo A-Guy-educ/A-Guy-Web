@@ -2,19 +2,17 @@
 
 ## What I did
 
-Addressed the three CONCERNS raised in the review feedback for PR #135 (doc coverage: src/lib/payment/).
+Addressed the review feedback CONCERNS for PR #135 (doc coverage: src/lib/payment/).
 
 ## The problem
 
-Three doc blocks referenced `getPaymentEnv()`, a function that does not exist in the codebase. The module exports `getStripeEnv()` and `getPayPalEnv()` only.
+The `@gotcha` block in env.ts referenced `getPaymentEnv()`, a function that does not exist. The module exports `getStripeEnv()` and `getPayPalEnv()` only.
 
 ## Changes made
 
-1. **src/lib/payment/env.ts:3** — Changed `@entry getPaymentEnv()` to `@entry getStripeEnv() / getPayPalEnv()` to accurately name the module's actual exports.
+1. **src/lib/payment/env.ts:4** — Changed `@gotcha ... getPaymentEnv()` to `@gotcha ... getStripeEnv() / getPayPalEnv()` so the warning correctly names the functions that throw.
 
-2. **src/lib/payment/stripe.ts:5** — Changed `Uses getPaymentEnv()` to `Uses getStripeEnv()` in the @ai-summary block. The actual call at line 23 is `getStripeEnv()`.
-
-3. **src/lib/payment/paypal.ts:5** — Changed `Uses getPaymentEnv()` to `Uses getPayPalEnv()` in the @ai-summary block. The actual calls at lines 20 and 57 are `getPayPalEnv()`.
+Note: `stripe.ts` line 5 (`Uses getStripeEnv()`) and `paypal.ts` line 5 (`Uses getPayPalEnv()`) were already correct in the current branch state — no edit needed.
 
 ## Verification
 
