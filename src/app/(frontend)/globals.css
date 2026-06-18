@@ -104,6 +104,26 @@
     --tab-practice: 0 72% 51%; /* Red — True/False */
     --tab-exams: 330 81% 60%; /* Pink — Matching */
     --tab-ask: 142 71% 45%; /* Green — Free Response */
+
+    /* Landing page gradient tokens — sky/purple brand palette */
+    --gradient-sky-purple: linear-gradient(135deg, #0ea5e9, #a855f7);
+    --gradient-sky-purple-alt: linear-gradient(135deg, #0ea5e9, #9333ea);
+    --gradient-sky-blue: linear-gradient(135deg, #0ea5e9, #0284c7);
+    --gradient-purple-indigo: linear-gradient(135deg, #9333ea, #6366f1);
+    --gradient-indigo-purple: linear-gradient(135deg, #6366f1, #7c3aed);
+    --gradient-blue-purple-deep: linear-gradient(135deg, #0284c7, #9333ea);
+    --gradient-hero: linear-gradient(135deg, #0c4a6e 0%, #1e3a8a 50%, #312e81 100%);
+    --gradient-green: linear-gradient(135deg, #22c55e, #16a34a);
+    --gradient-amber: linear-gradient(135deg, #f59e0b, #d97706);
+    --gradient-pink: linear-gradient(135deg, #f472b6, #e11d48);
+    --gradient-indigo-purple-alt: linear-gradient(135deg, #6366f1, #7c3aed);
+
+    /* Landing page solid accent colors */
+    --accent-sky: #0ea5e9;
+    --accent-purple: #a855f7;
+    --accent-sky-deep: #0284c7;
+    --accent-purple-deep: #9333ea;
+    --accent-indigo: #6366f1;
   }
 
   [data-theme='dark'] {

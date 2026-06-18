@@ -113,13 +113,13 @@ export function NewStartPage() {
               <div className="flex items-center gap-3">
                 <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-lg"
-                  style={{ background: 'linear-gradient(135deg, #0ea5e9, #a855f7)' }}
+                  style={{ background: 'var(--gradient-sky-purple)' }}
                 >
                   A
                 </div>
                 <span
                   className="text-xl font-bold bg-clip-text text-transparent"
-                  style={{ backgroundImage: 'linear-gradient(135deg, #0ea5e9, #9333ea)' }}
+                  style={{ backgroundImage: 'var(--gradient-sky-purple-alt)' }}
                 >
                   A-Guy
                 </span>
@@ -149,7 +149,7 @@ export function NewStartPage() {
                 <button
                   onClick={() => router.push('/start')}
                   className="px-5 py-2.5 text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-sky-500/25"
-                  style={{ background: 'linear-gradient(135deg, #0ea5e9, #a855f7)' }}
+                  style={{ background: 'var(--gradient-sky-purple)' }}
                 >
                   ניסיון חינם
                 </button>
@@ -163,7 +163,7 @@ export function NewStartPage() {
       ================================================ */}
         <section
           className="min-h-screen flex items-center relative overflow-hidden pt-16"
-          style={{ background: 'linear-gradient(135deg, #0c4a6e 0%, #1e3a8a 50%, #312e81 100%)' }}
+          style={{ background: 'var(--gradient-hero)' }}
         >
           {/* Background decorations */}
           <div className="absolute inset-0 overflow-hidden">
@@ -196,7 +196,7 @@ export function NewStartPage() {
                   למידה פרטית
                   <span
                     className="bg-clip-text text-transparent"
-                    style={{ backgroundImage: 'linear-gradient(135deg, #0ea5e9, #9333ea)' }}
+                    style={{ backgroundImage: 'var(--gradient-sky-purple-alt)' }}
                   >
                     {' '}
                     בעידן ה-AI
@@ -247,7 +247,7 @@ export function NewStartPage() {
                         className="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center text-white text-xs font-bold"
                         style={{
                           background: [
-                            'linear-gradient(135deg, #f472b6, #e11d48)',
+                            'var(--gradient-pink)',
                             'linear-gradient(135deg, #60a5fa, #6366f1)',
                             'linear-gradient(135deg, #4ade80, #22c55e)',
                             'linear-gradient(135deg, #fbbf24, #f97316)',
@@ -280,7 +280,7 @@ export function NewStartPage() {
                     <div className="flex items-center gap-3 mb-4 pb-4 border-b border-white/10">
                       <div
                         className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
-                        style={{ background: 'linear-gradient(135deg, #0ea5e9, #a855f7)' }}
+                        style={{ background: 'var(--gradient-sky-purple)' }}
                       >
                         A
                       </div>
@@ -305,7 +305,7 @@ export function NewStartPage() {
                       </div>
                       <div
                         className="rounded-2xl rounded-tl-sm p-4"
-                        style={{ background: 'linear-gradient(135deg, #0ea5e9, #a855f7)' }}
+                        style={{ background: 'var(--gradient-sky-purple)' }}
                       >
                         <p className="text-white text-sm">
                           אני מתקשה בפונקציות - לא מבין מתי להשתמש בנגזרת
@@ -361,7 +361,7 @@ export function NewStartPage() {
                 למה{' '}
                 <span
                   className="bg-clip-text text-transparent"
-                  style={{ backgroundImage: 'linear-gradient(135deg, #0ea5e9, #9333ea)' }}
+                  style={{ backgroundImage: 'var(--gradient-sky-purple-alt)' }}
                 >
                   A-Guy
                 </span>{' '}
@@ -434,14 +434,14 @@ export function NewStartPage() {
               >
                 <div
                   className="absolute top-4 left-4 px-3 py-1 text-white text-xs font-bold rounded-full"
-                  style={{ background: 'linear-gradient(135deg, #0ea5e9, #a855f7)' }}
+                  style={{ background: 'var(--gradient-sky-purple)' }}
                 >
                   מומלץ
                 </div>
                 <div className="flex items-center gap-3 mb-6">
                   <div
                     className="w-12 h-12 rounded-xl flex items-center justify-center"
-                    style={{ background: 'linear-gradient(135deg, #0ea5e9, #a855f7)' }}
+                    style={{ background: 'var(--gradient-sky-purple)' }}
                   >
                     <svg
                       className="w-6 h-6 text-white"
@@ -459,7 +459,7 @@ export function NewStartPage() {
                   </div>
                   <h3
                     className="text-2xl font-bold bg-clip-text text-transparent"
-                    style={{ backgroundImage: 'linear-gradient(135deg, #0ea5e9, #9333ea)' }}
+                    style={{ backgroundImage: 'var(--gradient-sky-purple-alt)' }}
                   >
                     עם A-Guy
                   </h3>
@@ -501,7 +501,7 @@ export function NewStartPage() {
         <section
           id="stats"
           className="py-20 relative overflow-hidden"
-          style={{ background: 'linear-gradient(135deg, #0284c7, #9333ea)' }}
+          style={{ background: 'var(--gradient-blue-purple-deep)' }}
         >
           <div className="absolute inset-0">
             <div
@@ -598,11 +598,7 @@ export function NewStartPage() {
                         ? 'text-white shadow-md'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
-                    style={
-                      activeTab === tab.id
-                        ? { background: 'linear-gradient(135deg, #0ea5e9, #a855f7)' }
-                        : {}
-                    }
+                    style={activeTab === tab.id ? { background: 'var(--gradient-sky-purple)' } : {}}
                   >
                     {tab.label}
                   </button>
@@ -624,7 +620,7 @@ export function NewStartPage() {
                         title: 'התקדמות כללית',
                         value: '78%',
                         bar: 78,
-                        color: 'linear-gradient(135deg, #0ea5e9, #a855f7)',
+                        color: 'var(--gradient-sky-purple)',
                       },
                       {
                         title: 'תרגילים החודש',
@@ -702,10 +698,7 @@ export function NewStartPage() {
                   className="rounded-3xl border border-gray-200 overflow-hidden"
                   style={{ backgroundColor: '#f9fafb' }}
                 >
-                  <div
-                    className="p-4"
-                    style={{ background: 'linear-gradient(135deg, #0284c7, #9333ea)' }}
-                  >
+                  <div className="p-4" style={{ background: 'var(--gradient-blue-purple-deep)' }}>
                     <div className="flex items-center gap-3">
                       <div
                         className="w-10 h-10 rounded-full flex items-center justify-center"
@@ -725,7 +718,7 @@ export function NewStartPage() {
                     </div>
                     <div
                       className="rounded-2xl rounded-tr-sm p-4 max-w-[80%] mr-auto"
-                      style={{ background: 'linear-gradient(135deg, #0ea5e9, #a855f7)' }}
+                      style={{ background: 'var(--gradient-sky-purple)' }}
                     >
                       <p className="text-white">איך פותרים אינטגרל של פונקציה מעריכית?</p>
                     </div>
@@ -764,7 +757,7 @@ export function NewStartPage() {
                       />
                       <button
                         className="px-6 py-3 text-white rounded-xl font-medium transition shadow-lg"
-                        style={{ background: 'linear-gradient(135deg, #0ea5e9, #a855f7)' }}
+                        style={{ background: 'var(--gradient-sky-purple)' }}
                       >
                         שלח
                       </button>
@@ -894,7 +887,7 @@ export function NewStartPage() {
                   <div className="flex gap-3">
                     <div
                       className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold"
-                      style={{ background: 'linear-gradient(135deg, #0ea5e9, #a855f7)' }}
+                      style={{ background: 'var(--gradient-sky-purple)' }}
                     >
                       A
                     </div>
@@ -911,7 +904,7 @@ export function NewStartPage() {
                       <div key={i} className="flex gap-3 justify-end">
                         <div
                           className="rounded-2xl rounded-tr-sm p-4 max-w-[70%]"
-                          style={{ background: 'linear-gradient(135deg, #0ea5e9, #a855f7)' }}
+                          style={{ background: 'var(--gradient-sky-purple)' }}
                         >
                           <p className="text-white">{msg.text}</p>
                         </div>
@@ -920,7 +913,7 @@ export function NewStartPage() {
                       <div key={i} className="flex gap-3">
                         <div
                           className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold"
-                          style={{ background: 'linear-gradient(135deg, #0ea5e9, #a855f7)' }}
+                          style={{ background: 'var(--gradient-sky-purple)' }}
                         >
                           A
                         </div>
@@ -954,7 +947,7 @@ export function NewStartPage() {
                 <button
                   onClick={handleSimulationSend}
                   className="px-8 py-4 text-white rounded-2xl font-bold transition-all shadow-lg"
-                  style={{ background: 'linear-gradient(135deg, #0ea5e9, #a855f7)' }}
+                  style={{ background: 'var(--gradient-sky-purple)' }}
                 >
                   שלח
                 </button>
@@ -997,7 +990,7 @@ export function NewStartPage() {
                 onClick={() => router.push('/start')}
                 className="px-10 py-5 text-white rounded-2xl font-bold text-lg transition-all shadow-lg flex items-center gap-2"
                 style={{
-                  background: 'linear-gradient(135deg, #0284c7, #9333ea)',
+                  background: 'var(--gradient-blue-purple-deep)',
                   boxShadow: '0 10px 25px rgba(14,165,233,0.25)',
                 }}
               >
@@ -1038,7 +1031,7 @@ export function NewStartPage() {
               <div className="flex items-center gap-3">
                 <div
                   className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-                  style={{ background: 'linear-gradient(135deg, #0ea5e9, #a855f7)' }}
+                  style={{ background: 'var(--gradient-sky-purple)' }}
                 >
                   A
                 </div>
@@ -1067,10 +1060,7 @@ export function NewStartPage() {
           <div id="onboarding-overlay" className="fixed bottom-6 left-6 z-50 max-w-sm">
             <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
               {/* Header */}
-              <div
-                className="p-4"
-                style={{ background: 'linear-gradient(135deg, #0ea5e9, #a855f7)' }}
-              >
+              <div className="p-4" style={{ background: 'var(--gradient-sky-purple)' }}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div
@@ -1139,7 +1129,7 @@ export function NewStartPage() {
                 <button
                   onClick={handleOnboardingNext}
                   className="flex-1 px-4 py-2 text-white rounded-xl text-sm font-medium transition shadow-md"
-                  style={{ background: 'linear-gradient(135deg, #0ea5e9, #a855f7)' }}
+                  style={{ background: 'var(--gradient-sky-purple)' }}
                 >
                   {onboardingStep === ONBOARDING_STEPS.length - 1 ? 'סיום ✓' : 'הבא →'}
                 </button>
@@ -1245,35 +1235,35 @@ const FEATURES = [
   {
     title: 'זיהוי פערי ידע',
     desc: 'המערכת מזהה בדיוק איפה אתה מתקשה ויוצר מסלול לימוד מותאם לסגור את הפערים.',
-    gradient: 'linear-gradient(135deg, #a855f7, #9333ea)',
+    gradient: 'var(--gradient-purple-indigo)',
     Icon: IconLightbulb,
     delay: 100,
   },
   {
     title: 'תרגול ממוקד',
     desc: 'אלפי תרגילים עם משוב מיידי. לא רק אם טעית — אלא גם למה ואיך לתקן.',
-    gradient: 'linear-gradient(135deg, #22c55e, #16a34a)',
+    gradient: 'var(--gradient-green)',
     Icon: IconCheck,
     delay: 200,
   },
   {
     title: 'מחברת אישית',
     desc: 'כל ההסברים, התרגילים וההתקדמות שלך נשמרים במקום אחד — נגיש תמיד.',
-    gradient: 'linear-gradient(135deg, #f59e0b, #d97706)',
+    gradient: 'var(--gradient-amber)',
     Icon: IconBook,
     delay: 300,
   },
   {
     title: 'מהירות התקדמות',
     desc: 'לומדים 3x יותר מהר משיטות מסורתיות — בזכות התאמה אישית ותרגול ממוקד.',
-    gradient: 'linear-gradient(135deg, #f472b6, #e11d48)',
+    gradient: 'var(--gradient-pink)',
     Icon: IconBolt,
     delay: 400,
   },
   {
     title: 'מעקב התקדמות',
     desc: 'גרפים וסטטיסטיקות אישיות מראות בדיוק איפה אתה עומד ומה היעדים הבאים.',
-    gradient: 'linear-gradient(135deg, #6366f1, #7c3aed)',
+    gradient: 'var(--gradient-indigo-purple-alt)',
     Icon: IconChart,
     delay: 500,
   },

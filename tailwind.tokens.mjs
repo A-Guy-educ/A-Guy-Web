@@ -198,6 +198,23 @@ export const maxWidth = {
   'max-w-content': '1280px', // General content
 }
 
+/**
+ * Landing Page Gradients
+ * Brand gradient tokens for the /start landing page
+ */
+export const gradient = {
+  'sky-purple': 'linear-gradient(135deg, #0ea5e9, #a855f7)',
+  'sky-purple-alt': 'linear-gradient(135deg, #0ea5e9, #9333ea)',
+  'sky-blue': 'linear-gradient(135deg, #0ea5e9, #0284c7)',
+  'purple-indigo': 'linear-gradient(135deg, #9333ea, #6366f1)',
+  'indigo-purple': 'linear-gradient(135deg, #6366f1, #7c3aed)',
+  'blue-purple-deep': 'linear-gradient(135deg, #0284c7, #9333ea)',
+  'green': 'linear-gradient(135deg, #22c55e, #16a34a)',
+  'amber': 'linear-gradient(135deg, #f59e0b, #d97706)',
+  'pink': 'linear-gradient(135deg, #f472b6, #e11d48)',
+  'indigo-purple-alt': 'linear-gradient(135deg, #6366f1, #7c3aed)',
+}
+
 export default {
   spacing,
   boxShadow,
@@ -212,4 +229,5 @@ export default {
   chatText,
   letterSpacing,
   maxWidth,
+  gradient,
 }
