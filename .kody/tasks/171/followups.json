@@ -1,11 +1,5 @@
 [
   {
-    "title": "Verify dark theme gradient visibility",
-    "body": "The new --gradient-* CSS variables are defined only in the light theme block of globals.css. Dark theme should either inherit them or override them. The NewStartPage is a client component and may not respond to [data-theme] context — verify the gradients render correctly in dark mode.",
-    "rationale": "All gradient tokens added under [data-theme='light'] block. Dark mode users of /start will need these to be visible.",
-    "priority": "medium"
-  },
-  {
     "title": "Hardcoded rgba() hex colors remain in NewStartPage",
     "body": "Several rgba() and hex hardcoded colors remain in NewStartPage/index.tsx (e.g., rgba(14,165,233,0.2), rgba(168,85,247,0.2), #0ea5e9 inline). These were not part of the review scope but should be migrated to CSS variables for full design system compliance.",
     "rationale": "Review feedback was scoped to gradient violations only. rgba() background decorations were not flagged but are technically hardcoded colors that bypass the design token system.",

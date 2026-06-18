@@ -248,9 +248,9 @@ export function NewStartPage() {
                         style={{
                           background: [
                             'var(--gradient-pink)',
-                            'linear-gradient(135deg, #60a5fa, #6366f1)',
-                            'linear-gradient(135deg, #4ade80, #22c55e)',
-                            'linear-gradient(135deg, #fbbf24, #f97316)',
+                            'var(--gradient-indigo-purple)',
+                            'var(--gradient-green)',
+                            'var(--gradient-amber)',
                           ][i],
                         }}
                       >
@@ -548,7 +548,7 @@ export function NewStartPage() {
               {FEATURES.map((feature) => (
                 <div
                   key={feature.title}
-                  className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 transition-all hover:-translate-y-2 hover:shadow-lg"
+                  className="group bg-white rounded-3xl p-8 shadow-sm border border-gray-100 transition-all hover:-translate-y-2 hover:shadow-lg"
                   style={{ '--delay': `${feature.delay}ms` } as React.CSSProperties}
                 >
                   <div
@@ -976,10 +976,7 @@ export function NewStartPage() {
         {/* ================================================
           FINAL CTA SECTION
       ================================================ */}
-        <section
-          className="py-24"
-          style={{ background: 'linear-gradient(135deg, #f9fafb, #f3f4f6)' }}
-        >
+        <section className="py-24" style={{ background: 'var(--gradient-hero)' }}>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">מוכן להתחיל?</h2>
             <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
@@ -1228,7 +1225,7 @@ const FEATURES = [
   {
     title: "צ'אט אינטראקטיבי",
     desc: 'שואל שאלות בכל רגע ומקבל הסברים מותאמים לרמה שלך. לא רק תשובות — גם הבנה.',
-    gradient: 'linear-gradient(135deg, #0ea5e9, #0284c7)',
+    gradient: 'var(--gradient-sky-blue)',
     Icon: IconChat,
     delay: 0,
   },

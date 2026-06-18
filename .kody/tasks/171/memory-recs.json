@@ -3,8 +3,8 @@
     "type": "decision",
     "name": "landing-page-gradient-tokens",
     "hook": "Add CSS var gradient tokens before using them in components",
-    "body": "Landing page gradient colors (#0ea5e9, #a855f7, #0284c7, #9333ea, etc.) must be defined as CSS variables in globals.css before they can be used in client components. Do not inline hardcoded gradient strings in JSX.\n\nWhy: CLAUDE.md design system rule requires all colors to be defined as design tokens first. Hardcoded gradients bypass the token system and violate the rule.\n\nHow to apply: When adding new landing page gradients, add --gradient-* CSS vars in globals.css light theme block first, then reference them as var(--gradient-*) in components.",
-    "why": "PR #171 review flagged hardcoded gradients in NewStartPage as a design system violation. Future landing page work should follow the token-first pattern.",
+    "body": "Landing page gradient colors (#0ea5e9, #a855f7, #0284c7, #9333ea, etc.) must be defined as CSS variables in globals.css before they can be used in client components. Do not inline hardcoded gradient strings in JSX.\n\nWhy: CLAUDE.md design system rule requires all colors to be defined as design tokens first. Hardcoded gradients bypass the token system and violate the rule.\n\nHow to apply: When adding new landing page gradients, add --gradient-* CSS vars in globals.css light theme block first, then reference them as var(--gradient-*) in components. Also add to [data-theme='dark'] block for dark mode support.",
+    "why": "PR #171 review flagged hardcoded gradients in NewStartPage as a design system violation. Dark mode had zero gradient tokens defined, causing all gradients to become undefined.",
     "confidence": 0.95
   }
 ]
