@@ -1,9 +1,6 @@
-Resolved merge conflicts from `git merge origin/dev` into PR #89 (branch: 71-doc-gap-srcinfrallm-21-files-10-ai-summary-coverag).
+Fixed two files that still contained unresolved merge conflict markers (<<<<<<< HEAD, =======, >>>>>>> origin/dev) inside their @ai-summary JSDoc blocks.
 
-All 47 conflicted files in src/infra/llm/ had symmetric conflicts in @ai-summary JSDoc tags. Resolution strategy: merged both HEAD's concise trap-focused summaries with origin/dev's longer detailed explanations into comprehensive combined @ai-summary tags.
+- `support-generation-prompt-builder.ts`: merged HEAD's emphasis on @ts-nocheck and dynamic block properties with origin/dev's warning about manual sync requirements and prompt format compatibility.
+- `support-generation-service.ts`: merged HEAD's server-side-only guarantee with origin/dev's pedagogical explanation that "solution" is a guiding question, plus the retry-on-missing-fields behavior.
 
-Quality gates passed:
-- `pnpm typecheck` — clean
-- `pnpm lint` — clean (pre-existing warnings only, none introduced by these changes)
-
-The wrapper should now be able to `git add` the resolved files and complete the merge.
+Quality gates: `pnpm typecheck` and `pnpm lint` both pass.

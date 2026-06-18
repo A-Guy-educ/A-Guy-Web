@@ -3,11 +3,7 @@
  * Generates hints, solutions, and full solutions for exercise blocks
  * Server-side only — content is persisted to DB, never sent to client
  *
-<<<<<<< HEAD
- * @ai-summary Generated support content is stored server-side and never transmitted to the client — a client requesting support and receiving nothing is a service misconfiguration, not a client-side rendering issue.
-=======
- * @ai-summary "solution" is a GUIDING QUESTION (שאלה מכוונת), NOT a direct answer — this is a pedagogical requirement. If the LLM skips any of the three fields (hints, solution, fullSolution), it retries once with a correction prompt. Hebrew is the default language. The content is server-side only and must never be sent to the client without review.
->>>>>>> origin/dev
+ * @ai-summary "solution" is a GUIDING QUESTION (שאלה מכוונת), NOT a direct answer — this is a pedagogical requirement. If the LLM skips any of the three fields (hints, solution, fullSolution), it retries once with a correction prompt. Hebrew is the default language. Generated content is stored server-side and never transmitted to the client — a client receiving nothing when it expects support is a service misconfiguration, not a client-side rendering issue.
  */
 import type { Payload } from '@/infra/types/backend'
 import type { AIModel, AIModelKey } from '../models'
