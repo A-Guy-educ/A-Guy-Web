@@ -4,7 +4,7 @@
   "target": "71-doc-gap-srcinfrallm-21-files-10-ai-summary-coverag",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Fixed unclosed JSDoc block in providers/shared/errors.ts — added missing */ between @ai-summary and next /** block. All quality gates pass.",
+  "reason": "Added @ai-summary JSDoc header to providers/shared/errors.ts. The closing */ was already present in the dev branch — only the @ai-summary line was added.",
   "prUrl": null,
   "runUrl": null,
   "filesTouched": [
