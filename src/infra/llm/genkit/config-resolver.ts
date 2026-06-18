@@ -5,7 +5,12 @@
  * @fileType implementation
  * @domain ai
  * @pattern config-mapping, genkit
- * @ai-summary Configuration priority (highest→lowest): LLM_MODEL_OVERRIDE_* env vars → ConfigValues → MODEL_REGISTRY. Skipping the env-var check and passing a model name directly bypasses the override mechanism — always go through resolveGenkitConfig().
+ * @ai-summary Configuration priority (highest→lowest): LLM_MODEL_OVERRIDE_* env vars → ConfigValues → MODEL_REGISTRY. Skipping the env-var check and passing a model name directly bypasses the override mechanism — always go through resolveGenkitConfig(). If ConfigValues are unavailable at runtime, falls back silently to registry defaults — the app won't crash but will use less-specific model configs. maxOutputTokens takes the higher of DB and registry to avoid truncation.
+ *
+ * Configuration hierarchy (highest → lowest):
+ * 1. LLM_MODEL_OVERRIDE_* env vars
+ * 2. ConfigValues/chat domain
+ * 3. MODEL_REGISTRY defaults
  */
 
 import { getConfigDomain } from '@/infra/config/runtime/config-values'

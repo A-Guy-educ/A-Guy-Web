@@ -2,7 +2,19 @@
 /**
  * Lesson Duplication Variation Service
  *
- * @ai-summary Gemini 2.5-pro silently collapses nested object schemas to string literals in responseSchema mode — this is why pass 1 uses outputJsonSchema with a derived schema, not Zod, and why the exercise service validates with Zod post-parse instead of relying on schema-constrained output.
+ * @ai-summary Gemini 2.5-pro silently collapses nested object schemas to string literals in responseSchema mode — this is why pass 1 uses outputJsonSchema with a derived schema, not Zod, and why the exercise service validates with Zod post-parse instead of relying on schema-constrained output. MODEL VERSION IS PINNED to gemini-3.1-pro-preview — not latest, not a config value. This is intentional (see comment at VARIATION_MODEL_VERSION). The two-pass design (creative then deterministic) is required: pass 1 rewrites questions at temp 0.7 but can't be trusted for solutions. Per-exercise failures are isolated — one bad exercise doesn't sink the whole run. Per-LLM-call timeout is 600s; worst-case wall time per exercise can approach 10 minutes with all retries exhausted.
+ *
+ * Generates variations for a single exercise at a time with light, medium, or deep
+ * transformation levels. Called by the orchestrator in a concurrency-limited loop.
+ *
+ * Service signature: generateVariation({ exercise, level, subject }): Promise<{ exercise: Exercise }>
+ *
+ * Two-pass approach:
+ * - Pass 1 (creative): generates new question/hint/phrasing at temp 0.7
+ * - Pass 2 (deterministic): re-derives solution at temp 0.0
+ *
+ * One bad exercise must not sink the whole duplication run — invalid JSON gets one retry,
+ * then the exercise is marked failed and the loop continues.
  */
 
 import { readFileSync } from 'fs'

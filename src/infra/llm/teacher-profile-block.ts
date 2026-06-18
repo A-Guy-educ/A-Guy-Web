@@ -1,7 +1,14 @@
 /**
  * Teacher Profile Block Builder
  *
- * @ai-summary The <teacher_profile> XML tag is parsed by the prompt-composer; changing the tag name without updating the parser causes teacher profile content to bleed into the system prompt as plain text.
+ * @ai-summary The <teacher_profile> XML tag is parsed by the prompt-composer; changing the tag name without updating the parser causes teacher profile content to bleed into the system prompt as plain text. The block format is consumed by the prompt template using a specific regex to extract the profile label and description. If you change the XML-like format here, the prompt template's extraction regex will break silently and the profile will not be injected correctly. Keep the format stable.
+ *
+ * Builds the <teacher_profile> block that gets injected into the system prompt.
+ * This defines the AI teacher's behavior and personality.
+ *
+ * @fileType ai-utility
+ * @domain chat
+ * @pattern server-only
  */
 
 import type { ResolvedTeacherProfile } from '@/server/services/teacher-profile-resolver'

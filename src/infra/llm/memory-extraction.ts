@@ -2,7 +2,14 @@
  * Memory Extraction Service
  * Extracts important information from conversations to store as long-term memory
  *
- * @ai-summary Runs post-response in the background with a concurrency cap of 2 to avoid exhausting MongoDB's pool; graceful degradation if OPENAI_API_KEY is absent or vector search fails — it logs and returns 0 persisted items rather than surfacing an error.
+ * @ai-summary Runs post-response in the background with a concurrency cap of 2 to avoid exhausting MongoDB's pool; graceful degradation if OPENAI_API_KEY is absent or vector search fails — it logs and returns 0 persisted items rather than surfacing an error. Skips entirely if OPENAI_API_KEY is absent — no error, no extraction, no user-visible impact. Runs AFTER the chat response is sent, so it does not affect user latency. Uses CONCURRENCY_LIMIT=2 to avoid exhausting the MongoDB connection pool (pool size is 3). Deduplication is via cosine similarity at 0.9 threshold.
+ *
+ * Key Features:
+ * - AI-powered extraction of preferences, decisions, facts
+ * - Server-side filtering for quality control
+ * - Deduplication via vector similarity
+ * - Selective storage (quality over quantity)
+ * - Context-scoped memory items
  */
 
 import { logger } from '@/infra/utils/logger'

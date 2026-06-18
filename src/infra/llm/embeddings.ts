@@ -2,7 +2,13 @@
  * Embeddings Service
  * Generates vector embeddings using OpenAI's text-embedding-3-small model
  *
- * @ai-summary 1536-dimensional embeddings must match the Atlas vector index exactly; any mismatch throws and bubbles up as a silent failure in memory retrieval. Lazy-initializes the OpenAI client — calling without OPENAI_API_KEY set throws at call time, not at import time.
+ * @ai-summary 1536-dimensional embeddings must match the Atlas vector index exactly; any mismatch throws and bubbles up as a silent failure in memory retrieval. Lazy-initializes the OpenAI client — calling without OPENAI_API_KEY set throws at call time, not at import time. Output is always exactly 1536 dimensions — if the Atlas vector index definition changes this number, embeddings will fail silently at storage time or fail loudly at query time. cosineSimilarity() requires equal-length vectors and throws on mismatch.
+ *
+ * Key Features:
+ * - 1536 dimensions (matches Atlas vector index)
+ * - Dimension validation (critical guardrail)
+ * - Batch generation support
+ * - Error handling and logging
  */
 
 import { logger } from '@/infra/utils/logger'

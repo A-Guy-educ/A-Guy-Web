@@ -1,12 +1,9 @@
-## PR #89 Review Fix
+Resolved merge conflicts from `git merge origin/dev` into PR #89 (branch: 71-doc-gap-srcinfrallm-21-files-10-ai-summary-coverag).
 
-Applied review feedback from the code review of PR #71 (doc gap: src/infra/llm/).
+All 47 conflicted files in src/infra/llm/ had symmetric conflicts in @ai-summary JSDoc tags. Resolution strategy: merged both HEAD's concise trap-focused summaries with origin/dev's longer detailed explanations into comprehensive combined @ai-summary tags.
 
-### Change
+Quality gates passed:
+- `pnpm typecheck` — clean
+- `pnpm lint` — clean (pre-existing warnings only, none introduced by these changes)
 
-Added `@ai-summary` JSDoc header to `src/infra/llm/providers/shared/errors.ts:7`. The closing `*/` on line 8 was already present in the dev branch — only the `@ai-summary` line was added in this PR.
-
-### Quality gates
-- Typecheck: PASS
-- Lint: PASS
-- Format: PASS
+The wrapper should now be able to `git add` the resolved files and complete the merge.

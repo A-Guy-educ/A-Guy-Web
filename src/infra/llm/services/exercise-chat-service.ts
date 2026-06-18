@@ -2,7 +2,10 @@
  * AI Chat Service for Exercise Help
  * Orchestrates chat with AI providers using Genkit unified adapter
  *
- * @ai-summary This is the primary chat entry point used by the instructor chat API; media parts are validated and resolved to absolute paths before being passed to the adapter, so the adapter never receives blob-only URLs.
+ * @ai-summary This is the primary chat entry point used by the instructor chat API; media parts are validated and resolved to absolute paths before being passed to the adapter, so the adapter never receives blob-only URLs. Streaming is not supported for multimodal (media attachments) — if you pass mediaPartsWithPath and try to stream, it throws. Multimodal media is fetched from publicUrl with forwarded auth cookies (serverless-compatible). The DEBUG_TEACHER_PROFILE env flag enables debug logging of the teacher profile block in the final system message.
+ *
+ * Migrated from factory pattern to Genkit for unified LLM operations.
+ * Supports Gemini and OpenAI-compatible providers via createGenkitUnifiedAdapter.
  */
 
 import type { Payload } from '@/infra/types/backend'

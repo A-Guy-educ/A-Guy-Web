@@ -1,7 +1,12 @@
 /**
  * Exercise Context Formatting Utility
  *
- * @ai-summary Strips correct answers before sending to the LLM to prevent leakage; caps output at 2000 chars so lesson context never exceeds the context window of smaller models.
+ * Formats exercise content into a readable message for the LLM.
+ * - Strips solutions and correct answers (prevent leakage)
+ * - Includes hints (helps LLM guide student)
+ * - Caps output at 2000 characters
+ *
+ * @ai-summary Strips correct answers before sending to the LLM to prevent leakage; caps output at 2000 chars so lesson context never exceeds the context window of smaller models. The 2000-char cap means very long exercises are truncated mid-block — the LLM gets partial context. If the LLM needs full exercise content, this cap must be raised (with cost/latency implications).
  */
 
 import type {

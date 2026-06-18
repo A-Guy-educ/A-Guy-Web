@@ -1,7 +1,10 @@
 /**
  * Content Translation Service
  *
- * @ai-summary Part of the Clone-and-Translate pipeline; the glossary parameter is optional and only used when provided — omitting it causes the LLM to use its own terminology choices, which may be inconsistent with course-specific terms already localized.
+ * Translates exercise content blocks between languages using LLM.
+ * Part of the Clone-and-Translate system for educational content localization.
+ *
+ * @ai-summary Part of the Clone-and-Translate pipeline; the glossary parameter is optional and only used when provided — omitting it causes the LLM to use its own terminology choices, which may be inconsistent with course-specific terms already localized. Translates text fields only — structural fields (ids, types, numeric values, LaTeX math) are preserved exactly. Block count mismatch triggers a retry with the original prompt + LLM's previous response + explicit count correction. Empty blocks array is a success (not an error). translateText falls back to original text on failure (no error throw).
  */
 
 import type { Payload } from '@/infra/types/backend'

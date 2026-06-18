@@ -2,7 +2,7 @@
  * Multimodal Types for Chat Media
  * Types for handling media attachments in chat messages
  *
- * @ai-summary Pure types only
+ * @ai-summary Pure types only. Shared shape between multimodal mappers and media-validation. MediaPartWithPath is the central type — it carries both the resolved filesystem path and the publicUrl so the reader can try filesystem first (local dev) and fall back to URL fetch (serverless).
  */
 
 export type MediaPartType = 'image' | 'pdf'

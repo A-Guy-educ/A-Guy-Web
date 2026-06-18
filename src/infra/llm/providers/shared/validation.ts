@@ -4,7 +4,7 @@
  *
  * @fileType validation
  * @domain ai
- * @ai-summary Validates input shape only — does not call the LLM or check API key validity; callers must still handle CONFIG_ERROR from the provider.
+ * @ai-summary Validates input shape only — does not call the LLM or check API key validity; callers must still handle CONFIG_ERROR from the provider. Only validates input shape, not output or API availability. Throws LLMError (not a built-in Error) so callers can distinguish validation failures from network failures. Run at the boundary before any I/O.
  */
 import { LLM_CONSTANTS } from './constants'
 import { LLMError, LLMErrorCode } from './errors'

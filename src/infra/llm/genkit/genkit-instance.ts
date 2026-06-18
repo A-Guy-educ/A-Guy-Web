@@ -5,7 +5,7 @@
  * @fileType implementation
  * @domain ai
  * @pattern singleton, genkit, lazy-loading
- * @ai-summary Caches one Genkit instance per provider type; clearing the cache mid-request causes all subsequent calls to re-initialize, which can trigger rate-limit spikes during traffic bursts.
+ * @ai-summary Caches one Genkit instance per provider type; clearing the cache mid-request causes all subsequent calls to re-initialize, which can trigger rate-limit spikes during traffic bursts. Per-process cache keyed by provider type. In serverless (Vercel), each Lambda/Function instance gets its own cache — instances are NOT shared across cold-starts. The 30s TTL on ConfigValues means the first call per instance pays an extra round-trip if config hasn't been loaded yet.
  */
 
 import { getSecret, isConfigLoaded } from '@/infra/config/runtime/runtime-config'

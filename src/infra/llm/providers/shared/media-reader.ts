@@ -5,7 +5,7 @@
  * @fileType utility
  * @domain ai
  * @pattern data-transformation
- * @ai-summary Falls back through three strategies (filesystem → Payload API → blob URL fetch) in sequence; a failure in an earlier strategy masks later ones — if the filesystem read partially succeeds but returns garbage, the Payload API fallback never runs.
+ * @ai-summary Falls back through three strategies (filesystem → Payload API → blob URL fetch) in sequence; a failure in an earlier strategy masks later ones — if the filesystem read partially succeeds but returns garbage, the Payload API fallback never runs. Three-tier fallback: filesystem (local dev) > Payload Local API (serverless with media on disk) > blob URL fetch (Vercel Blob only). If all three fail, returns null — callers must handle null gracefully. The 30s fetch timeout means slow media won't block the whole request indefinitely.
  */
 
 import type { Payload } from '@/infra/types/backend'

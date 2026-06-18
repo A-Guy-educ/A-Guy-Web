@@ -1,7 +1,10 @@
 /**
  * Composes final system instructions for AI chat
  *
- * @ai-summary image handling instructions (rule 9) are ONLY appended when hasImageAttached=true; omitting this flag in text-only chat causes Gemini to refuse responses with "please upload an image" even when the lesson context is loaded — this is the most common cause of chat failures.
+ * @fileType ai-utility
+ * @domain chat
+ * @pattern server-only
+ * @ai-summary image handling instructions (rule 9) are ONLY appended when hasImageAttached=true; omitting this flag in text-only chat causes Gemini to refuse responses with "please upload an image" even when the lesson context is loaded — this is the most common cause of chat failures. IMAGE_HANDLING_INSTRUCTIONS are appended ONLY when hasImageAttached=true (the default). Omitting them when there's no image is critical — when these rules are present without an image, Gemini falls back to "please upload an image" even in text-only chats with full context. Exercise content is budget-truncated: 400 chars per exercise, 4000 chars total for the exercises section.
  */
 
 export const SYSTEM_PROMPT_SEPARATOR = '\n\n---\n\n'

@@ -3,7 +3,9 @@
  * Takes an image of a geometry problem and generates structured
  * geometry data + proof table steps using the LLM.
  *
- * @ai-summary Uses a direct Gemini API call (not Genkit) with a pinned model version (gemini-3.1-pro-preview); if the model name changes, the thinking budget and schema constraints may no longer be compatible and the call will fail silently.
+ * @ai-summary Uses a direct Gemini API call (not Genkit) with a pinned model version (gemini-3.1-pro-preview); if the model name changes, the thinking budget and schema constraints may no longer be compatible and the call will fail silently. Calls Gemini directly (not via Genkit adapter) to use responseSchema for constrained output. The responseSchema approach means Gemini is forced to emit exactly the expected JSON shape — no parsing, no schema drift. Reliability primitives (circuit breaker, timeout 180s, retry 2x) wrap every call. Speech synthesis is attempted per-step after geometry extraction — failures are non-fatal (older lessons just lack audio).
+ *
+ * Two-pass approach: LLM extracts geometry + proof, we render SVG deterministically.
  */
 
 import type { Payload } from '@/infra/types/backend'

@@ -4,7 +4,12 @@
  *
  * @fileType module
  * @domain ai
- * @ai-summary Single import point for all LLM functionality; abstracts provider switching and shields callers from genkit internals
+ * @ai-summary Entry point for all AI services in the infra layer. Import from here rather than reaching into submodules — this is the stable public contract. Submodule imports may shift as the codebase evolves. Single import point for all LLM functionality; abstracts provider switching and shields callers from genkit internals.
+ *
+ * Future-ready: Easy to extend with new features like:
+ * - Exercise editing suggestions
+ * - Content generation
+ * - Auto-grading assistance
  */
 
 // Genkit-based provider exports
