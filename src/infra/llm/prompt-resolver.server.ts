@@ -1,7 +1,12 @@
 /**
  * Resolves the agent system prompt with deterministic priority
  *
- * @ai-summary Priority: lesson prompt (if published) → default prompt (locale-aware) → built-in fallback. The priority is deterministic — callers should not need to handle the fallback themselves.
+ * @ai-summary Three-tier fallback: lesson prompt (published) > default prompt (published, locale-matched) > built-in BUILTIN_FALLBACK_PROMPT (always works). If a lesson has a prompt but it's not published, this logs at debug level and silently falls through — no user-visible error. locale fallback (requested → unconfigured) logs a warning but still succeeds.
+ *
+ * Priority:
+ * 1. Lesson.prompt (if provided and published)
+ * 2. Default prompt (first published with isDefaultForAgentChat=true)
+ * 3. Built-in fallback (logs warning)
  */
 import type { Prompt } from '@/infra/types/content'
 import { logger } from '@/infra/utils/logger'

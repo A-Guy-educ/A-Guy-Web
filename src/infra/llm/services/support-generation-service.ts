@@ -1,7 +1,7 @@
 /**
  * Hints/solutions/fullSolutions generation (Hebrew, Genkit)
  *
- * @ai-summary Retries once if any of the three required fields (hints, solution, fullSolution) are missing from the LLM response. `solution` must always be a guiding question, never a direct answer.
+ * @ai-summary "solution" is a GUIDING QUESTION (שאלה מכוונת), NOT a direct answer — this is a pedagogical requirement. If the LLM skips any of the three fields (hints, solution, fullSolution), it retries once with a correction prompt. Hebrew is the default language. The content is server-side only and must never be sent to the client without review.
  */
 import type { Payload } from '@/infra/types/backend'
 import type { AIModel, AIModelKey } from '../models'

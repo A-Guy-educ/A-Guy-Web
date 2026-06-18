@@ -2,11 +2,13 @@ export const __genkit_exports__ = true
 /**
  * Genkit-backed UnifiedLLMProvider
  *
- * @ai-summary The streaming implementation uses `ReadableStream.from()` to bridge Genkit's AsyncIterable to Node.js ReadableStream. This is required for Node.js 22 compatibility — direct iteration inside a `start()` callback throws a TypeError.
+ * @ai-summary The streaming implementation uses `ReadableStream.from()` to bridge Genkit's AsyncIterable to Node.js ReadableStream. This is required for Node.js 22 compatibility — direct iteration inside a `start()` callback throws a TypeError. Routes to `ai.generate()` (non-streaming) or `ai.generateStream()` (streaming). Error classification via `error-adapter.ts` maps Genkit errors to LLMError codes (auth → CONFIG_ERROR, rate limit → RATE_LIMIT_ERROR, timeout → TIMEOUT_ERROR, etc.). `raw` exposes the full Genkit GenerateResponse; `text` is the extracted string. Streaming returns `{ stream, response }` — the stream yields text chunks, response resolves to the final text. Tool calls from `ai.generate({ tools })` are extracted from `result.toolCalls` (Genkit format: `{ toolName, arguments }`) and mapped to UnifiedLLMProvider format (`{ name, args }`).
  *
  * @fileType adapter
  * @domain ai
  * @pattern abstraction, genkit, provider-abstraction
+ *
+ * Maintains backward compatibility with existing UnifiedLLMProvider interface
  */
 import type { AIModel, AIModelKey } from '@/infra/llm/models'
 import type { UnifiedLLMProvider } from '@/infra/llm/providers/factory'
@@ -432,18 +434,20 @@ export async function createGenkitUnifiedAdapter(
                 maxTurns: 5,
               })
 
-              // Extract usage data for cost tracking (issue #1552)
-              const usage: { inputTokens: number; outputTokens: number } | undefined =
-                result.usage?.inputTokens !== undefined || result.usage?.outputTokens !== undefined
-                  ? {
-                      inputTokens: result.usage?.inputTokens ?? 0,
-                      outputTokens: result.usage?.outputTokens ?? 0,
-                    }
-                  : undefined
+              // Extract tool calls from Genkit result.
+              // Genkit returns { toolName, arguments }[]; UnifiedLLMProvider expects { name, args }[].
+              // Also check result.messages for toolRequest content parts (secondary source).
+              const toolCalls: Array<{ name: string; args: Record<string, unknown> }> = [
+                ...((
+                  result as {
+                    toolCalls?: Array<{ toolName: string; arguments?: unknown }>
+                  }
+                ).toolCalls?.map((tc) => ({
+                  name: tc.toolName,
+                  args: (tc.arguments ?? {}) as Record<string, unknown>,
+                })) ?? []),
+              ]
 
-              // Extract tool calls from Genkit response messages.
-              // Genkit stores tool requests in result.messages as content parts with toolRequest.
-              const toolCalls: Array<{ name: string; args: Record<string, unknown> }> = []
               const responseMessages = result.messages as
                 | Array<{ role: string; content: Array<Record<string, unknown>> }>
                 | undefined
@@ -465,6 +469,15 @@ export async function createGenkitUnifiedAdapter(
                   }
                 }
               }
+
+              // Extract usage data for cost tracking (issue #1552)
+              const usage: { inputTokens: number; outputTokens: number } | undefined =
+                result.usage?.inputTokens !== undefined || result.usage?.outputTokens !== undefined
+                  ? {
+                      inputTokens: result.usage?.inputTokens ?? 0,
+                      outputTokens: result.usage?.outputTokens ?? 0,
+                    }
+                  : undefined
 
               return {
                 text: result.text,

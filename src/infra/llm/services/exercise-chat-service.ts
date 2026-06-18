@@ -1,7 +1,7 @@
 /**
  * AI chat service (text + multimodal) backed by Genkit
  *
- * @ai-summary Multimodal auth forwarding: when media is attached, cookies are forwarded from the incoming request to the media fetch (server-to-server). This is required because serverless functions lose the original request context.
+ * @ai-summary Multimodal auth forwarding: when media is attached, cookies are forwarded from the incoming request to the media fetch (server-to-server). This is required because serverless functions lose the original request context. Streaming is not supported for multimodal (media attachments) — if you pass mediaPartsWithPath and try to stream, it throws. Multimodal media is fetched from publicUrl with forwarded auth cookies (serverless-compatible). The DEBUG_TEACHER_PROFILE env flag enables debug logging of the teacher profile block in the final system message.
  */
 import type { Payload } from '@/infra/types/backend'
 

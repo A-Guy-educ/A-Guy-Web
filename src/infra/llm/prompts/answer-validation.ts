@@ -1,7 +1,8 @@
 /**
- * System prompt for LLM-based semantic answer validation
+ * System prompt for answer validation via LLM
+ * Evaluates semantic equivalence of student answers
  *
- * @ai-summary Focuses on meaning equivalence, not exact wording. Accepts numeric equivalents (3.14 ≈ π), algebraic rewrites (2x = x+x), and cross-language matches (Hebrew ↔ English).
+ * @ai-summary The prompt instructs the LLM to accept equivalent forms (3.14 ≈ π, x+x = 2*x). Return format must be EXACTLY JSON — no markdown fences. If the response isn't valid JSON, the service returns an error (no retry). Language-agnostic: accepts Hebrew or English as long as meaning matches.
  */
 
 export const ANSWER_VALIDATION_PROMPT = `You are an expert grader for educational exercises.

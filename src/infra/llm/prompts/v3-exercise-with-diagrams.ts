@@ -1,7 +1,10 @@
 /**
- * System prompt for v3 exercise extraction (multi-part + diagram detection)
+ * V3 prompt for exercise extraction WITH diagram detection AND multi-part support
+ * Protocol: Extracts multi-part exercises with stem + sub-questions, plus diagram descriptions
+ * Use case: V3 converter that preserves diagram information and supports exercises with א/ב/ג parts
+ * Note: This prompt expects ONLY the image - no additional context text
  *
- * @ai-summary Handles stem + sub-questions (א/ב/ג parts), global vs per-sub-question diagram placement, and diagram description rules. Replaces v1 (`simple-text-question.ts`) for exercises with diagrams or multiple parts.
+ * @ai-summary diagramPosition is deprecated — the prompt instructs the LLM to omit it; global diagrams always go before the stem. The title must be 3-8 words describing the CONCEPT, not the task. Per-sub-question diagrams must be placed in that sub-question's diagramDescription field only, not the top-level field. Only extracts the FIRST separate exercise if the image has multiple.
  */
 
 export const V3_EXERCISE_WITH_DIAGRAMS_PROMPT = `You are an expert at converting exercise images into structured JSON format for an educational platform.

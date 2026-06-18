@@ -1,10 +1,27 @@
 /**
  * Zod schemas documenting the intended output shapes for lesson duplication
  *
- * @ai-summary Both schemas are NOT wired to Gemini responseSchema due to confirmed collapse bugs (issue #1748): Gemini emits string literals instead of object shapes for nested arrays. `sanitizeAiBlocks` + Payload's strict Zod validation enforce correctness post-hoc.
+ * @ai-summary These schemas are NOT wired to Gemini's responseSchema — both passes use text-mode parsing with post-hoc safeParse validation. Gemini's responseSchema collapses nested object arrays into literal string arrays (issue #1748). If Genkit/Gemini structured-output support improves, pass 1 can opt back in by re-adding outputSchema. sanitizeAiBlocks + payload.create's strict Zod validation are the actual enforcement.
  *
  * @fileType schema
  * @domain ai
+ *
+ * Status (2026-05-13):
+ *  - `SolutionDerivationOutputSchema` (pass 2): POST-HOC VALIDATION ONLY.
+ *    NOT passed to Genkit's outputSchema / Gemini's responseSchema — verified
+ *    live that Gemini collapses the per-block array shape to a literal string
+ *    array of property names (e.g. { "blocks": ["id", "solution", ...] }),
+ *    the same collapse pattern seen on LessonVariationOutputSchema (pass 1).
+ *    We now parse text only and validate post-hoc with Zod's safeParse.
+ *    See: issue #1748.
+ *  - `LessonVariationOutputSchema` (pass 1): NOT WIRED UP. Verified live that
+ *    Gemini collapses the full content.blocks shape to `{ "content": "blocks" }`
+ *    (treating the property name as a string value) regardless of whether the
+ *    envelope is `.strict()` or `.passthrough()`. The schema is kept here as
+ *    documentation of the intended shape and to seed the next attempt — when
+ *    Genkit / Gemini structured-output support for nested object schemas
+ *    improves, the variation service can opt back in by re-adding the
+ *    `outputSchema: LessonVariationOutputSchema` argument to pass 1.
  */
 
 import { z } from 'zod'

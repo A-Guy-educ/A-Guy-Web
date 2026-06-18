@@ -1,7 +1,12 @@
 /**
  * Exercise content formatter for LLM prompts
  *
- * @ai-summary Strips solutions and correct answers from exercise blocks before sending to the LLM — prevents the model from leaking answers. Output is capped at 2000 characters.
+ * Formats exercise content into a readable message for the LLM.
+ * - Strips solutions and correct answers (prevent leakage)
+ * - Includes hints (helps LLM guide student)
+ * - Caps output at 2000 characters
+ *
+ * @ai-summary Strips answer data to prevent LLM from seeing solutions. The 2000-char cap means very long exercises are truncated mid-block — the LLM gets partial context. If the LLM needs full exercise content, this cap must be raised (with cost/latency implications).
  */
 
 import type {

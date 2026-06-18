@@ -1,7 +1,7 @@
 /**
  * Image optimization for AI processing (sharp-based resize to max 2048px)
  *
- * @ai-summary Resizes to max 2048px preserving aspect ratio. PDFs are passed through unchanged — only image buffers are resized.
+ * @ai-summary Only resizes when the largest dimension exceeds maxDimension (default 2048). Smaller images pass through unchanged. Aspect ratio is always preserved; the image is never cropped or distorted. PDFs are passed through unchanged — only image buffers are resized.
  */
 import sharp from 'sharp'
 

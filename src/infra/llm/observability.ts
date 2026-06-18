@@ -1,7 +1,13 @@
 /**
  * Structured logging for context usage and feature flags
  *
- * @ai-summary Provides structured log helpers for context usage (memory counts, retrieval latency), maintenance operations, and prompt snapshots. Prompt snapshots are dev-only and silently skip in production.
+ * Provides structured logging for:
+ * - Context usage per model call
+ * - Feature flag status
+ * - Performance metrics
+ * - Debug snapshots (dev only)
+ *
+ * @ai-summary logPromptSnapshot is development-only (NODE_ENV !== 'development' is a no-op). logContextUsage is always active and is the primary observability signal for production context composition. logMaintenance is the primary signal for summary and extraction operations.
  */
 
 import { logger } from '@/infra/utils/logger'

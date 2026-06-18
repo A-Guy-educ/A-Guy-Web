@@ -1,7 +1,7 @@
 /**
  * Clone-and-Translate block-level translation service
  *
- * @ai-summary Translates between Hebrew and English. Retries on block count mismatch (Gemini sometimes returns wrong count). Text strings fall back to original on failure; blocks require a successful parse.
+ * @ai-summary Translates between Hebrew and English. Translates text fields only — structural fields (ids, types, numeric values, LaTeX math) are preserved exactly. Block count mismatch triggers a retry with the original prompt + LLM's previous response + explicit count correction. Empty blocks array is a success (not an error). Text strings fall back to original on failure; blocks require a successful parse.
  */
 import type { Payload } from '@/infra/types/backend'
 

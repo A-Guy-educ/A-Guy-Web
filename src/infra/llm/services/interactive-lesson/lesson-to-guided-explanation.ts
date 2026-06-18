@@ -1,7 +1,18 @@
 /**
  * InteractiveLesson → GuidedExplanationV1 converter
  *
+<<<<<<< HEAD
  * @ai-summary Renders geometry/graph/numberLine/equation scenes as SVG. Logs a warning when multiple scene kinds are populated (the renderer shows only the first). Equation scene is the fallback when no diagram is present.
+=======
+ * @ai-summary LLM-generated labels (GeoLabel.text, GeoPoint.label) are XML-escaped before insertion into HTML — this is the critical guard against XSS from model output. Segment IDs are canonicalized (alphabetically sorted) so "A→D" and "D→A" produce the same ID. Both scene kinds (geometry and equation) are supported; if the lesson has geometry data it takes precedence over graph and numberLine.
+ *
+ * Two scene kinds:
+ *  - geometry: segments/points/angles from a diagram.
+ *  - equation: a stack of big centered text elements, one per step. Used
+ *    when the lesson has no geometric figure (algebra, calculus, etc.) —
+ *    step actions fade the previous claim out and the next one in, so the
+ *    scene pane stays visually active instead of sitting empty.
+>>>>>>> origin/dev
  */
 import type {
   GuidedExplanationV1,

@@ -1,7 +1,10 @@
 /**
  * System prompt for Clone-and-Translate block-level translation
  *
- * @ai-summary Preserves structural IDs, block order, and LaTeX math notation. Translates only text content fields. Glossary entries override default terminology.
+ * Translates educational content blocks between Hebrew and English while
+ * preserving pedagogical logic, mathematical notation, and structural IDs.
+ *
+ * @ai-summary STRICT rule: only text content (value fields, labels, prompts) is translated. Structural fields (ids, types, numeric answers, booleans, SVG markup, LaTeX delimiters) are preserved exactly as-is. If a glossary is provided, it takes precedence over default math terminology. Output must be EXACTLY the same block count in the same order with the same IDs.
  */
 export const CONTENT_TRANSLATION_PROMPT = `You are an expert educational content translator specializing in mathematics and science education.
 

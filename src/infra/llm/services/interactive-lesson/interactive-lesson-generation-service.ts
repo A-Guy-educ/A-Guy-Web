@@ -1,7 +1,13 @@
 /**
  * Interactive lesson generation from geometry problem images
  *
+<<<<<<< HEAD
  * @ai-summary Calls Gemini directly via `generateContent` (bypassing Genkit) to pass `responseSchema`. Bakes TTS audio per step with a lesson-level 8MB budget — steps that exceed the budget skip audio caching and fall through to live TTS at playback. Per-step failures are also non-fatal.
+=======
+ * @ai-summary Calls Gemini directly (not via Genkit adapter) to use responseSchema for constrained output. The responseSchema approach means Gemini is forced to emit exactly the expected JSON shape — no parsing, no schema drift. Reliability primitives (circuit breaker, timeout 180s, retry 2x) wrap every call. Speech synthesis is attempted per-step after geometry extraction — failures are non-fatal (older lessons just lack audio).
+ *
+ * Two-pass approach: LLM extracts geometry + proof, we render SVG deterministically.
+>>>>>>> origin/dev
  */
 import type { Payload } from '@/infra/types/backend'
 import { z } from 'zod'

@@ -1,8 +1,10 @@
 // @ts-nocheck
 /**
- * Chat media validation (tenant ownership, expiry, type, size)
+ * Media Validation for Chat Messages
+ * Validates media exists, belongs to tenant, not expired, valid type/size
+ * Returns resolved paths for Gemini mapper (no extra DB lookups)
  *
- * @ai-summary Relies on Payload access control for ownership filtering — `createdBy: equals: userId` is the tenant isolation gate. If Payload access rules are misconfigured, ownership checks could be bypassed.
+ * @ai-summary Validates against the signed-in user's media (createdBy = userId) — not tenant isolation. This means students can only attach their own uploaded images. Blob-only media (Vercel Blob, no local file) is handled by fetching directly from the publicUrl with forwarded auth cookies. File size limit is 10MB; attachment limit is 5 per message.
  */
 import type { Payload } from '@/infra/types/backend'
 

@@ -1,10 +1,14 @@
 /**
  * Keyword-based documentation search
  *
- * @ai-summary Loads from `docs/ai/indexes/doc-chunks.json` at startup. If the file is missing, the singleton returns empty results — it does not crash, so missing chunks silently degrade search.
+ * @ai-summary Loads from `docs/ai/indexes/doc-chunks.json` at startup. If the file is missing, the singleton returns empty results — it does not crash, so missing chunks silently degrade search. Falls back to an empty DocSearch instance (no results) if doc-chunks.json is missing — it will NOT crash at construction time. Run `pnpm tsx scripts/generate-doc-chunks.ts` to regenerate the index. This is a dev-time check only; in production the file is bundled.
  *
  * @fileType service
  * @domain ai
+ *
+ * Usage:
+ *   const search = new DocSearch()
+ *   const results = search.query("How do I create a published collection?")
  */
 
 import fs from 'fs'
