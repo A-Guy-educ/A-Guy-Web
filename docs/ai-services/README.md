@@ -97,10 +97,10 @@ if (result.success) {
 | Service | Purpose | Model | Temp | Max Tokens |
 |---------|---------|-------|------|------------|
 | **[Data Extractor](#data-extractor-service)** | Extract structured exercise data from images | gemini-3.1-pro | 0.2 | 8192 |
-| **[Exercise Chat](#exercise-chat-service)** | Conversational assistance for exercises | gemini-3.1-flash-lite | 0.7 | 2048 |
+| **[Exercise Chat](#exercise-chat-service)** | Conversational assistance for exercises | gemini-3.1-flash-lite-preview | 0.7 | 2048 |
 | **[Image Optimizer](#image-optimizer-service)** | Optimize images for AI processing | N/A | N/A | N/A |
 | **[Interactive Lesson](#interactive-lesson-service)** | Generate interactive geometry proofs from images | gemini-2.5-flash | 0 | 98304 |
-| **[Lesson Duplication](#lesson-duplication-variation-service)** | LLM-based exercise variation by subject | gemini-2.5-pro | 0.0–0.7 | 8192 |
+| **[Lesson Duplication](#lesson-duplication-variation-service)** | LLM-based exercise variation by subject | gemini-3.1-pro-preview | 0.0–0.7 | 8192 |
 
 ---
 
@@ -117,7 +117,6 @@ import { getGeminiClient } from '@/infra/llm/providers/factory'
 
 // ✅ CORRECT: Use singleton getter
 const client = getGeminiClient()
-const model = client.getGenerativeModel({ model: 'gemini-2.0-flash-001' })
 
 // ❌ WRONG: Don't create multiple clients
 const client1 = new GoogleGenerativeAI(apiKey)
@@ -186,13 +185,13 @@ const config = getProviderModelConfig(LLMProviderType.GEMINI, 'EXERCISE_CHAT')
 | Config Key | Model (Gemini) | Temperature | Use Case |
 |------------|----------------|-------------|----------|
 | `IMAGE_TO_EXERCISE` | gemini-3.1-pro | 0.2 | Deterministic JSON extraction |
-| `EXERCISE_CHAT` | gemini-3.1-flash-lite | 0.7 | Natural conversation |
+| `EXERCISE_CHAT` | gemini-3.1-flash-lite-preview | 0.7 | Natural conversation |
 | `PDF_TO_EXERCISE` | gemini-2.5-flash | 0.1 | Document extraction |
 | `ANSWER_VALIDATION` | gemini-3.1-pro | 0.2 | Answer checking |
 | `SUPPORT_GENERATION` | gemini-3.1-pro | 0.5 | Hint generation |
 | `CONTENT_TRANSLATION` | gemini-3.1-pro | 0.3 | Content translation |
-| `LESSON_DUPLICATION_VARIATION_CREATIVE` | gemini-2.5-pro | 0.7 | Creative exercise variation |
-| `LESSON_DUPLICATION_VARIATION_DETERMINISTIC` | gemini-2.5-pro | 0.0 | Deterministic exercise variation |
+| `LESSON_DUPLICATION_VARIATION_CREATIVE` | gemini-3.1-pro-preview | 0.7 | Creative exercise variation |
+| `LESSON_DUPLICATION_VARIATION_DETERMINISTIC` | gemini-3.1-pro-preview | 0.0 | Deterministic exercise variation |
 
 **Adding New Models**:
 ```typescript
