@@ -202,19 +202,12 @@ interface PayPalCaptureResponse {
 }
 
 /**
- * Capture funds for an approved PayPal order. Returns `{ captureId }` so the
- * webhook handler / success page can persist it on the transaction row for
- * later refunds.
+ * Capture funds for an approved PayPal order.
  *
- * Required step in the PayPal v2 flow: an order created with intent: 'CAPTURE'
- * is NOT auto-captured on buyer approval — the merchant must explicitly POST
- * to /v2/checkout/orders/{id}/capture, which actually moves money and triggers
- * the PAYMENT.CAPTURE.COMPLETED webhook our handler relies on.
- *
- * Idempotent: PayPal returns 422 ORDER_ALREADY_CAPTURED if the order has
- * already been captured (e.g. user reloads /checkout/success). We treat that
- * as a successful no-op and return `{ captureId: null }` so callers can
- * decide whether they need a captureId or are happy without one.
+ * @param orderId - PayPal order ID to capture
+ * @returns `{ captureId }` so the webhook handler / success page can persist it
+ *     on the transaction row for later refunds; or `{ captureId: null }` if
+ *     PayPal returns 422 ORDER_ALREADY_CAPTURED (e.g. user reloads /checkout/success)
  */
 export async function capturePayPalOrder(orderId: string): Promise<{ captureId: string | null }> {
   const token = await getPayPalAccessToken()
@@ -290,7 +283,6 @@ export async function refundPayPal(
  * Used when transaction record creation fails after order was created
  *
  * @param providerTransactionId - PayPal order ID to void
- * @returns void
  */
 export async function cancelPayPalOrder(providerTransactionId: string): Promise<void> {
   const token = await getPayPalAccessToken()

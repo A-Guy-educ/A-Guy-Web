@@ -9,16 +9,16 @@ export type {
   TransactionStatus,
   CreateCheckoutOptions,
   CheckoutResult,
-} from './types'
+} from '@/lib/payment/types'
 
-export { resetPaymentEnvCache } from './env'
+export { resetPaymentEnvCache } from '@/lib/payment/env'
 
 export {
   createStripeCheckout,
   verifyStripeWebhook,
   refundStripe,
   cancelStripeCheckout,
-} from './stripe'
+} from '@/lib/payment/stripe'
 
 export {
   createPayPalOrder,
@@ -27,8 +27,8 @@ export {
   refundPayPal,
   cancelPayPalOrder,
   resetPayPalTokenCache,
-} from './paypal'
+} from '@/lib/payment/paypal'
 
-export { grantProductEntitlements } from './grant-entitlements'
+export { grantProductEntitlements } from '@/lib/payment/grant-entitlements'
 
-export { serializePaymentError } from './error-log'
+export { serializePaymentError } from '@/lib/payment/error-log'

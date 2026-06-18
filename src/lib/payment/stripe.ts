@@ -95,6 +95,7 @@ export async function verifyStripeWebhook(
  * @param transactionId - Transaction ID used for idempotency
  * @param providerTransactionId - Stripe payment intent ID
  * @param amount - Optional refund amount in smallest currency unit
+ * @returns void
  */
 export async function refundStripe(
   transactionId: string,
@@ -116,6 +117,9 @@ export async function refundStripe(
 /**
  * Cancel/expire a Stripe checkout session
  * Used when transaction record creation fails after session was created
+ *
+ * @param providerSessionId - Stripe checkout session ID to expire
+ * @returns void
  */
 export async function cancelStripeCheckout(providerSessionId: string): Promise<void> {
   const stripe = getStripeClient()

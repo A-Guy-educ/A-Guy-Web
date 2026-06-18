@@ -4,7 +4,7 @@
   "target": "203-doc-coverage-srclibpayment-payment-provider-integr",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Applied all review feedback: added JSDoc to undocumented Stripe/PayPal functions, added @returns to resetPayPalTokenCache, added PayPal token cache gotcha to paypal.ts @ai-summary, removed duplicate stub gotcha from index.ts and aligned with @fileType/@domain/@ai-summary pattern.",
+  "reason": "Applied all 5 review items: switched index.ts to @/ aliases, added JSDoc to cancelStripeCheckout and capturePayPalOrder, added @returns to refundStripe, removed imprecise @returns void from cancelPayPalOrder.",
   "prUrl": "https://github.com/A-Guy-educ/A-Guy-Web/pull/204",
   "runUrl": null,
   "filesTouched": [
