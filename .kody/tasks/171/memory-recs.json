@@ -1,10 +1,26 @@
 [
   {
-    "type": "decision",
-    "name": "landing-page-gradient-tokens",
-    "hook": "Add CSS var gradient tokens before using them in components",
-    "body": "Landing page gradient colors (#0ea5e9, #a855f7, #0284c7, #9333ea, etc.) must be defined as CSS variables in globals.css before they can be used in client components. Do not inline hardcoded gradient strings in JSX.\n\nWhy: CLAUDE.md design system rule requires all colors to be defined as design tokens first. Hardcoded gradients bypass the token system and violate the rule.\n\nHow to apply: When adding new landing page gradients, add --gradient-* CSS vars in globals.css light theme block first, then reference them as var(--gradient-*) in components. Also add to [data-theme='dark'] block for dark mode support.",
-    "why": "PR #171 review flagged hardcoded gradients in NewStartPage as a design system violation. Dark mode had zero gradient tokens defined, causing all gradients to become undefined.",
+    "type": "lesson",
+    "name": "auth-gateway-resolveHomeRedirect",
+    "hook": "Use resolveHomeRedirect in page.tsx for auth-aware routing",
+    "body": "When a /start page serves both authenticated and unauthenticated users, restore the auth gateway pattern from home/page.tsx: call getMeUser(), check COURSE_ID_COOKIE_NAME, call resolveHomeRedirect(), redirect if destination !== '/start'.\n\nWhy: The previous PR removed this logic, creating a BLOCK regression where authenticated users with a selected course would land on /start instead of being redirected to /study.\n\nHow to apply: See src/app/(frontend)/start/page.tsx for the exact pattern — getMeUser() + cookies() + resolveHomeRedirect() + redirect().",
+    "why": "Auth routing regressions are silent and high-impact; the auth gateway must always be preserved in page route files.",
     "confidence": 0.95
+  },
+  {
+    "type": "lesson",
+    "name": "lucide-icon-component-type",
+    "hook": "Correct TypeScript type for lucide-react icon components",
+    "body": "When using lucide-react icons as component types (e.g. in a Feature data structure), the correct type is:\n\n  import type { ForwardRefExoticComponent, RefAttributes, SVGProps } from 'react'\n  type LucideIconComponent = ForwardRefExoticComponent<\n    Omit<SVGProps<SVGSVGElement>, 'ref'> & RefAttributes<SVGSVGElement>\n  >\n\nDo NOT use 'Icon' from lucide-react (it doesn't exist as a type). Do NOT use 'typeof Icon'.\n\nWhy: lucide-react exports ForwardRefExoticComponent-based icons. The IconNode/Icon interface is internal.\n\nHow to apply: See src/app/(frontend)/start/_components/NewStartPage/features-data.ts for usage.",
+    "why": "Using 'Icon' as a type causes TS2749: 'Icon' refers to a value, not a type. The ForwardRefExoticComponent type is the correct programmatic type for lucide icons.",
+    "confidence": 0.9
+  },
+  {
+    "type": "preference",
+    "name": "body-class-landing-page",
+    "hook": "Document body class side effects with a comment",
+    "body": "When using document.body.classList.add('landing-page') to hide header/footer, add a comment explaining what the class does and where it is defined.\n\nWhy: 'landing-page' is a side effect that is invisible in the component tree and easy to accidentally break. The comment in NewStartPage now explains it's defined in globals.css.\n\nHow to apply: Add a comment like '// .landing-page body class hides site header/footer (defined in globals.css)' before the useEffect.",
+    "why": "Without documentation, future developers may remove this useEffect assuming it's dead code.",
+    "confidence": 0.9
   }
 ]

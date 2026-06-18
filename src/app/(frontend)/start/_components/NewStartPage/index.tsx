@@ -3,26 +3,16 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
+import { FEATURES, ONBOARDING_STEPS } from './features-data'
+import { OnboardingOverlay } from './OnboardingOverlay'
+
 /* =========================================================
    NEW START PAGE — Issue #159
    Complete redesign based on provided HTML mockup.
    All text is Hebrew (RTL). Design matches HTML exactly.
-   ========================================================= */
 
-const ONBOARDING_STEPS = [
-  {
-    q: 'איך A-Guy שונה ממורה פרטי?',
-    a: 'A-Guy זמין 24/7, עונה מיידית, ולומד את דפוס הטעויות שלך כדי להתאים הסברים בדיוק לרמה שלך — בעלות של פיצה אחת בחודש.',
-  },
-  {
-    q: 'איך מתחילים?',
-    a: 'פשוט לוחצים על "התחל ניסיון חינם", בוחרים נושא, ומתחילים לשאול שאלות. אין צורך בהתקנה או ידע טכני.',
-  },
-  {
-    q: 'האם המערכת בטוחה?',
-    a: 'בהחלט! כל הנתונים מוצפנים, אנחנו לא שומרים מידע אישי, והמערכת עומדת בתקנות הגנת הפרטיות.',
-  },
-]
+   Uses .landing-page body class to hide site header/footer.
+   ========================================================= */
 
 type TabName = 'dashboard' | 'chat' | 'notebook'
 
@@ -36,7 +26,8 @@ export function NewStartPage() {
   >([])
   const [simulationInput, setSimulationInput] = useState('')
 
-  // Hide header/footer for immersive full-page experience
+  // .landing-page body class hides the site header/footer for an immersive
+  // full-page landing experience (defined in globals.css).
   useEffect(() => {
     document.body.classList.add('landing-page')
     return () => {
@@ -53,7 +44,6 @@ export function NewStartPage() {
     if (!text) return
     setSimulationMessages((prev) => [...prev, { role: 'user', text }])
     setSimulationInput('')
-    // Simulate AI response
     setTimeout(() => {
       setSimulationMessages((prev) => [
         ...prev,
@@ -83,22 +73,6 @@ export function NewStartPage() {
 
   return (
     <>
-      {/* Float keyframe for hero animation */}
-      <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
-        }
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .onboarding-bubble {
-          animation: fadeInUp 0.5s ease-out forwards;
-          opacity: 0;
-        }
-      `}</style>
-
       <div className="bg-gray-50 text-gray-900 overflow-x-hidden min-h-screen" dir="rtl">
         {/* ================================================
           NAVIGATION
@@ -147,7 +121,7 @@ export function NewStartPage() {
                   התחברות
                 </button>
                 <button
-                  onClick={() => router.push('/start')}
+                  onClick={() => router.push('/courses')}
                   className="px-5 py-2.5 text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-sky-500/25"
                   style={{ background: 'var(--gradient-sky-purple)' }}
                 >
@@ -212,7 +186,7 @@ export function NewStartPage() {
                 {/* CTA Buttons */}
                 <div className="flex flex-wrap gap-4">
                   <button
-                    onClick={() => router.push('/start')}
+                    onClick={() => router.push('/courses')}
                     className="group px-8 py-4 bg-white text-sky-700 rounded-2xl font-bold text-lg hover:shadow-2xl transition-all flex items-center gap-2"
                   >
                     <span>התחל ניסיון חינם</span>
@@ -230,7 +204,10 @@ export function NewStartPage() {
                       />
                     </svg>
                   </button>
-                  <button className="px-8 py-4 backdrop-blur-xl text-white rounded-2xl font-bold text-lg hover:bg-white/10 transition flex items-center gap-2 border border-white/20">
+                  <button
+                    onClick={scrollToSimulation}
+                    className="px-8 py-4 backdrop-blur-xl text-white rounded-2xl font-bold text-lg hover:bg-white/10 transition flex items-center gap-2 border border-white/20"
+                  >
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M8 5v14l11-7z" />
                     </svg>
@@ -272,10 +249,7 @@ export function NewStartPage() {
                     animation: 'float 3s ease-in-out infinite',
                   }}
                 >
-                  <div
-                    className="backdrop-blur-xl rounded-3xl p-6 border border-white/20 shadow-2xl"
-                    style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                  >
+                  <div className="backdrop-blur-xl rounded-3xl p-6 border border-white/20 shadow-2xl bg-white/10">
                     {/* Chat header */}
                     <div className="flex items-center gap-3 mb-4 pb-4 border-b border-white/10">
                       <div
@@ -295,10 +269,7 @@ export function NewStartPage() {
 
                     {/* Chat messages */}
                     <div className="space-y-4">
-                      <div
-                        className="rounded-2xl rounded-tr-sm p-4"
-                        style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                      >
+                      <div className="rounded-2xl rounded-tr-sm p-4 bg-white/10">
                         <p className="text-gray-200 text-sm">
                           שלום! אני A-Guy. איך אוכל לעזור לך במתמטיקה היום?
                         </p>
@@ -311,10 +282,7 @@ export function NewStartPage() {
                           אני מתקשה בפונקציות - לא מבין מתי להשתמש בנגזרת
                         </p>
                       </div>
-                      <div
-                        className="rounded-2xl rounded-tr-sm p-4"
-                        style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                      >
+                      <div className="rounded-2xl rounded-tr-sm p-4 bg-white/10">
                         <p className="text-gray-200 text-sm">
                           בוא נבין יחד! 🔍
                           <br />
@@ -891,10 +859,7 @@ export function NewStartPage() {
                     >
                       A
                     </div>
-                    <div
-                      className="rounded-2xl rounded-tl-sm p-4 flex-1"
-                      style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                    >
+                    <div className="rounded-2xl rounded-tl-sm p-4 flex-1 bg-white/10">
                       <p className="text-gray-200">הקלד שאלה במתמטיקה ואני אעזור לך!</p>
                     </div>
                   </div>
@@ -917,10 +882,7 @@ export function NewStartPage() {
                         >
                           A
                         </div>
-                        <div
-                          className="rounded-2xl rounded-tl-sm p-4 flex-1"
-                          style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-                        >
+                        <div className="rounded-2xl rounded-tl-sm p-4 flex-1 bg-white/10">
                           <p className="text-gray-200">{msg.text}</p>
                         </div>
                       </div>
@@ -958,12 +920,8 @@ export function NewStartPage() {
                 {['איך פותרים משוואה ריבועית?', 'מהי נגזרת?', 'הסבר את משפט פיתגורס'].map((q) => (
                   <button
                     key={q}
-                    onClick={() => {
-                      setSimulationInput(q)
-                      scrollToSimulation()
-                    }}
-                    className="px-4 py-2 rounded-xl text-sm text-gray-300 transition hover:bg-white/20"
-                    style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                    onClick={() => setSimulationInput(q)}
+                    className="px-4 py-2 rounded-xl text-sm text-gray-300 transition hover:bg-white/20 bg-white/10"
                   >
                     {q}
                   </button>
@@ -984,7 +942,7 @@ export function NewStartPage() {
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <button
-                onClick={() => router.push('/start')}
+                onClick={() => router.push('/courses')}
                 className="px-10 py-5 text-white rounded-2xl font-bold text-lg transition-all shadow-lg flex items-center gap-2"
                 style={{
                   background: 'var(--gradient-blue-purple-deep)',
@@ -1002,7 +960,7 @@ export function NewStartPage() {
                 </svg>
               </button>
               <button
-                onClick={() => router.push('/start')}
+                onClick={() => router.push('/courses')}
                 className="px-10 py-5 bg-white text-gray-900 rounded-2xl font-bold text-lg border-2 border-gray-200 hover:border-sky-500 transition flex items-center gap-2"
               >
                 <span>מסלולים והרשמה</span>
@@ -1050,218 +1008,16 @@ export function NewStartPage() {
           </div>
         </footer>
 
-        {/* ================================================
-          ONBOARDING OVERLAY
-      ================================================ */}
+        {/* Onboarding overlay */}
         {showOnboarding && (
-          <div id="onboarding-overlay" className="fixed bottom-6 left-6 z-50 max-w-sm">
-            <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
-              {/* Header */}
-              <div className="p-4" style={{ background: 'var(--gradient-sky-purple)' }}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center"
-                      style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
-                    >
-                      <span className="text-white font-bold text-sm">A</span>
-                    </div>
-                    <span className="text-white font-semibold">A-Guy מזמין אותך</span>
-                  </div>
-                  <button
-                    onClick={() => setShowOnboarding(false)}
-                    className="text-white/80 hover:text-white transition"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              {/* Content */}
-              <div className="p-5 space-y-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500">
-                    שאלה {onboardingStep + 1} מתוך {ONBOARDING_STEPS.length}
-                  </span>
-                </div>
-                <div
-                  className="rounded-xl p-3 border"
-                  style={{
-                    backgroundColor: 'rgba(14,165,233,0.05)',
-                    borderColor: 'rgba(14,165,233,0.2)',
-                  }}
-                >
-                  <p className="text-sky-700 font-medium text-sm">
-                    ❓ {ONBOARDING_STEPS[onboardingStep].q}
-                  </p>
-                </div>
-                <div
-                  className="rounded-xl p-3 border"
-                  style={{
-                    backgroundColor: 'rgba(168,85,247,0.05)',
-                    borderColor: 'rgba(168,85,247,0.2)',
-                  }}
-                >
-                  <p className="text-purple-700 text-sm">💡 {ONBOARDING_STEPS[onboardingStep].a}</p>
-                </div>
-              </div>
-
-              {/* Navigation */}
-              <div className="px-5 pb-5 flex gap-2">
-                <button
-                  onClick={handleOnboardingPrev}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
-                    onboardingStep === 0 ? 'hidden' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  ← הקודם
-                </button>
-                <button
-                  onClick={handleOnboardingNext}
-                  className="flex-1 px-4 py-2 text-white rounded-xl text-sm font-medium transition shadow-md"
-                  style={{ background: 'var(--gradient-sky-purple)' }}
-                >
-                  {onboardingStep === ONBOARDING_STEPS.length - 1 ? 'סיום ✓' : 'הבא →'}
-                </button>
-              </div>
-            </div>
-          </div>
+          <OnboardingOverlay
+            onboardingStep={onboardingStep}
+            onNext={handleOnboardingNext}
+            onPrev={handleOnboardingPrev}
+            onDismiss={() => setShowOnboarding(false)}
+          />
         )}
       </div>
     </>
   )
 }
-
-/* =========================================================
-   FEATURE DATA
-   ========================================================= */
-
-function IconChat({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-      />
-    </svg>
-  )
-}
-
-function IconLightbulb({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-      />
-    </svg>
-  )
-}
-
-function IconCheck({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-      />
-    </svg>
-  )
-}
-
-function IconBook({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-      />
-    </svg>
-  )
-}
-
-function IconBolt({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M13 10V3L4 14h7v7l9-11h-7z"
-      />
-    </svg>
-  )
-}
-
-function IconChart({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-      />
-    </svg>
-  )
-}
-
-const FEATURES = [
-  {
-    title: "צ'אט אינטראקטיבי",
-    desc: 'שואל שאלות בכל רגע ומקבל הסברים מותאמים לרמה שלך. לא רק תשובות — גם הבנה.',
-    gradient: 'var(--gradient-sky-blue)',
-    Icon: IconChat,
-    delay: 0,
-  },
-  {
-    title: 'זיהוי פערי ידע',
-    desc: 'המערכת מזהה בדיוק איפה אתה מתקשה ויוצר מסלול לימוד מותאם לסגור את הפערים.',
-    gradient: 'var(--gradient-purple-indigo)',
-    Icon: IconLightbulb,
-    delay: 100,
-  },
-  {
-    title: 'תרגול ממוקד',
-    desc: 'אלפי תרגילים עם משוב מיידי. לא רק אם טעית — אלא גם למה ואיך לתקן.',
-    gradient: 'var(--gradient-green)',
-    Icon: IconCheck,
-    delay: 200,
-  },
-  {
-    title: 'מחברת אישית',
-    desc: 'כל ההסברים, התרגילים וההתקדמות שלך נשמרים במקום אחד — נגיש תמיד.',
-    gradient: 'var(--gradient-amber)',
-    Icon: IconBook,
-    delay: 300,
-  },
-  {
-    title: 'מהירות התקדמות',
-    desc: 'לומדים 3x יותר מהר משיטות מסורתיות — בזכות התאמה אישית ותרגול ממוקד.',
-    gradient: 'var(--gradient-pink)',
-    Icon: IconBolt,
-    delay: 400,
-  },
-  {
-    title: 'מעקב התקדמות',
-    desc: 'גרפים וסטטיסטיקות אישיות מראות בדיוק איפה אתה עומד ומה היעדים הבאים.',
-    gradient: 'var(--gradient-indigo-purple-alt)',
-    Icon: IconChart,
-    delay: 500,
-  },
-] as const
