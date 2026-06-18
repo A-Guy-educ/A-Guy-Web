@@ -1,24 +1,7 @@
 /**
  * Module-scope cache of the published `interactive_lesson` prompt (30s TTL)
  *
-<<<<<<< HEAD
- * @ai-summary Short-TTL memoization to avoid a DB round-trip on every cached-lesson read. Negative caching (null = no prompt) is also cached. The Prompts afterChange hook eagerly invalidates on admin edits.
-=======
- * @ai-summary The afterChange/afterDelete hook in the Prompts collection calls invalidatePublishedInteractiveLessonPrompt() to drop the cache eagerly. Without this, a 30s TTL means admin edits take up to 30s to propagate. Each serverless instance has its own copy — edits on one instance don't auto-evict other instances' caches within the TTL window.
- *
- * Both lesson generation (which needs the template) and lesson cache
- * eviction (which needs the source provenance) hit this on every request.
- * Without memoization, every cached-lesson read pays an extra DB round-trip
- * to look up the prompt — defeating the point of the cache. Cache for a
- * short TTL and let a Prompts afterChange hook invalidate it eagerly when
- * an admin actually edits the row.
- *
- * Lives at module scope (per Node process). Each serverless instance has
- * its own copy; staleness is bounded by the TTL plus the eager invalidate
- * within a single instance. With a 30s TTL, the worst-case window where a
- * non-edit-source instance is still serving the stale prompt id is 30s,
- * which is acceptable for a feature where lesson generation is rare.
->>>>>>> origin/dev
+ * @ai-summary Short-TTL memoization avoids a DB round-trip on every cached-lesson read. Negative caching (null = no prompt) is also cached. The Prompts afterChange/afterDelete hook eagerly calls invalidatePublishedInteractiveLessonPrompt() to drop the cache on admin edits — without this, a 30s TTL means edits take up to 30s to propagate. Each serverless instance has its own copy; edits on one instance don't auto-evict other instances' caches within the TTL window.
  */
 
 import type { Payload } from '@/infra/types/backend'
