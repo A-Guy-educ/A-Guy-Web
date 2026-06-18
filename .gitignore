@@ -96,3 +96,7 @@ latex_examples/
 # The Playwright MCP server writes its own working dir at the repo root.
 .kody/qa-reports/
 .playwright-mcp/
+
+# kody task artifacts — per-task metadata (context, followups, handoff-notes, memory-recs).
+# These are ephemeral run output and should not be committed.
+.kody/tasks/

@@ -1,7 +1,7 @@
-Task 252 (PR #252) complete — no code changes needed.
+Task 252 (PR #252) complete — fix round applied.
 
-This was a pure dependabot dev-dependency bump (18 packages). The review feedback was CONCERNS solely due to the preview server at localhost:3000 being unreachable during the review window — no code defects were identified. The diff has zero UI surface.
+This was a pure dependabot dev-dependency bump (18 packages). The review feedback was CONCERNS due to `.kody/tasks/252/` artifacts being committed to the branch alongside the dependency changes.
 
-Verify passed: ok=true, failures=[], attemptsRemaining=3.
+Fix applied in this round: added `.kody/tasks/` to `.gitignore` (line 102), consistent with the existing pattern for other `.kody/` transient directories (graph, missions, qa-reports).
 
-Files touched: package.json, pnpm-lock.yaml (lockfile only). No source code changed.
+Files touched in fix round: .gitignore (only).

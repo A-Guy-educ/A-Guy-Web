@@ -4,11 +4,11 @@
   "target": "dependabot/npm_and_yarn/dev-dependencies-3e97e600fd",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Pure dev-dependency bump PR; CONCERNS verdict was due to unreachable preview server, not code defects; verify passed with 0 failures",
+  "reason": "Pure dev-dependency bump PR; CONCERNS verdict was due to .kody/tasks/ artifacts being committed — fixed by adding .kody/tasks/ to .gitignore in this round.",
   "prUrl": null,
   "runUrl": null,
-  "filesTouched": ["package.json", "pnpm-lock.yaml"],
-  "sessionLog": ".kody/sessions/gh-27708244872-1.jsonl",
-  "startedAt": "2026-06-17T00:00:00.000Z",
-  "finishedAt": "2026-06-17T00:00:00.000Z"
+  "filesTouched": [".gitignore", "package.json", "pnpm-lock.yaml"],
+  "sessionLog": null,
+  "startedAt": "2026-06-18T00:00:00.000Z",
+  "finishedAt": "2026-06-18T00:00:00.000Z"
 }
