@@ -4,4 +4,4 @@ This was a pure dependabot dev-dependency bump (18 packages). The review feedbac
 
 Fix applied in this round: added `.kody/tasks/` to `.gitignore` (line 102), consistent with the existing pattern for other `.kody/` transient directories (graph, missions, qa-reports).
 
-Files touched in fix round: .gitignore (only).
+Files touched in fix round: .gitignore, .kody/tasks/252/context.json, .kody/tasks/252/handoff-notes.md.
