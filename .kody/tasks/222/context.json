@@ -4,11 +4,14 @@
   "target": "gh-27808811748-1-1",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Fixed CONCERN: removed stale hook-wiring claim from invalidatePublishedInteractiveLessonPrompt() JSDoc. No other @ai-summary hook claims remain in src/infra/llm/. verify passes.",
+  "reason": "Fixed remaining review feedback: deduplicated verbatim issue-#1748 phrasing across lesson-duplication-variation-service.ts and lesson-duplication-output.ts, and split the single-sentence @ai-summary in cache-schema-version.ts into purpose+gotcha. verify passes.",
   "prUrl": null,
   "runUrl": null,
   "filesTouched": [
-    "src/infra/llm/services/interactive-lesson/published-prompt-cache.ts"
+    "src/infra/llm/services/interactive-lesson/published-prompt-cache.ts",
+    "src/infra/llm/services/lesson-duplication-variation-service.ts",
+    "src/infra/llm/schemas/lesson-duplication-output.ts",
+    "src/infra/llm/services/interactive-lesson/cache-schema-version.ts"
   ],
   "sessionLog": null,
   "startedAt": "2026-06-19T00:00:00.000Z",

@@ -1,10 +1,13 @@
 ## What was done
 
-Round 2 fix — applied review feedback from PR #222.
+Round 3 fix — applied remaining review feedback from PR #222.
 
-**Single fix:** The function-level JSDoc on `invalidatePublishedInteractiveLessonPrompt()` (lines 70-73) still claimed "fired by the Prompts collection's afterChange / afterDelete hook" — the same false hook-wiring claim that the module-level `@ai-summary` had already been corrected to remove. The function-level comment was overlooked in the prior round.
+**Three changes:**
 
-**Change:** Replaced the lines 70-73 JSDoc with:
-> "Drop the cached prompt. Exists for manual use — there is no hook that automatically calls this; the 30s TTL is the only invalidation mechanism. Safe to call when no entry is cached."
+1. **Verbatim duplication (concern)** — `lesson-duplication-variation-service.ts:7` and `lesson-duplication-output.ts:4` both used "Gemini's responseSchema collapses nested object arrays into literal string arrays (issue #1748)" verbatim. Fixed: variation-service now says "Gemini's responseSchema misrenders nested object arrays as strings (issue #1748)"; output-schema now says "Gemini's responseSchema misrenders nested object arrays as string arrays (issue #1748)". Both convey the same gotcha with independent phrasing.
 
-**Verification:** Grep across `src/infra/llm/` for `@ai-summary.*hook` and `afterChange|afterDelete` — no remaining hook-wiring claims. `verify` passes (typecheck + lint clean on modified files).
+2. **Single-sentence @ai-summary (suggestion)** — `cache-schema-version.ts:4` was one compressed sentence with em-dashes. Split into two sentences (purpose + gotcha) matching the established convention in sibling `published-prompt-cache.ts`. The purpose clause now ends with a period after "evicted on read and regenerated"; the gotcha clause follows as a second sentence.
+
+3. **Hook-wiring fix (prior round)** — function-level JSDoc on `invalidatePublishedInteractiveLessonPrompt()` had stale claim "fired by the Prompts collection's afterChange/afterDelete hook". Corrected to "Exists for manual use — there is no hook that automatically calls this".
+
+**Verification:** `verify` passes (typecheck + lint clean on all modified files).

@@ -4,7 +4,7 @@
  *
  * @fileType service
  * @domain ai
- * @ai-summary Pins to `gemini-3.1-pro-preview` — only model where schema-constrained output on content.blocks is reliable (2.5-pro silently collapses structured output). Per-call timeout is 600s. Output is sanitized via Zod safeParse + targeted field migrations before writing to Payload. MODEL VERSION IS PINNED to gemini-3.1-pro-preview — not latest, not a config value. This is intentional (see comment at VARIATION_MODEL_VERSION). The two-pass design (creative then deterministic) is required: pass 1 rewrites questions at temp 0.7 but can't be trusted for solutions. Per-exercise failures are isolated — one bad exercise doesn't sink the whole run.
+ * @ai-summary MODEL VERSION IS PINNED to `gemini-3.1-pro-preview` — only model where schema-constrained output on content.blocks is reliable; 2.5-pro silently misrenders nested object arrays as strings (issue #1748). Per-call timeout is 600s. Output is sanitized via Zod safeParse + targeted field migrations before writing to Payload. This is intentional (see comment at VARIATION_MODEL_VERSION). The two-pass design (creative then deterministic) is required: pass 1 rewrites questions at temp 0.7 but can't be trusted for solutions. Per-exercise failures are isolated — one bad exercise doesn't sink the whole run.
  */
 import { readFileSync } from 'fs'
 import { join } from 'path'

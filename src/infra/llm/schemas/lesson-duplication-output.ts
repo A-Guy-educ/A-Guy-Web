@@ -1,7 +1,7 @@
 /**
  * Zod schemas documenting the intended output shapes for lesson duplication
  *
- * @ai-summary These schemas are NOT wired to Gemini's responseSchema — both passes use text-mode parsing with post-hoc safeParse validation. Gemini's responseSchema collapses nested object arrays into literal string arrays (issue #1748). If Genkit/Gemini structured-output support improves, pass 1 can opt back in by re-adding outputSchema. sanitizeAiBlocks + payload.create's strict Zod validation are the actual enforcement.
+ * @ai-summary These schemas are NOT wired to Gemini's responseSchema — both passes use text-mode parsing with post-hoc safeParse validation. Gemini's responseSchema misrenders nested object arrays as string arrays (issue #1748). If Genkit/Gemini structured-output support improves, pass 1 can opt back in by re-adding outputSchema. sanitizeAiBlocks + payload.create's strict Zod validation are the actual enforcement.
  *
  * @fileType schema
  * @domain ai
