@@ -1,24 +1,16 @@
 {
   "taskId": "222",
   "taskType": "pr",
-  "target": "gh-27793946096-1-1",
+  "target": "gh-27808811748-1-1",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Fixed BLOCK: removed false hook claim from published-prompt-cache.ts @ai-summary. Fixed WARN: synthesized duplicate @ai-summary tags in 8 files. All quality gates pass.",
+  "reason": "Fixed CONCERN: removed stale hook-wiring claim from invalidatePublishedInteractiveLessonPrompt() JSDoc. No other @ai-summary hook claims remain in src/infra/llm/. verify passes.",
   "prUrl": null,
   "runUrl": null,
   "filesTouched": [
-    "src/infra/llm/services/interactive-lesson/published-prompt-cache.ts",
-    "src/infra/llm/genkit/genkit-instance.ts",
-    "src/infra/llm/providers/shared/retry.ts",
-    "src/infra/llm/providers/shared/timeout.ts",
-    "src/infra/llm/providers/shared/media-reader.ts",
-    "src/infra/llm/providers/shared/index.ts",
-    "src/infra/llm/prompt-composer.server.ts",
-    "src/infra/llm/providers/shared/validation.ts",
-    "src/infra/llm/system-prompts.server.ts"
+    "src/infra/llm/services/interactive-lesson/published-prompt-cache.ts"
   ],
-  "sessionLog": ".kody/sessions/gh-27793946096-1-1.jsonl",
-  "startedAt": "2026-06-18T00:00:00.000Z",
-  "finishedAt": "2026-06-18T00:00:00.000Z"
+  "sessionLog": null,
+  "startedAt": "2026-06-19T00:00:00.000Z",
+  "finishedAt": "2026-06-19T00:00:00.000Z"
 }

@@ -1,19 +1,10 @@
 ## What was done
 
-Applied review feedback to PR #222 (task 103 doc-coverage + task 222 merge conflict resolution).
+Round 2 fix — applied review feedback from PR #222.
 
-Two types of fixes:
+**Single fix:** The function-level JSDoc on `invalidatePublishedInteractiveLessonPrompt()` (lines 70-73) still claimed "fired by the Prompts collection's afterChange / afterDelete hook" — the same false hook-wiring claim that the module-level `@ai-summary` had already been corrected to remove. The function-level comment was overlooked in the prior round.
 
-1. **BLOCK fix — published-prompt-cache.ts**: Removed the false claim that "Prompts afterChange/afterDelete hook eagerly calls invalidatePublishedInteractiveLessonPrompt()". Verified by cross-file grep: the function has zero callers. Replaced with "invalidatePublishedInteractiveLessonPrompt() exists for manual use but has no hook wiring it."
+**Change:** Replaced the lines 70-73 JSDoc with:
+> "Drop the cached prompt. Exists for manual use — there is no hook that automatically calls this; the 30s TTL is the only invalidation mechanism. Safe to call when no entry is cached."
 
-2. **WARN fix — 8 files with duplicate @ai-summary tags**: The prior merge concatenated two JSDoc blocks rather than synthesizing one. Each file now has a single synthesized @ai-summary:
-   - genkit-instance.ts: merged process-scoped cache description with 30s ConfigValues TTL note
-   - retry.ts: merged exponential backoff description with error-wrap / cause-chain note
-   - timeout.ts: merged Promise.race description with background-operation / AbortController note
-   - media-reader.ts: merged two-tier description with blob URL fetch tier and 30s timeout note
-   - shared/index.ts: merged barrel re-export description with internal-file-structure-isolation note
-   - prompt-composer.server.ts: merged 11-section description with budget-truncation specifics
-   - validation.ts: merged input validation description with LLMError / boundary-note note
-   - system-prompts.server.ts: merged ASC order description with graceful-degradation / overrideAccess note
-
-Quality gates: `verify` passes (typecheck, lint, format all clean).
+**Verification:** Grep across `src/infra/llm/` for `@ai-summary.*hook` and `afterChange|afterDelete` — no remaining hook-wiring claims. `verify` passes (typecheck + lint clean on modified files).

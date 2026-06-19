@@ -68,9 +68,9 @@ export async function getPublishedInteractiveLessonPrompt(
 }
 
 /**
- * Drop the cached prompt — fired by the Prompts collection's afterChange /
- * afterDelete hook so admin edits are visible to the next request without
- * waiting out the TTL. Safe to call when no entry is cached.
+ * Drop the cached prompt. Exists for manual use — there is no hook that
+ * automatically calls this; the 30s TTL is the only invalidation mechanism.
+ * Safe to call when no entry is cached.
  */
 export function invalidatePublishedInteractiveLessonPrompt(): void {
   cache = null
