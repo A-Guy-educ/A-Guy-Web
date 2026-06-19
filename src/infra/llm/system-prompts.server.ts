@@ -4,12 +4,12 @@
  * @ai-summary Returns published system prompts ordered by `createdAt ASC, id ASC`
  * (oldest first). The tiebreaker is intentional: if two prompts share a timestamp,
  * `id` as tiebreaker ensures the sort is stable across DB restarts or replica lag.
- * Returns an empty array gracefully when none exist — callers must handle that case.
+ * Returns empty array if no prompts exist (graceful degradation). Prompts are
+ * admin-only, hence overrideAccess: true.
  *
  * @fileType ai-utility
  * @domain chat
  * @pattern server-only
- * @ai-summary Returns empty array if no prompts exist (graceful degradation). Sort order is ASC by createdAt then id as tiebreaker — this is deterministic even if multiple prompts share the same timestamp. Prompts are admin-only, hence overrideAccess: true.
  */
 import type { Prompt } from '@/infra/types/content'
 import { logger } from '@/infra/utils/logger'

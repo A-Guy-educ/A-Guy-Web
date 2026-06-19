@@ -7,10 +7,13 @@
  * warning, meaning a lesson that exceeded the budget will re-generate audio on
  * every load. The per-lesson 8MB budget is set to keep the total document under
  * Mongo's 16MB limit; if the JSON alone approaches that, the document is at risk.
- *
- * @ai-summary Calls Gemini directly (not via Genkit adapter) to use responseSchema for constrained output. The responseSchema approach means Gemini is forced to emit exactly the expected JSON shape — no parsing, no schema drift. Reliability primitives (circuit breaker, timeout 180s, retry 2x) wrap every call. Speech synthesis is attempted per-step after geometry extraction — failures are non-fatal (older lessons just lack audio).
- *
- * Two-pass approach: LLM extracts geometry + proof, we render SVG deterministically.
+ * Calls Gemini directly (not via Genkit adapter) to use responseSchema for constrained
+ * output. The responseSchema approach means Gemini is forced to emit exactly the
+ * expected JSON shape — no parsing, no schema drift. Reliability primitives (circuit
+ * breaker, timeout 180s, retry 2x) wrap every call. Speech synthesis is attempted
+ * per-step after geometry extraction — failures are non-fatal (older lessons just
+ * lack audio). Two-pass approach: LLM extracts geometry + proof, we render SVG
+ * deterministically.
  *
  * @fileType service
  * @domain ai

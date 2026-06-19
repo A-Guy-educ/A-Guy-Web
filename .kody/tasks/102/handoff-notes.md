@@ -1,24 +1,29 @@
-## Merge Conflict Resolution — PR #102
+## Fix Round: Collapsed Duplicate @ai-summary Blocks
 
-Resolved 34 conflicted files in `src/infra/llm/` where HEAD (PR branch) added standardized `@fileType`, `@domain`, `@pattern` JSDoc tags and origin/dev had more detailed `@ai-summary` descriptions.
+PR #102 received CONCERNS feedback: 12 files had two separate `@ai-summary` tags due to asymmetric merge conflict resolution, and 4 of those also had verbatim repeated sentences.
 
-### Resolution Strategy
-All conflicts were asymmetric — HEAD added structured metadata tags while origin/dev added descriptive `@ai-summary` content. Resolution: take HEAD's `@fileType/@domain/@pattern` tags and merge in origin/dev's additional `@ai-summary` detail as extra sentences/paragraphs within the same tag block.
+### What was fixed
 
-### Files Resolved
-All 34 conflicted files in the PR:
-- `chat-message-role.ts`, `context-policy.ts`, `doc-chunk-types.ts`, `doc-search.ts`, `embeddings.ts`
-- `errors.ts`, `exercise-context.ts`
-- `genkit/adapters/unified-adapter.ts`, `genkit/config-resolver.ts`
-- `index.ts`, `maintenance.ts`, `memory-extraction.ts`, `models.ts`
-- `multimodal/types.ts`, `observability.ts`, `prompt-resolver.server.ts`
-- `providers/factory.ts`, `providers/shared/constants.ts`, `providers/shared/sleep.ts`, `providers/shared/validation.ts`
-- `schemas/lesson-duplication-output.ts`
-- `services/answer-validation-service.ts`, `services/content-translation-service.ts`, `services/data-extractor-service.ts`, `services/exercise-chat-service.ts`, `services/image-optimizer-service.ts`
-- `services/interactive-lesson/cache-schema-version.ts`, `interactive-lesson-schema.ts`, `interactive-lesson-types.ts`, `published-prompt-cache.ts`
-- `services/support-generation-prompt-builder.ts`, `summary.ts`, `vector-index-check.ts`
+15 files edited to collapse duplicate `@ai-summary` blocks into single coherent blocks:
+
+1. `interactive-lesson-generation-service.ts` — merged two @ai-summary blocks (Gemini responseSchema/audio cache + two-pass approach)
+2. `lesson-to-guided-explanation.ts` — merged two @ai-summary blocks (SVG rendering + XSS guard)
+3. `lesson-duplication-variation-service.ts` — merged two @ai-summary blocks (two-pass variation + model pinning)
+4. `providers/types.ts` — merged two @ai-summary blocks
+5. `genkit-instance.ts` — merged two @ai-summary blocks
+6. `teacher-profile-block.ts` — merged two @ai-summary blocks
+7. `system-prompts.server.ts` — merged two @ai-summary blocks
+8. `prompt-composer.server.ts` — merged two @ai-summary blocks
+9. `providers/shared/timeout.ts` — merged two @ai-summary blocks
+10. `providers/shared/index.ts` — merged two @ai-summary blocks
+11. `providers/shared/media-reader.ts` — merged two @ai-summary blocks
+12. `providers/shared/retry.ts` — merged two @ai-summary blocks
+13. `schemas/lesson-duplication-output.ts` — removed duplicate sentence about Gemini responseSchema collapse
+14. `chat-message-role.ts` — removed duplicate sentence about ChatRole vs AccountRole
+15. `errors.ts` — merged two @ai-summary fragments into one
+16. `genkit/config-resolver.ts` — removed duplicate sentence about config hierarchy
 
 ### Verification
 - `pnpm typecheck` — pass
-- `pnpm lint` — pass (pre-existing warnings only, unrelated to changes)
-- No conflict markers remain in any file
+- `pnpm lint` — pass
+- No conflict markers, no duplicate `*/` issues

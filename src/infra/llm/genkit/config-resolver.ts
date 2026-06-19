@@ -5,7 +5,8 @@
  * defaults). **maxOutputTokens uses `Math.max` across tiers**, meaning a higher
  * value from DB config always wins over the code default — preventing truncation
  * without requiring code changes. If ConfigValues is unavailable, the entire block
- * silently falls through to hardcoded defaults. Config hierarchy: env-var override > ConfigValues (DB) > MODEL_REGISTRY (code defaults). If ConfigValues are unavailable at runtime, falls back silently to registry defaults — the app won't crash but will use less-specific model configs. maxOutputTokens takes the higher of DB and registry to avoid truncation.
+ * silently falls through to hardcoded defaults — the app won't crash but will use
+ * less-specific model configs.
  *
  * Configuration hierarchy (highest → lowest):
  * 1. LLM_MODEL_OVERRIDE_* env vars

@@ -5,13 +5,16 @@
  * the renderer). **When the LLM populates more than one scene kind**, only the
  * first by priority (graph > numberLine > geometry > equation) is rendered —
  * the rest are silently dropped. The `pickSceneKind` warning is the only signal
- * of this, so monitor server logs for it.
+ * of this, so monitor server logs for it. LLM-generated labels (GeoLabel.text,
+ * GeoPoint.label) are XML-escaped before insertion into HTML — the critical guard
+ * against XSS from model output. Segment IDs are canonicalized (alphabetically
+ * sorted) so "A→D" and "D→A" produce the same ID. Both scene kinds (geometry
+ * and equation) are supported; if the lesson has geometry data it takes precedence
+ * over graph and numberLine.
  *
  * @fileType utility
  * @domain ai
  * @pattern renderer
- *
- * @ai-summary LLM-generated labels (GeoLabel.text, GeoPoint.label) are XML-escaped before insertion into HTML — this is the critical guard against XSS from model output. Segment IDs are canonicalized (alphabetically sorted) so "A→D" and "D→A" produce the same ID. Both scene kinds (geometry and equation) are supported; if the lesson has geometry data it takes precedence over graph and numberLine.
  *
  * Two scene kinds:
  *  - geometry: segments/points/angles from a diagram.

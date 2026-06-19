@@ -8,9 +8,11 @@
  * **If pass 2 returns an empty patch, the pass-1 answer is kept as-is** — correct
  * for non-question blocks but risky if pass 1 hallucinated a wrong solution. The
  * `sanitizeAiBlocks` strip is the safety net for unrecognized keys, but it cannot
- * fix a semantically wrong answer.
- *
- * @ai-summary MODEL VERSION IS PINNED to gemini-3.1-pro-preview — not latest, not a config value. This is intentional (see comment at VARIATION_MODEL_VERSION). The two-pass design (creative then deterministic) is required: pass 1 rewrites questions at temp 0.7 but can't be trusted for solutions. Per-exercise failures are isolated — one bad exercise doesn't sink the whole run. Per-LLM-call timeout is 600s; worst-case wall time per exercise can approach 10 minutes with all retries exhausted.
+ * fix a semantically wrong answer. MODEL VERSION IS PINNED to gemini-3.1-pro-preview —
+ * not latest, not a config value. This is intentional (see comment at VARIATION_MODEL_VERSION).
+ * Per-exercise failures are isolated — one bad exercise doesn't sink the whole run.
+ * Per-LLM-call timeout is 600s; worst-case wall time per exercise can approach
+ * 10 minutes with all retries exhausted.
  *
  * Service signature: generateVariation({ exercise, level, subject }): Promise<{ exercise: Exercise }>
  *

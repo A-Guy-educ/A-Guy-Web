@@ -4,10 +4,11 @@
  * @ai-summary Two-variant enum (Gemini / OpenAI-compatible). Adding a third
  * provider requires updating this file, the error adapter, the instance manager,
  * and every place that does string-switching on provider type — search carefully.
+ * Only two providers: GEMINI and OPENAI_COMPATIBLE. The string values match the
+ * LLM_PROVIDER env var — do not change them without updating the env var convention.
  *
  * @fileType types
  * @domain ai
- * @ai-summary Only two providers: GEMINI and OPENAI_COMPATIBLE. The string values match the LLM_PROVIDER env var — do not change them without updating the env var convention.
  */
 
 // Provider types - matches LLM_PROVIDER env var values

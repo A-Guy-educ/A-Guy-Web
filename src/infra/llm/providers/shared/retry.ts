@@ -5,12 +5,13 @@
  * is not supplied, every error is retried**, which can turn a non-transient
  * validation error (bad input, missing field) into a storm of redundant calls.
  * The jitter factor (10%) prevents thundering-herd when multiple clients back off
- * simultaneously.
+ * simultaneously. Retries with exponential backoff and jitter. If maxRetries is
+ * exhausted, throws the LAST error wrapped by wrapError — the original error context
+ * is lost. Ensure wrapError preserves the cause chain for debugging.
  *
  * @fileType utility
  * @domain ai
  * @pattern retry
- * @ai-summary Retries with exponential backoff and jitter. If maxRetries is exhausted, throws the LAST error wrapped by wrapError — the original error context is lost. Ensure wrapError preserves the cause chain for debugging.
  */
 
 export interface RetryOptions<E extends Error> {

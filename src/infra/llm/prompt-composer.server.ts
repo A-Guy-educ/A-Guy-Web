@@ -6,11 +6,15 @@
  * last (safest fallback). Image-handling instructions are conditionally appended —
  * **when absent, the model may respond to image-less chats with "please upload
  * an image"** because the image rules dominate when included without a check.
+ * IMAGE_HANDLING_INSTRUCTIONS are appended ONLY when hasImageAttached=true (the default).
+ * Omitting them when there's no image is critical — when these rules are present
+ * without an image, Gemini falls back to "please upload an image" even in text-only
+ * chats with full context. Exercise content is budget-truncated: 400 chars per
+ * exercise, 4000 chars total for the exercises section.
  *
  * @fileType ai-utility
  * @domain chat
  * @pattern server-only
- * @ai-summary IMAGE_HANDLING_INSTRUCTIONS are appended ONLY when hasImageAttached=true (the default). Omitting them when there's no image is critical — when these rules are present without an image, Gemini falls back to "please upload an image" even in text-only chats with full context. Exercise content is budget-truncated: 400 chars per exercise, 4000 chars total for the exercises section.
  */
 
 export const SYSTEM_PROMPT_SEPARATOR = '\n\n---\n\n'

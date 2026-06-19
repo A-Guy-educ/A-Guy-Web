@@ -5,7 +5,9 @@
  * and pass 2 (deterministic). **NOT wired to Gemini's responseSchema** — Gemini
  * collapses nested object schemas to flat string arrays (issue #1748). Validation
  * is post-hoc only via `safeParse`. If a future Gemini version fixes responseSchema,
- * these schemas can be re-connected to the adapter call. These schemas are NOT wired to Gemini's responseSchema — both passes use text-mode parsing with post-hoc safeParse validation. Gemini's responseSchema collapses nested object arrays into literal string arrays (issue #1748). If Genkit/Gemini structured-output support improves, pass 1 can opt back in by re-adding outputSchema. sanitizeAiBlocks + payload.create's strict Zod validation are the actual enforcement.
+ * these schemas can be re-connected to the adapter call. Gemini's responseSchema
+ * collapses nested object arrays into literal string arrays (issue #1748). sanitizeAiBlocks
+ * + payload.create's strict Zod validation are the actual enforcement.
  *
  * Status (2026-05-13):
  *  - `SolutionDerivationOutputSchema` (pass 2): POST-HOC VALIDATION ONLY.
