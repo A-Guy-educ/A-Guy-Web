@@ -1,6 +1,3 @@
-Fixed two files that still contained unresolved merge conflict markers (<<<<<<< HEAD, =======, >>>>>>> origin/dev) inside their @ai-summary JSDoc blocks.
+Fixed incorrect @ai-summary in summary.ts:5. The summary claimed absent OPENAI_API_KEY causes extraction to silently return empty, but generateSummary() actually throws Error('OPENAI_API_KEY environment variable is not set') — confirmed at line 101. The error appears to have been copy-pasted from memory-extraction.ts, which DOES skip gracefully (logger.warn at line 134). Updated the summary to correctly describe the throw behavior and note that callers must handle the error, not treat it as an empty-result case.
 
-- `support-generation-prompt-builder.ts`: merged HEAD's emphasis on @ts-nocheck and dynamic block properties with origin/dev's warning about manual sync requirements and prompt format compatibility.
-- `support-generation-service.ts`: merged HEAD's server-side-only guarantee with origin/dev's pedagogical explanation that "solution" is a guiding question, plus the retry-on-missing-fields behavior.
-
-Quality gates: `pnpm typecheck` and `pnpm lint` both pass.
+Quality gates: `pnpm typecheck`, `pnpm lint`, and `pnpm format` all pass.

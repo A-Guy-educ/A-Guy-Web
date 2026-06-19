@@ -4,14 +4,13 @@
   "target": "gh-27783047069-1-1",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Resolved merge conflict markers in support-generation-prompt-builder.ts and support-generation-service.ts. Both had symmetric @ai-summary conflicts from HEAD vs origin/dev; merged into comprehensive summaries. Typecheck and lint pass.",
+  "reason": "Fixed incorrect @ai-summary in summary.ts:5 — the summary said absent OPENAI_API_KEY causes silent empty return, but generateSummary() actually throws. Corrected to reflect throw behavior. Typecheck, lint, and format all pass.",
   "prUrl": null,
   "runUrl": null,
   "filesTouched": [
-    "src/infra/llm/services/support-generation-prompt-builder.ts",
-    "src/infra/llm/services/support-generation-service.ts"
+    "src/infra/llm/summary.ts"
   ],
   "sessionLog": ".kody/sessions/89.jsonl",
   "startedAt": "2026-06-18T00:00:00.000Z",
-  "finishedAt": "2026-06-18T12:00:00.000Z"
+  "finishedAt": "2026-06-19T00:00:00.000Z"
 }
