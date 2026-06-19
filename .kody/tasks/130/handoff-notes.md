@@ -1,19 +1,15 @@
-## Review Feedback Application: PR #130 — Fix Round 3
+## Review Feedback Application: PR #130 — Fix Round 4
 
 ### Items addressed
 
-**Item 1 — `useDebounce.ts` missing `'use client'`**
+**Item 1 — `'use client'` placement inconsistent in `useDebounce.ts`**
 
-Added `'use client'` directive at line 1. All sibling hooks in this folder carry this directive and the README states "all are client-only (marked 'use client')".
+Moved `'use client'` from line 1 to after the JSDoc block (now line 8), matching the pattern in `useAccessGate.ts:10`, `useCurrentUser.ts:10`, `useCourseSearch.ts:10`, etc.
 
-**Item 2 — `useMediaQuery.ts` missing `'use client'`**
+**Item 2 — `'use client'` placement inconsistent in `useMediaQuery.ts`**
 
-Added `'use client'` directive at line 1. Same reasoning — uses `window.matchMedia` and `useEffect`, clearly client-only.
-
-**Item 3 — README table separator widths**
-
-The separator widths (22/63/113 dashes) are Prettier's default table formatting output, calculated from actual column content widths (20/65/113 chars). There is no `.prettierrc` override for table separators in this project. Forcing non-default widths would require a Prettier plugin or override that conflicts with project formatting conventions. Declined.
+Same fix: moved `'use client'` from line 1 to after the JSDoc block (now line 10), matching the established folder pattern.
 
 ### No other changes
 
-All hook file contents unchanged — only `'use client'` was prepended to the two flagged files.
+No functional changes — only the directive ordering was updated to align within the folder.

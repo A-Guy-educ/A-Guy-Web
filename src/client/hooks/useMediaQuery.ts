@@ -1,5 +1,3 @@
-'use client'
-
 /**
  * @fileType hook
  * @domain utility
@@ -8,6 +6,8 @@
  *
  * Gotcha: Initial render returns `null` (treated as `false`), then updates on the client after `window.matchMedia` runs. This can cause a hydration mismatch in SSR frameworks — wrap in a client-only boundary or accept the initial `false`.
  */
+
+'use client'
 
 import { useEffect, useState } from 'react'
 
