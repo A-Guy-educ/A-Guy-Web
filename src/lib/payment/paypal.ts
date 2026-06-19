@@ -244,6 +244,7 @@ export async function capturePayPalOrder(orderId: string): Promise<{ captureId: 
  * @param providerTransactionId - PayPal capture ID to refund
  * @param amount - Optional refund amount in smallest currency unit
  * @param currency - Currency code (default USD)
+ * @returns void
  */
 export async function refundPayPal(
   providerTransactionId: string,
@@ -283,6 +284,7 @@ export async function refundPayPal(
  * Used when transaction record creation fails after order was created
  *
  * @param providerTransactionId - PayPal order ID to void
+ * @returns void
  */
 export async function cancelPayPalOrder(providerTransactionId: string): Promise<void> {
   const token = await getPayPalAccessToken()
