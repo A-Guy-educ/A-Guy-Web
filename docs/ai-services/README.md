@@ -554,7 +554,7 @@ interface InteractiveLessonStep {
   highlightPlots?: string[]       // plot ids — graph scene
   highlightMarkers?: string[]     // marker ids — graph scene
   highlightMarks?: string[]       // mark ids — number-line scene
-  highlightIntervals?: string[][] // interval ids — number-line scene
+  highlightIntervals?: string[] // interval ids — number-line scene
   audioBase64?: string           // pre-baked TTS narration
 }
 
@@ -611,6 +611,77 @@ return { lesson: validateLesson(parseResponse(responseText), locale), sizeBytes 
 #### Subject Selection
 
 Valid subjects: `mixed`, `algebra`, `geometry`, `calculus`, `other`. Each subject has its own LLM prompts at `prompts/lesson-duplication/<subject>-<level>-agent-prompt.md`.
+
+#### API
+
+```typescript
+import { generateVariation } from '@/infra/llm/services/lesson-duplication-variation-service'
+
+type DuplicationSubject = 'algebra' | 'geometry' | 'calculus' | 'mixed' | 'other'
+
+interface GenerateVariationInput {
+  exercise: Exercise
+  level: 'light' | 'medium' | 'deep'
+  subject: DuplicationSubject
+}
+
+async function generateVariation(
+  input: GenerateVariationInput,
+  payload: Payload,
+): Promise<{ exercise: Exercise; tokensUsed: TokensUsed }>
+```
+
+#### Usage Example
+
+```typescript
+import { generateVariation } from '@/infra/llm/services/lesson-duplication-variation-service'
+
+// Generate a medium-level algebra variation of a single exercise
+const result = await generateVariation(
+  {
+    exercise: sourceExercise,
+    level: 'medium',
+    subject: 'algebra',
+  },
+  payload,
+)
+
+console.log(result.exercise.content.blocks) // AI-generated variation blocks
+console.log(result.tokensUsed) // { inputTokens: 1200, outputTokens: 800 }
+```
+
+#### Response Format
+
+```json
+{
+  "exercise": {
+    "id": "source-exercise-id",
+    "content": {
+      "blocks": [
+        {
+          "id": "block-1",
+          "type": "question_select",
+          "variant": "mcq",
+          "prompt": { "type": "rich_text", "format": "md-math-v1", "value": "What is $3+3$?", "mediaIds": [] },
+          "answer": {
+            "options": [
+              { "id": "a", "content": { "type": "rich_text", "format": "md-math-v1", "value": "5", "mediaIds": [] } },
+              { "id": "b", "content": { "type": "rich_text", "format": "md-math-v1", "value": "6", "mediaIds": [] } }
+            ],
+            "correctOptionIds": ["b"]
+          },
+          "solution": { "type": "rich_text", "format": "md-math-v1", "value": "3+3=6", "mediaIds": [] },
+          "fullSolution": { "type": "rich_text", "format": "md-math-v1", "value": "Step-by-step: ...", "mediaIds": [] }
+        }
+      ]
+    }
+  },
+  "tokensUsed": {
+    "inputTokens": 1200,
+    "outputTokens": 800
+  }
+}
+```
 
 ---
 
