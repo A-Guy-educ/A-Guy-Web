@@ -1,22 +1,26 @@
 ## What happened
 
-Second round of review feedback applied to PR #207 (doc coverage: src/lib/payment/).
+Applied second-pass review feedback to PR #207 (doc coverage: src/lib/payment/).
 
-## Outcome: PASS
+## Reviewer CONCERN addressed
 
-The reviewer concern flagged documentation redundancy in `index.ts`. All three Gotcha bullets duplicated information already captured in per-module `@ai-summary` tags:
+The sole CONCERN flagged that `paypal.ts`'s `@ai-summary` did not document `cancelPayPalOrder`'s void-only semantics, creating an asymmetry with `stripe.ts`'s tag which explicitly notes that `cancelStripeCheckout` "voids the provider session, not the DB record."
 
-- Bullet 1 (webhook gates on `payment_status=paid`) mirrored `grant-entitlements.ts` `@ai-summary`.
-- Bullet 2 (cancel functions are DB-failure cleanup only) mirrored `stripe.ts` and `paypal.ts` `@ai-summary`.
-- Bullet 3 (`grantEntitlements()` is a no-op stub) mirrored `grant-entitlements.ts` `@ai-summary`.
+The code comment at `paypal.ts:270-271` already describes this: "Cancel/void a PayPal order. Used when transaction record creation fails after order was created." — identical semantics to the Stripe counterpart.
 
-### Fix applied (WARN resolution)
-- `src/lib/payment/index.ts:8-12` — Removed the entire `Gotchas` block. Per-module `@ai-summary` tags are the authoritative source for this information.
+### Fix applied
+
+- `src/lib/payment/index.ts` — Removed redundant `Gotchas` block (first-pass fix, already on branch).
+- `src/lib/payment/paypal.ts:6` — Appended void-only semantics clause to `@ai-summary`:
+
+  > Use cancelPayPalOrder ONLY as cleanup when DB write fails after order creation — it voids the provider order, not the DB record.
+
+  This now mirrors the `stripe.ts` `@ai-summary` exactly, restoring symmetry that was previously covered by the now-removed Gotchas block.
 
 ## Files touched
 
-- `src/lib/payment/index.ts` — Removed redundant Gotchas block from JSDoc header.
+- `src/lib/payment/paypal.ts` — extended `@ai-summary` with `cancelPayPalOrder` void-only semantics note.
 
-## Notes
+## Quality gates
 
-Quality gates confirmed green via `verify` tool (typecheck, lint, tests all pass).
+`verify` tool: typecheck, lint, tests — 0 failures.
