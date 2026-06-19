@@ -7,7 +7,7 @@
   "reason": "Pure dev-dependency bump PR; CONCERNS verdict was due to .kody/tasks/ artifacts being committed — fixed by adding .kody/tasks/ to .gitignore in this round.",
   "prUrl": null,
   "runUrl": null,
-  "filesTouched": [".gitignore", ".kody/tasks/252/context.json", ".kody/tasks/252/handoff-notes.md"],
+  "filesTouched": [".gitignore", ".kody/tasks/252/context.json", ".kody/tasks/252/handoff-notes.md", ".kody/tasks/252/followups.json", ".kody/tasks/252/memory-recs.json", "package.json", "pnpm-lock.yaml"],
   "sessionLog": null,
   "startedAt": "2026-06-18T00:00:00.000Z",
   "finishedAt": "2026-06-19T00:00:00.000Z"
