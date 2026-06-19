@@ -1,17 +1,21 @@
 ## What happened
 
-Applied review feedback to PR #207 (doc coverage: src/lib/payment/).
+Second round of review feedback applied to PR #207 (doc coverage: src/lib/payment/).
 
-## Outcome: PASS (diff-only, with one WARN fix)
+## Outcome: PASS
 
-The PR correctly added `@ai-summary` to all 6 modules and created `index.ts` with gotcha documentation. One cosmetic style gap was flagged:
+The reviewer concern flagged documentation redundancy in `index.ts`. All three Gotcha bullets duplicated information already captured in per-module `@ai-summary` tags:
+
+- Bullet 1 (webhook gates on `payment_status=paid`) mirrored `grant-entitlements.ts` `@ai-summary`.
+- Bullet 2 (cancel functions are DB-failure cleanup only) mirrored `stripe.ts` and `paypal.ts` `@ai-summary`.
+- Bullet 3 (`grantEntitlements()` is a no-op stub) mirrored `grant-entitlements.ts` `@ai-summary`.
 
 ### Fix applied (WARN resolution)
-- `src/lib/payment/grant-entitlements.ts:1` — Added missing description line `Grant Entitlements` between `/**` and `@fileType`, matching the pattern in `stripe.ts`, `paypal.ts`, `error-log.ts`, and `types.ts`.
+- `src/lib/payment/index.ts:8-12` — Removed the entire `Gotchas` block. Per-module `@ai-summary` tags are the authoritative source for this information.
 
 ## Files touched
 
-- `src/lib/payment/grant-entitlements.ts` — Added `Grant Entitlements` description line to JSDoc header.
+- `src/lib/payment/index.ts` — Removed redundant Gotchas block from JSDoc header.
 
 ## Notes
 

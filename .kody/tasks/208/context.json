@@ -4,13 +4,13 @@
   "target": "207-doc-coverage-srclibpayment-payment-provider-integr",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Added missing description line 'Grant Entitlements' to grant-entitlements.ts JSDoc header, matching sibling modules.",
+  "reason": "Removed redundant Gotchas block from index.ts per reviewer concern — per-module @ai-summary tags are authoritative.",
   "prUrl": null,
   "runUrl": null,
   "filesTouched": [
-    "src/lib/payment/grant-entitlements.ts"
+    "src/lib/payment/index.ts"
   ],
-  "sessionLog": ".kody/sessions/gh-27830830511-1.jsonl",
+  "sessionLog": ".kody/sessions/gh-27846979397-1.jsonl",
   "startedAt": "2026-06-19T00:00:00Z",
   "finishedAt": "2026-06-19T00:00:00Z"
 }
