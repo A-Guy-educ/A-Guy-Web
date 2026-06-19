@@ -33,7 +33,8 @@ export function NewStartPage() {
     Array<{ role: 'user' | 'ai'; text: string }>
   >([])
   const [simulationInput, setSimulationInput] = useState('')
-  const pendingAiRef = useRef<string | null>(null)
+  const pendingAiMapRef = useRef<Map<number, string>>(new Map())
+  const pendingAiIdRef = useRef(0)
 
   // .landing-page body class hides the site header/footer for an immersive
   // full-page landing experience (defined in globals.css).
@@ -51,21 +52,24 @@ export function NewStartPage() {
   const handleSimulationSend = () => {
     const text = simulationInput.trim()
     if (!text) return
+    const id = pendingAiIdRef.current++
+    pendingAiMapRef.current.set(
+      id,
+      'תודה על השאלה! 🤔 אני אשמח לעזור. הקלד עוד פרטים או שאלה ספציפית יותר, ואענה לך בדיוק על מה שאתה צריך.',
+    )
     setSimulationMessages((prev) => [...prev, { role: 'user', text }])
     setSimulationInput('')
-    pendingAiRef.current =
-      'תודה על השאלה! 🤔 אני אשמח לעזור. הקלד עוד פרטים או שאלה ספציפית יותר, ואענה לך בדיוק על מה שאתה צריך.'
     setTimeout(() => {
       try {
         setSimulationMessages((prev) => {
-          const aiText = pendingAiRef.current
-          pendingAiRef.current = null
+          const aiText = pendingAiMapRef.current.get(id)
+          pendingAiMapRef.current.delete(id)
           return aiText ? [...prev, { role: 'ai' as const, text: aiText }] : prev
         })
       } catch (error) {
         logger.error({ err: error }, 'Failed to add simulation AI message')
-        pendingAiRef.current = null
-        setSimulationMessages((prev) => prev.filter((m) => m.text !== text || m.role !== 'user'))
+        pendingAiMapRef.current.delete(id)
+        setSimulationMessages((prev) => prev.filter((m) => m.role !== 'user' || m.text !== text))
       }
     }, 800)
   }
@@ -98,7 +102,6 @@ export function NewStartPage() {
         <SimulationSection
           simulationMessages={simulationMessages}
           simulationInput={simulationInput}
-          pendingAiRef={pendingAiRef}
           onInputChange={setSimulationInput}
           onKeyDown={handleSimulationKey}
           onSend={handleSimulationSend}

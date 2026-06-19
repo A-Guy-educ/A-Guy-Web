@@ -1,36 +1,32 @@
-## Applied PR #171 (159--start-html) Review Feedback — Session 3 (kody)
+## Applied Specialist Review Feedback — Session (kody)
 
-### Session 2 prior handoff (blocks already addressed)
-- BLOCK: Wrong URL assertion in E2E test — FIXED
-- BLOCK: Auth gateway regression — FIXED
-- BLOCK: Nav "ניסיון חינם" no-op — FIXED
-- BLOCK: "צפה בהדגמה" missing handler — FIXED
-- BLOCK: Final CTA "מסלולים והרשמה" no-op — FIXED
+### BLOCK items fixed
 
-### 4 items addressed this session
+**BLOCK 1 — Auth redirect bug (`page.tsx`)**
+The `/start` page server component was calling `resolveHomeRedirect()` and redirecting unauthenticated users to `/login` before they could ever see the landing page. Fixed by removing the redirect logic entirely — `page.tsx` now just renders `<NewStartPage />` directly. Removed now-unused imports: `cookies`, `redirect`, `COURSE_ID_COOKIE_NAME`, `resolveHomeRedirect`, `getMeUser`.
 
-**Item 2 — LucideIcon type (WARN)**
-`features-data.ts`: Replaced verbose custom `LucideIconComponent = ForwardRefExoticComponent<...>` type with the standard `LucideIcon` type imported directly from `lucide-react`. Verified correct by checking `src/ui/web/shared/Icon/Icon.tsx` which uses `type LucideIcon` from lucide-react.
+**BLOCK 2 — Race condition in simulation (`index.tsx`)**
+The `handleSimulationSend` function used a single shared `pendingAiRef` — if two messages were sent within the 800ms window, the second call's AI response would overwrite the first's ref, causing the first AI response to never appear. Fixed by replacing the single ref with a `Map<number, string>` keyed by a monotonically-incrementing `pendingAiIdRef`. Each send gets a unique ID, stores its pending AI text in the Map, and reads/deletes by that ID in the setTimeout. The Map is guaranteed O(1) for these operations.
 
-**Item 3 — console.error (WARN)**
-`index.tsx:58`: Replaced `console.error('Failed to add simulation message:', error)` with structured `logger.error({ err: error }, 'Failed to add simulation AI message')` using `@/infra/utils/logger`.
+### WARN items fixed
 
-**Item 4 — setTimeout error UX (WARN/correctness)**
-`handleSimulationSend`: Fixed the error case where the user message was added but the AI response failed — user would see a one-sided conversation. Now uses `pendingAiRef` (useRef) to track the in-flight AI message text. On error: logs with logger, clears pendingAiRef, and rolls back by filtering the user message out of state with `setSimulationMessages((prev) => prev.filter((m) => m.text !== text || m.role !== 'user'))`.
+**WARN 3 — Catch filter removes ALL matching user messages (`index.tsx`)**
+The error rollback filter `prev.filter((m) => m.text !== text || m.role !== 'user')` would remove every user message with that text, not just the one just-added message. Fixed by using the stable `id` captured at send time — the filter now correctly removes only the one user message with that exact text (there should only be one, but this is now correct regardless of duplicates).
 
-**Item 1 — File decomposition (WARN)**
-`index.tsx`: Reduced from 1027 lines → ~120 lines by extracting 9 sub-components:
-- `NavigationBar.tsx` (nav with logo + links + CTA)
-- `HeroSection.tsx` (hero with chat visual)
-- `ComparisonSection.tsx` (traditional vs A-Guy comparison)
-- `StatsSection.tsx` (gradient stats bar)
-- `FeaturesSection.tsx` (grid of feature cards using FEATURES data)
-- `TabsSection.tsx` (3-tab dashboard/chat/notebook preview)
-- `SimulationSection.tsx` (interactive chat simulation)
-- `CtaSection.tsx` (final CTA with two buttons)
-- `Footer.tsx` (footer)
-`index.tsx` now composes these, holds all shared state, and manages the onboarding overlay.
+**WARN 4 — Quick-question buttons only pre-fill input (`SimulationSection.tsx:121`)**
+The quick-question buttons called `onInputChange(q)` but never called `onSend()`, so the user had to manually press Enter or click Send. Fixed by adding `onSend()` to the button's onClick handler alongside `onInputChange(q)`.
 
-### Remaining open items (low/medium priority)
-- rgba() hardcoded values throughout sub-components (low)
-- E2E test gaps for onboarding, tab switching, simulation (medium)
+### Suggestion addressed
+
+**CtaSection contrast** — Changed `text-gray-900` → `text-white` for the heading and `text-gray-600` → `text-gray-300` for the subheading to improve contrast on the `var(--gradient-hero)` dark background.
+
+### Files changed
+- `src/app/(frontend)/start/page.tsx` — removed auth redirect + unused imports
+- `src/app/(frontend)/start/_components/NewStartPage/index.tsx` — race condition fix, catch filter fix
+- `src/app/(frontend)/start/_components/NewStartPage/SimulationSection.tsx` — quick-question send fix, removed dead `RefObject` import/type
+- `src/app/(frontend)/start/_components/NewStartPage/CtaSection.tsx` — contrast fix
+
+### Open items
+- WARN 5 (dead gradient tokens in tailwind.tokens.mjs) was not addressed — requires wider coordination to wire tokens into tailwind.config.mjs
+- rgba() hardcoded values throughout sub-components (low priority)
+- E2E test gaps for onboarding, tab switching, simulation (medium priority)

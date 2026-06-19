@@ -1,11 +1,8 @@
 'use client'
 
-import type { RefObject } from 'react'
-
 interface SimulationSectionProps {
   simulationMessages: Array<{ role: 'user' | 'ai'; text: string }>
   simulationInput: string
-  pendingAiRef: RefObject<string | null>
   onInputChange: (value: string) => void
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void
   onSend: () => void
@@ -118,7 +115,10 @@ export function SimulationSection({
             {['איך פותרים משוואה ריבועית?', 'מהי נגזרת?', 'הסבר את משפט פיתגורס'].map((q) => (
               <button
                 key={q}
-                onClick={() => onInputChange(q)}
+                onClick={() => {
+                  onInputChange(q)
+                  onSend()
+                }}
                 className="px-4 py-2 rounded-xl text-sm text-gray-300 transition hover:bg-white/20 bg-white/10"
               >
                 {q}

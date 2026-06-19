@@ -8,8 +8,8 @@ export function CtaSection() {
   return (
     <section className="py-24" style={{ background: 'var(--gradient-hero)' }}>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">מוכן להתחיל?</h2>
-        <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
+        <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">מוכן להתחיל?</h2>
+        <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
           הצטרף לאלפי תלמידים שכבר משתמשים ב-A-Guy ומשפרים את הציונים שלהם
         </p>
         <div className="flex flex-wrap justify-center gap-4">

@@ -22,5 +22,13 @@
     "body": "When updating state inside a setTimeout and the state update could fail (e.g. due to React batch limits), use a useRef to track the pending value so it can be rolled back on error.\n\nWhy: A setTimeout closure captures stale state if the enclosing state updates. Using a ref (not state) for the pending value lets the error handler access the current pending value even after the enclosing state has changed. The error handler then rolls back by filtering the user message out of state.\n\nHow to apply: See handleSimulationSend in NewStartPage/index.tsx — pendingAiRef tracks the AI message text while the user message is in-flight.",
     "why": "Without a ref, the error handler would not know what text was pending, making it impossible to correctly roll back a partially-applied state update.",
     "confidence": 0.9
+  },
+  {
+    "type": "lesson",
+    "name": "race-condition-shared-ref",
+    "hook": "Use Map with unique IDs instead of a single shared ref for concurrent pending operations",
+    "body": "When multiple concurrent operations can pend and each needs its own rollback, a single shared ref is insufficient — concurrent operations overwrite each other. Use a Map<id, value> keyed by a monotonically increasing id ref instead.\n\nWhy: A single shared ref holds only one pending value. If two sends happen within the timeout window, the second overwrites the first. The Map approach tracks each pending operation by its own ID.\n\nHow to apply: In NewStartPage/index.tsx, replace `pendingAiRef: RefObject<string | null>` with `pendingAiMapRef: RefObject<Map<number, string>>` + `pendingAiIdRef: RefObject<number>`. Each handleSimulationSend call assigns a unique id from the counter, stores the pending value in the Map, and reads/deletes by that id in the setTimeout callback.",
+    "why": "Without unique IDs, any concurrent sends race — only the last one's response is correctly attributed. The Map approach is O(1) and avoids rebuilding state on every keystroke.",
+    "confidence": 0.95
   }
 ]
