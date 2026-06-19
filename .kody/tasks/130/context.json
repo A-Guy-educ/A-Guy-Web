@@ -1,17 +1,17 @@
 {
   "taskId": "130",
   "taskType": "pr",
-  "target": "gh-27720884263-1-1",
+  "target": "gh-27805101990-1-1",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Fixed review feedback: actually normalized README separator dashes (19/64) after discovering prior commit only touched task metadata files, not the README itself.",
+  "reason": "Added 'use client' to useDebounce and useMediaQuery; README separator widths are Prettier-controlled defaults.",
   "prUrl": null,
   "runUrl": null,
   "filesTouched": [
-    "src/client/hooks/README.md",
-    ".kody/tasks/130/handoff-notes.md"
+    "src/client/hooks/useDebounce.ts",
+    "src/client/hooks/useMediaQuery.ts"
   ],
-  "sessionLog": ".kody/sessions/gh-27780373585-1-1.jsonl",
-  "startedAt": "2026-06-18T12:00:00Z",
-  "finishedAt": "2026-06-18T12:05:00Z"
+  "sessionLog": ".kody/sessions/gh-27805101990-1-1.jsonl",
+  "startedAt": "2026-06-19T00:00:00Z",
+  "finishedAt": "2026-06-19T00:05:00Z"
 }
