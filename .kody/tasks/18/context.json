@@ -4,10 +4,10 @@
   "target": "dependabot/npm_and_yarn/prod-dependencies-d049d0058b",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Removed deprecated @kody-ade/engine and updated pnpm override, allowing @modelcontextprotocol/sdk to resolve to ^1.29.0",
+  "reason": "Verified prior-round fix correct; transitive deps (@babel/core, terser, ws) resolved from legitimate deps, not deprecated @kody-ade/engine",
   "prUrl": "https://github.com/A-Guy-educ/A-Guy-Web/pull/18",
   "runUrl": null,
-  "filesTouched": ["package.json", "next.config.js", "pnpm-lock.yaml"],
+  "filesTouched": [],
   "sessionLog": ".kody/sessions/current.jsonl",
   "startedAt": "2026-06-19T00:00:00.000Z",
   "finishedAt": "2026-06-19T00:00:00.000Z"

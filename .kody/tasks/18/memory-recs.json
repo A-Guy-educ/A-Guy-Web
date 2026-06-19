@@ -1,16 +1,1 @@
-[
-  {
-    "type": "decision",
-    "name": "remove-deprecated-kody-engine",
-    "hook": "Remove @kody-ade/engine when @kody-ade/kody-engine is already used",
-    "body": "When a package is deprecated (like @kody-ade/engine) but a newer replacement (@kody-ade/kody-engine) is already in use, remove the deprecated package from dependencies. This prevents transitive dependency conflicts.\n\nWhy: @kody-ade/engine was pinning @modelcontextprotocol/sdk to 1.27.1 even though the project had ^1.29.0 as a direct dependency. Removing the deprecated package allowed proper semver resolution.\n\nHow to apply: When updating dependencies and seeing unexpected version downgrades, check if deprecated packages are causing transitive dependency conflicts.",
-    "confidence": 0.95
-  },
-  {
-    "type": "preference",
-    "name": "pnpm-overrides-match-direct-deps",
-    "hook": "Keep pnpm overrides aligned with actual dependency version requirements",
-    "body": "pnpm overrides can force a package version independently of semver ranges. When you update a direct dependency's version range, update or remove corresponding overrides to avoid conflicts.\n\nWhy: An override of '>=1.25.2' was conflicting with a direct dependency of '^1.29.0', causing pnpm to resolve to 1.27.1 instead of 1.29.0.\n\nHow to apply: After changing a direct dependency version, check if there's a matching pnpm override that might interfere.",
-    "confidence": 0.9
-  }
-]
+[]
