@@ -53,7 +53,7 @@ jobs:
           fi
 
       - name: Install dependencies
-        run: rm -rf node_modules && pnpm install --frozen-lockfile
+        uses: ./.github/actions/install-with-cleanup
 
       - name: Security audit
         run: pnpm audit --audit-level=high || true # npm retired the audit endpoint as of 2025
@@ -126,7 +126,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: rm -rf node_modules && pnpm install --frozen-lockfile
+        uses: ./.github/actions/install-with-cleanup
 
       - name: Run integration tests
         run: pnpm test:int
@@ -182,7 +182,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: rm -rf node_modules && pnpm install --frozen-lockfile
+        uses: ./.github/actions/install-with-cleanup
 
       - name: Cache .next build
         uses: actions/cache@v4
@@ -248,7 +248,7 @@ jobs:
             ${{ runner.os }}-next-
 
       - name: Install dependencies
-        run: rm -rf node_modules && pnpm install --frozen-lockfile
+        uses: ./.github/actions/install-with-cleanup
 
       - name: Get Playwright version
         id: playwright-version
@@ -350,7 +350,7 @@ jobs:
             ${{ runner.os }}-next-
 
       - name: Install dependencies
-        run: rm -rf node_modules && pnpm install --frozen-lockfile
+        uses: ./.github/actions/install-with-cleanup
 
       - name: Get Playwright version
         id: playwright-version
@@ -447,7 +447,7 @@ jobs:
             ${{ runner.os }}-next-
 
       - name: Install dependencies
-        run: rm -rf node_modules && pnpm install --frozen-lockfile
+        uses: ./.github/actions/install-with-cleanup
 
       - name: Get Playwright version
         id: playwright-version
@@ -531,7 +531,7 @@ jobs:
             ${{ runner.os }}-next-
 
       - name: Install dependencies
-        run: rm -rf node_modules && pnpm install --frozen-lockfile
+        uses: ./.github/actions/install-with-cleanup
 
       - name: Get Playwright version
         id: playwright-version
