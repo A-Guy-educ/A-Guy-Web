@@ -54,9 +54,7 @@ const nextConfig = {
     'sharp',
     'tesseract.js',
     'tesseract.js-core',
-    // @kody-ade/engine bundles @anthropic-ai/claude-agent-sdk (~43MB).
-    // Only used via the `kody` npx script, never imported in src.
-    '@kody-ade/engine',
+    // @anthropic-ai/claude-agent-sdk is used by some AI features.
     '@anthropic-ai/claude-agent-sdk',
   ],
   images: {

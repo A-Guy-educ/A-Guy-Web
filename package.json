@@ -107,7 +107,6 @@
     "@anthropic-ai/sdk": "^0.104.1",
     "@genkit-ai/googleai": "^1.28.0",
     "@google/generative-ai": "^0.24.1",
-    "@kody-ade/engine": "^0.7.15",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@napi-rs/canvas": "^0.1.89",
     "@radix-ui/react-accordion": "^1.2.13",
@@ -217,7 +216,7 @@
       "unrs-resolver"
     ],
     "overrides": {
-      "@modelcontextprotocol/sdk": ">=1.25.2"
+      "@modelcontextprotocol/sdk": "^1.29.0"
     }
   },
   "packageManager": "pnpm@10.33.0"

@@ -4,11 +4,11 @@
   "target": "dependabot/npm_and_yarn/prod-dependencies-d049d0058b",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Resolved package.json conflict by merging resend addition from dev and slugify bump from PR; regenerated pnpm-lock.yaml",
+  "reason": "Removed deprecated @kody-ade/engine and updated pnpm override, allowing @modelcontextprotocol/sdk to resolve to ^1.29.0",
   "prUrl": "https://github.com/A-Guy-educ/A-Guy-Web/pull/18",
   "runUrl": null,
-  "filesTouched": ["package.json", "pnpm-lock.yaml"],
-  "sessionLog": null,
-  "startedAt": "2026-06-18T07:23:00Z",
-  "finishedAt": "2026-06-18T07:23:40Z"
+  "filesTouched": ["package.json", "next.config.js", "pnpm-lock.yaml"],
+  "sessionLog": ".kody/sessions/current.jsonl",
+  "startedAt": "2026-06-19T00:00:00.000Z",
+  "finishedAt": "2026-06-19T00:00:00.000Z"
 }
