@@ -4,11 +4,13 @@
   "target": "207-doc-coverage-srclibpayment-payment-provider-integr",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "PASS verdict — no changes requested. All 6 modules in src/lib/payment/ have @ai-summary and index.ts correctly re-exports all modules with gotcha documentation.",
+  "reason": "Added missing description line 'Grant Entitlements' to grant-entitlements.ts JSDoc header, matching sibling modules.",
   "prUrl": null,
   "runUrl": null,
-  "filesTouched": [],
-  "sessionLog": ".kody/sessions/gh-27795646734-1.jsonl",
-  "startedAt": "2026-06-18T00:00:00Z",
-  "finishedAt": "2026-06-18T00:00:00Z"
+  "filesTouched": [
+    "src/lib/payment/grant-entitlements.ts"
+  ],
+  "sessionLog": ".kody/sessions/gh-27830830511-1.jsonl",
+  "startedAt": "2026-06-19T00:00:00Z",
+  "finishedAt": "2026-06-19T00:00:00Z"
 }

@@ -2,17 +2,17 @@
 
 Applied review feedback to PR #207 (doc coverage: src/lib/payment/).
 
-## Outcome: PASS (diff-only)
+## Outcome: PASS (diff-only, with one WARN fix)
 
-Reviewer verdict: no changes requested. The PR already correctly:
-- Added `@ai-summary` to all 6 modules: stripe.ts, paypal.ts, grant-entitlements.ts, types.ts, error-log.ts, env.ts
-- Created `src/lib/payment/index.ts` with folder-level header, gotcha notes, and re-exports
-- No UI surface — entirely backend documentation changes
+The PR correctly added `@ai-summary` to all 6 modules and created `index.ts` with gotcha documentation. One cosmetic style gap was flagged:
+
+### Fix applied (WARN resolution)
+- `src/lib/payment/grant-entitlements.ts:1` — Added missing description line `Grant Entitlements` between `/**` and `@fileType`, matching the pattern in `stripe.ts`, `paypal.ts`, `error-log.ts`, and `types.ts`.
 
 ## Files touched
 
-No files were modified in this task — the existing diff already satisfied all requirements.
+- `src/lib/payment/grant-entitlements.ts` — Added `Grant Entitlements` description line to JSDoc header.
 
 ## Notes
 
-Quality gates (typecheck, lint, tests) confirmed green via `verify` tool.
+Quality gates confirmed green via `verify` tool (typecheck, lint, tests all pass).
