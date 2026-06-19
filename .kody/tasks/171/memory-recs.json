@@ -1,34 +1,10 @@
 [
   {
-    "type": "lesson",
-    "name": "lucide-icon-type-is-lucideicon",
-    "hook": "Use LucideIcon type from lucide-react, not ForwardRefExoticComponent",
-    "body": "When typing icon props that accept lucide-react icons, import `LucideIcon` directly:\n\n  import { type LucideIcon } from 'lucide-react'\n\nDo NOT use `ForwardRefExoticComponent<...>` for this purpose. `LucideIcon` is the correct named type exported by lucide-react (verified in node_modules). Confirmed by inspecting Icon.tsx in src/ui/web/shared/Icon which also uses `type LucideIcon`.\n\nWhy: The ForwardRefExoticComponent pattern is the underlying implementation detail; LucideIcon is the public-facing type alias that lucide-react exports for this purpose.\n\nHow to apply: See src/app/(frontend)/start/_components/NewStartPage/features-data.ts for the correct usage.",
-    "why": "Using the correct LucideIcon type avoids verbose type definitions and is the documented approach in the project's own Icon component.",
-    "confidence": 0.95
-  },
-  {
-    "type": "lesson",
-    "name": "body-class-landing-page",
-    "hook": "Document body class side effects with a comment",
-    "body": "When using document.body.classList.add('landing-page') to hide header/footer, add a comment explaining what the class does and where it is defined.\n\nWhy: 'landing-page' is a side effect that is invisible in the component tree and easy to accidentally break.\n\nHow to apply: Add a comment like '// .landing-page body class hides site header/footer (defined in globals.css)' before the useEffect.",
-    "why": "Without documentation, future developers may remove this useEffect assuming it's dead code.",
-    "confidence": 0.9
-  },
-  {
-    "type": "lesson",
-    "name": "ref-for-pending-state-in-timeout",
-    "hook": "Use useRef to track pending state in setTimeout callbacks",
-    "body": "When updating state inside a setTimeout and the state update could fail (e.g. due to React batch limits), use a useRef to track the pending value so it can be rolled back on error.\n\nWhy: A setTimeout closure captures stale state if the enclosing state updates. Using a ref (not state) for the pending value lets the error handler access the current pending value even after the enclosing state has changed. The error handler then rolls back by filtering the user message out of state.\n\nHow to apply: See handleSimulationSend in NewStartPage/index.tsx — pendingAiRef tracks the AI message text while the user message is in-flight.",
-    "why": "Without a ref, the error handler would not know what text was pending, making it impossible to correctly roll back a partially-applied state update.",
-    "confidence": 0.9
-  },
-  {
-    "type": "lesson",
-    "name": "race-condition-shared-ref",
-    "hook": "Use Map with unique IDs instead of a single shared ref for concurrent pending operations",
-    "body": "When multiple concurrent operations can pend and each needs its own rollback, a single shared ref is insufficient — concurrent operations overwrite each other. Use a Map<id, value> keyed by a monotonically increasing id ref instead.\n\nWhy: A single shared ref holds only one pending value. If two sends happen within the timeout window, the second overwrites the first. The Map approach tracks each pending operation by its own ID.\n\nHow to apply: In NewStartPage/index.tsx, replace `pendingAiRef: RefObject<string | null>` with `pendingAiMapRef: RefObject<Map<number, string>>` + `pendingAiIdRef: RefObject<number>`. Each handleSimulationSend call assigns a unique id from the counter, stores the pending value in the Map, and reads/deletes by that id in the setTimeout callback.",
-    "why": "Without unique IDs, any concurrent sends race — only the last one's response is correctly attributed. The Map approach is O(1) and avoids rebuilding state on every keystroke.",
-    "confidence": 0.95
+    "type": "decision",
+    "name": "design-system-tokens-for-colors",
+    "hook": "Always use CSS variables from globals.css for semantic colors",
+    "body": "All colors must use CSS variables defined in globals.css or Tailwind utility classes. Hardcoded hex/rgba values violate the design-system-first mandate.\n\nMapping used in this fix:\n- `#f3f4f6` → `bg-gray-100`\n- `#f9fafb` → `bg-gray-50`\n- `#e5e7eb` → `bg-gray-200`\n- `#0ea5e9` → `var(--accent-sky)`\n- `#a855f7` → `var(--accent-purple)`\n- `#0284c7` → `var(--accent-sky-deep)`\n- `#9333ea` → `var(--accent-purple-deep)`\n- `#111827` → `bg-gray-900`\n- `#f59e0b` → Tailwind amber-500/text-amber-600\n- `#22c55e` → Tailwind green-500/text-green-500\n\nWhy: Hardcoded hex values bypass the design token system, making theme changes and dark mode support impossible.\n\nHow to apply: When adding colors to any component, check globals.css for existing CSS variables first, then Tailwind tokens. Only create new tokens when no existing token fits.",
+    "why": "The project has a design-system-first mandate documented in CLAUDE.md. All colors must flow through CSS variables in globals.css or Tailwind classes.",
+    "confidence": 0.98
   }
 ]

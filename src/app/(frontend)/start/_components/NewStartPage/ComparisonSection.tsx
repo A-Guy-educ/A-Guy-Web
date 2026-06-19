@@ -20,10 +20,7 @@ export function ComparisonSection() {
 
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
           {/* Traditional */}
-          <div
-            className="rounded-3xl p-8 border-2 border-gray-100 transition-all hover:scale-[1.02]"
-            style={{ backgroundColor: '#f9fafb' }}
-          >
+          <div className="rounded-3xl p-8 border-2 border-gray-100 transition-all hover:scale-[1.02] bg-gray-50">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 rounded-xl bg-gray-200 flex items-center justify-center">
                 <svg

@@ -19,10 +19,7 @@ export function TabsSection({ activeTab, onTabChange }: TabsSectionProps) {
 
         {/* Tabs Navigation */}
         <div className="flex justify-center mb-8">
-          <div
-            className="inline-flex gap-1 p-1.5 rounded-2xl"
-            style={{ backgroundColor: '#f3f4f6' }}
-          >
+          <div className="inline-flex gap-1 p-1.5 rounded-2xl bg-gray-100">
             {(
               [
                 { id: 'dashboard' as const, label: '📊 Dashboard' },
@@ -50,10 +47,7 @@ export function TabsSection({ activeTab, onTabChange }: TabsSectionProps) {
         <div className="max-w-4xl mx-auto">
           {/* Dashboard Tab */}
           {activeTab === 'dashboard' && (
-            <div
-              className="rounded-3xl p-8 border border-gray-200"
-              style={{ backgroundColor: '#f9fafb' }}
-            >
+            <div className="rounded-3xl p-8 border border-gray-200 bg-gray-50">
               <div className="grid md:grid-cols-3 gap-6 mb-6">
                 {[
                   {
@@ -66,33 +60,22 @@ export function TabsSection({ activeTab, onTabChange }: TabsSectionProps) {
                     title: 'תרגילים החודש',
                     value: '142',
                     change: '↑ 23% מהחודש שעבר',
-                    color: '#22c55e',
+                    color: 'var(--accent-sky)',
                   },
-                  { title: 'שעות למידה', value: '24.5', sub: 'החודש', color: '#f59e0b' },
+                  { title: 'שעות למידה', value: '24.5', sub: 'החודש', color: 'var(--accent-sky)' },
                 ].map((card) => (
                   <div key={card.title} className="bg-white rounded-2xl p-6 shadow-sm">
                     <div className="text-sm text-gray-500 mb-1">{card.title}</div>
                     <div className="text-3xl font-bold text-gray-900 mb-2">{card.value}</div>
                     {'bar' in card ? (
-                      <div
-                        className="w-full h-2 rounded-full"
-                        style={{ backgroundColor: '#e5e7eb' }}
-                      >
+                      <div className="w-full h-2 rounded-full bg-gray-200">
                         <div
                           className="h-2 rounded-full"
                           style={{ width: `${card.bar}%`, background: card.color }}
                         />
                       </div>
                     ) : (
-                      <div
-                        className="text-sm"
-                        style={{
-                          color:
-                            'change' in card && card.change?.startsWith('↑')
-                              ? '#22c55e'
-                              : '#6b7280',
-                        }}
-                      >
+                      <div className="text-sm text-gray-500">
                         {'change' in card ? card.change : card.sub}
                       </div>
                     )}
@@ -105,9 +88,9 @@ export function TabsSection({ activeTab, onTabChange }: TabsSectionProps) {
                 <h4 className="font-bold text-gray-900 mb-4">נושאים בפוקוס</h4>
                 <div className="space-y-3">
                   {[
-                    { name: 'פונקציות', pct: 85, color: '#0ea5e9' },
-                    { name: 'גזירה', pct: 62, color: '#a855f7' },
-                    { name: 'אינטגרציה', pct: 34, color: '#f59e0b' },
+                    { name: 'פונקציות', pct: 85, color: 'var(--accent-sky)' },
+                    { name: 'גזירה', pct: 62, color: 'var(--accent-purple)' },
+                    { name: 'אינטגרציה', pct: 34, color: 'var(--accent-sky)' },
                   ].map((topic) => (
                     <div key={topic.name}>
                       <div className="flex items-center justify-between mb-1">
@@ -116,10 +99,7 @@ export function TabsSection({ activeTab, onTabChange }: TabsSectionProps) {
                           {topic.pct}%
                         </span>
                       </div>
-                      <div
-                        className="w-full h-2 rounded-full"
-                        style={{ backgroundColor: '#e5e7eb' }}
-                      >
+                      <div className="w-full h-2 rounded-full bg-gray-200">
                         <div
                           className="h-2 rounded-full"
                           style={{ width: `${topic.pct}%`, background: topic.color }}
@@ -134,10 +114,7 @@ export function TabsSection({ activeTab, onTabChange }: TabsSectionProps) {
 
           {/* Chat Tab */}
           {activeTab === 'chat' && (
-            <div
-              className="rounded-3xl border border-gray-200 overflow-hidden"
-              style={{ backgroundColor: '#f9fafb' }}
-            >
+            <div className="rounded-3xl border border-gray-200 overflow-hidden bg-gray-50">
               <div className="p-4" style={{ background: 'var(--gradient-blue-purple-deep)' }}>
                 <div className="flex items-center gap-3">
                   <div
@@ -187,11 +164,10 @@ export function TabsSection({ activeTab, onTabChange }: TabsSectionProps) {
                   <input
                     type="text"
                     placeholder="שאל שאלה..."
-                    className="flex-1 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 text-right"
+                    className="flex-1 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 text-right bg-gray-100"
                     style={
                       {
-                        backgroundColor: '#f3f4f6',
-                        '--tw-ring-color': '#0ea5e9',
+                        '--tw-ring-color': 'var(--accent-sky)',
                       } as React.CSSProperties
                     }
                   />
@@ -208,15 +184,12 @@ export function TabsSection({ activeTab, onTabChange }: TabsSectionProps) {
 
           {/* Notebook Tab */}
           {activeTab === 'notebook' && (
-            <div
-              className="rounded-3xl border border-gray-200 overflow-hidden"
-              style={{ backgroundColor: '#f9fafb' }}
-            >
+            <div className="rounded-3xl border border-gray-200 overflow-hidden bg-gray-50">
               <div className="bg-gray-100 p-4 border-b flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#f87171' }} />
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#fbbf24' }} />
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#34d399' }} />
+                  <div className="w-3 h-3 rounded-full bg-red-400" />
+                  <div className="w-3 h-3 rounded-full bg-amber-400" />
+                  <div className="w-3 h-3 rounded-full bg-emerald-400" />
                 </div>
                 <span className="text-sm text-gray-500">המחברת שלי</span>
                 <button className="text-sky-600 text-sm font-medium">+ הוסף דף</button>
@@ -248,7 +221,12 @@ export function TabsSection({ activeTab, onTabChange }: TabsSectionProps) {
                   >
                     <div
                       className="text-xs font-medium mb-1"
-                      style={{ color: note.color === 'sky' ? '#0284c7' : '#9333ea' }}
+                      style={{
+                        color:
+                          note.color === 'sky'
+                            ? 'var(--accent-sky-deep)'
+                            : 'var(--accent-purple-deep)',
+                      }}
                     >
                       📅 {note.date}
                     </div>
@@ -267,9 +245,7 @@ export function TabsSection({ activeTab, onTabChange }: TabsSectionProps) {
                     borderColor: 'rgba(245,158,11,0.2)',
                   }}
                 >
-                  <div className="text-xs font-medium mb-1" style={{ color: '#b45309' }}>
-                    ⭐ הערה חשובה
-                  </div>
+                  <div className="text-xs font-medium mb-1 text-amber-600">⭐ הערה חשובה</div>
                   <p className="text-gray-700 text-sm">לכל קבוע ביטוי (C) יש נגזרת 0</p>
                 </div>
               </div>

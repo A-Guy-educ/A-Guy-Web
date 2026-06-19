@@ -16,11 +16,7 @@ export function SimulationSection({
   onSend,
 }: SimulationSectionProps) {
   return (
-    <section
-      id="simulation"
-      className="py-24 text-white relative overflow-hidden"
-      style={{ backgroundColor: '#111827' }}
-    >
+    <section id="simulation" className="py-24 text-white relative overflow-hidden bg-gray-900">
       <div className="absolute inset-0">
         <div
           className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl"
