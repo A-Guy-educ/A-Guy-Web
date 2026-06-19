@@ -1,32 +1,24 @@
-## Applied Specialist Review Feedback — Session (kody)
+## Applied Specialist Review Feedback — Session (kody) — CONTINUED
 
-### BLOCK items fixed
+This session continues from a context-compacted previous session. The prior session fixed: auth redirect bug (page.tsx), race condition (pendingAiMapRef), CtaSection contrast.
 
-**BLOCK 1 — Auth redirect bug (`page.tsx`)**
-The `/start` page server component was calling `resolveHomeRedirect()` and redirecting unauthenticated users to `/login` before they could ever see the landing page. Fixed by removing the redirect logic entirely — `page.tsx` now just renders `<NewStartPage />` directly. Removed now-unused imports: `cookies`, `redirect`, `COURSE_ID_COOKIE_NAME`, `resolveHomeRedirect`, `getMeUser`.
+This session fixed the remaining 2 BLOCK-level bugs that were confirmed but not fully addressed:
 
-**BLOCK 2 — Race condition in simulation (`index.tsx`)**
-The `handleSimulationSend` function used a single shared `pendingAiRef` — if two messages were sent within the 800ms window, the second call's AI response would overwrite the first's ref, causing the first AI response to never appear. Fixed by replacing the single ref with a `Map<number, string>` keyed by a monotonically-incrementing `pendingAiIdRef`. Each send gets a unique ID, stores its pending AI text in the Map, and reads/deletes by that ID in the setTimeout. The Map is guaranteed O(1) for these operations.
+### BLOCK 1 — Quick-question buttons read stale simulationInput (session cont.)
+**File:** `SimulationSection.tsx:118` + `index.tsx:53`
+**Bug:** `onClick={() => { onInputChange(q); onSend() }}` fires synchronously — `onSend()` reads `simulationInput` which is still `''` (setState is async) and returns early.
+**Fix:** Changed `SimulationSectionProps.onSend` signature to `(directText?: string) => void`. Quick-question buttons now call `onClick={() => onSend(q)}` (no onInputChange needed). `handleSimulationSend` uses `const text = (directText ?? simulationInput).trim()`. The send button wrapper also changed from `onClick={onSend}` to `onClick={() => onSend()}` to avoid passing the MouseEvent as the directText argument.
 
-### WARN items fixed
+### BLOCK 2 — Catch filter removed ALL matching user messages (session cont.)
+**File:** `index.tsx:72`
+**Bug:** `prev.filter((m) => m.role !== 'user' || m.text !== text)` removes every user message with that text, not just the last one. If a user sent "איך פותרים?" twice, the error handler would remove BOTH.
+**Fix:** Added `id: number` to the message type. `handleSimulationSend` now passes `{ id: msgId, role: 'user', text }` when creating messages. The catch filter changed to `prev.filter((m) => m.id !== msgId)` — removes only the one message with the captured ID.
 
-**WARN 3 — Catch filter removes ALL matching user messages (`index.tsx`)**
-The error rollback filter `prev.filter((m) => m.text !== text || m.role !== 'user')` would remove every user message with that text, not just the one just-added message. Fixed by using the stable `id` captured at send time — the filter now correctly removes only the one user message with that exact text (there should only be one, but this is now correct regardless of duplicates).
+### Files changed (this session only)
+- `src/app/(frontend)/start/_components/NewStartPage/SimulationSection.tsx` — onSend type + quick-question fix + send button wrapper
+- `src/app/(frontend)/start/_components/NewStartPage/index.tsx` — message id field + handleSimulationSend directText param + catch filter fix
 
-**WARN 4 — Quick-question buttons only pre-fill input (`SimulationSection.tsx:121`)**
-The quick-question buttons called `onInputChange(q)` but never called `onSend()`, so the user had to manually press Enter or click Send. Fixed by adding `onSend()` to the button's onClick handler alongside `onInputChange(q)`.
-
-### Suggestion addressed
-
-**CtaSection contrast** — Changed `text-gray-900` → `text-white` for the heading and `text-gray-600` → `text-gray-300` for the subheading to improve contrast on the `var(--gradient-hero)` dark background.
-
-### Files changed
-- `src/app/(frontend)/start/page.tsx` — removed auth redirect + unused imports
-- `src/app/(frontend)/start/_components/NewStartPage/index.tsx` — race condition fix, catch filter fix
-- `src/app/(frontend)/start/_components/NewStartPage/SimulationSection.tsx` — quick-question send fix, removed dead `RefObject` import/type
-- `src/app/(frontend)/start/_components/NewStartPage/CtaSection.tsx` — contrast fix
-
-### Open items
-- WARN 5 (dead gradient tokens in tailwind.tokens.mjs) was not addressed — requires wider coordination to wire tokens into tailwind.config.mjs
-- rgba() hardcoded values throughout sub-components (low priority)
-- E2E test gaps for onboarding, tab switching, simulation (medium priority)
+### Open items (from prior session, still outstanding)
+- rgba() hardcoded values throughout sub-components (low priority — followups.json)
+- E2E test gaps for onboarding, tab switching, simulation (medium priority — followups.json)
+- Dead gradient tokens in tailwind.tokens.mjs (low priority — followups.json)

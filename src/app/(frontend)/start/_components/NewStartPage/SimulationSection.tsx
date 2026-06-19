@@ -1,11 +1,11 @@
 'use client'
 
 interface SimulationSectionProps {
-  simulationMessages: Array<{ role: 'user' | 'ai'; text: string }>
+  simulationMessages: Array<{ id: number; role: 'user' | 'ai'; text: string }>
   simulationInput: string
   onInputChange: (value: string) => void
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void
-  onSend: () => void
+  onSend: (directText?: string) => void
 }
 
 export function SimulationSection({
@@ -102,7 +102,7 @@ export function SimulationSection({
               }}
             />
             <button
-              onClick={onSend}
+              onClick={() => onSend()}
               className="px-8 py-4 text-white rounded-2xl font-bold transition-all shadow-lg"
               style={{ background: 'var(--gradient-sky-purple)' }}
             >
@@ -115,10 +115,7 @@ export function SimulationSection({
             {['איך פותרים משוואה ריבועית?', 'מהי נגזרת?', 'הסבר את משפט פיתגורס'].map((q) => (
               <button
                 key={q}
-                onClick={() => {
-                  onInputChange(q)
-                  onSend()
-                }}
+                onClick={() => onSend(q)}
                 className="px-4 py-2 rounded-xl text-sm text-gray-300 transition hover:bg-white/20 bg-white/10"
               >
                 {q}

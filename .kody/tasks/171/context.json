@@ -4,16 +4,14 @@
   "target": "159--start-html (PR #171)",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "All BLOCK and WARN items from specialist review fixed; verify passed.",
+  "reason": "Fixed 2 BLOCK-level bugs remaining from previous session: (1) quick-question onSend was reading stale simulationInput state - fixed by passing directText parameter directly to onSend; (2) catch filter was removing ALL user messages with matching text - fixed by switching to stable msgId-based filtering.",
   "prUrl": "https://github.com/A-Guy-educ/A-Guy-Web/pull/171",
   "runUrl": null,
   "filesTouched": [
-    "src/app/(frontend)/start/page.tsx",
     "src/app/(frontend)/start/_components/NewStartPage/index.tsx",
-    "src/app/(frontend)/start/_components/NewStartPage/SimulationSection.tsx",
-    "src/app/(frontend)/start/_components/NewStartPage/CtaSection.tsx"
+    "src/app/(frontend)/start/_components/NewStartPage/SimulationSection.tsx"
   ],
-  "sessionLog": ".kody/runs/gh-27834786123-1/events.jsonl",
-  "startedAt": "2026-06-19T00:00:00.000Z",
-  "finishedAt": "2026-06-19T00:00:00.000Z"
+  "sessionLog": ".kody/runs/gh-27846980990-1/events.jsonl",
+  "startedAt": "2026-06-19T20:29:12.517Z",
+  "finishedAt": "2026-06-19T20:30:02.000Z"
 }

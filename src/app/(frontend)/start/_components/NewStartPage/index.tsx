@@ -30,7 +30,7 @@ export function NewStartPage() {
   const [onboardingStep, setOnboardingStep] = useState(0)
   const [showOnboarding, setShowOnboarding] = useState(true)
   const [simulationMessages, setSimulationMessages] = useState<
-    Array<{ role: 'user' | 'ai'; text: string }>
+    Array<{ id: number; role: 'user' | 'ai'; text: string }>
   >([])
   const [simulationInput, setSimulationInput] = useState('')
   const pendingAiMapRef = useRef<Map<number, string>>(new Map())
@@ -49,27 +49,27 @@ export function NewStartPage() {
     document.getElementById('simulation')?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  const handleSimulationSend = () => {
-    const text = simulationInput.trim()
+  const handleSimulationSend = (directText?: string) => {
+    const text = (directText ?? simulationInput).trim()
     if (!text) return
-    const id = pendingAiIdRef.current++
+    const msgId = pendingAiIdRef.current++
     pendingAiMapRef.current.set(
-      id,
+      msgId,
       'תודה על השאלה! 🤔 אני אשמח לעזור. הקלד עוד פרטים או שאלה ספציפית יותר, ואענה לך בדיוק על מה שאתה צריך.',
     )
-    setSimulationMessages((prev) => [...prev, { role: 'user', text }])
-    setSimulationInput('')
+    setSimulationMessages((prev) => [...prev, { id: msgId, role: 'user', text }])
+    if (!directText) setSimulationInput('')
     setTimeout(() => {
       try {
         setSimulationMessages((prev) => {
-          const aiText = pendingAiMapRef.current.get(id)
-          pendingAiMapRef.current.delete(id)
-          return aiText ? [...prev, { role: 'ai' as const, text: aiText }] : prev
+          const aiText = pendingAiMapRef.current.get(msgId)
+          pendingAiMapRef.current.delete(msgId)
+          return aiText ? [...prev, { id: msgId, role: 'ai' as const, text: aiText }] : prev
         })
       } catch (error) {
         logger.error({ err: error }, 'Failed to add simulation AI message')
-        pendingAiMapRef.current.delete(id)
-        setSimulationMessages((prev) => prev.filter((m) => m.role !== 'user' || m.text !== text))
+        pendingAiMapRef.current.delete(msgId)
+        setSimulationMessages((prev) => prev.filter((m) => m.id !== msgId))
       }
     }, 800)
   }
