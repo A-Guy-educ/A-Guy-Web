@@ -1,0 +1,8 @@
+[
+  {
+    "title": "Investigate why vite-tsconfig-paths silently fails in CI after install-with-cleanup",
+    "body": "The root cause was not fully identified. The install-with-cleanup action deletes node_modules and reinstalls, but vite-tsconfig-paths should still be able to read tsconfig paths. The fix (explicit resolve.alias) works, but the underlying reason for the plugin's failure in CI was not determined. A future investigation could check if tsconfck has issues with certain node_modules states or if there's a timing issue with the plugin initialization.",
+    "rationale": "Understanding the root cause would help prevent similar issues in the future and potentially allow removal of the explicit alias workaround if the underlying issue can be fixed.",
+    "priority": "low"
+  }
+]

@@ -1,0 +1,10 @@
+[
+  {
+    "type": "lesson",
+    "name": "vite-tsconfig-paths-ci-alias-failure",
+    "hook": "vite-tsconfig-paths can silently fail to resolve @/ aliases in CI after node_modules delete+reinstall",
+    "body": "When `vite-tsconfig-paths` fails to resolve @/ aliases in CI (ERR_MODULE_NOT_FOUND for all @/-aliased imports), add the alias explicitly as `resolve.alias` in the Vitest config rather than relying solely on tsconfig reading.\n\nThe root cause appears to be that `tsconfck` (used internally by vite-tsconfig-paths) fails to properly parse or apply the tsconfig paths in the CI environment after node_modules is deleted and reinstalled. The fix is to hardcode the alias in the Vite config itself.\n\n**Why:** The tsconfig-based approach works locally but fails in CI because the plugin's tsconfig parsing can silently fail in CI environments where node_modules state differs from local.\n\n**How to apply:** When unit or integration tests start failing with ERR_MODULE_NOT_FOUND for @/-aliased imports, add `resolve: { alias: { '@': srcDir } }` directly in the defineConfig call, where `srcDir = path.resolve(fileURLToPath(new URL('.', import.meta.url)), 'src')`.",
+    "why": "The install-with-cleanup action (rm -rf node_modules + pnpm install --frozen-lockfile) was introduced in this PR and exposed a latent issue with vite-tsconfig-paths not reliably resolving path aliases in the CI environment, causing all @/-aliased imports to fail.",
+    "confidence": 0.9
+  }
+]
