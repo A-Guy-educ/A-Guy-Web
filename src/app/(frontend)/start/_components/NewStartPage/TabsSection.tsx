@@ -214,9 +214,13 @@ export function TabsSection({ activeTab, onTabChange }: TabsSectionProps) {
                     className="rounded-xl p-4 border"
                     style={{
                       backgroundColor:
-                        note.color === 'sky' ? 'rgba(14,165,233,0.05)' : 'rgba(168,85,247,0.05)',
+                        note.color === 'sky'
+                          ? 'color-mix(in srgb, var(--accent-sky) 5%, transparent)'
+                          : 'color-mix(in srgb, var(--accent-purple) 5%, transparent)',
                       borderColor:
-                        note.color === 'sky' ? 'rgba(14,165,233,0.2)' : 'rgba(168,85,247,0.2)',
+                        note.color === 'sky'
+                          ? 'color-mix(in srgb, var(--accent-sky) 20%, transparent)'
+                          : 'color-mix(in srgb, var(--accent-purple) 20%, transparent)',
                     }}
                   >
                     <div
@@ -241,8 +245,8 @@ export function TabsSection({ activeTab, onTabChange }: TabsSectionProps) {
                 <div
                   className="rounded-xl p-4 border"
                   style={{
-                    backgroundColor: 'rgba(245,158,11,0.05)',
-                    borderColor: 'rgba(245,158,11,0.2)',
+                    backgroundColor: 'color-mix(in srgb, var(--accent-amber) 5%, transparent)',
+                    borderColor: 'color-mix(in srgb, var(--accent-amber) 20%, transparent)',
                   }}
                 >
                   <div className="text-xs font-medium mb-1 text-amber-600">⭐ הערה חשובה</div>

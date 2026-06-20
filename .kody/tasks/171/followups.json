@@ -1,7 +1,7 @@
 [
   {
     "title": "rgba() values throughout NewStartPage sub-components",
-    "body": "Many hardcoded rgba() values remain across the extracted sub-components (FeaturesSection, TabsSection, SimulationSection, CtaSection, etc.). E.g. rgba(14,165,233,0.2), rgba(168,85,247,0.2), rgba(255,255,255,0.8). These should be replaced with Tailwind bg-white/X classes or CSS custom properties for design system consistency. Run: grep -n 'rgba(' src/app/(frontend)/start/_components/NewStartPage/",
+    "body": "Many hardcoded rgba() values remain across the extracted sub-components (SimulationSection, ComparisonSection, CtaSection, StatsSection, NavigationBar, HeroSection, plus Chat tab in TabsSection). E.g. rgba(14,165,233,0.2), rgba(168,85,247,0.2), rgba(255,255,255,0.8). These should be replaced with Tailwind classes or CSS custom properties for design system consistency. TabsSection Notebook tab fixed in this PR. Run: grep -n 'rgba(' src/app/(frontend)/start/_components/NewStartPage/",
     "rationale": "Hardcoded rgba() values bypass the design token system and make theme changes difficult.",
     "priority": "low"
   },
@@ -12,9 +12,9 @@
     "priority": "medium"
   },
   {
-    "title": "Dead gradient tokens in tailwind.tokens.mjs (WARN 5 not addressed)",
-    "body": "11 gradient tokens defined in tailwind.tokens.mjs:198-215 (sky-purple, sky-blue, purple-indigo, etc.) are not wired into tailwind.config.mjs. Components use inline style={{ background: 'var(--gradient-sky-purple)' }} instead of Tailwind gradient classes. Either wire them into theme.extend.backgroundImage in tailwind.config.mjs, or remove the dead definitions from tailwind.tokens.mjs to avoid confusion.",
-    "rationale": "WARN 5 from the specialist review was deferred — wiring design tokens into tailwind.config requires wider coordination to avoid breaking existing usages.",
+    "title": "Dead gradient tokens in tailwind.tokens.mjs — FIXED in this PR",
+    "body": "11 gradient tokens in tailwind.tokens.mjs (sky-purple, sky-blue, purple-indigo, etc.) were wired into tailwind.config.mjs theme.extend.backgroundImage via CSS variable references (var(--gradient-sky-purple), etc.) as of this PR. The inline style={{ background: 'var(--gradient-sky-purple)' }} pattern can now optionally be replaced with className='bg-gradient-sky-purple' in future work.",
+    "rationale": "Item 3 of the UI/UX review feedback addressed in this PR.",
     "priority": "low"
   }
 ]

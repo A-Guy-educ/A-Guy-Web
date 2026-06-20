@@ -124,6 +124,7 @@
     --accent-sky-deep: #0284c7;
     --accent-purple-deep: #9333ea;
     --accent-indigo: #6366f1;
+    --accent-amber: #f59e0b;
   }
 
   [data-theme='dark'] {

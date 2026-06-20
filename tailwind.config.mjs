@@ -91,6 +91,18 @@ const config = {
         'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
         'gradient-subtle':
           'linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--accent) / 0.05))',
+        // Landing page gradient tokens — reference CSS vars for single source of truth
+        'gradient-sky-purple': 'var(--gradient-sky-purple)',
+        'gradient-sky-purple-alt': 'var(--gradient-sky-purple-alt)',
+        'gradient-sky-blue': 'var(--gradient-sky-blue)',
+        'gradient-purple-indigo': 'var(--gradient-purple-indigo)',
+        'gradient-indigo-purple': 'var(--gradient-indigo-purple)',
+        'gradient-blue-purple-deep': 'var(--gradient-blue-purple-deep)',
+        'gradient-hero': 'var(--gradient-hero)',
+        'gradient-green': 'var(--gradient-green)',
+        'gradient-amber': 'var(--gradient-amber)',
+        'gradient-pink': 'var(--gradient-pink)',
+        'gradient-indigo-purple-alt': 'var(--gradient-indigo-purple-alt)',
       },
       colors: {
         accent: {
