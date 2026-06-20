@@ -1,10 +1,1 @@
-[
-  {
-    "type": "lesson",
-    "name": "vitest-node-environment-needs-storage-mock",
-    "hook": "vitest node env needs bare localStorage mock in setup",
-    "body": "When vitest.config uses `environment: 'node'`, bare `localStorage` and `sessionStorage` globals are undefined even when test files declare `// @vitest-environment jsdom`. The jsdom environment directive creates a virtual DOM window but does not expose bare storage globals to Node's global scope. The fix is to add a storage mock directly to vitest.setup.ts — this makes both `window.localStorage` and bare `localStorage` work for any test environment.",
-    "why": "Failing tests (accent-picker, useLessonViewMode, anonymous-id) all declared `// @vitest-environment jsdom` but crashed because the node-default unit config left bare localStorage undefined. Switching the default to jsdom broke a different set of tests (state.test.ts) that rely on Node module mocks in node environment. The setup-file approach is the only fix that satisfies both sets.",
-    "confidence": 0.9
-  }
-]
+[]

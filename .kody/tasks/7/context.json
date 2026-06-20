@@ -4,11 +4,11 @@
   "target": "dependabot/docker/node-26-alpine",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Added bare localStorage/sessionStorage mock to vitest.setup.ts so tests using // @vitest-environment jsdom can access storage globals without window. prefix.",
+  "reason": "Fixed vitest.setup.ts storage bridging: in jsdom, bridged globalThis.localStorage/sessionStorage to window's actual Storage objects so bare access in product code hits the same objects test spies mock. Prototype setItem spies now intercept calls correctly. sessionStorage getItem returns null for missing keys, so session IDs are cached correctly.",
   "prUrl": null,
   "runUrl": null,
   "filesTouched": ["vitest.setup.ts"],
-  "sessionLog": ".kody/sessions/gh-27857455499-1-1.jsonl",
-  "startedAt": "2026-06-20T02:30:00.000Z",
-  "finishedAt": "2026-06-20T02:40:00.000Z"
+  "sessionLog": ".kody/sessions/gh-27859297763-1-1.jsonl",
+  "startedAt": "2026-06-20T02:43:41.000Z",
+  "finishedAt": "2026-06-20T03:55:37.000Z"
 }

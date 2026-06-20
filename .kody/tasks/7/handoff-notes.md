@@ -1,11 +1,9 @@
-Fix: Added bare `localStorage`/`sessionStorage` mock to `vitest.setup.ts`.
+Fix: Updated vitest.setup.ts storage bridging for jsdom environments.
 
-Root cause: Unit test config (`vitest.config.unit.mts`) defaults to `environment: 'node'`. Tests that declare `// @vitest-environment jsdom` get a virtual DOM window but bare `localStorage` (without `window.` prefix) remains undefined in Node's global scope. The failing tests (`useLessonViewMode`, `anonymous-id`, `PreferencesSection`, `LayoutClient`) all used bare `localStorage.clear()` / `localStorage.setItem()`.
+Root cause: The previous mock used a plain object with setItem as an own property and a Map-based getItem returning undefined for missing keys. Two failures resulted:
 
-Fix strategy: Added a storage mock to `vitest.setup.ts` that defines `globalThis.localStorage` and `globalThis.sessionStorage` if they're not already defined. This covers both bare and `window.`-prefixed access and works across both `node` and `jsdom` environments without requiring per-file environment switching or changes to the vitest config defaults.
+1. tracker.test.ts getSessionId(): bare sessionStorage.getItem() hit globalThis.sessionStorage (the mock), returning undefined. But Storage.getItem must return null for missing keys — the falsy undefined caused a new session ID to be generated on every call instead of being cached. The test's beforeEach spy on window.sessionStorage.getItem never intercepted because globalThis !== window in jsdom.
 
-Two alternatives considered and rejected:
-1. Switch unit config default to `jsdom` — breaks `tests/unit/scripts/inspector/state.test.ts` which uses Node module mocks (`fs`, `child_process`) incompatible with jsdom.
-2. Add `// @vitest-environment node` to jsdom-dependent test files — fragile, requires updating every affected test file, doesn't fix the underlying infrastructure gap.
+2. useLessonViewMode.test.ts setItem spy: the test spies on Storage.prototype.setItem and expects it to be called. But the plain mock's setItem was an own property, so calling localStorage.setItem bypassed the prototype entirely — the spy was never triggered.
 
-No other changes made. Quality gates pass: typecheck ✓, lint ✓, tests ✓ (203 files, 2548 tests passed).
+Fix: In jsdom (typeof window !== 'undefined'), assign globalThis.localStorage = window.localStorage and globalThis.sessionStorage = window.sessionStorage. This makes bare access in product code use the same Storage objects that jsdom provides (with methods on the prototype) and that test beforeEach hooks spy on. Fallback mock for non-jsdom environments preserved.

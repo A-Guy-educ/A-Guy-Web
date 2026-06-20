@@ -8,10 +8,39 @@ import { getTestDatabaseUrl } from './tests/setup/db-config'
 // ---------------------------------------------------------------------------
 // DOM globals for tests that use // @vitest-environment jsdom
 // vitest's jsdom environment provides window/document but not bare globals.
-// Add bare localStorage/sessionStorage so test code can use either
-// `window.localStorage` or bare `localStorage` without triggering ReferenceError.
 // ---------------------------------------------------------------------------
-if (typeof globalThis.localStorage === 'undefined') {
+// jsdom creates separate window and globalThis objects in Node.js. We bridge
+// them here so that bare localStorage/sessionStorage (which resolve to
+// globalThis.*) hit the same storage as window.* that tests spy on.
+//
+// localStorage: use Object.create(Storage.prototype) so that calls like
+// localStorage.setItem go through the prototype — enabling spies on
+// Storage.prototype.setItem to intercept them.
+//
+// sessionStorage: delegate to window.sessionStorage so that bare
+// sessionStorage in product code uses the same object that tests spy on.
+// ---------------------------------------------------------------------------
+// In jsdom environments, bridge window's storage to globalThis so that bare
+// localStorage/sessionStorage (which resolve to globalThis.*) hit the same
+// objects that test beforeEach hooks spy on and that prototype spies intercept.
+//
+// - localStorage: window.localStorage is a proper Storage with setItem on the
+//   prototype, so Storage.prototype.setItem spies intercept calls correctly.
+// - sessionStorage: delegate to window.sessionStorage so bare sessionStorage in
+//   product code uses the same object that test spies mock.
+if (typeof window !== 'undefined') {
+  Object.defineProperty(globalThis, 'localStorage', {
+    value: window.localStorage,
+    writable: true,
+    configurable: true,
+  })
+  Object.defineProperty(globalThis, 'sessionStorage', {
+    value: window.sessionStorage,
+    writable: true,
+    configurable: true,
+  })
+} else if (typeof globalThis.localStorage === 'undefined') {
+  // Node-only environment (no jsdom): fall back to a minimal mock.
   const storageMock = {
     data: new Map<string, string>(),
     getItem(key: string): string | null {
