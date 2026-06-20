@@ -1,15 +1,11 @@
 ## What was done
 
-Round 4 fix — applied remaining review feedback from PR #222.
+Style fix round — addressed two CONCERNS from the parallel style review.
 
-**Four changes:**
+**Two changes:**
 
-1. **Missing @fileType/@domain tags (concern)** — `chat-message-role.ts` was the only file in `src/infra/llm/` without `@fileType` and `@domain` tags. Added `@fileType enum` and `@domain ai` after the `@ai-summary` block.
+1. **Blank line between @ai-summary and @fileType in chat-message-role.ts (concern)** — `models.ts` and `doc-search.ts` have `@fileType` immediately after `@ai-summary` with no blank line between them. `chat-message-role.ts` had an extra ` *$` blank line (line 9) separating `@ai-summary` from `@fileType`. Removed the blank line so the pattern is: `@ai-summary` → `@fileType` → `@domain` → blank → content. The `@fileType`/`@domain` tags were already correctly positioned before the "Values:" block (the concern's line-number reference appears to have been based on the pre-fix state).
 
-2. **Single-sentence @ai-summary (concern)** — `context-policy.ts:4` had one dense multi-clause @ai-summary. Split into two sentences: purpose (strict order is the contract) + gotcha (do not reorder without a version bump).
-
-3. **Missing gotcha in @ai-summary (concern)** — `cache-schema-version.ts` @ai-summary was purpose-only (no gotcha). Added a gotcha: "Prompt template changes do NOT need a bump (tracked by promptId + updatedAt separately); neither do new optional fields the converter tolerates." Restructured into clean purpose + gotcha.
-
-4. **"never" too absolute (suggestion)** — `config-resolver.ts` @ai-summary said "never import MODEL_REGISTRY directly for runtime config" but the module does import it at line 18 for type access and fallback paths. Softened to "prefer it over importing MODEL_REGISTRY directly for runtime config (importing for type access or fallback paths is fine)."
+2. **Missing @fileType/@domain tags in context-policy.ts (concern)** — `config-resolver.ts` and `models.ts` in `src/infra/llm/` both include `@fileType implementation` and `@domain ai`. `context-policy.ts` had no such tags, making it inconsistent with the directory's established pattern. Added both tags after the `@ai-summary` block.
 
 **Verification:** `verify` passes (typecheck + lint clean on all modified files).
