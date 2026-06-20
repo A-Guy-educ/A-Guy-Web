@@ -3,10 +3,9 @@
  *
  * @ai-summary Zod schemas documenting the intended output shapes of pass 1 (creative)
  * and pass 2 (deterministic). **NOT wired to Gemini's responseSchema** — Gemini
- * collapses nested object schemas to flat string arrays (issue #1748). Validation
+ * collapses nested object schemas to flat string arrays (issue #1748), so validation
  * is post-hoc only via `safeParse`. If a future Gemini version fixes responseSchema,
- * these schemas can be re-connected to the adapter call. Gemini's responseSchema
- * collapses nested object arrays into literal string arrays (issue #1748). sanitizeAiBlocks
+ * these schemas can be re-connected to the adapter call. sanitizeAiBlocks
  * + payload.create's strict Zod validation are the actual enforcement.
  *
  * Status (2026-05-13):

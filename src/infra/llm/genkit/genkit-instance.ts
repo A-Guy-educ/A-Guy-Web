@@ -3,12 +3,10 @@
  *
  * @ai-summary Per-provider-type Genkit singleton with lazy initialization. Once
  * instantiated, instances are cached indefinitely — **config changes after first
- * boot (API key rotation, new base URL) require a process restart** to take effect
- * in serverless environments where each invocation may be a cold start. Per-process
- * cache of Genkit instances keyed by provider type. In serverless (Vercel), each
- * Lambda/Function instance gets its own cache — instances are NOT shared across
- * cold-starts. The 30s TTL on ConfigValues means the first call per instance pays
- * an extra round-trip if config hasn't been loaded yet.
+ * boot (API key rotation, new base URL) require a process restart** to take effect.
+ * In serverless (Vercel), each Lambda/Function instance gets its own cache —
+ * instances are NOT shared across cold-starts. The 30s TTL on ConfigValues means
+ * the first call per instance pays an extra round-trip if config hasn't loaded yet.
  *
  * @fileType implementation
  * @domain ai

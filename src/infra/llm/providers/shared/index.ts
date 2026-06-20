@@ -9,6 +9,7 @@
  *
  * @fileType module
  * @domain ai
+ * @pattern barrel
  */
 
 export * from './circuit-breaker'

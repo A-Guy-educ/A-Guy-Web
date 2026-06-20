@@ -2,10 +2,10 @@
  * Simple Documentation Search
  *
  * @ai-summary Keyword + scoring search over pre-built doc chunks (no embeddings,
- * no external APIs). Falls back to an empty result set if the chunk file is missing,
- * so the app keeps working but users get no results. The chunk file must be
- * regenerated after any docs change via `pnpm tsx scripts/generate-doc-chunks.ts`.
- * Falls back to an empty DocSearch instance (no results) if doc-chunks.json is missing — it will NOT crash at construction time. Run `pnpm tsx scripts/generate-doc-chunks.ts` to regenerate the index. This is a dev-time check only; in production the file is bundled.
+ * no external APIs). Falls back to an empty result set if the chunk file is missing —
+ * it will NOT crash at construction time, but users get no results until the index
+ * is regenerated via `pnpm tsx scripts/generate-doc-chunks.ts`. This is a dev-time
+ * check only; in production the file is bundled.
  *
  * Usage:
  *   const search = new DocSearch()

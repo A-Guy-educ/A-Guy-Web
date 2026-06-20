@@ -5,8 +5,7 @@
  * Each tier logs at a lower level when it falls through, so the warning count
  * tells you whether lesson-level prompting is actually being used. **Locale
  * fallback is one-way** — if a locale-specific prompt exists but is not published,
- * the query silently falls through to locale-unaware default rather than raising.
- * Three-tier fallback: lesson prompt (published) > default prompt (published, locale-matched) > built-in BUILTIN_FALLBACK_PROMPT (always works). If a lesson has a prompt but it's not published, this logs at debug level and silently falls through — no user-visible error. locale fallback (requested → unconfigured) logs a warning but still succeeds.
+ * the query silently falls through to the locale-unaware default rather than raising.
  *
  * Priority:
  * 1. Lesson.prompt (if provided and published)

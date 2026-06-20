@@ -4,9 +4,11 @@
  * @ai-summary Schema validated post-hoc by Zod (not passed to Gemini's responseSchema).
  * **Gemini's responseSchema does not support `$ref` or `oneOf` with discriminator** —
  * if this schema uses those constructs, the schema is not actually enforcing shape at
- * generation time. The stripUnsupportedKeys helper only removes `$schema` and
+ * generation time. The `stripUnsupportedKeys` helper only removes `$schema` and
  * `additionalProperties`; other JSON-Schema-only keywords pass through and may
- * cause API errors. Passed directly to Gemini's responseSchema API — Gemini must be able to express this schema in OpenAPI 3.0 subset. Keep it FLAT: no $ref, $defs, or oneOf with discriminator. The `stripUnsupportedKeys` helper only removes $schema and additionalProperties; other JSON-Schema-only keywords will silently pass through and cause Gemini API errors. Service-side Zod validators run AFTER as a safety net for rare schema-ignore cases.
+ * cause API errors. Gemini must be able to express this schema in OpenAPI 3.0 subset —
+ * keep it FLAT: no `$ref`, `$defs`, or `oneOf` with discriminator. Service-side Zod
+ * validators run AFTER as a safety net for rare schema-ignore cases.
  *
  * Passed to Gemini via `responseSchema` + `responseMimeType: application/json`
  * (direct fetch in interactive-lesson-generation-service.ts) so the model

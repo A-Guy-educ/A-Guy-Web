@@ -9,6 +9,7 @@
  *
  * @fileType error-handling
  * @domain ai
+ * @pattern error-handling
  */
 
 /** Error codes for LLM providers */

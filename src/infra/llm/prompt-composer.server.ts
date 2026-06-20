@@ -3,14 +3,10 @@
  *
  * @ai-summary Fixed-order string assembly of 11 prompt segments. The ordering
  * is intentional: admin prompts come first (highest authority) and math formatting
- * last (safest fallback). Image-handling instructions are conditionally appended —
- * **when absent, the model may respond to image-less chats with "please upload
- * an image"** because the image rules dominate when included without a check.
- * IMAGE_HANDLING_INSTRUCTIONS are appended ONLY when hasImageAttached=true (the default).
- * Omitting them when there's no image is critical — when these rules are present
- * without an image, Gemini falls back to "please upload an image" even in text-only
- * chats with full context. Exercise content is budget-truncated: 400 chars per
- * exercise, 4000 chars total for the exercises section.
+ * last (safest fallback). **IMAGE_HANDLING_INSTRUCTIONS are appended ONLY when
+ * hasImageAttached=true (the default)** — when present without an image check,
+ * Gemini falls back to "please upload an image" even in text-only chats.
+ * Exercise content is budget-truncated: 400 chars per exercise, 4000 chars total.
  *
  * @fileType ai-utility
  * @domain chat

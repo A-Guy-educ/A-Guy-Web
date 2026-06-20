@@ -2,13 +2,11 @@
  * Media Reader Utility
  *
  * @ai-summary Three-tier fallback for reading media files (filesystem → Payload API
- * → blob URL fetch). The 30s fetch timeout is load-bearing — without it, a
- * slow blob response can hang a serverless function indefinitely. Auth headers
- * are forwarded but **token refresh is not handled**, so long-lived uploads
- * with expiring tokens may silently return 401. Three-tier fallback: filesystem
- * (local dev) > Payload Local API (serverless with media on disk) > blob URL
- * fetch (Vercel Blob only). If all three fail, returns null — callers must
- * handle null gracefully. Slow media won't block the whole request indefinitely.
+ * → blob URL fetch). If all three fail, returns null — callers must handle null
+ * gracefully. The 30s fetch timeout is load-bearing — without it, a slow blob
+ * response can hang a serverless function indefinitely. Auth headers are forwarded
+ * but **token refresh is not handled**, so long-lived uploads with expiring tokens
+ * may silently return 401.
  *
  * @fileType utility
  * @domain ai

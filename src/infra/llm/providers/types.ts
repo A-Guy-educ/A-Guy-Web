@@ -9,6 +9,7 @@
  *
  * @fileType types
  * @domain ai
+ * @pattern enum
  */
 
 // Provider types - matches LLM_PROVIDER env var values

@@ -1,27 +1,21 @@
-## Fix Round: Collapsed Duplicate @ai-summary Blocks
+## Fix Round 2: Internal Duplicate Sentences in @ai-summary Blocks
 
-PR #102 received CONCERNS feedback: 12 files had two separate `@ai-summary` tags due to asymmetric merge conflict resolution, and 4 of those also had verbatim repeated sentences.
+PR #102 received CONCERNS feedback identifying internal repetition within @ai-summary blocks — the same information stated twice in slightly different words.
 
-### What was fixed
+### What was fixed (12 files)
 
-15 files edited to collapse duplicate `@ai-summary` blocks into single coherent blocks:
-
-1. `interactive-lesson-generation-service.ts` — merged two @ai-summary blocks (Gemini responseSchema/audio cache + two-pass approach)
-2. `lesson-to-guided-explanation.ts` — merged two @ai-summary blocks (SVG rendering + XSS guard)
-3. `lesson-duplication-variation-service.ts` — merged two @ai-summary blocks (two-pass variation + model pinning)
-4. `providers/types.ts` — merged two @ai-summary blocks
-5. `genkit-instance.ts` — merged two @ai-summary blocks
-6. `teacher-profile-block.ts` — merged two @ai-summary blocks
-7. `system-prompts.server.ts` — merged two @ai-summary blocks
-8. `prompt-composer.server.ts` — merged two @ai-summary blocks
-9. `providers/shared/timeout.ts` — merged two @ai-summary blocks
-10. `providers/shared/index.ts` — merged two @ai-summary blocks
-11. `providers/shared/media-reader.ts` — merged two @ai-summary blocks
-12. `providers/shared/retry.ts` — merged two @ai-summary blocks
-13. `schemas/lesson-duplication-output.ts` — removed duplicate sentence about Gemini responseSchema collapse
-14. `chat-message-role.ts` — removed duplicate sentence about ChatRole vs AccountRole
-15. `errors.ts` — merged two @ai-summary fragments into one
-16. `genkit/config-resolver.ts` — removed duplicate sentence about config hierarchy
+1. `schemas/lesson-duplication-output.ts` — removed second verbatim "Gemini's responseSchema collapses nested object arrays (issue #1748)"
+2. `doc-search.ts` — collapsed "Falls back to an empty DocSearch instance" stated twice
+3. `prompt-composer.server.ts` — collapsed IMAGE_HANDLING_INSTRUCTIONS conditional-append rules stated twice
+4. `services/interactive-lesson/interactive-lesson-schema.ts` — removed second "stripUnsupportedKeys" sentence
+5. `services/exercise-chat-service.ts` — removed second streaming restriction sentence
+6. `providers/shared/media-reader.ts` — removed second three-tier fallback description
+7. `prompt-resolver.server.ts` — removed second three-tier fallback description
+8. `genkit-instance.ts` — collapsed repeated per-process cache paragraph
+9. `providers/shared/index.ts` — added missing `@pattern barrel`
+10. `providers/shared/errors.ts` — added missing `@pattern error-handling`
+11. `providers/types.ts` — added missing `@pattern enum`
+12. `teacher-profile-block.ts` — collapsed repeated block-format/regex sentence
 
 ### Verification
 - `pnpm typecheck` — pass

@@ -6,7 +6,8 @@
  * must detect `mediaPartsWithPath` presence and route accordingly, or get a
  * runtime error. Media fetching uses a public URL with forwarded auth cookies
  * (serverless-compatible), but **no retry on 401** — stale credentials silently
- * fail rather than refreshing. Streaming is not supported for multimodal (media attachments) — if you pass mediaPartsWithPath and try to stream, it throws. Multimodal media is fetched from publicUrl with forwarded auth cookies (serverless-compatible). The DEBUG_TEACHER_PROFILE env flag enables debug logging of the teacher profile block in the final system message.
+ * fail rather than refreshing. The DEBUG_TEACHER_PROFILE env flag enables
+ * debug logging of the teacher profile block in the final system message.
  *
  * @fileType service
  * @domain chat
