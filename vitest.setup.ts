@@ -13,63 +13,88 @@ import { getTestDatabaseUrl } from './tests/setup/db-config'
 // them here so that bare localStorage/sessionStorage (which resolve to
 // globalThis.*) hit the same storage as window.* that tests spy on.
 //
-// localStorage: use Object.create(Storage.prototype) so that calls like
-// localStorage.setItem go through the prototype — enabling spies on
-// Storage.prototype.setItem to intercept them.
+// localStorage: if window.localStorage is a proper Storage object, use it.
+// Otherwise fall back to a mock so product code always has access to storage.
 //
 // sessionStorage: delegate to window.sessionStorage so that bare
 // sessionStorage in product code uses the same object that tests spy on.
 // ---------------------------------------------------------------------------
-// In jsdom environments, bridge window's storage to globalThis so that bare
-// localStorage/sessionStorage (which resolve to globalThis.*) hit the same
-// objects that test beforeEach hooks spy on and that prototype spies intercept.
-//
-// - localStorage: window.localStorage is a proper Storage with setItem on the
-//   prototype, so Storage.prototype.setItem spies intercept calls correctly.
-// - sessionStorage: delegate to window.sessionStorage so bare sessionStorage in
-//   product code uses the same object that test spies mock.
+// Fallback mock storage - uses Storage.prototype if available so prototype spies intercept calls
+const createStorageMock = (): Storage => {
+  // In jsdom, Storage is available as window.Storage
+  const proto = typeof Storage !== 'undefined' && Storage.prototype ? Storage.prototype : {}
+  const mock = Object.create(proto) as Storage
+  const data = new Map<string, string>()
+  mock.getItem = function (key: string): string | null {
+    return data.get(key) ?? null
+  }
+  mock.setItem = function (key: string, value: string): void {
+    data.set(key, String(value))
+  }
+  mock.removeItem = function (key: string): void {
+    data.delete(key)
+  }
+  mock.clear = function (): void {
+    data.clear()
+  }
+  Object.defineProperty(mock, 'length', {
+    get(): number {
+      return data.size
+    },
+    enumerable: false,
+    configurable: true,
+  })
+  mock.key = function (index: number): string | null {
+    const keys = Array.from(data.keys())
+    return keys[index] ?? null
+  }
+  return mock
+}
+
+// Provide localStorage/sessionStorage to product code that uses bare access.
+// In jsdom, window.localStorage is a proper Storage object; bridge it to globalThis.
+// If window.localStorage is unavailable (e.g., jsdom without storage resource),
+// use a fallback mock so product code still has a working Storage object.
 if (typeof window !== 'undefined') {
-  Object.defineProperty(globalThis, 'localStorage', {
-    value: window.localStorage,
-    writable: true,
-    configurable: true,
-  })
-  Object.defineProperty(globalThis, 'sessionStorage', {
-    value: window.sessionStorage,
-    writable: true,
-    configurable: true,
-  })
+  try {
+    // If window.localStorage is available and works, use it
+    const _test = window.localStorage
+    Object.defineProperty(globalThis, 'localStorage', {
+      value: window.localStorage,
+      writable: true,
+      configurable: true,
+    })
+  } catch {
+    // window.localStorage is unavailable (e.g., opaque origin in jsdom) - use fallback
+    Object.defineProperty(globalThis, 'localStorage', {
+      value: createStorageMock(),
+      writable: true,
+      configurable: true,
+    })
+  }
+  try {
+    const _test2 = window.sessionStorage
+    Object.defineProperty(globalThis, 'sessionStorage', {
+      value: window.sessionStorage,
+      writable: true,
+      configurable: true,
+    })
+  } catch {
+    Object.defineProperty(globalThis, 'sessionStorage', {
+      value: createStorageMock(),
+      writable: true,
+      configurable: true,
+    })
+  }
 } else if (typeof globalThis.localStorage === 'undefined') {
   // Node-only environment (no jsdom): fall back to a minimal mock.
-  const storageMock = {
-    data: new Map<string, string>(),
-    getItem(key: string): string | null {
-      return this.data.get(key) ?? null
-    },
-    setItem(key: string, value: string): void {
-      this.data.set(key, String(value))
-    },
-    removeItem(key: string): void {
-      this.data.delete(key)
-    },
-    clear(): void {
-      this.data.clear()
-    },
-    get length(): number {
-      return this.data.size
-    },
-    key(index: number): string | null {
-      const keys = Array.from(this.data.keys())
-      return keys[index] ?? null
-    },
-  }
   Object.defineProperty(globalThis, 'localStorage', {
-    value: storageMock,
+    value: createStorageMock(),
     writable: true,
     configurable: true,
   })
   Object.defineProperty(globalThis, 'sessionStorage', {
-    value: storageMock,
+    value: createStorageMock(),
     writable: true,
     configurable: true,
   })
