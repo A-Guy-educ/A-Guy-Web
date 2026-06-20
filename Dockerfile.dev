@@ -16,7 +16,7 @@
 #   docker exec -it a-guy-dev bash
 # =============================================================================
 
-FROM node:26-alpine
+FROM node:26.3.0-alpine
 
 # Install base dependencies
 RUN apk add --no-cache \
