@@ -1,9 +1,15 @@
-Fix: Updated vitest.setup.ts storage bridging with try-catch fallback.
+Fix: Updated vitest.setup.ts storage bridging for jsdom opaque origin.
 
-Root cause: The previous fix bridged window.localStorage to globalThis.localStorage unconditionally when window was defined. However, in jsdom with opaque origin (no proper URL set), accessing window.localStorage throws `SecurityError: localStorage is not available for opaque origins`. The previous code did not handle this case - when window.localStorage was falsy, globalThis.localStorage was set to undefined, and the fallback mock was not created.
+Root cause: When jsdom (jsdom 26.1.0 on Node 24) has an opaque origin (no proper URL), accessing window.localStorage/window.sessionStorage throws SecurityError. The previous fix correctly caught this and created a fallback mock, but only assigned it to globalThis — not to window itself. After the first throw, jsdom "consumes" the error: subsequent accesses to window.localStorage return undefined (not another throw). Tests call window.localStorage.clear() directly, which was still undefined.
 
-Fix: Wrap window.localStorage and window.sessionStorage access in try-catch. If accessing them throws (e.g., SecurityError from jsdom opaque origin), fall back to the mock. The mock uses `Object.create(Storage.prototype)` so that `Storage.prototype.setItem` spies still intercept calls correctly.
+Fix: In the catch block for both localStorage and sessionStorage, the fallback mock is now assigned to BOTH window (via Object.defineProperty(window, 'localStorage', { value: fallback })) AND globalThis. This ensures both bare access (globalThis.localStorage) and window access (window.localStorage) work correctly.
 
 Key change:
-- Before: `if (typeof window !== 'undefined') { globalThis.localStorage = window.localStorage } else { fallback }`
-- After: `if (typeof window !== 'undefined') { try { globalThis.localStorage = window.localStorage } catch { globalThis.localStorage = createStorageMock() } } else { fallback }`
+```typescript
+} catch {
+  const fallback = createStorageMock()
+  Object.defineProperty(globalThis, 'localStorage', { value: fallback, ... })
+  Object.defineProperty(window, 'localStorage', { value: fallback, ... }) // NEW
+}
+```
+Same pattern applied for sessionStorage.

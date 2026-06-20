@@ -53,11 +53,12 @@ const createStorageMock = (): Storage => {
 
 // Provide localStorage/sessionStorage to product code that uses bare access.
 // In jsdom, window.localStorage is a proper Storage object; bridge it to globalThis.
-// If window.localStorage is unavailable (e.g., jsdom without storage resource),
-// use a fallback mock so product code still has a working Storage object.
+// If window.localStorage is unavailable (e.g., jsdom without storage resource or opaque
+// origin throwing SecurityError), use a fallback mock so product code and tests both
+// have access to a working Storage object.
 if (typeof window !== 'undefined') {
+  // localStorage
   try {
-    // If window.localStorage is available and works, use it
     const _test = window.localStorage
     Object.defineProperty(globalThis, 'localStorage', {
       value: window.localStorage,
@@ -65,13 +66,22 @@ if (typeof window !== 'undefined') {
       configurable: true,
     })
   } catch {
-    // window.localStorage is unavailable (e.g., opaque origin in jsdom) - use fallback
+    // window.localStorage threw (e.g., SecurityError from jsdom opaque origin).
+    // Subsequent accesses to window.localStorage return undefined (error is consumed),
+    // so we MUST also assign the fallback to window.localStorage — not just globalThis.
+    const fallback = createStorageMock()
     Object.defineProperty(globalThis, 'localStorage', {
-      value: createStorageMock(),
+      value: fallback,
+      writable: true,
+      configurable: true,
+    })
+    Object.defineProperty(window, 'localStorage', {
+      value: fallback,
       writable: true,
       configurable: true,
     })
   }
+  // sessionStorage
   try {
     const _test2 = window.sessionStorage
     Object.defineProperty(globalThis, 'sessionStorage', {
@@ -80,8 +90,14 @@ if (typeof window !== 'undefined') {
       configurable: true,
     })
   } catch {
+    const fallback = createStorageMock()
     Object.defineProperty(globalThis, 'sessionStorage', {
-      value: createStorageMock(),
+      value: fallback,
+      writable: true,
+      configurable: true,
+    })
+    Object.defineProperty(window, 'sessionStorage', {
+      value: fallback,
       writable: true,
       configurable: true,
     })

@@ -4,11 +4,11 @@
   "target": "dependabot/docker/node-26-alpine",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Fixed vitest.setup.ts storage bridging: wrapped window.localStorage/sessionStorage access in try-catch to handle jsdom opaque-origin SecurityError. When jsdom has opaque origin (no proper URL), accessing window.localStorage throws SecurityError; the catch now falls back to a mock with proper Storage.prototype chain so Storage.prototype.setItem spies intercept calls correctly.",
+  "reason": "Fixed vitest.setup.ts: in the catch block (SecurityError from jsdom opaque origin), the fallback mock was only assigned to globalThis.localStorage/globalThis.sessionStorage. Tests call window.localStorage/window.sessionStorage directly, and after the first throw the error is consumed — subsequent accesses return undefined rather than throwing again. The fix assigns the fallback mock to both window and globalThis in the catch block.",
   "prUrl": null,
   "runUrl": null,
   "filesTouched": ["vitest.setup.ts"],
-  "sessionLog": ".kody/sessions/gh-27861580855-1-1.jsonl",
-  "startedAt": "2026-06-20T05:30:00.000Z",
-  "finishedAt": "2026-06-20T05:45:00.000Z"
+  "sessionLog": ".kody/sessions/gh-27863500147-1-1.jsonl",
+  "startedAt": "2026-06-20T06:55:00.000Z",
+  "finishedAt": "2026-06-20T07:01:00.000Z"
 }
