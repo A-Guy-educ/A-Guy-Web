@@ -1,7 +1,9 @@
-Task 252 (PR #252) complete — fix round applied.
+Task 252 (PR #252) complete — fix round 2 applied.
 
-This was a pure dependabot dev-dependency bump (18 packages). The review feedback was CONCERNS due to `.kody/tasks/252/` artifacts being committed to the branch alongside the dependency changes.
+This was a dependabot dev-dependency bump (18 packages, semver-compatible). The initial CONCERNS verdict was due to `.kody/tasks/` artifacts being committed alongside the dependency changes.
 
-Fix applied in this round: added `.kody/tasks/` to `.gitignore` (line 102), consistent with the existing pattern for other `.kody/` transient directories (graph, missions, qa-reports).
+Round 1 fix: added `.kody/tasks/` to `.gitignore` (line 102), consistent with existing pattern for other `.kody/` transient directories (graph, missions, qa-reports).
 
-Files touched in fix round: .gitignore, .kody/tasks/252/context.json, .kody/tasks/252/handoff-notes.md.
+Round 2 fix (this round): reconciled AGENTS.md documentation conflict. Lines 1315-1316 previously told agents to "commit both files alongside your task's normal commits," but the gitignore entry added in round 1 excluded `.kody/tasks/`. Updated AGENTS.md to remove the instruction to commit these files, aligning it with the gitignore policy.
+
+Files touched in this round: AGENTS.md.

@@ -1312,5 +1312,7 @@ tick), write two small files into `.kody/tasks/<task-id>/`:
     memories (it dedupes against existing memory, drops sticky notes
     for high-confidence picks, archives the rest).
 
-Commit both files alongside your task's normal commits. Do not also
-drop sticky notes for the same content — that would double-file.
+These files are written to `.kody/tasks/` which is gitignored — **do not
+commit them**. They exist for the `task-memory-extractor` job to process
+asynchronously. Do not also drop sticky notes for the same content —
+that would double-file.

@@ -1,1 +1,8 @@
-[]
+[
+  {
+    "title": "filesTouched should only reflect task-modified files, not all files in a bundled PR",
+    "body": "The context.json filesTouched field listed all 7 changed files in the PR, not just the files this task actually modified (AGENTS.md). Future task artifacts should only enumerate files the task itself touched, not the full PR diff.",
+    "rationale": "Accurate filesTouched is needed for audit trails and task-memory-extractor processing.",
+    "priority": "low"
+  }
+]
