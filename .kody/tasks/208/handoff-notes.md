@@ -1,25 +1,28 @@
 ## What happened
 
-Applied second-pass review feedback to PR #207 (doc coverage: src/lib/payment/).
+Applied third-pass review feedback to PR #207 (doc coverage: src/lib/payment/).
 
 ## Reviewer CONCERN addressed
 
-The sole CONCERN flagged that `paypal.ts`'s `@ai-summary` did not document `cancelPayPalOrder`'s void-only semantics, creating an asymmetry with `stripe.ts`'s tag which explicitly notes that `cancelStripeCheckout` "voids the provider session, not the DB record."
-
-The code comment at `paypal.ts:270-271` already describes this: "Cancel/void a PayPal order. Used when transaction record creation fails after order was created." — identical semantics to the Stripe counterpart.
+The CONCERN flagged that `cancelStripeCheckout` (stripe.ts:104) had only a bare one-liner JSDoc with no explicit note that it voids only the provider session, not the DB record — creating an asymmetry with the sibling `cancelPayPalOrder`. The module-level `@ai-summary` already covered this, but the function-level doc did not.
 
 ### Fix applied
 
-- `src/lib/payment/index.ts` — Removed redundant `Gotchas` block (first-pass fix, already on branch).
-- `src/lib/payment/paypal.ts:6` — Appended void-only semantics clause to `@ai-summary`:
+- `src/lib/payment/stripe.ts:104-108` — Replaced the function-level JSDoc on `cancelStripeCheckout` with:
 
-  > Use cancelPayPalOrder ONLY as cleanup when DB write fails after order creation — it voids the provider order, not the DB record.
+  ```typescript
+  /**
+   * Cancel/expire a Stripe checkout session.
+   * Void the Stripe checkout session (provider-side only). Does NOT affect the
+   * DB record — use only as cleanup when the DB write fails after session creation.
+   */
+  ```
 
-  This now mirrors the `stripe.ts` `@ai-summary` exactly, restoring symmetry that was previously covered by the now-removed Gotchas block.
+  This mirrors the `cancelPayPalOrder` function-level JSDoc (paypal.ts:269-272) and completes the symmetry the PR set out to establish.
 
 ## Files touched
 
-- `src/lib/payment/paypal.ts` — extended `@ai-summary` with `cancelPayPalOrder` void-only semantics note.
+- `src/lib/payment/stripe.ts` — updated `cancelStripeCheckout` JSDoc to explicitly call out void-only/provider-side-only semantics.
 
 ## Quality gates
 

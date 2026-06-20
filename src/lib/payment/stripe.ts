@@ -102,8 +102,9 @@ export async function refundStripe(
 }
 
 /**
- * Cancel/expire a Stripe checkout session
- * Used when transaction record creation fails after session was created
+ * Cancel/expire a Stripe checkout session.
+ * Void the Stripe checkout session (provider-side only). Does NOT affect the
+ * DB record — use only as cleanup when the DB write fails after session creation.
  */
 export async function cancelStripeCheckout(providerSessionId: string): Promise<void> {
   const stripe = getStripeClient()
