@@ -25,5 +25,14 @@
     "why": "A wrong gotcha misleads developers about actual API semantics. In this case the runtime was safe because the error was caught, but a wrong gotcha elsewhere could cause someone to not handle a real error correctly.",
     "how_to_apply": "When writing a gotcha about third-party API behaviour, verify against the actual API docs or behaviour. If uncertain, describe what the code does (catches and handles) rather than what the API guarantees.",
     "confidence": 0.9
+  },
+  {
+    "type": "lesson",
+    "name": "state-file-path-must-match-job-contract",
+    "hook": "Jobs in .kody/jobs/ write state to .kody/jobs/<name>.state.json (not .kody/duties/)",
+    "body": "The job markdown files (.kody/jobs/*.md) contract the tick script to read/write state at .kody/jobs/<name>.state.json. The output fence label is kody-mission-next-state, not kody-job-next-state. Tick scripts for jobs must use the .kody/jobs/ state path and the correct fence label.",
+    "why": "Using the wrong state path means the job engine's state backend and the tick script's state file diverge. The engine writes to one path; the script reads/writes another — so the perPr map is always empty and every tick re-posts on the same PRs.",
+    "how_to_apply": "When creating a new tick script for a .kody/jobs/*.md job, use STATE_FILE=.kody/jobs/<name>.state.json and emit kody-mission-next-state as the fence label.",
+    "confidence": 0.95
   }
 ]
