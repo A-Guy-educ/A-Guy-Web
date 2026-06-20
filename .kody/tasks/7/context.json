@@ -4,11 +4,11 @@
   "target": "dependabot/docker/node-26-alpine",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Fixed vitest.setup.ts: the try block accessed window.localStorage twice (once for the test, once for the value). When window.localStorage exists but has no usable methods (broken Storage with undefined getItem), the first access succeeds but methods are undefined — fallback never triggers and tests get 'Cannot read properties of undefined'. Fix validates getItem is a function before using real Storage; if not, throws to trigger fallback mock.",
+  "reason": "Fixed mock.setItem in createStorageMock: the fallback mock's setItem was an own property that only stored data locally but never called Storage.prototype.setItem, so a test spy on Storage.prototype.setItem was never triggered. Fix: mock.setItem now calls Storage.prototype.setItem.call(this, key, value) before storing data locally, ensuring any prototype spy is triggered.",
   "prUrl": null,
   "runUrl": null,
   "filesTouched": ["vitest.setup.ts"],
-  "sessionLog": ".kody/sessions/gh-27865231253-1-1.jsonl",
-  "startedAt": "2026-06-20T08:25:00.000Z",
-  "finishedAt": "2026-06-20T08:28:01.000Z"
+  "sessionLog": ".kody/sessions/gh-27866900454-1-1.jsonl",
+  "startedAt": "2026-06-20T09:20:00.000Z",
+  "finishedAt": "2026-06-20T09:41:00.000Z"
 }

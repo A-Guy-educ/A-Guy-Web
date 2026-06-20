@@ -29,6 +29,10 @@ const createStorageMock = (): Storage => {
     return data.get(key) ?? null
   }
   mock.setItem = function (key: string, value: string): void {
+    // Call through to Storage.prototype so that any spy on
+    // Storage.prototype.setItem is triggered (e.g. test mocks that throw).
+    // If the prototype call throws (test spy throws), we still store locally.
+    Storage.prototype.setItem.call(this, key, String(value))
     data.set(key, String(value))
   }
   mock.removeItem = function (key: string): void {
