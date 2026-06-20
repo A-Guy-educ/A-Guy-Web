@@ -1,13 +1,15 @@
 ## What was done
 
-Round 3 fix — applied remaining review feedback from PR #222.
+Round 4 fix — applied remaining review feedback from PR #222.
 
-**Three changes:**
+**Four changes:**
 
-1. **Verbatim duplication (concern)** — `lesson-duplication-variation-service.ts:7` and `lesson-duplication-output.ts:4` both used "Gemini's responseSchema collapses nested object arrays into literal string arrays (issue #1748)" verbatim. Fixed: variation-service now says "Gemini's responseSchema misrenders nested object arrays as strings (issue #1748)"; output-schema now says "Gemini's responseSchema misrenders nested object arrays as string arrays (issue #1748)". Both convey the same gotcha with independent phrasing.
+1. **Missing @fileType/@domain tags (concern)** — `chat-message-role.ts` was the only file in `src/infra/llm/` without `@fileType` and `@domain` tags. Added `@fileType enum` and `@domain ai` after the `@ai-summary` block.
 
-2. **Single-sentence @ai-summary (suggestion)** — `cache-schema-version.ts:4` was one compressed sentence with em-dashes. Split into two sentences (purpose + gotcha) matching the established convention in sibling `published-prompt-cache.ts`. The purpose clause now ends with a period after "evicted on read and regenerated"; the gotcha clause follows as a second sentence.
+2. **Single-sentence @ai-summary (concern)** — `context-policy.ts:4` had one dense multi-clause @ai-summary. Split into two sentences: purpose (strict order is the contract) + gotcha (do not reorder without a version bump).
 
-3. **Hook-wiring fix (prior round)** — function-level JSDoc on `invalidatePublishedInteractiveLessonPrompt()` had stale claim "fired by the Prompts collection's afterChange/afterDelete hook". Corrected to "Exists for manual use — there is no hook that automatically calls this".
+3. **Missing gotcha in @ai-summary (concern)** — `cache-schema-version.ts` @ai-summary was purpose-only (no gotcha). Added a gotcha: "Prompt template changes do NOT need a bump (tracked by promptId + updatedAt separately); neither do new optional fields the converter tolerates." Restructured into clean purpose + gotcha.
+
+4. **"never" too absolute (suggestion)** — `config-resolver.ts` @ai-summary said "never import MODEL_REGISTRY directly for runtime config" but the module does import it at line 18 for type access and fallback paths. Softened to "prefer it over importing MODEL_REGISTRY directly for runtime config (importing for type access or fallback paths is fine)."
 
 **Verification:** `verify` passes (typecheck + lint clean on all modified files).

@@ -1,19 +1,19 @@
 {
   "taskId": "222",
   "taskType": "pr",
-  "target": "gh-27808811748-1-1",
+  "target": "103",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Fixed remaining review feedback: deduplicated verbatim issue-#1748 phrasing across lesson-duplication-variation-service.ts and lesson-duplication-output.ts, and split the single-sentence @ai-summary in cache-schema-version.ts into purpose+gotcha. verify passes.",
+  "reason": "Applied all four review items: added @fileType/@domain tags to chat-message-role.ts, split context-policy.ts @ai-summary into two sentences, added gotcha to cache-schema-version.ts @ai-summary, and softened 'never' in config-resolver.ts. verify passes.",
   "prUrl": null,
   "runUrl": null,
   "filesTouched": [
-    "src/infra/llm/services/interactive-lesson/published-prompt-cache.ts",
-    "src/infra/llm/services/lesson-duplication-variation-service.ts",
-    "src/infra/llm/schemas/lesson-duplication-output.ts",
-    "src/infra/llm/services/interactive-lesson/cache-schema-version.ts"
+    "src/infra/llm/chat-message-role.ts",
+    "src/infra/llm/context-policy.ts",
+    "src/infra/llm/services/interactive-lesson/cache-schema-version.ts",
+    "src/infra/llm/genkit/config-resolver.ts"
   ],
-  "sessionLog": null,
-  "startedAt": "2026-06-19T00:00:00.000Z",
-  "finishedAt": "2026-06-19T00:00:00.000Z"
+  "sessionLog": ".kody/sessions/gh-27861789287-1-1.jsonl",
+  "startedAt": "2026-06-20T00:00:00.000Z",
+  "finishedAt": "2026-06-20T00:00:00.000Z"
 }

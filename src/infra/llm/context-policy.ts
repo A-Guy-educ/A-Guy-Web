@@ -1,7 +1,7 @@
 /**
  * Deterministic prompt composition policy
  *
- * @ai-summary Strict order: system > summary > memory > recent messages. This order is the contract — inserting content at a different position changes the prompt semantics and may degrade quality. recentWindowSize=20, memoryTopK=8, summaryThreshold=40. Do not reorder or insert ad-hoc sections without a version bump.
+ * @ai-summary Deterministic prompt composition: strict order is system > summary > memory > recent messages — this order is the contract and inserting content at a different position changes prompt semantics and may degrade quality. Do not reorder or insert ad-hoc sections without a version bump.
  *
  * Policy V1 Contract:
  * 1. System message (static)

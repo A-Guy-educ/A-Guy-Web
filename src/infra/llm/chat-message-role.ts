@@ -7,6 +7,9 @@
  *
  * @ai-summary ChatRole (user/assistant) is completely different from AccountRole (admin/student/etc) — they live in different namespaces and mean different things. toGeminiRole() maps 'assistant' → 'model', which is Gemini's terminology. Do not use this for authorization decisions. Converts between internal `ChatRole` (user/assistant) and Gemini API format (user/model). Deprecated aliases (`ChatMessageRole`) exist for backward compatibility but will be removed.
  *
+ * @fileType enum
+ * @domain ai
+ *
  * Values:
  * - user: Message from the human (student/learner)
  * - assistant: Message from the AI tutor
