@@ -184,7 +184,7 @@ export async function createGenkitUnifiedAdapter(
               // `gemini()` helper, which builds a modelRef against the plugin's
               // GENERIC_GEMINI_MODEL — this unlocks versions newer than the
               // plugin's pre-registered allowlist (e.g. gemini-3.x previews on
-              // @genkit-ai/googleai@1.28).
+              // @genkit-ai/googleai@1.36).
               const modelRef = input.modelVersion ? gemini(input.modelVersion) : config.model
 
               // When the caller supplies a schema, configure Genkit's

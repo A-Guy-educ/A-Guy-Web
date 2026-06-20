@@ -4,11 +4,14 @@
   "target": "dependabot/npm_and_yarn/prod-dependencies-d049d0058b",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Verified prior-round fix correct; transitive deps (@babel/core, terser, ws) resolved from legitimate deps, not deprecated @kody-ade/engine",
+  "reason": "Updated two stale @genkit-ai/googleai version references (1.28 -> 1.36) in unified-adapter.ts and factory.ts; verify passed",
   "prUrl": "https://github.com/A-Guy-educ/A-Guy-Web/pull/18",
   "runUrl": null,
-  "filesTouched": [],
-  "sessionLog": ".kody/sessions/current.jsonl",
-  "startedAt": "2026-06-19T00:00:00.000Z",
-  "finishedAt": "2026-06-19T00:00:00.000Z"
+  "filesTouched": [
+    "src/infra/llm/genkit/adapters/unified-adapter.ts",
+    "src/infra/llm/providers/factory.ts"
+  ],
+  "sessionLog": null,
+  "startedAt": "2026-06-20T00:50:00Z",
+  "finishedAt": "2026-06-20T00:56:56Z"
 }

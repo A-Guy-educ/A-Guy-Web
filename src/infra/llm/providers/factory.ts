@@ -151,7 +151,7 @@ export interface UnifiedLLMProvider {
        * Optional model-version override. When set, the adapter resolves the
        * model via the provider's `model(version)` helper rather than the
        * pre-registered allowlist, so versions newer than the installed plugin
-       * (e.g. `gemini-3.1-pro-preview` on @genkit-ai/googleai@1.28) work.
+       * (e.g. `gemini-3.1-pro-preview` on @genkit-ai/googleai@1.36) work.
        */
       modelVersion?: string
     },
