@@ -4,7 +4,7 @@
  * Validates media exists, belongs to tenant, not expired, valid type/size
  * Returns resolved paths for Gemini mapper (no extra DB lookups)
  *
- * @ai-summary Validates ownership via createdBy=userId — this is the only access control check; if a media record has no createdBy, it passes validation and returns a valid path regardless of actual ownership. Validates against the signed-in user's media (createdBy = userId) — not tenant isolation. This means students can only attach their own uploaded images. Blob-only media (Vercel Blob, no local file) is handled by fetching directly from the publicUrl with forwarded auth cookies. File size limit is 10MB; attachment limit is 5 per message.
+ * @ai-summary Validates ownership via createdBy=userId — this is the only access control check. Records where createdBy is missing or does not match the userId are rejected as "Media not found or access denied"; there is no fallback that allows them through. Validates against the signed-in user's media (createdBy = userId) — not tenant isolation. This means students can only attach their own uploaded images. Blob-only media (Vercel Blob, no local file) is handled by fetching directly from the publicUrl with forwarded auth cookies. File size limit is 10MB; attachment limit is 5 per message.
  */
 
 import type { Payload } from '@/infra/types/backend'

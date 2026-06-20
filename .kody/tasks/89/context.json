@@ -4,13 +4,14 @@
   "target": "gh-27783047069-1-1",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Fixed incorrect @ai-summary in summary.ts:5 — the summary said absent OPENAI_API_KEY causes silent empty return, but generateSummary() actually throws. Corrected to reflect throw behavior. Typecheck, lint, and format all pass.",
+  "reason": "Fixed two pre-existing @ai-summary inaccuracies: (1) interactive-lesson-generation-service.ts claimed gemini-3.1-pro-preview but GEMINI_CONFIG.modelName is gemini-2.5-flash; (2) media-validation.ts claimed missing createdBy passes validation but the query actually rejects those records. Quality gates pass.",
   "prUrl": null,
   "runUrl": null,
   "filesTouched": [
-    "src/infra/llm/summary.ts"
+    "src/infra/llm/services/interactive-lesson/interactive-lesson-generation-service.ts",
+    "src/infra/llm/multimodal/media-validation.ts"
   ],
   "sessionLog": ".kody/sessions/89.jsonl",
   "startedAt": "2026-06-18T00:00:00.000Z",
-  "finishedAt": "2026-06-19T00:00:00.000Z"
+  "finishedAt": "2026-06-20T00:00:00.000Z"
 }
