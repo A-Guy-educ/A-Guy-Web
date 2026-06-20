@@ -8,7 +8,7 @@
   "prUrl": null,
   "runUrl": null,
   "filesTouched": [".github/workflows/self-hosted-smoke.yml"],
-  "sessionLog": ".kody/sessions/gh-27856348209-1.jsonl",
+  "sessionLog": ".kody/sessions/gh-27870985465-1.jsonl",
   "startedAt": "2026-06-20T00:00:00.000Z",
-  "finishedAt": "2026-06-20T00:00:00.000Z"
+  "finishedAt": "2026-06-20T12:26:05.000Z"
 }
