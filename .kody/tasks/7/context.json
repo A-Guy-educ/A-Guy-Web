@@ -4,11 +4,11 @@
   "target": "dependabot/docker/node-26-alpine",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Fixed mock.setItem in createStorageMock: the fallback mock's setItem was an own property that only stored data locally but never called Storage.prototype.setItem, so a test spy on Storage.prototype.setItem was never triggered. Fix: mock.setItem now calls Storage.prototype.setItem.call(this, key, value) before storing data locally, ensuring any prototype spy is triggered.",
+  "reason": "Fixed mock.setItem in createStorageMock: wrapped Storage.prototype.setItem.call(this, ...) in try-catch. In jsdom 26.1.0 on Node 26, the instanceof Storage check in Storage.prototype.setItem throws TypeError when 'this' is a mock object created via Object.create(Storage.prototype). The try-catch catches this error while still allowing: (a) the spy to be triggered when prototype call succeeds, and (b) data to be stored locally when it fails.",
   "prUrl": null,
   "runUrl": null,
   "filesTouched": ["vitest.setup.ts"],
-  "sessionLog": ".kody/sessions/gh-27866900454-1-1.jsonl",
-  "startedAt": "2026-06-20T09:20:00.000Z",
-  "finishedAt": "2026-06-20T09:41:00.000Z"
+  "sessionLog": ".kody/sessions/gh-27868290929-1-1.jsonl",
+  "startedAt": "2026-06-20T10:25:00.000Z",
+  "finishedAt": "2026-06-20T10:32:00.000Z"
 }
