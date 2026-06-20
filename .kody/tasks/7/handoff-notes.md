@@ -1,7 +1,11 @@
-Applied two targeted fixes to PR #7 (bump node from 22-alpine to 26-alpine):
+Fix: Added bare `localStorage`/`sessionStorage` mock to `vitest.setup.ts`.
 
-1. CI node-version: All 7 `setup-node` actions in `.github/workflows/ci.yml` had their `node-version` updated from `'22'` to `'26'`. This closes the CI validation gap where the production Node 26 image was never tested in the pipeline before merge.
+Root cause: Unit test config (`vitest.config.unit.mts`) defaults to `environment: 'node'`. Tests that declare `// @vitest-environment jsdom` get a virtual DOM window but bare `localStorage` (without `window.` prefix) remains undefined in Node's global scope. The failing tests (`useLessonViewMode`, `anonymous-id`, `PreferencesSection`, `LayoutClient`) all used bare `localStorage.clear()` / `localStorage.setItem()`.
 
-2. Dockerfile.dev pinning: Changed line 19 from floating `node:26-alpine` to exact `node:26.3.0-alpine`, matching the exact version already used in `Dockerfile:4`. This aligns the two Dockerfiles' versioning strategy.
+Fix strategy: Added a storage mock to `vitest.setup.ts` that defines `globalThis.localStorage` and `globalThis.sessionStorage` if they're not already defined. This covers both bare and `window.`-prefixed access and works across both `node` and `jsdom` environments without requiring per-file environment switching or changes to the vitest config defaults.
 
-No other changes made. Quality gates (typecheck, lint, tests) pass.
+Two alternatives considered and rejected:
+1. Switch unit config default to `jsdom` — breaks `tests/unit/scripts/inspector/state.test.ts` which uses Node module mocks (`fs`, `child_process`) incompatible with jsdom.
+2. Add `// @vitest-environment node` to jsdom-dependent test files — fragile, requires updating every affected test file, doesn't fix the underlying infrastructure gap.
+
+No other changes made. Quality gates pass: typecheck ✓, lint ✓, tests ✓ (203 files, 2548 tests passed).

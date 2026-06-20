@@ -5,6 +5,47 @@ import 'dotenv/config'
 import { vi } from 'vitest'
 import { getTestDatabaseUrl } from './tests/setup/db-config'
 
+// ---------------------------------------------------------------------------
+// DOM globals for tests that use // @vitest-environment jsdom
+// vitest's jsdom environment provides window/document but not bare globals.
+// Add bare localStorage/sessionStorage so test code can use either
+// `window.localStorage` or bare `localStorage` without triggering ReferenceError.
+// ---------------------------------------------------------------------------
+if (typeof globalThis.localStorage === 'undefined') {
+  const storageMock = {
+    data: new Map<string, string>(),
+    getItem(key: string): string | null {
+      return this.data.get(key) ?? null
+    },
+    setItem(key: string, value: string): void {
+      this.data.set(key, String(value))
+    },
+    removeItem(key: string): void {
+      this.data.delete(key)
+    },
+    clear(): void {
+      this.data.clear()
+    },
+    get length(): number {
+      return this.data.size
+    },
+    key(index: number): string | null {
+      const keys = Array.from(this.data.keys())
+      return keys[index] ?? null
+    },
+  }
+  Object.defineProperty(globalThis, 'localStorage', {
+    value: storageMock,
+    writable: true,
+    configurable: true,
+  })
+  Object.defineProperty(globalThis, 'sessionStorage', {
+    value: storageMock,
+    writable: true,
+    configurable: true,
+  })
+}
+
 // Set required environment variables for tests if not already set
 if (!process.env.PAYLOAD_SECRET) {
   process.env.PAYLOAD_SECRET = 'test-secret-key-for-integration-tests-only-minimum-32-chars'
