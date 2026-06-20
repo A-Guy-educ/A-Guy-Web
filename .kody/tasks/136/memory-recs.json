@@ -1,5 +1,14 @@
 [
   {
+    "type": "lesson",
+    "name": "job-migration-must-include-script-recreation",
+    "hook": "When migrating jobs from executables/ to jobs/ structure, recreate tick scripts at new path",
+    "body": "The infra migration that moved jobs from .kody/executables/<name>/tick.sh to .kody/scripts/<name>-tick.sh deleted the old scripts without recreating them at the new path. The job markdown files still referenced the new path, so every job tick would hard-fail. When restructuring job infrastructure, every tick script must be recreated at its new location before the migration commit lands.",
+    "why": "A job whose tick script doesn't exist will hard-fail on first invocation, silently dropping all subsequent ticks until the operator notices. The error is invisible because the job appears to complete (it just emits nothing).",
+    "how_to_apply": "When restructuring job infrastructure, treat script recreation as part of the migration — not as a separate follow-up. The new script path should be verified to exist before the old structure is deleted.",
+    "confidence": 0.95
+  },
+  {
     "type": "decision",
     "name": "ai-summary-gotcha-inline-vs-standalone",
     "hook": "Inline Gotcha: in @ai-summary matches sibling payment files",
