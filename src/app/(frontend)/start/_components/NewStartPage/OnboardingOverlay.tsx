@@ -17,7 +17,7 @@ export function OnboardingOverlay({
 }: OnboardingOverlayProps) {
   return (
     <div id="onboarding-overlay" className="fixed bottom-6 left-6 z-50 max-w-sm">
-      <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-2xl border border-surface-gray-100 overflow-hidden">
         {/* Header */}
         <div className="p-4" style={{ background: 'var(--gradient-sky-purple)' }}>
           <div className="flex items-center justify-between">
@@ -43,7 +43,7 @@ export function OnboardingOverlay({
         {/* Content */}
         <div className="p-5 space-y-4">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-surface-gray-500">
               שאלה {onboardingStep + 1} מתוך {ONBOARDING_STEPS.length}
             </span>
           </div>
@@ -62,7 +62,9 @@ export function OnboardingOverlay({
           <button
             onClick={onPrev}
             className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
-              onboardingStep === 0 ? 'hidden' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              onboardingStep === 0
+                ? 'hidden'
+                : 'bg-surface-gray-100 text-surface-gray-700 hover:bg-surface-gray-200'
             }`}
           >
             ← הקודם

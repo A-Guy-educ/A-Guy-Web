@@ -125,6 +125,19 @@
     --accent-purple-deep: #9333ea;
     --accent-indigo: #6366f1;
     --accent-amber: #f59e0b;
+
+    /* Landing page surface colors */
+    --surface-white: #ffffff;
+    --surface-gray-50: #f9fafb;
+    --surface-gray-100: #f3f4f6;
+    --surface-gray-200: #e5e7eb;
+    --surface-gray-300: #d1d5db;
+    --surface-gray-400: #9ca3af;
+    --surface-gray-500: #6b7280;
+    --surface-gray-600: #4b5563;
+    --surface-gray-700: #374151;
+    --surface-gray-800: #1f2937;
+    --surface-gray-900: #111827;
   }
 
   [data-theme='dark'] {
@@ -565,15 +578,6 @@ math-field:focus-within {
 }
 
 /* Start page animations */
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-}
-
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
 
 .onboarding-bubble {
   animation: fadeInUp 0.5s ease-out forwards;

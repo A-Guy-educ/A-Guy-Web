@@ -92,7 +92,10 @@ export function NewStartPage() {
 
   return (
     <>
-      <div className="bg-gray-50 text-gray-900 overflow-x-hidden min-h-screen" dir="rtl">
+      <div
+        className="bg-surface-gray-50 text-surface-gray-900 overflow-x-hidden min-h-screen"
+        dir="rtl"
+      >
         <NavigationBar />
         <HeroSection onScrollToSimulation={scrollToSimulation} />
         <ComparisonSection />

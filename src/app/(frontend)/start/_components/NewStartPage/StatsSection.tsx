@@ -8,11 +8,11 @@ export function StatsSection() {
       <div className="absolute inset-0">
         <div
           className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl"
-          style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}
+          style={{ backgroundColor: 'color-mix(in srgb, var(--foreground) 5%, transparent)' }}
         />
         <div
           className="absolute bottom-0 left-0 w-96 h-96 rounded-full blur-3xl"
-          style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}
+          style={{ backgroundColor: 'color-mix(in srgb, var(--foreground) 5%, transparent)' }}
         />
       </div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">

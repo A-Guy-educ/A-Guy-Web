@@ -16,28 +16,31 @@ export function SimulationSection({
   onSend,
 }: SimulationSectionProps) {
   return (
-    <section id="simulation" className="py-24 text-white relative overflow-hidden bg-gray-900">
+    <section
+      id="simulation"
+      className="py-24 text-white relative overflow-hidden bg-surface-gray-900"
+    >
       <div className="absolute inset-0">
         <div
           className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl"
-          style={{ backgroundColor: 'rgba(14,165,233,0.1)' }}
+          style={{ backgroundColor: 'color-mix(in srgb, var(--accent-sky) 10%, transparent)' }}
         />
         <div
           className="absolute bottom-0 left-0 w-96 h-96 rounded-full blur-3xl"
-          style={{ backgroundColor: 'rgba(168,85,247,0.1)' }}
+          style={{ backgroundColor: 'color-mix(in srgb, var(--accent-purple) 10%, transparent)' }}
         />
       </div>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl font-bold mb-4">נסה את A-Guy עכשיו</h2>
-          <p className="text-xl text-gray-400">הקלד שאלה וקבל תשובה מיידית</p>
+          <p className="text-xl text-surface-gray-400">הקלד שאלה וקבל תשובה מיידית</p>
         </div>
 
         <div
           className="rounded-3xl p-8 border backdrop-blur-xl"
           style={{
-            backgroundColor: 'rgba(255,255,255,0.05)',
-            borderColor: 'rgba(255,255,255,0.1)',
+            backgroundColor: 'color-mix(in srgb, var(--foreground) 5%, transparent)',
+            borderColor: 'color-mix(in srgb, var(--foreground) 10%, transparent)',
           }}
         >
           {/* Messages area */}
@@ -51,7 +54,7 @@ export function SimulationSection({
                   A
                 </div>
                 <div className="rounded-2xl rounded-tl-sm p-4 flex-1 bg-white/10">
-                  <p className="text-gray-200">הקלד שאלה במתמטיקה ואני אעזור לך!</p>
+                  <p className="text-surface-gray-200">הקלד שאלה במתמטיקה ואני אעזור לך!</p>
                 </div>
               </div>
             ) : (
@@ -74,7 +77,7 @@ export function SimulationSection({
                       A
                     </div>
                     <div className="rounded-2xl rounded-tl-sm p-4 flex-1 bg-white/10">
-                      <p className="text-gray-200">{msg.text}</p>
+                      <p className="text-surface-gray-200">{msg.text}</p>
                     </div>
                   </div>
                 ),
@@ -91,10 +94,10 @@ export function SimulationSection({
               onChange={(e) => onInputChange(e.target.value)}
               onKeyDown={onKeyDown}
               placeholder="למשל: איך פותרים משוואה ריבועית?"
-              className="flex-1 px-5 py-4 rounded-2xl border focus:outline-none text-white placeholder-gray-400 text-right"
+              className="flex-1 px-5 py-4 rounded-2xl border focus:outline-none text-white placeholder-surface-gray-400 text-right"
               style={{
-                backgroundColor: 'rgba(255,255,255,0.1)',
-                borderColor: 'rgba(255,255,255,0.2)',
+                backgroundColor: 'color-mix(in srgb, var(--foreground) 10%, transparent)',
+                borderColor: 'color-mix(in srgb, var(--foreground) 20%, transparent)',
               }}
             />
             <button
@@ -112,7 +115,7 @@ export function SimulationSection({
               <button
                 key={q}
                 onClick={() => onSend(q)}
-                className="px-4 py-2 rounded-xl text-sm text-gray-300 transition hover:bg-white/20 bg-white/10"
+                className="px-4 py-2 rounded-xl text-sm text-surface-gray-300 transition hover:bg-white/20 bg-white/10"
               >
                 {q}
               </button>

@@ -3,7 +3,7 @@ export function ComparisonSection() {
     <section id="comparison" className="py-24 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-surface-gray-900 mb-4">
             למה{' '}
             <span
               className="bg-clip-text text-transparent"
@@ -13,18 +13,18 @@ export function ComparisonSection() {
             </span>{' '}
             עדיף?
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-surface-gray-600 max-w-2xl mx-auto">
             השוואה בין חוויית הלמידה עם A-Guy לבין הלמידה המסורתית
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
           {/* Traditional */}
-          <div className="rounded-3xl p-8 border-2 border-gray-100 transition-all hover:scale-[1.02] bg-gray-50">
+          <div className="rounded-3xl p-8 border-2 border-surface-gray-100 transition-all hover:scale-[1.02] bg-surface-gray-50">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-xl bg-gray-200 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-surface-gray-200 flex items-center justify-center">
                 <svg
-                  className="w-6 h-6 text-gray-500"
+                  className="w-6 h-6 text-surface-gray-500"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -37,7 +37,7 @@ export function ComparisonSection() {
                   />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold text-gray-700">הלמידה המסורתית</h3>
+              <h3 className="text-2xl font-bold text-surface-gray-700">הלמידה המסורתית</h3>
             </div>
             <ul className="space-y-4">
               {[
@@ -61,7 +61,7 @@ export function ComparisonSection() {
                       d="M6 18L18 6M6 6l12 12"
                     />
                   </svg>
-                  <span className="text-gray-600">{item}</span>
+                  <span className="text-surface-gray-600">{item}</span>
                 </li>
               ))}
             </ul>
@@ -71,7 +71,8 @@ export function ComparisonSection() {
           <div
             className="rounded-3xl p-8 border-2 border-sky-200 relative overflow-hidden transition-all hover:scale-[1.02]"
             style={{
-              background: 'linear-gradient(135deg, rgba(14,165,233,0.05), rgba(168,85,247,0.05))',
+              background:
+                'linear-gradient(135deg, color-mix(in srgb, var(--accent-sky) 5%, transparent), color-mix(in srgb, var(--accent-purple) 5%, transparent))',
             }}
           >
             <div
@@ -128,7 +129,7 @@ export function ComparisonSection() {
                       d="M5 13l4 4L19 7"
                     />
                   </svg>
-                  <span className="text-gray-700">{item}</span>
+                  <span className="text-surface-gray-700">{item}</span>
                 </li>
               ))}
             </ul>

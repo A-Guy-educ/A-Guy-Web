@@ -1,10 +1,26 @@
 [
   {
     "type": "decision",
-    "name": "design-system-tokens-for-colors",
-    "hook": "Always use CSS variables from globals.css for semantic colors",
-    "body": "All colors must use CSS variables defined in globals.css or Tailwind utility classes. Hardcoded hex/rgba values violate the design-system-first mandate.\n\nMapping used in this fix:\n- `#f3f4f6` → `bg-gray-100`\n- `#f9fafb` → `bg-gray-50`\n- `#e5e7eb` → `bg-gray-200`\n- `#0ea5e9` → `var(--accent-sky)`\n- `#a855f7` → `var(--accent-purple)`\n- `#0284c7` → `var(--accent-sky-deep)`\n- `#9333ea` → `var(--accent-purple-deep)`\n- `#111827` → `bg-gray-900`\n- `#f59e0b` → Tailwind amber-500/text-amber-600\n- `#22c55e` → Tailwind green-500/text-green-500\n\nWhy: Hardcoded hex values bypass the design token system, making theme changes and dark mode support impossible.\n\nHow to apply: When adding colors to any component, check globals.css for existing CSS variables first, then Tailwind tokens. Only create new tokens when no existing token fits.",
-    "why": "The project has a design-system-first mandate documented in CLAUDE.md. All colors must flow through CSS variables in globals.css or Tailwind classes.",
-    "confidence": 0.98
+    "name": "surface-color-design-tokens",
+    "hook": "Add surface color tokens to globals.css when landing page needs gray colors",
+    "body": "When building landing/marketing pages that need neutral gray surface colors outside the app's semantic color system, add dedicated --surface-gray-* CSS variables to globals.css light theme block (lines ~129-140) and corresponding Tailwind `surface.gray` color config in tailwind.config.mjs. This avoids forcing landing page components to use semantic tokens (muted, card) that carry app-specific semantic meaning.",
+    "why": "The NewStartPage redesign had 63 raw gray Tailwind classes with no design token equivalent. Adding semantic app colors (muted, card) to landing page components would pollute the semantic meaning of those tokens. A dedicated surface color layer keeps landing page theming isolated.",
+    "confidence": 0.9
+  },
+  {
+    "type": "decision",
+    "name": "color-mix-for-alpha",
+    "hook": "Use color-mix() with CSS vars instead of rgba() for transparent backgrounds",
+    "body": "For semi-transparent background effects in components, use `color-mix(in srgb, var(--accent-sky) 20%, transparent)` instead of hardcoded `rgba(14,165,233,0.2)`. The pattern was already established in the notebook tab of TabsSection — it should be applied consistently across all components.",
+    "why": "rgba() hardcodes raw RGB values breaking the single-source-of-truth principle. CSS variable + color-mix() keeps all color decisions in design tokens. The project already had this pattern working in TabsSection notebook tab — it just wasn't applied consistently.",
+    "confidence": 0.95
+  },
+  {
+    "type": "decision",
+    "name": "keyframes-in-tailwind-config",
+    "hook": "Put landing page keyframes in tailwind.config.mjs, not globals.css",
+    "body": "Animation keyframes used by Tailwind utility classes (animate-float, animate-fadeInUp) must be defined in tailwind.config.mjs under `theme.extend.keyframes` and registered in `theme.extend.animation`. Only put raw CSS keyframes in globals.css for non-Tailwind use (e.g., .onboarding-bubble uses `animation: fadeInUp` directly, not animate-fadeInUp, so it needs the raw keyframe name).",
+    "why": "Tailwind processes @keyframes defined in config for its animation utilities. The float/fadeInUp keyframes were in globals.css but HeroSection.tsx tried to use them via inline `animation: 'float 3s ease-in-out infinite'` which is raw CSS — this worked but was inconsistent. Moving to config enables proper Tailwind animation class usage (animate-float).",
+    "confidence": 0.9
   }
 ]

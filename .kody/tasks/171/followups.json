@@ -1,20 +1,20 @@
 [
   {
-    "title": "rgba() values throughout NewStartPage sub-components",
-    "body": "Many hardcoded rgba() values remain across the extracted sub-components (SimulationSection, ComparisonSection, CtaSection, StatsSection, NavigationBar, HeroSection, plus Chat tab in TabsSection). E.g. rgba(14,165,233,0.2), rgba(168,85,247,0.2), rgba(255,255,255,0.8). These should be replaced with Tailwind classes or CSS custom properties for design system consistency. TabsSection Notebook tab fixed in this PR. Run: grep -n 'rgba(' src/app/(frontend)/start/_components/NewStartPage/",
-    "rationale": "Hardcoded rgba() values bypass the design token system and make theme changes difficult.",
-    "priority": "low"
-  },
-  {
-    "title": "E2E test gaps — onboarding overlay and tab switching not covered",
-    "body": "The existing test suite (tests/e2e/start-redesign.e2e.spec.ts) is missing: (1) onboarding overlay dismissal flow, (2) tab switching between dashboard/chat/notebook, (3) full simulation message exchange with multiple messages.",
-    "rationale": "Review item 9 from the specialist review explicitly flagged missing E2E coverage.",
+    "title": "Dark mode surface colors",
+    "body": "The new --surface-gray-* CSS variables were only added to the light theme block in globals.css. Dark theme should also have corresponding --surface-gray-* values so that landing page components respond correctly to dark mode toggle.",
+    "rationale": "Users switching to dark mode will see the landing page fall back to the CSS variable being undefined, causing text/background colors to break.",
     "priority": "medium"
   },
   {
-    "title": "Dead gradient tokens in tailwind.tokens.mjs — FIXED in this PR",
-    "body": "11 gradient tokens in tailwind.tokens.mjs (sky-purple, sky-blue, purple-indigo, etc.) were wired into tailwind.config.mjs theme.extend.backgroundImage via CSS variable references (var(--gradient-sky-purple), etc.) as of this PR. The inline style={{ background: 'var(--gradient-sky-purple)' }} pattern can now optionally be replaced with className='bg-gradient-sky-purple' in future work.",
-    "rationale": "Item 3 of the UI/UX review feedback addressed in this PR.",
+    "title": "sky/purple/amber/red/green Tailwind classes not mapped to design tokens",
+    "body": "Several accent color Tailwind classes remain unmapped: text-sky-700, text-purple-700, text-amber-600, text-red-400, text-green-500, bg-sky-50, bg-purple-50, border-sky-200, border-purple-200, hover:border-sky-500, hover:text-sky-600, bg-green-400. These appear in ComparisonSection, OnboardingOverlay, NavigationBar, TabsSection, HeroSection. The sky/purple scales I added to tailwind.config.mjs cover some but not all (e.g., sky-700, purple-700 are not in the new config).",
+    "rationale": "Accent color classes outside the 50-600 range may render incorrectly or use default Tailwind values rather than design system values.",
+    "priority": "low"
+  },
+  {
+    "title": "green/red/amber accent colors not in design token config",
+    "body": "ComparisonSection uses text-red-400 and text-green-500 for check/x icons. These semantic status colors are not mapped through the design token system — they still use raw Tailwind palette values.",
+    "rationale": "Red/green/amber are semantic status colors that should have design token equivalents for consistency with the project's color system approach.",
     "priority": "low"
   }
 ]

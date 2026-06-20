@@ -18,15 +18,15 @@ export function HeroSection({ onScrollToSimulation }: HeroSectionProps) {
       <div className="absolute inset-0 overflow-hidden">
         <div
           className="absolute top-20 right-20 w-72 h-72 rounded-full blur-3xl"
-          style={{ backgroundColor: 'rgba(14,165,233,0.2)' }}
+          style={{ backgroundColor: 'color-mix(in srgb, var(--accent-sky) 20%, transparent)' }}
         />
         <div
           className="absolute bottom-20 left-20 w-96 h-96 rounded-full blur-3xl"
-          style={{ backgroundColor: 'rgba(168,85,247,0.2)' }}
+          style={{ backgroundColor: 'color-mix(in srgb, var(--accent-purple) 20%, transparent)' }}
         />
         <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full blur-3xl"
-          style={{ backgroundColor: 'rgba(14,165,233,0.05)' }}
+          style={{ backgroundColor: 'color-mix(in srgb, var(--accent-sky) 5%, transparent)' }}
         />
       </div>
 
@@ -53,7 +53,7 @@ export function HeroSection({ onScrollToSimulation }: HeroSectionProps) {
             </h1>
 
             {/* Subtitle */}
-            <p className="text-xl text-gray-300 leading-relaxed max-w-xl">
+            <p className="text-xl text-surface-gray-300 leading-relaxed max-w-xl">
               מורה פרטי AI שמכיר את החוזקות והחולשות שלך, מתאים את עצמו לקצב הלמידה שלך, ונותן משוב
               מיידי — בכל שעה, בכל יום.
             </p>
@@ -110,7 +110,7 @@ export function HeroSection({ onScrollToSimulation }: HeroSectionProps) {
                   </div>
                 ))}
               </div>
-              <div className="text-gray-300 text-sm">
+              <div className="text-surface-gray-300 text-sm">
                 <span className="font-bold text-white">+2,500</span> תלמידים כבר משתמשים
               </div>
             </div>
@@ -118,12 +118,7 @@ export function HeroSection({ onScrollToSimulation }: HeroSectionProps) {
 
           {/* Hero Visual — Mini Chat Interface */}
           <div className="relative">
-            <div
-              className="relative z-10"
-              style={{
-                animation: 'float 3s ease-in-out infinite',
-              }}
-            >
+            <div className="relative z-10 animate-float">
               <div className="backdrop-blur-xl rounded-3xl p-6 border border-white/20 shadow-2xl bg-white/10">
                 {/* Chat header */}
                 <div className="flex items-center gap-3 mb-4 pb-4 border-b border-white/10">
@@ -145,7 +140,7 @@ export function HeroSection({ onScrollToSimulation }: HeroSectionProps) {
                 {/* Chat messages */}
                 <div className="space-y-4">
                   <div className="rounded-2xl rounded-tr-sm p-4 bg-white/10">
-                    <p className="text-gray-200 text-sm">
+                    <p className="text-surface-gray-200 text-sm">
                       שלום! אני A-Guy. איך אוכל לעזור לך במתמטיקה היום?
                     </p>
                   </div>
@@ -158,7 +153,7 @@ export function HeroSection({ onScrollToSimulation }: HeroSectionProps) {
                     </p>
                   </div>
                   <div className="rounded-2xl rounded-tr-sm p-4 bg-white/10">
-                    <p className="text-gray-200 text-sm">
+                    <p className="text-surface-gray-200 text-sm">
                       בוא נבין יחד! 🔍
                       <br />
                       <br />
@@ -176,11 +171,13 @@ export function HeroSection({ onScrollToSimulation }: HeroSectionProps) {
             {/* Decorative elements */}
             <div
               className="absolute -top-4 -right-4 w-24 h-24 rounded-full blur-xl"
-              style={{ backgroundColor: 'rgba(14,165,233,0.3)' }}
+              style={{ backgroundColor: 'color-mix(in srgb, var(--accent-sky) 30%, transparent)' }}
             />
             <div
               className="absolute -bottom-4 -left-4 w-32 h-32 rounded-full blur-xl"
-              style={{ backgroundColor: 'rgba(168,85,247,0.3)' }}
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--accent-purple) 30%, transparent)',
+              }}
             />
           </div>
         </div>

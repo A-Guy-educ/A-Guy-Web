@@ -8,7 +8,7 @@ export function NavigationBar() {
   return (
     <nav
       className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl border-b border-white/10"
-      style={{ backgroundColor: 'rgba(255,255,255,0.8)' }}
+      style={{ backgroundColor: 'color-mix(in srgb, var(--background) 80%, transparent)' }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
@@ -30,23 +30,23 @@ export function NavigationBar() {
 
           {/* Nav links */}
           <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-gray-600 hover:text-sky-600 transition">
+            <a href="#features" className="text-surface-gray-600 hover:text-sky-600 transition">
               פיצ'רים
             </a>
-            <a href="#comparison" className="text-gray-600 hover:text-sky-600 transition">
+            <a href="#comparison" className="text-surface-gray-600 hover:text-sky-600 transition">
               השוואה
             </a>
-            <a href="#simulation" className="text-gray-600 hover:text-sky-600 transition">
+            <a href="#simulation" className="text-surface-gray-600 hover:text-sky-600 transition">
               סימולציה
             </a>
-            <a href="#stats" className="text-gray-600 hover:text-sky-600 transition">
+            <a href="#stats" className="text-surface-gray-600 hover:text-sky-600 transition">
               סטטיסטיקות
             </a>
           </div>
 
           {/* Actions */}
           <div className="flex items-center gap-3">
-            <button className="hidden sm:block px-4 py-2 text-gray-700 hover:text-sky-600 font-medium transition">
+            <button className="hidden sm:block px-4 py-2 text-surface-gray-700 hover:text-sky-600 font-medium transition">
               התחברות
             </button>
             <button
