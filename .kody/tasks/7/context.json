@@ -4,11 +4,11 @@
   "target": "dependabot/docker/node-26-alpine",
   "outcome": "success",
   "exitCode": 0,
-  "reason": "Fixed vitest.setup.ts: in the catch block (SecurityError from jsdom opaque origin), the fallback mock was only assigned to globalThis.localStorage/globalThis.sessionStorage. Tests call window.localStorage/window.sessionStorage directly, and after the first throw the error is consumed — subsequent accesses return undefined rather than throwing again. The fix assigns the fallback mock to both window and globalThis in the catch block.",
+  "reason": "Fixed vitest.setup.ts: the try block accessed window.localStorage twice (once for the test, once for the value). When window.localStorage exists but has no usable methods (broken Storage with undefined getItem), the first access succeeds but methods are undefined — fallback never triggers and tests get 'Cannot read properties of undefined'. Fix validates getItem is a function before using real Storage; if not, throws to trigger fallback mock.",
   "prUrl": null,
   "runUrl": null,
   "filesTouched": ["vitest.setup.ts"],
-  "sessionLog": ".kody/sessions/gh-27863500147-1-1.jsonl",
-  "startedAt": "2026-06-20T06:55:00.000Z",
-  "finishedAt": "2026-06-20T07:01:00.000Z"
+  "sessionLog": ".kody/sessions/gh-27865231253-1-1.jsonl",
+  "startedAt": "2026-06-20T08:25:00.000Z",
+  "finishedAt": "2026-06-20T08:28:01.000Z"
 }

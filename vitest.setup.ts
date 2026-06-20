@@ -59,16 +59,19 @@ const createStorageMock = (): Storage => {
 if (typeof window !== 'undefined') {
   // localStorage
   try {
-    const _test = window.localStorage
-    Object.defineProperty(globalThis, 'localStorage', {
-      value: window.localStorage,
-      writable: true,
-      configurable: true,
-    })
+    const ls = window.localStorage
+    // Validate it's a real Storage (not broken/noop) — broken Storage has undefined methods
+    if (typeof ls?.getItem === 'function') {
+      Object.defineProperty(globalThis, 'localStorage', {
+        value: ls,
+        writable: true,
+        configurable: true,
+      })
+    } else {
+      // Broken Storage: exists but methods are undefined. Throw to trigger fallback.
+      throw new Error('window.localStorage has no getItem method')
+    }
   } catch {
-    // window.localStorage threw (e.g., SecurityError from jsdom opaque origin).
-    // Subsequent accesses to window.localStorage return undefined (error is consumed),
-    // so we MUST also assign the fallback to window.localStorage — not just globalThis.
     const fallback = createStorageMock()
     Object.defineProperty(globalThis, 'localStorage', {
       value: fallback,
@@ -83,12 +86,16 @@ if (typeof window !== 'undefined') {
   }
   // sessionStorage
   try {
-    const _test2 = window.sessionStorage
-    Object.defineProperty(globalThis, 'sessionStorage', {
-      value: window.sessionStorage,
-      writable: true,
-      configurable: true,
-    })
+    const ss = window.sessionStorage
+    if (typeof ss?.getItem === 'function') {
+      Object.defineProperty(globalThis, 'sessionStorage', {
+        value: ss,
+        writable: true,
+        configurable: true,
+      })
+    } else {
+      throw new Error('window.sessionStorage has no getItem method')
+    }
   } catch {
     const fallback = createStorageMock()
     Object.defineProperty(globalThis, 'sessionStorage', {
