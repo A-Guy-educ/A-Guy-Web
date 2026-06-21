@@ -101,7 +101,7 @@ than its interval (default `every: 30m`).
    ## System Audit — 1 finding(s)
 
    ### Missing state
-   - `some-duty` → no `state.json`; will re-fire on every wake.
+   - `pr-health-triage` → no `state.json`; will re-fire on every wake.
      **Fix:** add a closing `kody-job-next-state` block to the body.
    ````
 

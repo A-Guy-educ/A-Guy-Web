@@ -1,8 +1,9 @@
 /**
  * PayPal Payment Service
  *
- * Provides order creation, webhook verification, and refund operations.
- * Uses getPayPalEnv() for environment variable access.
+ * @fileType utility
+ * @domain payment
+ * @ai-summary PayPal order creation, capture, webhook verification, and refunds. Lazy token cache with 60s expiry buffer. capturePayPalOrder is idempotent — 422 ORDER_ALREADY_CAPTURED is treated as success (benign reload). Use cancelPayPalOrder ONLY as cleanup when DB write fails after order creation — it voids the provider order, not the DB record.
  */
 
 import { getPayPalEnv } from './env'

@@ -30,13 +30,13 @@ enforced by the engine.
 ## Tick procedure — REQUIRED
 
 This tick is **fully scripted**. The script
-[architecture-audit tick](.kody/executables/architecture-audit/tick.sh)
+[architecture-audit-tick.py](.kody/scripts/architecture-audit-tick.py)
 is the **single source of truth** for the sweep and report generation.
 
 Run the script:
 
 ```
-bash .kody/executables/architecture-audit/tick.sh
+python3 .kody/scripts/architecture-audit-tick.py
 ```
 
 The script:

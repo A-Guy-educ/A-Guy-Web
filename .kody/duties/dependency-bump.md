@@ -19,14 +19,14 @@ enforced by the engine — runs on Monday UTC.
 ## Tick procedure — REQUIRED
 
 This tick is **fully scripted**. The script
-[dependency-bump tick](.kody/executables/dependency-bump/tick.sh) is the
+[dependency-bump-tick.py](.kody/scripts/dependency-bump-tick.py) is the
 **single source of truth** for picking the candidate and writing the
 report.
 
 Run the script:
 
 ```
-bash .kody/executables/dependency-bump/tick.sh
+python3 .kody/scripts/dependency-bump-tick.py
 ```
 
 The script:

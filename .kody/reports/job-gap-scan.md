@@ -1,16 +1,16 @@
 # Job Gap Scan
 
-_Cadence: daily - one proposed duty per cycle, advisory only._
+_Cadence: daily — one proposed duty per cycle, advisory only._
 
-_Last updated: 2026-06-16T03:23:20.107Z_
+_Last updated: 2026-05-31T10:17:39Z_
 
 ## Current proposal
 
-**sentry-digest** - Daily digest loudest unresolved Sentry errors so production noise becomes triage list, not chase.
+**sentry-digest** — Daily digest of the loudest unresolved Sentry errors so production noise becomes a triage list, not a chase.
 
 ### Why now
 
-repo already ships Sentry. Errors visible only in Sentry UI invisible kody - turning issues closes loop.
+The repo already ships with Sentry. Errors visible only in the Sentry UI are invisible to kody — turning them into issues closes the loop.
 
 ### Scoring
 
@@ -20,32 +20,37 @@ repo already ships Sentry. Errors visible only in Sentry UI invisible kody - tur
 
 ### Draft duty markdown
 
-If approved, operator (or executor) would commit following `.kody/duties/sentry-digest.md`. This starting point, not final spec.
+If approved, the operator (or an executor) would commit the following at `.kody/duties/sentry-digest.md`. This is a starting point, not a final spec.
 
 ````markdown
 ---
 every: 24h
 staff: kody
 ---
+
 # sentry-digest
 
 ## Job
 
-Once day, fetch 10 unresolved Sentry errors ranked by `events x users_affected` open one GitHub issue per recurring error no open tracking issue yet.
+Once a day, fetch the top 10 unresolved Sentry errors ranked by
+`events × users_affected` and open one GitHub issue per recurring error
+that has no open tracking issue yet.
 
-## Tick procedure REQUIRED
+## Tick procedure — REQUIRED
 
-Fully scripted. Add `.kody/executables/sentry-digest/tick.sh` before enabling it.
+Fully scripted. See [sentry-digest-tick.py](.kody/scripts/sentry-digest-tick.py).
 ````
 
 ### Verdict path
 
-Approve -> create duty markdown above. Reject -> permanent - CEO will not surface slug again. Dismiss -> cooling-off 30 days, then eligible re-surface if signal grows.
+Approve → create the duty markdown above. Reject → permanent — the CEO will not surface this slug again. Dismiss → cooling-off for 30 days, then eligible to re-surface if signal grows.
 
 ## History
 
 | Slug | Title | First suggested | Status |
 |------|-------|-----------------|--------|
+| bundle-size-diff | Bundle-size diff | 2026-05-26 | pending |
 | issue-auto-triage | Issue auto-triage | 2026-05-20 | pending |
-| sentry-digest | Sentry top-errors digest | 2026-06-16 | pending |
 | stale-pr-janitor | Stale-PR janitor | 2026-05-20 | pending |
+| secret-leak-scan | Secret-leak scan | 2026-05-20 | pending |
+| sentry-digest | Sentry top-errors digest | 2026-05-20 | pending |

@@ -1,8 +1,9 @@
 /**
  * Stripe Payment Service
  *
- * Provides checkout session creation, webhook verification, and refund operations.
- * Uses getStripeEnv() for environment variable access.
+ * @fileType utility
+ * @domain payment
+ * @ai-summary Stripe checkout sessions, webhook verification, and refunds. Lazy client init avoids requiring env vars at import time. Use cancelStripeCheckout ONLY as cleanup when DB write fails after session creation — it voids the provider session, not the DB record.
  */
 
 import Stripe from 'stripe'
@@ -101,8 +102,9 @@ export async function refundStripe(
 }
 
 /**
- * Cancel/expire a Stripe checkout session
- * Used when transaction record creation fails after session was created
+ * Cancel/expire a Stripe checkout session.
+ * Void the Stripe checkout session (provider-side only). Does NOT affect the
+ * DB record — use only as cleanup when the DB write fails after session creation.
  */
 export async function cancelStripeCheckout(providerSessionId: string): Promise<void> {
   const stripe = getStripeClient()

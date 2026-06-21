@@ -1,15 +1,14 @@
 /**
  * Payment error serialization for structured logging.
  *
+ * @fileType utility
+ * @domain payment
+ * @ai-summary Ensures payment errors serialize with {message, name, stack, code, statusCode, type, raw} regardless of which provider SDK threw and regardless of which pino log key was used. Use as `{ err: serializePaymentError(error), ...context }`.
+ *
  * Background: pino's default error serializer only fires for the log object
  * key `err`. We've been logging under `error` across the payment routes, so
  * pino fell back to plain JSON serialization on Error instances — which
  * produces `{}` because Error's `message` and `stack` are non-enumerable.
- *
- * `serializePaymentError` always returns an object with the fields we want
- * to see in production logs, regardless of which provider SDK threw and
- * regardless of which pino key the caller chose. Use it as
- * `{ err: serializePaymentError(error), ...context }`.
  */
 
 interface SerializedPaymentError {
