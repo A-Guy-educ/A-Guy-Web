@@ -83,7 +83,7 @@ jobs:
     steps:
       - name: Mint GitHub App token
         id: app-token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.KODY_APP_ID }}
           private-key: ${{ secrets.KODY_APP_PRIVATE_KEY }}
