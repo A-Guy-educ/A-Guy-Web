@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Loader2, Send, Sparkles, X } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { useTranslations } from '@/ui/web/providers/I18n'
 
 interface AgentChatWindowProps {
   isOpen: boolean
@@ -28,6 +29,7 @@ export function AgentChatWindow({ isOpen, onClose }: AgentChatWindowProps) {
   const [gradeLevel] = useState<string>('7') // Default, should be fetched from user profile
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const t = useTranslations()
 
   // Welcome message on first open
   useEffect(() => {
@@ -36,12 +38,11 @@ export function AgentChatWindow({ isOpen, onClose }: AgentChatWindowProps) {
         {
           id: 'welcome',
           role: 'assistant',
-          content:
-            "Hi! I'm your personal learning assistant. I can help you with your courses, suggest what to learn next, and track your progress. How can I help you today?",
+          content: t('learningAgent.welcomeMessage'),
         },
       ])
     }
-  }, [isOpen, messages.length])
+  }, [isOpen, messages.length, t])
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -85,7 +86,7 @@ export function AgentChatWindow({ isOpen, onClose }: AgentChatWindowProps) {
 
       if (!response.ok) {
         if (response.status === 401) {
-          toast.error('Please log in to use the learning assistant')
+          toast.error(t('learningAgent.error.authRequired'))
           onClose()
           return
         }
@@ -136,7 +137,7 @@ export function AgentChatWindow({ isOpen, onClose }: AgentChatWindowProps) {
       }
     } catch (error) {
       console.error('Chat error:', error)
-      toast.error('Failed to send message. Please try again.')
+      toast.error(t('learningAgent.error.sendFailed'))
 
       // Remove the user message on error
       setMessages((prev) => prev.slice(0, -1))
@@ -144,7 +145,7 @@ export function AgentChatWindow({ isOpen, onClose }: AgentChatWindowProps) {
       setIsLoading(false)
       inputRef.current?.focus()
     }
-  }, [inputValue, isLoading, conversationId, gradeLevel, onClose])
+  }, [inputValue, isLoading, conversationId, gradeLevel, onClose, t])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -170,8 +171,8 @@ export function AgentChatWindow({ isOpen, onClose }: AgentChatWindowProps) {
                 <Sparkles className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-body-sm">Learning Assistant</h3>
-                <p className="text-body-xs text-muted-foreground">Your personal AI guide</p>
+                <h3 className="font-semibold text-body-sm">{t('learningAgent.title')}</h3>
+                <p className="text-body-xs text-muted-foreground">{t('learningAgent.subtitle')}</p>
               </div>
             </div>
             <button
@@ -220,7 +221,7 @@ export function AgentChatWindow({ isOpen, onClose }: AgentChatWindowProps) {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask me anything..."
+                placeholder={t('learningAgent.inputPlaceholder')}
                 className="flex-1 bg-muted rounded-full px-4 py-2.5 text-body-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                 disabled={isLoading}
               />
