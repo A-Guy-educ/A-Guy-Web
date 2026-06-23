@@ -117,20 +117,10 @@ describe('LoginForm - Google only mode (password disabled)', () => {
     expect(screen.getByRole('button', { name: /המשך עם Google/i })).toBeTruthy()
   })
 
-  it('renders "הרשמה ללא עלות" link to /signup', () => {
+  it('renders "הכניסה למערכת - ללא תשלום" text when password is disabled', () => {
     renderWithPasswordDisabled(<LoginForm />)
 
-    const link = screen.getByRole('link', { name: /הרשמה ללא עלות/i })
-    expect(link).toBeTruthy()
-    expect(link.getAttribute('href')).toBe('/signup')
-  })
-
-  it('renders card footer text', () => {
-    renderWithPasswordDisabled(<LoginForm />)
-
-    // The two footer texts are rendered in the same paragraph with whitespace between them
-    expect(screen.getByText(/גישה מהירה ומאובטחת/)).toBeTruthy()
-    expect(screen.getByText(/בלחיצה אחת אתם בפנים/)).toBeTruthy()
+    expect(screen.getByText('הכניסה למערכת - ללא תשלום')).toBeTruthy()
   })
 
   it('does NOT render email/password fields when password is disabled', () => {
@@ -163,10 +153,10 @@ describe('LoginForm - Password enabled mode', () => {
     expect(screen.getByRole('button', { name: /המשך עם Google/i })).toBeTruthy()
   })
 
-  it('renders "הרשמה ללא עלות" link when password is enabled', () => {
+  it('renders "הכניסה למערכת - ללא תשלום" text when password is enabled', () => {
     renderWithPasswordEnabled(<LoginForm />)
 
-    expect(screen.getByRole('link', { name: /הרשמה ללא עלות/i })).toBeTruthy()
+    expect(screen.getByText('הכניסה למערכת - ללא תשלום')).toBeTruthy()
   })
 
   it('renders login button', () => {
@@ -183,7 +173,7 @@ describe('LoginForm - Password enabled mode', () => {
 })
 
 describe('Functionality preservation', () => {
-  it('registration link opens /signup in same window', () => {
+  it('no registration link to /signup when password is disabled', () => {
     const { container } = render(
       <I18nProvider locale="he" messages={mergedHeMessages}>
         <PasswordLoginProvider enabled={false}>
@@ -193,8 +183,6 @@ describe('Functionality preservation', () => {
     )
 
     const link = container.querySelector('a[href="/signup"]')
-    expect(link).toBeTruthy()
-    // No target="_blank" means it opens in same window
-    expect(link?.getAttribute('target')).toBeNull()
+    expect(link).toBeNull()
   })
 })

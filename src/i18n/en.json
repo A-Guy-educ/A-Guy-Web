@@ -291,6 +291,7 @@
       "loggingIn": "Logging in...",
       "noAccount": "Don't have an account?",
       "signupLink": "Sign up",
+      "systemAccessFree": "System access - free of charge",
       "errors": {
         "invalidCredentials": "Invalid email or password"
       }

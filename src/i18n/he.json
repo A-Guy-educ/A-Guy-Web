@@ -314,6 +314,7 @@
       "loggingIn": "מתחבר...",
       "noAccount": "אין לך חשבון?",
       "signupLink": "הירשם",
+      "systemAccessFree": "הכניסה למערכת - ללא תשלום",
       "errors": {
         "invalidCredentials": "אימייל או סיסמה שגויים"
       }
