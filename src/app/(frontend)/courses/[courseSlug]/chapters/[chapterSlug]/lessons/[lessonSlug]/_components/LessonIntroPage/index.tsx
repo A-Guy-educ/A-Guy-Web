@@ -1,8 +1,19 @@
 'use client'
 
+import { isRTL } from '@/i18n/config'
+import { cn } from '@/infra/utils/ui'
 import { useMemo } from 'react'
-import { BookOpen, ChevronLeft, FileText, Layers, RotateCcw, Sparkles } from 'lucide-react'
-import { useSearchParams } from 'next/navigation'
+import {
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  ChevronLeft,
+  FileText,
+  Layers,
+  RotateCcw,
+  Sparkles,
+} from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 import { ExerciseWorkspace } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseWorkspace'
 import type { Lesson, LessonPrerequisite, Media } from '@/infra/types/content'
@@ -11,7 +22,7 @@ import { SystemLink } from '@/infra/loading/components/SystemLink'
 import { ChatInterface } from '@/ui/web/chat'
 import { Button } from '@/ui/web/components/button'
 import { Progress } from '@/ui/web/components/progress'
-import { useTranslations } from '@/ui/web/providers/I18n'
+import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 
 import { DualModeLessonView } from '../DualModeLessonView'
 import type { LessonMode } from '../DualModeLessonView/useLessonViewMode'
@@ -78,6 +89,17 @@ export function LessonIntroPage({
   const searchParams = useSearchParams()
   const deepLinkedExerciseId = searchParams.get('exerciseId')
   const { pageState, handleStart } = useLessonIntroPage({ deepLinkedExerciseId })
+  const locale = useLocale()
+  const rtl = isRTL(locale as 'en' | 'he')
+  const router = useRouter()
+
+  const handleBack = () => {
+    if (backUrl) {
+      router.push(backUrl)
+    } else {
+      router.back()
+    }
+  }
 
   const exerciseCount = exercises.length
   const contentPageCount = useMemo(
@@ -181,7 +203,18 @@ export function LessonIntroPage({
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="mx-auto flex w-full max-w-6xl flex-col px-4 py-5 sm:px-6 md:min-h-screen md:py-section-lg">
+      <main className="relative mx-auto flex w-full max-w-6xl flex-col px-4 py-5 sm:px-6 md:min-h-screen md:py-section-lg">
+        <button
+          onClick={handleBack}
+          className={cn(
+            'absolute flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors duration-normal cursor-pointer',
+            rtl ? 'right-0 top-0' : 'left-0 top-0',
+          )}
+          aria-label={t('back')}
+        >
+          {rtl ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
+          <span className="text-body-sm">{t('back')}</span>
+        </button>
         <section className="grid gap-content-gap-md md:flex-1 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] lg:items-center">
           <div className="space-y-4 md:space-y-6">
             <div className="inline-flex items-center gap-content-gap-xs rounded-full border border-border bg-muted px-3 py-1.5 text-label uppercase tracking-wider text-muted-foreground md:px-4 md:py-2">
