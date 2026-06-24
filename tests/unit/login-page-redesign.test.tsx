@@ -131,6 +131,28 @@ describe('LoginForm - Google only mode (password disabled)', () => {
     expect(screen.queryByLabelText(/אימייל/)).toBeNull()
     expect(screen.queryByLabelText(/סיסמה/)).toBeNull()
   })
+
+  it('renders brand.heroSubtitle in Hebrew', () => {
+    renderWithPasswordDisabled(<LoginForm />)
+
+    expect(screen.getByText('A-Guy המורה הפרטי שלכם')).toBeTruthy()
+  })
+})
+
+describe('LoginForm - English translations', () => {
+  const renderWithEnglish = (children: React.ReactNode) => {
+    return render(
+      <I18nProvider locale="en" messages={mergedEnMessages}>
+        <PasswordLoginProvider enabled={false}>{children}</PasswordLoginProvider>
+      </I18nProvider>,
+    )
+  }
+
+  it('renders brand.heroSubtitle in English', () => {
+    renderWithEnglish(<LoginForm />)
+
+    expect(screen.getByText('A-Guy Your Personal Tutor')).toBeTruthy()
+  })
 })
 
 describe('LoginForm - Password enabled mode', () => {
