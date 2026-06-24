@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.26.1] - 2026-06-24
+
+### Other Changes
+
+- No notable commits since the last release
+
 ## [0.26.0] - 2026-06-17
 
 ### Features
