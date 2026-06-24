@@ -5,6 +5,12 @@
  * @fileType adapter
  * @domain ai
  * @pattern error-handling, genkit
+ * @ai-summary Wraps raw Genkit errors in LLMError with provider-specific classification.
+ *             isRetryable() uses message-pattern matching to distinguish auth/validation failures
+ *             (non-retryable) from rate-limit/timeout/network errors (retryable). wrapError()
+ *             preserves the first 400 chars of the raw provider message for rate-limit errors —
+ *             Gemini encodes per-minute RPM, per-day quota, and concurrent-request limits there,
+ *             and dropping that signal caused harder-to-debug quota exhaustion in production.
  *
  * Reuses existing LLMError and createErrorClassifier from shared/errors.ts
  */

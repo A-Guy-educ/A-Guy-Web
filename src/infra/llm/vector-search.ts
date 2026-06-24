@@ -11,6 +11,12 @@
  * @fileType service
  * @domain ai
  * @pattern vector-search, context-scoped
+ * @ai-summary Falls back to empty results on any error — the system continues without memory.
+ *             HARD TENANT-ISOLATION REQUIREMENT: every $vectorSearch filter MUST include
+ *             { userId: { $eq: userId } }. Omitting the userId filter in any query layer
+ *             (conversation, context, or global) leaks memory items across tenants. The
+ *             hierarchy (conversation > context > global) deduplicates by _id with conversation
+ *             results taking priority.
  */
 
 import { logger } from '@/infra/utils/logger'

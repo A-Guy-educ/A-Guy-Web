@@ -8,6 +8,12 @@
  * @fileType utility
  * @domain ai
  * @pattern circuit-breaker, resilience
+ * @ai-summary The critical trap: isRateLimitError() skips incrementing the failure counter for
+ *             rate-limit errors. Without this, one 429 trips the breaker open and every
+ *             subsequent call in the same batch immediately fails with CIRCUIT_OPEN — even
+ *             though the provider is healthy and would accept the next request after back-off.
+ *             The caller's rate-limit retry loop handles back-off; the breaker only guards
+ *             against genuine provider outages.
  */
 
 export type CircuitState = 'closed' | 'open' | 'half-open'

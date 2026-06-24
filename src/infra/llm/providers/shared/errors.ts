@@ -4,6 +4,10 @@
  *
  * @fileType error-handling
  * @domain ai
+ * @ai-summary LLMError.retryable drives all downstream retry decisions — if it is false, callers
+ *             will not retry the operation. Misclassifying a transient error (timeout, 429) as
+ *             non-retryable silently drops retries and causes hard failures; misclassifying a
+ *             config error as retryable wastes retries on an operation that will never succeed.
  */
 
 /** Error codes for LLM providers */

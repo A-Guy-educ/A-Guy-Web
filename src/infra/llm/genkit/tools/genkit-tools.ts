@@ -5,6 +5,11 @@
  * @fileType module
  * @domain ai
  * @pattern genkit-tools, tool-calling, mcp-integration
+ * @ai-summary Adapts MCP tool definitions to Genkit's inputSchema format. wrapToolExecutorForGenkit()
+ *             converts string results into Genkit 1.x Part objects ({ text: string }) — omitting the
+ *             Part wrapper causes a type error at generate() call time. executeToolCalls() runs tools
+ *             sequentially and returns per-tool string results; a single tool failure does not abort
+ *             the others.
  */
 import { logger } from '@/infra/utils/logger'
 import type { Genkit } from 'genkit'
