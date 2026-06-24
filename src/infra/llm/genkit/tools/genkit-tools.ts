@@ -5,6 +5,7 @@
  * @fileType module
  * @domain ai
  * @pattern genkit-tools, tool-calling, mcp-integration
+ * @ai-summary Adapts MCP tool definitions to Genkit's GenkitToolDefinition format. mapMCPToolsToGenkit strips MCP-specific schema fields, defaulting missing descriptions. wrapToolExecutorForGenkit converts string results to Genkit's Part object format (required by Genkit 1.x generate()).
  */
 import { logger } from '@/infra/utils/logger'
 import type { Genkit } from 'genkit'

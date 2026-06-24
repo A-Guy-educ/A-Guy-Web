@@ -5,8 +5,7 @@
  * @fileType adapter
  * @domain ai
  * @pattern error-handling, genkit
- *
- * Reuses existing LLMError and createErrorClassifier from shared/errors.ts
+ * @ai-summary Wraps Genkit errors in LLMError with provider-specific classification. isRetryable and wrapError inspect error message patterns — rate-limit errors preserve raw provider detail (up to 400 chars) and are always retryable. wrapError maps Genkit message signatures (auth failures, timeouts, rate limits, validation errors) to LLMErrorCode; non-Genkit errors fall back to the shared error classifier.
  */
 import { LLMError, LLMErrorCode, createErrorClassifier } from '@/infra/llm/providers/shared/errors'
 import { LLMProviderType } from '@/infra/llm/providers/types'

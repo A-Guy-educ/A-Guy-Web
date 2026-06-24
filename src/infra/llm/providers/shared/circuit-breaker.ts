@@ -8,6 +8,7 @@
  * @fileType utility
  * @domain ai
  * @pattern circuit-breaker, resilience
+ * @ai-summary CRITICAL: rate-limit errors (RATE_LIMIT_ERROR code or message containing "rate limit"/"quota") skip the failure counter — this prevents one quota-exhaustion event from tripping the breaker and causing a cascading outage when the provider is actually healthy. The caller handles rate-limit backoff retries; the breaker only tracks provider-down events.
  */
 
 export type CircuitState = 'closed' | 'open' | 'half-open'

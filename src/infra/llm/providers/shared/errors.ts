@@ -4,6 +4,7 @@
  *
  * @fileType error-handling
  * @domain ai
+ * @ai-summary LLMError's `retryable` boolean is the single source of truth for all downstream retry logic — wrong classification (e.g., marking a transient error non-retryable) breaks retries silently. createErrorClassifier defaults to retryable=true for unknown error patterns; only configuration errors (missing API key) and validation errors are marked non-retryable.
  */
 
 /** Error codes for LLM providers */

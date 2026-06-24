@@ -11,6 +11,7 @@
  * @fileType service
  * @domain ai
  * @pattern vector-search, context-scoped
+ * @ai-summary Fallback-to-empty-on-error: any vector search failure (network, index unavailable, embedding service down) returns items:[] and lets the system continue without memory context. Tenant isolation is enforced by always filtering on userId — omitting this filter in any query would breach tenant isolation. The two-phase query plan (conversation+context in parallel, then global sequentially) respects MongoDB Atlas maxPoolSize=3.
  */
 
 import { logger } from '@/infra/utils/logger'
