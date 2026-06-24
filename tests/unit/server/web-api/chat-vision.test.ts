@@ -37,6 +37,78 @@ function collection(name: string) {
   }
 }
 
+describe('generateAssistantReply locale', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+    process.env.GEMINI_API_KEY = 'test-key'
+    process.env.LLM_MODEL_OVERRIDE_EXERCISE_CHAT = 'gemini-test'
+    getContentDbMock.mockResolvedValue({ collection })
+  })
+
+  it('prepends Hebrew instruction when locale is he', async () => {
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body)) as {
+        systemInstruction?: { parts?: Array<{ text?: string }> }
+      }
+      expect(body.systemInstruction?.parts?.[0]?.text).toContain('IMPORTANT: Respond in Hebrew.')
+      return Response.json({
+        candidates: [{ content: { parts: [{ text: 'תשובה בעברית' }] } }],
+      })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(
+      generateAssistantReply({
+        message: 'שאלה',
+        locale: 'he',
+      }),
+    ).resolves.toBe('תשובה בעברית')
+  })
+
+  it('does not prepend Hebrew instruction when locale is en', async () => {
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body)) as {
+        systemInstruction?: { parts?: Array<{ text?: string }> }
+      }
+      expect(body.systemInstruction?.parts?.[0]?.text).not.toContain(
+        'IMPORTANT: Respond in Hebrew.',
+      )
+      return Response.json({
+        candidates: [{ content: { parts: [{ text: 'Answer in English' }] } }],
+      })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(
+      generateAssistantReply({
+        message: 'question',
+        locale: 'en',
+      }),
+    ).resolves.toBe('Answer in English')
+  })
+
+  it('does not prepend Hebrew instruction when locale is undefined', async () => {
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body)) as {
+        systemInstruction?: { parts?: Array<{ text?: string }> }
+      }
+      expect(body.systemInstruction?.parts?.[0]?.text).not.toContain(
+        'IMPORTANT: Respond in Hebrew.',
+      )
+      return Response.json({
+        candidates: [{ content: { parts: [{ text: 'Answer' }] } }],
+      })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(
+      generateAssistantReply({
+        message: 'question',
+      }),
+    ).resolves.toBe('Answer')
+  })
+})
+
 describe('web chat vision attachments', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
