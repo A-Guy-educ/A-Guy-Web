@@ -1,5 +1,7 @@
 /**
  * Shared TypeScript types for analytics system
+ *
+ * @ai-summary EventPayload is always post-validation — the tracker builds it only after validateEvent() succeeds, so consumers can trust the shape matches the schema.
  */
 
 import type { ProductEvent } from './contracts/events'

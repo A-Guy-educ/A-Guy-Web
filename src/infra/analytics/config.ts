@@ -3,6 +3,8 @@
  *
  * Environment-based configuration for analytics system
  * Simplified: presence of token/key enables the platform
+ *
+ * @ai-summary Uses a lazy Proxy SSR trap to defer config reads until first property access (client-side only). Set window.__analyticsEnabled = true before config loads to force-enable analytics in E2E tests without rebuilding the app.
  */
 
 import type { AnalyticsConfig } from './types'

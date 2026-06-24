@@ -6,6 +6,8 @@
  *
  * CRITICAL: This is the ONLY way product code should track events
  * No direct SDK calls allowed (no window.gtag or window.mixpanel)
+ *
+ * @ai-summary Queue holds max 100 events; overflow is silently dropped. identify() and alias() are chained after adapter init via getInitializationPromise() — calling identify() before alias() breaks Mixpanel's identity chain because Mixpanel requires alias to be called first to merge the anonymous distinct_id with the user id.
  */
 
 'use client'

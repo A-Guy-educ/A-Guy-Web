@@ -3,6 +3,8 @@
  *
  * This is the ONLY import path product code should use
  * Import from '@/lib/analytics' and nothing else
+ *
+ * @ai-summary Single entrypoint for all analytics; no direct SDK calls allowed (no window.gtag or window.mixpanel). Call alias() BEFORE identify() during registration to merge anonymous history. reset() clears session state but does NOT flush the event queue — queued events still deliver after logout.
  */
 
 // Core API
