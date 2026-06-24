@@ -131,6 +131,12 @@ describe('LoginForm - Google only mode (password disabled)', () => {
     expect(screen.queryByLabelText(/אימייל/)).toBeNull()
     expect(screen.queryByLabelText(/סיסמה/)).toBeNull()
   })
+
+  it('renders brand.heroSubtitle correctly in English', () => {
+    renderWithI18n('en', <LoginForm />)
+
+    expect(screen.getByText('A-Guy Your Personal Tutor')).toBeTruthy()
+  })
 })
 
 describe('LoginForm - Password enabled mode', () => {
