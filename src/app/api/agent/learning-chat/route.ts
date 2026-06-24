@@ -51,6 +51,7 @@ export async function POST(request: NextRequest) {
     message: parsed.data.message,
     acknowledgment: parsed.data.acknowledgment,
     history: messages,
+    locale: parsed.data.locale,
   })
 
   await appendMessage(String(conversation.id), {
