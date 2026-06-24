@@ -5,6 +5,8 @@
  * After N consecutive failures, the circuit opens and fails fast
  * for a cooldown period before allowing a single probe request.
  *
+ * @ai-summary CRITICAL trap: rate-limit errors (code RATE_LIMIT_ERROR or message containing "rate limit"/"quota") skip the failure counter entirely. Without this, one rate-limit event trips the breaker and every subsequent call in the same batch fails instantly with CIRCUIT_OPEN — even though the provider is healthy and would accept the next call after backoff. The caller's rate-limit backoff loop handles retries; the breaker must not count those as failures.
+ *
  * @fileType utility
  * @domain ai
  * @pattern circuit-breaker, resilience

@@ -2,6 +2,8 @@
  * LLM Error Handling
  * Base LLMError class and error classification utilities
  *
+ * @ai-summary The `retryable` boolean on LLMError is the single source of truth for all downstream retry logic across the codebase — if classification is wrong, retries either never fire when they should (user sees hard failure) or fire indefinitely when the error is fatal (wastes quota and adds latency). Always check `error.retryable` rather than re-interpreting error messages.
+ *
  * @fileType error-handling
  * @domain ai
  */

@@ -2,6 +2,8 @@
  * Vector Search Service
  * Retrieves memory items using MongoDB Atlas Vector Search
  *
+ * @ai-summary On any error (embedding generation, DB query, network), returns an empty result set and logs the error — the system continues without memory rather than crashing the chat. HARD REQUIREMENT: every query must include `userId: { $eq: userId }` in the filter — omitting this for any reason (e.g., perf, convenience) breaks tenant isolation and allows cross-tenant data leakage.
+ *
  * Key Features:
  * - Context-hierarchy policy (conversation → contextKey → parent keys → user-global)
  * - Tenant isolation (CRITICAL: always filter by userId)

@@ -2,6 +2,8 @@
  * Error Adapter
  * Maps Genkit errors to LLMError for consistent error handling
  *
+ * @ai-summary Wraps Genkit errors in LLMError using message-pattern classification. Retryability is determined by checking for auth/credential keywords (non-retryable) vs rate-limit/timeout/network keywords (retryable), then delegated to the shared classifier as fallback. Rate-limit errors preserve up to 400 characters of raw provider detail to retain per-minute RPM caps, daily quotas, and concurrent-request limit signals — the previous generic message dropped this.
+ *
  * @fileType adapter
  * @domain ai
  * @pattern error-handling, genkit
