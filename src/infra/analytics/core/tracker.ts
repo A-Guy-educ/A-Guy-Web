@@ -6,6 +6,10 @@
  *
  * CRITICAL: This is the ONLY way product code should track events
  * No direct SDK calls allowed (no window.gtag or window.mixpanel)
+ *
+ * @fileType tracker
+ * @domain analytics
+ * @ai-summary Single-entry tracker for all analytics events. TRAP: the in-memory queue holds max 100 events — overflow silently drops events with no error. TRAP: calling identify() before alias() breaks the anonymous-to-identified user chain in Mixpanel, losing historical events.
  */
 
 'use client'

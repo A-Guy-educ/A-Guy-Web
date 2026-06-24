@@ -1,5 +1,9 @@
 /**
  * Shared TypeScript types for analytics system
+ *
+ * @fileType types
+ * @domain analytics
+ * @ai-summary Type definitions for the analytics system. NOTE: EventPayload is post-validation — raw user input never reaches adapters unchecked; it is validated and enriched before being sent to any platform.
  */
 
 import type { ProductEvent } from './contracts/events'

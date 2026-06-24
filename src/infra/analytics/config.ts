@@ -3,6 +3,10 @@
  *
  * Environment-based configuration for analytics system
  * Simplified: presence of token/key enables the platform
+ *
+ * @fileType config
+ * @domain analytics
+ * @ai-summary Lazy Proxy initialization — analyticsConfig is a Proxy that defers getAnalyticsConfig() until first property access, ensuring it only runs client-side. GOTCHA: SSR may read the uninitialized target ({} as AnalyticsConfig) if code accesses it before client hydration. GOTCHA: E2E tests can override enabled state via window.__analyticsEnabled before config reads it.
  */
 
 import type { AnalyticsConfig } from './types'

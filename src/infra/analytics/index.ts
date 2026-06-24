@@ -3,6 +3,10 @@
  *
  * This is the ONLY import path product code should use
  * Import from '@/lib/analytics' and nothing else
+ *
+ * @fileType index
+ * @domain analytics
+ * @ai-summary Public entry point for analytics. GOTCHA: never call SDK methods (window.gtag, window.mixpanel) directly — always go through this API. GOTCHA: alias() must be called BEFORE identify() during registration to merge anonymous history. GOTCHA: reset() does NOT flush the event queue — events queued before reset may still be sent.
  */
 
 // Core API
