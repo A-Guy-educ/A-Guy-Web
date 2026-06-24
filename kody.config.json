@@ -54,9 +54,6 @@
       "MEMBER"
     ]
   },
-  "agentActions": {
-    "default": "run"
-  },
   "company": {
     "activeAgentResponsibilities": [
       "agent-responsibility-call",
@@ -74,18 +71,17 @@
       "vercel-production-deploy"
     ],
     "activeGoals": [
-      "web-release"
+      {
+        "template": "web-release",
+        "every": "1d",
+        "idPrefix": "web-release",
+        "preferredRunTime": {
+          "time": "15:00",
+          "timezone": "Asia/Jerusalem"
+        }
+      },
+      "ci-health",
+      "prs-stay-mergeable"
     ]
-  },
-  "fly": {
-    "previews": {
-      "cpus": 2,
-      "memoryMb": 2048,
-      "ttlDays": 14,
-      "builderCpus": 4,
-      "builderMemoryMb": 4096,
-      "idleSuspend": true,
-      "healthCheck": false
-    }
   }
 }

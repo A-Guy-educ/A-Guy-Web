@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.26.1 — 2026-06-24
+
+_No notable commits since the last release._
 ## [0.26.0] - 2026-06-17
 
 ### Features
@@ -1813,6 +1816,19 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- #354: [Landing] כפתורים נעלמים ב-hover — טקסט לא קריא על primary/90 ([#411](https://github.com/A-Guy-educ/A-Guy-Web/pull/411)) — @kodyade[bot]
+- chore: release v0.26.1 ([#522](https://github.com/A-Guy-educ/A-Guy-Web/pull/522)) — @kodyade[bot]
+- fix(lesson-pager): Read current block from reordered list (regression from #475) ([#539](https://github.com/A-Guy-educ/A-Guy-Web/pull/539)) — @aguyshayb
+- feat(lesson): Show content pages as universal preamble after lobby ([#556](https://github.com/A-Guy-educ/A-Guy-Web/pull/556)) — @aguyshayb
+- #498: החלף LICENSE ל-BSL 1.1 — מנע שימוש מסחרי ([#512](https://github.com/A-Guy-educ/A-Guy-Web/pull/512)) — @kodyade[bot]
+- #460: Show content pages before exercises and drop the second Welcome i… ([#475](https://github.com/A-Guy-educ/A-Guy-Web/pull/475)) — @kodyade[bot]
+- #228: Doc coverage: src/infra/analytics/ — Analytics tracking layer ([#412](https://github.com/A-Guy-educ/A-Guy-Web/pull/412)) — @kodyade[bot]
+- #391: [Lessons] Interactive view disappears when switching from scroll … ([#407](https://github.com/A-Guy-educ/A-Guy-Web/pull/407)) — @kodyade[bot]
+- #330: Add back button to lesson intro page ([#344](https://github.com/A-Guy-educ/A-Guy-Web/pull/344)) — @kodyade[bot]
+- #323: Fix hardcoded English subtitle in study page empty state ([#339](https://github.com/A-Guy-educ/A-Guy-Web/pull/339)) — @kodyade[bot]
+- #326: Fix "Continue from last point" button showing broken link when co… ([#335](https://github.com/A-Guy-educ/A-Guy-Web/pull/335)) — @kodyade[bot]
+- #332: Disable Ask button on /study route ([#340](https://github.com/A-Guy-educ/A-Guy-Web/pull/340)) — @kodyade[bot]
+- #368: [Homepage] הסר את שורת הכתובת מהדפדפן המדומה ב-DemoLandingPage ([#370](https://github.com/A-Guy-educ/A-Guy-Web/pull/370)) — @kodyade[bot]
 - #324: [ask] Fix broken "viewStats" button ([#341](https://github.com/A-Guy-educ/A-Guy-Web/pull/341)) — @kodyade[bot]
 - #334: [Study] Lesson links 404 when chapter has no slug in DB ([#346](https://github.com/A-Guy-educ/A-Guy-Web/pull/346)) — @kodyade[bot]
 - #328: [Study Plan] Chat button opens English conversation when locale i… ([#349](https://github.com/A-Guy-educ/A-Guy-Web/pull/349)) — @kodyade[bot]
