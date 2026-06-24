@@ -269,15 +269,23 @@ export async function generateAssistantReply(args: {
   history?: WebChatMessage[]
   chatAssetIds?: string[]
   mediaIds?: string[]
+  locale?: string
 }) {
   const attachments = await loadAttachments(args.chatAssetIds, args.mediaIds)
+  const localeInstruction = args.locale === 'he' ? 'IMPORTANT: Respond in Hebrew. ' : ''
   const system =
     'You are A-Guy, a concise math tutor. Help the student with clear steps, in the same language they use when possible.'
   const history = (args.history ?? [])
     .slice(-10)
     .map((m) => `${m.role === 'user' ? 'Student' : 'Tutor'}: ${m.content}`)
     .join('\n')
-  const prompt = [history, attachments.text, `Student: ${args.message}`, 'Tutor:']
+  const prompt = [
+    localeInstruction,
+    history,
+    attachments.text,
+    `Student: ${args.message}`,
+    'Tutor:',
+  ]
     .filter(Boolean)
     .join('\n\n')
 

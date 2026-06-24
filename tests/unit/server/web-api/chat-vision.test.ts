@@ -85,4 +85,84 @@ describe('web chat vision attachments', () => {
   it('keeps text-only prompts text-only', () => {
     expect(buildGeminiUserParts('hello', [])).toEqual([{ text: 'hello' }])
   })
+
+  it('prepends Hebrew instruction when locale is he', async () => {
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body)) as {
+        contents: Array<{
+          parts: Array<{ text?: string }>
+        }>
+      }
+      const promptText = body.contents[0]?.parts[0]?.text ?? ''
+      expect(promptText).toContain('IMPORTANT: Respond in Hebrew.')
+
+      return Response.json({
+        candidates: [{ content: { parts: [{ text: 'תשובה בעברית' }] } }],
+      })
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(
+      generateAssistantReply({
+        message: 'שאלה',
+        locale: 'he',
+      }),
+    ).resolves.toBe('תשובה בעברית')
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not prepend Hebrew instruction when locale is en', async () => {
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body)) as {
+        contents: Array<{
+          parts: Array<{ text?: string }>
+        }>
+      }
+      const promptText = body.contents[0]?.parts[0]?.text ?? ''
+      expect(promptText).not.toContain('IMPORTANT: Respond in Hebrew.')
+
+      return Response.json({
+        candidates: [{ content: { parts: [{ text: 'Answer in English' }] } }],
+      })
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(
+      generateAssistantReply({
+        message: 'Question',
+        locale: 'en',
+      }),
+    ).resolves.toBe('Answer in English')
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not prepend Hebrew instruction when locale is undefined', async () => {
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body)) as {
+        contents: Array<{
+          parts: Array<{ text?: string }>
+        }>
+      }
+      const promptText = body.contents[0]?.parts[0]?.text ?? ''
+      expect(promptText).not.toContain('IMPORTANT: Respond in Hebrew.')
+
+      return Response.json({
+        candidates: [{ content: { parts: [{ text: 'Answer' }] } }],
+      })
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(
+      generateAssistantReply({
+        message: 'Question',
+      }),
+    ).resolves.toBe('Answer')
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
 })
