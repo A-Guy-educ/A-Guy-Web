@@ -6,6 +6,8 @@
  *
  * CRITICAL: This is the ONLY way product code should track events
  * No direct SDK calls allowed (no window.gtag or window.mixpanel)
+ *
+ * @ai-summary Queue is capped at 100 events — overflow silently drops oldest events. Identify-before-alias breaks Mixpanel's chain for merging anonymous history; always call alias() first.
  */
 
 'use client'

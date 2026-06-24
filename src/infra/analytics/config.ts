@@ -3,6 +3,8 @@
  *
  * Environment-based configuration for analytics system
  * Simplified: presence of token/key enables the platform
+ *
+ * @ai-summary Uses a lazy Proxy to defer config creation until first access — avoids SSR issues. E2E tests can set `window.__analyticsEnabled = true` to force analytics on without rebuilding.
  */
 
 import type { AnalyticsConfig } from './types'

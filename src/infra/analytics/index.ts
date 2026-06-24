@@ -3,6 +3,8 @@
  *
  * This is the ONLY import path product code should use
  * Import from '@/lib/analytics' and nothing else
+ *
+ * @ai-summary No direct SDK calls allowed — all tracking must go through `analytics.track()`. Call `alias()` BEFORE `identify()` during registration to merge anonymous history. `reset()` clears local state but does NOT flush the event queue.
  */
 
 // Core API

@@ -1,5 +1,7 @@
 /**
  * Shared TypeScript types for analytics system
+ *
+ * @ai-summary EventPayload is always post-validation — the validator runs first and only valid events reach the tracker.
  */
 
 import type { ProductEvent } from './contracts/events'
