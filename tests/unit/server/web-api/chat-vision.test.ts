@@ -85,4 +85,62 @@ describe('web chat vision attachments', () => {
   it('keeps text-only prompts text-only', () => {
     expect(buildGeminiUserParts('hello', [])).toEqual([{ text: 'hello' }])
   })
+
+  it('prepends Hebrew instruction when locale is he', async () => {
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === 'https://blob.example/triangle.png') {
+        return new Response(new ArrayBuffer(0))
+      }
+
+      const body = JSON.parse(String(init?.body)) as {
+        systemInstruction?: { parts?: Array<{ text?: string }> }
+      }
+      expect(body.systemInstruction?.parts?.[0]?.text).toMatch(/^IMPORTANT: Respond in Hebrew\./)
+
+      return Response.json({
+        candidates: [{ content: { parts: [{ text: 'תשובה בעברית' }] } }],
+      })
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(
+      generateAssistantReply({
+        message: 'מה השאלה?',
+        locale: 'he',
+      }),
+    ).resolves.toBe('תשובה בעברית')
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not prepend Hebrew instruction when locale is not he', async () => {
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === 'https://blob.example/triangle.png') {
+        return new Response(new ArrayBuffer(0))
+      }
+
+      const body = JSON.parse(String(init?.body)) as {
+        systemInstruction?: { parts?: Array<{ text?: string }> }
+      }
+      expect(body.systemInstruction?.parts?.[0]?.text).not.toMatch(
+        /^IMPORTANT: Respond in Hebrew\./,
+      )
+
+      return Response.json({
+        candidates: [{ content: { parts: [{ text: 'Answer in English' }] } }],
+      })
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(
+      generateAssistantReply({
+        message: 'What is the question?',
+        locale: 'en',
+      }),
+    ).resolves.toBe('Answer in English')
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
 })
