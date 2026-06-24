@@ -1,4 +1,12 @@
 {
+  "learningAgent": {
+    "welcomeMessage": "Hi! I'm your personal learning assistant. I can help you with your courses, suggest what to learn next, and track your progress. How can I help you today?",
+    "title": "Learning Assistant",
+    "subtitle": "Your personal AI guide",
+    "inputPlaceholder": "Ask me anything...",
+    "sendError": "Failed to send message. Please try again.",
+    "loginError": "Please log in to use the learning assistant"
+  },
   "brand": {
     "name": "A-Guy",
     "tagline": "Your digital math teacher",
