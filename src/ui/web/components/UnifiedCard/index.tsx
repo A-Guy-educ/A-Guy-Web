@@ -95,7 +95,6 @@ export function UnifiedCard({
   const cardClasses = cn(
     'group relative rounded-2xl border border-border/60 bg-card shadow-card overflow-hidden',
     'transition-all duration-normal will-change-transform',
-    !isSoon && 'hover:border-border/80 hover:shadow-card-hover active:scale-[0.98]',
     isSoon && 'opacity-60',
     className,
   )
@@ -222,7 +221,12 @@ export function UnifiedCard({
   if (cardHref) {
     return (
       <div
-        className={cn(cardClasses, 'cursor-pointer')}
+        className={cn(
+          cardClasses,
+          'cursor-pointer',
+          !isSoon &&
+            'hover:border-border/80 hover:shadow-card-hover active:scale-[0.98] hover:-translate-y-1',
+        )}
         style={
           variant === 'lesson'
             ? { borderTopWidth: '4px', borderTopColor: color }
