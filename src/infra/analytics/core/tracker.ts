@@ -6,6 +6,15 @@
  *
  * CRITICAL: This is the ONLY way product code should track events
  * No direct SDK calls allowed (no window.gtag or window.mixpanel)
+ *
+ * @ai-summary Central tracker with in-memory queue (max 100 events, overflow drops silently) and async adapter initialization.
+ *
+ * ## Gotchas
+ *
+ * | Trap | Details |
+ * |------|---------|
+ * | Queue overflow | Events beyond 100 are silently dropped — no error, no retry |
+ * | identify-before-alias | In Mixpanel, calling `identify()` before `alias()` breaks the identity chain — anonymous history is NOT merged |
  */
 
 'use client'

@@ -3,6 +3,8 @@
  *
  * Environment-based configuration for analytics system
  * Simplified: presence of token/key enables the platform
+ *
+ * @ai-summary Environment-driven config with lazy Proxy initialization. **SSR trap**: the Proxy delays `getAnalyticsConfig()` until first property access, which must be client-side. E2E override via `window.__analyticsEnabled = true` before config reads.
  */
 
 import type { AnalyticsConfig } from './types'
