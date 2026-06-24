@@ -3,6 +3,10 @@
  *
  * This is the ONLY import path product code should use
  * Import from '@/lib/analytics' and nothing else
+ *
+ * @ai-summary Thin re-export facade — no SDK calls happen here. All tracking is routed through the core tracker, which validates, queues, and dispatches to GA4 and Mixpanel adapters.
+ *
+ * Gotcha: `alias()` must be called BEFORE `identify()` during registration to merge anonymous event history with the new user account. `reset()` clears identity state but does not flush the queued event buffer.
  */
 
 // Core API

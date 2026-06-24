@@ -1,5 +1,7 @@
 /**
  * Shared TypeScript types for analytics system
+ *
+ * @ai-summary `EventPayload` is always constructed after validation — the validator strips unknown fields before the payload is built, so properties are guaranteed to match the schema.
  */
 
 import type { ProductEvent } from './contracts/events'

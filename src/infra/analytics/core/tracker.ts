@@ -6,6 +6,8 @@
  *
  * CRITICAL: This is the ONLY way product code should track events
  * No direct SDK calls allowed (no window.gtag or window.mixpanel)
+ *
+ * @ai-summary Events are validated, then queued in an in-memory buffer (max 100 entries). On queue overflow, new events are silently dropped. `identify()` must be called AFTER `alias()` — Mixpanel requires the alias to be set before identify, otherwise the anonymous history chain is broken.
  */
 
 'use client'

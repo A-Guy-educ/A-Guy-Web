@@ -3,6 +3,8 @@
  *
  * Environment-based configuration for analytics system
  * Simplified: presence of token/key enables the platform
+ *
+ * @ai-summary `analyticsConfig` is a lazy Proxy that defers `getAnalyticsConfig()` until the first property is accessed — this ensures `window` is available and avoids SSR mismatches. E2E tests can override analytics entirely via `window.__analyticsEnabled` before the app initializes.
  */
 
 import type { AnalyticsConfig } from './types'
