@@ -11,6 +11,7 @@
  * @fileType service
  * @domain ai
  * @pattern vector-search, context-scoped
+ * @ai-summary Fallback-to-empty on error keeps the system alive; userId filter is non-optional — omitting it would breach tenant isolation
  */
 
 import { logger } from '@/infra/utils/logger'

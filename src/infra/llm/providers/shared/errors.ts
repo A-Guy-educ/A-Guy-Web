@@ -4,6 +4,7 @@
  *
  * @fileType error-handling
  * @domain ai
+ * @ai-summary The `retryable` boolean on LLMError drives all downstream retry decisions; CONFIG_ERROR and VALIDATION_ERROR are never retried
  */
 
 /** Error codes for LLM providers */
