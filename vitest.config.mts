@@ -50,6 +50,7 @@ const activeIntegrationTests = [
   'tests/int/pdf-conversion-shadow-field.int.spec.ts',
   'tests/int/refactor-inline-styles.int.spec.ts',
   'tests/int/v2-vision-detection.int.spec.ts',
+  'tests/unit/ui/web/search-component.spec.tsx',
 ]
 
 export default defineConfig({
