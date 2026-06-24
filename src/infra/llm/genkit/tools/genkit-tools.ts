@@ -5,6 +5,7 @@
  * @fileType module
  * @domain ai
  * @pattern genkit-tools, tool-calling, mcp-integration
+ * @ai-summary Adapts MCP tool definitions to Genkit format and wraps executor output as Genkit 1.x Part objects (Array<{ text: string }>) required by the generate API.
  */
 import { logger } from '@/infra/utils/logger'
 import type { Genkit } from 'genkit'

@@ -5,6 +5,7 @@
  * @fileType adapter
  * @domain ai
  * @pattern error-handling, genkit
+ * @ai-summary Wraps Genkit errors in LLMError with message-pattern retryability; rate-limit errors preserve up to 400 chars of raw detail to distinguish RPM caps, daily quotas, and concurrent-request limits.
  *
  * Reuses existing LLMError and createErrorClassifier from shared/errors.ts
  */

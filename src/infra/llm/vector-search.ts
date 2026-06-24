@@ -11,6 +11,7 @@
  * @fileType service
  * @domain ai
  * @pattern vector-search, context-scoped
+ * @ai-summary Returns empty results on error (system continues without memory); hard tenant isolation — userId filter is mandatory on every query and must never be omitted.
  */
 
 import { logger } from '@/infra/utils/logger'

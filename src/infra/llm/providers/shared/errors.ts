@@ -4,6 +4,7 @@
  *
  * @fileType error-handling
  * @domain ai
+ * @ai-summary The `retryable` boolean flag on LLMError drives all downstream retry decisions; wrapError sets it based on error-type heuristics (auth/validation = false; timeout/rate-limit = true).
  */
 
 /** Error codes for LLM providers */

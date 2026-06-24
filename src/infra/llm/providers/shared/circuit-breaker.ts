@@ -8,6 +8,7 @@
  * @fileType utility
  * @domain ai
  * @pattern circuit-breaker, resilience
+ * @ai-summary Rate-limit errors skip the failure counter to prevent cascading outages — one quota signal cannot trip the breaker when the provider is healthy.
  */
 
 export type CircuitState = 'closed' | 'open' | 'half-open'
