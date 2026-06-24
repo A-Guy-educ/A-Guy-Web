@@ -14,6 +14,7 @@ import { Button } from '@/ui/web/components/button'
 import { Progress } from '@/ui/web/components/progress'
 import { useTranslations } from '@/ui/web/providers/I18n'
 
+import { ContentPagesPreamble } from './ContentPagesPreamble'
 import { DualModeLessonView } from '../DualModeLessonView'
 import type { LessonMode } from '../DualModeLessonView/useLessonViewMode'
 import { EmptyLessonPlaceholder } from '../EmptyLessonPlaceholder'
@@ -81,7 +82,6 @@ export function LessonIntroPage({
   const t = useTranslations('courses')
   const searchParams = useSearchParams()
   const deepLinkedExerciseId = searchParams.get('exerciseId')
-  const { pageState, handleStart } = useLessonIntroPage({ deepLinkedExerciseId })
 
   const exerciseCount = exercises.length
   const contentPageCount = useMemo(
@@ -91,6 +91,14 @@ export function LessonIntroPage({
   )
   const pdfCount = mediaFiles.length
   const description = plainText(lesson.description)
+
+  /** True when blocks contain at least one contentPage block — routes to LessonPager instead of ExercisesPager */
+  const hasContentPagesInBlocks = contentPageCount > 0
+
+  const { pageState, handleStart, handleFinishPreamble } = useLessonIntroPage({
+    deepLinkedExerciseId,
+    hasContentPagesPreamble: hasContentPagesInBlocks && !deepLinkedExerciseId,
+  })
 
   const hasExerciseContent = exercises.some((exercise) => {
     if (Array.isArray(exercise.content)) return exercise.content.length > 0
@@ -102,9 +110,6 @@ export function LessonIntroPage({
     }
     return false
   })
-
-  /** True when blocks contain at least one contentPage block — routes to LessonPager instead of ExercisesPager */
-  const hasContentPagesInBlocks = contentPageCount > 0
 
   const hasMedia = pdfCount > 0
   const visibleRenderers: LessonMode[] = []
@@ -145,6 +150,23 @@ export function LessonIntroPage({
     )
   }
 
+  if (pageState.type === 'preamble') {
+    return (
+      <div className="min-h-screen bg-background">
+        <main className="mx-auto flex w-full max-w-6xl flex-col px-4 py-5 sm:px-6 md:min-h-screen md:py-section-lg">
+          <BackButton href={backUrl} />
+          <section className="mt-6 flex-1 md:mt-8">
+            <ContentPagesPreamble
+              blocks={blocks}
+              contentPageBodies={contentPageBodies}
+              onFinish={handleFinishPreamble}
+            />
+          </section>
+        </main>
+      </div>
+    )
+  }
+
   if (pageState.type === 'content') {
     if (visibleRenderers.length === 0) {
       return (
@@ -167,11 +189,7 @@ export function LessonIntroPage({
         lessonSlug={lessonSlug}
         gradeLevel={gradeLevel}
         exercises={exercises}
-        interactive={
-          hasContentPagesInBlocks
-            ? { kind: 'blocks', blocks, contentPageBodies }
-            : { kind: 'exercises', exercises }
-        }
+        interactive={{ kind: 'exercises', exercises }}
         validFiles={mediaFiles}
         mediaMap={mediaMap}
         chatLessonId={lesson.id}
