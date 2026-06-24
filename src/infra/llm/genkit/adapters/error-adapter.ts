@@ -2,6 +2,7 @@
  * Error Adapter
  * Maps Genkit errors to LLMError for consistent error handling
  *
+ * @ai-summary Wraps Genkit errors in LLMError with message-pattern classification to determine retryability. Rate-limit errors preserve the raw provider detail (up to 400 chars) rather than using a generic message, since Gemini distinguishes per-minute RPM caps, per-day quotas, and concurrent-request limits in the underlying error text.
  * @fileType adapter
  * @domain ai
  * @pattern error-handling, genkit

@@ -2,6 +2,7 @@
  * LLM Error Handling
  * Base LLMError class and error classification utilities
  *
+ * @ai-summary The `retryable` boolean field on LLMError drives every downstream retry decision — if false the caller must not retry; if true the caller applies exponential backoff. createErrorClassifier determines retryability by checking message patterns (auth failures are non-retryable, timeouts and rate-limits are retryable), and this classification propagates through the entire call stack via LLMError.
  * @fileType error-handling
  * @domain ai
  */

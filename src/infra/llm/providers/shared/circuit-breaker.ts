@@ -1,10 +1,7 @@
 /**
  * Circuit Breaker for LLM API Calls
  *
- * Prevents cascading failures when an LLM provider goes down.
- * After N consecutive failures, the circuit opens and fails fast
- * for a cooldown period before allowing a single probe request.
- *
+ * @ai-summary Prevents cascading outages by failing fast when an LLM provider goes down. Rate-limit errors (429 QuotaExceeded) are intentionally NOT counted as failures — a single rate-limit trip should not open the circuit and block every subsequent call in the same batch with CIRCUIT_OPEN, since the provider is healthy and callers handle retries via exponential backoff.
  * @fileType utility
  * @domain ai
  * @pattern circuit-breaker, resilience

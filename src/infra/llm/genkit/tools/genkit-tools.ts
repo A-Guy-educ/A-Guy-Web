@@ -2,6 +2,7 @@
  * Genkit Tools Module
  * Provides tool calling abstraction for Genkit with MCP integration
  *
+ * @ai-summary Adapts MCP (Model Context Protocol) tools to Genkit's format and wraps tool executors to return the 1.x Part array format that Genkit's generate() expects. Genkit 1.x requires tool responses as an array of Part objects rather than a plain string, so wrapToolExecutorForGenkit performs that conversion.
  * @fileType module
  * @domain ai
  * @pattern genkit-tools, tool-calling, mcp-integration

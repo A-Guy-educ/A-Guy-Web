@@ -2,12 +2,7 @@
  * Vector Search Service
  * Retrieves memory items using MongoDB Atlas Vector Search
  *
- * Key Features:
- * - Context-hierarchy policy (conversation → contextKey → parent keys → user-global)
- * - Tenant isolation (CRITICAL: always filter by userId)
- * - Graceful fallback on errors
- * - Deduplication of results with hierarchy priority
- *
+ * @ai-summary Returns empty results on any error (vector index unavailable, connection failure) so the AI service degrades gracefully without crashing. HARD REQUIREMENT: every query MUST filter by userId — omitting the userId filter in any of the four query scopes (conversation, context, parent-context, global) is a tenant-isolation violation that can leak one user's memories to another.
  * @fileType service
  * @domain ai
  * @pattern vector-search, context-scoped
