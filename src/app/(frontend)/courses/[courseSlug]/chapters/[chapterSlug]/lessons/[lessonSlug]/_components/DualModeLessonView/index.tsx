@@ -219,6 +219,7 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
       <section role="tabpanel" id={tabIds.interactivePanel} aria-labelledby={tabIds.interactiveTab}>
         <ExercisesPager
           blocks={interactive.blocks}
+          exercises={exercises}
           contentPageBodies={interactive.contentPageBodies}
           lessonTitle={lessonTitle}
           backUrl={backUrl}
