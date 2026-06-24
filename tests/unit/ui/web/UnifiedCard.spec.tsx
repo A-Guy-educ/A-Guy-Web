@@ -1,8 +1,10 @@
 // @vitest-environment jsdom
+import { I18nProvider } from '@/ui/web/providers/I18n'
 import { render, screen } from '@testing-library/react'
 import { CheckCircle } from 'lucide-react'
 import type { ComponentProps } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import enMessages from '../../../../src/i18n/en.json'
 import { UnifiedCard } from '@/ui/web/components/UnifiedCard'
 
 // Mock CheckCircle to verify it renders
@@ -17,6 +19,35 @@ vi.mock('lucide-react', async () => {
       </svg>
     ),
   }
+})
+
+describe('UnifiedCard hover lift effect', () => {
+  it('does not apply hover lift classes to base card without cardHref', () => {
+    const { container } = render(<UnifiedCard title="Test Card" />)
+    const card = container.querySelector('[class*="rounded-2xl"]')
+    expect(card?.className).not.toContain('hover:-translate-y-1')
+    expect(card?.className).not.toContain('hover:shadow-card-hover')
+  })
+
+  it('applies hover lift classes to clickable card with cardHref', () => {
+    const { container } = render(<UnifiedCard title="Test Card" cardHref="/test" />)
+    const card = container.querySelector('[class*="rounded-2xl"]')
+    expect(card?.className).toContain('hover:-translate-y-1')
+    expect(card?.className).toContain('hover:shadow-card-hover')
+    expect(card?.className).toContain('hover:border-border/80')
+    expect(card?.className).toContain('active:scale-[0.98]')
+  })
+
+  it('does not apply hover lift classes to cardHref card when isSoon', () => {
+    const { container } = render(
+      <I18nProvider locale="en" messages={enMessages}>
+        <UnifiedCard title="Test Card" cardHref="/test" contentStatus="soon" />
+      </I18nProvider>,
+    )
+    const card = container.querySelector('[class*="rounded-2xl"]')
+    expect(card?.className).not.toContain('hover:-translate-y-1')
+    expect(card?.className).not.toContain('hover:shadow-card-hover')
+  })
 })
 
 describe('UnifiedCard completion state', () => {
