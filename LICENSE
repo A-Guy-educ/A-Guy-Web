@@ -1,0 +1,83 @@
+Business Source License 1.1
+
+License text for A-Guy Web Application
+
+Section 1. Preamble
+
+This Business Source License ("License") governs the use of the Licensed Work (as defined below).
+Using the Licensed Work constitutes your agreement to be bound by the terms of this License.
+The Licensor hereby grants You the right to use the Licensed Work subject to the terms of this License.
+
+Section 2. Definitions
+
+"Licensed Work" means the software and documentation made available under this License,
+including the source code, object code, and documentation.
+
+"Use" means using, copying, modifying, merging, publishing, distributing, sublicensing,
+or making available the Licensed Work.
+
+"You" or "Your" means the individual exercising the Licensed Rights under this License.
+
+"Change License" means GPL v3.0 as published by the Free Software Foundation.
+
+Section 3. Grant of Rights
+
+Subject to the terms and conditions of this License, the Licensor hereby grants You a worldwide,
+royalty-free, non-sublicensable, non-exclusive, irrevocable copyright license to use the Licensed Work
+for non-commercial purposes only.
+
+Section 4. Limitations
+
+The license granted in Section 3 does not include the right to:
+
+(a) use the Licensed Work for commercial purposes, including:
+    - use in a business, commercial, or revenue-generating activity;
+    - use in the provision of services to third parties for a fee;
+    - use in the development or operation of a product or service sold for profit;
+
+(b) use the Licensed Work for any purpose that is prohibited by applicable law;
+
+(c) remove, obscure, or alter any proprietary notices, including copyright notices,
+    patent notices, or trademark notices, appearing in or on the Licensed Work.
+
+Section 5. Non-Commercial Use
+
+This License permits use of the Licensed Work only for non-commercial purposes, as defined in this License.
+Commercial use of the Licensed Work requires a separate license agreement with the Licensor.
+
+Section 6. Change License
+
+After four (4) years from the date of initial release of the Licensed Work under this License,
+the Licensed Work may be used and distributed under the terms of the Change License
+(GPL v3.0) in addition to the terms of this License.
+
+Section 7. Fair Use
+
+This License does not limit any rights under applicable law relating to fair use, fair dealing,
+or other similar doctrines, to the extent such rights cannot be waived by contract.
+
+Section 8. Disclaimer
+
+THE LICENSED WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
+AND NONINFRINGEMENT. IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE LICENSED WORK OR THE USE OR OTHER DEALINGS IN THE LICENSED WORK.
+
+Section 9. Severability
+
+If any provision of this License is held to be unenforceable, such provision shall be reformed
+only to the extent necessary to make it enforceable, and the remaining provisions of this License
+shall continue in full force and effect.
+
+Section 10. Governing Law
+
+This License is governed by the laws of the jurisdiction in which the Licensor is located,
+unless otherwise specified, and constitutes the entire agreement between the parties with respect
+to the Licensed Work.
+
+---
+
+For commercial licensing inquiries, please contact the Licensor.
+
+This License is version 1.1 of the Business Source License.
