@@ -3,6 +3,11 @@
  *
  * This is the ONLY import path product code should use
  * Import from '@/lib/analytics' and nothing else
+ *
+ * @fileType module
+ * @domain analytics
+ * @pattern analytics-public-api
+ * @ai-summary Thin re-export facade — no direct SDK calls, no business logic. Enforces alias-before-identify ordering; reset clears identity but does NOT flush the queued event batch (events already queued are still sent).
  */
 
 // Core API

@@ -3,6 +3,11 @@
  *
  * Environment-based configuration for analytics system
  * Simplified: presence of token/key enables the platform
+ *
+ * @fileType configuration
+ * @domain analytics
+ * @pattern singleton-lazy-proxy
+ * @ai-summary Lazy Proxy SSR trap: config reads `window` eagerly at module level but the Proxy defers `getAnalyticsConfig()` until first property access — ensuring client-only execution after `window` is available. E2E override via `window.__analyticsEnabled` bypasses token presence check without a rebuild.
  */
 
 import type { AnalyticsConfig } from './types'

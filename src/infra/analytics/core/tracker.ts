@@ -6,6 +6,11 @@
  *
  * CRITICAL: This is the ONLY way product code should track events
  * No direct SDK calls allowed (no window.gtag or window.mixpanel)
+ *
+ * @fileType core
+ * @domain analytics
+ * @pattern queue-first-send-later
+ * @ai-summary Max-100 event queue overflow is silently dropped (no error emitted). identify-before-alias ordering breaks Mixpanel's alias chain — always call alias() before identify() during registration to merge anonymous history with the new user account.
  */
 
 'use client'
