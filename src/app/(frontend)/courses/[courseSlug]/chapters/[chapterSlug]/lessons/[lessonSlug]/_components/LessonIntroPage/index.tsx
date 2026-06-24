@@ -23,7 +23,6 @@ import { ChatInterface } from '@/ui/web/chat'
 import { Button } from '@/ui/web/components/button'
 import { Progress } from '@/ui/web/components/progress'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
-
 import { DualModeLessonView } from '../DualModeLessonView'
 import type { LessonMode } from '../DualModeLessonView/useLessonViewMode'
 import { EmptyLessonPlaceholder } from '../EmptyLessonPlaceholder'
@@ -39,6 +38,8 @@ interface LessonProgressSummary {
 interface LessonIntroPageProps {
   lesson: Lesson
   blocks: ResolvedLessonBlock[]
+  /** Pre-rendered content page bodies, keyed by content page ID (built server-side) */
+  contentPageBodies?: Record<string, React.ReactNode>
   backUrl: string
   showChat: boolean
   formulaSheet?: import('@/infra/types/content').FormulaSheet | null
@@ -70,6 +71,7 @@ function plainText(value?: string | null) {
 export function LessonIntroPage({
   lesson,
   blocks,
+  contentPageBodies,
   backUrl,
   showChat,
   formulaSheet,
@@ -186,7 +188,9 @@ export function LessonIntroPage({
         gradeLevel={gradeLevel}
         exercises={exercises}
         interactive={
-          hasContentPagesInBlocks ? { kind: 'blocks', blocks } : { kind: 'exercises', exercises }
+          hasContentPagesInBlocks
+            ? { kind: 'blocks', blocks, contentPageBodies }
+            : { kind: 'exercises', exercises }
         }
         validFiles={mediaFiles}
         mediaMap={mediaMap}
