@@ -13,6 +13,7 @@ import { Button } from '@/ui/web/components/button'
 import { Progress } from '@/ui/web/components/progress'
 import { useTranslations } from '@/ui/web/providers/I18n'
 
+import { BackToChapter } from '@/app/(frontend)/courses/_components/BackToChapter'
 import { DualModeLessonView } from '../DualModeLessonView'
 import type { LessonMode } from '../DualModeLessonView/useLessonViewMode'
 import { EmptyLessonPlaceholder } from '../EmptyLessonPlaceholder'
@@ -28,6 +29,8 @@ interface LessonProgressSummary {
 interface LessonIntroPageProps {
   lesson: Lesson
   blocks: ResolvedLessonBlock[]
+  /** Pre-rendered content page bodies, keyed by content page ID (built server-side) */
+  contentPageBodies?: Record<string, React.ReactNode>
   backUrl: string
   showChat: boolean
   formulaSheet?: import('@/infra/types/content').FormulaSheet | null
@@ -59,6 +62,7 @@ function plainText(value?: string | null) {
 export function LessonIntroPage({
   lesson,
   blocks,
+  contentPageBodies,
   backUrl,
   showChat,
   formulaSheet,
@@ -164,7 +168,9 @@ export function LessonIntroPage({
         gradeLevel={gradeLevel}
         exercises={exercises}
         interactive={
-          hasContentPagesInBlocks ? { kind: 'blocks', blocks } : { kind: 'exercises', exercises }
+          hasContentPagesInBlocks
+            ? { kind: 'blocks', blocks, contentPageBodies }
+            : { kind: 'exercises', exercises }
         }
         validFiles={mediaFiles}
         mediaMap={mediaMap}
@@ -182,6 +188,9 @@ export function LessonIntroPage({
   return (
     <div className="min-h-screen bg-background">
       <main className="mx-auto flex w-full max-w-6xl flex-col px-4 py-5 sm:px-6 md:min-h-screen md:py-section-lg">
+        <div className="mb-6">
+          <BackToChapter href={backUrl} />
+        </div>
         <section className="grid gap-content-gap-md md:flex-1 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] lg:items-center">
           <div className="space-y-4 md:space-y-6">
             <div className="inline-flex items-center gap-content-gap-xs rounded-full border border-border bg-muted px-3 py-1.5 text-label uppercase tracking-wider text-muted-foreground md:px-4 md:py-2">
