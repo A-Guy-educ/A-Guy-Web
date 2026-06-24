@@ -15,6 +15,14 @@ import { buildGeminiUserParts, generateAssistantReply } from '@/server/web-api/c
 
 const getContentDbMock = getContentDb as Mock
 
+function emptyCollection() {
+  return {
+    find: vi.fn(() => ({
+      toArray: vi.fn(async () => []),
+    })),
+  }
+}
+
 function collection(name: string) {
   return {
     find: vi.fn(() => ({
@@ -42,10 +50,12 @@ describe('web chat vision attachments', () => {
     vi.restoreAllMocks()
     process.env.GEMINI_API_KEY = 'test-key'
     process.env.LLM_MODEL_OVERRIDE_EXERCISE_CHAT = 'gemini-test'
-    getContentDbMock.mockResolvedValue({ collection })
+    getContentDbMock.mockResolvedValue({ collection: emptyCollection() })
   })
 
   it('puts inline image data into the Gemini request', async () => {
+    getContentDbMock.mockResolvedValue({ collection })
+
     const imageBase64 =
       'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
     const imageBuffer = Buffer.from(imageBase64, 'base64')
@@ -84,5 +94,62 @@ describe('web chat vision attachments', () => {
 
   it('keeps text-only prompts text-only', () => {
     expect(buildGeminiUserParts('hello', [])).toEqual([{ text: 'hello' }])
+  })
+})
+
+describe('generateAssistantReply locale', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+    process.env.GEMINI_API_KEY = 'test-key'
+    process.env.LLM_MODEL_OVERRIDE_EXERCISE_CHAT = 'gemini-test'
+    getContentDbMock.mockResolvedValue({ collection: emptyCollection() })
+  })
+
+  it('prepends Hebrew instruction when locale is he', async () => {
+    let capturedBody: unknown
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_url: string, init?: RequestInit) => {
+        capturedBody = JSON.parse(String(init?.body))
+        return Response.json({
+          candidates: [{ content: { parts: [{ text: 'תשובה בעברית' }] } }],
+        })
+      }),
+    )
+
+    await generateAssistantReply({
+      message: 'מה זה משולש?',
+      locale: 'he',
+    })
+
+    const body = capturedBody as {
+      contents: Array<{ parts: Array<{ text?: string }> }>
+    }
+    expect(body.contents[0]?.parts[0]?.text).toContain('IMPORTANT: Respond in Hebrew.')
+    expect(body.contents[0]?.parts[0]?.text).toContain('מה זה משולש?')
+  })
+
+  it('does not prepend Hebrew instruction when locale is not he', async () => {
+    let capturedBody: unknown
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_url: string, init?: RequestInit) => {
+        capturedBody = JSON.parse(String(init?.body))
+        return Response.json({
+          candidates: [{ content: { parts: [{ text: 'It is a triangle.' }] } }],
+        })
+      }),
+    )
+
+    await generateAssistantReply({
+      message: 'What is a triangle?',
+      locale: 'en',
+    })
+
+    const body = capturedBody as {
+      contents: Array<{ parts: Array<{ text?: string }> }>
+    }
+    expect(body.contents[0]?.parts[0]?.text).not.toContain('IMPORTANT: Respond in Hebrew.')
+    expect(body.contents[0]?.parts[0]?.text).toContain('What is a triangle?')
   })
 })
