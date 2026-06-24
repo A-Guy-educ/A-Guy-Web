@@ -5,6 +5,8 @@
  * After N consecutive failures, the circuit opens and fails fast
  * for a cooldown period before allowing a single probe request.
  *
+ * @ai-summary Rate-limit errors (typed LLMError RATE_LIMIT_ERROR or message containing "rate limit"/"quota") are NOT counted as failures — skipping the counter prevents a single transient quota hit from tripping the breaker and cascading a batch of healthy calls into CIRCUIT_OPEN. The caller's own rate-limit backoff handles retries; the breaker only guards against genuine provider outages.
+ *
  * @fileType utility
  * @domain ai
  * @pattern circuit-breaker, resilience

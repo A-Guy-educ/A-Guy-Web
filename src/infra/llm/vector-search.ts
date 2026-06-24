@@ -2,6 +2,8 @@
  * Vector Search Service
  * Retrieves memory items using MongoDB Atlas Vector Search
  *
+ * @ai-summary Falls back to empty results on any error (search failure, DB connection loss) — the AI service continues without memory rather than propagating the error. Tenant isolation is HARD: every single query filter MUST include `userId: { $eq: userId }` — omitting this filter, even briefly, would allow cross-tenant memory retrieval. The hierarchy policy (conversation > contextKey > parent keys > global) is enforced in JS after retrieval; MongoDB $vectorSearch does not support $or or $exists in filters.
+ *
  * Key Features:
  * - Context-hierarchy policy (conversation → contextKey → parent keys → user-global)
  * - Tenant isolation (CRITICAL: always filter by userId)

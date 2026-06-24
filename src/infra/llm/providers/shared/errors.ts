@@ -2,6 +2,8 @@
  * LLM Error Handling
  * Base LLMError class and error classification utilities
  *
+ * @ai-summary The `retryable` boolean field on LLMError drives ALL downstream retry decisions — if false, callers must not retry. The classifier marks auth/validation/config errors as non-retryable and leaves everything else (transient API errors, timeouts, rate limits) retryable by default.
+ *
  * @fileType error-handling
  * @domain ai
  */

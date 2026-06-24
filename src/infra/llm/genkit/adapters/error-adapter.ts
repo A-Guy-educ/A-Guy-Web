@@ -2,6 +2,8 @@
  * Error Adapter
  * Maps Genkit errors to LLMError for consistent error handling
  *
+ * @ai-summary Wraps Genkit errors in LLMError via message-pattern matching. Retryability is determined by the error message (auth/401/403 = non-retryable; rate limit/429/timeout/5xx = retryable) and delegated to the shared classifier as fallback. Rate-limit errors preserve the raw provider message (up to 400 chars) since Gemini encodes per-minute RPM vs per-day quota distinctions in the text.
+ *
  * @fileType adapter
  * @domain ai
  * @pattern error-handling, genkit

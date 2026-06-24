@@ -2,6 +2,8 @@
  * Genkit Tools Module
  * Provides tool calling abstraction for Genkit with MCP integration
  *
+ * @ai-summary Adapts MCP tool definitions to Genkit's input schema format and wraps tool executors to return Genkit 1.x-compatible Part objects (Array<{ text: string }>) instead of plain strings. The Part format is required by Genkit's generate() tools parameter — returning a raw string will cause a type mismatch at runtime.
+ *
  * @fileType module
  * @domain ai
  * @pattern genkit-tools, tool-calling, mcp-integration
