@@ -37,6 +37,28 @@ function collection(name: string) {
   }
 }
 
+function makeFetchMock() {
+  return vi.fn(async (url: string, init?: RequestInit) => {
+    if (url === 'https://blob.example/triangle.png') {
+      const imageBase64 =
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
+      const imageBuffer = Buffer.from(imageBase64, 'base64')
+      return new Response(imageBuffer, { headers: { 'Content-Type': 'image/png' } })
+    }
+
+    const body = JSON.parse(String(init?.body)) as {
+      systemInstruction?: { parts?: Array<{ text?: string }> }
+      contents: Array<{
+        parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }>
+      }>
+    }
+
+    return Response.json({
+      candidates: [{ content: { parts: [{ text: 'Reply text.' }] } }],
+    })
+  })
+}
+
 describe('web chat vision attachments', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
@@ -84,5 +106,61 @@ describe('web chat vision attachments', () => {
 
   it('keeps text-only prompts text-only', () => {
     expect(buildGeminiUserParts('hello', [])).toEqual([{ text: 'hello' }])
+  })
+
+  it('prepends Hebrew instruction to system prompt when locale is he', async () => {
+    const fetchMock = makeFetchMock()
+    vi.stubGlobal('fetch', fetchMock)
+
+    await generateAssistantReply({
+      message: 'What is 2+2?',
+      locale: 'he',
+    })
+
+    const call = fetchMock.mock.calls.find(
+      ([url]) => typeof url === 'string' && url.includes('generativelanguage.googleapis'),
+    )
+    expect(call).toBeDefined()
+    const body = JSON.parse(String(call?.[1]?.body)) as {
+      systemInstruction?: { parts?: Array<{ text?: string }> }
+    }
+    expect(body.systemInstruction?.parts?.[0]?.text).toContain('IMPORTANT: Respond in Hebrew.')
+  })
+
+  it('does not prepend Hebrew instruction when locale is en', async () => {
+    const fetchMock = makeFetchMock()
+    vi.stubGlobal('fetch', fetchMock)
+
+    await generateAssistantReply({
+      message: 'What is 2+2?',
+      locale: 'en',
+    })
+
+    const call = fetchMock.mock.calls.find(
+      ([url]) => typeof url === 'string' && url.includes('generativelanguage.googleapis'),
+    )
+    expect(call).toBeDefined()
+    const body = JSON.parse(String(call?.[1]?.body)) as {
+      systemInstruction?: { parts?: Array<{ text?: string }> }
+    }
+    expect(body.systemInstruction?.parts?.[0]?.text).not.toContain('IMPORTANT: Respond in Hebrew.')
+  })
+
+  it('does not prepend Hebrew instruction when locale is undefined', async () => {
+    const fetchMock = makeFetchMock()
+    vi.stubGlobal('fetch', fetchMock)
+
+    await generateAssistantReply({
+      message: 'What is 2+2?',
+    })
+
+    const call = fetchMock.mock.calls.find(
+      ([url]) => typeof url === 'string' && url.includes('generativelanguage.googleapis'),
+    )
+    expect(call).toBeDefined()
+    const body = JSON.parse(String(call?.[1]?.body)) as {
+      systemInstruction?: { parts?: Array<{ text?: string }> }
+    }
+    expect(body.systemInstruction?.parts?.[0]?.text).not.toContain('IMPORTANT: Respond in Hebrew.')
   })
 })
