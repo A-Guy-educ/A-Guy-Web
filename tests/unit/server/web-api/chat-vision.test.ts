@@ -45,6 +45,57 @@ describe('web chat vision attachments', () => {
     getContentDbMock.mockResolvedValue({ collection })
   })
 
+  it('prepends Hebrew locale instruction to system prompt when locale is he', async () => {
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body)) as {
+        systemInstruction?: { parts?: Array<{ text?: string }> }
+      }
+      expect(body.systemInstruction?.parts?.[0]?.text).toContain('IMPORTANT: Respond in Hebrew.')
+
+      return Response.json({
+        candidates: [{ content: { parts: [{ text: 'שלום' }] } }],
+      })
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(
+      generateAssistantReply({
+        message: 'שלום',
+        locale: 'he',
+      }),
+    ).resolves.toBe('שלום')
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not prepend locale instruction when locale is not he', async () => {
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body)) as {
+        systemInstruction?: { parts?: Array<{ text?: string }> }
+      }
+      expect(body.systemInstruction?.parts?.[0]?.text).not.toContain(
+        'IMPORTANT: Respond in Hebrew.',
+      )
+      expect(body.systemInstruction?.parts?.[0]?.text).toContain('You are A-Guy')
+
+      return Response.json({
+        candidates: [{ content: { parts: [{ text: 'Hello' }] } }],
+      })
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(
+      generateAssistantReply({
+        message: 'Hello',
+        locale: 'en',
+      }),
+    ).resolves.toBe('Hello')
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
   it('puts inline image data into the Gemini request', async () => {
     const imageBase64 =
       'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
