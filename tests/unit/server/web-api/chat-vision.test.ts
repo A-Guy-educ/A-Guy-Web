@@ -85,4 +85,79 @@ describe('web chat vision attachments', () => {
   it('keeps text-only prompts text-only', () => {
     expect(buildGeminiUserParts('hello', [])).toEqual([{ text: 'hello' }])
   })
+
+  it('prepends Hebrew instruction when locale is he', async () => {
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body)) as {
+        systemInstruction?: { parts?: Array<{ text?: string }> }
+      }
+      expect(body.systemInstruction?.parts?.[0]?.text).toMatch(/^IMPORTANT: Respond in Hebrew\. /)
+
+      return Response.json({
+        candidates: [{ content: { parts: [{ text: 'אפשר לעזור' }] } }],
+      })
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(
+      generateAssistantReply({
+        message: 'מה זה משולש?',
+        locale: 'he',
+      }),
+    ).resolves.toBe('אפשר לעזור')
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not prepend Hebrew instruction when locale is en', async () => {
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body)) as {
+        systemInstruction?: { parts?: Array<{ text?: string }> }
+      }
+      expect(body.systemInstruction?.parts?.[0]?.text).not.toMatch(
+        /^IMPORTANT: Respond in Hebrew\. /,
+      )
+
+      return Response.json({
+        candidates: [{ content: { parts: [{ text: 'I can help.' }] } }],
+      })
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(
+      generateAssistantReply({
+        message: 'What is a triangle?',
+        locale: 'en',
+      }),
+    ).resolves.toBe('I can help.')
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not prepend Hebrew instruction when locale is undefined', async () => {
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body)) as {
+        systemInstruction?: { parts?: Array<{ text?: string }> }
+      }
+      expect(body.systemInstruction?.parts?.[0]?.text).not.toMatch(
+        /^IMPORTANT: Respond in Hebrew\. /,
+      )
+
+      return Response.json({
+        candidates: [{ content: { parts: [{ text: 'I can help.' }] } }],
+      })
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(
+      generateAssistantReply({
+        message: 'What is a triangle?',
+      }),
+    ).resolves.toBe('I can help.')
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
 })
