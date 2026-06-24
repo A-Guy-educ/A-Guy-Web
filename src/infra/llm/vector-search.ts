@@ -11,6 +11,7 @@
  * @fileType service
  * @domain ai
  * @pattern vector-search, context-scoped
+ * @ai-summary Falls back to empty results on any error (system continues without memory). HARD requirement: every query must filter by userId — omitting this filter breaks tenant isolation and exposes data across users.
  */
 
 import { logger } from '@/infra/utils/logger'

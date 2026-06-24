@@ -4,6 +4,7 @@
  *
  * @fileType error-handling
  * @domain ai
+ * @ai-summary The `retryable` flag on LLMError is the single source of truth for all downstream retry logic — incorrect classification (e.g., marking a rate-limit as non-retryable) silently disables retries and causes immediate failures under load.
  */
 
 /** Error codes for LLM providers */

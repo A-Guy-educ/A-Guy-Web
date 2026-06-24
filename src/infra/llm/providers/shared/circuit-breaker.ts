@@ -8,6 +8,7 @@
  * @fileType utility
  * @domain ai
  * @pattern circuit-breaker, resilience
+ * @ai-summary Rate-limit errors are excluded from the failure counter to prevent cascading outages. One rate-limit trip should not open the circuit — the caller's backoff loop handles retries; the breaker only tracks genuine provider-down events.
  */
 
 export type CircuitState = 'closed' | 'open' | 'half-open'
