@@ -10,6 +10,26 @@ import { SYSTEM_EVENTS, systemEventBus } from '@/infra/system-events'
 import { render } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+// Mock I18n provider since AgentChatWindow (rendered by LayoutClient) uses useTranslations
+vi.mock('@/ui/web/providers/I18n', () => ({
+  useTranslations:
+    () =>
+    (key: string): string => {
+      const translations: Record<string, string> = {
+        title: 'Learning Assistant',
+        subtitle: 'Your personal AI guide',
+        welcomeMessage:
+          "Hi! I'm your personal learning assistant. I can help you with your courses, suggest what to learn next, and track your progress. How can I help you today?",
+        inputPlaceholder: 'Ask me anything...',
+        'error.authRequired': 'Please log in to use the learning assistant',
+        'error.sendFailed': 'Failed to send message. Please try again.',
+      }
+      return translations[key] ?? key
+    },
+  useLocale: () => 'en',
+  I18nProvider: ({ children }: { children: React.ReactNode }) => children,
+}))
+
 describe('LayoutClient SITE_INIT', () => {
   beforeEach(() => {
     vi.clearAllMocks()
