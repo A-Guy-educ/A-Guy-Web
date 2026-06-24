@@ -4,6 +4,7 @@
  *
  * @fileType error-handling
  * @domain ai
+ * @ai-summary Foundational error types for the LLM layer. LLMError carries a retryable flag that downstream retry logic reads directly — if classification is wrong, requests that should retry are dropped or non-retryable ones are retried forever. All provider adapters must use LLMError (not raw provider errors) so callers get consistent structure.
  */
 
 /** Error codes for LLM providers */

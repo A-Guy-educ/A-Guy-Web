@@ -5,6 +5,7 @@
  * @fileType module
  * @domain ai
  * @pattern genkit-tools, tool-calling, mcp-integration
+ * @ai-summary Adapts MCP (Model Context Protocol) tools to Genkit's tool-calling format. Genkit 1.x tool execution expects Part objects in responses — the wrapToolExecutorForGenkit fn wraps a plain executor to match. If Genkit's tool schema changes, only this adapter needs updating.
  */
 import { logger } from '@/infra/utils/logger'
 import type { Genkit } from 'genkit'

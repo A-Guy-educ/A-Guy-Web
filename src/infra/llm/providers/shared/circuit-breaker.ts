@@ -8,6 +8,7 @@
  * @fileType utility
  * @domain ai
  * @pattern circuit-breaker, resilience
+ * @ai-summary Prevents cascading failures when a provider is down. Rate-limit errors are NOT counted as failures — counting them trips the breaker on a healthy provider, causing every subsequent call to fail fast with CIRCUIT_OPEN even though the provider would accept the next request. The caller's rate-limit backoff loop handles retries; the breaker only tracks provider health.
  */
 
 export type CircuitState = 'closed' | 'open' | 'half-open'
