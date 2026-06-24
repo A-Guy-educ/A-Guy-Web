@@ -19,6 +19,7 @@ const BodySchema = z.object({
   acknowledgment: z.string().optional(),
   conversationId: z.string().optional().nullable(),
   gradeLevel: z.string().trim().min(1),
+  locale: z.string().optional(),
 })
 
 function chunkText(text: string) {
@@ -50,6 +51,7 @@ export async function POST(request: NextRequest) {
     message: parsed.data.message,
     acknowledgment: parsed.data.acknowledgment,
     history: messages,
+    locale: parsed.data.locale,
   })
 
   await appendMessage(String(conversation.id), {

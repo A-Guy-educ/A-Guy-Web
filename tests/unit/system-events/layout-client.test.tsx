@@ -10,6 +10,13 @@ import { SYSTEM_EVENTS, systemEventBus } from '@/infra/system-events'
 import { render } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+// Mock I18n provider since AgentChatWindow now uses it
+vi.mock('@/ui/web/providers/I18n', () => ({
+  useTranslations: () => (key: string) => key,
+  useLocale: () => 'en',
+  I18nProvider: ({ children }: { children: React.ReactNode }) => children,
+}))
+
 describe('LayoutClient SITE_INIT', () => {
   beforeEach(() => {
     vi.clearAllMocks()
