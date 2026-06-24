@@ -1,0 +1,83 @@
+Business Source License v1.1
+
+License: BUSL-1.1
+
+Copyright (c) 2026 A-Guy. All rights reserved.
+
+The software is provided under the terms of the Business Source License v1.1 ("License").
+A copy of the License is provided with this distribution.
+Any use of this software that is not governed by the License is subject to the
+terms and conditions of the Business Source License v1.1.
+
+================================================================================
+
+NON-COMMERCIAL USE RESTRICTION
+
+This software may be used for non-commercial purposes only. "Non-commercial use"
+means any use that is not intended to or does not result in commercial advantage,
+financial benefit, or compensation of any kind.
+
+Commercial use of this software requires a separate license from the copyright
+holder. "Commercial use" includes, but is not limited to:
+
+  (a) use of this software in the operation of a business for profit or
+      for the purpose of generating revenue, profit, or other financial benefit;
+
+  (b) use of this software by any business entity, organization, or individual
+      in connection with commercial products, services, or activities;
+
+  (c) any use of this software that involves the provision of services to others
+      for a fee or other compensation;
+
+  (d) any use of this software in a context where a commercial transaction occurs,
+      even if the software itself is provided free of charge.
+
+================================================================================
+
+FAIR USE PROVISION
+
+This license does not limit or restrict any rights under applicable fair use,
+fair dealing, or similar doctrines. Nothing in this License shall be construed
+to limit, diminish, or impair any rights under consumer protection laws,
+competition laws, or other applicable laws that cannot be waived or limited
+by contract.
+
+================================================================================
+
+CHANGE LICENSE
+
+Four (4) years from the date of initial release (June 2026), this software
+and any associated documentation shall be automatically, irrevocably, and
+without any further action by any party, available under the terms of the
+GNU General Public License v3.0 ("GPLv3") as published by the Free Software
+Foundation. This Change License provision is self-executing and does not
+require any additional action by the copyright holder or any other party.
+
+The date of the Change License transition shall be June 2030.
+
+Upon the Change License effective date, this software and associated documentation
+shall be available under GPLv3, and all rights, restrictions, and obligations
+set forth in GPLv3 shall apply.
+
+================================================================================
+
+ADDITIONAL TERMS
+
+Redistributions of any form of this software must include a copy of this
+License and the following attribution notice in all copies or substantial
+portions of this software:
+
+  This software was originally licensed under the Business Source License v1.1
+  and is now available under GPLv3 pursuant to the Change License provision.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+================================================================================
+
+For questions about the Commercial License, contact: licensing@a-guy.com
