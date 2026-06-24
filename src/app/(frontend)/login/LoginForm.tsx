@@ -19,6 +19,7 @@ import telescopeSvg from '@/brands/aguy/assets/telescope.svg'
 function LoginFormContent() {
   const { t: tBrand } = useI18n()
   const t = useTranslations('auth.login')
+  const tRoot = useI18n().t
   const tOauth = useTranslations('auth.oauth')
   const passwordEnabled = usePasswordLogin()
   const searchParams = useSearchParams()
