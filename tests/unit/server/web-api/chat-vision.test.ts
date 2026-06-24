@@ -37,6 +37,89 @@ function collection(name: string) {
   }
 }
 
+describe('generateAssistantReply locale behavior', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+    process.env.GEMINI_API_KEY = 'test-key'
+    process.env.LLM_MODEL_OVERRIDE_EXERCISE_CHAT = 'gemini-test'
+    getContentDbMock.mockResolvedValue({ collection })
+  })
+
+  it('prepends Hebrew instruction to system prompt when locale is he', async () => {
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body)) as {
+        systemInstruction?: { parts?: Array<{ text?: string }> }
+      }
+      const systemText = body.systemInstruction?.parts?.[0]?.text ?? ''
+      expect(systemText).toContain('IMPORTANT: Respond in Hebrew. ')
+
+      return Response.json({
+        candidates: [{ content: { parts: [{ text: 'תשובה בעברית' }] } }],
+      })
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(
+      generateAssistantReply({
+        message: 'שלום',
+        locale: 'he',
+      }),
+    ).resolves.toBe('תשובה בעברית')
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not prepend Hebrew instruction when locale is not he', async () => {
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body)) as {
+        systemInstruction?: { parts?: Array<{ text?: string }> }
+      }
+      const systemText = body.systemInstruction?.parts?.[0]?.text ?? ''
+      expect(systemText).not.toContain('IMPORTANT: Respond in Hebrew. ')
+
+      return Response.json({
+        candidates: [{ content: { parts: [{ text: 'Hello' }] } }],
+      })
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(
+      generateAssistantReply({
+        message: 'hello',
+        locale: 'en',
+      }),
+    ).resolves.toBe('Hello')
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not prepend Hebrew instruction when locale is undefined', async () => {
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body)) as {
+        systemInstruction?: { parts?: Array<{ text?: string }> }
+      }
+      const systemText = body.systemInstruction?.parts?.[0]?.text ?? ''
+      expect(systemText).not.toContain('IMPORTANT: Respond in Hebrew. ')
+
+      return Response.json({
+        candidates: [{ content: { parts: [{ text: 'Hello' }] } }],
+      })
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(
+      generateAssistantReply({
+        message: 'hello',
+      }),
+    ).resolves.toBe('Hello')
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+})
+
 describe('web chat vision attachments', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
