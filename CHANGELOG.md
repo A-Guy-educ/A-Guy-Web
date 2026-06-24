@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.26.1 — 2026-06-24
+
+_No notable commits since the last release._
 ## [0.26.0] - 2026-06-17
 
 ### Features
@@ -1813,6 +1816,33 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- #211: [P1] Courses page renders empty with no course cards ([#333](https://github.com/A-Guy-educ/A-Guy-Web/pull/333)) — @kodyade[bot]
+- #355: [Start Page] Hover over mood/course buttons makes text unreadable ([#418](https://github.com/A-Guy-educ/A-Guy-Web/pull/418)) — @kodyade[bot]
+- #320: [Onboarding] Persona cards shift layout when one is selected ([#337](https://github.com/A-Guy-educ/A-Guy-Web/pull/337)) — @kodyade[bot]
+- #214: [P2] Search form does not submit on Enter or button click ([#348](https://github.com/A-Guy-educ/A-Guy-Web/pull/348)) — @kodyade[bot]
+- #354: [Landing] כפתורים נעלמים ב-hover — טקסט לא קריא על primary/90 ([#411](https://github.com/A-Guy-educ/A-Guy-Web/pull/411)) — @kodyade[bot]
+- chore: release v0.26.1 ([#522](https://github.com/A-Guy-educ/A-Guy-Web/pull/522)) — @kodyade[bot]
+- fix(lesson-pager): Read current block from reordered list (regression from #475) ([#539](https://github.com/A-Guy-educ/A-Guy-Web/pull/539)) — @aguyshayb
+- feat(lesson): Show content pages as universal preamble after lobby ([#556](https://github.com/A-Guy-educ/A-Guy-Web/pull/556)) — @aguyshayb
+- #498: החלף LICENSE ל-BSL 1.1 — מנע שימוש מסחרי ([#512](https://github.com/A-Guy-educ/A-Guy-Web/pull/512)) — @kodyade[bot]
+- #460: Show content pages before exercises and drop the second Welcome i… ([#475](https://github.com/A-Guy-educ/A-Guy-Web/pull/475)) — @kodyade[bot]
+- #228: Doc coverage: src/infra/analytics/ — Analytics tracking layer ([#412](https://github.com/A-Guy-educ/A-Guy-Web/pull/412)) — @kodyade[bot]
+- #391: [Lessons] Interactive view disappears when switching from scroll … ([#407](https://github.com/A-Guy-educ/A-Guy-Web/pull/407)) — @kodyade[bot]
+- #330: Add back button to lesson intro page ([#344](https://github.com/A-Guy-educ/A-Guy-Web/pull/344)) — @kodyade[bot]
+- #323: Fix hardcoded English subtitle in study page empty state ([#339](https://github.com/A-Guy-educ/A-Guy-Web/pull/339)) — @kodyade[bot]
+- #326: Fix "Continue from last point" button showing broken link when co… ([#335](https://github.com/A-Guy-educ/A-Guy-Web/pull/335)) — @kodyade[bot]
+- #332: Disable Ask button on /study route ([#340](https://github.com/A-Guy-educ/A-Guy-Web/pull/340)) — @kodyade[bot]
+- #368: [Homepage] הסר את שורת הכתובת מהדפדפן המדומה ב-DemoLandingPage ([#370](https://github.com/A-Guy-educ/A-Guy-Web/pull/370)) — @kodyade[bot]
+- #324: [ask] Fix broken "viewStats" button ([#341](https://github.com/A-Guy-educ/A-Guy-Web/pull/341)) — @kodyade[bot]
+- #334: [Study] Lesson links 404 when chapter has no slug in DB ([#346](https://github.com/A-Guy-educ/A-Guy-Web/pull/346)) — @kodyade[bot]
+- #328: [Study Plan] Chat button opens English conversation when locale i… ([#349](https://github.com/A-Guy-educ/A-Guy-Web/pull/349)) — @kodyade[bot]
+- #321: [Study] UnifiedCard hover effects missing when cardHref is set ([#347](https://github.com/A-Guy-educ/A-Guy-Web/pull/347)) — @kodyade[bot]
+- #331: [LessonIntroPage] Add back button to lesson lobby screen ([#336](https://github.com/A-Guy-educ/A-Guy-Web/pull/336)) — @kodyade[bot]
+- #356: [Login] מפתח תרגום brand.heroSubtitle מוצג כמו שהוא בדף ההתחברות ([#358](https://github.com/A-Guy-educ/A-Guy-Web/pull/358)) — @kodyade[bot]
+- #372: [Login] מפתח תרגום brand.heroSubtitle מוצג כמו שהוא בדף ההתחברות ([#375](https://github.com/A-Guy-educ/A-Guy-Web/pull/375)) — @kodyade[bot]
+- fix(lesson): Widen content page container and wrap long-NBSP text ([#357](https://github.com/A-Guy-educ/A-Guy-Web/pull/357)) — @aguyshayb
+- fix(lesson): Render content page body via dedicated blockType-based renderer ([#352](https://github.com/A-Guy-educ/A-Guy-Web/pull/352)) — @aguyshayb
+- fix(lesson): Pre-render content page bodies and pass to lesson pager ([#351](https://github.com/A-Guy-educ/A-Guy-Web/pull/351)) — @aguyshayb
 - feat(lesson): render contentPageRef blocks in lesson pager ([#315](https://github.com/A-Guy-educ/A-Guy-Web/pull/315)) — @kodyade[bot]
 - #309: Add prerequisite-lessons list to the lesson start page ([#313](https://github.com/A-Guy-educ/A-Guy-Web/pull/313)) — @kodyade[bot]
 - #310: Add jump-to-exercise number input between prev/next arrows ([#314](https://github.com/A-Guy-educ/A-Guy-Web/pull/314)) — @kodyade[bot]
