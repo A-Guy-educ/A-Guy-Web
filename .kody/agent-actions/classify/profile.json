@@ -1,7 +1,7 @@
 {
-  "name": "sync",
+  "name": "classify",
   "role": "primitive",
-  "describe": "Merge the default (base) branch into a PR branch and push. No agent.",
+  "describe": "Classifies issues and dispatches to the right agentAction",
   "inputs": [
     {
       "name": "issue",
