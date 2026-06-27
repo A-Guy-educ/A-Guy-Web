@@ -145,8 +145,11 @@ function verifyAndGetSession(ticket: string, key: Buffer): boolean {
   }
 }
 
-function sessionCookieHeader(): string {
-  return `${COOKIE_NAME}=1; HttpOnly; SameSite=None; Secure; Partitioned; Max-Age=${COOKIE_MAX_AGE}`
+function setSessionCookie(res: http.ServerResponse): void {
+  res.setHeader(
+    'Set-Cookie',
+    `${COOKIE_NAME}=1; HttpOnly; SameSite=None; Secure; Max-Age=${COOKIE_MAX_AGE}`,
+  )
 }
 
 function send401(res: http.ServerResponse, body = '401 Unauthorized'): void {
@@ -161,7 +164,6 @@ function proxyRequest(
   req: http.IncomingMessage,
   res: http.ServerResponse,
   targetPort: number,
-  responseHeaders: http.OutgoingHttpHeaders = {},
 ): void {
   const options = {
     hostname: 'localhost',
@@ -193,29 +195,11 @@ function proxyRequest(
   }
 
   const proxyReq = http.request(options, (proxyRes) => {
-    const headers: http.OutgoingHttpHeaders = {
-      ...proxyRes.headers,
-      ...responseHeaders,
-    }
-    const proxySetCookie = proxyRes.headers['set-cookie']
-    const addedSetCookie = responseHeaders['set-cookie'] ?? responseHeaders['Set-Cookie']
-    if (addedSetCookie) {
-      const proxyCookieValues = Array.isArray(proxySetCookie)
-        ? proxySetCookie
-        : proxySetCookie
-          ? [proxySetCookie]
-          : []
-      const addedCookieValues = Array.isArray(addedSetCookie)
-        ? addedSetCookie.map(String)
-        : [String(addedSetCookie)]
-      headers['set-cookie'] = [...proxyCookieValues, ...addedCookieValues]
-      delete headers['Set-Cookie']
-    }
-
+    // Strip hop-by-hop from response
     for (const h of hopByHop) {
-      delete headers[h]
+      res.removeHeader(h)
     }
-    res.writeHead(proxyRes.statusCode ?? 200, headers)
+    res.writeHead(proxyRes.statusCode ?? 200, proxyRes.headers)
     proxyRes.pipe(res, { end: true })
   })
 
@@ -260,14 +244,14 @@ const server = http.createServer((req, res) => {
       return
     }
 
-    // Valid — strip kp before proxying so the token does not reach Next.js.
+    // Valid — set session cookie and strip the kp param
+    setSessionCookie(res)
+
+    // Redirect to clean URL (no kp in history)
     url.searchParams.delete('kp')
-    req.url = `${url.pathname}${url.search}${url.hash}` || '/'
-    proxyRequest(req, res, NEXT_PORT, {
-      'Cache-Control': 'no-store',
-      'Referrer-Policy': 'no-referrer',
-      'Set-Cookie': sessionCookieHeader(),
-    })
+    const cleanUrl = `${url.pathname}${url.search}${url.hash}` || '/'
+    res.writeHead(302, { Location: cleanUrl || '/' })
+    res.end()
     return
   }
 
