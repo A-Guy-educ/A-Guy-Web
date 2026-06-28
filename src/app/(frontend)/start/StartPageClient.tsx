@@ -1,6 +1,6 @@
 'use client'
 
-import { Bot, Play } from 'lucide-react'
+import { Bot } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { setUserProfile } from '@/client/state/localStorage/userProfile'
@@ -102,7 +102,7 @@ const moodOrder: Mood[] = ['excellent', 'good', 'tired']
 export function StartPageClient({ courses, direction }: StartPageClientProps) {
   const locale = useLocale()
   const copy = locale === 'he' ? START_COPY.he : START_COPY.en
-  const [pane, setPane] = useState<Pane>('welcome')
+  const [pane, setPane] = useState<Pane>('conversation')
   const [interaction, setInteraction] = useState<Interaction>('none')
   const [displayedText, setDisplayedText] = useState('')
   const [audioEnabled] = useState(true)
@@ -180,6 +180,12 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
     setInteraction('mood')
   }, [copy.intro, copy.moodQuestion, sleep, typeText])
 
+  useEffect(() => {
+    if (pane === 'conversation') {
+      startConversation()
+    }
+  }, [pane, startConversation])
+
   const selectMood = useCallback(
     async (mood: Mood) => {
       setSelectedMood(mood)
@@ -229,9 +235,6 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
         </div>
 
         <section className="flex flex-1 items-center justify-center px-4 py-section-xs">
-          {pane === 'welcome' && (
-            <WelcomePane copy={copy} direction={direction} onStart={startConversation} />
-          )}
           {pane === 'conversation' && (
             <ConversationPane
               copy={copy}
@@ -252,42 +255,6 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
         <StartFooter activeIndex={paneToIndex(pane)} copy={copy} />
       </div>
     </main>
-  )
-}
-
-function WelcomePane({
-  copy,
-  direction,
-  onStart,
-}: {
-  copy: (typeof START_COPY)['he'] | (typeof START_COPY)['en']
-  direction: Direction
-  onStart: () => void
-}) {
-  return (
-    <div className="mx-auto max-w-4xl text-center">
-      <div className="mb-8 inline-flex items-center gap-content-gap-xs rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-body-sm font-extrabold text-primary">
-        <span className="h-2 w-2 rounded-full bg-primary" />
-        {copy.badge}
-      </div>
-      <h1 className="mb-6 text-display-lg font-extrabold leading-tight text-foreground md:text-display-xl">
-        {copy.headline}
-      </h1>
-      <p className="mx-auto mb-10 max-w-2xl text-body-lg font-medium leading-relaxed text-muted-foreground md:text-heading-xl">
-        {copy.subtitle}
-      </p>
-      <button
-        type="button"
-        onClick={onStart}
-        className={cn(
-          'inline-flex h-14 items-center gap-3 rounded-xl bg-primary px-9 text-body-lg font-extrabold text-primary-foreground shadow-elevation-3 transition-all duration-normal hover:bg-primary/90 active:scale-[0.98]',
-          direction === 'rtl' ? 'flex-row-reverse' : '',
-        )}
-      >
-        <Play className="h-5 w-5 fill-current" aria-hidden />
-        {copy.start}
-      </button>
-    </div>
   )
 }
 
