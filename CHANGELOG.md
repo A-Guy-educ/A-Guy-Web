@@ -1819,6 +1819,15 @@ _No notable commits since the last release._
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- #280: dev CI is red - Kody auto-fix ([#625](https://github.com/A-Guy-educ/A-Guy-Web/pull/625)) — @kodyade[bot]
+- #213: [P2] Posts pagination page crashes with 500 error ([#622](https://github.com/A-Guy-educ/A-Guy-Web/pull/622)) — @kodyade[bot]
+- #611: הצגת "בחירת מורה" רק למשתמשים חדשים ב-/start ([#620](https://github.com/A-Guy-educ/A-Guy-Web/pull/620)) — @kodyade[bot]
+- #609: [UI] כפתור "בדוק תשובה" - טקסט שחור על רקע כהה ([#618](https://github.com/A-Guy-educ/A-Guy-Web/pull/618)) — @kodyade[bot]
+- #606: [Bug] OAuth users can't log in after admin password reset ([#623](https://github.com/A-Guy-educ/A-Guy-Web/pull/623)) — @kodyade[bot]
+- #608: [/start] Skip welcome pane — open directly on wizard ([#619](https://github.com/A-Guy-educ/A-Guy-Web/pull/619)) — @kodyade[bot]
+- #603: [AI Command] Fix create-lesson schema to prevent page crashes ([#615](https://github.com/A-Guy-educ/A-Guy-Web/pull/615)) — @kodyade[bot]
+- #610: [Start] Add "בחר מורה" step to wizard — select teacher profile be… ([#617](https://github.com/A-Guy-educ/A-Guy-Web/pull/617)) — @kodyade[bot]
+- #174: docs-drift: AI Services README — comprehensive update + duplicate footer removal ([#177](https://github.com/A-Guy-educ/A-Guy-Web/pull/177)) — @kodyade[bot]
 - #613: [Docs] Update exercises/README.md after PRs #34, #68, #163 ([#616](https://github.com/A-Guy-educ/A-Guy-Web/pull/616)) — @kodyade[bot]
 - #317: [Exercises] כפתור "שאלה מנחה" צמוד מדי לכפתור "רמז" ([#614](https://github.com/A-Guy-educ/A-Guy-Web/pull/614)) — @kodyade[bot]
 - #604: [Client Robustness] Prevent LessonPage crashes from malformed or … ([#612](https://github.com/A-Guy-educ/A-Guy-Web/pull/612)) — @kodyade[bot]
