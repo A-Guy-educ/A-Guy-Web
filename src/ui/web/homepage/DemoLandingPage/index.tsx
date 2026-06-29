@@ -238,7 +238,7 @@ function KnowledgeAndFeatures({ t }: { t: (key: string) => string }) {
                   <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-background/10 text-success">
                     <Icon className="h-7 w-7" aria-hidden />
                   </div>
-                  <h4 className="mb-2 text-heading-xl font-bold">
+                  <h4 className="mb-2 text-heading-xl font-bold text-foreground dark:text-foreground">
                     {t(`features.items.${key}.title`)}
                   </h4>
                   <p className="text-background/70 dark:text-muted-foreground">
