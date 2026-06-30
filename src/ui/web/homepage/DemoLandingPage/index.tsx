@@ -103,7 +103,7 @@ function Hero({ t }: { t: (key: string) => string }) {
         <div className="flex w-full max-w-xl flex-col justify-center gap-content-gap sm:flex-row">
           <Link
             href="/products"
-            className="flex flex-1 items-center justify-center gap-content-gap-xs rounded-xl bg-primary px-8 py-section-xs text-body-lg font-bold text-primary-foreground shadow-elevation-3 transition-all duration-normal hover:-translate-y-1 hover:bg-primary/90"
+            className="flex flex-1 items-center justify-center gap-content-gap-xs rounded-xl bg-primary px-8 py-section-xs text-body-lg font-bold text-primary-foreground shadow-elevation-3 transition-all duration-normal hover:-translate-y-1 hover:bg-primary"
           >
             {t('hero.plansCta')}
           </Link>
@@ -192,10 +192,10 @@ function KnowledgeAndFeatures({ t }: { t: (key: string) => string }) {
             <p className="mb-3 text-body-sm font-bold uppercase text-success">
               {t('hero.previewBadge')}
             </p>
-            <h2 className="mb-6 text-display-sm font-extrabold md:text-display-md">
+            <h2 className="mb-6 text-display-sm font-extrabold md:text-display-md text-foreground dark:text-foreground">
               {t('story.title')}
             </h2>
-            <p className="text-heading-lg leading-relaxed text-background/75 dark:text-muted-foreground">
+            <p className="text-heading-lg leading-relaxed text-foreground/75 dark:text-foreground">
               {t('story.description')}
             </p>
           </div>
@@ -206,12 +206,14 @@ function KnowledgeAndFeatures({ t }: { t: (key: string) => string }) {
                 key={key}
                 className={
                   index === 0
-                    ? 'rounded-2xl border border-background/10 bg-background/10 p-card-padding-sm backdrop-blur sm:col-span-2'
-                    : 'rounded-2xl border border-background/10 bg-background/10 p-card-padding-sm backdrop-blur'
+                    ? 'rounded-2xl border border-foreground/10 bg-foreground/10 p-card-padding-sm backdrop-blur sm:col-span-2 dark:border-background/10 dark:bg-background/10'
+                    : 'rounded-2xl border border-foreground/10 bg-foreground/10 p-card-padding-sm backdrop-blur dark:border-background/10 dark:bg-background/10'
                 }
               >
-                <p className="text-display-sm font-black">{t(`story.stats.${key}.value`)}</p>
-                <p className="text-body-sm font-semibold text-background/70 dark:text-muted-foreground">
+                <p className="text-display-sm font-black text-foreground dark:text-foreground">
+                  {t(`story.stats.${key}.value`)}
+                </p>
+                <p className="text-body-sm font-semibold text-foreground/70 dark:text-foreground">
                   {t(`story.stats.${key}.label`)}
                 </p>
               </div>
@@ -233,15 +235,15 @@ function KnowledgeAndFeatures({ t }: { t: (key: string) => string }) {
               return (
                 <div
                   key={key}
-                  className="rounded-3xl border border-background/10 bg-background/10 p-card-padding-lg transition-colors duration-normal hover:border-background/30"
+                  className="rounded-3xl border border-foreground/10 bg-foreground/10 p-card-padding-lg transition-colors duration-normal hover:border-foreground/30 dark:border-background/10 dark:bg-background/10"
                 >
-                  <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-background/10 text-success">
+                  <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-foreground/10 text-success dark:bg-background/10">
                     <Icon className="h-7 w-7" aria-hidden />
                   </div>
-                  <h4 className="mb-2 text-heading-xl font-bold">
+                  <h4 className="mb-2 text-heading-xl font-bold text-foreground dark:text-foreground">
                     {t(`features.items.${key}.title`)}
                   </h4>
-                  <p className="text-background/70 dark:text-muted-foreground">
+                  <p className="text-foreground/70 dark:text-foreground">
                     {t(`features.items.${key}.description`)}
                   </p>
                 </div>
@@ -277,15 +279,10 @@ function Simulation({
         </div>
 
         <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-elevation-2">
-          <div className="flex items-center justify-between border-b border-border bg-muted/40 px-5 py-section-xs">
-            <div className="flex gap-content-gap-xs">
-              <span className="h-3 w-3 rounded-full bg-destructive/70" />
-              <span className="h-3 w-3 rounded-full bg-warning/70" />
-              <span className="h-3 w-3 rounded-full bg-success/70" />
-            </div>
-            <div className="rounded-full bg-background px-3 py-1 font-mono text-[11px] text-muted-foreground shadow-elevation-1">
-              {t('simulation.dashboard.url')}
-            </div>
+          <div className="flex items-center border-b border-border bg-muted/40 px-5 py-section-xs">
+            <span className="h-3 w-3 rounded-full bg-destructive/70" />
+            <span className="h-3 w-3 rounded-full bg-warning/70" />
+            <span className="h-3 w-3 rounded-full bg-success/70" />
           </div>
 
           {activeTab === 'dashboard' && <DashboardPreview t={t} />}
@@ -344,7 +341,9 @@ function SectionHeader({
       <h2 className="mb-4 text-display-sm font-extrabold md:text-display-md">{title}</h2>
       <p
         className={
-          inverted ? 'text-heading-lg text-background/75' : 'text-heading-lg text-muted-foreground'
+          inverted
+            ? 'text-heading-lg text-background/75 dark:text-foreground'
+            : 'text-heading-lg text-muted-foreground'
         }
       >
         {description}
@@ -481,7 +480,7 @@ function DashboardPreview({ t }: { t: (key: string) => string }) {
         </div>
         <Link
           href="/start"
-          className="self-stretch rounded-2xl bg-primary px-8 py-3 text-center font-bold text-primary-foreground shadow-elevation-3 transition-all duration-normal hover:bg-primary/90 md:self-auto"
+          className="self-stretch rounded-2xl bg-primary px-8 py-3 text-center font-bold text-primary-foreground shadow-elevation-3 transition-all duration-normal hover:bg-primary md:self-auto"
         >
           {t('hero.trialCta')}
         </Link>
