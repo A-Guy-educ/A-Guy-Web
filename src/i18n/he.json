@@ -224,7 +224,8 @@
     "languageSwitcher": {
       "label": "שפה",
       "english": "אנגלית",
-      "hebrew": "עברית"
+      "hebrew": "עברית",
+      "fallbackNotice": "תוכן זה אינו זמין באנגלית עדיין."
     },
     "notFound": {
       "title": "404",
@@ -366,7 +367,7 @@
         "description": "טרם ביצעת רכישות. עיין במוצרים שלנו כדי להתחיל.",
         "cta": "עיין במוצרים"
       },
-      "backToPurchases": "חזרה לרכישות",
+      "backToPurchases": "חזור לרכישות",
       "purchasedOn": "נרכש ב",
       "amount": "סכום",
       "provider": "ספק",
@@ -400,8 +401,9 @@
     "liveContent": "תוכן חדש מתווסף באופן קבוע",
     "featuredTitle": "קורסים מומלצים",
     "featuredDescription": "קורסים שנבחרו בקפידה כדי לעזור לך במסע הלמידה שלך.",
-    "backToCourses": "חזרה לקורסים",
-    "backToChapter": "חזרה לפרק",
+    "backToCourses": "חזור לקורסים",
+    "backToChapter": "חזור לפרק",
+    "back": "חזור",
     "openCourse": "פתח קורס",
     "viewChapter": "צפה בפרק",
     "viewLesson": "צפה בשיעור",
@@ -433,7 +435,7 @@
     "trueFalseBadge": "נכון/לא נכון",
     "freeResponseBadge": "תשובה חופשית",
     "notFound": "לא נמצא",
-    "backToLesson": "חזרה לשיעור",
+    "backToLesson": "חזור לשיעור",
     "exerciseTitle": "תרגיל",
     "submitAnswer": "שלח תשובה",
     "checkAnswer": "בדוק תשובה",
@@ -529,6 +531,7 @@
     "of": "מתוך",
     "pages": "עמודים",
     "contentPageLabel": "דף הסבר",
+    "contentPageNoBody": "תוכן הדף עדיין לא הוזן.",
     "exercisesPagerIntroDescriptionPart1": "השיעור מכיל",
     "exercisesPagerIntroDescriptionPart2": "תרגילים. בואו נתחיל!",
     "exercisesPagerWelcome": "ברוכים הבאים לשיעור",
@@ -546,7 +549,7 @@
     "lessonSummaryCorrectAnswers": "תשובות נכונות",
     "lessonSummaryScore": "ציון",
     "lessonSummaryNextLesson": "המשך לשיעור הבא",
-    "lessonSummaryBackToCourse": "חזרה לקורס",
+    "lessonSummaryBackToCourse": "חזור לקורס",
     "lessonSummaryRetry": "נסה שוב",
     "pdfLessonPagerIntroDescriptionPart1": "השיעור מכיל",
     "pdfLessonPagerIntroDescriptionPart2": "מסמכים. בואו נתחיל!",
@@ -625,7 +628,7 @@
       "generationFailedFallback": "אפשר עדיין לשאול על התמונה הזו בצ׳אט — המורה רואה את אותה תמונה.",
       "tryAgain": "נסה שוב",
       "askInChatHint": "או פשוט שאל בצ׳אט",
-      "backToUpload": "חזרה לתרגיל",
+      "backToUpload": "חזור לתרגיל",
       "resumeLesson": "המשך סרטון",
       "startOver": "התחל מחדש",
       "player": {
@@ -818,7 +821,7 @@
     }
   },
   "shop": {
-    "backToLearning": "חזרה ללמידה",
+    "backToLearning": "חזור ללמידה",
     "title": "חנות הקורסים",
     "subtitle": "בחרו את המסלול שמתאים לכם והתקדמו להצלחה במתמטיקה.",
     "membershipPlans": "מסלולי הצטרפות",
@@ -958,7 +961,19 @@
     "perYear": "לשנה",
     "includedItems": "מה כלול במוצר?",
     "items": {
-      "unnamed": "פריט ללא שם"
+      "unnamed": "פריט ללא שם",
+      "periods": {
+        "day": "ליום",
+        "lifetime": "לכל החיים"
+      },
+      "featureKeys": {
+        "live-sessions": "שיעורים פרטיים",
+        "download-resources": "משאבים להורדה",
+        "certificate": "תעודת סיום",
+        "priority-support": "תמיכה בעדיפות גבוהה",
+        "analytics": "לוח ניתוח נתונים",
+        "group-access": "גישה קבוצתית"
+      }
     },
     "buyButton": "רכוש עכשיו",
     "loginToBuy": "התחבר כדי לרכוש",
@@ -1002,6 +1017,84 @@
       "productLabel": "המוצר שניסית לרכוש: {product}",
       "backToProduct": "נסה שוב",
       "browseProducts": "עיין בכל המוצרים"
+    }
+  },
+  "legal": {
+    "termsOfService": "תנאי שימוש",
+    "privacyPolicy": "מדיניות פרטיות",
+    "cancellationRefund": "ביטולים והחזרים",
+    "aiUsageStatement": "שימוש בבינה מלאכותית"
+  },
+  "prep7": {
+    "hero": {
+      "title": "הפעם! להגיע מוכן",
+      "subtitle": "הכנה מלאה לכיתה ז' במתמטיקה עם למידה מותאמת אישית, תרגול ותמיכה מלאה.",
+      "registerCta": "להרשמה לקורס",
+      "trialCta": "לניסיון ורכישה"
+    },
+    "whoIsAguy": {
+      "title": "מי זה Aguy?",
+      "description": "Aguy הוא המורה הדיגיטלי האישי שלך למתמטיקה, בנוי על 20+ שנות ניסיון הוראה. הפלטפורמה מספקת למידה מותאמת אישית שמתאימה לקצב שלך, מidentifies gaps, ומבטיחה שתגיע לכיתה ז' מוכן לחלוטין.",
+      "stats": {
+        "experience": {
+          "value": "20+",
+          "label": "שנות ניסיון"
+        },
+        "students": {
+          "value": "10K+",
+          "label": "תלמידים שלימדנו"
+        }
+      }
+    },
+    "courseFeatures": {
+      "title": "מה כולל הקורס?",
+      "description": "כל מה שאתה צריך כדי להצליח במתמטיקה לכיתה ז'.",
+      "items": {
+        "lessons": {
+          "title": "50 מערכי שיעור",
+          "description": "מערכי שיעור מדויקים המכסים את כל נושאי כיתה ז'."
+        },
+        "practice": {
+          "title": "30 שיעורי תרגול",
+          "description": "תרגול נרחב לחידוד הכישורים."
+        },
+        "exams": {
+          "title": "10 בחינות סימולציה",
+          "description": "תנאים אמיתיים של בחינות לבדיקת הידע."
+        },
+        "support": {
+          "title": "תמיכה מלאה",
+          "description": "מדריך AI זמין בכל שיעור."
+        }
+      }
+    },
+    "benefits": {
+      "title": "הטבה להרשמה מוקדמת!",
+      "description": "הירשמו עכשיו וקבלו הנחה של 100₪ ממחיר הקורס.",
+      "discount": "100₪ הנחה",
+      "deadline": "עד ה-20 ביולי",
+      "cta": "להרשמה לקורס"
+    },
+    "bonuses": {
+      "title": "בונוסים חינם",
+      "description": "עוד סיבות להצטרף לקהילה שלנו.",
+      "items": {
+        "whatsapp": {
+          "title": "קבוצת וואטסאפ",
+          "description": "קשר ישיר לשאלות ועדכונים."
+        },
+        "sessions": {
+          "title": "שיעורים פתוחים",
+          "description": "שיעורים בשידור חי עם המורה."
+        },
+        "boost": {
+          "title": "שיעורי חיזוק בשידור חי",
+          "description": "שיעורים אינטנסיביים לפני בחינות."
+        }
+      }
+    },
+    "footer": {
+      "copyright": "© 2024 Aguy. כל הזכויות שמורות."
     }
   }
 }
