@@ -1,6 +1,7 @@
 /**
- * Error Adapter
- * Maps Genkit errors to LLMError for consistent error handling
+ * Genkit error → LLMError mapper
+ *
+ * @ai-summary Preserves the raw Gemini rate-limit detail in the error message — the underlying quota signal (per-minute RPM, per-day quota, concurrent limit) is dropped if the message is genericized. Keep the raw detail for actionable retry logic.
  *
  * @fileType adapter
  * @domain ai
