@@ -159,7 +159,7 @@ function isSkippingText(stack: StackEntry[]): boolean {
  * Renders admin-authored HTML with KaTeX math.
  *
  * This intentionally does not sanitize: HtmlBlock content is restricted to
- * trusted admins at authoring time. See `.kody/context/admin-html-content.md`.
+ * trusted admins at authoring time. See `.ai-docs/knowledge/admin-html-content.md`.
  */
 export function renderAdminHtmlWithMath(html: string): string {
   if (!html?.trim()) return ''
