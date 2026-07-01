@@ -6,7 +6,7 @@ import { middleware } from '../../src/middleware'
  * Auth Middleware Integration Tests
  *
  * Tests that the middleware correctly restricts learning features to authenticated users
- * while allowing public access to landing page and course catalog.
+ * while allowing public access to landing pages.
  */
 
 const createRequest = (path: string, host = 'example.com', cookies?: string) => {
@@ -21,14 +21,7 @@ const createRequest = (path: string, host = 'example.com', cookies?: string) => 
 
 describe('Auth Middleware - Learning Feature Protection', () => {
   describe('Protected routes - should redirect to /login when not authenticated', () => {
-    const protectedRoutes = [
-      '/study',
-      '/practice',
-      '/test',
-      '/ask',
-      '/courses/math/chapters/intro/lessons/first-lesson',
-      '/courses/science/chapters/chapter-1/lessons/lesson-1/exercises/exercise-1',
-    ]
+    const protectedRoutes = ['/study', '/practice', '/test', '/ask']
 
     it.each(protectedRoutes)('should redirect unauthenticated request to %s to /login', (route) => {
       const request = createRequest(route)
@@ -51,7 +44,7 @@ describe('Auth Middleware - Learning Feature Protection', () => {
   })
 
   describe('Public routes - should pass through without redirect', () => {
-    const publicRoutes = ['/', '/courses']
+    const publicRoutes = ['/']
 
     it.each(publicRoutes)('should allow unauthenticated request to %s', (route) => {
       const request = createRequest(route)
@@ -92,32 +85,30 @@ describe('Auth Middleware - Learning Feature Protection', () => {
   })
 
   describe('Edge cases', () => {
-    it('should not redirect /courses with query params', () => {
+    it('should redirect anonymous /courses with query params to /start', () => {
       const request = createRequest('/courses?sort=popular')
+      const response = middleware(request)
+
+      expect(response.status).toBe(307)
+      expect(response.headers.get('location')).toBe('http://example.com/start')
+    })
+
+    it('should handle course slug routes correctly', () => {
+      const courseRoute = '/courses/advanced-math'
+      const request = createRequest(courseRoute)
       const response = middleware(request)
 
       expect(response.status).toBe(200)
       expect(response.headers.get('location')).toBeNull()
     })
 
-    it('should handle course slug routes correctly', () => {
-      // /courses/[slug] should be protected (not just /courses)
-      const courseRoute = '/courses/advanced-math'
-      const request = createRequest(courseRoute)
-      const response = middleware(request)
-
-      // This should redirect because it's a specific course page, not the catalog
-      expect(response.status).toBe(307)
-      expect(response.headers.get('location')).toContain('/login')
-    })
-
-    it('should preserve original path in returnTo for nested routes', () => {
+    it('should leave nested course routes to the page-level access gates', () => {
       const route = '/courses/math/chapters/intro/lessons/first-lesson/content/page-1'
       const request = createRequest(route)
       const response = middleware(request)
 
-      const location = response.headers.get('location')
-      expect(location).toContain(`/login?returnTo=${encodeURIComponent(route)}`)
+      expect(response.status).toBe(200)
+      expect(response.headers.get('location')).toBeNull()
     })
   })
 })

@@ -125,6 +125,49 @@ describe('Middleware - Locale Routing', () => {
         `/login?returnTo=${encodeURIComponent(path)}`,
       )
     })
+
+    it('should redirect anonymous course catalog visitors to /start', () => {
+      const request = createRequest('example.com', '/courses?sort=popular')
+      const response = middleware(request)
+
+      expect(response.status).toBe(307)
+      expect(response.headers.get('location')).toBe('http://example.com/start')
+    })
+
+    it('should allow authenticated course catalog visitors through', () => {
+      const url = new URL('/courses', 'http://example.com')
+      const headers = new Headers()
+      headers.set('host', 'example.com')
+      headers.set('cookie', 'payload-token=test-token')
+
+      const request = new NextRequest(url, { headers })
+      const response = middleware(request)
+
+      expect(response.status).toBe(200)
+      expect(response.headers.get('location')).toBeNull()
+    })
+
+    it('should not apply the course catalog redirect to course detail pages', () => {
+      const request = createRequest('example.com', '/courses/advanced-math')
+      const response = middleware(request)
+
+      expect(response.status).toBe(200)
+      expect(response.headers.get('location')).toBeNull()
+    })
+
+    it('should not let the preview auth bypass expose the anonymous course catalog', () => {
+      const previous = process.env.KODY_PREVIEW_AUTH_BYPASS
+      process.env.KODY_PREVIEW_AUTH_BYPASS = 'true'
+      try {
+        const request = createRequest('kp-issue-673.fly.dev', '/courses')
+        const response = middleware(request)
+
+        expect(response.status).toBe(307)
+        expect(response.headers.get('location')).toBe('http://kp-issue-673.fly.dev/start')
+      } finally {
+        process.env.KODY_PREVIEW_AUTH_BYPASS = previous
+      }
+    })
   })
 
   describe('Cookie configuration', () => {

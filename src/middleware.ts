@@ -22,6 +22,10 @@ function isProtectedLearningPath(pathname: string): boolean {
   return false
 }
 
+function isCourseCatalogPath(pathname: string): boolean {
+  return pathname === '/courses'
+}
+
 /**
  * Check if the request has a valid Payload auth token.
  * Checks for the payload-token cookie.
@@ -98,6 +102,11 @@ export function middleware(request: NextRequest) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('returnTo', `${pathname}${request.nextUrl.search}`)
     return NextResponse.redirect(loginUrl)
+  }
+
+  if (isCourseCatalogPath(pathname) && !hasAuthToken(request)) {
+    const startUrl = new URL('/start', request.url)
+    return NextResponse.redirect(startUrl)
   }
 
   let locale: Locale = defaultLocale

@@ -40,7 +40,7 @@ vi.mock('@/server/repos/queries/courses', () => ({
   queryPublishedCourses: mockQueryPublishedCourses,
 }))
 
-import CoursesPage from '@/app/(frontend)/courses/page'
+import CoursesPage, { dynamic } from '@/app/(frontend)/courses/page'
 
 const AUTH_COOKIE = 'payload-token'
 
@@ -59,6 +59,10 @@ describe('/courses page — auth gate (issue #673)', () => {
     mockQueryPublishedCourses.mockReset()
     mockHeadersList.get.mockReturnValue(null)
     mockQueryPublishedCourses.mockResolvedValue([])
+  })
+
+  it('renders per request so authenticated catalog output is never shared with anonymous visitors', () => {
+    expect(dynamic).toBe('force-dynamic')
   })
 
   it('redirects anonymous visitors to /start', async () => {

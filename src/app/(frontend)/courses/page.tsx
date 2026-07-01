@@ -4,18 +4,17 @@ import { getDirection } from '@/i18n/config'
 import { getSystemLocale } from '@/i18n/server-locale'
 import { isValidContentLocale } from '@/infra/types/content'
 import { pageMetadata } from '@/infra/seo/pageMetadata'
-import { getMeUser } from '@/infra/utils/getMeUser'
 import { queryPublishedCourses } from '@/server/repos/queries/courses'
+import { isAuthenticatedServer } from '@/server/utils/access-gate-server'
 import { CourseCardGrid } from './_components/CourseCardGrid'
 import { EmptyState } from './_components/EmptyState'
 import { CourseShopHeader } from './_components/CourseShopHeader'
 
 // Revalidate every 60 seconds — courses rarely change
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export default async function CoursesPage() {
-  const { user } = await getMeUser()
-  if (!user) {
+  if (!(await isAuthenticatedServer())) {
     redirect('/start')
   }
 
