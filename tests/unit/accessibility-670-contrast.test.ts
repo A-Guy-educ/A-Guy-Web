@@ -32,10 +32,7 @@ const here = path.dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(here, '../..')
 
 const PREP7_PAGE = path.join(projectRoot, 'src/app/(frontend)/prep7/page.tsx')
-const DEMO_LANDING_PAGE = path.join(
-  projectRoot,
-  'src/ui/web/homepage/DemoLandingPage/index.tsx',
-)
+const DEMO_LANDING_PAGE = path.join(projectRoot, 'src/ui/web/homepage/DemoLandingPage/index.tsx')
 
 function read(p: string): string {
   return fs.readFileSync(p, 'utf8')
@@ -208,7 +205,10 @@ function describeSectionAssertion(label: string, body: string): void {
 
     if (violators.length > 0) {
       const detail = violators
-        .map((v) => `  - ${v.raw.trim()}\n      classes: ${v.cls}\n      offending tokens: ${darkTextClassTokens(v.cls).join(', ')}`)
+        .map(
+          (v) =>
+            `  - ${v.raw.trim()}\n      classes: ${v.cls}\n      offending tokens: ${darkTextClassTokens(v.cls).join(', ')}`,
+        )
         .join('\n')
       throw new Error(
         `[${label}] ${tag.toUpperCase()} elements inside a ` +
