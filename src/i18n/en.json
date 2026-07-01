@@ -960,6 +960,7 @@
     "perMonth": "per month",
     "perYear": "per year",
     "includedItems": "What&apos;s Included",
+    "includesCourse": "Includes access to: {courseTitle}",
     "items": {
       "unnamed": "Unnamed item",
       "periods": {

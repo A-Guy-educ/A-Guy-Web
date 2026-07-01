@@ -264,6 +264,14 @@ export interface Product {
   billingType?: string | null
   interval?: string | null
   /**
+   * Canonical course this product unlocks (issue #638). May be a bare id
+   * string or a populated ref `{ id, title, slug }` after the query layer
+   * runs `populateCourseField`. Optional because legacy products that grant
+   * access via `items[]` only don't have a top-level course; new products
+   * should always set this.
+   */
+  course?: string | ProductCourseRef | null
+  /**
    * Legacy field — pre-Task-A schema used a flat ProductItems[] join. Newer
    * products use `contents` instead, and the storefront no longer RENDERS
    * `items` anywhere.

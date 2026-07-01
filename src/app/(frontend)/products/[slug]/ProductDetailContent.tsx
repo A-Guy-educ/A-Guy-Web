@@ -162,6 +162,11 @@ export function ProductDetailContent({ product }: ProductDetailContentProps) {
             <div className="flex-1">
               <h1 className="text-heading-xl font-black text-card-foreground">{product.name}</h1>
               <p className="text-body-lg text-muted-foreground mt-2">{billingLabel}</p>
+              {isPopulatedCourseRef(product.course) && product.course.title ? (
+                <p className="text-body-sm text-muted-foreground mt-1">
+                  {t('includesCourse').replace('{courseTitle}', product.course.title)}
+                </p>
+              ) : null}
             </div>
             <div className="text-end">
               {discountedAmount !== null && discountedAmount < price * 100 ? (
