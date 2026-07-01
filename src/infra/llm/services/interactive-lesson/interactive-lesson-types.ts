@@ -1,17 +1,7 @@
 /**
- * Types for the interactive lesson visualization feature.
+ * Interactive lesson visualization types (geometry, graph, number-line scenes)
  *
- * @ai-summary Pure TypeScript interfaces consumed by both the LLM generation
- * pipeline and the player component. **The player relies on `highlight*` arrays
- * being optional — if the LLM returns a step with no highlights, the player
- * renders the geometry/graph unchanged**, which is the intended progressive reveal
- * behavior. If a future change makes these required, the player loses that behavior.
- * The types here are consumed by both the generation pipeline (Gemini output) and the player component (GuidedExplanationRunner). audioBase64 is optional and generated server-side at lesson creation time — the player falls back to live cloud TTS when absent (for older cached lessons). geometry, graph, and numberLine are mutually exclusive rendering modes; geometry takes precedence if present.
- *
- * @fileType types
- * @domain ai
- * @pattern data-transfer
- */
+ * @ai-summary Pure TypeScript interfaces consumed by both the LLM generation pipeline and the player component. **The player relies on `highlight*` arrays being optional — if the LLM returns a step with no highlights, the player renders the geometry/graph unchanged**, which is the intended progressive reveal behavior. If a future change makes these required, the player loses that behavior. The types here are consumed by both the generation pipeline (Gemini output) and the player component (GuidedExplanationRunner). audioBase64 is optional and generated server-side at lesson creation time — the player falls back to live cloud TTS when absent (for older cached lessons). geometry, graph, and numberLine are mutually exclusive rendering modes; geometry takes precedence if present. Defines the structured step data the LLM generates and the player renders. Three scene types: `geometry` (SVG from points/segments), `graph` (coordinate plane with plotted functions), `numberLine` (intervals/marks on ℝ). The converter drops scenes the LLM didn't populate. */
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Geometry data — extracted by the LLM, rendered deterministically by us

@@ -1,17 +1,7 @@
 /**
- * Data extraction service using AI models
+ * Structured exercise extraction from images (Genkit multimodal)
  *
- * @ai-summary Image/PDF-to-exercise extraction using Gemini's multimodal API.
- * PDFs go directly to Gemini (native support); images are **pre-optimized via sharp**
- * before sending to reduce API latency/cost. The V3 variant also extracts diagram
- * position and description — if the LLM returns malformed diagram fields, the code
- * silently defaults `diagramPosition` to `'before_question'` rather than rejecting.
- * Migrated to Genkit — call createGenkitUnifiedAdapter via dynamic import to prevent server-only code from being bundled into the client. PDF is passed directly to Gemini (native support); images are pre-optimized via sharp (max 2048px). JSON responses are stripped of markdown fences before parsing. Throws on JSON parse failure — callers must handle gracefully.
- *
- * @fileType service
- * @domain ai
- * @pattern extraction
- */
+ * @ai-summary Image/PDF-to-exercise extraction using Gemini's multimodal API. PDFs go directly to Gemini (native support); images are **pre-optimized via sharp** before sending to reduce API latency/cost. The V3 variant also extracts diagram position and description — if the LLM returns malformed diagram fields, the code silently defaults `diagramPosition` to `'before_question'` rather than rejecting. Migrated to Genkit — call createGenkitUnifiedAdapter via dynamic import to prevent server-only code from being bundled into the client. PDF is passed directly to Gemini (native support); images are pre-optimized via sharp (max 2048px). JSON responses are stripped of markdown fences before parsing. Throws on JSON parse failure — callers must handle gracefully. Dynamic imports prevent Node.js-only modules from being bundled into client code. v3 (`extractFromImageV3`) handles multi-part exercises with diagram detection; v1 (`extractFromImage`) handles simple single-question images. */
 import type { Payload } from '@/infra/types/backend'
 import type { AIModel, AIModelKey } from '../models'
 import { getModelRegistryEntry, getProviderModelName } from '../models'

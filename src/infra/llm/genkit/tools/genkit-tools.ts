@@ -1,12 +1,7 @@
 /**
- * Genkit Tools Module
+ * MCP → Genkit tool mapping
  *
- * @ai-summary Maps MCP tool definitions to Genkit-compatible tools and executes
- * them via a provided executor. The `executeToolCalls` loop is sequential — if
- * multiple tools are called in one turn, long-running tools block subsequent ones.
- * Errors in one tool do not abort the loop, so a failing tool leaves results for
- * the others.
- *
+ * @ai-summary Maps MCP tool definitions to Genkit-compatible tools and executes them via a provided executor. The `executeToolCalls` loop is sequential — if multiple tools are called in one turn, long-running tools block subsequent ones. Errors in one tool do not abort the loop, so a failing tool leaves results for the others. Input schemas are passed through as `properties` objects — complex nested schemas are truncated to top-level field names for readability. *
  * @fileType module
  * @domain ai
  * @pattern genkit-tools, tool-calling, mcp-integration

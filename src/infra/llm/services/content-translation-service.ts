@@ -1,17 +1,7 @@
 /**
- * Content Translation Service
+ * Clone-and-Translate block-level translation service
  *
- * @ai-summary Block-level LLM translation with one-shot retry on count mismatch.
- * **Retry is triggered by block count only** — a silently corrupted block that
- * happens to have the same count will pass through undetected. For safety,
- * `translateText` degrades gracefully (returns original on failure), but
- * `translateContentBlocks` throws and must be caught by callers.
- * Translates text fields only — structural fields (ids, types, numeric values, LaTeX math) are preserved exactly. Block count mismatch triggers a retry with the original prompt + LLM's previous response + explicit count correction. Empty blocks array is a success (not an error). translateText falls back to original text on failure (no error throw).
- *
- * @fileType service
- * @domain ai
- * @pattern translation
- */
+ * @ai-summary Block-level LLM translation with one-shot retry on count mismatch. **Retry is triggered by block count only** — a silently corrupted block that happens to have the same count will pass through undetected. For safety, `translateText` degrades gracefully (returns original on failure), but `translateContentBlocks` throws and must be caught by callers. Translates text fields only — structural fields (ids, types, numeric values, LaTeX math) are preserved exactly. Block count mismatch triggers a retry with the original prompt + LLM's previous response + explicit count correction. Empty blocks array is a success (not an error). translateText falls back to original text on failure (no error throw). Translates between Hebrew and English. Text strings fall back to original on failure; blocks require a successful parse. */
 import type { Payload } from '@/infra/types/backend'
 
 import type { AIModel, AIModelKey } from '../models'

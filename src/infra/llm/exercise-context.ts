@@ -1,5 +1,5 @@
 /**
- * Exercise Context Formatting Utility
+ * Exercise content formatter for LLM prompts
  *
  * @ai-summary Serializes exercise blocks into a text prompt for the LLM, with
  * **solution leakage prevention as the load-bearing concern**. Correct answers

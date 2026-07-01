@@ -1,13 +1,7 @@
 /**
- * Summary Maintenance Service
+ * Conversation summary maintenance
  *
- * @ai-summary Threshold-triggered conversation pruning: after 40 messages it
- * summarizes all-but-last-20 and replaces the trimmed slice with the summary.
- * The replacement is the load-bearing step — without it, messages pile up and
- * eventually exceed the model's context window. Failures are non-fatal (logged
- * and returned, never thrown) so chat remains available even when summarization
- * is broken. Runs AFTER the chat response is already sent to the user — failures are silent and do not affect the response. Thresholds: normal at 40 messages, safety cutoff at 80. After summarization, older messages are permanently deleted from the conversation (only the last 20 remain). This is irreversible — if summarization fails mid-write, some messages could be lost.
- *
+ * @ai-summary Threshold-triggered conversation pruning: after 40 messages it summarizes all-but-last-20 and replaces the trimmed slice with the summary. The replacement is the load-bearing step — without it, messages pile up and eventually exceed the model's context window. Failures are non-fatal (logged and returned, never thrown) so chat remains available even when summarization is broken. Runs AFTER the chat response is already sent to the user — failures are silent and do not affect the response. Thresholds: normal at 40 messages, safety cutoff at 80. After summarization, older messages are permanently deleted from the conversation (only the last 20 remain). This is irreversible — if summarization fails mid-write, some messages could be lost. Triggers at >40 messages (or >80 as a safety cutoff). Summarizes all but the last 20 messages, then replaces the conversation's message array with the window. Failures are non-fatal — maintenance errors don't break the chat. *
  * Key Features:
  * - Automatic triggering based on message count thresholds
  * - Preserves recent window for immediate context

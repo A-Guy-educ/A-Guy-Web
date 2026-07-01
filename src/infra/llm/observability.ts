@@ -1,5 +1,5 @@
 /**
- * Observability & Logging for Chat Context System
+ * Structured logging for context usage and feature flags
  *
  * @ai-summary Structured log helpers for context-usage and maintenance events.
  * Does not throw — callers should treat all logging as non-blocking. Snapshot

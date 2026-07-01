@@ -64,8 +64,8 @@ export function QuestionCard({
           'p-card-padding border border-border/40 transition-all duration-normal',
           // Light mode: translucent bg so it blends with warm cream page — no floating effect
           'bg-background/70 [data-theme="light"]:bg-background/70 dark:bg-card',
-          // Dark mode: slight elevation with shadow
-          'dark:shadow-card',
+          // Dark mode: slightly stronger border opacity for visibility
+          'dark:border-border/60 dark:shadow-card',
           isCorrect && 'border-success/30 bg-success/5',
         )}
       >
@@ -114,8 +114,8 @@ export function QuestionCard({
                   disabled={disabled || loading}
                   size="lg"
                   className={cn(
-                    'rounded-xl font-bold text-body-md',
-                    disabled && 'bg-success hover:bg-success/90 text-white',
+                    'rounded-xl font-bold text-body-md text-white',
+                    disabled && 'bg-success hover:bg-success/90',
                   )}
                 >
                   {loading ? (

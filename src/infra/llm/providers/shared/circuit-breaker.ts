@@ -1,12 +1,7 @@
 /**
- * Circuit Breaker for LLM API Calls
+ * Circuit breaker for LLM API calls
  *
- * @ai-summary Per-provider failure counter that trips after 5 consecutive failures
- * and stays open for 60s. Rate-limit errors are **excluded from failure counting**
- * to prevent a single 429 from opening the circuit when the provider is healthy.
- * The circuit is a process-global singleton — in serverless, each cold start gets
- * a fresh circuit, so the breaker provides no protection across invocations.
- *
+ * @ai-summary Per-provider failure counter that trips after 5 consecutive failures and stays open for 60s. Rate-limit errors are **excluded from failure counting** to prevent a single 429 from opening the circuit when the provider is healthy. The circuit is a process-global singleton — in serverless, each cold start gets a fresh circuit, so the breaker provides no protection across invocations. Opens after 5 consecutive failures (not rate-limit errors — those are skipped because counting them causes a cascade: one 429 trips the breaker, then every subsequent call fails instantly with CIRCUIT_OPEN even though Gemini is healthy). *
  * @fileType utility
  * @domain ai
  * @pattern circuit-breaker, resilience

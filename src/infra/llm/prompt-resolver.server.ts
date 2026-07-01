@@ -1,5 +1,5 @@
 /**
- * Resolves system prompt for AI tutor
+ * Resolves the agent system prompt with deterministic priority
  *
  * @ai-summary Three-tier fallback chain (lesson prompt → default prompt → built-in).
  * Each tier logs at a lower level when it falls through, so the warning count

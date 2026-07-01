@@ -1,12 +1,7 @@
 /**
- * Vector Search Service
+ * MongoDB Atlas Vector Search for memory retrieval
  *
- * @ai-summary Two-phase vector search (narrow scope first, then global) that
- * respects a context-hierarchy policy. **Tenant isolation is the load-bearing
- * constraint** — every query MUST include `userId` filter; omitting it exposes
- * one user's memories to another. Phase ordering is intentional: narrow scopes
- * consume pooled connections first so global queries don't starve them.
- *
+ * @ai-summary Two-phase vector search (narrow scope first, then global) that respects a context-hierarchy policy. **Tenant isolation is the load-bearing constraint** — every query MUST include `userId` filter; omitting it exposes one user's memories to another. Phase ordering is intentional: narrow scopes consume pooled connections first so global queries don't starve them. SECURITY: every query MUST include a userId filter — omitting it exposes other tenants' memory items. *
  * @fileType service
  * @domain ai
  * @pattern vector-search, context-scoped
