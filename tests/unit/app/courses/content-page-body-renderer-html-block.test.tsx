@@ -50,6 +50,12 @@ describe('ContentPageBodyRenderer — HtmlBlock (#676)', () => {
     // KaTeX output must exist for the inline expression
     expect(container.querySelector('.katex')).not.toBeNull()
 
+    // The inline KaTeX must be wrapped with dir="ltr" + isolate so it renders
+    // correctly on Hebrew (RTL) pages. Mirrors rehypeMathWrapper for MathMarkdown.
+    const inlineWrapper = container.querySelector('.katex')?.parentElement
+    expect(inlineWrapper?.getAttribute('dir')).toBe('ltr')
+    expect(inlineWrapper?.className).toContain('isolate')
+
     // The raw "$x^2+4x$" string must NOT appear as plain text
     expect(container.textContent).not.toContain('$x^2+4x$')
   })
@@ -62,6 +68,13 @@ describe('ContentPageBodyRenderer — HtmlBlock (#676)', () => {
     expect(container.querySelector('article')).not.toBeNull()
     expect(container.querySelector('.katex-display')).not.toBeNull()
     expect(container.querySelector('.katex')).not.toBeNull()
+
+    // The display KaTeX must be wrapped with dir="ltr" + isolate so it renders
+    // correctly on Hebrew (RTL) pages.
+    const displayWrapper = container.querySelector('.katex-display')?.parentElement
+    expect(displayWrapper?.getAttribute('dir')).toBe('ltr')
+    expect(displayWrapper?.className).toContain('isolate')
+
     expect(container.textContent).not.toContain('$$x^2 + y^2 = z^2$$')
   })
 })
