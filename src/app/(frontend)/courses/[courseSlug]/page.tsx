@@ -3,7 +3,7 @@ import '@/infra/config/server-init'
 import { notFound } from 'next/navigation'
 import { getSystemLocale } from '@/i18n/server-locale'
 import { isValidContentLocale } from '@/infra/types/content'
-import { queryCourseBySlug } from '@/server/repos/queries/courses'
+import { queryCourseBySlugWithFallback } from '@/server/repos/queries/courses'
 import { queryChaptersByCourse } from '@/server/repos/queries/chapters'
 import { queryLessonsByCourse } from '@/server/repos/queries/lessons'
 import { SystemParams } from '@/infra/config/system-params'
@@ -30,16 +30,19 @@ export default async function CoursePage({ params }: CoursePageProps) {
   const { courseSlug } = await params
   const locale = await getSystemLocale()
   const contentLocale = isValidContentLocale(locale) ? locale : undefined
-  const course = await queryCourseBySlug({ slug: courseSlug, locale: contentLocale })
+  const { course, isLocaleFallback } = await queryCourseBySlugWithFallback({
+    slug: courseSlug,
+    locale: contentLocale,
+  })
 
   if (!course) {
     notFound()
   }
 
-  const pageAccess = course.pageAccessType ?? 'free'
-  const lessonAccess = course.accessType ?? 'free'
-  // If either the page or lesson access is paid, gate the course page
-  const courseAccessType = pageAccess === 'paid' || lessonAccess === 'paid' ? 'paid' : pageAccess
+  // Course page gate reflects `pageAccessType` only. `accessType` is the
+  // lesson-level default and must not gate the page — it applies inside lessons
+  // via resolveAccessType(lesson.accessType, course.accessType).
+  const courseAccessType = course.pageAccessType ?? 'free'
   const [gatedDelayMs, gatedWarningMs] = await Promise.all([
     SystemParams.getGatedDelayMs(),
     SystemParams.getGatedWarningMs(),
@@ -104,6 +107,7 @@ export default async function CoursePage({ params }: CoursePageProps) {
         lessons={lessons}
         courseSlug={courseSlug}
         lessonProgressMap={lessonProgressMap}
+        isLocaleFallback={isLocaleFallback}
       />
     </AccessGateProvider>
   )
@@ -165,7 +169,10 @@ export async function generateMetadata({ params }: CoursePageProps) {
   const { courseSlug } = await params
   const locale = await getSystemLocale()
   const contentLocale = isValidContentLocale(locale) ? locale : undefined
-  const course = await queryCourseBySlug({ slug: courseSlug, locale: contentLocale })
+  const { course } = await queryCourseBySlugWithFallback({
+    slug: courseSlug,
+    locale: contentLocale,
+  })
 
   if (!course) {
     return { title: 'Course Not Found' }

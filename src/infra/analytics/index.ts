@@ -1,11 +1,15 @@
 /**
- * @ai-summary Analytics Public API — single import path for all product tracking.
+ * @filetype index
+ * @domain analytics
+ * @ai-summary Analytics public API — the ONLY import path product code should use. Canonicalizes all event tracking through a single tracker that validates, enriches, and routes to GA4 and Mixpanel.
  *
- * Entry point for product code. All analytics tracking MUST go through `analytics.track()`
- * or via `systemEventBus.emit()` (which feeds into analytics.track()).
+ * Entry Point: `import { analytics } from '@/infra/analytics'` (aliased as `@/lib/analytics`)
  *
- * TRAP: Never call window.gtag/window.mixpanel directly — always route through here.
- * GOTCHA: `initializeAnalytics()` must be called before any track() calls.
+ * Gotcha: All product tracking must go through `analytics.track()` — no direct `window.gtag()` or `window.mixpanel` calls. This ensures every event is validated, enriched with session data, and correctly routed.
+ *
+ * Gotcha: `alias()` must be called BEFORE `identify()` during registration to merge anonymous history with the new account — the registration_completed handler in system-events-subscriber enforces this order.
+ *
+ * Gotcha: `reset()` clears user identity and cached properties but does not flush the adapter queue — events queued before reset may still fire under the old identity.
  */
 
 // Core API

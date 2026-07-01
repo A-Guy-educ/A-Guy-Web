@@ -1,8 +1,9 @@
 /**
- * @ai-summary Shared TypeScript interfaces for the analytics layer.
+ * @filetype index
+ * @domain analytics
+ * @ai-summary Shared TypeScript types for the analytics system — used across tracker, adapters, and hooks. Defines the public analytics API interface (track, identify, alias, reset), the validated event payload shape, and the configuration interface.
  *
- * Defines AnalyticsConfig, EventPayload, and the Analytics interface (track/identify/alias/reset).
- * Consumed by tracker.ts, validator.ts, adapters, and the public API.
+ * Gotcha: `EventPayload` is the enriched, validated shape produced by the tracker — adapters receive this post-validation. Raw user input never reaches adapters unchecked.
  */
 
 import type { ProductEvent } from './contracts/events'

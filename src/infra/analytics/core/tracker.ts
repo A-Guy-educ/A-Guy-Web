@@ -1,10 +1,13 @@
 /**
- * @ai-summary Singleton analytics tracker — the only non-test caller of adapter send methods.
+ * @filetype index
+ * @domain analytics
+ * @ai-summary Core analytics tracker — single entrypoint for all event tracking. Validates events against Zod schemas, enriches payloads with session data, and routes to GA4 and Mixpanel adapters. Adapter initialization is lazy (dynamic import) and events fired before readiness are queued (max 100) then flushed automatically.
  *
- * Handles validation, session enrichment, queuing before adapter init, and routing to GA4/Mixpanel.
+ * Trap: Direct SDK calls (`window.gtag`, `window.mixpanel`) are forbidden — all tracking must go through `track()`. This is the only way to guarantee validation, session enrichment, and correct routing.
  *
- * TRAP: Fires before adapters init (dynamic import) are queued (up to 100) and flushed on adapter ready.
- * GOTCHA: track()/identify()/alias() are all fire-and-return; no await — adapter calls are async.
+ * Trap: The in-memory event queue holds max 100 events — if adapter initialization is slow and the queue fills, subsequent events are dropped silently. This protects against memory leaks during extended initialization failures.
+ *
+ * Trap: `alias()` must be called BEFORE `identify()` during registration (the system-events-subscriber's REGISTRATION_COMPLETED handler enforces this). Calling identify first severs the anonymous history chain.
  */
 
 'use client'
