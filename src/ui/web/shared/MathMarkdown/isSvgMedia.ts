@@ -1,12 +1,12 @@
 /**
  * @fileType utility
- * @domain media
+ * @domain ui
  * @pattern svg-detection
- * @ai-summary Detect whether a Media record represents an SVG asset. Used to apply dark-mode inversion only to SVG (not raster) images.
+ * @ai-summary Detect whether media or a markdown image src represents an SVG, and produce the `dark:invert` Tailwind class only when it does. Centralised here so ChatMessageContent, RichTextRenderer and MediaAttachments cannot drift apart.
  */
 import type { Media } from '@/infra/types/content'
 
-const SVG_EXTENSION = /\.svg(\?.*)?$/i
+const SVG_EXTENSION = /\.svg((\?|#).*)?$/i
 const SVG_MIME_TYPE = 'image/svg+xml'
 
 /**
@@ -21,6 +21,12 @@ const SVG_MIME_TYPE = 'image/svg+xml'
  * Filename is intentionally NOT consulted — it is unreliable when other signals
  * disagree (legacy payloads default to `diagram.svg` regardless of actual type),
  * and trusting it would force `dark:invert` on otherwise-raster images.
+ *
+ * Known limitation: when an SVG is hosted at a CDN URL without a `.svg`
+ * extension (e.g. `https://cdn.example.com/asset-12345`) and only its URL is
+ * available — as in markdown `<img src>` — this function cannot detect it.
+ * Callers that have a `Media` record (with `mimeType`) bypass this limitation
+ * by reaching the `mimeType === 'image/svg+xml'` branch above.
  */
 export function isSvgMedia(media: Media): boolean {
   if (media.type === 'svg') return true
@@ -40,4 +46,13 @@ export function isSvgMedia(media: Media): boolean {
 export function isSvgUrl(src: string | undefined | null): boolean {
   if (!src) return false
   return SVG_EXTENSION.test(src)
+}
+
+/**
+ * Returns `'dark:invert'` for SVG media, or `false` otherwise — shaped to
+ * drop into a `cn(...)` expression so callers cannot drift in how they
+ * express the dark-mode SVG policy.
+ */
+export function darkInvertIfSvg(isSvg: boolean): 'dark:invert' | false {
+  return isSvg ? 'dark:invert' : false
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isSvgMedia, isSvgUrl } from '@/infra/utils/isSvgMedia'
+import { darkInvertIfSvg, isSvgMedia, isSvgUrl } from '@/ui/web/shared/MathMarkdown/isSvgMedia'
 import type { Media } from '@/infra/types/content'
 
 function createMedia(overrides: Partial<Media> & { id: string }): Media {
@@ -58,6 +58,38 @@ describe('isSvgMedia', () => {
         }),
       ),
     ).toBe(false)
+  })
+
+  it('treats `type: "svg"` as authoritative even when mimeType + URL disagree', () => {
+    expect(
+      isSvgMedia(
+        createMedia({
+          id: '1',
+          type: 'svg',
+          url: '/media/asset-12345',
+          mimeType: 'image/png',
+        }),
+      ),
+    ).toBe(true)
+  })
+
+  it('treats `mimeType: image/svg+xml` as authoritative even when URL has no extension', () => {
+    expect(
+      isSvgMedia(
+        createMedia({
+          id: '1',
+          type: 'image',
+          url: 'https://cdn.example.com/asset-12345',
+          mimeType: 'image/svg+xml',
+        }),
+      ),
+    ).toBe(true)
+  })
+
+  it('matches .svg followed by a URL fragment', () => {
+    expect(
+      isSvgMedia(createMedia({ id: '1', type: 'image', url: 'https://cdn/x/sprite.svg#icon' })),
+    ).toBe(true)
   })
 
   it('returns false for png / jpg / webp', () => {
@@ -135,6 +167,15 @@ describe('isSvgUrl', () => {
     expect(isSvgUrl('https://cdn.example.com/diagram.svg?v=42')).toBe(true)
   })
 
+  it('matches .svg with URL fragment (e.g. SVG sprite <use> references)', () => {
+    expect(isSvgUrl('https://cdn.example.com/sprite.svg#icon-check')).toBe(true)
+    expect(isSvgUrl('/media/sprite.svg#icon')).toBe(true)
+  })
+
+  it('matches .svg with both query string and fragment', () => {
+    expect(isSvgUrl('https://cdn.example.com/diagram.svg?v=1#icon')).toBe(true)
+  })
+
   it('is case-insensitive on the extension', () => {
     expect(isSvgUrl('https://cdn.example.com/diagram.SVG')).toBe(true)
   })
@@ -149,5 +190,15 @@ describe('isSvgUrl', () => {
     expect(isSvgUrl(undefined)).toBe(false)
     expect(isSvgUrl(null)).toBe(false)
     expect(isSvgUrl('')).toBe(false)
+  })
+})
+
+describe('darkInvertIfSvg', () => {
+  it("returns 'dark:invert' for SVG media", () => {
+    expect(darkInvertIfSvg(true)).toBe('dark:invert')
+  })
+
+  it('returns false for raster media so cn() drops the class', () => {
+    expect(darkInvertIfSvg(false)).toBe(false)
   })
 })

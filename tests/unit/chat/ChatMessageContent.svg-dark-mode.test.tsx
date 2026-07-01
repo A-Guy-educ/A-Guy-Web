@@ -3,6 +3,7 @@ import React from 'react'
 import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { ChatMessageContent } from '@/ui/web/chat/ChatMessageContent'
+import { SvgAwareImage } from '@/ui/web/shared/MathMarkdown/svgAwareImage'
 
 /**
  * Reproduces issue #652: inline SVG diagrams rendered through the chat
@@ -76,5 +77,22 @@ describe('ChatMessageContent — SVG dark mode support (issue #652)', () => {
 
     const img = container.querySelector('img')
     expect(img?.className).toMatch(/dark:invert/)
+  })
+})
+
+describe('SvgAwareImage — URL fragment and missing-src contract', () => {
+  it('treats an SVG src with a URL fragment as SVG', () => {
+    const { container } = render(
+      <SvgAwareImage src="https://cdn.example.com/sprite.svg#icon-check" />,
+    )
+
+    const img = container.querySelector('img')
+    expect(img).not.toBeNull()
+    expect(img?.className).toMatch(/dark:invert/)
+  })
+
+  it('renders nothing when src is missing', () => {
+    const { container } = render(<SvgAwareImage />)
+    expect(container.querySelector('img')).toBeNull()
   })
 })

@@ -6,14 +6,9 @@
  */
 
 import { cn } from '@/infra/utils/ui'
-import { isSvgUrl } from '@/infra/utils/isSvgMedia'
+import { darkInvertIfSvg, isSvgUrl } from './isSvgMedia'
 
-/**
- * Shape of the props react-markdown passes to the `img` override. The
- * `src` and `alt` fields are the only ones we use — `title` and
- * metadata like `width`/`height` are intentionally ignored so the
- * override matches what `JSX.IntrinsicElements['img']` exposes.
- */
+/** Props react-markdown passes to the `img` override. */
 export interface SvgAwareImageProps {
   src?: string | Blob
   alt?: string
@@ -26,8 +21,10 @@ export interface SvgAwareImageProps {
  * RichTextRenderer cannot drift apart in how they handle SVG diagrams.
  */
 export function SvgAwareImage({ src, alt, title }: SvgAwareImageProps) {
+  // react-markdown types `src` as `string | Blob`, but inline images always
+  // arrive as a string in practice. Skip non-string srcs defensively rather
+  // than guess at a fallback URL.
   if (typeof src !== 'string') return null
-  const isSvg = isSvgUrl(src)
   return (
     /* eslint-disable-next-line @next/next/no-img-element */
     <img
@@ -35,7 +32,10 @@ export function SvgAwareImage({ src, alt, title }: SvgAwareImageProps) {
       alt={alt ?? ''}
       title={title}
       loading="lazy"
-      className={cn('h-auto max-h-96 max-w-full w-auto object-contain', isSvg && 'dark:invert')}
+      className={cn(
+        'h-auto max-h-96 max-w-full w-auto object-contain',
+        darkInvertIfSvg(isSvgUrl(src)),
+      )}
     />
   )
 }
