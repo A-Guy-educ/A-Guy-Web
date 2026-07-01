@@ -1,6 +1,7 @@
 import katex from 'katex'
 
-const MATH_RE = /(?<!\\)\$\$([\s\S]+?)\$\$(?!\d)|(?<!\\)\$([^$\n]+?)\$(?!\d)/g
+const MATH_RE =
+  /(?<!\\)\$\$([\s\S]+?)\$\$(?!\d)|(?<!\\)\$\$([^$\n]+?)\$(?!\$|\d)|(?<!\\)\$([^$\n]+?)\$(?!\d)/g
 const TAG_RE = /<!--[\s\S]*?-->|<!\[CDATA\[[\s\S]*?\]\]>|<!doctype\b[^>]*>|<\/?[A-Za-z][^>]*>/gi
 const DOLLAR_ENTITY_RE = /&(dollar|#36|#x24);/gi
 const SKIP_TAGS = new Set(['code', 'pre', 'script', 'style', 'textarea'])
@@ -80,9 +81,11 @@ function renderMathInText(text: string): string {
   let renderedText = ''
 
   while ((match = MATH_RE.exec(original))) {
-    const [raw, display, inline] = match
+    const [raw, display, malformedInline, inline] = match
     const isDisplay = display !== undefined
-    const rendered = renderMath(isDisplay ? display : inline, isDisplay)
+    const source = display ?? malformedInline ?? inline
+    if (source === undefined) continue
+    const rendered = renderMath(source, isDisplay)
 
     if (!rendered) continue
 
@@ -96,6 +99,20 @@ function renderMathInText(text: string): string {
 
   renderedText += renderBareMathInText(original.slice(lastIndex))
   return renderedText
+}
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+export function renderTextWithMath(text: string): string {
+  if (!text) return ''
+  return renderMathInText(escapeHtml(text))
 }
 
 function extractBodyHtml(html: string): string {

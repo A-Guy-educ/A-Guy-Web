@@ -77,4 +77,64 @@ describe('ContentPageBodyRenderer — HtmlBlock (#676)', () => {
 
     expect(container.textContent).not.toContain('$$x^2 + y^2 = z^2$$')
   })
+
+  it('renders math inside Lexical content columns as KaTeX', () => {
+    const blocks = [
+      {
+        blockType: 'content',
+        columns: [
+          {
+            size: 'oneThird',
+            richText: {
+              root: {
+                type: 'root',
+                children: [
+                  {
+                    type: 'paragraph',
+                    children: [{ type: 'text', text: '$$x^2+4x$', format: 0 }],
+                  },
+                ],
+              },
+            },
+          },
+        ],
+      },
+    ]
+
+    const { container } = render(<ContentPageBodyRenderer blocks={blocks} />)
+
+    expect(container.querySelector('.katex')).not.toBeNull()
+    expect(container.textContent).not.toContain('$$x^2+4x$')
+  })
+
+  it('escapes Lexical text before rendering math HTML', () => {
+    const blocks = [
+      {
+        blockType: 'content',
+        columns: [
+          {
+            richText: {
+              root: {
+                type: 'root',
+                children: [
+                  {
+                    type: 'paragraph',
+                    children: [
+                      { type: 'text', text: '<img src=x onerror=alert(1)> $x^2$', format: 0 },
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+        ],
+      },
+    ]
+
+    const { container } = render(<ContentPageBodyRenderer blocks={blocks} />)
+
+    expect(container.querySelector('img')).toBeNull()
+    expect(container.querySelector('.katex')).not.toBeNull()
+    expect(container.textContent).toContain('<img src=x onerror=alert(1)>')
+  })
 })
