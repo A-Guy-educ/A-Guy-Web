@@ -109,9 +109,11 @@ export function StudyContent({
   useEffect(() => {
     // Skip fetch if server already prefetched the data
     if (prefetchedData) {
-      // Still check entitlements client-side (needs auth cookies)
+      // Still check entitlements client-side (needs auth cookies).
+      // Only the page-level gate applies here — lesson-default `courseAccessType`
+      // gates individual lessons, not this course landing view.
       const info = prefetchedData
-      const isPaid = info.coursePageAccessType === 'paid' || info.courseAccessType === 'paid'
+      const isPaid = info.coursePageAccessType === 'paid'
       if (isPaid && info.courseId) {
         fetch(`/api/entitlements/check?courseId=${info.courseId}`)
           .then(async (entRes) => {
@@ -160,7 +162,7 @@ export function StudyContent({
           }
           setCourseInfo(info)
 
-          const isPaid = info.coursePageAccessType === 'paid' || info.courseAccessType === 'paid'
+          const isPaid = info.coursePageAccessType === 'paid'
           if (isPaid && info.courseId) {
             fetch(`/api/entitlements/check?courseId=${info.courseId}`)
               .then(async (entRes) => {
@@ -285,11 +287,7 @@ export function StudyContent({
   return (
     <PageTransition>
       <AccessGateProvider
-        accessType={
-          courseInfo?.coursePageAccessType === 'paid' || courseInfo?.courseAccessType === 'paid'
-            ? 'paid'
-            : (courseInfo?.coursePageAccessType ?? 'free')
-        }
+        accessType={courseInfo?.coursePageAccessType ?? 'free'}
         courseSlug={courseInfo?.courseSlug ?? ''}
         gatedDelayMs={courseInfo?.gatedDelayMs}
         gatedWarningMs={courseInfo?.gatedWarningMs}
@@ -329,7 +327,7 @@ export function StudyContent({
 
         {/* Main Content */}
         <main className="container mx-auto px-6 py-section-sm max-w-5xl">
-          {continueLesson && (
+          {courseInfo && continueLesson && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -421,7 +419,7 @@ export function StudyContent({
                 {ts('noTopicsAvailable')}
               </p>
               <p className="text-body-sm text-muted-foreground/60 mt-1">
-                Check back later for new content
+                {ts('noTopicsAvailableSub')}
               </p>
             </div>
           )}

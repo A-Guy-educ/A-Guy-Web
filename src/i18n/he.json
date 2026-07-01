@@ -224,7 +224,8 @@
     "languageSwitcher": {
       "label": "שפה",
       "english": "אנגלית",
-      "hebrew": "עברית"
+      "hebrew": "עברית",
+      "fallbackNotice": "תוכן זה אינו זמין באנגלית עדיין."
     },
     "notFound": {
       "title": "404",
@@ -274,6 +275,12 @@
         "collision": "כבר קיים חשבון עם כתובת אימייל זו. אנא התחבר עם הסיסמה שלך או פנה לתמיכה."
       }
     },
+    "onboardingComplete": {
+      "title": "נהדר!",
+      "description": "הכנתי את המערכת במיוחד בשבילך. רק רישום קצר (חינמי) ומתחילים ללמוד",
+      "primaryCta": "כניסה מהירה עם Google",
+      "reassurance": "ההרשמה לא כרוכה בעלות או בהזנת אשראי."
+    },
     "signup": {
       "title": "צור חשבון",
       "subtitle": "הירשם כדי להתחיל ללמוד",
@@ -302,7 +309,7 @@
       "headingBold": "שלום,",
       "headingRest": "מוכנים להצליח?",
       "quickLogin": "כניסה מהירה",
-      "freeRegistration": "הרשמה ללא עלות",
+      "loginFreeOfCharge": "הכניסה למערכת - ללא תשלום",
       "secureAccess": "גישה מהירה ומאובטחת.",
       "oneClickEntry": "בלחיצה אחת אתם בפנים.",
       "needHelp": "זקוקים לעזרה?",
@@ -366,7 +373,7 @@
         "description": "טרם ביצעת רכישות. עיין במוצרים שלנו כדי להתחיל.",
         "cta": "עיין במוצרים"
       },
-      "backToPurchases": "חזרה לרכישות",
+      "backToPurchases": "חזור לרכישות",
       "purchasedOn": "נרכש ב",
       "amount": "סכום",
       "provider": "ספק",
@@ -400,8 +407,9 @@
     "liveContent": "תוכן חדש מתווסף באופן קבוע",
     "featuredTitle": "קורסים מומלצים",
     "featuredDescription": "קורסים שנבחרו בקפידה כדי לעזור לך במסע הלמידה שלך.",
-    "backToCourses": "חזרה לקורסים",
-    "backToChapter": "חזרה לפרק",
+    "backToCourses": "חזור לקורסים",
+    "backToChapter": "חזור לפרק",
+    "back": "חזור",
     "openCourse": "פתח קורס",
     "viewChapter": "צפה בפרק",
     "viewLesson": "צפה בשיעור",
@@ -433,7 +441,7 @@
     "trueFalseBadge": "נכון/לא נכון",
     "freeResponseBadge": "תשובה חופשית",
     "notFound": "לא נמצא",
-    "backToLesson": "חזרה לשיעור",
+    "backToLesson": "חזור לשיעור",
     "exerciseTitle": "תרגיל",
     "submitAnswer": "שלח תשובה",
     "checkAnswer": "בדוק תשובה",
@@ -528,6 +536,8 @@
     "selectBadge": "בחירה",
     "of": "מתוך",
     "pages": "עמודים",
+    "contentPageLabel": "דף הסבר",
+    "contentPageNoBody": "תוכן הדף עדיין לא הוזן.",
     "exercisesPagerIntroDescriptionPart1": "השיעור מכיל",
     "exercisesPagerIntroDescriptionPart2": "תרגילים. בואו נתחיל!",
     "exercisesPagerWelcome": "ברוכים הבאים לשיעור",
@@ -539,12 +549,13 @@
     "exercisesPagerNext": "הבא",
     "exercisesPagerIntro": "פתיחה",
     "exercisesPagerCompleted": "הושלם",
+    "exercisesPagerJumpToExercise": "מעבר למספר שאלה",
     "lessonSummaryEndTitle": "סוף השיעור",
     "lessonSummarySolvedExercises": "תרגילים שנפתרו",
     "lessonSummaryCorrectAnswers": "תשובות נכונות",
     "lessonSummaryScore": "ציון",
     "lessonSummaryNextLesson": "המשך לשיעור הבא",
-    "lessonSummaryBackToCourse": "חזרה לקורס",
+    "lessonSummaryBackToCourse": "חזור לקורס",
     "lessonSummaryRetry": "נסה שוב",
     "pdfLessonPagerIntroDescriptionPart1": "השיעור מכיל",
     "pdfLessonPagerIntroDescriptionPart2": "מסמכים. בואו נתחיל!",
@@ -565,6 +576,7 @@
     "lessonLobbyComplete": "השלמת את השיעור.",
     "lessonLobbyNoProgress": "אין עדיין התקדמות",
     "lessonLobbyNextLesson": "השיעור הבא בקורס",
+    "lessonLobbyPrerequisites": "מומלץ להשלים קודם",
     "soonBadge": "בקרוב",
     "justAddedBadge": "חדש",
     "contentLocked": "תוכן זה בהכנה ויהיה זמין בקרוב.",
@@ -622,7 +634,7 @@
       "generationFailedFallback": "אפשר עדיין לשאול על התמונה הזו בצ׳אט — המורה רואה את אותה תמונה.",
       "tryAgain": "נסה שוב",
       "askInChatHint": "או פשוט שאל בצ׳אט",
-      "backToUpload": "חזרה לתרגיל",
+      "backToUpload": "חזור לתרגיל",
       "resumeLesson": "המשך סרטון",
       "startOver": "התחל מחדש",
       "player": {
@@ -663,18 +675,8 @@
     "browseCourses": "עיון בקורסים",
     "paidTitle": "תוכן פרימיום",
     "paidNotLoggedIn": "יש להתחבר כדי לגשת לתוכן זה.",
-    "paidNoEntitlement": "תוכן זה דורש רכישה. הזן קוד גישה למטה או פנה למנהל המערכת.",
-    "codePlaceholder": "הזן קוד גישה",
-    "codeSubmit": "מימוש קוד",
-    "codeSubmitting": "ממש...",
-    "codeInvalid": "קוד גישה לא תקין.",
-    "codeInactive": "קוד זה אינו פעיל יותר.",
-    "codeExpired": "פג תוקף הקוד.",
-    "codeExhausted": "קוד זה הגיע למגבלת השימוש שלו.",
-    "codeAlreadyUsed": "כבר יש לך גישה לקורס זה.",
-    "codeError": "משהו השתבש. נסה שוב.",
-    "codeSuccessTitle": "איזה כיף שנרשמת!",
-    "codeSuccessMessage": "חודש מתנה עלינו!"
+    "paidNoEntitlement": "הגישה לקורס זה דורשת רכישה. עברו לחנות כדי להירשם.",
+    "goToStore": "לחנות"
   },
   "study": {
     "loading": "טוען...",
@@ -682,6 +684,7 @@
     "noCoursesAvailable": "אין קורסים זמינים",
     "studyTopics": "נושאי לימוד",
     "noTopicsAvailable": "אין נושאים זמינים בקורס זה",
+    "noTopicsAvailableSub": "חזור מאוחר יותר לתוכן חדש",
     "continueLearning": "המשך ללמוד",
     "continue": "המשך"
   },
@@ -814,7 +817,7 @@
     }
   },
   "shop": {
-    "backToLearning": "חזרה ללמידה",
+    "backToLearning": "חזור ללמידה",
     "title": "חנות הקורסים",
     "subtitle": "בחרו את המסלול שמתאים לכם והתקדמו להצלחה במתמטיקה.",
     "membershipPlans": "מסלולי הצטרפות",
@@ -954,7 +957,19 @@
     "perYear": "לשנה",
     "includedItems": "מה כלול במוצר?",
     "items": {
-      "unnamed": "פריט ללא שם"
+      "unnamed": "פריט ללא שם",
+      "periods": {
+        "day": "ליום",
+        "lifetime": "לכל החיים"
+      },
+      "featureKeys": {
+        "live-sessions": "שיעורים פרטיים",
+        "download-resources": "משאבים להורדה",
+        "certificate": "תעודת סיום",
+        "priority-support": "תמיכה בעדיפות גבוהה",
+        "analytics": "לוח ניתוח נתונים",
+        "group-access": "גישה קבוצתית"
+      }
     },
     "buyButton": "רכוש עכשיו",
     "loginToBuy": "התחבר כדי לרכוש",
@@ -990,7 +1005,9 @@
       "paymentFailed": "התשלום נכשל",
       "paymentFailedDescription": "לא ניתן היה לעבד את התשלום. אנא נסה שוב או צור קשר עם התמיכה.",
       "backToProducts": "עיין במוצרים",
-      "goHome": "לעמוד הבית"
+      "goHome": "לעמוד הבית",
+      "goToCourse": "מעבר ל{course}",
+      "grantingAccess": "מגדיר גישה…"
     },
     "cancel": {
       "title": "התשלום בוטל",
@@ -998,6 +1015,81 @@
       "productLabel": "המוצר שניסית לרכוש: {product}",
       "backToProduct": "נסה שוב",
       "browseProducts": "עיין בכל המוצרים"
+    }
+  },
+  "legal": {
+    "termsOfService": "תנאי שימוש",
+    "privacyPolicy": "מדיניות פרטיות",
+    "cancellationRefund": "ביטולים והחזרים",
+    "aiUsageStatement": "שימוש בבינה מלאכותית"
+  },
+  "prep7": {
+    "brand": {
+      "taglinePrimary": "מותאם אישי",
+      "taglineSecondary": "מורה פרטי"
+    },
+    "hero": {
+      "titleStart": "הפעם!",
+      "titleHighlight": "להגיע מוכן",
+      "newLabel": "חדש!",
+      "subtitle": "קורס הכנה לכיתה ז' - מותאם לתלמיד",
+      "purchaseCta": "לרכישה",
+      "trialCta": "לניסיון (ללא עלות)"
+    },
+    "story": {
+      "title": "מי זה Aguy?",
+      "videoTitle": "סרטון רקע על Aguy",
+      "descriptionPrefix": "מתוך ניסיון של למעלה מ-",
+      "experience": "20 שנים",
+      "descriptionSuffix": ", עשרות אלפי מפגשים עם תלמידים, ושנים של מחקר וניסוי בלמידה פרסונלית — יצרנו פלטפורמה חכמה, המותאמת אישית לכל תלמיד ומעודדת למידה עצמאית ואפקטיבית."
+    },
+    "courseFeatures": {
+      "title": "מה כולל הקורס?",
+      "description": "בנינו תהליך מדורג, מהבסיס ועד לתרגילי אתגר.",
+      "previewVideoTitle": "תצוגת מערכת Aguy בקורס",
+      "items": {
+        "lessons": {
+          "title": "50 מערכי שיעור מדויקים",
+          "description": "שיעורי למידה ממוקדים, הכוללים שאלות מנחות להבנה עמוקה של החומר."
+        },
+        "practice": {
+          "title": "30 שיעורי תרגול",
+          "description": "תרגול מעשי ואינטנסיבי שמבטיח הטמעה מלאה של הנושאים הנלמדים."
+        },
+        "exams": {
+          "title": "10 בחינות סימולציה",
+          "description": "מבחנים המדמים את מבחני האמת בחטיבה, כדי להגיע בשיא הביטחון."
+        },
+        "support": {
+          "title": "תמיכה מלאה בכל שיעור",
+          "description": "מורה AI צמוד המותאם לתוכנית משרד החינוך, מלווה את התלמיד יד ביד."
+        }
+      }
+    },
+    "offer": {
+      "title": "הטבות והנחות",
+      "description": "הצטרפו עכשיו והבטיחו את מקומכם בחטיבה בצורה הטובה ביותר.",
+      "badge": "מבצע רישום מוקדם",
+      "priceLabel": "הנחה מיוחדת לנרשמים",
+      "priceAmount": "100",
+      "priceCurrency": "₪",
+      "priceSuffix": "הנחה",
+      "deadline": "בתוקף לרישום עד ה-20.7 בלבד.",
+      "purchaseCta": "מעבר לרכישה",
+      "bonusesTitle": "בונוסים חינם לנרשמים:",
+      "bonuses": {
+        "whatsapp": {
+          "title": "קבוצת וואטסאפ זמינה לשאלות",
+          "description": "ליווי צמוד ותמיכה מלאה בכל שאלה שעולה בבית."
+        },
+        "sessions": {
+          "title": "שיעורים פתוחים עם מורה",
+          "description": "מפגשי תגבור חיים להעמקה ותרגול נוסף של החומר."
+        }
+      }
+    },
+    "footer": {
+      "copyright": "© 2024 Aguy. כל הזכויות שמורות."
     }
   }
 }

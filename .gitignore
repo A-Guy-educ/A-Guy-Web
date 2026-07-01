@@ -97,6 +97,5 @@ latex_examples/
 .kody/qa-reports/
 .playwright-mcp/
 
-# kody task artifacts — per-task metadata (context, followups, handoff-notes, memory-recs).
-# These are ephemeral run output and should not be committed.
-.kody/tasks/
+# Kody runtime/state and authored model assets live in configured kody-state repo.
+.kody/

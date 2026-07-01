@@ -1,23 +1,32 @@
 'use client'
 
-import { Bot, Play } from 'lucide-react'
+import { Bot } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { setUserProfile } from '@/client/state/localStorage/userProfile'
 import type { Course } from '@/infra/types/content'
 import { cn } from '@/infra/utils/ui'
+import { OnboardingCompleteLoginModal } from '@/ui/web/auth/OnboardingCompleteLoginModal'
 import { LanguageSwitcher } from '@/ui/web/LanguageSwitcher'
 import { useLocale } from '@/ui/web/providers/I18n'
 import { ThemeSelector } from '@/ui/web/providers/Theme/ThemeSelector'
 
 type Direction = 'ltr' | 'rtl'
 type Pane = 'welcome' | 'conversation' | 'redirecting'
-type Interaction = 'none' | 'mood' | 'courses'
+type Interaction = 'none' | 'teacher' | 'mood' | 'courses'
 type Mood = 'excellent' | 'good' | 'tired'
+
+interface TeacherProfile {
+  slug: string
+  label: string
+  description: string
+}
 
 interface StartPageClientProps {
   courses: Course[]
   direction: Direction
+  isNewUser: boolean
 }
 
 const START_COPY = {
@@ -28,10 +37,13 @@ const START_COPY = {
       'שיעורים אינטראקטיביים, תרגול מונחה, תשובות מיידיות לפענוח שאלות שלך, הכוונה למבחנים - הכל במקום אחד.',
     start: 'להתחיל ללמוד',
     intro: 'נעים מאוד! אני Aguy, מורה פרטי למתמטיקה',
+    teacherQuestion: 'בחר את המורה שלך:',
+    teacherSelected: 'בחרת את {teacher}',
     moodQuestion: 'איך את/ה היום?',
     courseQuestion: 'איזה כיתה/שאלון את/ה לומד/ת?',
     selected: 'בואו נתחיל!',
     noCourses: 'אין כרגע קורסים זמינים בשפה שנבחרה.',
+    noTeacherProfiles: 'אין מורים זמינים כרגע.',
     courseFallback: 'קורס',
     openingCourse: 'פותח את הקורס...',
     redirecting: 'מעביר אותך אל',
@@ -65,10 +77,13 @@ const START_COPY = {
       'Interactive lessons, guided practice, instant help with questions, and exam preparation in one place.',
     start: 'Start learning',
     intro: 'Nice to meet you. I am Aguy, your private math tutor.',
+    teacherQuestion: 'Choose your teacher:',
+    teacherSelected: 'You selected {teacher}',
     moodQuestion: 'How are you feeling today?',
     courseQuestion: 'Which grade or exam are you studying for?',
     selected: "Let's begin!",
     noCourses: 'No courses are available in the selected language yet.',
+    noTeacherProfiles: 'No teachers are available right now.',
     courseFallback: 'Course',
     openingCourse: 'Opening the course...',
     redirecting: 'Taking you to',
@@ -102,14 +117,18 @@ const moodOrder: Mood[] = ['excellent', 'good', 'tired']
 export function StartPageClient({ courses, direction }: StartPageClientProps) {
   const locale = useLocale()
   const copy = locale === 'he' ? START_COPY.he : START_COPY.en
-  const [pane, setPane] = useState<Pane>('welcome')
+  const [pane, setPane] = useState<Pane>('conversation')
   const [interaction, setInteraction] = useState<Interaction>('none')
   const [displayedText, setDisplayedText] = useState('')
   const [audioEnabled] = useState(true)
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [selectedMood, setSelectedMood] = useState<Mood>('good')
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
+  const [teacherProfiles, setTeacherProfiles] = useState<TeacherProfile[]>([])
+  const [selectedTeacherProfile, setSelectedTeacherProfile] = useState<TeacherProfile | null>(null)
+  const [showLoginModal, setShowLoginModal] = useState(false)
   const runIdRef = useRef(0)
+  const { user, isLoading: isAuthLoading } = useCurrentUser()
 
   useEffect(() => {
     document.body.classList.add('landing-page')
@@ -171,14 +190,35 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
     [playTone, sleep],
   )
 
+  const fetchTeacherProfiles = useCallback(async () => {
+    try {
+      const res = await fetch('/api/teacher-profiles')
+      if (res.ok) {
+        const data = await res.json()
+        if (data.profiles) {
+          setTeacherProfiles(data.profiles)
+        }
+      }
+    } catch {
+      // profiles remain empty, wizard will skip or show empty state
+    }
+  }, [])
+
   const startConversation = useCallback(async () => {
     setPane('conversation')
     setInteraction('none')
+    await fetchTeacherProfiles()
     await typeText(copy.intro, 40)
     await sleep(900)
-    await typeText(copy.moodQuestion, 45)
-    setInteraction('mood')
-  }, [copy.intro, copy.moodQuestion, sleep, typeText])
+    await typeText(copy.teacherQuestion, 45)
+    setInteraction('teacher')
+  }, [copy.intro, copy.teacherQuestion, fetchTeacherProfiles, sleep, typeText])
+
+  useEffect(() => {
+    if (pane === 'conversation') {
+      startConversation()
+    }
+  }, [pane, startConversation])
 
   const selectMood = useCallback(
     async (mood: Mood) => {
@@ -191,6 +231,56 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
       setInteraction('courses')
     },
     [copy.courseQuestion, copy.moods, playTone, sleep, typeText],
+  )
+
+  const saveTeacherProfile = useCallback(async (slug: string) => {
+    try {
+      const res = await fetch('/api/user-settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ teacherProfileSlug: slug }),
+      })
+      if (!res.ok) {
+        // Fallback to localStorage for guest users
+        if (typeof window !== 'undefined') {
+          try {
+            const existing = localStorage.getItem('a-guy:user-profile')
+            const profile = existing ? JSON.parse(existing) : {}
+            profile.teacherProfileSlug = slug
+            localStorage.setItem('a-guy:user-profile', JSON.stringify(profile))
+          } catch {
+            // localStorage not available
+          }
+        }
+      }
+    } catch {
+      // network error, try localStorage fallback
+      if (typeof window !== 'undefined') {
+        try {
+          const existing = localStorage.getItem('a-guy:user-profile')
+          const profile = existing ? JSON.parse(existing) : {}
+          profile.teacherProfileSlug = slug
+          localStorage.setItem('a-guy:user-profile', JSON.stringify(profile))
+        } catch {
+          // localStorage not available
+        }
+      }
+    }
+  }, [])
+
+  const selectTeacher = useCallback(
+    async (teacher: TeacherProfile) => {
+      setSelectedTeacherProfile(teacher)
+      setInteraction('none')
+      playTone(580, 120)
+      const response = copy.teacherSelected.replace('{teacher}', teacher.label)
+      await typeText(response, 45)
+      await saveTeacherProfile(teacher.slug)
+      await sleep(900)
+      await typeText(copy.moodQuestion, 45)
+      setInteraction('mood')
+    },
+    [copy.teacherSelected, copy.moodQuestion, playTone, saveTeacherProfile, sleep, typeText],
   )
 
   const selectCourse = useCallback(
@@ -206,12 +296,20 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
       playTone(580, 120)
       await typeText(copy.selected, 50)
       await sleep(900)
+
+      const isAnonymous = !user && !isAuthLoading
+      if (isAnonymous) {
+        setPane('redirecting')
+        setShowLoginModal(true)
+        return
+      }
+
       setPane('redirecting')
       window.setTimeout(() => {
         window.location.assign(getCourseHref(course))
       }, 800)
     },
-    [copy.selected, playTone, selectedMood, sleep, typeText],
+    [copy.selected, isAuthLoading, playTone, selectedMood, sleep, typeText, user],
   )
 
   return (
@@ -229,7 +327,6 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
         </div>
 
         <section className="flex flex-1 items-center justify-center px-4 py-section-xs">
-          {pane === 'welcome' && <WelcomePane copy={copy} onStart={startConversation} />}
           {pane === 'conversation' && (
             <ConversationPane
               copy={copy}
@@ -238,8 +335,11 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
               interaction={interaction}
               isSpeaking={isSpeaking}
               selectedCourse={selectedCourse}
+              teacherProfiles={teacherProfiles}
+              selectedTeacherProfile={selectedTeacherProfile}
               onSelectCourse={selectCourse}
               onSelectMood={selectMood}
+              onSelectTeacher={selectTeacher}
             />
           )}
           {pane === 'redirecting' && (
@@ -249,38 +349,12 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
 
         <StartFooter activeIndex={paneToIndex(pane)} copy={copy} />
       </div>
-    </main>
-  )
-}
 
-function WelcomePane({
-  copy,
-  onStart,
-}: {
-  copy: (typeof START_COPY)['he'] | (typeof START_COPY)['en']
-  onStart: () => void
-}) {
-  return (
-    <div className="mx-auto max-w-4xl text-center">
-      <div className="mb-8 inline-flex items-center gap-content-gap-xs rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-body-sm font-extrabold text-primary">
-        <span className="h-2 w-2 rounded-full bg-primary" />
-        {copy.badge}
-      </div>
-      <h1 className="mb-6 text-display-lg font-extrabold leading-tight text-foreground md:text-display-xl">
-        {copy.headline}
-      </h1>
-      <p className="mx-auto mb-10 max-w-2xl text-body-lg font-medium leading-relaxed text-muted-foreground md:text-heading-xl">
-        {copy.subtitle}
-      </p>
-      <button
-        type="button"
-        onClick={onStart}
-        className="inline-flex h-14 items-center gap-3 rounded-xl bg-primary px-9 text-body-lg font-extrabold text-primary-foreground shadow-elevation-3 transition-all duration-normal hover:bg-primary/90 active:scale-[0.98]"
-      >
-        <Play className="h-5 w-5 fill-current" aria-hidden />
-        {copy.start}
-      </button>
-    </div>
+      <OnboardingCompleteLoginModal
+        isOpen={showLoginModal}
+        returnTo={selectedCourse ? getCourseHref(selectedCourse) : '/courses'}
+      />
+    </main>
   )
 }
 
@@ -291,8 +365,11 @@ function ConversationPane({
   interaction,
   isSpeaking,
   selectedCourse,
+  teacherProfiles,
+  selectedTeacherProfile,
   onSelectMood,
   onSelectCourse,
+  onSelectTeacher,
 }: {
   copy: (typeof START_COPY)['he'] | (typeof START_COPY)['en']
   courses: Course[]
@@ -300,8 +377,11 @@ function ConversationPane({
   interaction: Interaction
   isSpeaking: boolean
   selectedCourse: Course | null
+  teacherProfiles: TeacherProfile[]
+  selectedTeacherProfile: TeacherProfile | null
   onSelectMood: (mood: Mood) => void
   onSelectCourse: (course: Course) => void
+  onSelectTeacher: (teacher: TeacherProfile) => void
 }) {
   return (
     <div className="mx-auto w-full max-w-5xl">
@@ -335,6 +415,14 @@ function ConversationPane({
           interaction === 'none' ? 'opacity-0' : 'opacity-100',
         )}
       >
+        {interaction === 'teacher' ? (
+          <TeacherGrid
+            copy={copy}
+            teacherProfiles={teacherProfiles}
+            selectedTeacherProfile={selectedTeacherProfile}
+            onSelectTeacher={onSelectTeacher}
+          />
+        ) : null}
         {interaction === 'mood' ? <MoodGrid copy={copy} onSelectMood={onSelectMood} /> : null}
         {interaction === 'courses' ? (
           <CourseGrid
@@ -363,7 +451,7 @@ function MoodGrid({
           key={mood}
           type="button"
           onClick={() => onSelectMood(mood)}
-          className="flex flex-col items-center rounded-2xl border border-border bg-card p-5 text-center shadow-elevation-1 transition-all duration-normal hover:-translate-y-0.5 hover:border-primary/50"
+          className="flex flex-col items-center rounded-2xl border border-border bg-card p-5 text-center shadow-elevation-1 transition-transform duration-normal hover:-translate-y-0.5 hover:border-primary/50"
         >
           <span className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-heading-md">
             {copy.moods[mood].emoji}
@@ -406,7 +494,7 @@ function CourseGrid({
           type="button"
           onClick={() => onSelectCourse(course)}
           className={cn(
-            'relative min-h-32 rounded-xl border border-border bg-card p-card-padding-sm text-start shadow-elevation-1 transition-all duration-normal hover:-translate-y-0.5 hover:border-primary/50',
+            'relative min-h-32 rounded-xl border border-border bg-card p-card-padding-sm text-start shadow-elevation-1 transition-transform duration-normal hover:-translate-y-0.5 hover:border-primary/50',
             selectedCourse?.id === course.id && 'border-primary',
           )}
         >
@@ -419,6 +507,51 @@ function CourseGrid({
           {course.description ? (
             <span className="mt-2 line-clamp-2 block text-body-xs text-muted-foreground">
               {stripHtml(course.description)}
+            </span>
+          ) : null}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function TeacherGrid({
+  copy,
+  teacherProfiles,
+  selectedTeacherProfile,
+  onSelectTeacher,
+}: {
+  copy: (typeof START_COPY)['he'] | (typeof START_COPY)['en']
+  teacherProfiles: TeacherProfile[]
+  selectedTeacherProfile: TeacherProfile | null
+  onSelectTeacher: (teacher: TeacherProfile) => void
+}) {
+  if (teacherProfiles.length === 0) {
+    return (
+      <div className="mx-auto flex max-w-md flex-col items-center gap-content-gap rounded-2xl border border-border bg-card p-card-padding text-center text-body-md text-muted-foreground">
+        <p>{copy.noTeacherProfiles}</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="mx-auto grid max-w-4xl grid-cols-1 gap-3 md:grid-cols-2">
+      {teacherProfiles.map((teacher) => (
+        <button
+          key={teacher.slug}
+          type="button"
+          onClick={() => onSelectTeacher(teacher)}
+          className={cn(
+            'min-h-24 rounded-xl border border-border bg-card p-card-padding-sm text-start shadow-elevation-1 transition-transform duration-normal hover:-translate-y-0.5 hover:border-primary/50',
+            selectedTeacherProfile?.slug === teacher.slug && 'border-primary',
+          )}
+        >
+          <span className="block text-heading-sm font-extrabold text-card-foreground">
+            {teacher.label}
+          </span>
+          {teacher.description ? (
+            <span className="mt-2 line-clamp-2 block text-body-xs text-muted-foreground">
+              {teacher.description}
             </span>
           ) : null}
         </button>
