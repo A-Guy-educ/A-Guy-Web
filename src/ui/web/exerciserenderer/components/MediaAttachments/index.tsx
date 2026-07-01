@@ -16,10 +16,6 @@ function isImageType(media: Media): boolean {
   return media.type === 'image' || media.type === 'svg'
 }
 
-function isSvgMedia(media: Media): boolean {
-  return media.type === 'svg' || media.mimeType === 'image/svg+xml'
-}
-
 function isVideoType(media: Media): boolean {
   return media.type === 'video'
 }
