@@ -1,5 +1,5 @@
 /**
- * Module-scope cache of the currently-published `interactive_lesson` prompt.
+ * Module-scope cache of the published `interactive_lesson` prompt (30s TTL)
  *
  * @ai-summary Lives at module scope — each serverless instance has its own cache; the 30s TTL means a prompt edit on instance A is not visible on instance B for up to 30s. The Prompts afterChange hook invalidates eagerly only within the same instance. The afterChange/afterDelete hook in the Prompts collection calls invalidatePublishedInteractiveLessonPrompt() to drop the cache eagerly. Without this, a 30s TTL means admin edits take up to 30s to propagate. Each serverless instance has its own copy — edits on one instance don't auto-evict other instances' caches within the TTL window.
  *
@@ -15,6 +15,7 @@
  * within a single instance. With a 30s TTL, the worst-case window where a
  * non-edit-source instance is still serving the stale prompt id is 30s,
  * which is acceptable for a feature where lesson generation is rare.
+ * Short-TTL memoization avoids a DB round-trip on every cached-lesson read. Negative caching (null = no prompt) is also cached. The 30s TTL bounds staleness — each serverless instance has its own copy; edits on one instance don't auto-evict other instances' caches within the TTL window. invalidatePublishedInteractiveLessonPrompt() exists for manual use but has no hook wiring it.
  */
 
 import type { Payload } from '@/infra/types/backend'
@@ -81,9 +82,9 @@ export async function getPublishedInteractiveLessonPrompt(
 }
 
 /**
- * Drop the cached prompt — fired by the Prompts collection's afterChange /
- * afterDelete hook so admin edits are visible to the next request without
- * waiting out the TTL. Safe to call when no entry is cached.
+ * Drop the cached prompt. Exists for manual use — there is no hook that
+ * automatically calls this; the 30s TTL is the only invalidation mechanism.
+ * Safe to call when no entry is cached.
  */
 export function invalidatePublishedInteractiveLessonPrompt(): void {
   cache = null

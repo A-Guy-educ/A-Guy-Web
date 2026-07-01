@@ -1,8 +1,10 @@
 /**
- * Context Policy Module
- * Deterministic prompt composition for AI chat
+ * Deterministic prompt composition policy
  *
  * @ai-summary composePrompt() is the only function that assembles a prompt; its fixed order (system → summary → memory → messages) is a contract — violating it breaks context windows and memory injection. Strict order: system > summary > memory > recent messages. Inserting content at a different position changes prompt semantics and may degrade quality. recentWindowSize=20, memoryTopK=8, summaryThreshold=40. Do not reorder or insert ad-hoc sections without a version bump.
+ *
+ * @fileType implementation
+ * @domain ai
  *
  * Policy V1 Contract:
  * 1. System message (static)

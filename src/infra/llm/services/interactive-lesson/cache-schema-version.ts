@@ -1,8 +1,7 @@
 /**
- * Version of the cached InteractiveLesson payload shape stored in the
- * `interactive_lessons` collection.
+ * Schema version constant for cached InteractiveLesson payloads
  *
- * @ai-summary Bump this value when the InteractiveLesson shape changes; stale cached lessons are evicted on READ, not on write, so an old cached row served before the bump will crash the client converter. Bump this string when the InteractiveLesson/InteractiveLessonStep shape changes — mismatched rows are evicted on read and regenerated. Prompt template changes do NOT need a bump (they're tracked by promptId + updatedAt separately). A new optional field doesn't need a bump if the converter tolerates its absence.
+ * @ai-summary Bump this value when the InteractiveLesson shape changes; stale cached lessons are evicted on READ, not on write, so an old cached row served before the bump will crash the client converter. Bump this string when the InteractiveLesson/InteractiveLessonStep shape changes — mismatched rows are evicted on read and regenerated. Prompt template changes do NOT need a bump (they're tracked by promptId + updatedAt separately). A new optional field doesn't need a bump if the converter tolerates its absence. Bump when the InteractiveLesson/InteractiveLessonStep shape changes in ways that break the client converter or renderer — older cached rows with mismatched versions are evicted on read and regenerated. Prompt template changes do NOT need a bump (tracked by promptId + updatedAt separately); neither do new optional fields the converter tolerates.
  *
  * BUMP this value any time the cached lesson JSON shape changes in a way
  * that would break the client converter (`interactiveLessonToGuidedExplanation`)

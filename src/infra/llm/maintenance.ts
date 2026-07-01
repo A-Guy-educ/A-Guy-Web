@@ -1,8 +1,10 @@
 /**
- * Summary Maintenance Service
- * Manages conversation compression and message trimming
+ * Conversation summary maintenance
  *
- * @ai-summary Runs AFTER the chat response is already sent to the user — failures are silent and do not affect the response. Thresholds: normal at 40 messages, safety cutoff at 80. After summarization, older messages are permanently deleted from the conversation (only the last 20 remain). This is irreversible — if summarization fails mid-write, some messages could be lost. Throws on failure instead of returning an error sentinel — callers must wrap in try/catch; failures during maintenance do not break the chat response but will leave the conversation in an unmaintained state.
+ * @ai-summary Runs AFTER the chat response is already sent to the user — failures are silent and do not affect the response. Thresholds: normal at 40 messages, safety cutoff at 80. After summarization, older messages are permanently deleted from the conversation (only the last 20 remain). This is irreversible — if summarization fails mid-write, some messages could be lost. Triggers at >40 messages (or >80 as a safety cutoff). Summarizes all but the last 20 messages, then replaces the conversation's message array with the window. Failures are non-fatal — maintenance errors don't break the chat. Throws on failure instead of returning an error sentinel — callers must wrap in try/catch; failures during maintenance do not break the chat response but will leave the conversation in an unmaintained state.
+ *
+ * @fileType service
+ * @domain ai
  *
  * Key Features:
  * - Automatic triggering based on message count thresholds

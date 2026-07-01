@@ -1,10 +1,10 @@
 /**
  * AI Service Layer - Public API
- * Centralized exports for all AI functionality
  *
- * @fileType module
+ * @ai-summary Entry point for all AI services in the infra layer. Import from here rather than reaching into submodules — this is the stable public contract. Submodule imports may shift as the codebase evolves. Single import point for all LLM functionality; abstracts provider switching and shields callers from genkit internals. Centralizes all AI functionality (LLM chat, embeddings, vector search, lesson generation). Exists so callers import from one place — new sub-modules must add their exports here to be accessible.
+ *
+ * @fileType index
  * @domain ai
- * @ai-summary Entry point for all AI services in the infra layer. Import from here rather than reaching into submodules — this is the stable public contract. Submodule imports may shift as the codebase evolves. Single import point for all LLM functionality; abstracts provider switching and shields callers from genkit internals.
  *
  * Future-ready: Easy to extend with new features like:
  * - Exercise editing suggestions
