@@ -224,7 +224,8 @@
     "languageSwitcher": {
       "label": "Language",
       "english": "English",
-      "hebrew": "Hebrew"
+      "hebrew": "Hebrew",
+      "fallbackNotice": "This content is not available in English yet."
     },
     "mobileMenu": {
       "title": "Menu",
@@ -279,7 +280,7 @@
       "headingBold": "Hello,",
       "headingRest": "Ready to Succeed?",
       "quickLogin": "Quick Login",
-      "freeRegistration": "Free Registration",
+      "loginFreeOfCharge": "Login to the system — free of charge",
       "secureAccess": "Fast and secure access.",
       "oneClickEntry": "One click and you're in.",
       "needHelp": "Need help?",
@@ -343,7 +344,7 @@
         "description": "You haven't made any purchases. Browse our products to get started.",
         "cta": "Browse Products"
       },
-      "backToPurchases": "Back to Purchases",
+      "backToPurchases": "back to purchases",
       "purchasedOn": "Purchased on",
       "amount": "Amount",
       "provider": "Provider",
@@ -400,8 +401,9 @@
     "liveContent": "New content added regularly",
     "featuredTitle": "Featured Courses",
     "featuredDescription": "Hand-picked courses to help you on your learning journey.",
-    "backToCourses": "Back to Courses",
-    "backToChapter": "Back to Chapter",
+    "backToCourses": "back to courses",
+    "backToChapter": "back to chapter",
+    "back": "back",
     "openCourse": "Open Course",
     "viewChapter": "View Chapter",
     "viewLesson": "View Lesson",
@@ -433,7 +435,7 @@
     "trueFalseBadge": "True/False",
     "freeResponseBadge": "Free Response",
     "notFound": "Not Found",
-    "backToLesson": "Back to Lesson",
+    "backToLesson": "back to lesson",
     "exerciseTitle": "Exercise",
     "submitAnswer": "Submit Answer",
     "checkAnswer": "Check Answer",
@@ -528,6 +530,8 @@
     "selectBadge": "Select",
     "of": "of",
     "pages": "Pages",
+    "contentPageLabel": "Page",
+    "contentPageNoBody": "This page has no content yet.",
     "exercisesPagerIntroDescriptionPart1": "This lesson contains",
     "exercisesPagerIntroDescriptionPart2": "exercises. Let's begin!",
     "exercisesPagerWelcome": "Welcome to the Lesson",
@@ -539,18 +543,19 @@
     "exercisesPagerNext": "Next",
     "exercisesPagerIntro": "Intro",
     "exercisesPagerCompleted": "Completed",
+    "exercisesPagerJumpToExercise": "Jump to exercise number",
     "lessonSummaryEndTitle": "End of lesson",
     "lessonSummarySolvedExercises": "Exercises solved",
     "lessonSummaryCorrectAnswers": "Correct answers",
     "lessonSummaryScore": "Score",
     "lessonSummaryNextLesson": "Continue to next lesson",
-    "lessonSummaryBackToCourse": "Back to course",
+    "lessonSummaryBackToCourse": "back to course",
     "lessonSummaryRetry": "Try again",
     "pdfLessonPagerIntroDescriptionPart1": "This lesson contains",
     "pdfLessonPagerIntroDescriptionPart2": "documents. Let's begin!",
     "pdfLessonPagerDocuments": "documents",
     "pdfLessonPagerCompletedDescription": "You've reviewed all documents for this lesson.",
-    "exercisesPagerBackToLesson": "Back to Lesson",
+    "exercisesPagerBackToLesson": "back to lesson",
     "startLesson": "Start Lesson",
     "lessonIntro": "Intro",
     "lessonIntroWelcome": "Welcome to the Lesson",
@@ -565,6 +570,7 @@
     "lessonLobbyComplete": "You completed this lesson.",
     "lessonLobbyNoProgress": "No progress yet",
     "lessonLobbyNextLesson": "Next lesson",
+    "lessonLobbyPrerequisites": "Recommended prerequisites",
     "soonBadge": "Soon",
     "justAddedBadge": "New",
     "contentLocked": "This content is being prepared and will be available soon.",
@@ -622,7 +628,7 @@
       "generationFailedFallback": "You can still ask questions about this image in the chat — your tutor sees the same picture.",
       "tryAgain": "Try again",
       "askInChatHint": "Or just ask in chat",
-      "backToUpload": "Back to exercise",
+      "backToUpload": "back to exercise",
       "resumeLesson": "Resume video",
       "startOver": "Start over",
       "player": {
@@ -663,18 +669,8 @@
     "browseCourses": "Browse Courses",
     "paidTitle": "Premium Content",
     "paidNotLoggedIn": "Please sign in to access this content.",
-    "paidNoEntitlement": "This content requires a purchase. Enter an access code below or contact your administrator.",
-    "codePlaceholder": "Enter access code",
-    "codeSubmit": "Redeem Code",
-    "codeSubmitting": "Redeeming...",
-    "codeInvalid": "Invalid access code.",
-    "codeInactive": "This code is no longer active.",
-    "codeExpired": "This code has expired.",
-    "codeExhausted": "This code has reached its usage limit.",
-    "codeAlreadyUsed": "You already have access to this course.",
-    "codeError": "Something went wrong. Please try again.",
-    "codeSuccessTitle": "Welcome aboard!",
-    "codeSuccessMessage": "How exciting that you signed up! A free month on us."
+    "paidNoEntitlement": "Access to this course requires a purchase. Head to the store to enroll.",
+    "goToStore": "Go to Store"
   },
   "study": {
     "loading": "Loading...",
@@ -682,6 +678,7 @@
     "noCoursesAvailable": "No courses available",
     "studyTopics": "Study Topics",
     "noTopicsAvailable": "No topics available in this course",
+    "noTopicsAvailableSub": "Check back later for new content",
     "continueLearning": "Continue learning",
     "continue": "Continue"
   },
@@ -814,7 +811,7 @@
     }
   },
   "shop": {
-    "backToLearning": "Back to Learning",
+    "backToLearning": "back to learning",
     "title": "Course Store",
     "subtitle": "Choose the plan that suits you and advance to success in mathematics.",
     "membershipPlans": "Membership Plans",
@@ -954,7 +951,19 @@
     "perYear": "per year",
     "includedItems": "What&apos;s Included",
     "items": {
-      "unnamed": "Unnamed item"
+      "unnamed": "Unnamed item",
+      "periods": {
+        "day": "per day",
+        "lifetime": "for life"
+      },
+      "featureKeys": {
+        "live-sessions": "Live Sessions",
+        "download-resources": "Downloadable Resources",
+        "certificate": "Certificate",
+        "priority-support": "Priority Support",
+        "analytics": "Analytics Dashboard",
+        "group-access": "Group Access"
+      }
     },
     "buyButton": "Buy Now",
     "loginToBuy": "Log in to Buy",
@@ -990,7 +999,9 @@
       "paymentFailed": "Payment Failed",
       "paymentFailedDescription": "Your payment could not be processed. Please try again or contact support.",
       "backToProducts": "Browse Products",
-      "goHome": "Go to Home"
+      "goHome": "Go to Home",
+      "goToCourse": "Go to {course}",
+      "grantingAccess": "Granting access…"
     },
     "cancel": {
       "title": "Payment Cancelled",
@@ -998,6 +1009,84 @@
       "productLabel": "Product you were purchasing: {product}",
       "backToProduct": "Try Again",
       "browseProducts": "Browse All Products"
+    }
+  },
+  "legal": {
+    "termsOfService": "Terms of Service",
+    "privacyPolicy": "Privacy Policy",
+    "cancellationRefund": "Cancellation & Refunds",
+    "aiUsageStatement": "AI Usage Statement"
+  },
+  "prep7": {
+    "hero": {
+      "title": "This time! To arrive prepared",
+      "subtitle": "Complete preparation for 7th grade mathematics with personalized learning, practice exercises, and full support.",
+      "registerCta": "Register for course",
+      "trialCta": "Trial and purchase"
+    },
+    "whoIsAguy": {
+      "title": "Who is Aguy?",
+      "description": "Aguy is your personal digital math teacher, built on 20+ years of teaching experience. The platform provides personalized learning that adapts to your pace, identifies gaps, and ensures you arrive to 7th grade fully prepared.",
+      "stats": {
+        "experience": {
+          "value": "20+",
+          "label": "years of experience"
+        },
+        "students": {
+          "value": "10K+",
+          "label": "students taught"
+        }
+      }
+    },
+    "courseFeatures": {
+      "title": "What does the course include?",
+      "description": "Everything you need to succeed in 7th grade mathematics.",
+      "items": {
+        "lessons": {
+          "title": "50 lesson plans",
+          "description": "Precise and accurate lessons covering all 7th grade topics."
+        },
+        "practice": {
+          "title": "30 practice lessons",
+          "description": "Extensive practice to sharpen your skills."
+        },
+        "exams": {
+          "title": "10 simulation exams",
+          "description": "Real exam conditions to test your knowledge."
+        },
+        "support": {
+          "title": "Full support",
+          "description": "AI tutor available for every lesson."
+        }
+      }
+    },
+    "benefits": {
+      "title": "Early bird offer!",
+      "description": "Sign up now and receive 100₪ off the course price.",
+      "discount": "100₪ off",
+      "deadline": "Offer valid until July 20",
+      "cta": "Register for course"
+    },
+    "bonuses": {
+      "title": "Free bonuses",
+      "description": "Even more reasons to join our community.",
+      "items": {
+        "whatsapp": {
+          "title": "WhatsApp group",
+          "description": "Direct connection for questions and updates."
+        },
+        "sessions": {
+          "title": "Open sessions",
+          "description": "Live sessions with the teacher."
+        },
+        "boost": {
+          "title": "Live boost sessions",
+          "description": "Intensive sessions before exams."
+        }
+      }
+    },
+    "footer": {
+      "copyright": "© 2024 Aguy. All rights reserved."
     }
   }
 }
