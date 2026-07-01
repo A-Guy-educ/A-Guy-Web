@@ -1,9 +1,36 @@
 import katex from 'katex'
-import { preprocessHtmlMath } from './preprocessHtmlMath'
 
-const TEXT_NODE = 4
 const MATH_RE = /(?<!\\)\$\$([\s\S]+?)\$\$(?!\d)|(?<!\\)\$([^$\n]+?)\$(?!\d)/g
-const SKIP_SELECTOR = 'code, pre, script, style, textarea, .katex'
+const TAG_RE = /<!--[\s\S]*?-->|<!\[CDATA\[[\s\S]*?\]\]>|<!doctype\b[^>]*>|<\/?[A-Za-z][^>]*>/gi
+const DOLLAR_ENTITY_RE = /&(dollar|#36|#x24);/gi
+const SKIP_TAGS = new Set(['code', 'pre', 'script', 'style', 'textarea'])
+const VOID_TAGS = new Set([
+  'area',
+  'base',
+  'br',
+  'col',
+  'embed',
+  'hr',
+  'img',
+  'input',
+  'link',
+  'meta',
+  'param',
+  'source',
+  'track',
+  'wbr',
+])
+
+const DECIMAL = String.raw`-?(?:\d+(?:[.,]\d+)?|\d*[.,]\d+)`
+const FRACTION = String.raw`-?\d+(?:[.,]\d+)?\s*[\/÷]\s*-?\d+(?:[.,]\d+)?`
+const POWER = String.raw`${DECIMAL}\s*\^[^{}\s<]+`
+const ARITHMETIC = String.raw`${DECIMAL}(?:\s*[\+\-\*×÷]\s*${DECIMAL})(?:[\s ‏]*[=<>≤≥]\s*${DECIMAL})?(?:\s*[\+\-\*×÷]\s*${DECIMAL})*`
+const BARE_MATH_RE = new RegExp(`(^|[\\s ‏])(${FRACTION}|${POWER}|${ARITHMETIC})`, 'g')
+
+type StackEntry = {
+  name: string
+  skip: boolean
+}
 
 function wrapInline(rendered: string): string {
   return `<span dir="ltr" class="isolate inline-block align-middle">${rendered}</span>`
@@ -35,20 +62,22 @@ function renderMath(source: string, displayMode: boolean): string | null {
   return displayMode ? wrapDisplay(rendered) : wrapInline(rendered)
 }
 
-function appendHtml(fragment: DocumentFragment, doc: Document, html: string): void {
-  const template = doc.createElement('template')
-  template.innerHTML = html
-  fragment.append(template.content.cloneNode(true))
+function renderBareMathInText(text: string): string {
+  BARE_MATH_RE.lastIndex = 0
+  return text.replace(BARE_MATH_RE, (match, prefix: string, source: string) => {
+    const rendered = renderMath(source, false)
+    return rendered ? `${prefix}${rendered}` : match
+  })
 }
 
-function renderMathInTextNode(textNode: Text, doc: Document): void {
-  const original = textNode.textContent ?? ''
+function renderMathInText(text: string): string {
+  const original = text.replace(DOLLAR_ENTITY_RE, '$')
   MATH_RE.lastIndex = 0
 
   let match: RegExpExecArray | null
   let lastIndex = 0
   let changed = false
-  const fragment = doc.createDocumentFragment()
+  let renderedText = ''
 
   while ((match = MATH_RE.exec(original))) {
     const [raw, display, inline] = match
@@ -57,16 +86,56 @@ function renderMathInTextNode(textNode: Text, doc: Document): void {
 
     if (!rendered) continue
 
-    fragment.append(doc.createTextNode(original.slice(lastIndex, match.index)))
-    appendHtml(fragment, doc, rendered)
+    renderedText += renderBareMathInText(original.slice(lastIndex, match.index))
+    renderedText += rendered
     lastIndex = match.index + raw.length
     changed = true
   }
 
-  if (!changed) return
+  if (!changed) return renderBareMathInText(original)
 
-  fragment.append(doc.createTextNode(original.slice(lastIndex)))
-  textNode.replaceWith(fragment)
+  renderedText += renderBareMathInText(original.slice(lastIndex))
+  return renderedText
+}
+
+function extractBodyHtml(html: string): string {
+  const bodyMatch = /<body\b[^>]*>([\s\S]*?)<\/body\s*>/i.exec(html)
+  if (bodyMatch) return bodyMatch[1] ?? ''
+
+  return html
+    .replace(/^\s*<!doctype\b[^>]*>\s*/i, '')
+    .replace(/^\s*<html\b[^>]*>\s*/i, '')
+    .replace(/\s*<\/html\s*>\s*$/i, '')
+}
+
+function getTagName(tag: string): string | null {
+  const match = /^<\/?\s*([A-Za-z][\w:-]*)/.exec(tag)
+  return match?.[1]?.toLowerCase() ?? null
+}
+
+function hasKatexClass(tag: string): boolean {
+  const match = /\sclass\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i.exec(tag)
+  const className = match?.[1] ?? match?.[2] ?? match?.[3] ?? ''
+  return className.split(/\s+/).includes('katex')
+}
+
+function closesTag(tag: string): boolean {
+  return /^<\s*\//.test(tag)
+}
+
+function selfClosesTag(tag: string, name: string): boolean {
+  return VOID_TAGS.has(name) || /\/\s*>$/.test(tag)
+}
+
+function closeStackEntry(stack: StackEntry[], name: string): void {
+  for (let index = stack.length - 1; index >= 0; index -= 1) {
+    const entry = stack.pop()
+    if (entry?.name === name) return
+  }
+}
+
+function isSkippingText(stack: StackEntry[]): boolean {
+  return stack.some((entry) => entry.skip)
 }
 
 /**
@@ -78,22 +147,32 @@ function renderMathInTextNode(textNode: Text, doc: Document): void {
 export function renderAdminHtmlWithMath(html: string): string {
   if (!html?.trim()) return ''
 
-  const preprocessed = preprocessHtmlMath(html)
-  const doc = new DOMParser().parseFromString(preprocessed, 'text/html')
-  const walker = doc.createTreeWalker(doc.body, TEXT_NODE)
-  const textNodes: Text[] = []
+  const source = extractBodyHtml(html)
+  const stack: StackEntry[] = []
+  let result = ''
+  let lastIndex = 0
+  let match: RegExpExecArray | null
 
-  let node = walker.nextNode()
-  while (node) {
-    textNodes.push(node as Text)
-    node = walker.nextNode()
+  TAG_RE.lastIndex = 0
+  while ((match = TAG_RE.exec(source))) {
+    const tag = match[0]
+    const text = source.slice(lastIndex, match.index)
+    result += isSkippingText(stack) ? text : renderMathInText(text)
+    result += tag
+
+    const name = getTagName(tag)
+    if (name) {
+      if (closesTag(tag)) {
+        closeStackEntry(stack, name)
+      } else if (!selfClosesTag(tag, name)) {
+        stack.push({ name, skip: SKIP_TAGS.has(name) || hasKatexClass(tag) })
+      }
+    }
+
+    lastIndex = match.index + tag.length
   }
 
-  for (const textNode of textNodes) {
-    const parent = textNode.parentElement
-    if (!parent || parent.closest(SKIP_SELECTOR)) continue
-    renderMathInTextNode(textNode, doc)
-  }
-
-  return doc.body.innerHTML
+  const tail = source.slice(lastIndex)
+  result += isSkippingText(stack) ? tail : renderMathInText(tail)
+  return result
 }

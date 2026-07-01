@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { renderAdminHtmlWithMath } from '@/infra/utils/renderAdminHtmlWithMath'
 
 describe('renderAdminHtmlWithMath', () => {
@@ -11,6 +11,14 @@ describe('renderAdminHtmlWithMath', () => {
     expect(result).toContain('dir="ltr"')
     expect(result).toContain('isolate')
     expect(result).not.toContain('$x^2+4x$')
+  })
+
+  it('renders encoded dollar delimiters from admin HTML as KaTeX', () => {
+    const result = renderAdminHtmlWithMath('<p>The equation is &#36;x^2+4x&#36;.</p>')
+
+    expect(result).toContain('class="katex"')
+    expect(result).not.toContain('$x^2+4x$')
+    expect(result).not.toContain('&#36;x^2+4x&#36;')
   })
 
   it('renders display math inside admin HTML as KaTeX display mode', () => {
@@ -47,5 +55,19 @@ describe('renderAdminHtmlWithMath', () => {
 
     expect(result).toContain('class="katex"')
     expect(result).not.toContain('0.1 + 0.2</p>')
+  })
+
+  it('does not require browser DOM globals', () => {
+    vi.stubGlobal('DOMParser', undefined)
+    vi.stubGlobal('document', undefined)
+
+    try {
+      const result = renderAdminHtmlWithMath('<p>The equation is $x^2+4x$.</p>')
+
+      expect(result).toContain('class="katex"')
+      expect(result).not.toContain('$x^2+4x$')
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 })
