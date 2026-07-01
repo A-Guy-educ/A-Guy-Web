@@ -32,6 +32,7 @@ function rawMarkdownPlugin(): Plugin {
 const activeIntegrationTests = [
   'tests/int/analytics/**/*.int.spec.ts',
   'tests/int/checkAnswer.int.spec.ts',
+  'tests/int/courses-auth-gate-673.int.spec.ts',
   'tests/int/lesson-intro-page.int.spec.ts',
   'tests/int/contracts/answer-spec-*.int.spec.ts',
   'tests/int/contracts/axis-spec.int.spec.ts',

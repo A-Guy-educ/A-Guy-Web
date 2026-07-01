@@ -1,7 +1,10 @@
+import { redirect } from 'next/navigation'
+
 import { getDirection } from '@/i18n/config'
 import { getSystemLocale } from '@/i18n/server-locale'
 import { isValidContentLocale } from '@/infra/types/content'
 import { pageMetadata } from '@/infra/seo/pageMetadata'
+import { getMeUser } from '@/infra/utils/getMeUser'
 import { queryPublishedCourses } from '@/server/repos/queries/courses'
 import { CourseCardGrid } from './_components/CourseCardGrid'
 import { EmptyState } from './_components/EmptyState'
@@ -11,6 +14,11 @@ import { CourseShopHeader } from './_components/CourseShopHeader'
 export const revalidate = 60
 
 export default async function CoursesPage() {
+  const { user } = await getMeUser()
+  if (!user) {
+    redirect('/start')
+  }
+
   const locale = await getSystemLocale()
   const contentLocale = isValidContentLocale(locale) ? locale : undefined
   const courses = await queryPublishedCourses(contentLocale)
