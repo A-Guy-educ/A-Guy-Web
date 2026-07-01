@@ -3,6 +3,7 @@
 import React from 'react'
 import { cn } from '@/infra/utils/ui'
 import { getMediaUrl } from '@/infra/utils/getMediaUrl'
+import { isSvgMedia } from '@/infra/utils/isSvgMedia'
 import type { Media } from '@/infra/types/content'
 import { useMediaMap } from '../../context/MediaMapContext'
 
@@ -90,12 +91,13 @@ function MediaItem({ media }: { media: Media }) {
   }
 
   if (isImageType(media)) {
+    const isSvg = isSvgMedia(media)
     return (
       /* eslint-disable-next-line @next/next/no-img-element */
       <img
         src={src}
         alt={media.alt || ''}
-        className="w-full h-auto max-h-96 max-w-full object-contain"
+        className={cn('w-full h-auto max-h-96 max-w-full object-contain', isSvg && 'dark:invert')}
       />
     )
   }
