@@ -7,7 +7,7 @@ import { AxisRenderer, type DisplaySize } from '@/ui/web/exerciserenderer/blocks
 import { GeometryRenderer } from '@/ui/web/exerciserenderer/blocks/GeometryRenderer'
 
 import { LexicalToReact } from './lexicalToReact'
-import { MathMarkdown } from '@/ui/web/shared/MathMarkdown'
+import { htmlWithMath } from './htmlWithMath'
 
 type BodyBlock = Record<string, unknown> & { id?: string; blockType?: string }
 
@@ -23,7 +23,10 @@ function parseJson<T>(value: unknown, fallback: T): T {
 function HtmlBlock({ html }: { html: string }) {
   if (!html?.trim()) return null
   return (
-    <MathMarkdown content={html} className="prose dark:prose-invert max-w-none rich-text-content" />
+    <div
+      className="prose dark:prose-invert max-w-none rich-text-content"
+      dangerouslySetInnerHTML={{ __html: htmlWithMath(html) }}
+    />
   )
 }
 
