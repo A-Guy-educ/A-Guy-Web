@@ -260,6 +260,12 @@ export interface Product {
   description?: string | null
   isActive?: boolean | null
   price?: number | null
+  /**
+   * Pre-discount reference price (in the smallest currency unit, matching
+   * `price`). When set and greater than `price`, the storefront renders the
+   * discounted price alongside a strikethrough original.
+   */
+  originalPrice?: number | null
   currency?: string | null
   billingType?: string | null
   interval?: string | null

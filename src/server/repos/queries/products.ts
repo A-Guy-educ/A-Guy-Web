@@ -29,6 +29,22 @@ export const queryActiveProducts = cache(async (): Promise<Product[]> => {
 })
 
 /**
+ * Products that are not (or not yet) purchasable: either flagged inactive,
+ * or active with no paid price attached. Used for the secondary
+ * "כל הקורסים" grid on /products.
+ */
+export const queryInactiveProducts = cache(async (): Promise<Product[]> => {
+  const products = await findManySerialized<Product>(
+    'products',
+    {
+      $or: [{ isActive: { $ne: true } }, { price: { $in: [null, 0] } }],
+    },
+    { sort: { createdAt: 1 }, limit: 100 },
+  )
+  return products.map(normalizeProduct)
+})
+
+/**
  * Walks a product's `contents` blocks, collects all referenced course + feature
  * IDs, fetches them in two batched queries, then re-attaches the populated
  * docs onto each block. Equivalent of Payload's depth=2 join — needed because
