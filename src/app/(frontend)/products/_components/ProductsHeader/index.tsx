@@ -14,6 +14,11 @@ export function ProductsHeader() {
         <p className="text-body-lg text-muted-foreground max-w-2xl mx-auto mt-6">
           {t('catalogDescription')}
         </p>
+        <div className="mt-6 flex justify-center">
+          <span className="inline-flex items-center gap-2 rounded-full bg-[hsl(var(--badge-orange-bg))] text-[hsl(var(--badge-orange))] border border-[hsl(var(--badge-orange)/0.2)] px-4 py-1.5 text-label font-bold uppercase tracking-wider">
+            {t('popularPill')}
+          </span>
+        </div>
       </div>
     </header>
   )
