@@ -21,7 +21,14 @@ const createRequest = (path: string, host = 'example.com', cookies?: string) => 
 
 describe('Auth Middleware - Learning Feature Protection', () => {
   describe('Protected routes - should redirect to /login when not authenticated', () => {
-    const protectedRoutes = ['/study', '/practice', '/test', '/ask']
+    const protectedRoutes = [
+      '/study',
+      '/practice',
+      '/test',
+      '/ask',
+      '/courses/advanced-math',
+      '/courses/math/chapters/intro/lessons/first-lesson',
+    ]
 
     it.each(protectedRoutes)('should redirect unauthenticated request to %s to /login', (route) => {
       const request = createRequest(route)
@@ -61,6 +68,7 @@ describe('Auth Middleware - Learning Feature Protection', () => {
     const allRoutes = [
       '/',
       '/courses',
+      '/courses/advanced-math',
       '/study',
       '/practice',
       '/test',
@@ -98,17 +106,21 @@ describe('Auth Middleware - Learning Feature Protection', () => {
       const request = createRequest(courseRoute)
       const response = middleware(request)
 
-      expect(response.status).toBe(200)
-      expect(response.headers.get('location')).toBeNull()
+      expect(response.status).toBe(307)
+      expect(response.headers.get('location')).toContain('/login')
+      expect(response.headers.get('location')).toContain(
+        `returnTo=${encodeURIComponent(courseRoute)}`,
+      )
     })
 
-    it('should leave nested course routes to the page-level access gates', () => {
+    it('should redirect anonymous nested course routes to login', () => {
       const route = '/courses/math/chapters/intro/lessons/first-lesson/content/page-1'
       const request = createRequest(route)
       const response = middleware(request)
 
-      expect(response.status).toBe(200)
-      expect(response.headers.get('location')).toBeNull()
+      expect(response.status).toBe(307)
+      expect(response.headers.get('location')).toContain('/login')
+      expect(response.headers.get('location')).toContain(`returnTo=${encodeURIComponent(route)}`)
     })
   })
 })

@@ -147,12 +147,24 @@ describe('Middleware - Locale Routing', () => {
       expect(response.headers.get('location')).toBeNull()
     })
 
-    it('should not apply the course catalog redirect to course detail pages', () => {
-      const request = createRequest('example.com', '/courses/advanced-math')
+    it('should redirect anonymous course detail visitors to /login with returnTo', () => {
+      const path = '/courses/advanced-math?tab=overview'
+      const request = createRequest('example.com', path)
       const response = middleware(request)
 
-      expect(response.status).toBe(200)
-      expect(response.headers.get('location')).toBeNull()
+      expect(response.status).toBe(307)
+      expect(response.headers.get('location')).toContain('/login')
+      expect(response.headers.get('location')).toContain(`returnTo=${encodeURIComponent(path)}`)
+    })
+
+    it('should redirect anonymous nested course route visitors to /login with returnTo', () => {
+      const path = '/courses/math/chapters/intro/lessons/first-lesson'
+      const request = createRequest('example.com', path)
+      const response = middleware(request)
+
+      expect(response.status).toBe(307)
+      expect(response.headers.get('location')).toContain('/login')
+      expect(response.headers.get('location')).toContain(`returnTo=${encodeURIComponent(path)}`)
     })
 
     it('should not let the preview auth bypass expose the anonymous course catalog', () => {
@@ -164,6 +176,22 @@ describe('Middleware - Locale Routing', () => {
 
         expect(response.status).toBe(307)
         expect(response.headers.get('location')).toBe('http://kp-issue-673.fly.dev/start')
+      } finally {
+        process.env.KODY_PREVIEW_AUTH_BYPASS = previous
+      }
+    })
+
+    it('should not let the preview auth bypass expose anonymous course detail pages', () => {
+      const previous = process.env.KODY_PREVIEW_AUTH_BYPASS
+      process.env.KODY_PREVIEW_AUTH_BYPASS = 'true'
+      try {
+        const path = '/courses/advanced-math'
+        const request = createRequest('kp-issue-673.fly.dev', path)
+        const response = middleware(request)
+
+        expect(response.status).toBe(307)
+        expect(response.headers.get('location')).toContain('/login')
+        expect(response.headers.get('location')).toContain(`returnTo=${encodeURIComponent(path)}`)
       } finally {
         process.env.KODY_PREVIEW_AUTH_BYPASS = previous
       }
