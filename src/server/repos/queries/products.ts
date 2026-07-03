@@ -29,6 +29,56 @@ export const queryActiveProducts = cache(async (): Promise<Product[]> => {
 })
 
 /**
+ * Pure helper that partitions products into "active" (payable, big card) and
+ * "soon" (disabled "בקרוב" button) buckets based on the `isActive` boolean.
+ * Extracted so it can be unit-tested without spinning up Mongo — and so the
+ * intent ("active vs soon") is named once in code, not duplicated across the
+ * page and the test.
+ *
+ * Truthiness is explicit: only literal `true` is active. Anything else
+ * (`false`, `null`, `undefined`, missing field) is treated as "soon" so a
+ * freshly-created product with no `isActive` value yet doesn't accidentally
+ * show up as buyable.
+ */
+export function splitProductsByActive(products: Product[]): {
+  active: Product[]
+  soon: Product[]
+} {
+  const active: Product[] = []
+  const soon: Product[] = []
+  for (const product of products) {
+    if (product.isActive === true) {
+      active.push(product)
+    } else {
+      soon.push(product)
+    }
+  }
+  return { active, soon }
+}
+
+export interface ProductsSplit {
+  active: Product[]
+  soon: Product[]
+}
+
+/**
+ * Fetch every product and partition by `isActive`. The store page uses this
+ * to render the active hero card and the disabled "בקרוב" grid in one pass,
+ * instead of issuing two separate queries and racing on the result.
+ *
+ * Sort is stable: active products first by createdAt, then soon products by
+ * createdAt — keeps the rendered order predictable.
+ */
+export const queryAllProductsSplit = cache(async (): Promise<ProductsSplit> => {
+  const products = await findManySerialized<Product>(
+    'products',
+    {},
+    { sort: { createdAt: 1 }, limit: 200 },
+  )
+  return splitProductsByActive(products.map(normalizeProduct))
+})
+
+/**
  * Walks a product's `contents` blocks, collects all referenced course + feature
  * IDs, fetches them in two batched queries, then re-attaches the populated
  * docs onto each block. Equivalent of Payload's depth=2 join — needed because

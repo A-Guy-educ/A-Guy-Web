@@ -35,6 +35,8 @@ export interface UnifiedCardProps {
   subtitle?: ReactNode
   /** CTA button label — if omitted, card links via buttonHref */
   buttonLabel?: string | ReactNode
+  /** Renders the CTA button with the native `disabled` attribute and greyed-out styling. */
+  buttonDisabled?: boolean
   /** Makes entire card a link to this URL */
   buttonHref?: string
   /** Fires on button click. Return false to prevent navigation when buttonHref is set */
@@ -67,6 +69,7 @@ export function UnifiedCard({
   progressLabel,
   subtitle,
   buttonLabel,
+  buttonDisabled,
   buttonHref,
   onButtonClick,
   buttonClassName,
@@ -196,7 +199,10 @@ export function UnifiedCard({
           <div className="border-t border-border/40 pt-4 mt-auto">
             {buttonLabel || buttonHref ? (
               <button
+                disabled={buttonDisabled === true}
+                aria-disabled={buttonDisabled === true || undefined}
                 onClick={() => {
+                  if (buttonDisabled === true) return
                   const shouldNavigate = onButtonClick?.()
                   // Navigate if onButtonClick returned true or if no handler and not locked
                   if (shouldNavigate !== false && !isSoon && buttonHref) {
@@ -206,7 +212,8 @@ export function UnifiedCard({
                 className={cn(
                   'w-full min-h-[44px] rounded-xl text-body-sm font-bold px-6 py-2.5',
                   'bg-muted text-primary hover:bg-primary/5 transition-all duration-normal',
-                  isSoon && 'cursor-not-allowed opacity-50 pointer-events-none',
+                  'disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-muted',
+                  isSoon && 'cursor-not-allowed opacity-60 pointer-events-none',
                   buttonClassName,
                 )}
               >
