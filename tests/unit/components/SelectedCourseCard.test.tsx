@@ -308,7 +308,7 @@ describe('SelectedCourseCard AbortController', () => {
   })
 
   describe('handleRemoveSelection redirect', () => {
-    it('clears the user profile and redirects to /start when "Remove Selection" is clicked', async () => {
+    it('clears the user profile and redirects to /courses when "Remove Selection" is clicked', async () => {
       const mockCourse: Course = {
         id: 'course-1',
         slug: 'grade-8',
@@ -357,7 +357,7 @@ describe('SelectedCourseCard AbortController', () => {
 
       // Must clear stored profile and route to the courses store, not the landing page
       expect(mockClearUserProfile).toHaveBeenCalledTimes(1)
-      expect(mockRouterReplace).toHaveBeenCalledWith('/start')
+      expect(mockRouterReplace).toHaveBeenCalledWith('/courses')
       expect(mockRouterReplace).not.toHaveBeenCalledWith('/')
     })
   })
