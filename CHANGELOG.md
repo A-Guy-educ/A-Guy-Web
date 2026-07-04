@@ -1834,6 +1834,11 @@ _No notable commits since the last release._
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- #725: [Courses] Exams tab doesn't show exam lesson cards ([#726](https://github.com/A-Guy-educ/A-Guy-Web/pull/726)) — @kodyade[bot]
+- #737: [Aguy Chat] Bring Kody-style rich views (approval / selection-lis… ([#739](https://github.com/A-Guy-educ/A-Guy-Web/pull/739)) — @kodyade[bot]
+- #740: dev CI is red — Kody auto-fix ([#741](https://github.com/A-Guy-educ/A-Guy-Web/pull/741)) — @kodyade[bot]
+- promote: dev -> main (v0.26.7) ([#738](https://github.com/A-Guy-educ/A-Guy-Web/pull/738)) — @kodyade[bot]
+- #730: [Onboarding] Google login button inside non-dismissible popup doe… ([#734](https://github.com/A-Guy-educ/A-Guy-Web/pull/734)) — @kodyade[bot]
 - chore: release v0.26.7 ([#732](https://github.com/A-Guy-educ/A-Guy-Web/pull/732)) — @kodyade[bot]
 - #718: /products page — split into big active card + soon grid, status f… ([#720](https://github.com/A-Guy-educ/A-Guy-Web/pull/720)) — @kodyade[bot]
 - #721: dev CI is red — Kody auto-fix ([#723](https://github.com/A-Guy-educ/A-Guy-Web/pull/723)) — @kodyade[bot]
