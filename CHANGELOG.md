@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.26.6 — 2026-07-03
+
+_No notable commits since the last release._
+## v0.26.5 — 2026-07-02
+
+_No notable commits since the last release._
 ## v0.26.4 — 2026-06-30
 
 _No notable commits since the last release._
@@ -1825,6 +1831,19 @@ _No notable commits since the last release._
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- #718: /products page — split into big active card + soon grid, status f… ([#720](https://github.com/A-Guy-educ/A-Guy-Web/pull/720)) — @kodyade[bot]
+- #721: dev CI is red — Kody auto-fix ([#723](https://github.com/A-Guy-educ/A-Guy-Web/pull/723)) — @kodyade[bot]
+- promote: dev -> main (v0.26.6) ([#713](https://github.com/A-Guy-educ/A-Guy-Web/pull/713)) — @kodyade[bot]
+- chore: release v0.26.6 ([#709](https://github.com/A-Guy-educ/A-Guy-Web/pull/709)) — @kodyade[bot]
+- fix(lesson-pager): Memoize resolvedBlocks to stop URL sync render loop ([#712](https://github.com/A-Guy-educ/A-Guy-Web/pull/712)) — @aguyshayb
+- #622: [P2] Posts pagination page crashes with 500 error ([#624](https://github.com/A-Guy-educ/A-Guy-Web/pull/624)) — @kodyade[bot]
+- promote: dev -> main (v0.26.5) ([#700](https://github.com/A-Guy-educ/A-Guy-Web/pull/700)) — @kodyade[bot]
+- #673: Login required to browse /courses; only the wizard is for anonymo… ([#684](https://github.com/A-Guy-educ/A-Guy-Web/pull/684)) — @kodyade[bot]
+- chore: release v0.26.5 ([#698](https://github.com/A-Guy-educ/A-Guy-Web/pull/698)) — @kodyade[bot]
+- #676: Content page body — restore HTML rendering for HtmlBlock and add … ([#678](https://github.com/A-Guy-educ/A-Guy-Web/pull/678)) — @kodyade[bot]
+- #674: Show Google login popup after onboarding wizard completes ([#686](https://github.com/A-Guy-educ/A-Guy-Web/pull/686)) — @kodyade[bot]
+- #670: [Accessibility] Broken contrast (black text on dark backgrounds) … ([#681](https://github.com/A-Guy-educ/A-Guy-Web/pull/681)) — @kodyade[bot]
+- #652: [Exercises] תמיכה מיטבית בשרטוטי SVG ודיאגרמות במצב כהה (Dark Mod… ([#679](https://github.com/A-Guy-educ/A-Guy-Web/pull/679)) — @kodyade[bot]
 - fix: Separate course page access from lesson access ([#683](https://github.com/A-Guy-educ/A-Guy-Web/pull/683)) — @aguyshayb
 - Diag/access check endpoint ([#672](https://github.com/A-Guy-educ/A-Guy-Web/pull/672)) — @aguyshayb
 - #651: [Exercises] Optimizing SVG diagram support in explanations & Dark… ([#675](https://github.com/A-Guy-educ/A-Guy-Web/pull/675)) — @kodyade[bot]
@@ -1912,9 +1931,9 @@ _No notable commits since the last release._
 - fix(lesson): Render content page body via dedicated blockType-based renderer ([#352](https://github.com/A-Guy-educ/A-Guy-Web/pull/352)) — @aguyshayb
 - fix(lesson): Pre-render content page bodies and pass to lesson pager ([#351](https://github.com/A-Guy-educ/A-Guy-Web/pull/351)) — @aguyshayb
 - feat(lesson): render contentPageRef blocks in lesson pager ([#315](https://github.com/A-Guy-educ/A-Guy-Web/pull/315)) — @kodyade[bot]
-- #309: Add prerequisite-lessons list to the lesson start page ([#313](https://github.com/A-Guy-educ/A-Guy-Web/pull/313)) — @kodyade[bot]
-- #310: Add jump-to-exercise number input between prev/next arrows ([#314](https://github.com/A-Guy-educ/A-Guy-Web/pull/314)) — @kodyade[bot]
-- #308: Remove free-registration button from /login, prepend free-of-char… ([#312](https://github.com/A-Guy-educ/A-Guy-Web/pull/312)) — @kodyade[bot] · 🔄 QA (#687)
+- #309: Add prerequisite-lessons list to the lesson start page ([#313](https://github.com/A-Guy-educ/A-Guy-Web/pull/313)) — @kodyade[bot] · ⚠️ QA 2026-07-03 (#714)
+- #310: Add jump-to-exercise number input between prev/next arrows ([#314](https://github.com/A-Guy-educ/A-Guy-Web/pull/314)) — @kodyade[bot] · ⚠️ QA 2026-07-02 (#704)
+- #308: Remove free-registration button from /login, prepend free-of-char… ([#312](https://github.com/A-Guy-educ/A-Guy-Web/pull/312)) — @kodyade[bot] · ⚠️ QA 2026-07-01 (#687)
 ## [v0.26.0] - 2026-06-20
 
 - chore(deps): bump actions/upload-pages-artifact from 3 to 5 ([#5](https://github.com/A-Guy-educ/A-Guy-Web/pull/5)) — @dependabot[bot]
