@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.26.10 — 2026-07-06
+
+_No notable commits since the last release._
 ## v0.26.9 — 2026-07-06
 
 _No notable commits since the last release._
