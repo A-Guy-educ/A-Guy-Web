@@ -321,6 +321,9 @@
       "loggingIn": "מתחבר...",
       "noAccount": "אין לך חשבון?",
       "signupLink": "הירשם",
+      "brand": {
+        "heroSubtitle": "A-Guy המורה הפרטי שלכם"
+      },
       "errors": {
         "invalidCredentials": "אימייל או סיסמה שגויים"
       }
@@ -444,6 +447,7 @@
     "freeResponseBadge": "תשובה חופשית",
     "notFound": "לא נמצא",
     "backToLesson": "חזור לשיעור",
+    "backToExercise": "חזור לתרגיל",
     "exerciseTitle": "תרגיל",
     "submitAnswer": "שלח תשובה",
     "checkAnswer": "בדוק תשובה",
