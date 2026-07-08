@@ -257,3 +257,41 @@ describe('Issue #670 — contrast for dark-background sections', () => {
     describeSectionAssertion('DemoLandingPage KnowledgeAndFeatures', body)
   })
 })
+
+describe('Issue #776 — /prep7 dark-mode readability', () => {
+  it('AguyLogo pins fills to fixed brand hexes instead of theme tokens so it does not darken in dark mode', () => {
+    const source = read(PREP7_PAGE)
+    const body = extractComponentBody(source, 'AguyLogo')
+
+    // The three filled regions (red square, telescope, wordmark) must use
+    // inline hex fills that do NOT follow `--primary` / `--secondary`, so
+    // the logo renders identically in light and dark mode.
+    expect(body).toContain('fill="#1F8A5A"')
+    expect(body).toContain('fill="#2A8E5C"')
+
+    // Guard against a regression where someone re-introduces the theme
+    // tokens on the logo paths.
+    expect(body).not.toMatch(/className="fill-primary"/)
+    expect(body).not.toMatch(/className="fill-secondary"/)
+  })
+
+  it('prep7 / Story strengthens the gradient + overlay in dark mode so text-foreground passes WCAG AA', () => {
+    const source = read(PREP7_PAGE)
+    const body = extractComponentBody(source, 'Story')
+
+    // The Story section sits on top of a YouTube iframe. In dark mode the
+    // bg-background/80 gradient + bg-background/20 overlay is not dark enough
+    // to anchor light `text-foreground` copy at ≥4.5:1 contrast. The fix is
+    // explicit `dark:` overrides on the gradient stops and the overlay.
+    const gradientMatch = body.match(/<div[\s\S]*?from-background[\s\S]*?\/>/)
+    expect(gradientMatch, 'expected to find the gradient overlay div in Story').toBeTruthy()
+    const gradientClass = gradientMatch![0]
+    expect(gradientClass).toContain('dark:from-black')
+    expect(gradientClass).toContain('dark:via-black')
+
+    const overlayMatch = body.match(/<div[^>]*bg-background\/20[^>]*\/>/)
+    expect(overlayMatch, 'expected to find the bg-background/20 overlay div in Story').toBeTruthy()
+    const overlayClass = overlayMatch![0]
+    expect(overlayClass).toContain('dark:bg-black')
+  })
+})
