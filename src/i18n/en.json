@@ -298,6 +298,9 @@
       "loggingIn": "Logging in...",
       "noAccount": "Don't have an account?",
       "signupLink": "Sign up",
+      "brand": {
+        "heroSubtitle": "A-Guy Your Personal Tutor"
+      },
       "errors": {
         "invalidCredentials": "Invalid email or password"
       }
@@ -444,6 +447,7 @@
     "freeResponseBadge": "Free Response",
     "notFound": "Not Found",
     "backToLesson": "back to lesson",
+    "backToExercise": "back to exercise",
     "exerciseTitle": "Exercise",
     "submitAnswer": "Submit Answer",
     "checkAnswer": "Check Answer",

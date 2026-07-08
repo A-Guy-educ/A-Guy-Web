@@ -108,10 +108,11 @@ function PageHeader({ t }: { t: (key: string) => string }) {
 function Hero({ t }: { t: (key: string) => string }) {
   return (
     <section className="relative z-10 mx-auto max-w-4xl px-4 pb-section-md pt-section-xs text-center">
-      <h1 className="mb-6 text-display-md font-extrabold leading-tight text-foreground md:text-display-lg lg:text-display-xl">
-        {t('hero.titleStart')} <span className="text-secondary">{t('hero.titleHighlight')}</span>
+      <h1 className="mb-6 text-display-md font-extrabold leading-tight text-foreground dark:text-white md:text-display-lg lg:text-display-xl">
+        {t('hero.titleStart')}{' '}
+        <span className="text-secondary dark:text-white">{t('hero.titleHighlight')}</span>
       </h1>
-      <p className="mb-10 text-heading-lg font-normal text-muted-foreground md:text-heading-xl">
+      <p className="mb-10 text-heading-lg font-normal text-muted-foreground dark:text-white/80 md:text-heading-xl">
         <span className="font-bold text-primary">{t('hero.newLabel')}</span> {t('hero.subtitle')}
       </p>
 
@@ -151,11 +152,11 @@ function Story({ isRtl, t }: { isRtl: boolean; t: (key: string) => string }) {
 
       <div className="relative z-20 mx-auto w-full max-w-6xl px-4 sm:px-8">
         <div className="max-w-lg">
-          <h2 className="mb-5 text-display-sm font-extrabold leading-tight text-foreground md:text-display-md lg:text-display-lg">
+          <h2 className="mb-5 text-display-sm font-extrabold leading-tight text-foreground dark:text-white md:text-display-md lg:text-display-lg">
             {t('story.title')}
           </h2>
           <div className="mb-6 h-1.5 w-16 rounded-full bg-warning" />
-          <p className="text-body-lg font-medium leading-relaxed text-foreground md:text-heading-lg">
+          <p className="text-body-lg font-medium leading-relaxed text-foreground dark:text-white md:text-heading-lg">
             {t('story.descriptionPrefix')}{' '}
             <strong className="font-bold text-primary">{t('story.experience')}</strong>
             {t('story.descriptionSuffix')}
@@ -226,8 +227,8 @@ function LaptopPreview({ t }: { t: (key: string) => string }) {
   return (
     <div className="relative mt-8 w-full lg:mt-0 lg:w-1/2">
       <div className="relative mx-auto w-full max-w-lg lg:max-w-none">
-        <div className="relative z-10 rounded-b-xl rounded-t-3xl border-b-8 border-foreground bg-foreground p-card-padding-sm shadow-card">
-          <div className="relative aspect-video overflow-hidden rounded-lg bg-foreground shadow-inner">
+        <div className="relative z-10 rounded-b-xl rounded-t-3xl border-b-8 border-foreground bg-foreground p-card-padding-sm shadow-card dark:border-zinc-900 dark:bg-zinc-900">
+          <div className="relative aspect-video overflow-hidden rounded-lg bg-foreground shadow-inner dark:bg-zinc-900">
             <iframe
               className="absolute left-0 top-0 h-full w-full scale-125 opacity-90"
               src={youtubeEmbedSrc('4BpyIiLs3jI')}
