@@ -6,7 +6,7 @@ declare global {
   var __aguyMongoClientPromise: Promise<MongoClient> | undefined
 }
 
-let defaultTenantFilterPromise: Promise<Document> | null = null
+let defaultTenantFilterCache: { key: string; promise: Promise<Document> } | null = null
 
 function getConnectionString(): string {
   const url = process.env.DATABASE_URL
@@ -25,19 +25,36 @@ export async function getContentDb(): Promise<Db> {
   return client.db()
 }
 
-export async function defaultTenantFilter(): Promise<Document> {
-  if (!defaultTenantFilterPromise) {
-    defaultTenantFilterPromise = (async () => {
-      const slug = process.env.DEFAULT_TENANT_SLUG
-      if (!slug) return {}
+/**
+ * Resets the cached `defaultTenantFilter` resolution. Intended for tests that
+ * mutate `DEFAULT_TENANT_SLUG` or the underlying tenants collection between
+ * cases; production callers should never need this.
+ */
+export function resetDefaultTenantFilterCache(): void {
+  defaultTenantFilterCache = null
+}
 
-      const db = await getContentDb()
-      const tenant = await db.collection('tenants').findOne({ slug }, { projection: { _id: 1 } })
-      return tenant?._id ? { tenant: tenant._id } : {}
-    })()
+export async function defaultTenantFilter(): Promise<Document> {
+  const slug = process.env.DEFAULT_TENANT_SLUG || ''
+  if (!defaultTenantFilterCache || defaultTenantFilterCache.key !== slug) {
+    defaultTenantFilterCache = {
+      key: slug,
+      promise: (async () => {
+        if (!slug) return {}
+
+        const db = await getContentDb()
+        const tenant = await db.collection('tenants').findOne({ slug }, { projection: { _id: 1 } })
+        if (!tenant?._id) return {}
+
+        // Include the default tenant's documents AND any pre-tenant documents
+        // that were authored before tenant isolation was added — those
+        // should remain visible to keep existing routes working.
+        return { $or: [{ tenant: tenant._id }, { tenant: null }] }
+      })(),
+    }
   }
 
-  return defaultTenantFilterPromise
+  return defaultTenantFilterCache.promise
 }
 
 export function objectIdFromString(id: string): ObjectId | string {
