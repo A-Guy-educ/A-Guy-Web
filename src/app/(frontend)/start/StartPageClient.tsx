@@ -3,9 +3,11 @@
 import { Bot } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { setUserProfile } from '@/client/state/localStorage/userProfile'
+import { useCurrentUser } from '@/client/hooks/useCurrentUser'
+import { selectCourse, setUserProfile } from '@/client/state/localStorage/userProfile'
 import type { Course } from '@/infra/types/content'
 import { cn } from '@/infra/utils/ui'
+import { OnboardingCompleteLoginModal } from '@/ui/web/auth/OnboardingCompleteLoginModal'
 import { LanguageSwitcher } from '@/ui/web/LanguageSwitcher'
 import { useLocale } from '@/ui/web/providers/I18n'
 import { ThemeSelector } from '@/ui/web/providers/Theme/ThemeSelector'
@@ -120,11 +122,12 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
   const [displayedText, setDisplayedText] = useState('')
   const [audioEnabled] = useState(true)
   const [isSpeaking, setIsSpeaking] = useState(false)
-  const [selectedMood, setSelectedMood] = useState<Mood>('good')
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
   const [teacherProfiles, setTeacherProfiles] = useState<TeacherProfile[]>([])
   const [selectedTeacherProfile, setSelectedTeacherProfile] = useState<TeacherProfile | null>(null)
+  const [showLoginModal, setShowLoginModal] = useState(false)
   const runIdRef = useRef(0)
+  const { user, isLoading: isAuthLoading } = useCurrentUser()
 
   useEffect(() => {
     document.body.classList.add('landing-page')
@@ -218,7 +221,6 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
 
   const selectMood = useCallback(
     async (mood: Mood) => {
-      setSelectedMood(mood)
       setInteraction('none')
       playTone(580, 120)
       await typeText(copy.moods[mood].response, 45)
@@ -238,29 +240,11 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
       })
       if (!res.ok) {
         // Fallback to localStorage for guest users
-        if (typeof window !== 'undefined') {
-          try {
-            const existing = localStorage.getItem('a-guy:user-profile')
-            const profile = existing ? JSON.parse(existing) : {}
-            profile.teacherProfileSlug = slug
-            localStorage.setItem('a-guy:user-profile', JSON.stringify(profile))
-          } catch {
-            // localStorage not available
-          }
-        }
+        setUserProfile({ teacherProfileSlug: slug })
       }
     } catch {
       // network error, try localStorage fallback
-      if (typeof window !== 'undefined') {
-        try {
-          const existing = localStorage.getItem('a-guy:user-profile')
-          const profile = existing ? JSON.parse(existing) : {}
-          profile.teacherProfileSlug = slug
-          localStorage.setItem('a-guy:user-profile', JSON.stringify(profile))
-        } catch {
-          // localStorage not available
-        }
-      }
+      setUserProfile({ teacherProfileSlug: slug })
     }
   }, [])
 
@@ -279,25 +263,40 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
     [copy.teacherSelected, copy.moodQuestion, playTone, saveTeacherProfile, sleep, typeText],
   )
 
-  const selectCourse = useCallback(
+  const selectCourseHandler = useCallback(
     async (course: Course) => {
       setSelectedCourse(course)
-      setUserProfile({
+      selectCourse({
         gradeLevel: course.courseLabel || course.title,
         courseId: course.id,
-        mood: selectedMood,
-        lastVisit: new Date().toISOString(),
       })
+      // Signal to the OAuth callback that the wizard already collected
+      // teacher / mood / course — the persona onboarding wrap is redundant.
+      // Server-side readers (the Google OAuth callback) use this cookie to
+      // land the new user directly on their selected course instead of
+      // bouncing them through `/onboarding/persona`, which on mobile can
+      // appear as a second login popup (issue #783).
+      if (typeof document !== 'undefined') {
+        document.cookie = `start_wizard_completed=1; path=/; max-age=600; SameSite=Lax`
+      }
       setInteraction('none')
       playTone(580, 120)
       await typeText(copy.selected, 50)
       await sleep(900)
+
+      const isAnonymous = !user && !isAuthLoading
+      if (isAnonymous) {
+        setPane('redirecting')
+        setShowLoginModal(true)
+        return
+      }
+
       setPane('redirecting')
       window.setTimeout(() => {
         window.location.assign(getCourseHref(course))
       }, 800)
     },
-    [copy.selected, playTone, selectedMood, sleep, typeText],
+    [copy.selected, isAuthLoading, playTone, sleep, typeText, user],
   )
 
   return (
@@ -325,7 +324,7 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
               selectedCourse={selectedCourse}
               teacherProfiles={teacherProfiles}
               selectedTeacherProfile={selectedTeacherProfile}
-              onSelectCourse={selectCourse}
+              onSelectCourse={selectCourseHandler}
               onSelectMood={selectMood}
               onSelectTeacher={selectTeacher}
             />
@@ -337,6 +336,11 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
 
         <StartFooter activeIndex={paneToIndex(pane)} copy={copy} />
       </div>
+
+      <OnboardingCompleteLoginModal
+        isOpen={showLoginModal}
+        returnTo={selectedCourse ? getCourseHref(selectedCourse) : '/courses'}
+      />
     </main>
   )
 }
