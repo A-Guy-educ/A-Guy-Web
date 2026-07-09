@@ -120,6 +120,7 @@ function settledTransaction(overrides: Record<string, unknown> = {}) {
 describe('POST /api/webhooks/paypal', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    grantEntitlementsMock.mockResolvedValue(undefined)
   })
 
   it('returns 400 for an invalid JSON body and never tries to verify', async () => {
