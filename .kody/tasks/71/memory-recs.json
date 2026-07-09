@@ -1,0 +1,16 @@
+[
+  {
+    "type": "lesson",
+    "name": "missing-jsdoc-closing-star",
+    "hook": "When adding @ai-summary, always put */ on its own line before imports",
+    "body": "When appending a @ai-summary JSDoc tag to an existing multi-line JSDoc block that ends with the @ai-summary line followed directly by code, the edit must also insert the closing */ before the code. The original file already had a complete JSDoc block; appending @ai-summary without adding */ breaks TypeScript parsing for all subsequent edits to the file.\n\nWhy: The bug appeared consistently across 28+ files edited in this session. The pattern was: original file had `*/` on its own line, the @ai-summary was added as the last tag, but the existing `*/` was not preserved. This caused TS1010 and TS1128 errors in every affected file.",
+    "confidence": 0.95
+  },
+  {
+    "type": "lesson",
+    "name": "scan-entire-folder-for-pattern",
+    "hook": "After bulk edits, run a programmatic scan to catch missed files",
+    "body": "When making the same edit across many files in a folder, run a grep/sed scan to find remaining instances of the bug pattern. Manual per-file reading misses files that were read at the beginning of the session.\n\nWhy: The initial grep-based scan only found files actively being edited. A subsequent shell loop scan caught 10+ more files that had the same missing */ pattern that the manual reads had not covered.",
+    "confidence": 0.9
+  }
+]

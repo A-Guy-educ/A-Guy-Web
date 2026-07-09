@@ -1,7 +1,7 @@
 /**
  * MongoDB Atlas Vector Search for memory retrieval
  *
- * @ai-summary Implements context-hierarchy policy (conversation → context → global). SECURITY: every query MUST include a userId filter — omitting it exposes other tenants' memory items.
+ * @ai-summary All queries MUST filter by userId — omitting this filter in any call to this service leaks memory across tenants. The hierarchy (conversation → context → global) is also a contract; skipping levels returns wrong priority results. Implements context-hierarchy policy (conversation → context → global). SECURITY: every query MUST include a userId filter — omitting it exposes other tenants' memory items.
  *
  * @fileType service
  * @domain ai

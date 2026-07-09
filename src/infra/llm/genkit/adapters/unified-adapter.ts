@@ -7,9 +7,11 @@ export const __genkit_exports__ = true
  * @fileType adapter
  * @domain ai
  * @pattern abstraction, genkit, provider-abstraction
+ * @ai-summary Routes to `ai.generate()` (non-streaming) or `ai.generateStream()` (streaming). Error classification via `error-adapter.ts` maps Genkit errors to LLMError codes (auth → CONFIG_ERROR, rate limit → RATE_LIMIT_ERROR, timeout → TIMEOUT_ERROR, etc.). `raw` exposes the full Genkit GenerateResponse; `text` is the extracted string. Streaming returns `{ stream, response }` — the stream yields text chunks, response resolves to the final text. Tool calls from `ai.generate({ tools })` are extracted from `result.toolCalls` (Genkit format: `{ toolName, arguments }`) and mapped to UnifiedLLMProvider format (`{ name, args }`). output and outputJsonSchema both set Gemini's responseSchema; prefer output (Zod) over outputJsonSchema (raw) — the Zod path goes through Genkit's schema validator while the raw path passes directly to the provider API and is more brittle.
  *
  * Maintains backward compatibility with existing UnifiedLLMProvider interface
  */
+
 import type { AIModel, AIModelKey } from '@/infra/llm/models'
 import type { UnifiedLLMProvider } from '@/infra/llm/providers/factory'
 import { getCircuitBreaker } from '@/infra/llm/providers/shared/circuit-breaker'

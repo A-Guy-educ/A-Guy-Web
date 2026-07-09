@@ -7,7 +7,7 @@
  * - Performance metrics
  * - Debug snapshots (dev only)
  *
- * @ai-summary logPromptSnapshot is development-only (NODE_ENV !== 'development' is a no-op). logContextUsage is always active and is the primary observability signal for production context composition. logMaintenance is the primary signal for summary and extraction operations.
+ * @ai-summary logPromptSnapshot() only fires in NODE_ENV=development; setting NODE_ENV=production silently drops all snapshot logs even when debugging prompt composition. logPromptSnapshot is development-only (NODE_ENV !== 'development' is a no-op). logContextUsage is always active and is the primary observability signal for production context composition. logMaintenance is the primary signal for summary and extraction operations.
  */
 
 import { logger } from '@/infra/utils/logger'

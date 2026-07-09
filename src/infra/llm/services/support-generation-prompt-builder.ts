@@ -2,7 +2,7 @@
 /**
  * Block context → support generation user prompt builder
  *
- * @ai-summary Extracts prompt text, answer text, and options from a ContentBlock into a structured user prompt for the support generation LLM call. @ts-nocheck — if block types change, no compile errors will catch mismatches. The prompt format must stay compatible with what SUPPORT_GENERATION_PROMPT expects (three keys: hints, solution, fullSolution). Adding a new block type here with a different answer extraction path requires updating the prompt template too.
+ * @ai-summary Pure prompt-building utility with no runtime side effects; the @ts-nocheck suppresses type errors from accessing dynamic block properties, which is intentional since block shapes vary across the 12 exercise block types. If block types change, no compile errors will catch mismatches — search for all usages manually. The prompt format must stay compatible with SUPPORT_GENERATION_PROMPT (three keys: hints, solution, fullSolution); adding a new block type with a different answer extraction path requires updating the prompt template too. Extracts prompt text, answer text, and options from a ContentBlock into a structured user prompt for the support generation LLM call.
  */
 import type { ContentBlock } from '@/infra/types/exercise'
 

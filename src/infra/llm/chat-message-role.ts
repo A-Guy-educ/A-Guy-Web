@@ -5,7 +5,7 @@
  * Follows industry standards: 'user' (human) and 'assistant' (AI).
  * NOT to be confused with AccountRole in src/collections/Users/roles.ts
  *
- * @ai-summary ChatRole (user/assistant) is completely different from AccountRole (admin/student/etc) — they live in different namespaces and mean different things. toGeminiRole() maps 'assistant' → 'model', which is Gemini's terminology. Do not use this for authorization decisions. Converts between internal `ChatRole` (user/assistant) and Gemini API format (user/model). Deprecated aliases (`ChatMessageRole`) exist for backward compatibility but will be removed.
+ * @ai-summary ChatRole (user/assistant) is completely different from AccountRole (admin/student/etc) — they live in different namespaces and mean different things. Gemini API uses 'model' for assistant, not 'assistant' — toGeminiRole() is the only sanctioned conversion point; using raw strings elsewhere causes silent role mismatches in multi-turn conversations. Converts between internal `ChatRole` (user/assistant) and Gemini API format (user/model). Do not use this for authorization decisions. Deprecated aliases (`ChatMessageRole`) exist for backward compatibility but will be removed.
  * @fileType enum
  * @domain ai
  *
@@ -13,6 +13,7 @@
  * - user: Message from the human (student/learner)
  * - assistant: Message from the AI tutor
  */
+
 export enum ChatRole {
   User = 'user',
   Assistant = 'assistant',

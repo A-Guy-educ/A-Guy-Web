@@ -6,6 +6,7 @@
  * @fileType utility
  * @domain ai
  * @pattern timeout
+ * @ai-summary withTimeout() calls cleanup() on timeout BEFORE rejecting — cleanup runs before the promise settles, so any state it resets is visible to the operation if it somehow races past the timeout. Promise.race between the operation and a timeout. If timeout wins, the operation keeps running in the background — it is NOT aborted. Use createAbortSignal if you need actual cancellation via AbortController.
  */
 
 export interface TimeoutOptions {

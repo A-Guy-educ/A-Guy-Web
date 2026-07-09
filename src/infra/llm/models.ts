@@ -1,7 +1,7 @@
 /**
  * LLM Model Registry
  *
- * @ai-summary Changing a temperature or maxOutputTokens here affects ALL providers unless overridden by LLM_MODEL_OVERRIDE_* env vars. The same model key can map to different model names per provider (see PROVIDER_MODEL_NAMES). THINKING_BUDGET is per-model and opt-in (Gemini 2.5+ only) — setting it on unsupported models is silently ignored. Single source of truth for all model configs (temperature, maxTokens, capabilities). Runtime env overrides (`LLM_MODEL_OVERRIDE_<KEY>`) take precedence over the registry — always resolve via `getProviderModelConfig()`.
+ * @ai-summary MODEL_REGISTRY is the only place temperature, maxTokens, and capabilities are defined; PROVIDER_MODEL_NAMES is the only place provider-specific model names live. Adding a model means updating both — never hardcode elsewhere. Changing a temperature or maxOutputTokens here affects ALL providers unless overridden by LLM_MODEL_OVERRIDE_* env vars. The same model key can map to different model names per provider (see PROVIDER_MODEL_NAMES). THINKING_BUDGET is per-model and opt-in (Gemini 2.5+ only) — setting it on unsupported models is silently ignored. Single source of truth for all model configs (temperature, maxTokens, capabilities). Runtime env overrides (`LLM_MODEL_OVERRIDE_<KEY>`) take precedence over the registry — always resolve via `getProviderModelConfig()`.
  *
  * @fileType implementation
  * @domain ai

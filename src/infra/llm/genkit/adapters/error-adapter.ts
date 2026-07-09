@@ -6,7 +6,9 @@
  * @fileType adapter
  * @domain ai
  * @pattern error-handling, genkit
+ * @ai-summary Reuses existing LLMError and createErrorClassifier from shared/errors.ts; rate-limit errors preserve the raw provider message so callers can distinguish RPM caps from daily quotas.
  */
+
 import { LLMError, LLMErrorCode, createErrorClassifier } from '@/infra/llm/providers/shared/errors'
 import { LLMProviderType } from '@/infra/llm/providers/types'
 

@@ -1,7 +1,7 @@
 /**
  * Circuit breaker for LLM API calls
  *
- * @ai-summary Opens after 5 consecutive failures (not rate-limit errors — those are skipped because counting them causes a cascade: one 429 trips the breaker, then every subsequent call fails instantly with CIRCUIT_OPEN even though Gemini is healthy). Cooldown is 60s.
+ * @ai-summary Rate-limit errors are NOT counted as failures — counting them trips the breaker on a healthy provider, causing every subsequent call in the same batch to fail with CIRCUIT_OPEN for up to 60s. This is intentional; the caller's backoff loop handles rate-limit retries. Opens after 5 consecutive failures (not rate-limit errors — those are skipped because counting them causes a cascade: one 429 trips the breaker, then every subsequent call fails instantly with CIRCUIT_OPEN even though Gemini is healthy). Cooldown is 60s.
  *
  * @fileType utility
  * @domain ai

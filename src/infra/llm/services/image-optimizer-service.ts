@@ -1,8 +1,9 @@
 /**
  * Image optimization for AI processing (sharp-based resize to max 2048px)
  *
- * @ai-summary Only resizes when the largest dimension exceeds maxDimension (default 2048). Smaller images pass through unchanged. Aspect ratio is always preserved; the image is never cropped or distorted. PDFs are passed through unchanged — only image buffers are resized.
+ * @ai-summary sharp is imported at module level — if sharp fails to initialize (missing native binding), the import itself throws and the module is unusable. No graceful fallback. Only resizes when the largest dimension exceeds maxDimension (default 2048). Smaller images pass through unchanged. Aspect ratio is always preserved; the image is never cropped or distorted. PDFs are passed through unchanged — only image buffers are resized.
  */
+
 import sharp from 'sharp'
 
 export interface OptimizedImage {

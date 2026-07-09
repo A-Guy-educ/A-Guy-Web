@@ -6,7 +6,9 @@
  * @fileType ai-utility
  * @domain chat
  * @pattern server-only
+ * @ai-summary Prompts are admin-only; overrideAccess:true bypasses access control here — do not expose this function to unauthenticated endpoints without an additional auth guard. Returns empty array if no prompts exist (graceful degradation). Sort order is ASC by createdAt then id as tiebreaker — this is deterministic even if multiple prompts share the same timestamp.
  */
+
 import type { Prompt } from '@/infra/types/content'
 import { logger } from '@/infra/utils/logger'
 import type { Payload } from '@/infra/types/backend'
