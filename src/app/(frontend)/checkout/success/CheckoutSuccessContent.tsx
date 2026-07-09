@@ -14,6 +14,15 @@ type TransactionStatus = 'pending' | 'succeeded' | 'failed' | 'refunded'
 interface TransactionData {
   id: string
   status: TransactionStatus
+  /**
+   * ISO timestamp the webhook committed all product entitlements. Drives the
+   * confirmed-vs-pending gate: `status` flipping to `succeeded` no longer
+   * counts as "you got your course" — only the moment the grant function
+   * actually wrote the user-entitlements/enrollments rows does. See
+   * `isConfirmed` below. Null when the webhook hasn't written the grant yet
+   * (or, before #806, when no grant function existed at all).
+   */
+  entitlementsGrantedAt: string | null
 }
 
 interface FirstCourse {
@@ -104,9 +113,14 @@ export function CheckoutSuccessContent({
   // Bounded at ENTITLEMENT_POLL_TIMEOUT_MS so a genuine webhook failure
   // doesn't trap the buyer — after that we reveal the button anyway. The
   // course page they land on will still render its paid-content modal in that
-  // failure case (same "purchase required" copy as any other lack-of-access),
-  // which is not a purchase-specific narrative — this is the known gap, do
-  // NOT re-tighten to keep the buyer trapped here.
+  // failure case (same "purchase required" copy as any other lack-of-access).
+  // isConfirmed (defined below) is the load-bearing "success" gate, and it
+  // independently requires `entitlementsGrantedAt` to be set — so even if the
+  // poll times out and the button is revealed inside the "confirmed" view, the
+  // buyer only ever sees the success checkmark/title when the webhook really
+  // committed the grant. If the webhook failed entirely, the row falls through
+  // to the "Pending" view, which exposes the manual refresh button as the
+  // recovery affordance.
   //
   // Uses chained setTimeout instead of setInterval so we (a) never overlap
   // in-flight requests when Mongo hits >3s, and (b) naturally stop scheduling
@@ -118,7 +132,11 @@ export function CheckoutSuccessContent({
   const [hasEntitlement, setHasEntitlement] = useState(false)
   const [pollTimedOut, setPollTimedOut] = useState(false)
   const shouldPollEntitlement =
-    transaction?.status === 'succeeded' && !!firstCourse && !hasEntitlement && !pollTimedOut
+    transaction?.status === 'succeeded' &&
+    !!transaction.entitlementsGrantedAt &&
+    !!firstCourse &&
+    !hasEntitlement &&
+    !pollTimedOut
   // Pin to the primitive id so the effect doesn't re-fire (and reset the 45s
   // timeout budget) when router.refresh() hands us a new `firstCourse` object
   // with the same identity. slug is captured via ref for the same reason.
@@ -215,11 +233,16 @@ export function CheckoutSuccessContent({
     )
   }
 
-  // TODO: when grantProductEntitlements is wired up (currently a stub at
-  // src/lib/payment/grant-entitlements.ts), tighten this back to also require
-  // `entitlementsGrantedAt`. Right now nothing ever sets that field, so
-  // requiring it would leave every payment stuck on "Pending" forever.
-  const isConfirmed = transaction.status === 'succeeded'
+  // "Confirmed" means the webhook has both flipped `status` to `succeeded` AND
+  // committed the entitlement grant (stamping `entitlementsGrantedAt`). Gating
+  // the success view on the grant timestamp closes the "payment succeeded but
+  // the course is still locked" race: a buyer who hits "Go to course" before
+  // the grant lands would otherwise be funneled straight into a paid-access
+  // modal for content they just paid for. If the webhook is genuinely down
+  // (or the grant function threw), `entitlementsGrantedAt` stays unset and the
+  // buyer sees the "Pending" view with the manual refresh button as their
+  // recovery path — far less confusing than a premature success.
+  const isConfirmed = transaction.status === 'succeeded' && !!transaction.entitlementsGrantedAt
   const isFailed = transaction.status === 'failed' || transaction.status === 'refunded'
 
   if (isFailed) {

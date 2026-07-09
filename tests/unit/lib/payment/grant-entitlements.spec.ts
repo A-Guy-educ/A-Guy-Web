@@ -17,6 +17,8 @@ interface Row {
 const productRows: Row[] = []
 const enrollmentRows: Row[] = []
 const entitlementRows: Row[] = []
+const featureRows: Row[] = []
+const userPushes: Array<{ filter: Record<string, unknown>; update: Record<string, unknown> }> = []
 
 const productsState: { findOne: ReturnType<typeof vi.fn> } = {
   findOne: vi.fn(
@@ -68,12 +70,25 @@ function collectionMock(rows: Row[]) {
   }
 }
 
+function usersMock() {
+  return {
+    updateOne: vi.fn(async (filter: Record<string, unknown>, update: Record<string, unknown>) => {
+      // Treat the filter as if it doesn't match by default — exercises the
+      // "no existing matching entry" path and reports a real $push result.
+      userPushes.push({ filter, update })
+      return { matchedCount: 1, modifiedCount: 1 }
+    }),
+  }
+}
+
 vi.mock('@/infra/db/content-db', () => ({
   getContentDb: vi.fn(async () => ({
     collection: (name: string) => {
       if (name === 'products') return productsState
       if (name === 'user-entitlements') return collectionMock(entitlementRows)
       if (name === 'enrollments') return collectionMock(enrollmentRows)
+      if (name === 'features') return collectionMock(featureRows)
+      if (name === 'users') return usersMock()
       throw new Error(`Unexpected collection: ${name}`)
     },
   })),
@@ -101,6 +116,7 @@ const USER_ID = new ObjectId().toString()
 const COURSE_ID = new ObjectId().toString()
 const TX_ID = new ObjectId().toString()
 const TENANT_ID = new ObjectId().toString()
+const FEATURE_KEY = 'certificate'
 
 function seedProduct(overrides: Record<string, unknown> = {}) {
   productRows.length = 0
@@ -117,6 +133,8 @@ describe('grantProductEntitlements', () => {
     productRows.length = 0
     entitlementRows.length = 0
     enrollmentRows.length = 0
+    featureRows.length = 0
+    userPushes.length = 0
     productsState.findOne.mockClear()
   })
 
@@ -201,7 +219,33 @@ describe('grantProductEntitlements', () => {
     expect(enrollmentRows).toHaveLength(2) // existing cancelled + new active
   })
 
-  it('skips non-courseBlock blocks (featureBlock falls outside this spec)', async () => {
+  it('grants a featureBlock alongside courseBlocks — pushes onto users.featureEntitlements', async () => {
+    const featureId = new ObjectId()
+    featureRows.push({ _id: featureId, key: FEATURE_KEY })
+    seedProduct({
+      contents: [
+        { blockType: 'featureBlock', feature: featureId.toString() },
+        { blockType: 'courseBlock', course: new ObjectId(COURSE_ID) },
+      ],
+    })
+
+    await grantProductEntitlements(USER_ID, PRODUCT_ID, TX_ID)
+
+    expect(entitlementRows).toHaveLength(1)
+    expect(enrollmentRows).toHaveLength(1)
+    expect(userPushes).toHaveLength(1)
+
+    const push = userPushes[0]!
+    const pushOp = push.update.$push as { featureEntitlements: Record<string, unknown> }
+    expect(String(push.filter._id)).toBe(USER_ID)
+    expect(pushOp.featureEntitlements.key).toBe(FEATURE_KEY)
+    expect(pushOp.featureEntitlements.transactionId).toBe(TX_ID)
+    expect(pushOp.featureEntitlements.grantMethod).toBe('paypal')
+    expect(typeof pushOp.featureEntitlements.grantedAt).toBe('string')
+  })
+
+  it('feature block with no resolvable key logs a warning and skips the push', async () => {
+    // featureBlock points to a non-existent feature doc — no `key` to push.
     seedProduct({
       contents: [
         { blockType: 'featureBlock', feature: new ObjectId().toString() },
@@ -213,8 +257,23 @@ describe('grantProductEntitlements', () => {
 
     expect(entitlementRows).toHaveLength(1)
     expect(enrollmentRows).toHaveLength(1)
-    // Verify the only insert was for COURSE_ID, not the feature id.
-    expect(String(entitlementRows[0]!.course)).toBe(COURSE_ID)
+    expect(userPushes).toHaveLength(0)
+  })
+
+  it('feature block with a populated ref (no features lookup) pushes the inline key', async () => {
+    seedProduct({
+      contents: [
+        { blockType: 'featureBlock', feature: { id: new ObjectId().toString(), key: FEATURE_KEY } },
+        { blockType: 'courseBlock', course: new ObjectId(COURSE_ID) },
+      ],
+    })
+
+    await grantProductEntitlements(USER_ID, PRODUCT_ID, TX_ID)
+
+    expect(userPushes).toHaveLength(1)
+    const push = userPushes[0]!
+    const pushOp = push.update.$push as { featureEntitlements: Record<string, unknown> }
+    expect(pushOp.featureEntitlements.key).toBe(FEATURE_KEY)
   })
 
   it('walks every courseBlock when the product bundles multiple courses', async () => {

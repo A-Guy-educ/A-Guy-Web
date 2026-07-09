@@ -9,6 +9,15 @@ export interface CheckoutSuccessTransaction {
   status: TransactionWithProduct['status']
   productName: string | null
   /**
+   * ISO-8601 timestamp the webhook committed all product entitlements. Set by
+   * the PayPal/Stripe handler AFTER `grantProductEntitlements` returns. When
+   * null the buyer hasn't actually been granted access yet — `status` may
+   * already be `succeeded` but the success page must keep them in a "granting
+   * access…" state until this lands, otherwise they can click into a course
+   * the entitlement check would still deny.
+   */
+  entitlementsGrantedAt: string | null
+  /**
    * First course granted by the purchased product's `contents` blocks — used by
    * the success page to poll for the entitlement and, once granted, deep-link
    * the buyer straight into that course. Null when the product has no course
@@ -26,6 +35,7 @@ interface TransactionDoc extends Document {
   amount?: number
   currency?: string
   createdAt?: Date | string
+  entitlementsGrantedAt?: Date | string | null
   refundedAmount?: number
   refundedAt?: Date | string
   metadata?: { appliedCoupon?: { code?: string } | null } | null
@@ -41,6 +51,19 @@ function toIsoString(value: unknown, fallback: string): string {
   if (value instanceof Date) return value.toISOString()
   if (typeof value === 'string') return value
   return fallback
+}
+
+/**
+ * Same shape as `toIsoString` but the "missing" case is `null` rather than a
+ * fallback string. Used for `entitlementsGrantedAt`, where the success page
+ * needs a true tri-state ("Date object → ISO string", "string → as-is",
+ * "absent → null") to gate its "granted!" branch on a real webhook commit
+ * rather than a stub fallback.
+ */
+function serializeIsoOrNull(value: unknown): string | null {
+  if (value instanceof Date) return value.toISOString()
+  if (typeof value === 'string' && value.length > 0) return value
+  return null
 }
 
 /**
@@ -98,6 +121,7 @@ export const queryTransactionByProviderId = cache(
       id: doc._id.toString(),
       status,
       productName: product?.name ?? product?.title ?? null,
+      entitlementsGrantedAt: serializeIsoOrNull(doc.entitlementsGrantedAt),
       firstCourse,
     }
   },

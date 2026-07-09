@@ -65,6 +65,7 @@ describe('queryTransactionByProviderId', () => {
       id: TX_ID_HEX,
       status: 'succeeded',
       productName: 'Test Product',
+      entitlementsGrantedAt: null,
       firstCourse: null,
     })
   })
@@ -112,6 +113,12 @@ describe('queryTransactionByProviderId', () => {
     const { queryTransactionByProviderId } = await import('@/server/repos/queries/transactions')
     const result = await queryTransactionByProviderId(ORDER_ID)
 
-    expect(Object.keys(result ?? {})).toEqual(['id', 'status', 'productName', 'firstCourse'])
+    expect(Object.keys(result ?? {})).toEqual([
+      'id',
+      'status',
+      'productName',
+      'entitlementsGrantedAt',
+      'firstCourse',
+    ])
   })
 })
