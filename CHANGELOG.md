@@ -1865,6 +1865,14 @@ _No notable commits since the last release._
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- #747: QA: fix(lesson): Widen content page container and wrap long-NBSP … ([#799](https://github.com/A-Guy-educ/A-Guy-Web/pull/799)) — @kodyade[bot]
+- #671: [UI/UX] Systemic Fix for High-Contrast Accessibility and Rich HTM… ([#812](https://github.com/A-Guy-educ/A-Guy-Web/pull/812)) — @kodyade[bot]
+- #754: [Bug] Dashboard "למידה" tab shows nonexistent course "21" ([#755](https://github.com/A-Guy-educ/A-Guy-Web/pull/755)) — @kodyade[bot]
+- [Payments] Grant course + feature entitlements on PayPal success (#680) ([#809](https://github.com/A-Guy-educ/A-Guy-Web/pull/809)) — @kodyade[bot]
+- #757: QA: fix(lesson): Pre-render content page bodies and pass to lesso… ([#813](https://github.com/A-Guy-educ/A-Guy-Web/pull/813)) — @kodyade[bot]
+## [v0.27.0] - 2026-07-09
+
+- promote: dev -> main (v0.27.0) ([#803](https://github.com/A-Guy-educ/A-Guy-Web/pull/803)) — @aguyshayb
 - chore: release v0.27.0 ([#801](https://github.com/A-Guy-educ/A-Guy-Web/pull/801)) — @aguyshayb
 - fix(footer): stop pulling MongoDB into the client bundle ([#802](https://github.com/A-Guy-educ/A-Guy-Web/pull/802)) — @aguyshayb
 - #797: Footer דינמי מ-CMS עם חלון מובנה לעמודים משפטיים ([#798](https://github.com/A-Guy-educ/A-Guy-Web/pull/798)) — @kodyade[bot]
