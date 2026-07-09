@@ -1,5 +1,33 @@
 # Changelog
 
+## v0.27.0 — 2026-07-09
+
+### Features
+
+- **footer**: dynamic CMS-driven footer with legal-page modal (#798)
+- **lesson**: mobile chat overlay "back to exercise" control (#794)
+- **paywall**: route locked lesson clicks to the course's product page (#771)
+- **paywall**: turn locked lesson cards into "buy this" CTA cards (#760)
+- **courses**: show lock icon on paid-inherited lesson cards (#762)
+- **bug-report**: repurpose floating AI button as Report-a-Bug widget (#765)
+- **auth**: refresh onboarding completion modal copy (#779)
+
+### Bug Fixes
+
+- **products**: responsive layout for product detail on mobile (#795)
+- **auth**: mobile Google login after `/start` now persists (#786)
+- **login**: submit button wires through to `loginAction` after logout (#788)
+- **prep7**: pin logo to brand hexes + explicit dark-mode text variants (#787)
+- **start**: revert `StartPageClient.tsx` to pre-c44a9fb6 layout (#790)
+- **paywall**: reuse `activeProductFilter`, match ObjectId and string course refs, log resolver errors
+
+### Refactor
+
+- Remove `course.pageAccessType` readers ahead of Admin schema drop (#782)
+
+## v0.26.9 — 2026-07-06
+
+_No notable commits since the last release._
 ## v0.26.8 — 2026-07-05
 
 _No notable commits since the last release._
@@ -1837,6 +1865,24 @@ _No notable commits since the last release._
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: release v0.27.0 ([#801](https://github.com/A-Guy-educ/A-Guy-Web/pull/801)) — @aguyshayb
+- fix(footer): stop pulling MongoDB into the client bundle ([#802](https://github.com/A-Guy-educ/A-Guy-Web/pull/802)) — @aguyshayb
+- #797: Footer דינמי מ-CMS עם חלון מובנה לעמודים משפטיים ([#798](https://github.com/A-Guy-educ/A-Guy-Web/pull/798)) — @kodyade[bot]
+- fix(products): Responsive layout for product detail on mobile ([#795](https://github.com/A-Guy-educ/A-Guy-Web/pull/795)) — @aguyshayb
+- #783: Mobile Google login after /start wizard doesn't persist session ([#786](https://github.com/A-Guy-educ/A-Guy-Web/pull/786)) — @kodyade[bot]
+- #781: Remove course.pageAccessType readers ahead of Admin schema drop ([#782](https://github.com/A-Guy-educ/A-Guy-Web/pull/782)) — @kodyade[bot]
+- #778: Update onboarding completion modal copy ([#779](https://github.com/A-Guy-educ/A-Guy-Web/pull/779)) — @kodyade[bot]
+- #784: [prep7] Fix dark mode readability without changing the logo (use … ([#787](https://github.com/A-Guy-educ/A-Guy-Web/pull/787)) — @kodyade[bot]
+- #793: [Lesson] Add visible "back to exercise" control to mobile chat ov… ([#794](https://github.com/A-Guy-educ/A-Guy-Web/pull/794)) — @kodyade[bot]
+- #205: QA: fix(ask): Restore Gemini responseSchema on interactive lesson… ([#791](https://github.com/A-Guy-educ/A-Guy-Web/pull/791)) — @kodyade[bot]
+- #789: החזרת תצוגת /start לגרסה שלפני c44a9fb6 (revert StartPageClient.t… ([#790](https://github.com/A-Guy-educ/A-Guy-Web/pull/790)) — @kodyade[bot]
+- #780: [Login] "התחבר" button stays visible after logout on a screen wit… ([#788](https://github.com/A-Guy-educ/A-Guy-Web/pull/788)) — @kodyade[bot]
+- #770: Redirect locked lesson clicks to the specific product page, not /… ([#771](https://github.com/A-Guy-educ/A-Guy-Web/pull/771)) — @kodyade[bot]
+- promote: dev -> main (v0.26.9) ([#763](https://github.com/A-Guy-educ/A-Guy-Web/pull/763)) — @kodyade[bot]
+- #759: Show lock icon and grey out lessons that require course purchase ([#760](https://github.com/A-Guy-educ/A-Guy-Web/pull/760)) — @kodyade[bot]
+- #764: Repurpose floating Learning Assistant button into "Report a Bug" … ([#765](https://github.com/A-Guy-educ/A-Guy-Web/pull/765)) — @kodyade[bot]
+- chore: release v0.26.9 ([#762](https://github.com/A-Guy-educ/A-Guy-Web/pull/762)) — @kodyade[bot]
+- hotfix: Capture PayPal orders from /checkout/success return handler ([#761](https://github.com/A-Guy-educ/A-Guy-Web/pull/761)) — @aguyshayb
 - promote: dev -> main (v0.26.8) ([#751](https://github.com/A-Guy-educ/A-Guy-Web/pull/751)) — @kodyade[bot]
 - chore: release v0.26.8 ([#750](https://github.com/A-Guy-educ/A-Guy-Web/pull/750)) — @kodyade[bot]
 - #728: [Account] Removing selected course redirects to landing instead o… ([#731](https://github.com/A-Guy-educ/A-Guy-Web/pull/731)) — @kodyade[bot]
@@ -1945,7 +1991,7 @@ _No notable commits since the last release._
 - #372: [Login] מפתח תרגום brand.heroSubtitle מוצג כמו שהוא בדף ההתחברות ([#375](https://github.com/A-Guy-educ/A-Guy-Web/pull/375)) — @kodyade[bot]
 - fix(lesson): Widen content page container and wrap long-NBSP text ([#357](https://github.com/A-Guy-educ/A-Guy-Web/pull/357)) — @aguyshayb · ⚠️ QA 2026-07-05 (#747)
 - fix(lesson): Render content page body via dedicated blockType-based renderer ([#352](https://github.com/A-Guy-educ/A-Guy-Web/pull/352)) — @aguyshayb
-- fix(lesson): Pre-render content page bodies and pass to lesson pager ([#351](https://github.com/A-Guy-educ/A-Guy-Web/pull/351)) — @aguyshayb
+- fix(lesson): Pre-render content page bodies and pass to lesson pager ([#351](https://github.com/A-Guy-educ/A-Guy-Web/pull/351)) — @aguyshayb · ⚠️ QA 2026-07-06 (#757)
 - feat(lesson): render contentPageRef blocks in lesson pager ([#315](https://github.com/A-Guy-educ/A-Guy-Web/pull/315)) — @kodyade[bot] · ⚠️ QA 2026-07-04 (#735)
 - #309: Add prerequisite-lessons list to the lesson start page ([#313](https://github.com/A-Guy-educ/A-Guy-Web/pull/313)) — @kodyade[bot] · ⚠️ QA 2026-07-03 (#714)
 - #310: Add jump-to-exercise number input between prev/next arrows ([#314](https://github.com/A-Guy-educ/A-Guy-Web/pull/314)) — @kodyade[bot] · ⚠️ QA 2026-07-02 (#704)
