@@ -1,5 +1,30 @@
 # Changelog
 
+## v0.27.0 — 2026-07-09
+
+### Features
+
+- **footer**: dynamic CMS-driven footer with legal-page modal (#798)
+- **lesson**: mobile chat overlay "back to exercise" control (#794)
+- **paywall**: route locked lesson clicks to the course's product page (#771)
+- **paywall**: turn locked lesson cards into "buy this" CTA cards (#760)
+- **courses**: show lock icon on paid-inherited lesson cards (#762)
+- **bug-report**: repurpose floating AI button as Report-a-Bug widget (#765)
+- **auth**: refresh onboarding completion modal copy (#779)
+
+### Bug Fixes
+
+- **products**: responsive layout for product detail on mobile (#795)
+- **auth**: mobile Google login after `/start` now persists (#786)
+- **login**: submit button wires through to `loginAction` after logout (#788)
+- **prep7**: pin logo to brand hexes + explicit dark-mode text variants (#787)
+- **start**: revert `StartPageClient.tsx` to pre-c44a9fb6 layout (#790)
+- **paywall**: reuse `activeProductFilter`, match ObjectId and string course refs, log resolver errors
+
+### Refactor
+
+- Remove `course.pageAccessType` readers ahead of Admin schema drop (#782)
+
 ## v0.26.9 — 2026-07-06
 
 _No notable commits since the last release._
@@ -1840,6 +1865,7 @@ _No notable commits since the last release._
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: release v0.27.0 ([#801](https://github.com/A-Guy-educ/A-Guy-Web/pull/801)) — @aguyshayb
 - fix(footer): stop pulling MongoDB into the client bundle ([#802](https://github.com/A-Guy-educ/A-Guy-Web/pull/802)) — @aguyshayb
 - #797: Footer דינמי מ-CMS עם חלון מובנה לעמודים משפטיים ([#798](https://github.com/A-Guy-educ/A-Guy-Web/pull/798)) — @kodyade[bot]
 - fix(products): Responsive layout for product detail on mobile ([#795](https://github.com/A-Guy-educ/A-Guy-Web/pull/795)) — @aguyshayb
