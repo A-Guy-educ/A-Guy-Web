@@ -16,7 +16,6 @@ import { checkPaidAccess } from '@/server/utils/check-paid-access'
 import type {
   Chapter,
   ContentPage,
-  Course,
   Exercise,
   Lesson,
   LessonPrerequisite,
@@ -80,8 +79,9 @@ function getLessonChapter(lesson: Awaited<ReturnType<typeof queryLessonBySlug>>)
   return lesson && typeof lesson.chapter === 'object' ? lesson.chapter : null
 }
 
-function getChapterCourse(chapter: Chapter | null): Course | null {
-  return chapter && typeof chapter.course === 'object' ? chapter.course : null
+/** Resolve chapter.course to its ID regardless of whether it was populated. */
+function getChapterCourseId(chapter: Chapter | null): string | null {
+  return relationId(chapter?.course)
 }
 
 function normalizeContentFiles(files: Array<string | Media> | null | undefined): Media[] {
@@ -162,15 +162,15 @@ async function getLessonData({
   ])
 
   const chapter = getLessonChapter(lesson)
-  const chapterCourse = getChapterCourse(chapter)
+  const chapterCourseId = getChapterCourseId(chapter)
 
   if (
     !course ||
     !lesson ||
     !chapter ||
-    !chapterCourse ||
+    !chapterCourseId ||
     chapter.slug !== chapterSlug ||
-    chapterCourse.id !== course.id
+    chapterCourseId !== course.id
   ) {
     return null
   }
