@@ -6,12 +6,9 @@ import { isValidContentLocale } from '@/infra/types/content'
 import { queryCourseBySlugWithFallback } from '@/server/repos/queries/courses'
 import { queryChaptersByCourse } from '@/server/repos/queries/chapters'
 import { queryLessonsByCourse } from '@/server/repos/queries/lessons'
+import { queryPurchaseHrefForCourse } from '@/server/repos/queries/products'
 import { SystemParams } from '@/infra/config/system-params'
-import {
-  getAuthenticatedUserServer,
-  isAuthenticatedServer,
-} from '@/server/utils/access-gate-server'
-import { checkPaidAccess } from '@/server/utils/check-paid-access'
+import { getAuthenticatedUserServer } from '@/server/utils/access-gate-server'
 import { AccessGateProvider } from '@/ui/web/auth/AccessGateProvider'
 import { stripHtml } from '@/utils/strip-html'
 import { getContentDb, objectIdFromString, relationId } from '@/infra/db/content-db'
@@ -39,47 +36,15 @@ export default async function CoursePage({ params }: CoursePageProps) {
     notFound()
   }
 
-  // Course page gate reflects `pageAccessType` only. `accessType` is the
-  // lesson-level default and must not gate the page — it applies inside lessons
-  // via resolveAccessType(lesson.accessType, course.accessType).
-  const courseAccessType = course.pageAccessType ?? 'free'
+  // Course page gate is universal — all courses require registration only.
+  // Paid gating is per-lesson: `course.accessType` is the lesson-level default,
+  // resolved inside the lesson page via resolveAccessType(lesson, course).
+  // Locked cards on this landing show a paywall CTA but the page itself renders.
+  const courseAccessType = 'mandatory'
   const [gatedDelayMs, gatedWarningMs] = await Promise.all([
     SystemParams.getGatedDelayMs(),
     SystemParams.getGatedWarningMs(),
   ])
-
-  if (courseAccessType === 'mandatory' && !(await isAuthenticatedServer())) {
-    return (
-      <AccessGateProvider
-        accessType={courseAccessType}
-        courseSlug={courseSlug}
-        gatedDelayMs={gatedDelayMs}
-        gatedWarningMs={gatedWarningMs}
-      >
-        <div className="min-h-screen" />
-      </AccessGateProvider>
-    )
-  }
-
-  // Server-side block: for paid mode, check entitlement
-  if (courseAccessType === 'paid') {
-    const { requiresEntitlement, isAuthenticated } = await checkPaidAccess(course.id)
-
-    if (requiresEntitlement) {
-      return (
-        <AccessGateProvider
-          accessType={courseAccessType}
-          courseSlug={courseSlug}
-          gatedDelayMs={gatedDelayMs}
-          gatedWarningMs={gatedWarningMs}
-          requiresEntitlement={true}
-          isAuthenticated={isAuthenticated}
-        >
-          <div className="min-h-screen" />
-        </AccessGateProvider>
-      )
-    }
-  }
 
   const [chapters, lessons] = await Promise.all([
     queryChaptersByCourse({ courseId: course.id }),
@@ -93,6 +58,13 @@ export default async function CoursePage({ params }: CoursePageProps) {
     lessons.map((l) => l.id),
     course.courseLabel || '',
   )
+
+  // Resolve the cheapest active product that unlocks this course — drives the
+  // locked-lesson paywall CTA. Reverse-lookup because the course has no
+  // back-ref to product. Falls back to /products when no product matches or
+  // the query errors; never throws.
+  const purchaseSlug = await queryPurchaseHrefForCourse({ courseId: course.id })
+  const purchaseHref = purchaseSlug ? `/products/${purchaseSlug}` : undefined
 
   return (
     <AccessGateProvider
@@ -108,6 +80,7 @@ export default async function CoursePage({ params }: CoursePageProps) {
         courseSlug={courseSlug}
         lessonProgressMap={lessonProgressMap}
         isLocaleFallback={isLocaleFallback}
+        purchaseHref={purchaseHref}
       />
     </AccessGateProvider>
   )
