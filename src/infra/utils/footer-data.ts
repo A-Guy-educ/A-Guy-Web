@@ -12,10 +12,10 @@
  * @/infra/db/content-db, which is the allowed cross-layer touch point.
  */
 import { cache } from 'react'
-import type { Document } from 'mongodb'
+import { ObjectId, type Document } from 'mongodb'
 
 import type { Footer, Page } from '@/infra/types/content'
-import { getContentDb, objectIdFromString, serializeDoc } from '@/infra/db/content-db'
+import { getContentDb, serializeDoc } from '@/infra/db/content-db'
 
 export type FooterResolvedLink = {
   type?: 'reference' | 'custom' | null
@@ -108,10 +108,16 @@ function getPageIdsFromNav(navItems: FooterNavItem[]): string[] {
   return Array.from(ids)
 }
 
-async function fetchPageById(id: string): Promise<Page | null> {
+async function fetchPageByRef(ref: string): Promise<Page | null> {
   try {
     const db = await getContentDb()
-    const doc = await db.collection('pages').findOne({ _id: objectIdFromString(id) } as Document)
+    // Payload stores a page reference's `value` as either the page's ObjectId
+    // (24-char hex) OR the page's slug string — depending on how the reference
+    // was authored in the Admin. Query by _id if it's ObjectId-shaped,
+    // otherwise fall back to slug. Otherwise slug-based links (the common case
+    // for terms/privacy/etc.) never resolve and the modal button no-ops.
+    const filter: Document = ObjectId.isValid(ref) ? { _id: new ObjectId(ref) } : { slug: ref }
+    const doc = await db.collection('pages').findOne(filter)
     if (!doc) return null
     return serializeDoc<Page>(doc)
   } catch {
@@ -140,11 +146,11 @@ export const loadFooterData = cache(async (locale: string): Promise<FooterData> 
   const pageIds = getPageIdsFromNav(navItems)
 
   const legalPages: Record<string, FooterLegalPage> = {}
-  for (const id of pageIds) {
-    const page = await fetchPageById(id)
+  for (const ref of pageIds) {
+    const page = await fetchPageByRef(ref)
     const legal = page ? toLegalPage(page) : null
     if (legal) {
-      legalPages[id] = legal
+      legalPages[ref] = legal
       if (legal.slug && !legalPages[legal.slug]) {
         legalPages[legal.slug] = legal
       }
