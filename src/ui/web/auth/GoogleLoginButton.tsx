@@ -1,36 +1,33 @@
 'use client'
 
-import { useState } from 'react'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { cn } from '@/infra/utils/ui'
 
 interface GoogleLoginButtonProps {
   returnTo?: string
   className?: string
+  /**
+   * Override the visible label. When provided, the button skips its own
+   * `auth.oauth.continueWithGoogle` translation and uses this string verbatim.
+   * Use this when the surrounding surface owns its own copy namespace.
+   */
+  label?: string
 }
 
-export function GoogleLoginButton({ returnTo = '/', className }: GoogleLoginButtonProps) {
+export function GoogleLoginButton({ returnTo = '/', className, label }: GoogleLoginButtonProps) {
   const t = useTranslations('auth.oauth')
-  const [isNavigating, setIsNavigating] = useState(false)
-
-  const handleGoogleLogin = () => {
-    setIsNavigating(true)
-    // Use window.location.href to ensure a full page navigation
-    // This avoids CORS issues that occur with fetch/prefetch via Link
-    window.location.href = `/api/oauth/google?returnTo=${encodeURIComponent(returnTo)}`
-  }
+  const href = `/api/oauth/google?returnTo=${encodeURIComponent(returnTo)}`
 
   return (
-    <button
+    <a
+      href={href}
       className={cn(
-        'inline-flex items-center justify-center rounded text-body-sm font-medium',
-        'bg-card text-card-foreground border border-border',
+        'inline-flex items-center justify-center rounded text-body-sm font-medium no-underline',
+        'bg-card text-card-foreground border border-border cursor-pointer',
         'transition-all duration-fast hover:scale-[1.03] hover:shadow-card hover:bg-muted',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-        isNavigating && 'opacity-disabled pointer-events-none',
         className,
       )}
-      onClick={handleGoogleLogin}
     >
       <svg
         className="me-2 h-5 w-5"
@@ -56,7 +53,7 @@ export function GoogleLoginButton({ returnTo = '/', className }: GoogleLoginButt
           d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"
         />
       </svg>
-      {t('continueWithGoogle')}
-    </button>
+      {label ?? t('continueWithGoogle')}
+    </a>
   )
 }

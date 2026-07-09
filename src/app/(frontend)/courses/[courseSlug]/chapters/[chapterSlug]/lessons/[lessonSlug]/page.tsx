@@ -11,10 +11,7 @@ import { resolveFormulaSheet } from '@/server/repos/queries/formula-sheets'
 import { queryLessonBySlug, queryLessonsByCourse } from '@/server/repos/queries/lessons'
 import { queryMediaByIds } from '@/server/repos/queries/media'
 import { relationId } from '@/server/repos/mongo'
-import {
-  getAuthenticatedUserServer,
-  isAuthenticatedServer,
-} from '@/server/utils/access-gate-server'
+import { getAuthenticatedUserServer } from '@/server/utils/access-gate-server'
 import { checkPaidAccess } from '@/server/utils/check-paid-access'
 import type {
   Chapter,
@@ -198,19 +195,6 @@ export default async function LessonPage({ params }: LessonPageProps) {
     SystemParams.getGatedWarningMs(),
   ])
 
-  if (accessType === 'mandatory' && !(await isAuthenticatedServer())) {
-    return (
-      <AccessGateProvider
-        accessType={accessType}
-        courseSlug={courseSlug}
-        gatedDelayMs={gatedDelayMs}
-        gatedWarningMs={gatedWarningMs}
-      >
-        <div className="min-h-screen" />
-      </AccessGateProvider>
-    )
-  }
-
   if (accessType === 'paid') {
     const { requiresEntitlement, isAuthenticated } = await checkPaidAccess(course.id)
 
@@ -272,7 +256,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
   ])
   const lessonIndex = courseLessons.findIndex((courseLesson) => courseLesson.id === lesson.id)
   const nextLesson = lessonIndex >= 0 ? courseLessons[lessonIndex + 1] : null
-  const backUrl = `/courses/${courseSlug}/chapters/${chapterSlug}`
+  const backUrl = `/courses/${courseSlug}`
   const formulaSheet = formulaSheetResult?.sheet ?? null
   const showChat = exercises.length > 0 || Boolean(lesson.lessonContextText?.trim())
   const hasExerciseBlocks = exercises.some(hasBlocks)
