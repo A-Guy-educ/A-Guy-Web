@@ -108,15 +108,20 @@ function getPageIdsFromNav(navItems: FooterNavItem[]): string[] {
   return Array.from(ids)
 }
 
+const OBJECT_ID_HEX = /^[0-9a-fA-F]{24}$/
+
 async function fetchPageByRef(ref: string): Promise<Page | null> {
   try {
     const db = await getContentDb()
     // Payload stores a page reference's `value` as either the page's ObjectId
-    // (24-char hex) OR the page's slug string — depending on how the reference
-    // was authored in the Admin. Query by _id if it's ObjectId-shaped,
-    // otherwise fall back to slug. Otherwise slug-based links (the common case
-    // for terms/privacy/etc.) never resolve and the modal button no-ops.
-    const filter: Document = ObjectId.isValid(ref) ? { _id: new ObjectId(ref) } : { slug: ref }
+    // (rendered as a 24-char hex string) OR the page's slug string — depending
+    // on how the reference was authored in the Admin. Query by _id if it's
+    // 24-hex, otherwise by slug. NOTE: we cannot use ObjectId.isValid(ref)
+    // here — it returns true for ANY 12-character string, so slugs like
+    // "contact-info" (12 chars) would be misinterpreted as a 12-byte ObjectId
+    // and silently miss the lookup. The explicit 24-hex regex is the only
+    // reliable check for the string form of an ObjectId.
+    const filter: Document = OBJECT_ID_HEX.test(ref) ? { _id: new ObjectId(ref) } : { slug: ref }
     const doc = await db.collection('pages').findOne(filter)
     if (!doc) return null
     return serializeDoc<Page>(doc)

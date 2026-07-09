@@ -106,9 +106,48 @@ describe('loadFooterData', () => {
 
     const result = await loadFooterData('en')
 
-    expect(result.legalPages[pageId]).toBeDefined()
+    expect(result.legalPages[pageId]).toEqual({
+      id: pageId,
+      slug: 'terms-of-service',
+      title: 'Terms of Service',
+      layout: [{ id: 'b1', blockType: 'html', html: '<p>Hello</p>' }],
+    })
     // The page is also indexed by slug for the modal to look up by URL.
     expect(result.legalPages['terms-of-service']).toBeDefined()
+  })
+
+  it('treats a 12-char slug as a slug, not a 12-byte ObjectId (boundary case)', async () => {
+    // ObjectId.isValid returns true for any 12-char string because it treats
+    // the string as raw bytes. Slugs like "contact-info" (12 chars) must NOT
+    // fall into the _id branch — they must resolve via slug lookup.
+    globalState.footer = {
+      variants: [
+        {
+          locale: 'en',
+          navItems: [
+            {
+              id: 'nav-12',
+              link: {
+                type: 'reference',
+                reference: { relationTo: 'pages', value: 'contact-info' },
+                label: 'Contact',
+              },
+            },
+          ],
+        },
+      ],
+    }
+    globalState.pages['xyz-doc'] = {
+      id: 'xyz-doc',
+      slug: 'contact-info',
+      title: 'Contact',
+      layout: [],
+    }
+
+    const result = await loadFooterData('en')
+
+    expect(result.legalPages['contact-info']).toBeDefined()
+    expect(result.legalPages['contact-info']?.title).toBe('Contact')
   })
 
   it('pre-fetches pages when reference.value is a slug (indexes by slug key)', async () => {
