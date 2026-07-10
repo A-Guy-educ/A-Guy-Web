@@ -12,7 +12,6 @@ import { AskTab } from '../AskTab'
 import { CourseAnalytics } from '../CourseAnalytics'
 import { CourseTabs, TAB_COLORS, type CourseTab } from '../CourseTabs'
 import { ExamReminderBubble } from '../ExamReminderBubble'
-import { ExamsTab } from '../ExamsTab'
 import { LessonListTab } from '../LessonListTab'
 import { LocaleFallbackBanner } from '../../../_components/LocaleFallbackBanner'
 
@@ -23,6 +22,12 @@ interface CoursePageContentProps {
   courseSlug: string
   lessonProgressMap?: Record<string, LessonProgress>
   isLocaleFallback?: boolean
+  /**
+   * Pre-resolved buy URL for the parent course's locked lessons. Resolved
+   * server-side once per render; forwarded to LessonListTab → CourseLessonCard
+   * so the per-card CTA routes to the right product instead of /products.
+   */
+  purchaseHref?: string
 }
 
 const tabContentVariants = {
@@ -38,6 +43,7 @@ export function CoursePageContent({
   courseSlug,
   lessonProgressMap = {},
   isLocaleFallback = false,
+  purchaseHref,
 }: CoursePageContentProps) {
   const t = useTranslations('coursePage')
   const [activeTab, setActiveTab] = useState<CourseTab>('learn')
@@ -85,22 +91,24 @@ export function CoursePageContent({
             exit="exit"
             transition={{ duration: 0.2, ease: 'easeInOut' }}
           >
-            {(activeTab === 'learn' || activeTab === 'practice') && (
+            {(activeTab === 'learn' || activeTab === 'practice' || activeTab === 'exams') && (
               <LessonListTab
                 lessons={lessons}
                 chapters={chapters}
                 courseSlug={courseSlug}
+                courseId={course.id}
+                courseAccessType={course.accessType}
                 gradeLevel={course.courseLabel || ''}
                 tabColor={TAB_COLORS[activeTab]}
                 lessonProgressMap={lessonProgressMap}
-                lessonType={activeTab === 'learn' ? 'learning' : activeTab}
+                lessonType={
+                  activeTab === 'learn' ? 'learning' : activeTab === 'exams' ? 'exam' : 'practice'
+                }
+                purchaseHref={purchaseHref}
               />
             )}
             {activeTab === 'ask' && (
               <AskTab courseId={course.id} accentColor={TAB_COLORS[activeTab].stroke} />
-            )}
-            {activeTab === 'exams' && (
-              <ExamsTab courseId={course.id} accentColor={TAB_COLORS[activeTab].stroke} />
             )}
           </motion.div>
         </AnimatePresence>
