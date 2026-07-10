@@ -276,10 +276,10 @@
       }
     },
     "onboardingComplete": {
-      "title": "נהדר!",
-      "description": "הכנתי את המערכת במיוחד בשבילך. רק רישום קצר (חינמי) ומתחילים ללמוד",
-      "primaryCta": "כניסה מהירה עם Google",
-      "reassurance": "ההרשמה לא כרוכה בעלות או בהזנת אשראי."
+      "title": "נהדר! 🎉",
+      "descriptionBold": "הכנתי עבורך את מערכת הלמידה המותאמת אישית.",
+      "descriptionRest": "רק חיבור מהיר ויוצאים לדרך המשותפת",
+      "primaryCta": "כניסה מהירה עם Google"
     },
     "signup": {
       "title": "צור חשבון",
@@ -321,6 +321,9 @@
       "loggingIn": "מתחבר...",
       "noAccount": "אין לך חשבון?",
       "signupLink": "הירשם",
+      "brand": {
+        "heroSubtitle": "A-Guy המורה הפרטי שלכם"
+      },
       "errors": {
         "invalidCredentials": "אימייל או סיסמה שגויים"
       }
@@ -407,7 +410,7 @@
     "liveContent": "תוכן חדש מתווסף באופן קבוע",
     "featuredTitle": "קורסים מומלצים",
     "featuredDescription": "קורסים שנבחרו בקפידה כדי לעזור לך במסע הלמידה שלך.",
-    "backToCourses": "חזור לקורסים",
+    "backToCourses": "חזרה לקורס",
     "backToChapter": "חזור לפרק",
     "back": "חזור",
     "openCourse": "פתח קורס",
@@ -418,6 +421,8 @@
     "chapter": "פרק",
     "lesson": "שיעור",
     "exam": "בחינה",
+    "lockedPurchaseCta": "לרכישת הקורס המלא",
+    "lockedPurchaseHint": "זמין ברכישת הקורס המלא • לחצו לרכישה",
     "exercise": "תרגיל",
     "noCourses": "אין קורסים זמינים כרגע.",
     "noChapters": "אין פרקים זמינים לקורס זה.",
@@ -442,6 +447,7 @@
     "freeResponseBadge": "תשובה חופשית",
     "notFound": "לא נמצא",
     "backToLesson": "חזור לשיעור",
+    "backToExercise": "חזור לתרגיל",
     "exerciseTitle": "תרגיל",
     "submitAnswer": "שלח תשובה",
     "checkAnswer": "בדוק תשובה",
@@ -947,9 +953,40 @@
       "sendFailed": "שליחת ההודעה נכשלה. אנא נסה שוב."
     }
   },
+  "bugReport": {
+    "buttonLabel": "דווח תקלה",
+    "tooltip": "דווח תקלה",
+    "title": "דווח תקלה",
+    "subtitle": "ספרו לנו מה לא עבד",
+    "close": "סגור",
+    "descriptionLabel": "תיאור התקלה",
+    "descriptionPlaceholder": "מה קרה? צעדים לשחזור, מה ציפיתם שיקרה, ומה בפועל קרה.",
+    "emailLabel": "דוא\"ל ליצירת קשר (לא חובה)",
+    "emailPlaceholder": "you@example.com",
+    "submit": "שלח",
+    "sending": "שולח...",
+    "success": "הדיווח נשלח, תודה",
+    "error": "שליחה נכשלה, נסה שוב",
+    "rateLimited": "אתם שולחים יותר מדי דיווחים — אנא המתינו כמה דקות"
+  },
   "products": {
-    "catalogTitle": "מוצרים",
-    "catalogDescription": "עיין במוצרים הזמינים שלנו והתחל ללמוד עוד היום.",
+    "catalogTitle": "בחרו מסלול לימוד",
+    "catalogDescription": "גישה מלאה לשיעורים, תרגול וליווי אישי במתמטיקה במקום אחד.",
+    "highlights": {
+      "lessons": "שיעורים מסודרים",
+      "practice": "תרגול ומשוב",
+      "support": "מורה דיגיטלי"
+    },
+    "planBullets": {
+      "lessons": "שיעורים",
+      "practice": "תרגול",
+      "support": "עזרה אישית"
+    },
+    "featuredSectionTitle": "זמין כעת",
+    "soonSectionTitle": "בקרוב",
+    "buyNowButton": "לרכישה מיידית",
+    "soonButton": "בקרוב",
+    "freeLabel": "חינם",
     "noProducts": "אין מוצרים זמינים כרגע.",
     "oneTimeLabel": "רכישה חד-פעמית",
     "subscriptionLabel": "מנוי",
