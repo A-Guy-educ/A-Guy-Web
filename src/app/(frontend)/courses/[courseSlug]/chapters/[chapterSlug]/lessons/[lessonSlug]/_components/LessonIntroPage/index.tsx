@@ -224,7 +224,6 @@ export function LessonIntroPage({
             </Card>
           </div>
         )}
-
         <section className="grid gap-content-gap-md md:flex-1 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] lg:items-center">
           <div className="space-y-4 md:space-y-6">
             <div className="inline-flex items-center gap-content-gap-xs rounded-full border border-border bg-muted px-3 py-1.5 text-label uppercase tracking-wider text-muted-foreground md:px-4 md:py-2">
