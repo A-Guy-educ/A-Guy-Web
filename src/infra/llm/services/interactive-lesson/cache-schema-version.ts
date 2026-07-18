@@ -1,6 +1,5 @@
 /**
  * Schema version constant for cached InteractiveLesson payloads
  *
- * @ai-summary Bump when the InteractiveLesson/InteractiveLessonStep shape changes in ways that break the client converter or renderer — older cached rows with mismatched versions are evicted on read and regenerated. Prompt template changes do NOT need a bump (tracked by promptId + updatedAt separately); neither do new optional fields the converter tolerates.
- */
+ * @ai-summary Schema version stored on each cache row. When the TypeScript types change, incrementing this value triggers automatic cache eviction on the next read — **the conversion code is NOT re-run on existing rows**, so stale cached rows remain until they are evicted. If you bump the version and the converter tolerates the old shape, some users may keep seeing the old content until natural TTL expiry. Bump this string when the InteractiveLesson/InteractiveLessonStep shape changes — mismatched rows are evicted on read and regenerated. Prompt template changes do NOT need a bump (they're tracked by promptId + updatedAt separately). A new optional field doesn't need a bump if the converter tolerates its absence. Bump when the InteractiveLesson/InteractiveLessonStep shape changes in ways that break the client converter or renderer — older cached rows with mismatched versions are evicted on read and regenerated. */
 export const INTERACTIVE_LESSON_CACHE_SCHEMA_VERSION = 'v1'

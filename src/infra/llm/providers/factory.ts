@@ -1,14 +1,19 @@
 /**
- * Provider factory for runtime LLM switching (Gemini / OpenAI-compatible)
+ * LLM Provider Factory
  *
- * @ai-summary Resolves provider at runtime from `LLM_PROVIDER` env var first, then ConfigValues. Model names come from `PROVIDER_MODEL_NAMES` (single source of truth) — never hardcode model strings in callers. Env var LLM_PROVIDER is checked FIRST — it takes precedence over runtime ConfigValues. If you set the env var, runtime config is ignored entirely. Always delegates to Genkit adapter; the factory pattern is now a thin wrapper.
+ * @ai-summary Runtime provider detection (env → ConfigValues → Gemini default).
+ * **Returns a Genkit adapter unconditionally** — the factory itself doesn't switch
+ * between different backend implementations; it just resolves the provider type
+ * for telemetry and error classification. The `getLLMProvider()` call creates a
+ * new adapter per invocation, so circuit-breaker and retry state is not shared
+ * across calls unless the caller caches the result. Env var LLM_PROVIDER is checked FIRST — it takes precedence over runtime ConfigValues. If you set the env var, runtime config is ignored entirely. Always delegates to Genkit adapter; the factory pattern is now a thin wrapper.
+ *
+ * Uses centralized MODEL_REGISTRY and PROVIDER_MODEL_NAMES from @/infra/llm/models.ts
+ * for model configurations. This ensures a single source of truth for all model definitions.
  *
  * @fileType factory
  * @domain ai
  * @pattern provider-factory, abstraction, dependency-injection
- *
- * Uses centralized MODEL_REGISTRY and PROVIDER_MODEL_NAMES from @/infra/llm/models.ts
- * for model configurations. This ensures a single source of truth for all model definitions.
  */
 import {
   getConfigValueByKey,

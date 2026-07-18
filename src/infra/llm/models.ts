@@ -1,14 +1,9 @@
 /**
  * LLM Model Registry
- *
- * @ai-summary Changing a temperature or maxOutputTokens here affects ALL providers unless overridden by LLM_MODEL_OVERRIDE_* env vars. The same model key can map to different model names per provider (see PROVIDER_MODEL_NAMES). THINKING_BUDGET is per-model and opt-in (Gemini 2.5+ only) — setting it on unsupported models is silently ignored. Single source of truth for all model configs (temperature, maxTokens, capabilities). Runtime env overrides (`LLM_MODEL_OVERRIDE_<KEY>`) take precedence over the registry — always resolve via `getProviderModelConfig()`.
- *
- * @fileType implementation
- * @domain ai
- *
  * This module centralizes all model configurations to eliminate duplication
  * and enable proper provider switching at runtime.
- */
+ *
+ * @ai-summary Eliminates model-name duplication by separating registry (temperature, tokens, capabilities) from provider-specific name mappings. The split means adding a new model requires touching THREE places: `AIModelKey`, `MODEL_REGISTRY`, and `PROVIDER_MODEL_NAMES` — missing any one causes a runtime `undefined` crash at the call site, not a compile-time error. Changing a temperature or maxOutputTokens here affects ALL providers unless overridden by LLM_MODEL_OVERRIDE_* env vars. The same model key can map to different model names per provider (see PROVIDER_MODEL_NAMES). THINKING_BUDGET is per-model and opt-in (Gemini 2.5+ only) — setting it on unsupported models is silently ignored. Single source of truth for all model configs (temperature, maxTokens, capabilities). Runtime env overrides (`LLM_MODEL_OVERRIDE_<KEY>`) take precedence over the registry — always resolve via `getProviderModelConfig()`. */
 
 import { LLMProviderType } from './providers/types'
 

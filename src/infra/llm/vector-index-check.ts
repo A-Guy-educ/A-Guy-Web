@@ -1,8 +1,7 @@
 /**
  * Runtime guardrail for MongoDB Atlas vector search index
  *
- * @ai-summary Fail-fast on startup if the index is missing or not READY — memory retrieval is disabled rather than silently degraded. Result is cached for 5 minutes. enforceVectorIndexRequirement throws and refuses to start if the index is missing — this is fail-fast in production. isVectorIndexAvailable is the graceful counterpart (returns boolean, caches for 5 min). The index requires MongoDB Atlas M10+ cluster — standard MongoDB does not support vector search. Index name: memory_items_embedding_v1, dimensions: 1536, similarity: cosine.
- */
+ * @ai-summary Startup safety check that refuses to boot if the Atlas vector index is absent or still building. The 5-minute cache on availability checks prevents excessive Atlas API calls, but means a recently-created index may be reported unavailable for up to 5 minutes after it actually becomes READY. enforceVectorIndexRequirement throws and refuses to start if the index is missing — this is fail-fast in production. isVectorIndexAvailable is the graceful counterpart (returns boolean, caches for 5 min). The index requires MongoDB Atlas M10+ cluster — standard MongoDB does not support vector search. Index name: memory_items_embedding_v1, dimensions: 1536, similarity: cosine. Fail-fast on startup if the index is missing or not READY — memory retrieval is disabled rather than silently degraded. */
 
 import { logger } from '@/infra/utils/logger'
 import type { Db } from 'mongodb'

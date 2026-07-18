@@ -1,14 +1,21 @@
 /**
  * Summary Generation Service
- * Compresses conversation history into concise summaries
  *
- * @ai-summary Uses gpt-4o-mini (not the main chat model) for cost efficiency. Runs incrementally — if an existingSummary exists, the LLM receives it plus new messages and is asked to update rather than regenerate from scratch. Throw on failure — callers handle propagation. Prompt file has three-tier fallback: main path > default fallback > inline default.
+ * @ai-summary Incremental conversation compression using gpt-4o-mini (cheapest
+ * model). The incremental approach is load-bearing: passing an existing summary
+ * as context lets the model edit rather than regenerate, keeping summaries
+ * coherent across many chat rounds. Passing only the new slice would lose prior
+ * context and degrade summary quality over time. Uses gpt-4o-mini (not the main chat model) for cost efficiency. Runs incrementally — if an existingSummary exists, the LLM receives it plus new messages and is asked to update rather than regenerate from scratch. Throw on failure — callers handle propagation. Prompt file has three-tier fallback: main path > default fallback > inline default.
  *
  * Key Features:
  * - Uses cheaper model (gpt-4o-mini) for cost efficiency
  * - Preserves key decisions, preferences, and open loops
  * - Updates existing summaries incrementally
  * - Low temperature for deterministic output
+ *
+ * @fileType service
+ * @domain ai
+ * @pattern conversation-compression
  */
 
 import { OpenAI } from 'openai'

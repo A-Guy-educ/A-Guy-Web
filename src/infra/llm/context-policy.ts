@@ -1,18 +1,16 @@
 /**
  * Deterministic prompt composition policy
  *
- * @ai-summary Deterministic prompt composition: strict order is system > summary > memory > recent messages — this order is the contract and inserting content at a different position changes prompt semantics and may degrade quality. Do not reorder or insert ad-hoc sections without a version bump.
- *
- * @fileType implementation
- * @domain ai
- *
+ * @ai-summary Fixed-order prompt composition contract (V1). The ordering is load-bearing: summary before memory ensures authoritative context isn't diluted by noisy retrieved items. Changing the order without updating all consumers silently breaks memory prioritization across the app. Strict order: system > summary > memory > recent messages. This order is the contract — inserting content at a different position changes the prompt semantics and may degrade quality. recentWindowSize=20, memoryTopK=8, summaryThreshold=40. Do not reorder or insert ad-hoc sections without a version bump. *
  * Policy V1 Contract:
  * 1. System message (static)
  * 2. Conversation summary (if exists)
  * 3. Retrieved memory items (Top-K)
  * 4. Recent messages window (last N messages)
  *
- * CRITICAL: No ad-hoc insertions. No reordering. No message duplication.
+ * @fileType policy
+ * @domain ai
+ * @pattern context-composition
  */
 
 import type { MemoryItem } from './vector-search'

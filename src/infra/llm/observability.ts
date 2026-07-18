@@ -1,13 +1,20 @@
 /**
  * Structured logging for context usage and feature flags
  *
+ * @ai-summary Structured log helpers for context-usage and maintenance events.
+ * Does not throw — callers should treat all logging as non-blocking. Snapshot
+ * logging is gated behind `NODE_ENV=development` so prod traces never include
+ * prompt content. logPromptSnapshot is development-only (NODE_ENV !== 'development' is a no-op). logContextUsage is always active and is the primary observability signal for production context composition. logMaintenance is the primary signal for summary and extraction operations.
+ *
  * Provides structured logging for:
  * - Context usage per model call
  * - Feature flag status
  * - Performance metrics
  * - Debug snapshots (dev only)
  *
- * @ai-summary logPromptSnapshot is development-only (NODE_ENV !== 'development' is a no-op). logContextUsage is always active and is the primary observability signal for production context composition. logMaintenance is the primary signal for summary and extraction operations.
+ * @fileType utility
+ * @domain observability
+ * @pattern structured-logging
  */
 
 import { logger } from '@/infra/utils/logger'

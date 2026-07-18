@@ -1,8 +1,7 @@
 /**
  * Genkit LLM integration
  *
- * @ai-summary Entry point for Genkit-based LLM operations. Exposes `createGenkitUnifiedAdapter` which is the runtime adapter — all chat/completion calls go through it.
- *
+ * @ai-summary Thin Genkit wrapper that exposes `createGenkitUnifiedAdapter()`, which is the primary entry point for AI services to get a configured LLM client. Does not add significant logic — delegates to the unified adapter. Exposes `createGenkitUnifiedAdapter` which is the runtime adapter — all chat/completion calls go through it. *
  * @fileType index
  * @domain ai
  * @pattern abstraction, genkit, provider-abstraction

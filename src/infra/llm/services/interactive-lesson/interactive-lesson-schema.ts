@@ -1,8 +1,7 @@
 /**
  * Zod + Gemini JSON schema for interactive lesson generation
  *
- * @ai-summary Passed directly to Gemini's responseSchema API — must be kept FLAT (no $ref, $defs, oneOf) since Gemini's responseSchema accepts only a strict OpenAPI 3.0 subset. The `stripUnsupportedKeys` helper only removes `$schema` and `additionalProperties`; other JSON-Schema-only keywords pass through and cause Gemini API errors. Service-side Zod validators run AFTER as a safety net for rare schema-ignore cases.
- *
+ * @ai-summary Schema validated post-hoc by Zod (not passed to Gemini's responseSchema). **Gemini's responseSchema does not support `$ref` or `oneOf` with discriminator** — if this schema uses those constructs, the schema is not actually enforcing shape at generation time. The `stripUnsupportedKeys` helper only removes `$schema` and `additionalProperties`; other JSON-Schema-only keywords pass through and may cause API errors. Gemini must be able to express this schema in OpenAPI 3.0 subset — keep it FLAT: no `$ref`, `$defs`, or `oneOf` with discriminator. Service-side Zod validators run AFTER as a safety net for rare schema-ignore cases. Passed directly to Gemini's responseSchema API — must be kept FLAT (no $ref, $defs, oneOf) since Gemini's responseSchema accepts only a strict OpenAPI 3.0 subset. *
  * Passed to Gemini via `responseSchema` + `responseMimeType: application/json`
  * (direct fetch in interactive-lesson-generation-service.ts) so the model
  * is constrained to produce exactly this shape. Eliminates field-name
@@ -19,6 +18,10 @@
  * a safety net for:
  *   - Rare cases where Gemini ignores the schema
  *   - Error responses (IMAGE_UNCLEAR, NOT_MATH) that bypass the schema
+ *
+ * @fileType schema
+ * @domain ai
+ * @pattern schema
  */
 import { z } from 'zod'
 

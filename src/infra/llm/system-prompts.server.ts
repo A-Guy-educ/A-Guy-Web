@@ -3,6 +3,12 @@
  *
  * @ai-summary Returns prompts in createdAt ASC + id ASC order (oldest first). Sort tiebreaker ensures fully deterministic ordering even when multiple prompts share the same timestamp. Returns empty array if no prompts exist (graceful degradation). Prompts are admin-only, hence overrideAccess: true.
  *
+ * @ai-summary Returns published system prompts ordered by `createdAt ASC, id ASC`
+ * (oldest first). The tiebreaker is intentional: if two prompts share a timestamp,
+ * `id` as tiebreaker ensures the sort is stable across DB restarts or replica lag.
+ * Returns empty array if no prompts exist (graceful degradation). Prompts are
+ * admin-only, hence overrideAccess: true.
+ *
  * @fileType ai-utility
  * @domain chat
  * @pattern server-only

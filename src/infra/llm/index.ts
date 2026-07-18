@@ -1,15 +1,21 @@
 /**
  * AI Service Layer - Public API
  *
- * @ai-summary Entry point for all AI services in the infra layer. Import from here rather than reaching into submodules — this is the stable public contract. Submodule imports may shift as the codebase evolves. Centralizes all AI functionality (LLM chat, embeddings, vector search, lesson generation). Exists so callers import from one place — new sub-modules must add their exports here to be accessible.
+ * @ai-summary Centralized facade over Genkit adapters and a provider factory. Hides which LLM is actually running (Gemini, OpenAI-compatible, etc.) behind a unified interface. All AI services in `src/infra/llm/services/` depend on this API rather than calling Genkit or the provider directly. Entry point for all AI services in the infra layer. Import from here rather than reaching into submodules — this is the stable public contract. Submodule imports may shift as the codebase evolves. Centralizes all AI functionality (LLM chat, embeddings, vector search, lesson generation). Exists so callers import from one place — new sub-modules must add their exports here to be accessible. *
+ * ## Entry points
+ * - `createGenkitUnifiedAdapter()` — builds the Genkit-backed provider used by most services
+ * - `getLLMProvider()` / `detectBestProvider()` — runtime provider selection via factory
  *
- * @fileType index
- * @domain ai
+ * ## Load-bearing gotchas
+ * - Provider detection is **per-request**, not at startup; warm lambda instances
+ *   may have a different "best" provider if env vars changed since boot
+ * - The error classifier (`createErrorClassifier`) maps provider-specific errors
+ *   to `LLMErrorCode` — missing a new error shape in one provider means it
+ *   bleeds through as a generic `UNKNOWN` error until the mapping is extended
  *
- * Future-ready: Easy to extend with new features like:
- * - Exercise editing suggestions
- * - Content generation
- * - Auto-grading assistance
+ * @fileType ai-utility
+ * @domain chat
+ * @pattern facade
  */
 
 // Genkit-based provider exports

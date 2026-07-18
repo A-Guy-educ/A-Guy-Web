@@ -1,10 +1,14 @@
 /**
  * LLM Provider Constants
- * Centralized constants and defaults for LLM operations
+ *
+ * @ai-summary Magic numbers for timeouts, retries, token budgets, and temperature.
+ * **Do not change `LLM_TIMEOUTS.STREAMING` without checking serverless function
+ * timeouts** — streaming is capped at 60s to match common lambda/API limits.
+ * Single source of truth for all LLM defaults. If you change a constant here, check whether ConfigValues in the DB already override it — DB values take precedence at runtime. Constants here are only the floor when DB is unconfigured.
  *
  * @fileType constants
  * @domain ai
- * @ai-summary Single source of truth for all LLM defaults. If you change a constant here, check whether ConfigValues in the DB already override it — DB values take precedence at runtime. Constants here are only the floor when DB is unconfigured.
+ * @pattern constants
  */
 
 // Timeouts for different operation types (in milliseconds)

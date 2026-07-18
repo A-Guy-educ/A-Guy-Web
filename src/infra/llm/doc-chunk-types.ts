@@ -1,9 +1,7 @@
 /**
  * Shared types for documentation chunks
- * Used by both the doc-search module and the chunk generation script
  *
- * @ai-summary Both the DocSearch class and the generate-doc-chunks.ts script must agree on this shape. If you add a field here, update both consumers. priority is a number (higher = more important) used by DocSearch's relevance scoring. This is the shared schema contract. If the shape changes, both the doc-search consumer and the chunk generation script must be updated together.
- */
+ * @ai-summary Pure data shapes shared between the doc-search runtime and the chunk generation script. No business logic here — only types that must stay in sync across both consumers. Both the DocSearch class and the generate-doc-chunks.ts script must agree on this shape. If you add a field here, update both consumers. priority is a number (higher = more important) used by DocSearch's relevance scoring. If the shape changes, both the doc-search consumer and the chunk generation script must be updated together. */
 
 export interface DocChunk {
   id: string

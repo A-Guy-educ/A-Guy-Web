@@ -1,14 +1,17 @@
 export const __genkit_exports__ = true
 /**
- * Genkit-backed UnifiedLLMProvider
+ * Unified Adapter
  *
- * @ai-summary The streaming implementation uses `ReadableStream.from()` to bridge Genkit's AsyncIterable to Node.js ReadableStream. This is required for Node.js 22 compatibility — direct iteration inside a `start()` callback throws a TypeError. Routes to `ai.generate()` (non-streaming) or `ai.generateStream()` (streaming). Error classification via `error-adapter.ts` maps Genkit errors to LLMError codes (auth → CONFIG_ERROR, rate limit → RATE_LIMIT_ERROR, timeout → TIMEOUT_ERROR, etc.). `raw` exposes the full Genkit GenerateResponse; `text` is the extracted string. Streaming returns `{ stream, response }` — the stream yields text chunks, response resolves to the final text. Tool calls from `ai.generate({ tools })` are extracted from `result.toolCalls` (Genkit format: `{ toolName, arguments }`) and mapped to UnifiedLLMProvider format (`{ name, args }`).
+ * @ai-summary Genkit-backed implementation of `UnifiedLLMProvider`. Wraps
+ * circuit-breaker, retry, and timeout middleware around every call. The retry
+ * wrapper uses `errorAdapter.isRetryable` to decide which errors get retried —
+ * **if a new error type is not classified, it falls through as non-retryable
+ * by default**, silently failing instead of retrying on transient errors.
+ * Routes to `ai.generate()` (non-streaming) or `ai.generateStream()` (streaming). Error classification via `error-adapter.ts` maps Genkit errors to LLMError codes (auth → CONFIG_ERROR, rate limit → RATE_LIMIT_ERROR, timeout → TIMEOUT_ERROR, etc.). `raw` exposes the full Genkit GenerateResponse; `text` is the extracted string. Streaming returns `{ stream, response }` — the stream yields text chunks, response resolves to the final text. Tool calls from `ai.generate({ tools })` are extracted from `result.toolCalls` (Genkit format: `{ toolName, arguments }`) and mapped to UnifiedLLMProvider format (`{ name, args }`).
  *
  * @fileType adapter
  * @domain ai
  * @pattern abstraction, genkit, provider-abstraction
- *
- * Maintains backward compatibility with existing UnifiedLLMProvider interface
  */
 import type { AIModel, AIModelKey } from '@/infra/llm/models'
 import type { UnifiedLLMProvider } from '@/infra/llm/providers/factory'

@@ -1,8 +1,7 @@
 /**
  * Exponential backoff retry with jitter
  *
- * @ai-summary Retries transient failures with exponential delay and 10% jitter. The `isRetryable` predicate gates which errors trigger retry — callers must supply it. If maxRetries is exhausted, throws the LAST error wrapped by wrapError — the original error context is lost. Ensure wrapError preserves the cause chain for debugging.
- *
+ * @ai-summary Retry loop that uses `isRetryable` as the gate. **When `isRetryable` is not supplied, every error is retried**, which can turn a non-transient validation error (bad input, missing field) into a storm of redundant calls. The jitter factor (10%) prevents thundering-herd when multiple clients back off simultaneously. Retries with exponential backoff and jitter. If maxRetries is exhausted, throws the LAST error wrapped by wrapError — the original error context is lost. Ensure wrapError preserves the cause chain for debugging. The `isRetryable` predicate gates which errors trigger retry — callers must supply it. *
  * @fileType utility
  * @domain ai
  * @pattern retry

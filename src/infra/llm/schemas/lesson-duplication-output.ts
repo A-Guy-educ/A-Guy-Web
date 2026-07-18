@@ -1,10 +1,12 @@
 /**
- * Zod schemas documenting the intended output shapes for lesson duplication
+ * Output schemas for the lesson-duplication variation pipeline.
  *
- * @ai-summary These schemas are NOT wired to Gemini's responseSchema — both passes use text-mode parsing with post-hoc safeParse validation. Gemini's responseSchema misrenders nested object arrays as string arrays (issue #1748). If Genkit/Gemini structured-output support improves, pass 1 can opt back in by re-adding outputSchema. sanitizeAiBlocks + payload.create's strict Zod validation are the actual enforcement.
- *
- * @fileType schema
- * @domain ai
+ * @ai-summary Zod schemas documenting the intended output shapes of pass 1 (creative)
+ * and pass 2 (deterministic). **NOT wired to Gemini's responseSchema** — Gemini
+ * collapses nested object schemas to flat string arrays (issue #1748), so validation
+ * is post-hoc only via `safeParse`. If a future Gemini version fixes responseSchema,
+ * these schemas can be re-connected to the adapter call. sanitizeAiBlocks
+ * + payload.create's strict Zod validation are the actual enforcement.
  *
  * Status (2026-05-13):
  *  - `SolutionDerivationOutputSchema` (pass 2): POST-HOC VALIDATION ONLY.
@@ -22,8 +24,22 @@
  *    Genkit / Gemini structured-output support for nested object schemas
  *    improves, the variation service can opt back in by re-adding the
  *    `outputSchema: LessonVariationOutputSchema` argument to pass 1.
+ *
+ * Design notes:
+ *  - Gemini's responseSchema implementation does not handle large discriminated
+ *    unions, `.strict()` envelopes, or `additionalProperties: true` well.
+ *    `ContentSchema` (the canonical Zod definition at
+ *    src/server/payload/collections/Exercises/schemas.ts) is too rich to use
+ *    directly. The pass-1 schema below is a deliberately relaxed shape that
+ *    only constrains envelope + per-block `id`/`type`; block objects use
+ *    `.passthrough()` so per-type fields survive.
+ *  - `sanitizeAiBlocks` + `payload.create`'s strict Zod validation remain the
+ *    canonical enforcement for pass-1 output.
+ *
+ * @fileType schema
+ * @domain ai
+ * @pattern schema
  */
-
 import { z } from 'zod'
 
 // ─────────────────────────────────────────────────────────────────────────────

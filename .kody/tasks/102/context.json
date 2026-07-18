@@ -1,0 +1,27 @@
+{
+  "taskId": "102",
+  "taskType": "pr",
+  "target": "99-doc-gap-srcinfrallm-64-files-no-central-ai-summary",
+  "outcome": "success",
+  "exitCode": 0,
+  "reason": "Deduplicated internal repetition in @ai-summary blocks; added missing @pattern tags; quality gates pass",
+  "prUrl": "https://github.com/A-Guy-educ/A-Guy-Web/pull/102",
+  "runUrl": null,
+  "filesTouched": [
+    "src/infra/llm/schemas/lesson-duplication-output.ts",
+    "src/infra/llm/doc-search.ts",
+    "src/infra/llm/prompt-composer.server.ts",
+    "src/infra/llm/services/interactive-lesson/interactive-lesson-schema.ts",
+    "src/infra/llm/services/exercise-chat-service.ts",
+    "src/infra/llm/providers/shared/media-reader.ts",
+    "src/infra/llm/prompt-resolver.server.ts",
+    "src/infra/llm/genkit/genkit-instance.ts",
+    "src/infra/llm/providers/shared/index.ts",
+    "src/infra/llm/providers/shared/errors.ts",
+    "src/infra/llm/providers/types.ts",
+    "src/infra/llm/teacher-profile-block.ts"
+  ],
+  "sessionLog": ".kody/sessions/gh-27863805255-1-1.jsonl",
+  "startedAt": "2026-06-20T00:00:00Z",
+  "finishedAt": "2026-06-20T00:00:00Z"
+}

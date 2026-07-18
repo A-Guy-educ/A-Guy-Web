@@ -1,8 +1,7 @@
 /**
  * Genkit error → LLMError mapper
  *
- * @ai-summary Preserves the raw Gemini rate-limit detail in the error message — the underlying quota signal (per-minute RPM, per-day quota, concurrent limit) is dropped if the message is genericized. Keep the raw detail for actionable retry logic.
- *
+ * @ai-summary Maps Genkit error messages to `LLMErrorCode` using string matching. **String-matching is inherently fragile** — if a provider changes error wording, the mapping silently breaks and errors become generic `UNKNOWN`. The raw error text is preserved in `err.cause()` for debugging but not for classification. Preserves the raw Gemini rate-limit detail in the error message — the underlying quota signal (per-minute RPM, per-day quota, concurrent limit) is dropped if the message is genericized. Keep the raw detail for actionable retry logic. *
  * @fileType adapter
  * @domain ai
  * @pattern error-handling, genkit

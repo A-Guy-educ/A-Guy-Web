@@ -1,8 +1,7 @@
 /**
  * Promise.race against timeout
  *
- * @ai-summary `Promise.race` between an operation and a timeout with cleanup callback that always fires (via `clearTimeout`). If timeout wins, the operation keeps running in the background — it is NOT aborted. Use `createAbortSignal` if you need actual cancellation via AbortController.
- *
+ * @ai-summary Promise.race against a setTimeout that rejects with `TimeoutError`. The cleanup callback runs on both timeout and success — **caller must guard against double-cleanup** if cleanup is stateful (e.g., aborting an ongoing operation). Promise.race between the operation and a timeout. If timeout wins, the operation keeps running in the background — it is NOT aborted. Use createAbortSignal if you need actual cancellation via AbortController. `Promise.race` between an operation and a timeout with cleanup callback that always fires (via `clearTimeout`). *
  * @fileType utility
  * @domain ai
  * @pattern timeout

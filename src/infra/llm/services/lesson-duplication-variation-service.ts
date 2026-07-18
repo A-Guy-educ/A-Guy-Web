@@ -2,10 +2,7 @@
 /**
  * Two-pass lesson duplication (creative + deterministic) per exercise
  *
- * @fileType service
- * @domain ai
- * @ai-summary MODEL VERSION IS PINNED to `gemini-3.1-pro-preview` — only model where schema-constrained output on content.blocks is reliable; 2.5-pro silently misrenders nested object arrays as strings (issue #1748). Per-call timeout is 600s. Output is sanitized via Zod safeParse + targeted field migrations before writing to Payload. This is intentional (see comment at VARIATION_MODEL_VERSION). The two-pass design (creative then deterministic) is required: pass 1 rewrites questions at temp 0.7 but can't be trusted for solutions. Per-exercise failures are isolated — one bad exercise doesn't sink the whole run.
- */
+ * @ai-summary Two-pass variation (creative → deterministic re-derivation). The separation is intentional: pass 1 rewrites phrasing at 0.7 temp, pass 2 re-solves at 0.0 temp so the model cannot carry forward an incorrect answer from pass 1. **If pass 2 returns an empty patch, the pass-1 answer is kept as-is** — correct for non-question blocks but risky if pass 1 hallucinated a wrong solution. The `sanitizeAiBlocks` strip is the safety net for unrecognized keys, but it cannot fix a semantically wrong answer. MODEL VERSION IS PINNED to gemini-3.1-pro-preview — not latest, not a config value. This is intentional (see comment at VARIATION_MODEL_VERSION). Per-exercise failures are isolated — one bad exercise doesn't sink the whole run. Per-LLM-call timeout is 600s; worst-case wall time per exercise can approach 10 minutes with all retries exhausted. MODEL VERSION IS PINNED to `gemini-3.1-pro-preview` — only model where schema-constrained output on content.blocks is reliable; 2.5-pro silently misrenders nested object arrays as strings (issue #1748). Output is sanitized via Zod safeParse + targeted field migrations before writing to Payload. The two-pass design (creative then deterministic) is required: pass 1 rewrites questions at temp 0.7 but can't be trusted for solutions. */
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import type { Payload } from '@/infra/types/backend'

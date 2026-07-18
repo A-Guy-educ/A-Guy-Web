@@ -1,0 +1,14 @@
+[
+  {
+    "title": "Add @ai-summary to prompt .md files",
+    "body": "The markdown prompt files in src/infra/llm/prompts/ are string constants imported at runtime. They are TypeScript files (.ts) but contain only a `export const FOO_PROMPT = \`...\`;` with no JSDoc. These could receive @ai-summary headers, but the convention established in the issue was to focus on TypeScript modules with logic. The prompts are pure data — if the writer decides to add them, the @ai-summary should note that the file is a prompt string constant and what the prompt instructs the model to do.",
+    "rationale": "Issue #99 scope was ~82% of modules; the prompt files are the remaining ~18% that weren't covered. If they should be included, a follow-up task should add concise @ai-summary headers to each.",
+    "priority": "low"
+  },
+  {
+    "title": "Existing lint warnings in non-LLM files",
+    "body": "The lint run shows pre-existing warnings in src/ui/web/shared/FormulaSheetViewer/FormulaSheetContent.tsx, src/ui/web/shared/LatexDocumentViewer/index.tsx, and other files. These are unrelated to the LLM changes and existed before this task.",
+    "rationale": "These warnings (eslint no-explicit-any, prefer-design-tokens) are pre-existing and not introduced by the @ai-summary additions. They should be addressed separately if they are in scope for the team.",
+    "priority": "low"
+  }
+]

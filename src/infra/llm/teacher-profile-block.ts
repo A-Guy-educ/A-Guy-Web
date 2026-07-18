@@ -1,13 +1,15 @@
 /**
  * Teacher Profile Block Builder
  *
- * Builds the <teacher_profile> block that gets injected into the system prompt.
- * This defines the AI teacher's behavior and personality.
+ * @ai-summary Injects a teacher personality profile into the system prompt via
+ * a structured XML-like block. The block format must stay in sync with the regex
+ * that parses it — if you change the XML-like format here, the extraction regex
+ * will break silently and the profile will not be injected correctly. Malformed
+ * blocks (e.g., unescaped `<` in the description) can corrupt prompt parsing downstream.
  *
  * @fileType ai-utility
  * @domain chat
  * @pattern server-only
- * @ai-summary The block format is consumed by the prompt template using a specific regex to extract the profile label and description. If you change the XML-like format here, the prompt template's extraction regex will break silently and the profile will not be injected correctly. Keep the format stable.
  */
 
 import type { ResolvedTeacherProfile } from '@/server/services/teacher-profile-resolver'

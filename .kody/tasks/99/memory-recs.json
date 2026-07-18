@@ -1,0 +1,23 @@
+[
+  {
+    "type": "lesson",
+    "name": "llm-folder-index-entry-point",
+    "hook": "src/infra/llm/index.ts is the folder-level entry point",
+    "body": "Added a folder-level @ai-summary to src/infra/llm/index.ts documenting it as the facade entry point. The @ai-summary captures the load-bearing gotchas: provider detection is per-request (not startup) and the error classifier mapping is the single point of failure for error classification.\n\n**Why:** AI agents reading this folder first need to know the entry point and the key abstraction. The folder contains both public API and internal implementation; the index.ts is the canonical entry.\n\n**How to apply:** When adding new AI services, export them from this index rather than from sub-folders to maintain the facade pattern.",
+    "confidence": 0.95
+  },
+  {
+    "type": "lesson",
+    "name": "ai-summary-pattern-never-restate",
+    "hook": "@ai-summary captures why and the trap, never what code says",
+    "body": "The @ai-summary tag should capture: (1) why the module exists, (2) the load-bearing constraint or gotcha that could silently break if misunderstood. It should NOT restate what the code does — well-named functions already convey that. Examples:\n\n**Good:** \"Rate-limit errors are excluded from circuit-breaker failure counting — a single 429 would otherwise open the circuit when the provider is healthy.\"\n\n**Bad:** \"Retries with exponential backoff.\"\n\n**Why:** AI agents reading this codebase need to understand load-bearing constraints, not implementations. Restating what code does adds no value over reading the code itself.",
+    "confidence": 0.9
+  },
+  {
+    "type": "preference",
+    "name": "fix-duplicate-comment-closures",
+    "hook": "When replacing a doc comment block, ensure no duplicate */ remains",
+    "body": "When replacing an existing `/** ... */` doc comment, be careful that the old comment's closing ` */` is not left behind after the replacement. The original module-level comments had trailing ` *` lines before ` */`; my replacements sometimes included an extra ` */` on its own line.\n\n**Why:** TypeScript parser treats the first `*/` as the closing delimiter; a second `*/` on the next line causes a cascade of \"Unexpected token\" errors starting at the second line of the file.\n\n**How to apply:** When editing existing doc blocks, read the full original block first and replace the entire block, not just the first line.",
+    "confidence": 0.85
+  }
+]
