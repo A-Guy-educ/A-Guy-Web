@@ -6,6 +6,7 @@
  * @fileType service
  * @domain ai
  * @pattern vector-search, context-scoped
+ * @ai-summary Memory retrieval via MongoDB Atlas Vector Search with context-hierarchy priority (conversation > contextKey > parent keys > global). Falls back to an empty result on any error — the system continues without memory rather than crashing. Tenant isolation is enforced by always filtering userId; omitting this filter in any query is a security bug.
  */
 
 import { logger } from '@/infra/utils/logger'

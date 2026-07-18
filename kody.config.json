@@ -18,12 +18,10 @@
   },
   "state": {
     "repo": "https://github.com/A-Guy-educ/kody-state",
-    "path": "A-Guy-Web",
-    "branch": "main"
+    "path": "A-Guy-Web"
   },
   "agent": {
-    "model": "minimax/MiniMax-M3",
-    "reasoningEffort": "high"
+    "model": "minimax/MiniMax-M2.7-highspeed"
   },
   "qa": {
     "fallbackUrl": "https://dev.aguy.co.il"
@@ -33,17 +31,20 @@
     "versionFiles": [
       "package.json"
     ],
-    "productionUrl": "https://www.aguy.co.il",
-    "smokeCommand": "pnpm tsx scripts/smoke-web-api.ts",
     "e2eCommand": "npx tsx scripts/release-e2e-gate.ts",
     "timeoutMs": 1800000
+  },
+  "missions": {
+    "stateBackend": "local-file"
   },
   "jobs": {
     "stateBackend": "contents-api"
   },
+  "executables": {
+    "default": "run"
+  },
   "defaultExecutable": "classify",
   "defaultPrExecutable": "fix",
-  "onPullRequest": "preview-build",
   "access": {
     "allowedAssociations": [
       "OWNER",
@@ -53,68 +54,45 @@
       "MEMBER"
     ]
   },
+  "agentActions": {
+    "default": "run"
+  },
   "company": {
-    "activeCapabilities": [
-      "capability-call",
-      "classify",
-      "research",
-      "plan",
-      "feature",
-      "bug",
-      "chore",
-      "spec",
-      "review",
-      "fix",
-      "fix-ci",
-      "ci-health",
-      "dev-ci-health",
-      "pr-health-triage",
-      "redispatch",
-      "sync",
-      "resolve",
-      "merge",
-      "revert",
+    "activeAgentResponsibilities": [
+      "agent-responsibility-call",
+      "release",
       "release-prepare",
       "release-merge",
-      "release-promote",
-      "vercel-production-deploy",
-      "design-review",
-      "preview-health",
-      "qa",
-      "qa-engineer",
-      "qa-goal",
-      "qa-sweep",
-      "qa-verify",
-      "quality-watch",
-      "ui-review"
+      "vercel-production-deploy"
     ],
     "activeAgents": [
-      "ceo",
-      "cto",
-      "kody",
-      "guy-math-teacher",
-      "qa",
-      "repo-brain",
-      "tech-writer",
-      "ux-designer"
+      "cto"
+    ],
+    "activeAgentActions": [
+      "release-prepare",
+      "release-merge",
+      "vercel-production-deploy"
     ],
     "activeGoals": [
-      "daily-web-release-loop",
-      "ai-agency-health",
-      "ci-health",
-      "prs-stay-mergeable",
-      "product-quality",
-      "agency-observer",
-      "agency-operating-loop"
-    ]
-  },
+      {
+        "template": "web-release",
+        "every": "1d",
+        "idPrefix": "web-release",
+      "preferredRunTime": {
+        "time": "10:00",
+        "timezone": "Asia/Jerusalem"
+      }
+    },
+    "ci-health"
+  ]
+},
   "fly": {
     "previews": {
       "cpus": 2,
       "memoryMb": 2048,
       "ttlDays": 14,
       "builderCpus": 4,
-      "builderMemoryMb": 8192,
+      "builderMemoryMb": 4096,
       "idleSuspend": true,
       "healthCheck": false
     }
