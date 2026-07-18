@@ -1,0 +1,14 @@
+{
+  "taskId": "13",
+  "taskType": "pr",
+  "target": "dependabot/npm_and_yarn/mathjs-15.2.0",
+  "outcome": "success",
+  "exitCode": 0,
+  "reason": "vite-tsconfig-paths failed to resolve @/ aliases in CI after node_modules was deleted and reinstalled; fixed by adding explicit resolve.alias in both vitest configs",
+  "prUrl": "https://github.com/A-Guy-educ/A-Guy-Web/pull/13",
+  "runUrl": "https://github.com/A-Guy-educ/A-Guy-Web/actions/runs/27201507885",
+  "filesTouched": ["vitest.config.unit.mts", "vitest.config.mts"],
+  "sessionLog": null,
+  "startedAt": "2026-06-19T00:00:00.000Z",
+  "finishedAt": "2026-06-19T00:30:00.000Z"
+}

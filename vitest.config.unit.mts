@@ -1,12 +1,16 @@
 import react from '@vitejs/plugin-react'
 import { config as loadEnv } from 'dotenv'
 import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import path from 'node:path'
 import type { Plugin } from 'vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
 import { defineConfig } from 'vitest/config'
 
 loadEnv({ path: '.env' })
 loadEnv({ path: '.env.test', override: true })
+
+const srcDir = path.resolve(fileURLToPath(new URL('.', import.meta.url)), 'src')
 
 /**
  * Match the Next.js webpack rule `{ test: /\.md$/, type: 'asset/source' }`
@@ -67,6 +71,11 @@ const retiredPayloadRuntimeTests = [
 
 export default defineConfig({
   plugins: [tsconfigPaths({ projects: ['./tsconfig.vitest.json'] }), react(), rawMarkdownPlugin()],
+  resolve: {
+    alias: {
+      '@': srcDir,
+    },
+  },
   ssr: {
     noExternal: ['zod'],
   },

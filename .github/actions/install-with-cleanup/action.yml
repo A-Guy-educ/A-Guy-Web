@@ -1,0 +1,13 @@
+name: Install dependencies with clean node_modules
+description: Removes node_modules and runs pnpm install with frozen lockfile. Ensures a clean install matching the lockfile on every run.
+
+runs:
+  using: composite
+  steps:
+    - name: Remove node_modules
+      shell: bash
+      run: rm -rf node_modules
+
+    - name: Install dependencies
+      shell: bash
+      run: pnpm install --frozen-lockfile
