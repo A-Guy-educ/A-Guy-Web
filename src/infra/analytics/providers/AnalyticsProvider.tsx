@@ -1,8 +1,11 @@
 /**
- * Analytics Provider
+ * @ai-summary Root React provider that bootstraps the analytics system in the browser.
  *
- * Provides analytics context to the entire app
- * Loads analytics scripts and initializes the system
+ * Wires systemEventBus to initAnalyticsSubscriber, loads GA4/Mixpanel scripts, and mounts
+ * session/page tracking hooks. Must wrap the app. Runs exclusively client-side.
+ *
+ * TRAP: Must render before any component emits systemEventBus events — initializes
+ * __systemEventBus and __capturedMixpanelEvents on window for test capture.
  */
 
 'use client'

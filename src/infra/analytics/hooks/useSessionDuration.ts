@@ -1,12 +1,8 @@
 /**
- * Session Duration Tracker
+ * @ai-summary Tracks session duration and fires session_ended on beforeunload via dual delivery.
  *
- * Tracks total session duration and sends session_ended event when user leaves.
- * Uses beforeunload event to capture when user closes tab/window or navigates away.
- *
- * Reliability: Sends session_ended via both analytics.track() (for GA4) and
- * navigator.sendBeacon directly to Mixpanel (guaranteed even on page unload).
- * This dual-delivery ensures Mixpanel receives the event regardless of timing.
+ * Uses both analytics.track() (GA4 + Mixpanel SDK) and navigator.sendBeacon (Mixpanel direct)
+ * to ensure Mixpanel receives session_end even if the page unloads before the SDK sends.
  */
 
 'use client'

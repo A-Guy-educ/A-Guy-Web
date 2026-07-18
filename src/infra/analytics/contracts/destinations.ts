@@ -1,11 +1,8 @@
 /**
- * Event Routing Configuration
+ * @ai-summary GA4/Mixpanel routing table — controls which events reach which analytics platform.
  *
- * Defines which analytics platform receives which events
- *
- * Tool Separation Strategy:
- * - GA4: Traffic, sessions, acquisition (broad funnel metrics)
- * - Mixpanel: Product behavior, retention, user journeys (detailed product analytics)
+ * Separation: GA4 for traffic/acquisition; Mixpanel for product behavior and retention.
+ * Both receive: page_view, session_started, session_ended, registration_completed.
  */
 
 import { PRODUCT_EVENTS, type ProductEvent } from './events'

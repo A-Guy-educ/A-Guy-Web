@@ -1,8 +1,7 @@
 /**
- * User Properties Cache
+ * @ai-summary localStorage cache for Mixpanel People user properties — avoids re-fetching on every identify().
  *
- * Manages persistent storage of user properties for analytics
- * Stores user properties in localStorage for cross-session persistence
+ * Stale after 24h (shouldRefreshUserProperties). Cleared on logout.
  */
 
 const CACHE_KEY = 'analytics_user_properties'

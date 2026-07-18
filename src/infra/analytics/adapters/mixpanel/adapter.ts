@@ -1,8 +1,8 @@
 /**
- * Mixpanel Adapter
+ * @ai-summary Mixpanel platform adapter — sends events, handles identity stitching (alias), and People profiles.
  *
- * Sends events to Mixpanel
- * Handles user identification and identity aliasing
+ * CRITICAL: Call order for registration is track('registration_completed') → alias() → identify().
+ * TRAP: aliasUser() is idempotent via localStorage flag — calling twice is a no-op.
  */
 
 'use client'

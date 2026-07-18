@@ -1,8 +1,7 @@
 /**
- * Lesson Load Timing Utilities
+ * @ai-summary Cross-page sessionStorage bridge for click-to-load timing — stores timestamp on lesson click, consumes on render.
  *
- * Uses sessionStorage to pass the click timestamp from lesson link components
- * to the lesson page, allowing calculation of load_time_ms.
+ * TRAP: Timestamps older than 60s are rejected as stale. Only one pending timestamp at a time.
  */
 
 const STORAGE_KEY = 'lesson_open_timestamp'

@@ -12,11 +12,11 @@ import {
 } from '../utils/user-properties-cache'
 
 /**
- * Tracks user_resolved event when user is logged in
- * Should be placed in the root layout after AnalyticsProvider
+ * @ai-summary Resolves authenticated users and fires user_resolved on the system event bus.
  *
- * Enhanced to send full user profile properties to Mixpanel People
- * Uses localStorage cache to persist user properties across sessions
+ * Reads from /api/users/me (NOT Payload directly — avoids SSR issues and client bundle bloat).
+ * Uses localStorage cache with 24h staleness check before hitting the API.
+ * GOTCHA: For new OAuth registration, alias() is called before identify() to merge anonymous history.
  */
 export function UserIdentificationTracker() {
   useEffect(() => {

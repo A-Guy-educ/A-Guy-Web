@@ -1,12 +1,7 @@
 /**
- * Tab Visibility Tracker
+ * @ai-summary Tracks tab visibility, scroll depth, and time-on-page thresholds (30/60/120/300/600s).
  *
- * Tracks when users switch away from and back to the tab.
- * Measures time on page and scroll depth.
- *
- * Events:
- * - tab_away: User switched to another tab/minimized (includes scroll depth)
- * - tab_back: User returned to the tab
+ * Emits tab_away, tab_back, and time_on_page events. Scroll is throttled to 1 update/second.
  */
 
 'use client'

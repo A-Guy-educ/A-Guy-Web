@@ -1,0 +1,10 @@
+[
+  {
+    "type": "lesson",
+    "name": "refreshUserEntitlementsInMixpanel-payload-gotcha",
+    "hook": "Payload runtime cannot be called from client bundle",
+    "body": "refreshUserEntitlementsInMixpanel() in system-events-subscriber.ts runs in the browser bundle because initAnalyticsSubscriber() is called from AnalyticsProvider mount. Calling Payload directly (importing from @/server/payload) drags grpc/fs/tls into the client bundle and breaks the build. Always use /api/users/me for user data in analytics subscriber context.",
+    "why": "This is a non-obvious build trap that only manifests at build time — a coding agent or new developer would not infer this from reading the code.",
+    "confidence": 0.95
+  }
+]

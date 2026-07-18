@@ -1,7 +1,5 @@
 /**
- * Cookie Utilities
- *
- * Client-side cookie management for analytics tracking
+ * @ai-summary Lightweight client-side cookie CRUD utilities (get/set/delete) used by anonymous-id.ts.
  */
 
 export interface SetCookieOptions {

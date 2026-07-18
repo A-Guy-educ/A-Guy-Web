@@ -1,8 +1,5 @@
 /**
- * GA4 Event Transformation
- *
- * Transforms canonical events to GA4 format
- * Maps event names and properties to GA4 conventions
+ * @ai-summary Transforms canonical event payloads to GA4 format — maps canonical names to GA4 recommended names (sign_up, page_view, session_start, session_end).
  */
 
 import { PRODUCT_EVENTS } from '../../contracts/events'

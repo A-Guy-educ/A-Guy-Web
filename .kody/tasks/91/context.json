@@ -1,0 +1,18 @@
+{
+  "taskId": "91",
+  "taskType": "pr",
+  "target": "90--doc-gap-srcinfraanalytics-0-ai-summary-coverage",
+  "outcome": "success",
+  "exitCode": 0,
+  "reason": "Fixed review feedback: corrected the system-events-subscriber.ts @ai-summary to accurately reflect that other hooks call analytics.track() directly (usePageAbandonment, useSessionDuration), and aligned file counts across context.json and handoff-notes.md to 24.",
+  "prUrl": null,
+  "runUrl": null,
+  "filesTouched": [
+    "src/infra/analytics/system-events-subscriber.ts",
+    ".kody/tasks/90/context.json",
+    ".kody/tasks/90/handoff-notes.md"
+  ],
+  "sessionLog": null,
+  "startedAt": "2026-06-18T00:00:00Z",
+  "finishedAt": "2026-06-18T00:00:00Z"
+}

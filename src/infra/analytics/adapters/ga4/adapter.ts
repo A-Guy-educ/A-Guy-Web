@@ -1,8 +1,8 @@
 /**
- * Google Analytics 4 (GA4) Adapter
+ * @ai-summary GA4 platform adapter — sends events via gtag.js.
  *
- * Sends events to GA4 via gtag.js
- * Handles event transformation and format conversion
+ * Handles sendToGA4() and initializeGA4(). Configures send_page_view: false
+ * (page views are handled manually by usePageView hook).
  */
 
 'use client'
