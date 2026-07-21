@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
+import { enforceUserChatQuota, requireUser } from '@/server/auth/api-auth'
 import { getCourseSearchResults } from '@/server/services/course-search-service'
 
 const searchParamsSchema = z.object({
@@ -9,6 +10,12 @@ const searchParamsSchema = z.object({
 })
 
 export async function GET(request: NextRequest) {
+  const auth = await requireUser(request)
+  if (!auth.ok) return auth.response
+
+  const quota = await enforceUserChatQuota(auth.value.id)
+  if (!quota.ok) return quota.response
+
   const parsed = searchParamsSchema.safeParse(Object.fromEntries(request.nextUrl.searchParams))
 
   if (!parsed.success) {

@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { enforceUserChatQuota, requireUser } from '@/server/auth/api-auth'
 import { synthesizeRequestSchema, synthesizeSpeech } from '@/server/services/tts/google-cloud-tts'
 
 export async function POST(request: NextRequest) {
+  const auth = await requireUser(request)
+  if (!auth.ok) return auth.response
+
+  const quota = await enforceUserChatQuota(auth.value.id)
+  if (!quota.ok) return quota.response
+
   const requestId = crypto.randomUUID()
   const parsed = synthesizeRequestSchema.safeParse(await request.json().catch(() => null))
 
