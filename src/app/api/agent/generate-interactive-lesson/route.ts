@@ -131,13 +131,13 @@ export async function POST(request: NextRequest) {
   const auth = await requireUser(request)
   if (!auth.ok) return auth.response
 
-  const quota = await enforceUserChatQuota(auth.value.id)
-  if (!quota.ok) return quota.response
-
   const parsed = BodySchema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) {
     return NextResponse.json({ success: false, error: 'mediaId is required' }, { status: 400 })
   }
+
+  const quota = await enforceUserChatQuota(auth.value.id)
+  if (!quota.ok) return quota.response
 
   try {
     const media = await loadMedia(parsed.data.mediaId)

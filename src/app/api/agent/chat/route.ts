@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
 import { enforceGuestOrUserChatQuota } from '@/server/auth/api-auth'
+import { buildGuestSessionCookieHeader } from '@/server/services/guest-session'
 import {
   appendMessage,
   generateAssistantReply,
@@ -23,11 +24,11 @@ const BodySchema = z.object({
 })
 
 export async function POST(request: NextRequest) {
-  const quota = await enforceGuestOrUserChatQuota(request)
-  if (!quota.ok) return quota.response
-
   const parsed = BodySchema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+
+  const quota = await enforceGuestOrUserChatQuota(request)
+  if (!quota.ok) return quota.response
 
   const body = parsed.data
   const contextKey = resolveContextKey(body, body.contextKeyOverride)
@@ -53,11 +54,18 @@ export async function POST(request: NextRequest) {
 
   await appendMessage(String(conversation.id), { role: 'assistant', content: message })
 
-  return NextResponse.json({
+  const response = NextResponse.json({
     success: true,
     message,
     conversationId: conversation.id,
     contextKey,
     isGuestMode: quota.value.isGuest,
   })
+
+  if (quota.value.guestCookieToken) {
+    const cookieHeader = await buildGuestSessionCookieHeader(quota.value.guestCookieToken)
+    response.headers.append('Set-Cookie', cookieHeader)
+  }
+
+  return response
 }

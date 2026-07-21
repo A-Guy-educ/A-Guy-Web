@@ -23,13 +23,13 @@ function chunkText(text: string) {
 }
 
 export async function POST(request: NextRequest) {
-  const quota = await enforceGuestOrUserChatQuota(request)
-  if (!quota.ok) return quota.response
-
   const parsed = BodySchema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) {
     return Response.json({ error: 'Missing message or gradeLevel' }, { status: 400 })
   }
+
+  const quota = await enforceGuestOrUserChatQuota(request)
+  if (!quota.ok) return quota.response
 
   const ownerId = quota.value.ownerId
   const contextKey = `learning:${parsed.data.gradeLevel}`

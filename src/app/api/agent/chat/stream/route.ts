@@ -22,11 +22,11 @@ const BodySchema = z.object({
 })
 
 export async function POST(request: NextRequest) {
-  const quota = await enforceGuestOrUserChatQuota(request)
-  if (!quota.ok) return quota.response
-
   const parsed = BodySchema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) return Response.json({ error: 'Invalid request' }, { status: 400 })
+
+  const quota = await enforceGuestOrUserChatQuota(request)
+  if (!quota.ok) return quota.response
 
   const body = parsed.data
   const contextKey = resolveContextKey(body, body.contextKeyOverride)

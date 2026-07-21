@@ -7,9 +7,6 @@ export async function POST(request: NextRequest) {
   const auth = await requireUser(request)
   if (!auth.ok) return auth.response
 
-  const quota = await enforceUserChatQuota(auth.value.id)
-  if (!quota.ok) return quota.response
-
   const requestId = crypto.randomUUID()
   const parsed = synthesizeRequestSchema.safeParse(await request.json().catch(() => null))
 
@@ -19,6 +16,9 @@ export async function POST(request: NextRequest) {
       { status: 400 },
     )
   }
+
+  const quota = await enforceUserChatQuota(auth.value.id)
+  if (!quota.ok) return quota.response
 
   try {
     const audioContent = await synthesizeSpeech(parsed.data.text, parsed.data.locale)

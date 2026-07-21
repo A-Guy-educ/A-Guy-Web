@@ -26,6 +26,7 @@ import {
   checkAndIncrementGuestMessageCount,
   createGuestSession,
   getGuestSessionByToken,
+  getGuestSessionCookie,
 } from '@/server/services/guest-session'
 
 type AuthedUser = { id: string }
@@ -124,12 +125,7 @@ export async function enforceGuestOrUserChatQuota(request: NextRequest): Promise
   }
 
   const payload = await getPayload()
-  const cookieToken = request.headers
-    .get('cookie')
-    ?.split(';')
-    .map((entry) => entry.trim())
-    .find((entry) => entry.startsWith('guest_session='))
-    ?.slice('guest_session='.length)
+  const cookieToken = getGuestSessionCookie(request.headers)
 
   let guestSession = cookieToken ? await getGuestSessionByToken(payload, cookieToken) : null
   let guestCookieToken: string | undefined
