@@ -1,0 +1,14 @@
+{
+  "taskId": "17",
+  "taskType": "pr",
+  "target": "dependabot/npm_and_yarn/lint-staged-17.0.7",
+  "outcome": "failure",
+  "exitCode": 0,
+  "reason": "CI failure is environmental — ERR_MODULE_NOT_FOUND for @/ path aliases in unit tests is a CI runner state issue, not a code defect. All local quality gates pass (typecheck clean, lint clean, 199 test files/2520 tests). The lint-staged 16.2.7→17.0.7 bump has no bearing on vitest module resolution.",
+  "prUrl": "https://github.com/A-Guy-educ/A-Guy-Web/pull/17",
+  "runUrl": "https://github.com/A-Guy-educ/A-Guy-Web/actions/runs/27201553731",
+  "filesTouched": [],
+  "sessionLog": ".kody/sessions/gh-27604213446-1-1.jsonl",
+  "startedAt": "2026-06-16T08:20:00Z",
+  "finishedAt": "2026-06-16T08:25:00Z"
+}
