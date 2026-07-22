@@ -61,9 +61,33 @@ jobs:
             echo "(no git repo in workspace yet — clean state)"
           fi
 
+      # ── Step 2b: Verify runner version (checkout@v6 requires runner ≥ v2.329.0) ──
+      - name: Verify runner version
+        run: |
+          RUNNER_VERSION_FILE="$RUNNER_ROOT/.runner_version"
+          if [ -f "$RUNNER_VERSION_FILE" ]; then
+            RUNNER_VERSION=$(cat "$RUNNER_VERSION_FILE")
+            echo "Runner version: $RUNNER_VERSION"
+            # Parse version components: major.minor.patch (e.g. 2.329.0)
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$RUNNER_VERSION"
+            REQUIRED_MAJOR=2
+            REQUIRED_MINOR=329
+            # Fail if runner is before 2.329.0
+            if [ "$MAJOR" -lt "$REQUIRED_MAJOR" ] || \
+               [ "$MAJOR" -eq "$REQUIRED_MAJOR" ] && [ "$MINOR" -lt "$REQUIRED_MINOR" ]; then
+              echo "::error::Self-hosted runner version $RUNNER_VERSION is too old. actions/checkout@v6 requires runner ≥ 2.329.0. Please upgrade the runner software on this machine."
+              exit 1
+            fi
+            echo "✅ Runner version $RUNNER_VERSION meets the minimum requirement (≥ 2.329.0)"
+          else
+            # Self-hosted runners without the version file are assumed too old to be safe
+            echo "::error::Could not determine runner version (file $RUNNER_VERSION_FILE not found). actions/checkout@v6 requires runner ≥ 2.329.0. Please upgrade the runner software."
+            exit 1
+          fi
+
       # ── Step 3: Clean checkout ──
       - name: Checkout code (clean)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           clean: true
           fetch-depth: 1

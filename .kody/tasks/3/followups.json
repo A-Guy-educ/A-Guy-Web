@@ -1,0 +1,8 @@
+[
+  {
+    "title": "Upgrade self-hosted runners to GitHub Actions runner >= v2.329.0",
+    "body": "The self-hosted runners used by self-hosted-smoke.yml (labels: 'local' for macOS, 'docker' for Linux) must be running GitHub Actions runner software >= v2.329.0 before this PR can safely merge. The new runner version check step added to self-hosted-smoke.yml will fail the job with a clear error if an outdated runner is detected, but the runner software itself must be upgraded on the machine. Download the latest runner from https://github.com/actions/runner/releases.",
+    "rationale": "actions/checkout@v6 requires runner >= v2.329.0 for credential persistence features. The version check step added here gates the checkout action but cannot upgrade the runner software itself.",
+    "priority": "high"
+  }
+]

@@ -1,0 +1,14 @@
+{
+  "taskId": "3",
+  "taskType": "pr",
+  "target": "PR #3: chore(deps): bump actions/checkout from 4 to 6",
+  "outcome": "success",
+  "exitCode": 0,
+  "reason": "Added runner version check step to self-hosted-smoke.yml to gate checkout@v6 on runner >= v2.329.0",
+  "prUrl": null,
+  "runUrl": null,
+  "filesTouched": [".github/workflows/self-hosted-smoke.yml"],
+  "sessionLog": ".kody/sessions/gh-27870985465-1.jsonl",
+  "startedAt": "2026-06-20T00:00:00.000Z",
+  "finishedAt": "2026-06-20T12:26:05.000Z"
+}
