@@ -42,19 +42,20 @@ describe('A-Guy Logo component', () => {
     const { container } = render(<Logo />)
     const svg = container.querySelector('svg')
     const classes = svg?.getAttribute('class') ?? ''
-    expect(classes).toContain('h-28')
+    expect(classes).toContain('h-20')
+    expect(classes).toContain('sm:h-24')
     expect(classes).toContain('w-auto')
   })
 
-  it('forwards className to the wrapper', () => {
+  it('forwards className to the svg so callers can size it', () => {
     const { container } = render(<Logo className="h-8 w-auto" />)
-    const wrapper = container.firstChild as HTMLElement
-    expect(wrapper.classList.contains('h-8')).toBe(true)
-    expect(wrapper.classList.contains('w-auto')).toBe(true)
-    // Wrapper preserves the existing flex layout classes.
-    expect(wrapper.classList.contains('flex')).toBe(true)
-    expect(wrapper.classList.contains('flex-row')).toBe(true)
-    expect(wrapper.classList.contains('items-center')).toBe(true)
+    const svg = container.querySelector('svg')
+    expect(svg).not.toBeNull()
+    const classes = svg?.getAttribute('class') ?? ''
+    expect(classes).toContain('h-8')
+    expect(classes).toContain('w-auto')
+    // Caller's conflicting height class wins over the default.
+    expect(classes).not.toContain('h-20')
   })
 
   it('does not render a separate "Aguy" text wordmark (it is baked into the svg)', () => {
