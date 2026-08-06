@@ -43,15 +43,18 @@ async function populateLesson(lesson: Lesson): Promise<Lesson | null> {
   if (!chapterId) return null
 
   const chapter = await findByIdSerialized<Chapter>('chapters', chapterId)
-  if (!chapter || chapter.status !== 'published' || !chapter.isActive) return null
+  if (!chapter) return null
 
+  // Lenient course lookup: prefer the populated course, but fall back to the raw
+  // chapter.course ID so the lesson page can render even when the course record
+  // is missing, unpublished, or inactive. The lesson itself was already filtered
+  // by `visibleContentFilter` in queryLessonBySlug — chapter/course publication
+  // status is a separate concern that should not block the lesson page.
   const courseId = relationId(chapter.course)
-  if (!courseId) return null
+  const course = courseId ? await findByIdSerialized<Course>('courses', courseId) : null
+  const chapterWithCourse = { ...chapter, course: course ?? courseId ?? chapter.course ?? null }
 
-  const course = await findByIdSerialized<Course>('courses', courseId)
-  if (!course || course.status !== 'published' || !course.isActive) return null
-
-  // Populate prerequisites
+  // Populate prerequisites — skip ones whose target lesson isn't visible.
   const prerequisiteIds = (lesson.prerequisites ?? [])
     .map((p) => (typeof p === 'string' ? p : relationId(p)))
     .filter((id): id is string => Boolean(id))
@@ -61,7 +64,7 @@ async function populateLesson(lesson: Lesson): Promise<Lesson | null> {
   )
   const prerequisites = populatedPrerequisites.filter((p): p is LessonPrerequisite => p !== null)
 
-  return { ...lesson, chapter: { ...chapter, course }, prerequisites }
+  return { ...lesson, chapter: chapterWithCourse, prerequisites }
 }
 
 export const queryLessonsByChapter = cache(async ({ chapterId }: { chapterId: string }) => {
