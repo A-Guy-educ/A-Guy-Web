@@ -1,3 +1,3 @@
 # Payment
 
-- [PayPal Sandbox Setup](paypal-sandbox-setup)
+- [PayPal Sandbox Setup](./paypal-sandbox-setup.md)

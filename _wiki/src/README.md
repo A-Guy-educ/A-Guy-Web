@@ -1,8 +1,8 @@
 # Src
 
-- [App](app/)
-- [Brands](brands/)
-- [Client](client/)
-- [Infra](infra/)
-- [Server](server/)
-- [Ui](ui/)
+- [App](./app/README.md)
+- [Brands](./brands/README.md)
+- [Client](./client/README.md)
+- [Infra](./infra/README.md)
+- [Server](./server/README.md)
+- [Ui](./ui/README.md)
