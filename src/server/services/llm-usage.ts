@@ -105,7 +105,7 @@ async function bumpUserCounter(userId: string, delta: number): Promise<void> {
   // next-month reset. The `$or` matches all "no valid window" states
   // because Mongo range operators are type-bracketed and won't match a
   // missing field via `$lte`.
-  await users.updateOne(
+  const reset = await users.updateOne(
     {
       _id,
       $or: [
@@ -116,6 +116,12 @@ async function bumpUserCounter(userId: string, delta: number): Promise<void> {
     },
     { $set: { llmTokensUsed: delta, llmTokensResetAt: nextReset } },
   )
+  if (reset.matchedCount > 0) return
+
+  // Branch 3: a concurrent call already stamped a valid window between
+  // branches 1 and 2 — apply the delta as a plain $inc so no tokens are
+  // silently dropped in that race window.
+  await users.updateOne({ _id, llmTokensResetAt: { $gt: now } }, { $inc: { llmTokensUsed: delta } })
 }
 
 /**

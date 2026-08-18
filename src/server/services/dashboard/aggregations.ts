@@ -942,12 +942,14 @@ export async function aggregateTokenMetrics(db: Db): Promise<TokenMetrics> {
     }
   }
 
-  // Top-5 users by current-month usage from the users counter. Cheaper
-  // than $group-ing the event log and stays in sync with rate-limit reads.
+  // Top-5 users by current-month usage from the users counter. The
+  // `llmTokensResetAt > now` filter drops users whose window has expired
+  // (their counter is stale from the prior month until their next call
+  // triggers the reset in bumpUserCounter).
   const userRows = await db
     .collection('users')
     .find(
-      { llmTokensUsed: { $gt: 0 } },
+      { llmTokensUsed: { $gt: 0 }, llmTokensResetAt: { $gt: now } },
       {
         projection: { _id: 1, email: 1, name: 1, llmTokensUsed: 1 },
         sort: { llmTokensUsed: -1 },
