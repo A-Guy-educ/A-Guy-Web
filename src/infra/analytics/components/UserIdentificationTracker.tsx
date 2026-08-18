@@ -36,6 +36,15 @@ export function UserIdentificationTracker() {
             // Login only needs identify() — alias() is only for signup
             identify(cached.user_id, { ...cached })
             sessionStorage.setItem('analytics_tracked_user_id', cached.user_id)
+
+            // Session-start refresh for the common case: cache is warm
+            // (<24h) so we skip /api/users/me, but this is still the first
+            // mount of this session. Send an empty body — do not risk
+            // clobbering server currentCourse with a cookie value we
+            // cannot compare against (no fetched user here). Empty body
+            // still stamps lastLoginAt server-side, which is what we
+            // want for the "returning user daily activity" signal.
+            syncCurrentCourse(null)
           }
           return
         }

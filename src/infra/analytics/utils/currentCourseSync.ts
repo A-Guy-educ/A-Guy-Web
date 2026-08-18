@@ -16,9 +16,14 @@
  *
  * Called from three sites:
  *   - `selectCourse` (explicit pick) — with the picked courseId
- *   - `UserIdentificationTracker` (first authenticated mount per session) —
- *     with the courseId from localStorage, but only if the server does not
- *     already have a currentCourse (do not clobber fresher server state)
+ *   - `UserIdentificationTracker` (first authenticated mount per session).
+ *     Fires on both the fresh-fetch path (cache miss / >24 h stale) and
+ *     the cached-warm path so daily-returning users still refresh their
+ *     lastLoginAt. The fresh-fetch path can compare against the server
+ *     value and safely propagate the localStorage courseId when the
+ *     server has none; the cached path lacks the fetched user object, so
+ *     it sends an empty body (lastLoginAt-only) rather than risk
+ *     clobbering server state with an unverifiable cookie value.
  *   - `LessonAnalytics` (lesson open) — with the lesson's courseId, always
  *     overwriting server state (a live lesson open is the freshest signal)
  */
