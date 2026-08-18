@@ -10,6 +10,7 @@ import {
   shouldRefreshUserProperties,
   updateCachedUserProperties,
 } from '../utils/user-properties-cache'
+import { readCourseIdFromCookie, syncCurrentCourse } from '../utils/currentCourseSync'
 
 /**
  * Tracks user_resolved event when user is logged in
@@ -129,6 +130,16 @@ export function UserIdentificationTracker() {
                 user_id: user.id,
                 is_anonymous: false,
               })
+
+              // Sync currentCourse + lastLoginAt to Admin. Only send the
+              // localStorage courseId when the server does not already have
+              // one — an existing server value is likely fresher (e.g. a
+              // pick made on another device) and must not be clobbered by
+              // stale local state. Refresh-only calls (no courseId) still
+              // stamp lastLoginAt server-side.
+              const localCourseId = readCourseIdFromCookie()
+              const serverHasCourse = Boolean(user.currentCourse)
+              syncCurrentCourse(serverHasCourse ? null : localCourseId)
 
               sessionStorage.setItem('analytics_tracked_user_id', user.id)
             }
