@@ -140,6 +140,9 @@ importers:
 
   .:
     dependencies:
+      '@a-guy/ui':
+        specifier: https://github.com/A-Guy-educ/A-Guy-Shared/releases/download/v0.1.1/a-guy-ui-0.1.1.tgz
+        version: https://github.com/A-Guy-educ/A-Guy-Shared/releases/download/v0.1.1/a-guy-ui-0.1.1.tgz(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@anthropic-ai/sdk':
         specifier: 0.91.1
         version: 0.91.1(zod@4.3.6)
@@ -428,6 +431,13 @@ importers:
         version: 2.8.3
 
 packages:
+
+  '@a-guy/ui@https://github.com/A-Guy-educ/A-Guy-Shared/releases/download/v0.1.1/a-guy-ui-0.1.1.tgz':
+    resolution: {tarball: https://github.com/A-Guy-educ/A-Guy-Shared/releases/download/v0.1.1/a-guy-ui-0.1.1.tgz}
+    version: 0.1.1
+    peerDependencies:
+      react: ^19.0.0
+      react-dom: ^19.0.0
 
   '@adobe/css-tools@4.4.4':
     resolution: {integrity: sha512-Elp+iwUx5rN5+Y8xLt5/GRoG20WGoDCQ/1Fb+1LiGtvwbDavuSk0jhD/eZdckHAuzcDzccnkv+rEjyWfRx18gg==}
@@ -7975,6 +7985,11 @@ packages:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
 
 snapshots:
+
+  '@a-guy/ui@https://github.com/A-Guy-educ/A-Guy-Shared/releases/download/v0.1.1/a-guy-ui-0.1.1.tgz(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
+    dependencies:
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
 
   '@adobe/css-tools@4.4.4': {}
 

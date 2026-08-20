@@ -106,6 +106,7 @@
     "smoke:live": "cross-env SMOKE_BASE_URLS=https://a-guy-dev-aguy.vercel.app,https://a-guy-web.vercel.app pnpm tsx scripts/smoke-web-api.ts"
   },
   "dependencies": {
+    "@a-guy/ui": "https://github.com/A-Guy-educ/A-Guy-Shared/releases/download/v0.1.1/a-guy-ui-0.1.1.tgz",
     "@anthropic-ai/sdk": "0.91.1",
     "@genkit-ai/googleai": "^1.28.0",
     "@google/generative-ai": "^0.24.1",
