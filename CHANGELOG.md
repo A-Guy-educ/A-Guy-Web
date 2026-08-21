@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.33.2 — 2026-08-21
+
+### Chores
+- add #1102 (5942bdc14)
+- add #1101 (0961e82ce)
+- add #1100 (e6304909b)
+- add #1099 (3f7c332a2)
+- release v0.33.0 (d3293f1e1)
+- add #1098 (a43b4166d)
 ## v0.33.1 — 2026-08-20
 
 ### Features
@@ -3834,6 +3843,10 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: release v0.33.2 ([#1103](https://github.com/A-Guy-educ/A-Guy-Web/pull/1103)) — @aguyaharonyair
+- feat: add Teacher course management API ([#1102](https://github.com/A-Guy-educ/A-Guy-Web/pull/1102)) — @aguyaharonyair
+- feat: Establish shared app platform boundary ([#1101](https://github.com/A-Guy-educ/A-Guy-Web/pull/1101)) — @aguyaharonyair
+- promote: dev -> main (v0.33.1) ([#1100](https://github.com/A-Guy-educ/A-Guy-Web/pull/1100)) — @aguyaharonyair
 - chore: release v0.33.1 ([#1099](https://github.com/A-Guy-educ/A-Guy-Web/pull/1099)) — @aguyaharonyair
 ## [v0.33.0] - 2026-08-19
 
