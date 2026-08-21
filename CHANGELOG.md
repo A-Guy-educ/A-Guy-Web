@@ -3843,6 +3843,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- promote: dev -> main (v0.33.2) ([#1104](https://github.com/A-Guy-educ/A-Guy-Web/pull/1104)) — @aguyaharonyair
 - chore: release v0.33.2 ([#1103](https://github.com/A-Guy-educ/A-Guy-Web/pull/1103)) — @aguyaharonyair
 - feat: add Teacher course management API ([#1102](https://github.com/A-Guy-educ/A-Guy-Web/pull/1102)) — @aguyaharonyair
 - feat: Establish shared app platform boundary ([#1101](https://github.com/A-Guy-educ/A-Guy-Web/pull/1101)) — @aguyaharonyair
