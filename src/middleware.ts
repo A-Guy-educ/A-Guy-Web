@@ -76,6 +76,27 @@ function isKodyFlyPreviewHost(host: string): boolean {
   return hostname.startsWith('kp-') && hostname.endsWith('.fly.dev')
 }
 
+function isPublicApiHost(host: string): boolean {
+  const hostname = host.split(':')[0]?.toLowerCase() ?? ''
+  return hostname === (process.env.API_PUBLIC_HOST || 'api.aguy.co.il').toLowerCase()
+}
+
+function apiHostResponse(pathname: string): NextResponse | undefined {
+  if (pathname.startsWith('/api')) return undefined
+
+  const isHealthRequest = pathname === '/'
+  return NextResponse.json(
+    isHealthRequest ? { service: 'A-Guy API', status: 'ok' } : { error: 'Not found' },
+    {
+      status: isHealthRequest ? 200 : 404,
+      headers: {
+        'Cache-Control': 'no-store',
+        'Content-Security-Policy': contentSecurityPolicy,
+      },
+    },
+  )
+}
+
 function allowsPreviewAuthBypass(request: NextRequest): boolean {
   if (process.env.KODY_PREVIEW_AUTH_BYPASS !== 'true') return false
 
@@ -121,6 +142,11 @@ export function middleware(request: NextRequest) {
 
   if (!pathname.startsWith('/api/pdfjs-viewer')) {
     response.headers.set('Content-Security-Policy', contentSecurityPolicy)
+  }
+
+  if (isPublicApiHost(host)) {
+    const apiOnlyResponse = apiHostResponse(pathname)
+    if (apiOnlyResponse) return apiOnlyResponse
   }
 
   // Cross-origin API access for sibling apps that share the login cookie.

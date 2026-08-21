@@ -38,6 +38,22 @@
         "src/app/(frontend)/courses/[courseSlug]/_components/LessonListTab/LessonRow.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/LessonListTab/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/BlocksDocumentLessonView/index.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatInputPanel.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonProgress.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonRunnerView.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonStartCard.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatFreeResponseBubble.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatQuestionSelectBubble.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ContinueButton.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ExerciseSectionBubble.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/PendingBubble.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/QuickActionChips.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/StudentBubble.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/TeacherBubble.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/index.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/useBrowserTTS.ts",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/useChatChannel.ts",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/useExerciseWalker.ts",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ConsolidatedLatexLessonView/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ContentPageBodyRenderer/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ContentPageBodyRenderer/lexicalToReact.tsx",
@@ -314,6 +330,7 @@
         "src/app/(frontend)/courses/[courseSlug]/_components/LessonListTab/LessonRow.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/LessonListTab/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/BlocksDocumentLessonView/index.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonRunnerView.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ContentPagesPreamble/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/DualModeLessonView/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/EmptyLessonPlaceholder/index.tsx",
@@ -425,6 +442,15 @@
         "src/app/(frontend)/courses/[courseSlug]/_components/LessonListTab/CourseLessonsFilterBar.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/LessonListTab/LessonRow.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/BlocksDocumentLessonView/index.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatInputPanel.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonProgress.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonStartCard.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatFreeResponseBubble.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatQuestionSelectBubble.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ContinueButton.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/QuickActionChips.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/StudentBubble.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/TeacherBubble.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ContentPageBodyRenderer/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ContentPagesPreamble/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/DualModeLessonView/TabButton.tsx",
@@ -622,6 +648,13 @@
         "src/app/(frontend)/courses/[courseSlug]/_components/LessonListTab/useLessonGrouping.ts"
       ]
     },
+    "chat-view": {
+      "pattern": "chat-view",
+      "description": "No description available",
+      "files": [
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/index.tsx"
+      ]
+    },
     "view": {
       "pattern": "view",
       "description": "No description available",
@@ -664,6 +697,7 @@
         "src/app/api/agent/generate-interactive-lesson/route.ts",
         "src/app/api/agent/message/persist/route.ts",
         "src/app/api/agent/reset-chat/route.ts",
+        "src/app/api/auth/logout/route.ts",
         "src/app/api/blob/upload-token/route.ts",
         "src/app/api/bug-report/route.ts",
         "src/app/api/chapters/by-grade/route.ts",
@@ -672,6 +706,7 @@
         "src/app/api/course-search/route.ts",
         "src/app/api/course-syllabus/route.ts",
         "src/app/api/courses/route.ts",
+        "src/app/api/dashboard-metrics/route.ts",
         "src/app/api/diag/access-check/route.ts",
         "src/app/api/entitlements/check/route.ts",
         "src/app/api/entitlements/redeem/route.ts",
@@ -690,6 +725,7 @@
         "src/app/api/study-plan/route.ts",
         "src/app/api/teacher-profiles/route.ts",
         "src/app/api/tts/synthesize/route.ts",
+        "src/app/api/users/me/course-state/route.ts",
         "src/app/api/users/me/route.ts",
         "src/app/api/webhooks/paypal/route.ts",
         "src/infra/auth/oauth_cookies.ts",
@@ -779,7 +815,6 @@
       "description": "No description available",
       "files": [
         "src/app/api/oauth/google/route.ts",
-        "src/infra/auth/oauth_constants.ts",
         "src/infra/auth/oauth_cookies.ts",
         "src/infra/auth/oauth_logger.ts",
         "src/infra/auth/oauth_nonce.ts",
@@ -787,6 +822,7 @@
         "src/infra/auth/oauth_session.ts",
         "src/infra/auth/oauth_state.ts",
         "src/infra/auth/oauth_url.ts",
+        "src/infra/auth/request-headers.ts",
         "src/infra/auth/web-auth.ts",
         "src/server/payload/collections/Users/hooks/syncOAuthLoginSecret-hook.ts"
       ]
@@ -844,6 +880,18 @@
       "pattern": "encryption",
       "description": "No description available",
       "files": ["src/infra/auth/oauth_crypto.ts", "src/infra/config/config-crypto.ts"]
+    },
+    "shared-login": {
+      "pattern": "shared-login",
+      "description": "No description available",
+      "files": [
+        "src/infra/auth/shared-login/auth-cookie.env.ts",
+        "src/infra/auth/shared-login/auth-cookie.ts",
+        "src/infra/auth/shared-login/embedded-request.ts",
+        "src/infra/auth/shared-login/policy.env.ts",
+        "src/infra/auth/shared-login/policy.ts",
+        "src/infra/security/cors.ts"
+      ]
     },
     "constants": {
       "pattern": "constants",
@@ -1174,6 +1222,11 @@
       "description": "No description available",
       "files": ["src/infra/types/markdown.d.ts"]
     },
+    "shared-config": {
+      "pattern": "shared-config",
+      "description": "No description available",
+      "files": ["src/infra/utils/allowedColorTokens.ts"]
+    },
     "bounded-parallelism": {
       "pattern": "bounded-parallelism",
       "description": "No description available",
@@ -1357,6 +1410,24 @@
         "src/server/services/teacher-profile-resolver.ts"
       ]
     },
+    "repository": {
+      "pattern": "repository",
+      "description": "No description available",
+      "files": [
+        "src/server/services/chat-assets.ts",
+        "src/server/services/checkout.ts",
+        "src/server/services/conversations.ts",
+        "src/server/services/course-access.ts",
+        "src/server/services/dashboard-stats.ts",
+        "src/server/services/entitlement-grants.ts",
+        "src/server/services/exercises-import.ts",
+        "src/server/services/lessons.ts",
+        "src/server/services/media.ts",
+        "src/server/services/transactions.ts",
+        "src/server/services/upload-sessions.ts",
+        "src/server/services/user-settings.ts"
+      ]
+    },
     "rolling-window-quota": {
       "pattern": "rolling-window-quota",
       "description": "No description available",
@@ -1489,6 +1560,16 @@
       "description": "No description available",
       "files": ["src/server/services/lesson-duplication/subject-detector.ts"]
     },
+    "counter-collection": {
+      "pattern": "counter-collection",
+      "description": "No description available",
+      "files": ["src/server/services/lesson-stats.ts"]
+    },
+    "counter-collection + user-schema-counter": {
+      "pattern": "counter-collection + user-schema-counter",
+      "description": "No description available",
+      "files": ["src/server/services/llm-usage.ts"]
+    },
     "blob-fetching": {
       "pattern": "blob-fetching",
       "description": "No description available",
@@ -1586,6 +1667,16 @@
       "pattern": "footer-data",
       "description": "No description available",
       "files": ["src/ui/web/footer/footer-data.ts"]
+    },
+    "svg-normalization": {
+      "pattern": "svg-normalization",
+      "description": "No description available",
+      "files": ["src/ui/web/media/SVGMedia/ensureSvgViewBox.ts"]
+    },
+    "module-cache": {
+      "pattern": "module-cache",
+      "description": "No description available",
+      "files": ["src/ui/web/media/SVGMedia/fetchInlineSvg.ts"]
     },
     "action-button": {
       "pattern": "action-button",
@@ -1956,6 +2047,134 @@
       "domain": "general",
       "patterns": ["tailwind-component", "i18n-component", "client-component"],
       "aiSummary": "",
+      "dependencies": ["react"]
+    },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatInputPanel.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatInputPanel.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["tailwind-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["lucide-react", "react"]
+    },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonProgress.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonProgress.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["tailwind-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["lucide-react"]
+    },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonRunnerView.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonRunnerView.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["i18n-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["react"]
+    },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonStartCard.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonStartCard.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["tailwind-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["lucide-react"]
+    },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatFreeResponseBubble.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatFreeResponseBubble.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["tailwind-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["lucide-react", "react"]
+    },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatQuestionSelectBubble.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatQuestionSelectBubble.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["tailwind-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["lucide-react", "react"]
+    },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ContinueButton.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ContinueButton.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["tailwind-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["lucide-react"]
+    },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ExerciseSectionBubble.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ExerciseSectionBubble.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["client-component"],
+      "aiSummary": "",
+      "dependencies": ["react"]
+    },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/PendingBubble.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/PendingBubble.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["client-component"],
+      "aiSummary": "",
+      "dependencies": []
+    },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/QuickActionChips.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/QuickActionChips.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["tailwind-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["lucide-react"]
+    },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/StudentBubble.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/StudentBubble.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["tailwind-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": []
+    },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/TeacherBubble.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/TeacherBubble.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["tailwind-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["lucide-react", "react"]
+    },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/index.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/index.tsx",
+      "type": "component",
+      "domain": "lessons",
+      "patterns": ["chat-view", "client-component"],
+      "aiSummary": "Chat-view tab for a lesson. Renders the lesson's existing",
+      "dependencies": ["react"]
+    },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/useBrowserTTS.ts": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/useBrowserTTS.ts",
+      "type": "hook",
+      "domain": "lessons",
+      "patterns": ["client-component"],
+      "aiSummary": "Hebrew TTS narration for chat lessons. Prefers our",
+      "dependencies": ["react"]
+    },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/useChatChannel.ts": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/useChatChannel.ts",
+      "type": "hook",
+      "domain": "lessons",
+      "patterns": ["client-component"],
+      "aiSummary": "Freeform chat channel for the Chat view. Posts to the streaming",
+      "dependencies": ["react"]
+    },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/useExerciseWalker.ts": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/useExerciseWalker.ts",
+      "type": "hook",
+      "domain": "lessons",
+      "patterns": ["client-component"],
+      "aiSummary": "Walks the lesson's exercises section-by-section for the Chat",
       "dependencies": ["react"]
     },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ConsolidatedLatexLessonView/index.tsx": {
@@ -2371,7 +2590,7 @@
       "domain": "general",
       "patterns": ["i18n-component", "client-component"],
       "aiSummary": "",
-      "dependencies": ["next/navigation", "react", "next/image"]
+      "dependencies": ["react", "next/image"]
     },
     "src/app/(frontend)/login/LoginPageContent.tsx": {
       "path": "src/app/(frontend)/login/LoginPageContent.tsx",
@@ -2523,7 +2742,7 @@
       "domain": "general",
       "patterns": ["i18n-component", "client-component"],
       "aiSummary": "",
-      "dependencies": ["next/navigation", "react", "sonner"]
+      "dependencies": ["react", "sonner"]
     },
     "src/app/(frontend)/signup/SignupPageContent.tsx": {
       "path": "src/app/(frontend)/signup/SignupPageContent.tsx",
@@ -2651,7 +2870,7 @@
       "domain": "lessons",
       "patterns": ["admin-content-import", "api-endpoint"],
       "aiSummary": "Admin-only structured import for lesson introduction text and rich-text/LaTeX blocks.",
-      "dependencies": ["mongodb", "next/server", "zod"]
+      "dependencies": ["next/server", "zod"]
     },
     "src/app/api/agent/chat/route.ts": {
       "path": "src/app/api/agent/chat/route.ts",
@@ -2691,7 +2910,7 @@
       "domain": "general",
       "patterns": ["api-endpoint", "validated-endpoint"],
       "aiSummary": "",
-      "dependencies": ["fs/promises", "mongodb", "next/server", "zod"]
+      "dependencies": ["fs/promises", "next/server", "zod"]
     },
     "src/app/api/agent/learning-chat/route.ts": {
       "path": "src/app/api/agent/learning-chat/route.ts",
@@ -2716,6 +2935,14 @@
       "patterns": ["api-endpoint", "validated-endpoint"],
       "aiSummary": "",
       "dependencies": ["next/server", "zod"]
+    },
+    "src/app/api/auth/logout/route.ts": {
+      "path": "src/app/api/auth/logout/route.ts",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["api-endpoint"],
+      "aiSummary": "",
+      "dependencies": ["next/server"]
     },
     "src/app/api/blob/upload-token/route.ts": {
       "path": "src/app/api/blob/upload-token/route.ts",
@@ -2789,13 +3016,21 @@
       "aiSummary": "",
       "dependencies": ["next/server"]
     },
+    "src/app/api/dashboard-metrics/route.ts": {
+      "path": "src/app/api/dashboard-metrics/route.ts",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["api-endpoint"],
+      "aiSummary": "",
+      "dependencies": ["next/server"]
+    },
     "src/app/api/diag/access-check/route.ts": {
       "path": "src/app/api/diag/access-check/route.ts",
       "type": "unknown",
       "domain": "general",
       "patterns": ["api-endpoint"],
       "aiSummary": "",
-      "dependencies": ["next/server", "mongodb"]
+      "dependencies": ["next/server"]
     },
     "src/app/api/entitlements/check/route.ts": {
       "path": "src/app/api/entitlements/check/route.ts",
@@ -2803,7 +3038,7 @@
       "domain": "general",
       "patterns": ["api-endpoint"],
       "aiSummary": "",
-      "dependencies": ["mongodb", "next/server"]
+      "dependencies": ["next/server"]
     },
     "src/app/api/entitlements/redeem/route.ts": {
       "path": "src/app/api/entitlements/redeem/route.ts",
@@ -2811,7 +3046,7 @@
       "domain": "general",
       "patterns": ["api-endpoint", "validated-endpoint"],
       "aiSummary": "",
-      "dependencies": ["mongodb", "next/server", "zod"]
+      "dependencies": ["next/server", "zod"]
     },
     "src/app/api/example/route.ts": {
       "path": "src/app/api/example/route.ts",
@@ -2843,7 +3078,7 @@
       "domain": "general",
       "patterns": ["api-endpoint"],
       "aiSummary": "",
-      "dependencies": ["mongodb", "next/server"]
+      "dependencies": ["next/server"]
     },
     "src/app/api/exercises/validate-answer/route.ts": {
       "path": "src/app/api/exercises/validate-answer/route.ts",
@@ -2923,7 +3158,7 @@
       "domain": "general",
       "patterns": ["api-endpoint"],
       "aiSummary": "",
-      "dependencies": ["mongodb", "next/server"]
+      "dependencies": ["next/server"]
     },
     "src/app/api/stats/heartbeat/route.ts": {
       "path": "src/app/api/stats/heartbeat/route.ts",
@@ -2979,7 +3214,15 @@
       "domain": "general",
       "patterns": ["validated-endpoint"],
       "aiSummary": "",
-      "dependencies": ["mongodb", "next/server", "zod"]
+      "dependencies": ["next/server", "zod"]
+    },
+    "src/app/api/users/me/course-state/route.ts": {
+      "path": "src/app/api/users/me/course-state/route.ts",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["api-endpoint"],
+      "aiSummary": "",
+      "dependencies": ["next/server"]
     },
     "src/app/api/users/me/route.ts": {
       "path": "src/app/api/users/me/route.ts",
@@ -2995,7 +3238,7 @@
       "domain": "general",
       "patterns": ["api-endpoint"],
       "aiSummary": "",
-      "dependencies": ["mongodb", "next/server"]
+      "dependencies": ["next/server"]
     },
     "src/app/global-error.tsx": {
       "path": "src/app/global-error.tsx",
@@ -3173,20 +3416,12 @@
       "aiSummary": "",
       "dependencies": []
     },
-    "src/infra/auth/oauth_constants.ts": {
-      "path": "src/infra/auth/oauth_constants.ts",
-      "type": "constants",
-      "domain": "auth",
-      "patterns": ["oauth"],
-      "aiSummary": "Cookie configuration and constants for OAuth authentication",
-      "dependencies": []
-    },
     "src/infra/auth/oauth_cookies.ts": {
       "path": "src/infra/auth/oauth_cookies.ts",
       "type": "utility",
       "domain": "auth",
       "patterns": ["oauth", "api-endpoint"],
-      "aiSummary": "Cookie read/write/delete utilities for OAuth flow",
+      "aiSummary": "Read/write/delete helpers for the short-lived cookies of the OAuth handshake (state nonce, returnTo). The session cookie itself is owned by `shared-login/auth-cookie`.",
       "dependencies": ["next/server"]
     },
     "src/infra/auth/oauth_crypto.ts": {
@@ -3218,7 +3453,7 @@
       "type": "utility",
       "domain": "auth",
       "patterns": ["oauth"],
-      "aiSummary": "Sanitize returnTo URLs to prevent open redirect vulnerabilities",
+      "aiSummary": "Turns an untrusted returnTo parameter into a destination safe to redirect to. Pure — the trust boundary arrives as an argument, never from the environment.",
       "dependencies": []
     },
     "src/infra/auth/oauth_session.ts": {
@@ -3244,6 +3479,54 @@
       "patterns": ["oauth"],
       "aiSummary": "Build canonical public base URLs for OAuth callbacks",
       "dependencies": ["next/server"]
+    },
+    "src/infra/auth/request-headers.ts": {
+      "path": "src/infra/auth/request-headers.ts",
+      "type": "utility",
+      "domain": "auth",
+      "patterns": ["oauth"],
+      "aiSummary": "Safely reads the incoming request headers inside server actions so cookie flags can be tailored per request context.",
+      "dependencies": ["next/headers"]
+    },
+    "src/infra/auth/shared-login/auth-cookie.env.ts": {
+      "path": "src/infra/auth/shared-login/auth-cookie.env.ts",
+      "type": "utility",
+      "domain": "auth",
+      "patterns": ["shared-login"],
+      "aiSummary": "Wires the pure cookie model to this deployment's policy and to an incoming request. The only auth-cookie module that reads the environment.",
+      "dependencies": []
+    },
+    "src/infra/auth/shared-login/auth-cookie.ts": {
+      "path": "src/infra/auth/shared-login/auth-cookie.ts",
+      "type": "model",
+      "domain": "auth",
+      "patterns": ["shared-login"],
+      "aiSummary": "Builds the auth cookie's attributes from a policy and a request classification. Pure: what the cookie is called and how it is scoped, with no knowledge of sessions, tokens, or the environment.",
+      "dependencies": []
+    },
+    "src/infra/auth/shared-login/embedded-request.ts": {
+      "path": "src/infra/auth/shared-login/embedded-request.ts",
+      "type": "utility",
+      "domain": "auth",
+      "patterns": ["shared-login"],
+      "aiSummary": "Decides whether a request comes from inside a cross-origin iframe, which determines whether the auth cookie can be shared or must be partitioned.",
+      "dependencies": []
+    },
+    "src/infra/auth/shared-login/policy.env.ts": {
+      "path": "src/infra/auth/shared-login/policy.env.ts",
+      "type": "config",
+      "domain": "auth",
+      "patterns": ["shared-login"],
+      "aiSummary": "The single place the shared-login environment variables are read. Everything else takes a SharedLoginPolicy as an argument.",
+      "dependencies": []
+    },
+    "src/infra/auth/shared-login/policy.ts": {
+      "path": "src/infra/auth/shared-login/policy.ts",
+      "type": "model",
+      "domain": "auth",
+      "patterns": ["shared-login"],
+      "aiSummary": "Pure value object and predicates describing the sibling apps that share this deployment's login. No environment access, no framework imports — safe to evaluate on the server, in edge middleware, and in the browser.",
+      "dependencies": []
     },
     "src/infra/auth/web-auth.ts": {
       "path": "src/infra/auth/web-auth.ts",
@@ -3669,6 +3952,14 @@
       "aiSummary": "Zod schemas for site behavior specifications",
       "dependencies": ["zod"]
     },
+    "src/infra/security/cors.ts": {
+      "path": "src/infra/security/cors.ts",
+      "type": "utility",
+      "domain": "security",
+      "patterns": ["shared-login"],
+      "aiSummary": "Decides which cross-origin callers may read /api responses with the session cookie attached, and what headers to answer with. Pure — the trust boundary is passed in.",
+      "dependencies": []
+    },
     "src/infra/security/rate-limit.ts": {
       "path": "src/infra/security/rate-limit.ts",
       "type": "utility",
@@ -3731,6 +4022,14 @@
       "domain": "types",
       "patterns": ["markdown-types"],
       "aiSummary": "Module augmentation enabling `import.meta.url` resolution for .md files in the app bundle. Only applies to files processed by the bundler (Vite/Next.js); do not assume these are present in Payload's server runtime.",
+      "dependencies": []
+    },
+    "src/infra/utils/allowedColorTokens.ts": {
+      "path": "src/infra/utils/allowedColorTokens.ts",
+      "type": "constants",
+      "domain": "ui",
+      "patterns": ["shared-config"],
+      "aiSummary": "Whitelist of ::token{...} markdown tokens accepted by the remark plugin and the Lexical/HTML text renderers.",
       "dependencies": []
     },
     "src/infra/utils/concurrency.ts": {
@@ -4101,12 +4400,28 @@
       "aiSummary": "Resolves agent behavior profile with tiered fallback: user settings → default → highest priority → hardcoded failsafe",
       "dependencies": []
     },
+    "src/server/services/chat-assets.ts": {
+      "path": "src/server/services/chat-assets.ts",
+      "type": "service",
+      "domain": "chat-assets",
+      "patterns": ["repository"],
+      "aiSummary": "Stores the record of a file attached to a chat, created once its upload session is finalized.",
+      "dependencies": ["mongodb"]
+    },
     "src/server/services/chat-quota.ts": {
       "path": "src/server/services/chat-quota.ts",
       "type": "service",
       "domain": "chat",
       "patterns": ["rolling-window-quota"],
       "aiSummary": "Checks and increments authenticated user chat quota (rolling window)",
+      "dependencies": ["mongodb"]
+    },
+    "src/server/services/checkout.ts": {
+      "path": "src/server/services/checkout.ts",
+      "type": "service",
+      "domain": "payments",
+      "patterns": ["repository"],
+      "aiSummary": "Database side of starting a purchase: reading the product and coupon, and writing the local transaction and subscription rows that mirror what the payment provider was told.",
       "dependencies": ["mongodb"]
     },
     "src/server/services/conversation-service.ts": {
@@ -4116,6 +4431,22 @@
       "patterns": ["service-layer", "context-scoped"],
       "aiSummary": "Service for managing conversations with context scoping and access control",
       "dependencies": []
+    },
+    "src/server/services/conversations.ts": {
+      "path": "src/server/services/conversations.ts",
+      "type": "service",
+      "domain": "conversations",
+      "patterns": ["repository"],
+      "aiSummary": "Reads, creates and archives a user's chat conversations. Every query is scoped to the owner — a conversation is private, so there is deliberately no way to ask this service for someone else's.",
+      "dependencies": ["mongodb"]
+    },
+    "src/server/services/course-access.ts": {
+      "path": "src/server/services/course-access.ts",
+      "type": "service",
+      "domain": "entitlements",
+      "patterns": ["repository"],
+      "aiSummary": "Reads the three places course access can come from — an entitlement, an enrollment, or the legacy array on the user — for the access check and its diagnostic sibling.",
+      "dependencies": ["mongodb"]
     },
     "src/server/services/course-list-service.ts": {
       "path": "src/server/services/course-list-service.ts",
@@ -4141,6 +4472,14 @@
       "aiSummary": "Validates referential integrity: every chapter's course field must point back to its parent",
       "dependencies": []
     },
+    "src/server/services/dashboard-stats.ts": {
+      "path": "src/server/services/dashboard-stats.ts",
+      "type": "service",
+      "domain": "stats",
+      "patterns": ["repository"],
+      "aiSummary": "Lookups behind the learner dashboard — lesson titles and the user's conversations. The counting itself stays in the route, since it is presentation arithmetic rather than data access.",
+      "dependencies": ["mongodb"]
+    },
     "src/server/services/diff.ts": {
       "path": "src/server/services/diff.ts",
       "type": "utility",
@@ -4148,6 +4487,14 @@
       "patterns": ["diff-classifier"],
       "aiSummary": "Classifies the type of difference between two exercise block arrays.",
       "dependencies": []
+    },
+    "src/server/services/entitlement-grants.ts": {
+      "path": "src/server/services/entitlement-grants.ts",
+      "type": "service",
+      "domain": "entitlements",
+      "patterns": ["repository"],
+      "aiSummary": "Redeeming an access code: finding it, consuming exactly one use, and granting the course. The consume step is a conditional update rather than a read-then-write, so two simultaneous redemptions cannot both succeed on the last remaining use.",
+      "dependencies": ["mongodb"]
     },
     "src/server/services/exercise-conversion/v2/image-crop-service.ts": {
       "path": "src/server/services/exercise-conversion/v2/image-crop-service.ts",
@@ -4229,6 +4576,14 @@
       "aiSummary": "",
       "dependencies": ["nanoid"]
     },
+    "src/server/services/exercises-import.ts": {
+      "path": "src/server/services/exercises-import.ts",
+      "type": "service",
+      "domain": "exercises",
+      "patterns": ["repository"],
+      "aiSummary": "Lookups behind the exercise-import compatibility probe. The web-only build performs no conversion, so this only reports what already exists.",
+      "dependencies": ["mongodb"]
+    },
     "src/server/services/lesson-context-conversion/validate-latex.ts": {
       "path": "src/server/services/lesson-context-conversion/validate-latex.ts",
       "type": "utility",
@@ -4301,6 +4656,38 @@
       "aiSummary": "Converts exercise content blocks to canonical export format.",
       "dependencies": []
     },
+    "src/server/services/lesson-stats.ts": {
+      "path": "src/server/services/lesson-stats.ts",
+      "type": "service",
+      "domain": "dashboard",
+      "patterns": ["counter-collection"],
+      "aiSummary": "Per-lesson $inc counters for open count + future duration totals",
+      "dependencies": []
+    },
+    "src/server/services/lessons.ts": {
+      "path": "src/server/services/lessons.ts",
+      "type": "service",
+      "domain": "lessons",
+      "patterns": ["repository"],
+      "aiSummary": "Writes to lesson documents. Lessons are addressed by id or by slug depending on the caller, so both are accepted here rather than each route deciding.",
+      "dependencies": ["mongodb"]
+    },
+    "src/server/services/llm-usage.ts": {
+      "path": "src/server/services/llm-usage.ts",
+      "type": "service",
+      "domain": "llm",
+      "patterns": ["counter-collection + user-schema-counter"],
+      "aiSummary": "Per-call token event log + per-user monthly counter with rate-limit check",
+      "dependencies": ["mongodb"]
+    },
+    "src/server/services/media.ts": {
+      "path": "src/server/services/media.ts",
+      "type": "service",
+      "domain": "media",
+      "patterns": ["repository"],
+      "aiSummary": "Reads and records media documents. Blob storage itself is handled by the caller; this only owns the database side.",
+      "dependencies": ["mongodb"]
+    },
     "src/server/services/pdf-fetcher.ts": {
       "path": "src/server/services/pdf-fetcher.ts",
       "type": "service",
@@ -4325,6 +4712,22 @@
       "aiSummary": "Resolves teacher system prompt with tiered fallback: user settings → default slug → first active → hardcoded failsafe",
       "dependencies": []
     },
+    "src/server/services/transactions.ts": {
+      "path": "src/server/services/transactions.ts",
+      "type": "service",
+      "domain": "payments",
+      "patterns": ["repository"],
+      "aiSummary": "Reads payment transaction records. Ownership is checked by the caller, which decides how to answer when it does not match.",
+      "dependencies": ["mongodb"]
+    },
+    "src/server/services/upload-sessions.ts": {
+      "path": "src/server/services/upload-sessions.ts",
+      "type": "service",
+      "domain": "chat-assets",
+      "patterns": ["repository"],
+      "aiSummary": "Tracks browser-direct uploads to blob storage: an upload session is opened before a token is issued and closed when the file lands, so an abandoned upload leaves a record rather than nothing.",
+      "dependencies": ["mongodb"]
+    },
     "src/server/services/user-learning-context.ts": {
       "path": "src/server/services/user-learning-context.ts",
       "type": "service",
@@ -4332,6 +4735,14 @@
       "patterns": ["context-aggregation"],
       "aiSummary": "Aggregates user progress, streak, and study plan for personalized agent responses",
       "dependencies": []
+    },
+    "src/server/services/user-settings.ts": {
+      "path": "src/server/services/user-settings.ts",
+      "type": "service",
+      "domain": "user-settings",
+      "patterns": ["repository"],
+      "aiSummary": "Reads and writes a user's settings and resolves their chosen teacher profile. All `user_settings` and `teacher_profiles` queries live here; the API route only translates HTTP.",
+      "dependencies": ["mongodb"]
     },
     "src/server/utils/access-gate-server.ts": {
       "path": "src/server/utils/access-gate-server.ts",
@@ -5490,6 +5901,22 @@
       "aiSummary": "",
       "dependencies": ["react"]
     },
+    "src/ui/web/media/SVGMedia/ensureSvgViewBox.ts": {
+      "path": "src/ui/web/media/SVGMedia/ensureSvgViewBox.ts",
+      "type": "utility",
+      "domain": "ui",
+      "patterns": ["svg-normalization"],
+      "aiSummary": "Adds a viewBox to an SVG when the author omitted one, so the SVG scales predictably inside responsive containers.",
+      "dependencies": []
+    },
+    "src/ui/web/media/SVGMedia/fetchInlineSvg.ts": {
+      "path": "src/ui/web/media/SVGMedia/fetchInlineSvg.ts",
+      "type": "utility",
+      "domain": "ui",
+      "patterns": ["module-cache"],
+      "aiSummary": "Fetches, normalises, and sanitises an SVG for inline rendering. Dedupes concurrent requests and caches results per URL across component instances.",
+      "dependencies": []
+    },
     "src/ui/web/media/SVGMedia/index.tsx": {
       "path": "src/ui/web/media/SVGMedia/index.tsx",
       "type": "unknown",
@@ -5735,7 +6162,7 @@
       "type": "utility",
       "domain": "ui",
       "patterns": ["remark-plugin"],
-      "aiSummary": "Simplified remark plugin to transform ::text-highlight-N{text} syntax (single-node only)",
+      "aiSummary": "Remark plugin transforming ::token{text} syntax for highlights, named colors, and sizes (recurses into inline formatting and spans siblings).",
       "dependencies": ["unist-util-visit"]
     },
     "src/ui/web/shared/MathMarkdown/svgAwareImage.tsx": {
@@ -5788,8 +6215,8 @@
     }
   },
   "metadata": {
-    "generatedAt": "2026-07-26T14:40:01.358Z",
-    "totalFiles": 515,
-    "totalPatterns": 181
+    "generatedAt": "2026-08-20T14:53:48.337Z",
+    "totalFiles": 557,
+    "totalPatterns": 189
   }
 }

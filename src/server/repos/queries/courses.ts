@@ -70,6 +70,43 @@ export const queryPublishedCourses = cache(async (locale?: ContentLocale): Promi
   )
 })
 
+export interface ManagedCourseSummary {
+  id: string
+  title: string
+  slug?: string | null
+  description?: string | null
+  courseLabel?: string | null
+  status?: string | null
+  isActive?: boolean | null
+  accessType?: string | null
+  locale?: ContentLocale | null
+  order?: number | null
+  updatedAt?: string | null
+}
+
+/**
+ * Returns the complete course index for authenticated content management.
+ * Authorization belongs to the API route; this repository function only
+ * applies tenant isolation and a narrow projection.
+ */
+export async function queryManagedCourses(): Promise<ManagedCourseSummary[]> {
+  return findManySerialized<ManagedCourseSummary>('courses', await defaultTenantFilter(), {
+    sort: { order: 1, title: 1 },
+    projection: {
+      title: 1,
+      slug: 1,
+      description: 1,
+      courseLabel: 1,
+      status: 1,
+      isActive: 1,
+      accessType: 1,
+      locale: 1,
+      order: 1,
+      updatedAt: 1,
+    },
+  })
+}
+
 /**
  * Resolve a course Mongo `_id` (as stored in the `a-guy:course-id` cookie) to
  * its public slug. Used by the `/home` redirect to deep-link the user back to
