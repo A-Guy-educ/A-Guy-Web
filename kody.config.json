@@ -134,7 +134,8 @@
     "activeWorkflows": [
       "refresh-knowledge-system",
       "web-release",
-      "build-chat-knowledge-graph"
+      "build-chat-knowledge-graph",
+      "deploy-dev"
     ]
   },
   "fly": {
