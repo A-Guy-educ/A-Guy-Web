@@ -109,7 +109,8 @@
       "release-validate",
       "publish-chat-knowledge-tool",
       "collect-chat-knowledge-evidence",
-      "build-chat-knowledge-graph"
+      "build-chat-knowledge-graph",
+      "vercel-dev-deploy"
     ],
     "activeAgents": [
       "ceo",
