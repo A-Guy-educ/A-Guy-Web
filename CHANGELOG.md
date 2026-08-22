@@ -1,5 +1,35 @@
 # Changelog
 
+## v0.33.3 — 2026-08-22
+
+### Features
+- Add Teacher course management API (#1102) (26bada802)
+- Establish shared app platform boundary (#1101) (daf3b4cd4)
+
+### Fixes
+- install pnpm for dev deployments (31e32faed)
+
+### Refactoring
+- complete dashboard repository split (2dc67d0d5)
+- move dashboard UI to dedicated app (bb8e2dcc3)
+
+### Chores
+- add store workflow deploy-dev (4d9bb67ed)
+- add store capability vercel-dev-deploy (299da2e6e)
+- add manually triggered dev deployment (05efc0eb2)
+- add #1104 (8548e34c4)
+- add #1103 (a66f30466)
+- add #1102 (5942bdc14)
+- add #1101 (0961e82ce)
+- add #1100 (e6304909b)
+- add #1099 (3f7c332a2)
+- release v0.33.0 (d3293f1e1)
+- add #1098 (a43b4166d)
+
+### Other
+- Revert "chore: add manually triggered dev deployment" (577658e5b)
+- Revert "fix: install pnpm for dev deployments" (70d22150e)
+- pause dashboard cutover during DNS propagation (6e6b73b95)
 ## v0.33.2 — 2026-08-21
 
 ### Chores
@@ -3843,6 +3873,8 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: release v0.33.3 ([#1105](https://github.com/A-Guy-educ/A-Guy-Web/pull/1105)) — @aguyaharonyair
+- promote: dev -> main (v0.33.2) ([#1104](https://github.com/A-Guy-educ/A-Guy-Web/pull/1104)) — @aguyaharonyair
 - chore: release v0.33.2 ([#1103](https://github.com/A-Guy-educ/A-Guy-Web/pull/1103)) — @aguyaharonyair
 - feat: add Teacher course management API ([#1102](https://github.com/A-Guy-educ/A-Guy-Web/pull/1102)) — @aguyaharonyair
 - feat: Establish shared app platform boundary ([#1101](https://github.com/A-Guy-educ/A-Guy-Web/pull/1101)) — @aguyaharonyair
