@@ -1,3 +1,3 @@
 # Code Quality Boundaries
 
-- [Code Quality Boundaries - Implementation Plan](implementation-plan)
+- [Code Quality Boundaries - Implementation Plan](./implementation-plan.md)
