@@ -17,6 +17,9 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      # Skip husky commit-msg hooks for automated ai-docs commits
+      HUSKY: '0'
 
     steps:
       - name: Checkout
