@@ -1,3 +1,3 @@
 # Ui
 
-- [Web](web/)
+- [Web](./web/README.md)
