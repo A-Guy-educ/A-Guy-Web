@@ -108,7 +108,7 @@ function Hero({ t }: { t: (key: string) => string }) {
             {t('hero.plansCta')}
           </Link>
           <Link
-            href="/start"
+            href="/products"
             className="flex flex-1 items-center justify-center gap-content-gap-xs rounded-xl border border-success/30 bg-card px-8 py-section-xs text-body-lg font-bold text-success shadow-elevation-1 transition-all duration-normal hover:-translate-y-1 hover:border-success hover:bg-success/10"
           >
             <Play className="h-4 w-4 fill-current" aria-hidden />
@@ -309,7 +309,7 @@ function BottomCta({ t }: { t: (key: string) => string }) {
           {t('cta.join')}
         </Link>
         <Link
-          href="/start"
+          href="/products"
           className="rounded-xl border border-primary-foreground/30 bg-primary-foreground/10 px-8 py-section-xs text-body-lg font-bold text-primary-foreground transition-all duration-normal hover:bg-primary-foreground/20"
         >
           {t('cta.trial')}
@@ -479,7 +479,7 @@ function DashboardPreview({ t }: { t: (key: string) => string }) {
           </div>
         </div>
         <Link
-          href="/start"
+          href="/products"
           className="self-stretch rounded-2xl bg-primary px-8 py-3 text-center font-bold text-primary-foreground shadow-elevation-3 transition-all duration-normal hover:bg-primary md:self-auto"
         >
           {t('hero.trialCta')}
@@ -533,7 +533,7 @@ function ChatPreview({ t }: { t: (key: string) => string }) {
           <NumberLine />
         </div>
         <Link
-          href="/start"
+          href="/products"
           className="inline-block rounded-2xl bg-success px-6 py-3 font-bold text-success-foreground shadow-elevation-3"
         >
           {t('simulation.chat.next')}
