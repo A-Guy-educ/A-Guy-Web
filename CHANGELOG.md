@@ -1,5 +1,37 @@
 # Changelog
 
+## v0.33.4 — 2026-08-23
+
+### Features
+- Add Teacher course management API (#1102) (26bada802)
+- Establish shared app platform boundary (#1101) (daf3b4cd4)
+
+### Fixes
+- install pnpm for dev deployments (31e32faed)
+
+### Refactoring
+- complete dashboard repository split (2dc67d0d5)
+- move dashboard UI to dedicated app (bb8e2dcc3)
+
+### Chores
+- add #1106 (b795e1e43)
+- add #1105 (cb2da35ba)
+- add store workflow deploy-dev (4d9bb67ed)
+- add store capability vercel-dev-deploy (299da2e6e)
+- add manually triggered dev deployment (05efc0eb2)
+- add #1104 (8548e34c4)
+- add #1103 (a66f30466)
+- add #1102 (5942bdc14)
+- add #1101 (0961e82ce)
+- add #1100 (e6304909b)
+- add #1099 (3f7c332a2)
+- release v0.33.0 (d3293f1e1)
+- add #1098 (a43b4166d)
+
+### Other
+- Revert "chore: add manually triggered dev deployment" (577658e5b)
+- Revert "fix: install pnpm for dev deployments" (70d22150e)
+- pause dashboard cutover during DNS propagation (6e6b73b95)
 ## v0.33.3 — 2026-08-22
 
 ### Features
