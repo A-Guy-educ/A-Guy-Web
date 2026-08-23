@@ -9,14 +9,26 @@
  */
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
-const { findManySerializedMock } = vi.hoisted(() => ({
-  findManySerializedMock: vi.fn(),
-}))
+const { findManySerializedMock, findByIdSerializedMock, findCourseByIdContentDbMock } =
+  vi.hoisted(() => ({
+    findManySerializedMock: vi.fn(),
+    findByIdSerializedMock: vi.fn(),
+    findCourseByIdContentDbMock: vi.fn(),
+  }))
 
 vi.mock('@/server/repos/mongo', () => ({
   findManySerialized: findManySerializedMock,
+  findByIdSerialized: findByIdSerializedMock,
   findOneSerialized: vi.fn(),
 }))
+
+vi.mock('@/infra/db/content-db', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/infra/db/content-db')>()
+  return {
+    ...actual,
+    getContentDb: findCourseByIdContentDbMock,
+  }
+})
 
 import { queryActiveProducts, querySoonProducts } from '@/server/repos/queries/products'
 
@@ -39,9 +51,29 @@ describe('queryActiveProducts — active storefront filter (#718)', () => {
   })
 
   it('normalizes products by filling `title` from `name`', async () => {
+    // Mock a product that passes the #638 course-linkage validation: it has
+    // a direct `course` relation pointing at a published+active course.
+    findByIdSerializedMock.mockResolvedValueOnce({ status: 'published', isActive: true })
     findManySerializedMock.mockResolvedValueOnce([
-      { id: '1', name: 'Course Bundle', status: 'active' },
+      {
+        id: '1',
+        name: 'Course Bundle',
+        status: 'active',
+        course: '507f191e810c19729de860ea',
+      },
     ])
+    // populateCourseField runs after validation; have getContentDb return a
+    // collection whose findOne resolves to the corresponding course.
+    findCourseByIdContentDbMock.mockResolvedValueOnce({
+      collection: vi.fn().mockReturnValue({
+        findOne: vi.fn().mockResolvedValueOnce({
+          _id: '507f191e810c19729de860ea',
+          title: 'Course Bundle',
+          slug: 'course-bundle',
+        }),
+        find: vi.fn(),
+      }),
+    })
     const result = await queryActiveProducts()
     expect(result[0].title).toBe('Course Bundle')
   })

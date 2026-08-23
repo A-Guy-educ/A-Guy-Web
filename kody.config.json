@@ -59,7 +59,6 @@
   },
   "defaultExecutable": "classify",
   "defaultPrExecutable": "fix",
-  "onPullRequest": "preview-build",
   "access": {
     "allowedAssociations": [
       "OWNER",

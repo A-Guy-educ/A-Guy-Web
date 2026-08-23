@@ -1,6 +1,6 @@
 'use client'
 
-import type { Product } from '@/infra/types/content'
+import { isPopulatedCourseRef, type Product } from '@/infra/types/content'
 import { cn } from '@/infra/utils/ui'
 import { UnifiedCard } from '@/ui/web/components/UnifiedCard'
 import { useTranslations } from '@/ui/web/providers/I18n'
@@ -39,6 +39,7 @@ export function ProductCard({ product, disabled = false }: ProductCardProps) {
 
   const priceLabel = formatPrice(price, currency)
   const billingLabel = billingType === 'subscription' ? t('subscriptionLabel') : t('oneTimeLabel')
+  const courseTitle = isPopulatedCourseRef(product.course) ? product.course.title : null
 
   if (disabled) {
     // Non-interactive variant — must render a real `<button disabled>` so
@@ -85,6 +86,7 @@ export function ProductCard({ product, disabled = false }: ProductCardProps) {
   return (
     <UnifiedCard
       title={product.name ?? 'Product'}
+      subtitle={courseTitle ?? undefined}
       description={billingLabel}
       label={priceLabel}
       accentColor={accentColor}
