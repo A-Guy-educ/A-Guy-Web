@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { requireUser } from '@/server/auth/api-auth'
+import { logger } from '@/infra/utils/logger/logger'
 
 export const runtime = 'nodejs'
 
@@ -23,7 +24,17 @@ export async function POST(request: NextRequest) {
   const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL
   const serviceToken = process.env.ADMIN_SERVICE_TOKEN
   if (!adminUrl || !serviceToken) {
-    // Misconfiguration — fail closed but do not leak which piece is missing.
+    // Misconfiguration — fail closed but do not leak which piece is missing
+    // to the client. Do log the exact gap for ops. Token length only (never
+    // the value) so a bad paste is visible without leaking the secret.
+    logger.error(
+      {
+        adminUrlSet: Boolean(adminUrl),
+        serviceTokenSet: Boolean(serviceToken),
+        serviceTokenLength: serviceToken?.length ?? 0,
+      },
+      'course-state proxy: missing env config',
+    )
     return NextResponse.json({ success: false, error: 'Service unavailable' }, { status: 503 })
   }
 
@@ -56,7 +67,19 @@ export async function POST(request: NextRequest) {
       status: adminResponse.status,
       headers: { 'content-type': adminResponse.headers.get('content-type') ?? 'application/json' },
     })
-  } catch {
+  } catch (error) {
+    // Log the underlying cause so 502s surface a real reason in Vercel
+    // function logs (URL parse fail, invalid header value from a stray
+    // newline in ADMIN_SERVICE_TOKEN, network error, etc.). The token
+    // itself is never logged; length only, to reveal a bad paste.
+    logger.error(
+      {
+        err: error instanceof Error ? { name: error.name, message: error.message } : error,
+        adminUrlPrefix: adminUrl.slice(0, 40),
+        serviceTokenLength: serviceToken.length,
+      },
+      'course-state proxy: upstream fetch threw',
+    )
     return NextResponse.json({ success: false, error: 'Upstream unreachable' }, { status: 502 })
   }
 }
