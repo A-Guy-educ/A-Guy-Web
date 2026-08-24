@@ -40,8 +40,9 @@ function MobileChatPanel({
         type="button"
         onClick={onBackToExercise}
         aria-label={t('backToExercise')}
+        style={{ top: 'calc(0.75rem + env(safe-area-inset-top))' }}
         className={cn(
-          'lg:hidden absolute top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card/90 text-foreground shadow-elevation-2 backdrop-blur transition-colors duration-normal hover:bg-muted',
+          'lg:hidden absolute z-20 flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card/90 text-foreground shadow-elevation-2 backdrop-blur transition-colors duration-normal hover:bg-muted',
           rtl ? 'left-3' : 'right-3',
         )}
       >

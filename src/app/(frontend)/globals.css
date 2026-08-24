@@ -554,20 +554,28 @@ math-field:focus-within {
 
 /* KaTeX math expression styling in chat.
    Short atoms ("AB", "x", "\pi") render inline in wine-red so they read as
-   part of the sentence. Longer expressions get promoted to their own line
-   with a soft blue tint so equations stand out at a glance. Classification
-   happens in rehype-math-wrapper.ts. */
+   part of the sentence. Longer expressions break onto their own line with a
+   soft blue tint so equations stand out at a glance. Classification happens
+   in rehype-math-wrapper.ts, which always uses a <span> wrapper for inline
+   math (a <div> inside <p> would trigger hydration mismatches) and applies
+   `display:block` here via `.math-long` when the visual promotion is wanted. */
 .chat-message-content .math-short .katex {
   @apply bg-transparent p-0 m-0 rounded-none inline-block;
   color: hsl(var(--text-wine-red));
   font-size: 1em;
 }
 
+.chat-message-content .math-long {
+  display: block;
+  text-align: center;
+  margin: calc(var(--spacing) * 3) 0;
+}
+
 .chat-message-content .math-long .katex {
   @apply text-foreground rounded-lg inline-block;
   background-color: hsl(var(--text-highlight-5) / 0.08);
   padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
-  margin: calc(var(--spacing) * 1);
+  margin: 0;
 }
 
 /* Dark mode: bump the tint so the block stays visible on dark surfaces. */
@@ -582,6 +590,13 @@ math-field:focus-within {
 }
 
 /* Chat table cells: strip all math chrome so cell layout is preserved. */
+.chat-message-content .chat-table .math-short,
+.chat-message-content .chat-table .math-long {
+  display: inline-block;
+  text-align: inherit;
+  margin: 0;
+}
+
 .chat-message-content .chat-table .math-short .katex,
 .chat-message-content .chat-table .math-long .katex {
   @apply bg-transparent p-0 m-0 rounded-none text-primary;

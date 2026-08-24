@@ -2,28 +2,33 @@
  * @fileType utility
  * @domain ui
  * @pattern rtl-isolation
- * @ai-summary Rehype plugin that wraps KaTeX output with dir="ltr" and classifies expressions as short (inline highlight) or long (block).
+ * @ai-summary Rehype plugin that wraps KaTeX output with dir="ltr" and classifies expressions as short (inline highlight) or long (visual block).
  */
 
 import type { Element, Root, Text } from 'hast'
 import { visit } from 'unist-util-visit'
 
 /**
- * Rehype plugin to wrap KaTeX output with RTL isolation and length classification.
+ * Rehype plugin that wraps KaTeX output with RTL isolation and a length class.
  *
- * WHY: In RTL pages (like Hebrew), math expressions render incorrectly
- * because the browser applies right-to-left text direction to them.
- * We also want to visually differentiate short atoms ("AB", "x") from
- * full equations so the reader can skim the message.
+ * WHY: In RTL pages (Hebrew) math needs `dir="ltr"` so digits/operators don't
+ * flip. We also want short atoms ("AB", "x", "\pi") to read inline as part of
+ * the sentence and longer equations to visually break onto their own line.
  *
- * HOW: After rehype-katex converts $...$ into KaTeX HTML, this plugin
- * walks the HTML tree and wraps each top-level KaTeX element:
- * - Short inline math  -> <span dir="ltr" class="... math-short">   (wine-red, inline)
- * - Long / block math  -> <div  dir="ltr" class="... math-long">    (block, tinted background)
+ * HOW: After rehype-katex converts $...$ into KaTeX HTML, this plugin walks
+ * the AST and wraps each top-level KaTeX element:
+ * - Inline math (`.katex`)        -> <span dir="ltr" class="... math-short|math-long">
+ * - Block  math (`.katex-display`) -> <div  dir="ltr" class="... math-long">
  *
- * "Short" means the TeX source (from the KaTeX <annotation> node) is
- * ≤3 characters and contains no equation-like operators (= + / ^ _ < >).
- * Long inline math is promoted to a block so it lands on its own line.
+ * NOTE: Inline math is ALWAYS wrapped in a <span>, even when we want to promote
+ * it visually onto its own line, because remark-math places `$...$` inside a
+ * `<p>` — putting a `<div>` there triggers HTML auto-close and causes React
+ * hydration mismatches. The `.math-long` class opts into `display:block` via
+ * CSS instead.
+ *
+ * "Short" means the TeX source normalises to ≤3 characters and contains no
+ * equation-like operators (`= + / ^ _ < >`). A single macro like `\pi` or
+ * `\alpha` counts as one normalised character.
  */
 export function rehypeMathWrapper() {
   return (tree: Root) => {
@@ -45,37 +50,32 @@ export function rehypeMathWrapper() {
 
       if (!isBlockMath && !isInlineMath) return
 
-      const source = extractLatexSource(node)
-      const isShort = isBlockMath ? false : classifyShort(source)
-
-      if (isShort) {
-        const wrapper: Element = {
+      if (isBlockMath) {
+        parent.children[index] = {
           type: 'element',
-          tagName: 'span',
+          tagName: 'div',
           properties: {
             dir: 'ltr',
-            className: ['isolate', 'inline-block', 'align-middle', 'math-short'],
+            className: ['isolate', 'block', 'text-center', 'mt-3', 'mb-3', 'math-long'],
           },
           children: [node],
-        }
-        if (parent.type === 'element' || parent.type === 'root') {
-          parent.children[index] = wrapper
         }
         return
       }
 
-      // Long or explicitly-block math: always land on its own line.
-      const wrapper: Element = {
+      // Inline math: always a <span> so we stay valid inside a <p>.
+      // The math-short / math-long class drives the visual treatment in CSS.
+      const source = extractLatexSource(node)
+      const lengthClass = classifyShort(source) ? 'math-short' : 'math-long'
+
+      parent.children[index] = {
         type: 'element',
-        tagName: 'div',
+        tagName: 'span',
         properties: {
           dir: 'ltr',
-          className: ['isolate', 'block', 'text-center', 'mt-3', 'mb-3', 'math-long'],
+          className: ['isolate', 'inline-block', 'align-middle', lengthClass],
         },
         children: [node],
-      }
-      if (parent.type === 'element' || parent.type === 'root') {
-        parent.children[index] = wrapper
       }
     })
   }
@@ -112,12 +112,14 @@ function extractLatexSource(root: Element): string {
 }
 
 /**
- * Short = a bare letter / pair / greek symbol like "x", "AB", "\pi".
- * Anything containing an equality/operator or longer than 3 source
- * characters is treated as a full expression and gets block styling.
+ * Short = a bare letter / pair / single macro like "x", "AB", "\pi", "\alpha".
+ * We collapse each `\command` sequence to a single placeholder character before
+ * measuring length so `\alpha` counts as 1, not 6.
  */
 function classifyShort(source: string): boolean {
-  if (source.length === 0 || source.length > 3) return false
-  if (/[=+/^_<>]/.test(source)) return false
+  if (source.length === 0) return false
+  const normalised = source.replace(/\\[a-zA-Z]+/g, 'x')
+  if (normalised.length > 3) return false
+  if (/[=+/^_<>]/.test(normalised)) return false
   return true
 }

@@ -100,7 +100,7 @@ function Hero({ t }: { t: (key: string) => string }) {
           {t('hero.subtitle')}
         </p>
 
-        <div className="flex w-full max-w-xl justify-center">
+        <div className="flex justify-center">
           <Link
             href="/start"
             className="flex items-center justify-center gap-content-gap-xs rounded-xl border border-success/30 bg-card px-8 py-section-xs text-body-lg font-bold text-success shadow-elevation-1 transition-all duration-normal hover:-translate-y-1 hover:border-success hover:bg-success/10"
