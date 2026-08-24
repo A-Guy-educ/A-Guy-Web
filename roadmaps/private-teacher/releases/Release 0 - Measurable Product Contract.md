@@ -1,3 +1,8 @@
+> **Superseded — 24 August 2026**  
+> This release plan was created under the wrong repository and ownership model. Do not implement it.  
+> The current roadmap is owned by A-Guy-Teacher:  
+> https://kody-dashboard-aguy.vercel.app/repo/A-Guy-educ/A-Guy-Teacher/file-spaces/meetings/%D7%9E%D7%A4%D7%AA%20%D7%93%D7%A8%D7%9B%D7%99%D7%9D%20-%20%D7%94%D7%9E%D7%95%D7%A8%D7%94%20%D7%94%D7%A4%D7%A8%D7%98%D7%99%20%D7%A9%D7%9C%20A-Guy.md
+
 # Release 0 Implementation Plan — Measurable Product Contract
 
 **Status:** Draft — awaiting product approval  
