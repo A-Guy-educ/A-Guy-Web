@@ -100,12 +100,12 @@ Create a canonical registry where every requirement contains:
 
 Suggested ID groups:
 
-- PT-PED-* — pedagogy and intervention.
-- PT-INT-* — interaction and communication.
-- PT-DATA-* — learning evidence and storage.
-- PT-SAFE-* — privacy, safety, and correction.
-- PT-A11Y-* — accessibility and RTL.
-- PT-QA-* — measurement and acceptance.
+- PT-PED-\* — pedagogy and intervention.
+- PT-INT-\* — interaction and communication.
+- PT-DATA-\* — learning evidence and storage.
+- PT-SAFE-\* — privacy, safety, and correction.
+- PT-A11Y-\* — accessibility and RTL.
+- PT-QA-\* — measurement and acceptance.
 
 ### Requirement acceptance gate
 
