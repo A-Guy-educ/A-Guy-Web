@@ -100,16 +100,10 @@ function Hero({ t }: { t: (key: string) => string }) {
           {t('hero.subtitle')}
         </p>
 
-        <div className="flex w-full max-w-xl flex-col justify-center gap-content-gap sm:flex-row">
-          <Link
-            href="/products"
-            className="flex flex-1 items-center justify-center gap-content-gap-xs rounded-xl bg-primary px-8 py-section-xs text-body-lg font-bold text-primary-foreground shadow-elevation-3 transition-all duration-normal hover:-translate-y-1 hover:bg-primary"
-          >
-            {t('hero.plansCta')}
-          </Link>
+        <div className="flex w-full max-w-xl justify-center">
           <Link
             href="/start"
-            className="flex flex-1 items-center justify-center gap-content-gap-xs rounded-xl border border-success/30 bg-card px-8 py-section-xs text-body-lg font-bold text-success shadow-elevation-1 transition-all duration-normal hover:-translate-y-1 hover:border-success hover:bg-success/10"
+            className="flex items-center justify-center gap-content-gap-xs rounded-xl border border-success/30 bg-card px-8 py-section-xs text-body-lg font-bold text-success shadow-elevation-1 transition-all duration-normal hover:-translate-y-1 hover:border-success hover:bg-success/10"
           >
             <Play className="h-4 w-4 fill-current" aria-hidden />
             {t('hero.trialCta')}
@@ -301,13 +295,7 @@ function BottomCta({ t }: { t: (key: string) => string }) {
       <p className="mx-auto mb-8 max-w-2xl text-heading-lg text-primary-foreground/80">
         {t('cta.description')}
       </p>
-      <div className="flex flex-col justify-center gap-content-gap sm:flex-row">
-        <Link
-          href="/products"
-          className="rounded-xl bg-card px-8 py-section-xs text-body-lg font-bold text-primary shadow-card-hover transition-all duration-normal hover:-translate-y-1"
-        >
-          {t('cta.join')}
-        </Link>
+      <div className="flex justify-center">
         <Link
           href="/start"
           className="rounded-xl border border-primary-foreground/30 bg-primary-foreground/10 px-8 py-section-xs text-body-lg font-bold text-primary-foreground transition-all duration-normal hover:bg-primary-foreground/20"

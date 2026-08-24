@@ -129,12 +129,12 @@ export function ExerciseHeader({
           <>
             {fullscreenButton}
             {hamburgerButton}
-            <BrandLogo className="h-8 w-auto hidden lg:flex" />
+            <BrandLogo className="h-11 w-auto hidden lg:flex" />
             {desktopAuth}
           </>
         ) : (
           <>
-            <BrandLogo className="h-8 w-auto hidden lg:flex" />
+            <BrandLogo className="h-11 w-auto hidden lg:flex" />
             {desktopAuth}
             {hamburgerButton}
             {fullscreenButton}
