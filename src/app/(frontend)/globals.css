@@ -552,29 +552,59 @@ math-field:focus-within {
   margin-bottom: 0.75rem;
 }
 
-/* KaTeX math expression styling in chat */
-.chat-message-content .katex {
-  @apply bg-muted text-foreground p-5 rounded-xl inline-block;
-  margin: calc(var(--spacing) * 1);
+/* KaTeX math expression styling in chat.
+   Short atoms ("AB", "x", "\pi") render inline in wine-red so they read as
+   part of the sentence. Longer expressions break onto their own line with a
+   soft blue tint so equations stand out at a glance. Classification happens
+   in rehype-math-wrapper.ts, which always uses a <span> wrapper for inline
+   math (a <div> inside <p> would trigger hydration mismatches) and applies
+   `display:block` here via `.math-long` when the visual promotion is wanted. */
+.chat-message-content .math-short .katex {
+  @apply bg-transparent p-0 m-0 rounded-none inline-block;
+  color: hsl(var(--text-wine-red));
+  font-size: 1em;
 }
 
-/* Dark mode: keep original secondary background */
-[data-theme='dark'] .chat-message-content .katex {
-  @apply bg-secondary text-secondary-foreground;
+.chat-message-content .math-long {
+  display: block;
+  text-align: center;
+  margin: calc(var(--spacing) * 3) 0;
 }
 
-/* KaTeX in user messages: inherit background from parent (primary) */
-.bg-primary .chat-message-content .katex {
+.chat-message-content .math-long .katex {
+  @apply text-foreground rounded-lg inline-block;
+  background-color: hsl(var(--text-highlight-5) / 0.08);
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+  margin: 0;
+}
+
+/* Dark mode: bump the tint so the block stays visible on dark surfaces. */
+[data-theme='dark'] .chat-message-content .math-long .katex {
+  background-color: hsl(var(--text-highlight-5) / 0.14);
+}
+
+/* KaTeX in user messages (primary background): inherit for legibility. */
+.bg-primary .chat-message-content .math-short .katex,
+.bg-primary .chat-message-content .math-long .katex {
   @apply bg-inherit text-inherit;
 }
 
-/* Chat table: reset KaTeX math padding inside table cells */
-.chat-message-content .chat-table .katex {
+/* Chat table cells: strip all math chrome so cell layout is preserved. */
+.chat-message-content .chat-table .math-short,
+.chat-message-content .chat-table .math-long {
+  display: inline-block;
+  text-align: inherit;
+  margin: 0;
+}
+
+.chat-message-content .chat-table .math-short .katex,
+.chat-message-content .chat-table .math-long .katex {
   @apply bg-transparent p-0 m-0 rounded-none text-primary;
   font-size: 1em;
 }
 
-[data-theme='dark'] .chat-message-content .chat-table .katex {
+[data-theme='dark'] .chat-message-content .chat-table .math-short .katex,
+[data-theme='dark'] .chat-message-content .chat-table .math-long .katex {
   @apply bg-transparent text-primary;
 }
 

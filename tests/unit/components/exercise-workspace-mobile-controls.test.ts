@@ -26,9 +26,13 @@ describe('ExerciseWorkspace mobile controls contract', () => {
     expect(workspaceSource).toContain("new CustomEvent('open-mobile-menu')")
   })
 
-  it('passes formula sheet data into the mobile exercise workspace', () => {
+  // The mobile "Unified Help" panel that used to host <FormulaSheetContent>
+  // inside ExerciseWorkspace was removed with the HelpCircle FAB. Formula
+  // sheet is now reachable via ChatInterface's own FormulaSheetButton inside
+  // the mobile chat pane. ExerciseWorkspace still accepts `formulaSheet` for
+  // API compatibility with callers, so the pager continues to pass it.
+  it('passes formula sheet data through to the exercise workspace', () => {
     expect(pagerSource).toContain('formulaSheet={formulaSheet}')
-    expect(workspaceSource).toContain('<FormulaSheetContent sheet={formulaSheet} />')
   })
 
   it('marks bottom navigation so fullscreen can hide it', () => {
