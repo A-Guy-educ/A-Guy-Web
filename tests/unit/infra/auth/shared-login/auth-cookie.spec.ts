@@ -5,6 +5,8 @@ import {
   authCookieIdentity,
   buildAuthCookieOptions,
   AUTH_COOKIE_NAME,
+  DEFAULT_AUTH_COOKIE_NAME,
+  resolveAuthCookieName,
 } from '@/infra/auth/shared-login/auth-cookie'
 import { SINGLE_APP_POLICY, type SharedLoginPolicy } from '@/infra/auth/shared-login/policy'
 
@@ -13,6 +15,22 @@ const SHARED: SharedLoginPolicy = {
   returnOrigins: [],
   apiOrigins: [],
 }
+
+describe('resolveAuthCookieName', () => {
+  it('preserves the production cookie name by default', () => {
+    expect(resolveAuthCookieName(undefined)).toBe(DEFAULT_AUTH_COOKIE_NAME)
+  })
+
+  it('allows an isolated development cookie name', () => {
+    expect(resolveAuthCookieName('payload-token-dev')).toBe('payload-token-dev')
+  })
+
+  it('rejects names that could create an invalid Set-Cookie header', () => {
+    expect(() => resolveAuthCookieName('payload-token-dev; Domain=evil.test')).toThrow(
+      'AUTH_COOKIE_NAME must be a valid cookie name',
+    )
+  })
+})
 
 describe('buildAuthCookieOptions', () => {
   it('scopes a top-level login to the shared domain', () => {
