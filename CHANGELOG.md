@@ -3965,6 +3965,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: release v0.33.5 ([#1109](https://github.com/A-Guy-educ/A-Guy-Web/pull/1109)) — @aguyaharonyair
 - feat: Boss round on logo, mobile chat, math, landing CTA ([#1111](https://github.com/A-Guy-educ/A-Guy-Web/pull/1111)) — @aguyshayb
 - fix(users): Log the actual cause of course-state proxy 502/503 ([#1112](https://github.com/A-Guy-educ/A-Guy-Web/pull/1112)) — @aguyshayb
 - promote: dev -> main (v0.33.4) ([#1108](https://github.com/A-Guy-educ/A-Guy-Web/pull/1108)) — @aguyaharonyair
