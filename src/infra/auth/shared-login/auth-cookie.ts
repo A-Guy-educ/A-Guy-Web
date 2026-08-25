@@ -9,7 +9,30 @@
 
 import type { SharedLoginPolicy } from './policy'
 
-export const AUTH_COOKIE_NAME = 'payload-token'
+export const DEFAULT_AUTH_COOKIE_NAME = 'payload-token'
+
+/**
+ * Resolve the deployment's auth cookie name.
+ *
+ * Production keeps the established default. A separate deployment may opt
+ * into another valid cookie name so a broader production-domain cookie is
+ * ignored even when the browser sends it to a nested development hostname.
+ */
+export function resolveAuthCookieName(rawName: string | undefined | null): string {
+  const name = rawName?.trim()
+  if (!name) return DEFAULT_AUTH_COOKIE_NAME
+
+  // RFC 6265 cookie-name uses the HTTP token character set. Rejecting rather
+  // than cleaning prevents two deployments from silently choosing a name
+  // different from the one their operator configured.
+  if (!/^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/.test(name)) {
+    throw new Error('AUTH_COOKIE_NAME must be a valid cookie name')
+  }
+
+  return name
+}
+
+export const AUTH_COOKIE_NAME = resolveAuthCookieName(process.env.AUTH_COOKIE_NAME)
 
 /** Matches the session lifetime issued in `web-auth.ts`. */
 export const AUTH_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7

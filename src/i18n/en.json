@@ -4,7 +4,6 @@
       "eyebrow": "The next generation of learning is here",
       "title": "Like a private tutor, only more available, affordable, and tailored to you",
       "subtitle": "Whatever your current level is, Aguy helps you start learning math from the ground up. The platform diagnoses, teaches, encourages independent learning, and tracks progress according to the official curriculum.",
-      "plansCta": "Plans and signup",
       "trialCta": "Free trial",
       "loginCta": "Already subscribed?",
       "previewBadge": "System preview",
@@ -162,7 +161,6 @@
     "cta": {
       "title": "Anyone can learn math independently.",
       "description": "Start with a system that guides, explains, and encourages at every step.",
-      "join": "Join now",
       "trial": "Free trial"
     }
   },
