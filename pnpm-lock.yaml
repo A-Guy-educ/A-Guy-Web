@@ -138,7 +138,6 @@ overrides:
   undici@>=6.0.0 <6.28.0: 6.28.0
   postcss@<8.5.23: 8.5.23
   hono@>=4.0.0 <4.12.34: 4.12.34
-  body-parser@2.2.2: 2.3.0
 
 importers:
 
@@ -437,7 +436,7 @@ importers:
 packages:
 
   '@a-guy/ui@https://github.com/A-Guy-educ/A-Guy-Shared/releases/download/v0.1.1/a-guy-ui-0.1.1.tgz':
-    resolution: {tarball: https://github.com/A-Guy-educ/A-Guy-Shared/releases/download/v0.1.1/a-guy-ui-0.1.1.tgz}
+    resolution: {integrity: sha512-HvXSHQrNsYNuEm/5RMp1AgrH9yLYGr+NdLvvq+gMUsXqxHJc02k+WVU8VX3w4JwS6rqmdLg/+he1ICHD+IZIRQ==, tarball: https://github.com/A-Guy-educ/A-Guy-Shared/releases/download/v0.1.1/a-guy-ui-0.1.1.tgz}
     version: 0.1.1
     peerDependencies:
       react: ^19.0.0
