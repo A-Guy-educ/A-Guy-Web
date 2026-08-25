@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { readDataSse } from '@/infra/llm/read-data-sse'
 
 export interface LearningAgentMessage {
   id: string
@@ -82,6 +83,7 @@ export function useLearningAgentChat({
           },
           body: JSON.stringify({
             message: userMessage.content,
+            turnId: userMessage.id,
             acknowledgment: 'Understood',
             conversationId,
             gradeLevel,
@@ -97,46 +99,31 @@ export function useLearningAgentChat({
           throw new Error('Failed to send message')
         }
 
-        const reader = response.body?.getReader()
-        if (!reader) throw new Error('No response body')
-
-        const decoder = new TextDecoder()
+        if (!response.body) throw new Error('No response body')
         let fullText = ''
-        let assistantMessageId = crypto.randomUUID()
+        const assistantMessageId = crypto.randomUUID()
 
         // Add placeholder assistant message
         setMessages((prev) => [...prev, { id: assistantMessageId, role: 'assistant', content: '' }])
 
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
-
-          const chunk = decoder.decode(value)
-          const lines = chunk.split('\n')
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              try {
-                const data = JSON.parse(line.slice(6))
-                if (data.type === 'chunk' && data.text) {
-                  fullText += data.text
-                  setMessages((prev) =>
-                    prev.map((msg) =>
-                      msg.id === assistantMessageId ? { ...msg, content: fullText } : msg,
-                    ),
-                  )
-                } else if (data.type === 'done') {
-                  if (data.conversationId) {
-                    setConversationId(data.conversationId)
-                    onConversationCreated?.(data.conversationId)
-                  }
-                } else if (data.type === 'error') {
-                  throw new Error(data.error || 'Chat error')
-                }
-              } catch {
-                // Ignore parse errors for incomplete JSON
-              }
-            }
+        for await (const data of readDataSse<{
+          type: 'chunk' | 'done' | 'error'
+          text?: string
+          conversationId?: string
+          error?: string
+        }>(response.body)) {
+          if (data.type === 'chunk' && data.text) {
+            fullText += data.text
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === assistantMessageId ? { ...msg, content: fullText } : msg,
+              ),
+            )
+          } else if (data.type === 'done' && data.conversationId) {
+            setConversationId(data.conversationId)
+            onConversationCreated?.(data.conversationId)
+          } else if (data.type === 'error') {
+            throw new Error(data.error || 'Chat error')
           }
         }
       } catch (error) {

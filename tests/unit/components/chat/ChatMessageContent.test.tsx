@@ -26,6 +26,13 @@ describe('ChatMessageContent', () => {
       expect(container.querySelector('.isolate.inline-block')).toBeNull()
       expect(container.querySelector('.isolate.block')).toBeNull()
     })
+
+    it('renders a bare numbered answer as text instead of an empty list item', () => {
+      const { container } = render(<ChatMessageContent content="56." />)
+
+      expect(container.textContent).toContain('56.')
+      expect(container.querySelector('ol')).toBeNull()
+    })
   })
 
   describe('Inline math RTL isolation', () => {

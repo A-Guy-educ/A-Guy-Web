@@ -59,7 +59,10 @@ describe('durable rateLimit helper', () => {
   })
 
   it('resets the counter once the window expires', async () => {
-    const opts = { key: 'rl-test:window', limit: 2, windowMs: 60 }
+    // Leave enough headroom for three real Mongo round trips on a loaded CI
+    // worker. A 60ms window could expire before the third assertion and test
+    // machine speed instead of rate-limit behavior.
+    const opts = { key: 'rl-test:window', limit: 2, windowMs: 500 }
 
     expect((await rateLimit(opts)).allowed).toBe(true)
     expect((await rateLimit(opts)).allowed).toBe(true)
@@ -67,7 +70,7 @@ describe('durable rateLimit helper', () => {
 
     // Wait out the window. 80ms is generous for a 60ms window on a
     // single-node Mongo where date arithmetic is millisecond-precise.
-    await new Promise((resolve) => setTimeout(resolve, 120))
+    await new Promise((resolve) => setTimeout(resolve, 600))
 
     const afterReset = await rateLimit(opts)
     expect(afterReset.allowed).toBe(true)

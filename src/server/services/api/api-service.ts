@@ -7,11 +7,15 @@
 import { ChatRole } from '@/infra/llm/chat-message-role'
 import { logger } from '@/infra/utils/logger'
 import { parseSSEData } from '@/infra/types/backend'
+import type { ChatErrorCode } from '@/infra/types/tutor-chat'
+import { parseChatHttpError } from '@/infra/llm/tutor-chat-error'
 
 export interface ChatApiResponse {
   success: boolean
   message?: string
   error?: string
+  errorCode?: ChatErrorCode
+  errorType?: 'auth' | 'limit' | 'quota' | 'general'
   authRequired?: boolean
   quotaExceeded?: boolean
   questionsUsed?: number
@@ -19,6 +23,7 @@ export interface ChatApiResponse {
   resetAt?: string | null
   conversationId?: string
   contextKey?: string
+  turnId?: string
 }
 
 export interface ConversationMessage {
@@ -54,6 +59,7 @@ export interface ChatStreamEvent {
   conversationId?: string
   contextKey?: string
   error?: string
+  errorCode?: ChatErrorCode
 }
 
 export const apiService = {
@@ -82,6 +88,8 @@ export const apiService = {
     chatAssetIds?: string[],
     adminMode?: boolean,
     contextKeyOverride?: string,
+    turnId = crypto.randomUUID(),
+    signal?: AbortSignal,
   ): Promise<ChatApiResponse> {
     try {
       const response = await fetch('/api/agent/chat', {
@@ -96,27 +104,26 @@ export const apiService = {
           ...(chatAssetIds && chatAssetIds.length > 0 ? { chatAssetIds } : {}),
           ...(adminMode ? { adminMode: true } : {}),
           ...(contextKeyOverride ? { contextKeyOverride } : {}),
+          turnId,
         }),
+        signal,
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        // Specific handling for auth errors
-        if (response.status === 401) {
-          return { success: false, authRequired: true }
+        const visible = parseChatHttpError(response.status, data)
+        return {
+          success: false,
+          error: visible.message,
+          errorCode: visible.code,
+          errorType: visible.type,
+          authRequired: visible.type === 'auth',
+          quotaExceeded: visible.type === 'quota',
+          questionsUsed: data.questionsUsed,
+          maxQuestions: data.maxQuestions,
+          resetAt: data.resetAt,
         }
-        if (response.status === 429 && data.quotaExceeded) {
-          return {
-            success: false,
-            error: data.error || 'Chat limit reached',
-            quotaExceeded: true,
-            questionsUsed: data.questionsUsed,
-            maxQuestions: data.maxQuestions,
-            resetAt: data.resetAt,
-          }
-        }
-        return { success: false, error: data.error || 'Request failed' }
       }
 
       if (data.success && data.message) {
@@ -125,6 +132,7 @@ export const apiService = {
           message: data.message,
           conversationId: data.conversationId,
           contextKey: data.contextKey,
+          turnId: data.turnId,
         }
       }
 
@@ -270,7 +278,13 @@ export const apiService = {
       courseId?: string
       categoryId?: string
     },
-    options?: { hidden?: boolean; contextKeyOverride?: string; hidePromptOnly?: boolean },
+    options?: {
+      hidden?: boolean
+      contextKeyOverride?: string
+      hidePromptOnly?: boolean
+      turnId?: string
+      signal?: AbortSignal
+    },
   ): AsyncGenerator<ChatStreamEvent, void, unknown> {
     const response = await fetch('/api/agent/chat/stream', {
       method: 'POST',
@@ -283,21 +297,15 @@ export const apiService = {
         ...(options?.hidden && { hidden: true }),
         ...(options?.contextKeyOverride ? { contextKeyOverride: options.contextKeyOverride } : {}),
         ...(options?.hidePromptOnly && { hidePromptOnly: true }),
+        turnId: options?.turnId || crypto.randomUUID(),
       }),
+      signal: options?.signal,
     })
 
     if (!response.ok) {
-      if (response.status === 401) {
-        yield { type: 'error', error: 'Authentication required' }
-        return
-      }
-
       const errorData = await response.json().catch(() => ({}))
-      if (response.status === 429 && errorData.quotaExceeded) {
-        yield { type: 'error', error: `quota_exceeded:${JSON.stringify(errorData)}` }
-        return
-      }
-      yield { type: 'error', error: errorData.error || 'Request failed' }
+      const visible = parseChatHttpError(response.status, errorData)
+      yield { type: 'error', error: visible.message, errorCode: visible.code }
       return
     }
 
@@ -333,13 +341,15 @@ export const apiService = {
             conversationId?: string
             contextKey?: string
             error?: string
+            message?: string
           }
           yield {
             type: parsed.event,
             ...(eventData.text !== undefined && { text: eventData.text }),
             ...(eventData.conversationId && { conversationId: eventData.conversationId }),
             ...(eventData.contextKey && { contextKey: eventData.contextKey }),
-            ...(eventData.error && { error: eventData.error }),
+            ...(eventData.message && { error: eventData.message }),
+            ...(eventData.error && { errorCode: eventData.error as ChatErrorCode }),
           }
         }
       }

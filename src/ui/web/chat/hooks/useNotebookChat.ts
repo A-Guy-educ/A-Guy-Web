@@ -104,6 +104,7 @@ export function useNotebookChat({
   // Refs to mirror state for stable callback access
   const isLoadingRef = useRef(false)
   const isLoadingHistoryRef = useRef(true)
+  const activeRequestRef = useRef<AbortController | null>(null)
 
   // Sync refs with state during render for stable callback access
   isLoadingRef.current = isLoading
@@ -189,10 +190,16 @@ export function useNotebookChat({
   // conversation would silently carry a stale "[EXERCISE CONTEXT]" block
   // from an exercise the student left without asking anything.
   useEffect(() => {
+    activeRequestRef.current?.abort()
+    activeRequestRef.current = null
+    isLoadingRef.current = false
+    setIsLoading(false)
     pendingExerciseContextRef.current = null
     welcomedExerciseIdsRef.current = new Set()
     lastInjectedExerciseId.current = null
   }, [contextKey])
+
+  useEffect(() => () => activeRequestRef.current?.abort(), [])
 
   // Reset pending exercise context and welcome-tracking. Called by consumers
   // (e.g. ChatInterface) when the surrounding view stops being about a
@@ -426,7 +433,10 @@ export function useNotebookChat({
   }, [])
 
   const sendMessage = async (message: string) => {
-    if ((!message.trim() && completedChatAssetIds.length === 0) || isLoading) return
+    if ((!message.trim() && completedChatAssetIds.length === 0) || isLoadingRef.current) return
+
+    isLoadingRef.current = true
+    setIsLoading(true)
 
     // Capture chat asset metadata before clearing
     const chatAssetMetadata = completedChatAssetIds.map((id) => ({ chatAssetId: id }))
@@ -457,7 +467,6 @@ export function useNotebookChat({
     }
     setMessages((prev) => [...prev, userMessage])
     setInputValue('')
-    setIsLoading(true)
 
     // Track chat message submitted (message length only, NOT content)
     systemEventBus.emit(SYSTEM_EVENTS.CHAT_MESSAGE_SUBMITTED, {
@@ -525,8 +534,15 @@ export function useNotebookChat({
         silent?: boolean
       },
     ) => {
+      const requestController = new AbortController()
+      activeRequestRef.current?.abort()
+      activeRequestRef.current = requestController
       try {
-        const stream = apiService.chatStream(message, acknowledgment, context, options)
+        const stream = apiService.chatStream(message, acknowledgment, context, {
+          ...options,
+          turnId: crypto.randomUUID(),
+          signal: requestController.signal,
+        })
 
         // Create placeholder assistant message for streaming
         const placeholderMessage: ChatMessage = {
@@ -561,16 +577,21 @@ export function useNotebookChat({
           } else if (event.type === 'error') {
             const errMsg = event.error || errorMessage
             // Check if this is an auth error (contains "auth" or "authentication")
-            if (errMsg?.toLowerCase().includes('auth')) {
+            if (event.errorCode === 'auth_required') {
               hasAuthError = true
               if (!options?.silent) {
                 setChatError({ type: 'auth' as const, message: authRequiredMessage })
               }
-            } else if (errMsg?.startsWith('quota_exceeded:')) {
+            } else if (
+              event.errorCode === 'quota_exceeded' ||
+              event.errorCode === 'token_limit_exceeded'
+            ) {
               setChatError({
                 type: 'quota' as const,
                 message: 'Chat limit reached. Try again later.',
               })
+            } else if (event.errorCode === 'rate_limited') {
+              setChatError({ type: 'limit' as const, message: errMsg })
             } else if (!options?.silent) {
               toast.error(errMsg || errorMessage)
             }
@@ -594,12 +615,16 @@ export function useNotebookChat({
           })
         }
       } catch (error) {
-        if (!options?.silent) {
+        if (!requestController.signal.aborted && !options?.silent) {
           console.error('Stream message failed:', error)
           toast.error(errorMessage)
         }
       } finally {
-        setIsLoading(false)
+        if (activeRequestRef.current === requestController) {
+          activeRequestRef.current = null
+          isLoadingRef.current = false
+          setIsLoading(false)
+        }
         inputRef.current?.focus()
       }
     },
@@ -623,6 +648,9 @@ export function useNotebookChat({
     chatAssetIds?: string[],
     contextKeyOverrideParam?: string,
   ) => {
+    const requestController = new AbortController()
+    activeRequestRef.current?.abort()
+    activeRequestRef.current = requestController
     try {
       const result = await apiService.chat(
         message,
@@ -632,16 +660,20 @@ export function useNotebookChat({
         chatAssetIds,
         adminMode,
         contextKeyOverrideParam,
+        crypto.randomUUID(),
+        requestController.signal,
       )
 
       if (!result.success) {
-        if (result.authRequired) {
+        if (result.errorType === 'auth' || result.authRequired) {
           setChatError({ type: 'auth' as const, message: authRequiredMessage })
-        } else if (result.quotaExceeded) {
+        } else if (result.errorType === 'quota' || result.quotaExceeded) {
           setChatError({
             type: 'quota' as const,
             message: result.error || 'Chat limit reached. Try again later.',
           })
+        } else if (result.errorType === 'limit') {
+          setChatError({ type: 'limit' as const, message: result.error || errorMessage })
         } else {
           toast.error(result.error || errorMessage)
         }
@@ -673,10 +705,16 @@ export function useNotebookChat({
         setMessages((prev) => [...prev, assistantMessage])
       }
     } catch (error) {
-      console.error('Send message sync failed:', error)
-      toast.error(errorMessage)
+      if (!requestController.signal.aborted) {
+        console.error('Send message sync failed:', error)
+        toast.error(errorMessage)
+      }
     } finally {
-      setIsLoading(false)
+      if (activeRequestRef.current === requestController) {
+        activeRequestRef.current = null
+        isLoadingRef.current = false
+        setIsLoading(false)
+      }
       inputRef.current?.focus()
     }
   }
@@ -718,6 +756,9 @@ export function useNotebookChat({
   }
 
   const handleQuickAction = (actionType: 'hint' | 'solution' | 'full') => {
+    if (isLoadingRef.current || isLoadingHistoryRef.current) return
+    isLoadingRef.current = true
+    setIsLoading(true)
     const prompts = {
       hint: hintPrompt,
       solution: solutionPrompt,
@@ -852,7 +893,8 @@ export function useNotebookChat({
    * Only the AI's streaming response appears in the chat.
    */
   const sendContextualHelp = async (prompt: string) => {
-    if (isLoading || isLoadingHistory) return
+    if (isLoadingRef.current || isLoadingHistoryRef.current) return
+    isLoadingRef.current = true
     setIsLoading(true)
     const context = { exerciseId, lessonId, chapterId, courseId, categoryId }
     await streamMessage(consumePendingExerciseContext(prompt), acknowledgment, context, {
@@ -867,7 +909,8 @@ export function useNotebookChat({
    * Used for help-system actions (hint, guiding question, solution).
    */
   const sendVisibleHelp = async (prompt: string) => {
-    if (isLoading || isLoadingHistory) return
+    if (isLoadingRef.current || isLoadingHistoryRef.current) return
+    isLoadingRef.current = true
     setIsLoading(true)
     const context = { exerciseId, lessonId, chapterId, courseId, categoryId }
     await streamMessage(consumePendingExerciseContext(prompt), acknowledgment, context, {
@@ -887,7 +930,8 @@ export function useNotebookChat({
     imageDataUrl: string,
     additionalMediaIds?: string[],
   ) => {
-    if (isLoading || isLoadingHistory) return
+    if (isLoadingRef.current || isLoadingHistoryRef.current) return
+    isLoadingRef.current = true
     setIsLoading(true)
     const context = { exerciseId, lessonId, chapterId, courseId, categoryId }
 
@@ -929,6 +973,7 @@ export function useNotebookChat({
     } catch (error) {
       logger.error({ err: error }, 'Failed to send canvas for check')
       toast.error(errorMessage)
+      isLoadingRef.current = false
       setIsLoading(false)
     }
   }
@@ -957,7 +1002,8 @@ export function useNotebookChat({
    * Used for hint/solution actions where the exercise image is already on the server.
    */
   const sendContextualHelpWithMediaId = async (prompt: string, mediaId: string) => {
-    if (isLoading || isLoadingHistory) return
+    if (isLoadingRef.current || isLoadingHistoryRef.current) return
+    isLoadingRef.current = true
     setIsLoading(true)
     const context = { exerciseId, lessonId, chapterId, courseId, categoryId }
     try {
@@ -967,6 +1013,7 @@ export function useNotebookChat({
     } catch (error) {
       logger.error({ err: error }, 'Failed to send contextual help with media ID')
       toast.error(errorMessage)
+      isLoadingRef.current = false
       setIsLoading(false)
     }
   }

@@ -10,6 +10,7 @@ import {
   CHAT_ASSET_MAX_BYTES,
 } from '@/server/chat-assets/constants'
 import { findCourseAccessGrants, grantsAccess } from '@/server/services/course-access'
+import type { TutorModelPart } from '@/server/services/tutor-chat/model-gateway'
 
 export type ChatContext = {
   exerciseId?: string
@@ -158,7 +159,7 @@ export function formatConversationResponse(
   }
 }
 
-type GeminiPart = { text: string } | { inlineData: { mimeType: string; data: string } }
+type GeminiPart = TutorModelPart
 
 type AttachmentDoc = Record<string, unknown> & {
   filename?: unknown
@@ -311,10 +312,6 @@ async function attachmentToInlinePart(attachment: AttachmentDoc): Promise<Gemini
   return { inlineData: { mimeType: loaded.mimeType, data: loaded.buffer.toString('base64') } }
 }
 
-export function buildGeminiUserParts(prompt: string, attachmentParts: GeminiPart[]) {
-  return attachmentParts.length > 0 ? [...attachmentParts, { text: prompt }] : [{ text: prompt }]
-}
-
 async function loadAttachments(ownerId: string, chatAssetIds?: string[], mediaIds?: string[]) {
   const db = await getContentDb()
   const lines: string[] = []
@@ -369,102 +366,22 @@ async function loadAttachments(ownerId: string, chatAssetIds?: string[], mediaId
   return { text: lines.join('\n'), parts }
 }
 
-export interface AssistantReplyUsage {
-  inputTokens: number
-  outputTokens: number
-  model: string | null
-}
-
-export interface AssistantReplyResult {
-  message: string
-  usage: AssistantReplyUsage
-}
-
-const EMPTY_USAGE: AssistantReplyUsage = { inputTokens: 0, outputTokens: 0, model: null }
-
-export async function generateAssistantReply(args: {
+export async function loadTutorResources(args: {
   ownerId: string
-  message: string
-  acknowledgment?: string
-  history?: WebChatMessage[]
   lessonId?: string
   chatAssetIds?: string[]
   mediaIds?: string[]
-}): Promise<AssistantReplyResult> {
-  const lessonContext = await loadLessonContext(args.ownerId, args.lessonId)
-  const attachments = await loadAttachments(args.ownerId, args.chatAssetIds, args.mediaIds)
-  const system =
-    'You are A-Guy, a concise math tutor. Help the student with clear steps, in the same language they use when possible.'
-  const history = (args.history ?? [])
-    .slice(-10)
-    .map((m) => `${m.role === 'user' ? 'Student' : 'Tutor'}: ${m.content}`)
-    .join('\n')
-  const prompt = [
-    history,
-    lessonContext.text ? `Lesson context:\n${lessonContext.text}` : '',
-    [lessonContext.attachmentText, attachments.text].filter(Boolean).join('\n'),
-    `Student: ${args.message}`,
-    'Tutor:',
-  ]
-    .filter(Boolean)
-    .join('\n\n')
+}) {
+  const [lesson, attachments] = await Promise.all([
+    loadLessonContext(args.ownerId, args.lessonId),
+    loadAttachments(args.ownerId, args.chatAssetIds, args.mediaIds),
+  ])
 
-  if (!process.env.GEMINI_API_KEY) {
-    return {
-      message:
-        args.acknowledgment || 'I can help with that. Tell me what part you want to solve first.',
-      usage: EMPTY_USAGE,
-    }
+  return {
+    lessonText: lesson.text,
+    attachmentText: [lesson.attachmentText, attachments.text].filter(Boolean).join('\n'),
+    parts: [...lesson.parts, ...attachments.parts],
   }
-
-  const model = process.env.LLM_MODEL_OVERRIDE_EXERCISE_CHAT || 'gemini-2.5-flash'
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': process.env.GEMINI_API_KEY,
-      },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: system }] },
-        contents: [
-          {
-            role: 'user',
-            parts: buildGeminiUserParts(prompt, [...lessonContext.parts, ...attachments.parts]),
-          },
-        ],
-        generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
-      }),
-    },
-  )
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => '')
-    throw new Error(`Gemini chat failed: ${res.status} ${text.slice(0, 200)}`)
-  }
-
-  const json = (await res.json()) as {
-    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>
-    usageMetadata?: {
-      promptTokenCount?: number
-      candidatesTokenCount?: number
-      totalTokenCount?: number
-    }
-  }
-  const message =
-    json.candidates?.[0]?.content?.parts
-      ?.map((part) => part.text)
-      .filter(Boolean)
-      .join('') ||
-    args.acknowledgment ||
-    'I can help with that.'
-  const usage: AssistantReplyUsage = {
-    inputTokens: Math.max(0, Number(json.usageMetadata?.promptTokenCount ?? 0)),
-    outputTokens: Math.max(0, Number(json.usageMetadata?.candidatesTokenCount ?? 0)),
-    model,
-  }
-  return { message, usage }
 }
 
 export function toSse(event: string, data: unknown) {
