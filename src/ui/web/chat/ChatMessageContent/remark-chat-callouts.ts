@@ -54,11 +54,13 @@ export function remarkChatCallouts() {
     // our narrow ParagraphNode shape after the string-tag filter matches.
     visit(tree as never, 'paragraph', (raw: unknown) => {
       const node = raw as ParagraphNode
-      if (node.children.length === 0) return
+      // Require at least one child *after* the bold label so we don't wrap
+      // an empty body in a coloured box when the AI emits a bare `**טעות:**`.
+      if (node.children.length < 2) return
       const first = node.children[0]
       if (!isStrong(first)) return
 
-      const labelText = readStrongText(first).replace(/:\s*$/, '').trim()
+      const labelText = readStrongText(first).replace(/:\s*$/, '').replace(/\s+/g, ' ').trim()
       const kind = LABEL_TO_KIND[labelText]
       if (!kind) return
 
