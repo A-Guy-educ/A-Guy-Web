@@ -4032,6 +4032,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Kill horizontal overflow on mobile ([#1119](https://github.com/A-Guy-educ/A-Guy-Web/pull/1119)) — @aguyshayb
 - feat: Full-bleed mobile exercise surface with floating nav ([#1118](https://github.com/A-Guy-educ/A-Guy-Web/pull/1118)) — @aguyshayb
 - feat: Boss round 2 on header, chat width, callouts, X overlap ([#1117](https://github.com/A-Guy-educ/A-Guy-Web/pull/1117)) — @aguyshayb
 - promote: dev -> main (v0.33.6) ([#1116](https://github.com/A-Guy-educ/A-Guy-Web/pull/1116)) — @aguyaharonyair
