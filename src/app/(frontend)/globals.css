@@ -673,6 +673,22 @@ math-field:focus-within {
   background-color: hsl(var(--text-highlight-5) / 0.14);
 }
 
+/* Mobile exercise surface: always run the exercise workspace like a
+   ChatGPT-style single canvas — hide the full-width bottom-nav, breadcrumb,
+   top progress bar, and tab strip. Their functionality lives on floating
+   controls (back button, mini prev/next) rendered by ExerciseWorkspace and
+   ExercisesPager. Desktop keeps the full chrome. Fullscreen handling in
+   SplitPaneLayout still uses the same class names, so this rule sits on top
+   of the existing `[&_.exercise-*]:hidden` variants without conflict. */
+@media (max-width: 1023px) {
+  .exercise-bottom-nav,
+  .exercise-header-tabs,
+  .exercise-top-progress,
+  .exercise-breadcrumb {
+    display: none;
+  }
+}
+
 /* ===================================================================
    Color Syntax Support
    =================================================================== */
