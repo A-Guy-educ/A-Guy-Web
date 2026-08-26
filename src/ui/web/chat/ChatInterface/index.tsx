@@ -484,7 +484,7 @@ export function ChatInterface({
               <div
                 key={msg.id}
                 className={cn(
-                  'max-w-[85%] px-[18px] py-3.5 text-body-md leading-relaxed shadow-elevation-1 animate-in fade-in-0 duration-normal',
+                  'max-w-[95%] px-[18px] py-3.5 text-body-md leading-relaxed shadow-elevation-1 animate-in fade-in-0 duration-normal',
                   msg.role === ChatMessageRole.User
                     ? 'ms-auto bg-primary text-primary-foreground rounded-chat-lg rounded-bl-[4px]'
                     : 'me-auto bg-card text-foreground border border-border rounded-chat-lg rounded-br-[4px]',
