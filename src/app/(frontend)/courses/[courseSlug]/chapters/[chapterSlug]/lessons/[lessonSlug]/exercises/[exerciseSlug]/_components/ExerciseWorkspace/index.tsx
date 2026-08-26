@@ -48,7 +48,7 @@ function MobileChatPanel({
       >
         <X className="w-5 h-5" />
       </button>
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 pt-14 lg:pt-0">
         {React.cloneElement(
           chatContent as React.ReactElement<{
             displayMode?: 'full' | 'input-only'

@@ -608,6 +608,71 @@ math-field:focus-within {
   @apply bg-transparent text-primary;
 }
 
+/* Chat callouts — paragraphs tagged by remarkChatCallouts and rendered via
+   the ChatCallout component. Colors match boss's spec: note = yellow warning,
+   example = sage green, mistake = red error, tip = purple accent, guiding =
+   blue highlight. Border-start is drawn by the component's `border-s-4`
+   Tailwind class; we only provide the color + background tint here. */
+.chat-callout-note {
+  background-color: hsl(var(--warning) / 0.08);
+  border-color: hsl(var(--warning));
+}
+.chat-callout-example {
+  background-color: hsl(var(--secondary) / 0.08);
+  border-color: hsl(var(--secondary));
+}
+.chat-callout-mistake {
+  background-color: hsl(var(--error) / 0.08);
+  border-color: hsl(var(--error));
+}
+.chat-callout-tip {
+  background-color: hsl(var(--accent) / 0.08);
+  border-color: hsl(var(--accent));
+}
+.chat-callout-guiding {
+  background-color: hsl(var(--text-highlight-5) / 0.08);
+  border-color: hsl(var(--text-highlight-5));
+}
+
+/* Icon + label bold get the accent colour for each kind. */
+.chat-callout-note .chat-callout-icon,
+.chat-callout-note .chat-callout-body strong {
+  color: hsl(var(--warning));
+}
+.chat-callout-example .chat-callout-icon,
+.chat-callout-example .chat-callout-body strong {
+  color: hsl(var(--secondary));
+}
+.chat-callout-mistake .chat-callout-icon,
+.chat-callout-mistake .chat-callout-body strong {
+  color: hsl(var(--error));
+}
+.chat-callout-tip .chat-callout-icon,
+.chat-callout-tip .chat-callout-body strong {
+  color: hsl(var(--accent));
+}
+.chat-callout-guiding .chat-callout-icon,
+.chat-callout-guiding .chat-callout-body strong {
+  color: hsl(var(--text-highlight-5));
+}
+
+/* Dark mode: lift the background tint so callouts stay visible on dark card. */
+[data-theme='dark'] .chat-callout-note {
+  background-color: hsl(var(--warning) / 0.14);
+}
+[data-theme='dark'] .chat-callout-example {
+  background-color: hsl(var(--secondary) / 0.14);
+}
+[data-theme='dark'] .chat-callout-mistake {
+  background-color: hsl(var(--error) / 0.14);
+}
+[data-theme='dark'] .chat-callout-tip {
+  background-color: hsl(var(--accent) / 0.14);
+}
+[data-theme='dark'] .chat-callout-guiding {
+  background-color: hsl(var(--text-highlight-5) / 0.14);
+}
+
 /* ===================================================================
    Color Syntax Support
    =================================================================== */

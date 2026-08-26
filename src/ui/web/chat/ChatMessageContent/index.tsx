@@ -5,6 +5,17 @@ import type { Components } from 'react-markdown'
 import { MathMarkdown } from '@/ui/web/shared/MathMarkdown'
 import { SvgAwareImage } from '@/ui/web/shared/MathMarkdown/svgAwareImage'
 import { normalizeLatexDelimiters } from './normalize-latex'
+import { ChatCallout } from './ChatCallout'
+import { remarkChatCallouts, type ChatCalloutKind } from './remark-chat-callouts'
+
+const CALLOUT_KINDS: ReadonlySet<string> = new Set(['note', 'example', 'mistake', 'tip', 'guiding'])
+
+function calloutKindFromClass(className: string | undefined): ChatCalloutKind | null {
+  if (!className) return null
+  const match = className.match(/chat-callout-(\w+)/)
+  const kind = match?.[1]
+  return kind && CALLOUT_KINDS.has(kind) ? (kind as ChatCalloutKind) : null
+}
 
 interface ChatMessageContentProps {
   content: string
@@ -20,7 +31,11 @@ interface ChatMessageContentProps {
  * - Lists: proper indentation and spacing
  */
 const chatMarkdownComponents: Components = {
-  p: ({ children }) => <p className="mb-4 leading-relaxed first:mt-0 last:mb-0">{children}</p>,
+  p: ({ className, children }) => {
+    const kind = calloutKindFromClass(typeof className === 'string' ? className : undefined)
+    if (kind) return <ChatCallout kind={kind}>{children}</ChatCallout>
+    return <p className="mb-4 leading-relaxed first:mt-0 last:mb-0">{children}</p>
+  },
   h1: ({ children }) => (
     <h1 className="text-heading-xl font-semibold leading-tight mt-5 mb-2.5 first:mt-0">
       {children}
@@ -98,6 +113,7 @@ export function ChatMessageContent({ content, className }: ChatMessageContentPro
       content={normalizedContent}
       className={cn('chat-message-content leading-relaxed', className)}
       components={chatMarkdownComponents}
+      remarkPlugins={[remarkChatCallouts]}
     />
   )
 }

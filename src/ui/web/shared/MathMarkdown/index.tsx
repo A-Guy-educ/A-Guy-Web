@@ -8,6 +8,7 @@
 'use client'
 
 import { cn } from '@/infra/utils/ui'
+import type { ComponentProps } from 'react'
 import type { Components } from 'react-markdown'
 import ReactMarkdown from 'react-markdown'
 import rehypeKatex from 'rehype-katex'
@@ -15,6 +16,8 @@ import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 import { rehypeMathWrapper } from './rehype-math-wrapper'
 import { remarkColorSyntax } from './remark-color-syntax'
+
+type RemarkPluginsProp = ComponentProps<typeof ReactMarkdown>['remarkPlugins']
 
 export interface MathMarkdownProps {
   /** The markdown string to render. Supports $...$ (inline) and $$...$$ (block) math. */
@@ -33,6 +36,13 @@ export interface MathMarkdownProps {
    * If you don't pass this, markdown elements render with their default HTML tags.
    */
   components?: Components
+
+  /**
+   * Optional extra remark plugins appended AFTER the built-in ones
+   * (remarkMath, remarkGfm, remarkColorSyntax). Used by chat to inject the
+   * callout tagger without affecting exercise-content rendering.
+   */
+  remarkPlugins?: RemarkPluginsProp
 }
 
 /**
@@ -57,17 +67,23 @@ export interface MathMarkdownProps {
  * @example With color syntax
  * <MathMarkdown content="This is ::red{important} and ::blue{informational}" />
  */
-export function MathMarkdown({ content, className, components }: MathMarkdownProps) {
+export function MathMarkdown({ content, className, components, remarkPlugins }: MathMarkdownProps) {
   // SECURITY: this component does NOT pass a custom `urlTransform` to ReactMarkdown.
   // Safety against `javascript:`, `data:text/html`, and other dangerous URL schemes
   // therefore relies on react-markdown's built-in default. Custom `<img>` overrides
   // (e.g. `SvgAwareImage`) inherit that guarantee via the `src` prop they receive —
   // do not bypass it by re-rendering `src` directly through `dangerouslySetInnerHTML`.
   // If we ever loosen this, pass `urlTransform={(url) => /^(https?:|\/)/.test(url) ? url : ''}`.
+  const plugins = [
+    remarkMath,
+    remarkGfm,
+    remarkColorSyntax,
+    ...(remarkPlugins ?? []),
+  ] as RemarkPluginsProp
   return (
     <div className={cn(className)}>
       <ReactMarkdown
-        remarkPlugins={[remarkMath, remarkGfm, remarkColorSyntax]}
+        remarkPlugins={plugins}
         rehypePlugins={[rehypeKatex, rehypeMathWrapper]}
         components={components}
       >
