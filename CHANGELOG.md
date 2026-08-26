@@ -4032,6 +4032,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Boss round 2 on header, chat width, callouts, X overlap ([#1117](https://github.com/A-Guy-educ/A-Guy-Web/pull/1117)) — @aguyshayb
 - promote: dev -> main (v0.33.6) ([#1116](https://github.com/A-Guy-educ/A-Guy-Web/pull/1116)) — @aguyaharonyair
 - chore: release v0.33.6 ([#1115](https://github.com/A-Guy-educ/A-Guy-Web/pull/1115)) — @aguyaharonyair
 - promote: dev -> main (v0.33.5) ([#1113](https://github.com/A-Guy-educ/A-Guy-Web/pull/1113)) — @aguyaharonyair
