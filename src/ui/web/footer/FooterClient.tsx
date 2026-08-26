@@ -121,7 +121,7 @@ export const FooterClient: React.FC<FooterClientProps> = ({ data, version, showE
           </span>
         ) : null}
 
-        <div className="flex min-w-0 items-center gap-content-gap-xs text-body-xs">
+        <div className="flex flex-wrap justify-center min-w-0 items-center gap-content-gap-xs text-body-xs">
           {data.navItems.map((item, i) => {
             const link = item.link
             const label = link?.label && link.label.length > 0 ? link.label : '‎'
