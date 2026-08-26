@@ -1,7 +1,6 @@
 import React from 'react'
 import { Input } from '@/ui/web/components/input'
 import { Label } from '@/ui/web/components/label'
-import './SignupFormFields.css'
 
 interface SignupFormFieldsProps {
   t: (key: string) => string
@@ -12,17 +11,6 @@ interface SignupFormFieldsProps {
 export function SignupFormFields({ t, isLoading, errors }: SignupFormFieldsProps) {
   return (
     <>
-      {/* Honeypot field - invisible to users, catches bots */}
-      <input
-        type="text"
-        name="website"
-        tabIndex={-1}
-        autoComplete="off"
-        className="honeypot-field"
-        aria-hidden="true"
-        role="presentation"
-      />
-
       <div className="space-y-2">
         <Label htmlFor="name">{t('name')}</Label>
         <Input
