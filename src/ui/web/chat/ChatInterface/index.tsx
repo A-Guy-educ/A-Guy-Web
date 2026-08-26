@@ -38,7 +38,7 @@ import { FormulaSheetContent } from '@/ui/web/shared/FormulaSheetViewer/FormulaS
 
 export type ViewMode = 'PDF' | 'Chat'
 
-interface ChatInterfaceProps {
+export interface ChatInterfaceProps {
   // Context
   courseId?: string
   chapterId?: string

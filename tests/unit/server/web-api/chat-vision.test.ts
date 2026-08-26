@@ -28,7 +28,7 @@ vi.mock('@/server/services/course-access', () => ({
 }))
 
 import { getContentDb } from '@/infra/db/content-db'
-import { buildGeminiUserParts, generateAssistantReply } from '@/server/web-api/chat'
+import { loadTutorResources } from '@/server/web-api/chat'
 
 const getContentDbMock = getContentDb as Mock
 
@@ -80,8 +80,6 @@ function collection(name: string) {
 describe('web chat vision attachments', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
-    process.env.GEMINI_API_KEY = 'test-key'
-    process.env.LLM_MODEL_OVERRIDE_EXERCISE_CHAT = 'gemini-test'
     getContentDbMock.mockResolvedValue({ collection })
   })
 
@@ -89,66 +87,40 @@ describe('web chat vision attachments', () => {
     const imageBase64 =
       'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
     const imageBuffer = Buffer.from(imageBase64, 'base64')
-    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+    const fetchMock = vi.fn(async (url: string) => {
       if (url === 'https://blob.example/triangle.png') {
         return new Response(imageBuffer, { headers: { 'Content-Type': 'image/png' } })
       }
-
-      const body = JSON.parse(String(init?.body)) as {
-        contents: Array<{
-          parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }>
-        }>
-      }
-      expect(body.contents[0]?.parts[0]?.inlineData).toEqual({
-        mimeType: 'image/png',
-        data: imageBase64,
-      })
-      expect(body.contents[0]?.parts.at(-1)?.text).toContain('Attached file: triangle.png')
-
-      return Response.json({
-        candidates: [{ content: { parts: [{ text: 'I can see the triangle.' }] } }],
-      })
+      throw new Error(`Unexpected URL: ${url}`)
     })
 
     vi.stubGlobal('fetch', fetchMock)
 
     await expect(
-      generateAssistantReply({
+      loadTutorResources({
         ownerId: '65f000000000000000000099',
-        message: 'What is in the image?',
         chatAssetIds: ['65f000000000000000000001'],
       }),
-    ).resolves.toMatchObject({ message: 'I can see the triangle.' })
+    ).resolves.toMatchObject({
+      attachmentText: 'Attached file: triangle.png',
+      parts: [{ inlineData: { mimeType: 'image/png', data: imageBase64 } }],
+    })
 
-    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(fetchMock).toHaveBeenCalledOnce()
   })
 
-  it('keeps text-only prompts text-only', () => {
-    expect(buildGeminiUserParts('hello', [])).toEqual([{ text: 'hello' }])
+  it('keeps requests without attachments text-only', async () => {
+    await expect(
+      loadTutorResources({ ownerId: '65f000000000000000000099' }),
+    ).resolves.toMatchObject({ attachmentText: '', parts: [] })
   })
 
   it('includes extracted lesson context in the Gemini prompt', async () => {
-    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
-      const body = JSON.parse(String(init?.body)) as {
-        contents: Array<{ parts: Array<{ text?: string }> }>
-      }
-      expect(body.contents[0]?.parts.at(-1)?.text).toContain(
-        'A right triangle has one 90-degree angle.',
-      )
-
-      return Response.json({
-        candidates: [{ content: { parts: [{ text: 'The lesson says it is a right triangle.' }] } }],
-      })
-    })
-
-    vi.stubGlobal('fetch', fetchMock)
-
     await expect(
-      generateAssistantReply({
+      loadTutorResources({
         ownerId: '65f000000000000000000099',
-        message: 'What does this lesson explain?',
         lessonId: LESSON_ID,
       }),
-    ).resolves.toMatchObject({ message: 'The lesson says it is a right triangle.' })
+    ).resolves.toMatchObject({ lessonText: 'A right triangle has one 90-degree angle.' })
   })
 })

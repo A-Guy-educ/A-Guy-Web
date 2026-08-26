@@ -1,117 +1,94 @@
-import { after, NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
+import { randomUUID } from 'crypto'
 
-import { rateLimit, rateLimitExceededResponse } from '@/infra/security/rate-limit'
-import { requireUserWithChatQuota } from '@/server/auth/api-auth'
-import { CHAT_ASSET_MAX_ATTACHMENTS } from '@/server/chat-assets/constants'
-import { checkTokenLimit, recordLlmUsage } from '@/server/services/llm-usage'
+import { after, type NextRequest, NextResponse } from 'next/server'
+
+import { logger } from '@/infra/utils/logger'
+import { requireUser } from '@/server/auth/api-auth'
+import { recordLlmUsage } from '@/server/services/llm-usage'
 import {
-  appendMessage,
-  generateAssistantReply,
-  getOrCreateConversation,
-  resolveContextKey,
-} from '@/server/web-api/chat'
-
-const MAX_MESSAGE_LENGTH = 4000
-const MAX_CONTEXT_KEY_LENGTH = 200
-
-const BodySchema = z.object({
-  message: z.string().min(1).max(MAX_MESSAGE_LENGTH),
-  acknowledgment: z.string().max(MAX_MESSAGE_LENGTH).optional(),
-  exerciseId: z.string().optional(),
-  lessonId: z.string().optional(),
-  chapterId: z.string().optional(),
-  courseId: z.string().optional(),
-  categoryId: z.string().optional(),
-  mediaIds: z.array(z.string()).max(CHAT_ASSET_MAX_ATTACHMENTS).optional(),
-  chatAssetIds: z.array(z.string()).max(CHAT_ASSET_MAX_ATTACHMENTS).optional(),
-  contextKeyOverride: z.string().max(MAX_CONTEXT_KEY_LENGTH).optional(),
-})
+  caughtTutorChatError,
+  normalizeChatGuardFailure,
+  TutorChatBodySchema,
+  tutorChatErrorResponse,
+} from '@/server/services/tutor-chat/http'
+import { createTutorChatOrchestrator } from '@/server/services/tutor-chat/runtime'
+import { enforceTutorTurnPolicy } from '@/server/services/tutor-chat/turn-policy'
+import { loadTutorResources, resolveContextKey } from '@/server/web-api/chat'
 
 const CHAT_RATE_LIMIT_MAX = 30
-const CHAT_RATE_LIMIT_WINDOW_MS = 60_000 // 1 minute
+const CHAT_RATE_LIMIT_WINDOW_MS = 60_000
 
 export async function POST(request: NextRequest) {
-  const parsed = BodySchema.safeParse(await request.json().catch(() => null))
-  if (!parsed.success) return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+  const traceId = randomUUID()
+  try {
+    const parsed = TutorChatBodySchema.safeParse(await request.json().catch(() => null))
+    if (!parsed.success) return tutorChatErrorResponse('invalid_request', { traceId })
 
-  const quota = await requireUserWithChatQuota(request)
-  if (!quota.ok) return quota.response
+    const auth = await requireUser(request)
+    if (!auth.ok) return normalizeChatGuardFailure(auth.response)
 
-  const ownerId = quota.value.ownerId
-  const rate = await rateLimit({
-    key: `chat:${ownerId}:agent-chat`,
-    limit: CHAT_RATE_LIMIT_MAX,
-    windowMs: CHAT_RATE_LIMIT_WINDOW_MS,
-  })
-  if (!rate.allowed) return rateLimitExceededResponse(rate)
+    const ownerId = auth.value.id
 
-  // Hard cap on LLM token spend per user. `withinLimit: true` when the
-  // manager hasn't set a per-user cap (no cap → allow) or usage is below
-  // the cap. When over, 429 before spending on the model.
-  const tokenLimit = await checkTokenLimit(ownerId)
-  if (!tokenLimit.withinLimit) {
-    return NextResponse.json(
-      {
-        error: 'token_limit_exceeded',
-        used: tokenLimit.used,
-        limit: tokenLimit.limit,
-        resetAt: tokenLimit.resetAt,
-      },
-      { status: 429 },
-    )
-  }
+    const body = parsed.data
+    const contextKey = resolveContextKey(body, body.contextKeyOverride)
+    if (!contextKey) return tutorChatErrorResponse('invalid_request', { traceId })
 
-  const body = parsed.data
-  const contextKey = resolveContextKey(body, body.contextKeyOverride)
-  if (!contextKey) return NextResponse.json({ error: 'Missing context ID' }, { status: 400 })
+    const resources = await loadTutorResources({
+      ownerId,
+      lessonId: body.lessonId,
+      mediaIds: body.mediaIds,
+      chatAssetIds: body.chatAssetIds,
+    })
+    const turnId = body.turnId || randomUUID()
+    const result = await createTutorChatOrchestrator().run({
+      ownerId,
+      contextKey,
+      turnId,
+      message: body.message,
+      acknowledgment: body.acknowledgment || 'I can help with that.',
+      lessonText: resources.lessonText,
+      attachmentText: resources.attachmentText,
+      parts: resources.parts,
+      hidden: body.hidden,
+      hidePromptOnly: body.hidePromptOnly,
+      media: body.mediaIds?.map((mediaId) => ({ mediaId })),
+      chatAssets: body.chatAssetIds?.map((chatAssetId) => ({ chatAssetId })),
+      signal: request.signal,
+      beforeGenerate: () =>
+        enforceTutorTurnPolicy({
+          ownerId,
+          rateKey: `chat:${ownerId}:agent-chat`,
+          rateLimit: CHAT_RATE_LIMIT_MAX,
+          rateWindowMs: CHAT_RATE_LIMIT_WINDOW_MS,
+        }),
+    })
 
-  const conversation = await getOrCreateConversation(ownerId, contextKey)
-
-  await appendMessage(String(conversation.id), {
-    role: 'user',
-    content: body.message,
-    media: body.mediaIds?.map((mediaId) => ({ mediaId })),
-    chatAssets: body.chatAssetIds?.map((chatAssetId) => ({ chatAssetId })),
-  })
-
-  const { message, usage } = await generateAssistantReply({
-    ownerId,
-    message: body.message,
-    acknowledgment: body.acknowledgment,
-    history: Array.isArray(conversation.messages) ? conversation.messages : [],
-    lessonId: body.lessonId,
-    mediaIds: body.mediaIds,
-    chatAssetIds: body.chatAssetIds,
-  })
-
-  await appendMessage(String(conversation.id), { role: 'assistant', content: message })
-
-  // Record token usage post-response so the reply is on its way before we
-  // touch the counter collections. `after()` keeps the runtime alive on
-  // Vercel until the write resolves.
-  const shouldRecord = usage.inputTokens + usage.outputTokens > 0
-  if (shouldRecord) {
-    const record = () =>
-      recordLlmUsage({
-        userId: ownerId,
-        lessonId: body.lessonId ?? null,
-        inputTokens: usage.inputTokens,
-        outputTokens: usage.outputTokens,
-        model: usage.model ?? undefined,
-        callType: 'chat',
-      })
-    try {
-      after(record)
-    } catch {
-      void record()
+    if (!result.cached && result.inputTokens + result.outputTokens > 0) {
+      const record = () =>
+        recordLlmUsage({
+          userId: ownerId,
+          lessonId: body.lessonId ?? null,
+          inputTokens: result.inputTokens,
+          outputTokens: result.outputTokens,
+          model: result.model,
+          callType: 'chat',
+        })
+      try {
+        after(record)
+      } catch {
+        void record()
+      }
     }
-  }
 
-  return NextResponse.json({
-    success: true,
-    message,
-    conversationId: conversation.id,
-    contextKey,
-  })
+    return NextResponse.json({
+      success: true,
+      message: result.message,
+      conversationId: result.conversationId,
+      contextKey: result.contextKey,
+      turnId,
+    })
+  } catch (error) {
+    logger.error({ err: error, traceId }, 'Tutor chat failed')
+    return caughtTutorChatError(error, traceId)
+  }
 }

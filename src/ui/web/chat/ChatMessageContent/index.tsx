@@ -11,6 +11,10 @@ interface ChatMessageContentProps {
   className?: string
 }
 
+function escapeBareOrderedListMarkers(content: string): string {
+  return content.replace(/(^|\n)([ \t]*\d+)\.(?=[ \t]*(?:\n|$))/g, '$1$2\\.')
+}
+
 /**
  * Custom components for ReactMarkdown with Tailwind styling.
  * Implements the chat answer formatting spec:
@@ -91,7 +95,7 @@ const chatMarkdownComponents: Components = {
  *    (muted background, rounded corners, padding) defined in globals.css lines 422-436.
  */
 export function ChatMessageContent({ content, className }: ChatMessageContentProps) {
-  const normalizedContent = normalizeLatexDelimiters(content)
+  const normalizedContent = normalizeLatexDelimiters(escapeBareOrderedListMarkers(content))
 
   return (
     <MathMarkdown
