@@ -73,7 +73,7 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data, version }) => 
         {...(theme ? { 'data-theme': theme } : {})}
       >
         <div className="container">
-          <div className="py-3 md:py-section-xs flex items-center justify-between text-header-foreground">
+          <div className="py-1.5 md:py-content-gap flex items-center justify-between text-header-foreground">
             {/* Logo */}
             <SystemLink
               href="/"

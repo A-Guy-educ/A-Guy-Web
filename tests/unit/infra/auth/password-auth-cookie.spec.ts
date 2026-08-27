@@ -32,7 +32,6 @@ function signupFormData() {
   data.set('email', 'new-student@example.com')
   data.set('password', 'correct-password')
   data.set('confirmPassword', 'correct-password')
-  data.set('website', '')
   return data
 }
 

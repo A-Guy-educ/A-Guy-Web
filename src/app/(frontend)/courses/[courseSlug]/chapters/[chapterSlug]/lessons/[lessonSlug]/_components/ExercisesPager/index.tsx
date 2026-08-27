@@ -416,6 +416,43 @@ export function ExercisesPager({
                 </button>
               </div>
             </div>
+
+            {/* Mobile floating prev/next pill — sibling of the sticky bar
+                (which is hidden on mobile via globals.css). Sits bottom-center,
+                below the mobile chat FAB in z-order so the FAB stays on top. */}
+            <div
+              className="lg:hidden fixed z-[65] left-1/2 -translate-x-1/2 flex items-center gap-1 rounded-full border border-border bg-card/95 shadow-elevation-2 backdrop-blur p-1"
+              style={{ bottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
+            >
+              <button
+                type="button"
+                onClick={handlePrev}
+                disabled={!canGoPrev || isNavigating}
+                aria-label="Previous page"
+                className={cn(
+                  'flex h-10 w-10 items-center justify-center rounded-full transition-colors duration-normal',
+                  !canGoPrev || isNavigating
+                    ? 'text-muted-foreground/40'
+                    : 'text-foreground hover:bg-muted',
+                )}
+              >
+                <ChevronLeft className="w-5 h-5 rtl:rotate-180" />
+              </button>
+              <button
+                type="button"
+                onClick={handleNext}
+                disabled={!canGoNext || isNavigating}
+                aria-label="Next page"
+                className={cn(
+                  'flex h-10 w-10 items-center justify-center rounded-full transition-colors duration-normal',
+                  !canGoNext || isNavigating
+                    ? 'text-muted-foreground/40'
+                    : 'text-foreground hover:bg-muted',
+                )}
+              >
+                <ChevronRight className="w-5 h-5 rtl:rotate-180" />
+              </button>
+            </div>
           </div>
         }
         chatContent={

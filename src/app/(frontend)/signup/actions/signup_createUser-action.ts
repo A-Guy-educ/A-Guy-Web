@@ -18,14 +18,6 @@ export async function signupAction(
     email: formData.get('email'),
     password: formData.get('password'),
     confirmPassword: formData.get('confirmPassword'),
-    website: formData.get('website'),
-  }
-
-  if (rawData.website && rawData.website.toString().trim() !== '') {
-    return {
-      success: false,
-      message: 'Unable to create account. Please try again.',
-    }
   }
 
   const parsed = SignupSchema.safeParse(rawData)

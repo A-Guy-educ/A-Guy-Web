@@ -5,11 +5,12 @@ import { isRTL } from '@/i18n/config'
 import { cn } from '@/infra/utils/ui'
 import type { FormulaSheet } from '@/infra/types/content'
 import { type MobileExerciseViewMode, SplitPaneLayout } from '@/ui/web/components/split-pane-layout'
-import { Minimize2, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Minimize2, X } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import React, { useCallback, useState, type ReactElement } from 'react'
 import { ExerciseHeader } from '../ExerciseHeader'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
+import { useRouterWithLoading } from '@/infra/loading/hooks/useRouterWithLoading'
 
 interface MobileChatPanelProps {
   chatContent: ReactElement
@@ -48,7 +49,7 @@ function MobileChatPanel({
       >
         <X className="w-5 h-5" />
       </button>
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 pt-[calc(3.5rem+env(safe-area-inset-top))] lg:pt-0">
         {React.cloneElement(
           chatContent as React.ReactElement<{
             displayMode?: 'full' | 'input-only'
@@ -91,12 +92,26 @@ export function ExerciseWorkspace({
 }: ExerciseWorkspaceProps) {
   const { user, isLoading: isAuthLoading } = useCurrentUser()
   const pathname = usePathname()
+  const router = useRouterWithLoading()
+  const locale = useLocale()
+  const rtl = isRTL(locale as 'en' | 'he')
+  const t = useTranslations('courses')
   const [mobileMode, setMobileMode] = useState<MobileExerciseViewMode>('exercise')
   const [isFullscreen, setIsFullscreen] = useState(false)
 
   const handleMenuClick = () => {
     window.dispatchEvent(new CustomEvent('open-mobile-menu'))
   }
+
+  const handleBackToLesson = useCallback(() => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back()
+    } else if (backUrl) {
+      router.push(backUrl)
+    } else {
+      router.push('/courses')
+    }
+  }, [backUrl, router])
 
   const handleMobileModeChange = useCallback((mode: MobileExerciseViewMode) => {
     setMobileMode(mode)
@@ -115,7 +130,7 @@ export function ExerciseWorkspace({
       data-exercise-fullscreen={isFullscreen}
     >
       {!isFullscreen && (
-        <div className={cn(mobileMode === 'chat' && 'hidden lg:block')}>
+        <div className="hidden lg:block">
           <ExerciseHeader
             exerciseTitle={exerciseTitle}
             backUrl={backUrl}
@@ -126,6 +141,23 @@ export function ExerciseWorkspace({
             onFullscreenToggle={handleFullscreenToggle}
           />
         </div>
+      )}
+
+      {/* Floating back-to-lesson button — mobile exercise mode only.
+          Chat mode has its own floating X inside MobileChatPanel. */}
+      {mobileMode !== 'chat' && (
+        <button
+          type="button"
+          onClick={handleBackToLesson}
+          aria-label={t('backToLesson')}
+          style={{ top: 'calc(0.75rem + env(safe-area-inset-top))' }}
+          className={cn(
+            'lg:hidden fixed z-[110] flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card/90 text-foreground shadow-elevation-2 backdrop-blur transition-colors duration-normal hover:bg-muted',
+            rtl ? 'right-3' : 'left-3',
+          )}
+        >
+          {rtl ? <ArrowRight className="w-5 h-5" /> : <ArrowLeft className="w-5 h-5" />}
+        </button>
       )}
 
       {isFullscreen && (
