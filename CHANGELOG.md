@@ -4188,6 +4188,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- promote: dev -> main (v0.33.8) ([#1123](https://github.com/A-Guy-educ/A-Guy-Web/pull/1123)) — @aguyaharonyair
 - chore: release v0.33.8 ([#1122](https://github.com/A-Guy-educ/A-Guy-Web/pull/1122)) — @aguyaharonyair
 - promote: dev -> main (v0.33.7) ([#1121](https://github.com/A-Guy-educ/A-Guy-Web/pull/1121)) — @aguyaharonyair
 - chore: release v0.33.7 ([#1120](https://github.com/A-Guy-educ/A-Guy-Web/pull/1120)) — @aguyaharonyair
