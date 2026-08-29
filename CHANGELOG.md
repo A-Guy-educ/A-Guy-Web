@@ -1,5 +1,86 @@
 # Changelog
 
+## v0.33.9 — 2026-08-29
+
+### Features
+- Full-bleed mobile exercise surface with floating nav (703c44031)
+- Boss round 2 on header height, chat width, callouts, X overlap (4b5a593e8)
+- Add scalable tutor chat core (8adc8f0be)
+- Boss round on logo, mobile chat, math, landing CTA (0416c40d6)
+- Add Teacher course management API (#1102) (26bada802)
+- Establish shared app platform boundary (#1101) (daf3b4cd4)
+
+### Fixes
+- Kill horizontal overflow on mobile (5631ee09c)
+- Apply low-severity review nits on callouts and mobile padding (e22b3b88b)
+- Synchronize dependency lock configuration (b4d8ff8bd)
+- Isolate development auth cookie (3a63f702d)
+- Log the actual cause of course-state proxy 502/503 (e656fec2f)
+- Address PR review on math wrapper, tests, and dead code (3f9dcc4a2)
+- install pnpm for dev deployments (31e32faed)
+
+### Refactoring
+- complete dashboard repository split (2dc67d0d5)
+- move dashboard UI to dedicated app (bb8e2dcc3)
+
+### Docs
+- Add production content inventory report (9aa989d2b)
+
+### Chores
+- add #1123 (9cc3c0aa7)
+- add #1122 (f37a2ef32)
+- add #1121 (46781aa91)
+- add #1120 (9e0e05299)
+- add #1119 (b5bb57910)
+- Drop dead honeypot form field from signup test helper (863f81a97)
+- add #1118 (ad15bdf7d)
+- add #1117 (1746221ee)
+- add #1116 (91fa748c1)
+- add #1115 (7ca2a774e)
+- add #1113 (feccee41f)
+- add #1109 (ad38033e1)
+- Format Teacher release roadmap (0cf711fa6)
+- update roadmaps/private-teacher/releases/Release 0 - Measurable Product Contract.md (03fd66d6e)
+- update roadmaps/מפת דרכים - המורה הפרטי של A-Guy.md (4d53dd10e)
+- update roadmaps/private-teacher/releases/Release 0 - Measurable Product Contract.md (34171ee55)
+- create roadmaps/private-teacher/releases/Release 0 - Measurable Product Contract.md (1a1b84c22)
+- create roadmaps/private-teacher/releases/ (dae9d4af3)
+- update roadmaps/מפת דרכים - המורה הפרטי של A-Guy.md (7806ce5f8)
+- create roadmaps/מפת דרכים - המורה הפרטי של A-Guy.md (bcbbd01aa)
+- add #1111 (25884d45e)
+- add #1112 (dc75b141c)
+- Prettier fix on two roadmap markdown files (e38089ebd)
+- Format inherited roadmap docs (102331da6)
+- update roadmaps/Meeting Summary 23.08.26.md (96530b191)
+- update roadmaps/Meeting Summary 23.08.26.md (b641fc01d)
+- update roadmaps/Meeting Summary 23.08.26.md (8a85c2705)
+- update roadmaps/Meeting Summary 23.08.26.md (fc312da5e)
+- update roadmaps/Meeting Summary 23.08.26.md (14ce26edb)
+- update roadmaps/Meeting Summary 23.08.26.md (6a58322c3)
+- create roadmaps/Meeting Summary 23.08.26.md (1d513563d)
+- update roadmaps/Aug-October-2026.md (30dfc0e99)
+- create roadmaps/Aug-October-2026.md (4328bf279)
+- create roadmaps/ file space (7298be941)
+- add #1108 (20678fb34)
+- add #1107 (0edf35910)
+- add #1106 (b795e1e43)
+- add #1105 (cb2da35ba)
+- add store workflow deploy-dev (4d9bb67ed)
+- add store capability vercel-dev-deploy (299da2e6e)
+- add manually triggered dev deployment (05efc0eb2)
+- add #1104 (8548e34c4)
+- add #1103 (a66f30466)
+- add #1102 (5942bdc14)
+- add #1101 (0961e82ce)
+- add #1100 (e6304909b)
+- add #1099 (3f7c332a2)
+- release v0.33.0 (d3293f1e1)
+- add #1098 (a43b4166d)
+
+### Other
+- Revert "chore: add manually triggered dev deployment" (577658e5b)
+- Revert "fix: install pnpm for dev deployments" (70d22150e)
+- pause dashboard cutover during DNS propagation (6e6b73b95)
 ## v0.33.8 — 2026-08-28
 
 ### Features
@@ -4188,6 +4269,8 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: release v0.33.9 ([#1124](https://github.com/A-Guy-educ/A-Guy-Web/pull/1124)) — @aguyaharonyair
+- promote: dev -> main (v0.33.8) ([#1123](https://github.com/A-Guy-educ/A-Guy-Web/pull/1123)) — @aguyaharonyair
 - chore: release v0.33.8 ([#1122](https://github.com/A-Guy-educ/A-Guy-Web/pull/1122)) — @aguyaharonyair
 - promote: dev -> main (v0.33.7) ([#1121](https://github.com/A-Guy-educ/A-Guy-Web/pull/1121)) — @aguyaharonyair
 - chore: release v0.33.7 ([#1120](https://github.com/A-Guy-educ/A-Guy-Web/pull/1120)) — @aguyaharonyair
