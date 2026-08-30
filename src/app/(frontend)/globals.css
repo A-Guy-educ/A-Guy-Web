@@ -608,6 +608,16 @@ math-field:focus-within {
   @apply bg-transparent text-primary;
 }
 
+/* Exercise math: every algebraic expression renders in wine-red so students
+   can pick out variables/equations at a glance. Applies to both inline atoms
+   (`.math-short`) and block equations (`.math-long`) — no soft-blue block
+   treatment here (unlike chat) because the boss wanted a uniform tint across
+   exercise content. */
+.rich-text-content .math-short .katex,
+.rich-text-content .math-long .katex {
+  color: hsl(var(--text-wine-red));
+}
+
 /* Chat callouts — paragraphs tagged by remarkChatCallouts and rendered via
    the ChatCallout component. Colors match boss's spec: note = yellow warning,
    example = sage green, mistake = red error, tip = purple accent, guiding =
