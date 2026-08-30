@@ -612,9 +612,10 @@ math-field:focus-within {
    can pick out variables/equations at a glance. Applies to both inline atoms
    (`.math-short`) and block equations (`.math-long`) — no soft-blue block
    treatment here (unlike chat) because the boss wanted a uniform tint across
-   exercise content. */
-.rich-text-content .math-short .katex,
-.rich-text-content .math-long .katex {
+   exercise content. Scoped away from `.latex-document` so the LaTeX document
+   viewer (used in the lesson worksheet path) keeps its neutral math color. */
+.rich-text-content:not(.latex-document) .math-short .katex,
+.rich-text-content:not(.latex-document) .math-long .katex {
   color: hsl(var(--text-wine-red));
 }
 

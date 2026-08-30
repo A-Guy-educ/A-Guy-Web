@@ -48,6 +48,12 @@ export function SvgRenderer({
         svg.setAttribute('viewBox', `0 0 ${w} ${h}`)
       }
     }
+    // If we still have no coordinate system, don't clobber width/height —
+    // forcing height=auto on a viewBox-less SVG collapses it to 0 (h-auto
+    // needs a viewBox to compute proportional height). Fall back to the
+    // browser's default sizing so at least SOMETHING renders.
+    if (!svg.getAttribute('viewBox')) return
+
     if (!svg.getAttribute('preserveAspectRatio')) {
       svg.setAttribute('preserveAspectRatio', 'xMidYMid meet')
     }
