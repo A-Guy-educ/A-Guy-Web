@@ -54,10 +54,13 @@ function latexToPlain(input: string) {
     .replace(/\\cdot|\\times/g, '*')
     .replace(/\\div/g, '/')
     .replace(/\\pm/g, '±')
-    .replace(/\\pi/g, 'π')
-    .replace(/\\theta/g, 'θ')
-    .replace(/\\alpha/g, 'α')
-    .replace(/\\beta/g, 'β')
+    .replace(/\\leq\b/g, '≤')
+    .replace(/\\geq\b/g, '≥')
+    .replace(/\\neq\b/g, '≠')
+    .replace(/\\pi\b/g, 'π')
+    .replace(/\\theta\b/g, 'θ')
+    .replace(/\\alpha\b/g, 'α')
+    .replace(/\\beta\b/g, 'β')
     .replace(/\s+/g, '')
 }
 
