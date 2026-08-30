@@ -20,8 +20,50 @@ function normalize(input: string) {
   return input.toLowerCase().trim().replace(/\s+/g, ' ')
 }
 
+/**
+ * Convert LaTeX-flavored math the FormulaComposer inserts (`$\frac{1}{2}$`,
+ * `$x^{2}$`, `$\sqrt{9}$`) into a plain-text form comparable to a manually-
+ * typed accepted answer like `1/2`, `x^2`, `sqrt(9)`.
+ *
+ * The transform is intentionally conservative — no CAS-level equivalence,
+ * no operator reordering. It just strips display chrome so a student who
+ * used the math keyboard doesn't get marked wrong for producing the same
+ * expression the teacher wrote by hand. Semantic equivalence still falls
+ * through to the LLM in `semanticMatch()`.
+ *
+ * Applied iteratively so nested `\frac{\frac{a}{b}}{c}` collapses fully.
+ */
+function latexToPlain(input: string) {
+  let out = input
+    .replace(/\$\$([\s\S]*?)\$\$/g, '$1')
+    .replace(/\$([^$]*)\$/g, '$1')
+    .replace(/\\left|\\right/g, '')
+    .replace(/\\,|\\;|\\!|\\ /g, ' ')
+  // Repeatedly expand \frac / \sqrt / ^{}/ _{} until stable so nested forms
+  // collapse. Cap iterations to prevent pathological input from looping.
+  for (let i = 0; i < 6; i++) {
+    const next = out
+      .replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, '($1)/($2)')
+      .replace(/\\sqrt\s*\{([^{}]*)\}/g, 'sqrt($1)')
+      .replace(/\^\{([^{}]*)\}/g, '^$1')
+      .replace(/_\{([^{}]*)\}/g, '_$1')
+    if (next === out) break
+    out = next
+  }
+  return out
+    .replace(/\\cdot|\\times/g, '*')
+    .replace(/\\div/g, '/')
+    .replace(/\\pm/g, '±')
+    .replace(/\\pi/g, 'π')
+    .replace(/\\theta/g, 'θ')
+    .replace(/\\alpha/g, 'α')
+    .replace(/\\beta/g, 'β')
+    .replace(/\s+/g, '')
+}
+
 function numeric(input: string) {
-  const stripped = input.replace(/[,%\s]/g, '').trim()
+  // Strip `$` delimiters too so a student's `$5$` compares against `5`.
+  const stripped = input.replace(/[$,%\s]/g, '').trim()
   if (!stripped) return null
   const value = Number(stripped)
   return Number.isFinite(value) ? value : null
@@ -29,12 +71,18 @@ function numeric(input: string) {
 
 function localMatch(studentAnswer: string, acceptedAnswers: string[]) {
   const studentNorm = normalize(studentAnswer)
-  const studentNum = numeric(studentAnswer)
+  const studentPlain = normalize(latexToPlain(studentAnswer))
+  const studentNum = numeric(latexToPlain(studentAnswer))
 
   for (const accepted of acceptedAnswers) {
     if (studentNorm === normalize(accepted)) return { matched: true, matchType: 'exact' }
 
-    const acceptedNum = numeric(accepted)
+    const acceptedPlain = normalize(latexToPlain(accepted))
+    if (studentPlain && acceptedPlain && studentPlain === acceptedPlain) {
+      return { matched: true, matchType: 'latex-plain' }
+    }
+
+    const acceptedNum = numeric(latexToPlain(accepted))
     if (
       studentNum !== null &&
       acceptedNum !== null &&

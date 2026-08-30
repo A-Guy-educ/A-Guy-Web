@@ -48,7 +48,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale = await getSystemLocale()
   const headersList = await headers()
   const pathname = headersList.get('x-pathname') ?? ''
-  const hideChrome = pathname === '/' || pathname === '/start'
+  // Lesson viewport claims the full screen — no site header, nav, or footer.
+  // Matches `/courses/<c>/chapters/<ch>/lessons/<l>` and any subpath.
+  const isLessonRoute = /^\/courses\/[^/]+\/chapters\/[^/]+\/lessons\/[^/]+(?:\/|$)/.test(pathname)
+  const hideChrome = pathname === '/' || pathname === '/start' || isLessonRoute
   const messages = await getMessages(locale)
   const dir = getDirection(locale)
 
