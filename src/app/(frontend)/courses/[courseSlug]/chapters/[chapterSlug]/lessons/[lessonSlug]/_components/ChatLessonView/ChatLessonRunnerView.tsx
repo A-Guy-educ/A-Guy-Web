@@ -234,33 +234,10 @@ function ActiveChat({
     ? `sec-${walker.currentStep.exercise.id}-${walker.currentStep.groupIndex}`
     : null
 
-  // Narrate new teacher-side bubbles as they appear. Dedupe on `key + kind`
-  // so entries replaced in place (chat-pending → chat-assistant) still
-  // trigger narration when they mutate.
-  //
-  // Streaming assistant entries are skipped WITHOUT being added to the
-  // dedupe set — otherwise narration would fire on the first chunk (~80
-  // chars) and dedupe every subsequent chunk, leaving TTS listeners with
-  // only the opening fragment. The channel does a terminal replace with
-  // `streaming: false` once the stream ends, and narration fires then on
-  // the full accumulated text.
-  const narratedRef = useRef<Set<string>>(new Set())
-  useEffect(() => {
-    for (const entry of entries) {
-      if (entry.kind === 'chat-assistant' && entry.streaming) continue
-      const token = `${entry.key}:${entry.kind}`
-      if (narratedRef.current.has(token)) continue
-      narratedRef.current.add(token)
-      if (entry.kind === 'exercise-intro') {
-        const line = entry.title
-          ? `${t('chatViewIntroPrefix')} ${entry.ordinal}: ${entry.title}`
-          : `${t('chatViewIntroPrefix')} ${entry.ordinal}`
-        tts.speak(line)
-      } else if (entry.kind === 'chat-assistant') {
-        tts.speak(entry.text)
-      }
-    }
-  }, [entries, t, tts])
+  // Narration is click-only. Each TeacherBubble exposes an `onSpeak` button
+  // (wired below to `tts.speak(...)`) so the student decides when to hear a
+  // line. Auto-playing on entry arrival was removed per product request —
+  // recordings stay available on demand.
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
