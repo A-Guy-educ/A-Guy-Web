@@ -4352,6 +4352,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Lesson view round 2 (fullscreen chrome, chat math input, LaTeX-aware checker) ([#1129](https://github.com/A-Guy-educ/A-Guy-Web/pull/1129)) — @aguyshayb
 - feat: Exercise view polish (svg scaling, tts, spacing, math color, data text) ([#1128](https://github.com/A-Guy-educ/A-Guy-Web/pull/1128)) — @aguyshayb
 - promote: dev -> main (v0.33.10) ([#1127](https://github.com/A-Guy-educ/A-Guy-Web/pull/1127)) — @aguyaharonyair
 - chore: release v0.33.10 ([#1126](https://github.com/A-Guy-educ/A-Guy-Web/pull/1126)) — @aguyaharonyair
