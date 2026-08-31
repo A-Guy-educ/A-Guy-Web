@@ -17,8 +17,10 @@ export const synthesizeRequestSchema = z.object({
 
 export type SynthesizeRequest = z.infer<typeof synthesizeRequestSchema>
 
+// Hebrew tops out at WaveNet — Google never shipped Neural2 for `he-IL`.
+// English has Neural2 available.
 const VOICE_CONFIG: Record<string, { languageCode: string; name: string; ssmlGender: string }> = {
-  he: { languageCode: 'he-IL', name: 'he-IL-Neural2-A', ssmlGender: 'FEMALE' },
+  he: { languageCode: 'he-IL', name: 'he-IL-Wavenet-A', ssmlGender: 'FEMALE' },
   en: { languageCode: 'en-US', name: 'en-US-Neural2-D', ssmlGender: 'MALE' },
 }
 
