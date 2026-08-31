@@ -37,7 +37,7 @@ export function RichTextRenderer({ block }: RichTextRendererProps) {
     <>
       <MathMarkdown
         content={processedValue}
-        className="rich-text-content leading-relaxed text-foreground"
+        className="rich-text-content leading-[1.5] text-foreground"
         components={richTextMarkdownComponents}
       />
       <MediaAttachments mediaIds={block.mediaIds} />

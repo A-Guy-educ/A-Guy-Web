@@ -28,6 +28,39 @@ export function SvgRenderer({
 
   const isInteractive = block.interactive && block.hotspots && block.hotspots.length > 0
 
+  // Force the inline SVG to scale with its container. Authored SVGs often
+  // ship with fixed `width`/`height` attributes and no `viewBox`, which
+  // makes `[&>svg]:h-auto` compute a fixed height while the width stretches
+  // — the diagram appears to shift and burst out of its frame. We backfill
+  // a viewBox from the intrinsic dimensions when it's missing, then swap
+  // the size attributes for a 100%/auto pair so the browser scales
+  // proportionally inside the card.
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+    const svg = container.querySelector(':scope > svg') as SVGSVGElement | null
+    if (!svg) return
+
+    if (!svg.getAttribute('viewBox')) {
+      const w = parseFloat(svg.getAttribute('width') || '')
+      const h = parseFloat(svg.getAttribute('height') || '')
+      if (Number.isFinite(w) && Number.isFinite(h) && w > 0 && h > 0) {
+        svg.setAttribute('viewBox', `0 0 ${w} ${h}`)
+      }
+    }
+    // If we still have no coordinate system, don't clobber width/height —
+    // forcing height=auto on a viewBox-less SVG collapses it to 0 (h-auto
+    // needs a viewBox to compute proportional height). Fall back to the
+    // browser's default sizing so at least SOMETHING renders.
+    if (!svg.getAttribute('viewBox')) return
+
+    if (!svg.getAttribute('preserveAspectRatio')) {
+      svg.setAttribute('preserveAspectRatio', 'xMidYMid meet')
+    }
+    svg.setAttribute('width', '100%')
+    svg.setAttribute('height', 'auto')
+  }, [sanitizedSvg])
+
   const getHotspotState = useCallback(
     (hotspotId: string): 'selected' | 'correct' | 'incorrect' | null => {
       if (checkResult) {
@@ -116,7 +149,8 @@ export function SvgRenderer({
         role={isInteractive ? 'application' : 'img'}
         aria-label={block.altText || 'Diagram'}
         className={cn(
-          'w-full max-w-full overflow-hidden [&>svg]:max-w-full [&>svg]:h-auto',
+          'w-full max-w-full overflow-hidden',
+          '[&>svg]:block [&>svg]:mx-auto [&>svg]:w-full [&>svg]:max-w-full [&>svg]:h-auto',
           isInteractive && 'select-none',
         )}
         dangerouslySetInnerHTML={{ __html: sanitizedSvg }}
