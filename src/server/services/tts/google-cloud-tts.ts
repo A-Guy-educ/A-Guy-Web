@@ -1,8 +1,9 @@
 /**
  * Google Cloud Text-to-Speech service.
  *
- * Calls the REST API with the project's GEMINI_API_KEY.
- * Key resolution: ConfigSecrets (DB) → process.env fallback.
+ * Voice + speaking-rate come from Admin's public `/api/tts-settings/current`
+ * global (60s in-process cache matches the admin CDN s-maxage so voice
+ * changes propagate within ~1 min without hammering the endpoint).
  */
 
 import { z } from 'zod'
@@ -16,13 +17,6 @@ export const synthesizeRequestSchema = z.object({
 })
 
 export type SynthesizeRequest = z.infer<typeof synthesizeRequestSchema>
-
-// Hebrew tops out at WaveNet — Google never shipped Neural2 for `he-IL`.
-// English has Neural2 available.
-const VOICE_CONFIG: Record<string, { languageCode: string; name: string; ssmlGender: string }> = {
-  he: { languageCode: 'he-IL', name: 'he-IL-Wavenet-A', ssmlGender: 'FEMALE' },
-  en: { languageCode: 'en-US', name: 'en-US-Neural2-D', ssmlGender: 'MALE' },
-}
 
 const TTS_API_URL = 'https://texttospeech.googleapis.com/v1/text:synthesize'
 
@@ -51,6 +45,116 @@ async function getApiKey(payload?: Payload): Promise<string> {
   return envValue
 }
 
+// ---------------------------------------------------------------------------
+// Admin-driven voice settings (fetched from A-Guy-Admin's tts_settings global)
+// ---------------------------------------------------------------------------
+
+const HE_VOICES = [
+  'he-IL-Wavenet-A',
+  'he-IL-Wavenet-B',
+  'he-IL-Wavenet-C',
+  'he-IL-Wavenet-D',
+  'he-IL-Standard-A',
+  'he-IL-Standard-B',
+  'he-IL-Standard-C',
+  'he-IL-Standard-D',
+] as const
+
+const EN_VOICES = [
+  'en-US-Neural2-A',
+  'en-US-Neural2-C',
+  'en-US-Neural2-D',
+  'en-US-Neural2-F',
+  'en-US-Neural2-H',
+  'en-US-Neural2-J',
+  'en-US-Wavenet-D',
+  'en-US-Wavenet-F',
+] as const
+
+const ttsSettingsSchema = z.object({
+  heVoice: z.enum(HE_VOICES),
+  heGender: z.enum(['FEMALE', 'MALE']),
+  enVoice: z.enum(EN_VOICES),
+  enGender: z.enum(['FEMALE', 'MALE']),
+  speakingRate: z.number().min(0.25).max(2.0),
+})
+
+type TtsSettings = z.infer<typeof ttsSettingsSchema>
+
+// Mirror the Admin global's shipped defaults so TTS keeps working on cold
+// starts before the first successful fetch and if Admin is unreachable AND
+// we've never cached a good value.
+const DEFAULT_SETTINGS: TtsSettings = {
+  heVoice: 'he-IL-Wavenet-A',
+  heGender: 'FEMALE',
+  enVoice: 'en-US-Neural2-D',
+  enGender: 'MALE',
+  speakingRate: 0.85,
+}
+
+const SETTINGS_CACHE_TTL_MS = 60_000
+
+let cachedSettings: TtsSettings | null = null
+let cachedAt = 0
+let inflightFetch: Promise<TtsSettings> | null = null
+
+async function fetchSettingsFromAdmin(): Promise<TtsSettings> {
+  const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL
+  if (!adminUrl) {
+    throw new Error('NEXT_PUBLIC_ADMIN_URL not configured')
+  }
+  const response = await fetch(`${adminUrl}/api/tts-settings/current`, {
+    // Bypass fetch cache — we own TTL in-process. Vercel/undici's
+    // opaque cache layer would double-cache and delay propagation.
+    cache: 'no-store',
+  })
+  if (!response.ok) {
+    throw new Error(`admin /api/tts-settings/current returned ${response.status}`)
+  }
+  const json: unknown = await response.json()
+  const parsed = ttsSettingsSchema.safeParse(json)
+  if (!parsed.success) {
+    throw new Error(`admin tts-settings response failed schema: ${parsed.error.message}`)
+  }
+  return parsed.data
+}
+
+async function getTtsSettings(): Promise<TtsSettings> {
+  const now = Date.now()
+  if (cachedSettings && now - cachedAt < SETTINGS_CACHE_TTL_MS) {
+    return cachedSettings
+  }
+  // Coalesce concurrent refreshes so a burst of TTS calls at TTL expiry
+  // triggers exactly one admin fetch.
+  if (inflightFetch) return inflightFetch
+
+  inflightFetch = fetchSettingsFromAdmin()
+    .then((settings) => {
+      cachedSettings = settings
+      cachedAt = Date.now()
+      return settings
+    })
+    .catch((err) => {
+      logger.error(
+        { err: err instanceof Error ? err.message : String(err) },
+        '[TTS] Failed to fetch settings from admin — falling back',
+      )
+      // Prefer last-known-good over hardcoded defaults if we ever fetched
+      // successfully. Do NOT update cachedAt on failure so the next call
+      // retries immediately instead of waiting out the TTL.
+      return cachedSettings ?? DEFAULT_SETTINGS
+    })
+    .finally(() => {
+      inflightFetch = null
+    })
+
+  return inflightFetch
+}
+
+// ---------------------------------------------------------------------------
+// Synth
+// ---------------------------------------------------------------------------
+
 /**
  * Synthesize speech from text using Google Cloud TTS.
  * Returns base64-encoded MP3 audio.
@@ -61,18 +165,22 @@ export async function synthesizeSpeech(
   payload?: Payload,
 ): Promise<string> {
   const apiKey = await getApiKey(payload)
-  const voice = VOICE_CONFIG[locale]
+  const settings = await getTtsSettings()
+
+  const voiceName = locale === 'he' ? settings.heVoice : settings.enVoice
+  const gender = locale === 'he' ? settings.heGender : settings.enGender
+  const languageCode = locale === 'he' ? 'he-IL' : 'en-US'
 
   const body = {
     input: { text },
     voice: {
-      languageCode: voice.languageCode,
-      name: voice.name,
-      ssmlGender: voice.ssmlGender,
+      languageCode,
+      name: voiceName,
+      ssmlGender: gender,
     },
     audioConfig: {
       audioEncoding: 'MP3',
-      speakingRate: 0.85,
+      speakingRate: settings.speakingRate,
     },
   }
 
@@ -88,7 +196,7 @@ export async function synthesizeSpeech(
   if (!response.ok) {
     const errorText = await response.text()
     logger.error(
-      { status: response.status, locale, textLength: text.length },
+      { status: response.status, locale, textLength: text.length, voiceName },
       `[TTS] Google Cloud TTS API error: ${errorText}`,
     )
     throw new Error(`Google Cloud TTS API returned ${response.status}`)
