@@ -24,6 +24,11 @@ const VOICE_CONFIG: Record<string, { languageCode: string; name: string; ssmlGen
 
 const TTS_API_URL = 'https://texttospeech.googleapis.com/v1/text:synthesize'
 
+// TTS uses its own API key because Google Cloud API-key restrictions can't
+// cover both Generative Language (Gemini) and Cloud Text-to-Speech on a single
+// key — the console rejects the combination. Provision a separate key
+// restricted to the Cloud Text-to-Speech API and expose it as
+// GOOGLE_TTS_API_KEY.
 async function getApiKey(payload?: Payload): Promise<string> {
   if (payload && !isConfigLoaded()) {
     const { loadRuntimeConfig } = await import('@/infra/config/runtime/runtime-config')
@@ -31,15 +36,15 @@ async function getApiKey(payload?: Payload): Promise<string> {
   }
 
   try {
-    const secret = getSecret('GEMINI_API_KEY', { throwIfNotFound: false })
+    const secret = getSecret('GOOGLE_TTS_API_KEY', { throwIfNotFound: false })
     if (secret) return secret
   } catch {
     // ConfigSecrets not available, fall through to env
   }
 
-  const envValue = process.env.GEMINI_API_KEY
+  const envValue = process.env.GOOGLE_TTS_API_KEY
   if (!envValue) {
-    throw new Error('[TTS] GEMINI_API_KEY not found in ConfigSecrets or environment')
+    throw new Error('[TTS] GOOGLE_TTS_API_KEY not found in ConfigSecrets or environment')
   }
   return envValue
 }
