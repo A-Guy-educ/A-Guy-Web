@@ -4443,6 +4443,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix(tts): Bump admin settings fetch timeout to 8s for cold starts ([#1139](https://github.com/A-Guy-educ/A-Guy-Web/pull/1139)) — @aguyshayb
 - feat(tts): Read voice + rate from admin tts_settings global ([#1138](https://github.com/A-Guy-educ/A-Guy-Web/pull/1138)) — @aguyshayb
 - feat: Handwritten notebook demo (client-side, interactive + chat views) ([#1135](https://github.com/A-Guy-educ/A-Guy-Web/pull/1135)) — @aguyshayb
 - fix(csp): Allow data: media so base64 TTS audio plays ([#1136](https://github.com/A-Guy-educ/A-Guy-Web/pull/1136)) — @aguyshayb
