@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { rateLimit, rateLimitExceededResponse } from '@/infra/security/rate-limit'
-import { enforceUserChatQuota, requireUser } from '@/server/auth/api-auth'
+import { requireUser } from '@/server/auth/api-auth'
 import { synthesizeRequestSchema, synthesizeSpeech } from '@/server/services/tts/google-cloud-tts'
 
-const TTS_RATE_LIMIT_MAX = 20
-const TTS_RATE_LIMIT_WINDOW_MS = 60_000 // 1 minute
+// Lesson narration can fire many bubbles in a row; keep abuse protection but
+// don't cap so tight that a normal lesson trips it.
+const TTS_RATE_LIMIT_MAX = 60
+const TTS_RATE_LIMIT_WINDOW_MS = 60_000
 
 export async function POST(request: NextRequest) {
   const auth = await requireUser(request)
@@ -27,9 +29,6 @@ export async function POST(request: NextRequest) {
       { status: 400 },
     )
   }
-
-  const quota = await enforceUserChatQuota(auth.value.id)
-  if (!quota.ok) return quota.response
 
   try {
     const audioContent = await synthesizeSpeech(parsed.data.text, parsed.data.locale)
