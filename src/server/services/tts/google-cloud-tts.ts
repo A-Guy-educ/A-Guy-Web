@@ -97,8 +97,11 @@ const SETTINGS_CACHE_TTL_MS = 60_000
 // unresponsive admin hangs synthesizeSpeech indefinitely (undici fetch has
 // no default timeout), turning "admin slow" into "lesson audio pipeline
 // stalls until the platform function timeout kills it" — the .catch()
-// fallback would never fire.
-const SETTINGS_FETCH_TIMEOUT_MS = 3000
+// fallback would never fire. 8s covers admin's serverless cold-start
+// (Vercel function boot + first Payload query) which routinely exceeds
+// the sub-second warm case; a tighter budget silently pinned every call
+// to fallback defaults on cold hits.
+const SETTINGS_FETCH_TIMEOUT_MS = 8000
 // After a failed admin fetch, short-circuit to the fallback for this window
 // instead of re-hitting admin on every TTS call. Without a negative-cache,
 // a sustained admin outage becomes self-amplifying — each Web instance
