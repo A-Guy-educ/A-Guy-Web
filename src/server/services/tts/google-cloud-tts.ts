@@ -93,9 +93,22 @@ const DEFAULT_SETTINGS: TtsSettings = {
 }
 
 const SETTINGS_CACHE_TTL_MS = 60_000
+// Bounded deadline for the admin fetch. Without this, a reachable-but-
+// unresponsive admin hangs synthesizeSpeech indefinitely (undici fetch has
+// no default timeout), turning "admin slow" into "lesson audio pipeline
+// stalls until the platform function timeout kills it" — the .catch()
+// fallback would never fire.
+const SETTINGS_FETCH_TIMEOUT_MS = 3000
+// After a failed admin fetch, short-circuit to the fallback for this window
+// instead of re-hitting admin on every TTS call. Without a negative-cache,
+// a sustained admin outage becomes self-amplifying — each Web instance
+// generates a fetch per synth call (throttled only by in-flight coalescing),
+// hammering admin exactly when it's already struggling.
+const SETTINGS_FAILURE_BACKOFF_MS = 10_000
 
 let cachedSettings: TtsSettings | null = null
 let cachedAt = 0
+let lastFailureAt = 0
 let inflightFetch: Promise<TtsSettings> | null = null
 
 async function fetchSettingsFromAdmin(): Promise<TtsSettings> {
@@ -107,6 +120,7 @@ async function fetchSettingsFromAdmin(): Promise<TtsSettings> {
     // Bypass fetch cache — we own TTL in-process. Vercel/undici's
     // opaque cache layer would double-cache and delay propagation.
     cache: 'no-store',
+    signal: AbortSignal.timeout(SETTINGS_FETCH_TIMEOUT_MS),
   })
   if (!response.ok) {
     throw new Error(`admin /api/tts-settings/current returned ${response.status}`)
@@ -124,6 +138,11 @@ async function getTtsSettings(): Promise<TtsSettings> {
   if (cachedSettings && now - cachedAt < SETTINGS_CACHE_TTL_MS) {
     return cachedSettings
   }
+  // Negative-cache window: if the last fetch failed within the backoff, skip
+  // the admin round-trip entirely and serve from cache/defaults.
+  if (now - lastFailureAt < SETTINGS_FAILURE_BACKOFF_MS) {
+    return cachedSettings ?? DEFAULT_SETTINGS
+  }
   // Coalesce concurrent refreshes so a burst of TTS calls at TTL expiry
   // triggers exactly one admin fetch.
   if (inflightFetch) return inflightFetch
@@ -132,16 +151,17 @@ async function getTtsSettings(): Promise<TtsSettings> {
     .then((settings) => {
       cachedSettings = settings
       cachedAt = Date.now()
+      lastFailureAt = 0
       return settings
     })
     .catch((err) => {
+      lastFailureAt = Date.now()
       logger.error(
         { err: err instanceof Error ? err.message : String(err) },
         '[TTS] Failed to fetch settings from admin — falling back',
       )
       // Prefer last-known-good over hardcoded defaults if we ever fetched
-      // successfully. Do NOT update cachedAt on failure so the next call
-      // retries immediately instead of waiting out the TTL.
+      // successfully.
       return cachedSettings ?? DEFAULT_SETTINGS
     })
     .finally(() => {
