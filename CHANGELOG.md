@@ -4443,6 +4443,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat(tts): Read voice + rate from admin tts_settings global ([#1138](https://github.com/A-Guy-educ/A-Guy-Web/pull/1138)) — @aguyshayb
 - feat: Handwritten notebook demo (client-side, interactive + chat views) ([#1135](https://github.com/A-Guy-educ/A-Guy-Web/pull/1135)) — @aguyshayb
 - fix(csp): Allow data: media so base64 TTS audio plays ([#1136](https://github.com/A-Guy-educ/A-Guy-Web/pull/1136)) — @aguyshayb
 - fix(tts): Use he-IL-Wavenet-A (Neural2 not available for Hebrew) ([#1134](https://github.com/A-Guy-educ/A-Guy-Web/pull/1134)) — @aguyshayb
