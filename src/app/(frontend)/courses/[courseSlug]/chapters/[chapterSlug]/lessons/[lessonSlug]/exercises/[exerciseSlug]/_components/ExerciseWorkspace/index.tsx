@@ -5,6 +5,7 @@ import { isRTL } from '@/i18n/config'
 import { cn } from '@/infra/utils/ui'
 import type { FormulaSheet } from '@/infra/types/content'
 import { type MobileExerciseViewMode, SplitPaneLayout } from '@/ui/web/components/split-pane-layout'
+import { Notebook } from '@/ui/web/notebook'
 import { ArrowLeft, ArrowRight, Minimize2, X } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import React, { useCallback, useState, type ReactElement } from 'react'
@@ -189,6 +190,10 @@ export function ExerciseWorkspace({
         onMobileModeChange={handleMobileModeChange}
         isFullscreen={isFullscreen}
       />
+
+      {/* Handwritten notebook — demo phase: always shown in interactive
+          exercises, per-pathname localStorage, no server persistence. */}
+      <Notebook storageKey={`interactive:${pathname}`} />
     </div>
   )
 }
