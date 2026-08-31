@@ -4443,6 +4443,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat(tts): Switch Hebrew lesson narration to Google Cloud TTS ([#1132](https://github.com/A-Guy-educ/A-Guy-Web/pull/1132)) — @aguyshayb
 - promote: dev -> main (v0.33.11) ([#1131](https://github.com/A-Guy-educ/A-Guy-Web/pull/1131)) — @aguyaharonyair
 - chore: release v0.33.11 ([#1130](https://github.com/A-Guy-educ/A-Guy-Web/pull/1130)) — @aguyaharonyair
 - feat: Lesson view round 2 (fullscreen chrome, chat math input, LaTeX-aware checker) ([#1129](https://github.com/A-Guy-educ/A-Guy-Web/pull/1129)) — @aguyshayb
