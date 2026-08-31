@@ -710,6 +710,15 @@
     "continueLearning": "המשך ללמוד",
     "continue": "המשך"
   },
+  "notebook": {
+    "title": "מחברת",
+    "open": "פתח מחברת",
+    "close": "סגור מחברת",
+    "color": "צבע",
+    "thickness": "עובי",
+    "undo": "בטל פעולה",
+    "clear": "נקה הכל"
+  },
   "coursePage": {
     "tabs": {
       "learn": "למידה",

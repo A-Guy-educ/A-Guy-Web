@@ -2,17 +2,20 @@
 
 import { isRTL } from '@/i18n/config'
 import { cn } from '@/infra/utils/ui'
-import { useLocale } from '@/ui/web/providers/I18n'
+import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import { AnimatePresence, motion } from 'framer-motion'
 import { NotebookPen, Trash2, Undo2, X } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NotebookCanvas } from './NotebookCanvas'
 import { useNotebook } from './useNotebook'
 
-// Small preset palettes so the demo stays lightweight — we can promote
-// these to design tokens once the feature graduates from client-only.
-const PEN_COLORS = ['#111827', '#dc2626', '#2563eb', '#16a34a']
+// Pen ink tokens live in globals.css (`--pen-ink-1..4`) so dark mode and
+// brand re-theming re-tint canvas strokes automatically. We resolve them
+// to an `hsl(...)` string once when the drawer opens so canvas2d has a
+// concrete color to stroke with.
+const PEN_INK_VARS = ['--pen-ink-1', '--pen-ink-2', '--pen-ink-3', '--pen-ink-4'] as const
 const PEN_SIZES = [2, 4, 8]
+const FALLBACK_INK = 'hsl(222 47% 11%)'
 
 interface NotebookProps {
   /** Unique identifier for the notes scope (e.g. exercise or lesson id). */
@@ -26,12 +29,27 @@ interface NotebookProps {
 }
 
 export function Notebook({ storageKey, fabClassName }: NotebookProps) {
+  const t = useTranslations('notebook')
   const locale = useLocale()
   const rtl = isRTL(locale as 'en' | 'he')
   const [open, setOpen] = useState(false)
-  const [color, setColor] = useState(PEN_COLORS[0])
+  const [colors, setColors] = useState<string[]>([FALLBACK_INK])
+  const [color, setColor] = useState<string>(FALLBACK_INK)
   const [size, setSize] = useState(PEN_SIZES[1])
   const { strokes, addStroke, undo, clear } = useNotebook(storageKey)
+
+  // Read the pen-ink CSS vars on open. Deferred until the drawer is
+  // actually needed so we don't churn on every mount.
+  useEffect(() => {
+    if (!open || typeof window === 'undefined') return
+    const style = getComputedStyle(document.documentElement)
+    const resolved = PEN_INK_VARS.map((v) => {
+      const raw = style.getPropertyValue(v).trim()
+      return raw ? `hsl(${raw})` : FALLBACK_INK
+    })
+    setColors(resolved)
+    setColor((prev) => (resolved.includes(prev) ? prev : resolved[0]))
+  }, [open])
 
   // Drawer sits on the logical `end` side, so it enters from that edge.
   // In LTR that's off-screen right (+100%); in RTL it's off-screen left.
@@ -42,8 +60,8 @@ export function Notebook({ storageKey, fabClassName }: NotebookProps) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="פתח מחברת"
-        title="מחברת"
+        aria-label={t('open')}
+        title={t('title')}
         className={cn(
           'fixed bottom-20 end-4 z-[300] h-12 w-12 rounded-full',
           'bg-primary text-primary-foreground shadow-elevation-3',
@@ -72,11 +90,11 @@ export function Notebook({ storageKey, fabClassName }: NotebookProps) {
               className="fixed inset-y-0 end-0 z-[360] w-full max-w-md bg-card border-s border-border shadow-elevation-4 flex flex-col"
             >
               <header className="flex items-center justify-between p-3 border-b border-border">
-                <h2 className="text-body-md font-semibold text-foreground">מחברת</h2>
+                <h2 className="text-body-md font-semibold text-foreground">{t('title')}</h2>
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  aria-label="סגור מחברת"
+                  aria-label={t('close')}
                   className="p-1.5 rounded-md hover:bg-muted transition-colors"
                 >
                   <X className="w-4 h-4" />
@@ -94,12 +112,12 @@ export function Notebook({ storageKey, fabClassName }: NotebookProps) {
 
               <footer className="border-t border-border p-3 flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex items-center gap-content-gap-xs">
-                  {PEN_COLORS.map((c) => (
+                  {colors.map((c, i) => (
                     <button
-                      key={c}
+                      key={PEN_INK_VARS[i] ?? c}
                       type="button"
                       onClick={() => setColor(c)}
-                      aria-label={`צבע ${c}`}
+                      aria-label={`${t('color')} ${i + 1}`}
                       className={cn(
                         'h-7 w-7 rounded-full border-2 transition-all',
                         color === c ? 'border-foreground scale-110' : 'border-transparent',
@@ -114,7 +132,7 @@ export function Notebook({ storageKey, fabClassName }: NotebookProps) {
                       key={s}
                       type="button"
                       onClick={() => setSize(s)}
-                      aria-label={`עובי ${s}`}
+                      aria-label={`${t('thickness')} ${s}`}
                       className={cn(
                         'h-7 w-7 rounded-md border transition-colors flex items-center justify-center',
                         size === s
@@ -131,7 +149,7 @@ export function Notebook({ storageKey, fabClassName }: NotebookProps) {
                     type="button"
                     onClick={undo}
                     disabled={strokes.length === 0}
-                    aria-label="בטל פעולה"
+                    aria-label={t('undo')}
                     className="p-2 rounded-md hover:bg-muted disabled:opacity-30 transition-colors"
                   >
                     <Undo2 className="w-4 h-4" />
@@ -140,7 +158,7 @@ export function Notebook({ storageKey, fabClassName }: NotebookProps) {
                     type="button"
                     onClick={clear}
                     disabled={strokes.length === 0}
-                    aria-label="נקה הכל"
+                    aria-label={t('clear')}
                     className="p-2 rounded-md hover:bg-muted disabled:opacity-30 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
