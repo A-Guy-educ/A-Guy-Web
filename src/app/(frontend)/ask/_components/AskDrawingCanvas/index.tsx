@@ -31,6 +31,13 @@ export function AskDrawingCanvas({ onCheckSolution }: AskDrawingCanvasProps) {
   const [isChecking, setIsChecking] = useState(false)
   const [penColors, setPenColors] = useState<string[]>(FALLBACK_PEN_COLORS)
   const [selectedColor, setSelectedColor] = useState<string>(FALLBACK_PEN_COLORS[0])
+  // Mirror `selectedColor` in a ref so `initOrResize` stays a stable
+  // callback — otherwise a color pick re-creates the callback and the
+  // ResizeObserver detaches/reattaches for no reason.
+  const selectedColorRef = useRef(selectedColor)
+  useEffect(() => {
+    selectedColorRef.current = selectedColor
+  }, [selectedColor])
 
   // Resolve pen inks from CSS vars once on mount so canvas strokes match
   // the current theme instead of the hardcoded fallback hex triple.
@@ -72,10 +79,10 @@ export function AskDrawingCanvas({ onCheckSolution }: AskDrawingCanvasProps) {
     if (!ctx) return
     ctx.lineCap = 'round'
     ctx.lineWidth = 3
-    ctx.strokeStyle = selectedColor
+    ctx.strokeStyle = selectedColorRef.current
     ctxRef.current = ctx
     if (oldData) ctx.putImageData(oldData, 0, 0)
-  }, [selectedColor])
+  }, [])
 
   useEffect(() => {
     const canvas = canvasRef.current
