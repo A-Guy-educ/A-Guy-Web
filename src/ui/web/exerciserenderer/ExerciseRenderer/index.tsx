@@ -763,18 +763,20 @@ export function ExerciseRenderer({
           questionLabel={questionLabel}
           dir={dir}
           helpSystem={helpSystemNode}
-          // Every real question type (mcq / true-false / free-response /
-          // table / matching) gets a per-block notebook when the caller
-          // opted in via `showNotebook`. Geometry / axis / multi-axis
-          // don't come through this branch — they render via
-          // `GraphWithPrompt` above and never wrap in `QuestionCard`.
-          // Interactive-SVG hotspots use the earlier `QuestionCard`
-          // branch (line ~588) and intentionally skip the notebook
-          // because they have no hint/solution fields to complement it.
-          // The label is a bare token (Hebrew letter or Latin index) —
-          // the tutor prompt already gets full exercise context from
-          // the chat's exercise-context wrapper.
-          notebookContextTitle={showNotebook ? questionLabel : undefined}
+          // Per-block notebook requires two opt-ins:
+          //   1. Caller-level `showNotebook` — the workspace has a chat
+          //      surface (ChatInterface / ChatLessonRunnerView) to hear
+          //      the ask-action dispatch.
+          //   2. Block-level `question.showNotebook === true` — the
+          //      admin toggled it on for this specific block (Admin
+          //      repo PR #409).
+          // Geometry / axis / multi-axis never wrap in QuestionCard so
+          // they can't opt in even if the field is set. Interactive-SVG
+          // hotspots use the earlier QuestionCard branch and don't
+          // read the field either.
+          notebookContextTitle={
+            showNotebook && question.showNotebook === true ? questionLabel : undefined
+          }
           animationDelay={nextIndex * 0.08}
           variant={questionCardVariant}
         >

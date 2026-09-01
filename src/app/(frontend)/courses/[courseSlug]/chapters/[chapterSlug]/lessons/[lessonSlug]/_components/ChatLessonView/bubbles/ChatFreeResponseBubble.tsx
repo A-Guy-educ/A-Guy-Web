@@ -100,12 +100,14 @@ export function ChatFreeResponseBubble({
         </button>
       </form>
 
-      {/* Per-block notebook — mirrors the QuestionCard wiring so chat-
-          native questions (which bypass QuestionCard entirely) still get
-          a drawing surface. `disabled` follows the input lock so
-          scroll-back bubbles can't dispatch Check-solution against the
-          walker's current step (which would cite the wrong section). */}
-      <QuestionNotebook contextTitle={questionLabel ?? block.id} disabled={isDisabled} />
+      {/* Per-block notebook — chat-native path bypasses QuestionCard so
+          we mount here. Admin opt-in required (`block.showNotebook ===
+          true`, from admin PR #409); `disabled` follows the input lock
+          so scroll-back bubbles can't dispatch Check-solution against
+          the walker's current step (which would cite the wrong section). */}
+      {block.showNotebook === true && (
+        <QuestionNotebook contextTitle={questionLabel ?? block.id} disabled={isDisabled} />
+      )}
     </div>
   )
 }

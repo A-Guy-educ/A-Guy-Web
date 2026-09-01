@@ -126,6 +126,12 @@ export interface QuestionSelectTrueFalseBlock {
   hint?: InlineRichText
   solution?: InlineRichText
   fullSolution?: InlineRichText
+  /**
+   * Admin opt-in for the per-block drawing notebook. Only when strictly
+   * `true` does the "Open notebook" pill render on this block. Field
+   * ships from admin PR #409.
+   */
+  showNotebook?: boolean
 }
 
 // MCQ variant
@@ -139,6 +145,8 @@ export interface QuestionSelectMcqBlock {
   hint?: InlineRichText
   solution?: InlineRichText
   fullSolution?: InlineRichText
+  /** See `QuestionSelectTrueFalseBlock.showNotebook`. */
+  showNotebook?: boolean
 }
 
 export type QuestionSelectBlock = QuestionSelectTrueFalseBlock | QuestionSelectMcqBlock
@@ -151,6 +159,8 @@ export interface QuestionFreeResponseBlock {
   hint?: InlineRichText
   solution?: InlineRichText
   fullSolution?: InlineRichText
+  /** See `QuestionSelectTrueFalseBlock.showNotebook`. */
+  showNotebook?: boolean
 }
 
 export interface QuestionTableBlock {
@@ -161,6 +171,8 @@ export interface QuestionTableBlock {
   hint?: InlineRichText
   solution?: InlineRichText
   fullSolution?: InlineRichText
+  /** See `QuestionSelectTrueFalseBlock.showNotebook`. */
+  showNotebook?: boolean
 }
 
 export type QuestionBlock =
