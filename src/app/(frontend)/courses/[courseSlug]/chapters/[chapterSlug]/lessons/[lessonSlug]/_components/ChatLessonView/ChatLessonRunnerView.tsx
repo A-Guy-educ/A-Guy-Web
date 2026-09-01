@@ -4,6 +4,7 @@ import type { Exercise, Media } from '@/infra/types/content'
 import { formatExerciseContextMessage } from '@/infra/llm/exercise-context'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Notebook } from '@/ui/web/notebook'
 import { ChatInputPanel } from './ChatInputPanel'
 import { ChatLessonProgress } from './ChatLessonProgress'
 import { ChatLessonStartCard } from './ChatLessonStartCard'
@@ -302,6 +303,10 @@ function ActiveChat({
         muted={tts.muted}
         ttsSupported={tts.supported}
       />
+
+      {/* Handwritten notebook — demo phase: one scratchpad per lesson,
+          client-side only. FAB lifted above the chat input row. */}
+      <Notebook storageKey={`chat:${lessonId}`} fabClassName="bottom-24" />
     </>
   )
 }
