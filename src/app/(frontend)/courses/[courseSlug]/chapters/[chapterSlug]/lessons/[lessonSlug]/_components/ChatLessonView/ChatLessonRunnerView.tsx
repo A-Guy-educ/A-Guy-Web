@@ -79,13 +79,7 @@ interface ActiveChatProps extends ChatLessonRunnerViewProps {
   onExit: () => void
 }
 
-function ActiveChat({
-  lessonTitle: _lessonTitle,
-  lessonId,
-  exercises,
-  mediaMap,
-  onExit,
-}: ActiveChatProps) {
+function ActiveChat({ lessonTitle, lessonId, exercises, mediaMap, onExit }: ActiveChatProps) {
   const t = useTranslations('courses')
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const tts = useBrowserTTS()
@@ -244,6 +238,54 @@ function ActiveChat({
     scrollRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [entries.length])
 
+  // Bridge for the notebook's "Check solution" button. The `<Notebook>`
+  // dispatches an `ask-action` CustomEvent (same contract as the Ask
+  // page); we upload the PNG data URL to /api/media and send an invisible
+  // prompt asking the tutor to compare the drawing against the current
+  // section. The chat channel's `requestWithMedia` handles the attachment
+  // via the stream endpoint's `mediaIds` field — no user bubble appears,
+  // only the AI's response.
+  useEffect(() => {
+    const handler = async (e: Event) => {
+      const detail = (e as CustomEvent).detail as {
+        type: 'hint' | 'solution' | 'check'
+        title?: string
+        imageData?: string
+      }
+      if (detail.type !== 'check' || !detail.imageData) return
+
+      try {
+        const [header, data] = detail.imageData.split(',')
+        const mime = header.match(/:(.*?);/)?.[1] || 'image/png'
+        const binary = atob(data)
+        const bytes = new Uint8Array(binary.length)
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+        const file = new File([new Blob([bytes], { type: mime })], 'notebook.png', { type: mime })
+
+        const formData = new FormData()
+        formData.append('file', file)
+        const response = await fetch('/api/media', {
+          method: 'POST',
+          credentials: 'include',
+          body: formData,
+        })
+        if (!response.ok) return
+        const doc = await response.json()
+        const mediaId = doc.doc?.id || doc.id
+        if (!mediaId) return
+
+        chat.requestWithMedia(
+          `The student drew a solution on the notebook canvas for "${detail.title ?? 'this exercise'}". Look at the attached image and tell them whether their approach and answer look correct. Be encouraging and supportive.`,
+          [mediaId],
+        )
+      } catch {
+        // Silent — the chat channel surfaces its own errors when it retries.
+      }
+    }
+    window.addEventListener('ask-action', handler)
+    return () => window.removeEventListener('ask-action', handler)
+  }, [chat])
+
   const handleReset = useCallback(() => {
     cancelPendingAdvance()
     tts.cancel()
@@ -304,9 +346,12 @@ function ActiveChat({
         ttsSupported={tts.supported}
       />
 
-      {/* Handwritten notebook — demo phase: one scratchpad per lesson,
-          client-side only. FAB lifted above the chat input row. */}
-      <Notebook storageKey={`chat:${lessonId}`} fabClassName="bottom-24" />
+      {/* Drawing notebook — same canvas as the Ask page. Check-solution
+          dispatches `ask-action`; the effect above uploads the drawing to
+          /api/media and pipes it into the chat via `requestWithMedia` so
+          the tutor can compare the student's work against the current
+          section. FAB lifted above the pinned chat input row. */}
+      <Notebook contextTitle={lessonTitle} fabClassName="bottom-24" />
     </>
   )
 }

@@ -1,25 +1,35 @@
 'use client'
 
+import { AskDrawingCanvas } from '@/app/(frontend)/ask/_components/AskDrawingCanvas'
 import { isRTL } from '@/i18n/config'
 import { cn } from '@/infra/utils/ui'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import { AnimatePresence, motion } from 'framer-motion'
-import { NotebookPen, Trash2, Undo2, X } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { NotebookCanvas } from './NotebookCanvas'
-import { useNotebook } from './useNotebook'
+import { NotebookPen, X } from 'lucide-react'
+import { useCallback, useState } from 'react'
 
-// Pen ink tokens live in globals.css (`--pen-ink-1..4`) so dark mode and
-// brand re-theming re-tint canvas strokes automatically. We resolve them
-// to an `hsl(...)` string once when the drawer opens so canvas2d has a
-// concrete color to stroke with.
-const PEN_INK_VARS = ['--pen-ink-1', '--pen-ink-2', '--pen-ink-3', '--pen-ink-4'] as const
-const PEN_SIZES = [2, 4, 8]
-const FALLBACK_INK = 'hsl(222 47% 11%)'
+/**
+ * Event name `ChatInterface` (interactive view) and `ChatLessonRunnerView`
+ * (chat view) both listen for. When `type === 'check'` and `imageData` is a
+ * PNG data URL, the chat uploads the drawing and asks the tutor to compare
+ * it against the current exercise. Contract lives in
+ * `src/app/(frontend)/ask/_components/ask-types.ts` — repeated here as a
+ * literal so we don't import an app-route constant into a shared UI module.
+ */
+const ASK_ACTION_EVENT = 'ask-action'
 
 interface NotebookProps {
-  /** Unique identifier for the notes scope (e.g. exercise or lesson id). */
-  storageKey: string
+  /**
+   * Label the chat prompt uses to refer to the current exercise (e.g. the
+   * exercise or lesson title). Falls back to the drawer's own title.
+   */
+  contextTitle?: string
+  /**
+   * Media id of the exercise image, forwarded so the chat can send both the
+   * student's drawing AND the original question image to the tutor. Leave
+   * undefined for exercises that don't have a single background image.
+   */
+  mediaId?: string
   /**
    * Optional class merged into the floating action button. Callers whose
    * layout has a competing pinned element (chat input, mobile bottom nav)
@@ -28,31 +38,41 @@ interface NotebookProps {
   fabClassName?: string
 }
 
-export function Notebook({ storageKey, fabClassName }: NotebookProps) {
+/**
+ * Lesson-view wrapper around the Ask-page drawing notebook.
+ *
+ * The heavy lifting — pen palette, clear, "Check solution" button, canvas
+ * pointer handling — lives in `AskDrawingCanvas`, imported verbatim so the
+ * two flows can't drift apart. This component adds:
+ *   - a floating action button + slide-out drawer so the notebook attaches
+ *     to layouts that don't have their own sidebar,
+ *   - a bridge that turns the drawing into an `ask-action` `CustomEvent`
+ *     when the student clicks Check — the same event the chat listeners
+ *     already handle.
+ */
+export function Notebook({ contextTitle, mediaId, fabClassName }: NotebookProps) {
   const t = useTranslations('notebook')
   const locale = useLocale()
   const rtl = isRTL(locale as 'en' | 'he')
   const [open, setOpen] = useState(false)
-  const [colors, setColors] = useState<string[]>([FALLBACK_INK])
-  const [color, setColor] = useState<string>(FALLBACK_INK)
-  const [size, setSize] = useState(PEN_SIZES[1])
-  const { strokes, addStroke, undo, clear } = useNotebook(storageKey)
 
-  // Read the pen-ink CSS vars on open. Deferred until the drawer is
-  // actually needed so we don't churn on every mount.
-  useEffect(() => {
-    if (!open || typeof window === 'undefined') return
-    const style = getComputedStyle(document.documentElement)
-    const resolved = PEN_INK_VARS.map((v) => {
-      const raw = style.getPropertyValue(v).trim()
-      return raw ? `hsl(${raw})` : FALLBACK_INK
-    })
-    setColors(resolved)
-    setColor((prev) => (resolved.includes(prev) ? prev : resolved[0]))
-  }, [open])
+  const handleCheckSolution = useCallback(
+    (imageData: string) => {
+      window.dispatchEvent(
+        new CustomEvent(ASK_ACTION_EVENT, {
+          detail: {
+            type: 'check',
+            title: contextTitle ?? t('title'),
+            imageData,
+            mediaId,
+          },
+        }),
+      )
+      setOpen(false)
+    },
+    [contextTitle, mediaId, t],
+  )
 
-  // Drawer sits on the logical `end` side, so it enters from that edge.
-  // In LTR that's off-screen right (+100%); in RTL it's off-screen left.
   const enterOffset = rtl ? '-100%' : '100%'
 
   return (
@@ -87,7 +107,7 @@ export function Notebook({ storageKey, fabClassName }: NotebookProps) {
               animate={{ x: 0 }}
               exit={{ x: enterOffset }}
               transition={{ type: 'tween', duration: 0.25 }}
-              className="fixed inset-y-0 end-0 z-[360] w-full max-w-md bg-card border-s border-border shadow-elevation-4 flex flex-col"
+              className="fixed inset-y-0 end-0 z-[360] w-full max-w-md bg-card border-s border-border shadow-elevation-4 flex flex-col overflow-y-auto"
             >
               <header className="flex items-center justify-between p-3 border-b border-border">
                 <h2 className="text-body-md font-semibold text-foreground">{t('title')}</h2>
@@ -101,70 +121,9 @@ export function Notebook({ storageKey, fabClassName }: NotebookProps) {
                 </button>
               </header>
 
-              <div className="flex-1 min-h-0 overflow-hidden">
-                <NotebookCanvas
-                  strokes={strokes}
-                  onStrokeComplete={addStroke}
-                  color={color}
-                  size={size}
-                />
+              <div className="flex-1 min-h-0 px-3 pb-3">
+                <AskDrawingCanvas onCheckSolution={handleCheckSolution} />
               </div>
-
-              <footer className="border-t border-border p-3 flex items-center justify-between gap-3 flex-wrap">
-                <div className="flex items-center gap-content-gap-xs">
-                  {colors.map((c, i) => (
-                    <button
-                      key={PEN_INK_VARS[i] ?? c}
-                      type="button"
-                      onClick={() => setColor(c)}
-                      aria-label={`${t('color')} ${i + 1}`}
-                      className={cn(
-                        'h-7 w-7 rounded-full border-2 transition-all',
-                        color === c ? 'border-foreground scale-110' : 'border-transparent',
-                      )}
-                      style={{ backgroundColor: c }}
-                    />
-                  ))}
-                </div>
-                <div className="flex items-center gap-1">
-                  {PEN_SIZES.map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => setSize(s)}
-                      aria-label={`${t('thickness')} ${s}`}
-                      className={cn(
-                        'h-7 w-7 rounded-md border transition-colors flex items-center justify-center',
-                        size === s
-                          ? 'border-primary bg-primary/10 text-primary'
-                          : 'border-border text-muted-foreground hover:bg-muted',
-                      )}
-                    >
-                      <span className="rounded-full bg-current" style={{ height: s, width: s }} />
-                    </button>
-                  ))}
-                </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={undo}
-                    disabled={strokes.length === 0}
-                    aria-label={t('undo')}
-                    className="p-2 rounded-md hover:bg-muted disabled:opacity-30 transition-colors"
-                  >
-                    <Undo2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={clear}
-                    disabled={strokes.length === 0}
-                    aria-label={t('clear')}
-                    className="p-2 rounded-md hover:bg-muted disabled:opacity-30 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </footer>
             </motion.aside>
           </>
         )}

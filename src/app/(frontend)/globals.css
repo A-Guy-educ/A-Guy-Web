@@ -115,14 +115,6 @@
     --tab-practice: 0 72% 51%; /* Red — True/False */
     --tab-exams: 330 81% 60%; /* Pink — Matching */
     --tab-ask: 142 71% 45%; /* Green — Free Response */
-
-    /* Notebook pen inks — the handwritten-notebook drawer reads these at
-       runtime via getComputedStyle so canvas strokes stay in the design
-       system (dark mode + brand themes get free re-tinting). */
-    --pen-ink-1: 222 47% 11%; /* near-black */
-    --pen-ink-2: 0 72% 45%; /* red */
-    --pen-ink-3: 217 85% 45%; /* blue */
-    --pen-ink-4: 142 65% 35%; /* green */
   }
 
   [data-theme='dark'] {
@@ -227,13 +219,6 @@
     --tab-practice: 0 72% 62%; /* Red — True/False */
     --tab-exams: 330 81% 68%; /* Pink — Matching */
     --tab-ask: 142 71% 55%; /* Green — Free Response */
-
-    /* Notebook pen inks — brighter tones for dark surfaces so strokes on
-       white paper stay legible after re-theming. Keep in sync with light. */
-    --pen-ink-1: 222 47% 15%;
-    --pen-ink-2: 0 72% 55%;
-    --pen-ink-3: 217 85% 55%;
-    --pen-ink-4: 142 65% 45%;
   }
 }
 

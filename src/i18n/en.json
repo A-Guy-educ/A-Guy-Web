@@ -713,11 +713,7 @@
   "notebook": {
     "title": "Notebook",
     "open": "Open notebook",
-    "close": "Close notebook",
-    "color": "Color",
-    "thickness": "Thickness",
-    "undo": "Undo",
-    "clear": "Clear all"
+    "close": "Close notebook"
   },
   "coursePage": {
     "tabs": {
