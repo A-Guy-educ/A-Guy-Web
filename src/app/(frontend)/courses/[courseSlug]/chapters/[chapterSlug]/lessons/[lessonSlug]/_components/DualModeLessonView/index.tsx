@@ -17,13 +17,13 @@ import React, { useEffect, useMemo } from 'react'
 import type { Exercise, FormulaSheet, Media as MediaType } from '@/infra/types/content'
 import type { ResolvedLessonBlock } from '@/server/repos/queries/lesson-blocks'
 import { ChatInterface } from '@/ui/web/chat'
+import { LessonMenu, type LessonMenuTab } from '@/ui/web/lesson-menu'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { BlocksDocumentLessonView } from '../BlocksDocumentLessonView'
 import { ChatLessonView } from '../ChatLessonView'
 import { ExercisesPager } from '../ExercisesPager'
 import { MediaTabContent } from '../MediaTabContent'
 import { TestViewRenderer } from '../TestViewRenderer'
-import { TabButton } from './TabButton'
 import { useLessonViewMode, type LessonMode } from './useLessonViewMode'
 
 /** Which interactive pager to render on the Interactive tab. */
@@ -138,83 +138,42 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
     return mode
   })()
 
-  const tabIds = {
-    mediaTab: `lesson-${lessonId}-tab-media`,
-    pdfTab: `lesson-${lessonId}-tab-pdf`,
-    interactiveTab: `lesson-${lessonId}-tab-interactive`,
-    testTab: `lesson-${lessonId}-tab-test`,
-    chatTab: `lesson-${lessonId}-tab-chat`,
-    mediaPanel: `lesson-${lessonId}-panel-media`,
-    pdfPanel: `lesson-${lessonId}-panel-pdf`,
-    interactivePanel: `lesson-${lessonId}-panel-interactive`,
-    testPanel: `lesson-${lessonId}-panel-test`,
-    chatPanel: `lesson-${lessonId}-panel-chat`,
-  }
+  // Boss's spec (see `תצוגה.HTML` concept): drop the two-row exercise chrome
+  // (title + logo row and the tab bar) in favor of a floating menu button
+  // that surfaces the lesson name, view-mode switcher, and back navigation.
+  // Rendered once at DualModeLessonView top level so the pill floats over
+  // whichever view is active — no more `headerSlot` prop drilling.
+  const menuTabs: LessonMenuTab[] = [
+    visibleTabs.media && { mode: 'media' as const, label: t('lessonViewModeMedia') },
+    visibleTabs.pdf && { mode: 'pdf' as const, label: t('lessonViewModePdf') },
+    visibleTabs.interactive && {
+      mode: 'interactive' as const,
+      label: t('lessonViewModeInteractive'),
+    },
+    visibleTabs.test && { mode: 'test' as const, label: t('lessonViewModeTest') },
+    visibleTabs.chat && { mode: 'chat' as const, label: t('lessonViewModeChat') },
+  ].filter((tab): tab is LessonMenuTab => tab !== false)
 
-  const tabBar = (
-    <div
-      role="tablist"
-      aria-label={t('lessonViewMode')}
-      className="flex items-center gap-1 border-b border-border bg-card px-4 py-2 print:hidden"
-    >
-      {visibleTabs.media && (
-        <TabButton
-          id={tabIds.mediaTab}
-          controlsId={tabIds.mediaPanel}
-          label={t('lessonViewModeMedia')}
-          active={effectiveMode === 'media'}
-          onClick={() => select('media')}
-        />
-      )}
-      {visibleTabs.pdf && (
-        <TabButton
-          id={tabIds.pdfTab}
-          controlsId={tabIds.pdfPanel}
-          label={t('lessonViewModePdf')}
-          active={effectiveMode === 'pdf'}
-          onClick={() => select('pdf')}
-        />
-      )}
-      {visibleTabs.interactive && (
-        <TabButton
-          id={tabIds.interactiveTab}
-          controlsId={tabIds.interactivePanel}
-          label={t('lessonViewModeInteractive')}
-          active={effectiveMode === 'interactive'}
-          onClick={() => select('interactive')}
-        />
-      )}
-      {visibleTabs.test && (
-        <TabButton
-          id={tabIds.testTab}
-          controlsId={tabIds.testPanel}
-          label={t('lessonViewModeTest')}
-          active={effectiveMode === 'test'}
-          onClick={() => select('test')}
-        />
-      )}
-      {visibleTabs.chat && (
-        <TabButton
-          id={tabIds.chatTab}
-          controlsId={tabIds.chatPanel}
-          label={t('lessonViewModeChat')}
-          active={effectiveMode === 'chat'}
-          onClick={() => select('chat')}
-        />
-      )}
-    </div>
+  const lessonMenu = (
+    <LessonMenu
+      lessonTitle={lessonTitle}
+      tabs={menuTabs}
+      activeMode={effectiveMode}
+      onSelectMode={select}
+      backUrl={backUrl}
+    />
   )
 
   if (effectiveMode === 'media') {
     return (
-      <section role="tabpanel" id={tabIds.mediaPanel} aria-labelledby={tabIds.mediaTab}>
+      <section>
         <MediaTabContent
           lessonTitle={lessonTitle}
           backUrl={backUrl}
           lessonId={lessonId}
           validFiles={validFiles}
           courseSlug={courseSlug}
-          headerSlot={tabBar}
+          headerSlot={lessonMenu}
           showChat={showChat}
           chatLessonId={chatLessonId}
           formulaSheet={formulaSheet}
@@ -225,13 +184,13 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
 
   if (effectiveMode === 'pdf') {
     return (
-      <section role="tabpanel" id={tabIds.pdfPanel} aria-labelledby={tabIds.pdfTab}>
+      <section>
         <BlocksDocumentLessonView
           lessonTitle={lessonTitle}
           backUrl={backUrl}
           exercises={exercises}
           mediaMap={mediaMap}
-          headerSlot={tabBar}
+          headerSlot={lessonMenu}
           chatContent={
             showChat ? (
               <ChatInterface
@@ -249,7 +208,7 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
 
   if (effectiveMode === 'chat') {
     return (
-      <section role="tabpanel" id={tabIds.chatPanel} aria-labelledby={tabIds.chatTab}>
+      <section>
         <ChatLessonView
           lessonTitle={lessonTitle}
           backUrl={backUrl}
@@ -257,7 +216,7 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
           exercises={exercises}
           mediaMap={mediaMap}
           formulaSheet={formulaSheet}
-          headerSlot={tabBar}
+          headerSlot={lessonMenu}
         />
       </section>
     )
@@ -265,7 +224,7 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
 
   if (interactive.kind === 'blocks') {
     return (
-      <section role="tabpanel" id={tabIds.interactivePanel} aria-labelledby={tabIds.interactiveTab}>
+      <section>
         <ExercisesPager
           exercises={exercises}
           blocks={interactive.blocks}
@@ -280,7 +239,7 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
           mediaMap={mediaMap}
           showChat={showChat}
           formulaSheet={formulaSheet}
-          headerSlot={tabBar}
+          headerSlot={lessonMenu}
           hideLatexBlocks
           initialExerciseIndex={initialExerciseIndex}
           nextLesson={nextLesson}
@@ -291,7 +250,7 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
 
   if (effectiveMode === 'test') {
     return (
-      <section role="tabpanel" id={tabIds.testPanel} aria-labelledby={tabIds.testTab}>
+      <section>
         <TestViewRenderer
           lessonTitle={lessonTitle}
           backUrl={backUrl}
@@ -303,7 +262,7 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
           mediaMap={mediaMap}
           showChat={showChat}
           formulaSheet={formulaSheet}
-          headerSlot={tabBar}
+          headerSlot={lessonMenu}
           hideLatexBlocks
           nextLesson={nextLesson}
         />
@@ -312,7 +271,7 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
   }
 
   return (
-    <section role="tabpanel" id={tabIds.interactivePanel} aria-labelledby={tabIds.interactiveTab}>
+    <section>
       <ExercisesPager
         exercises={interactive.exercises}
         lessonTitle={lessonTitle}
@@ -325,7 +284,7 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
         mediaMap={mediaMap}
         showChat={showChat}
         formulaSheet={formulaSheet}
-        headerSlot={tabBar}
+        headerSlot={lessonMenu}
         hideLatexBlocks
         initialExerciseIndex={initialExerciseIndex}
         nextLesson={nextLesson}
