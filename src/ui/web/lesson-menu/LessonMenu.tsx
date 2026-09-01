@@ -98,15 +98,15 @@ export function LessonMenu({
         className={cn(
           // Sits at logical `start` (top-left LTR, top-right RTL) so it
           // doesn't collide with MobileChatPanel's close-X, which is at
-          // `end` for both directions.
-          'fixed start-3 z-[400] flex items-center gap-content-gap-xs',
-          'h-9 max-w-[70vw] sm:max-w-xs px-3 rounded-full',
+          // `end` for both directions. Hamburger-only per spec — the
+          // lesson title lives inside the dropdown instead.
+          'fixed start-3 z-[400] flex items-center justify-center',
+          'h-9 w-9 rounded-full',
           'bg-card/95 backdrop-blur border border-border shadow-elevation-2',
           'text-foreground hover:bg-muted transition-colors',
         )}
       >
-        <Menu className="w-4 h-4 text-primary shrink-0" />
-        <span className="text-body-xs font-bold text-foreground truncate">{lessonTitle}</span>
+        <Menu className="w-4 h-4 text-primary" />
       </button>
 
       <AnimatePresence>

@@ -13,6 +13,7 @@ import { Card } from '@/ui/web/components/card'
 import { CheckCircle2, Loader2 } from 'lucide-react'
 import type { CheckResult } from '../../types'
 import { FeedbackDisplay } from '../FeedbackDisplay'
+import { QuestionNotebook } from '../QuestionNotebook'
 
 const EASE_OUT = [0.25, 0.46, 0.45, 0.94] as const
 
@@ -31,6 +32,15 @@ interface QuestionCardProps {
   dir?: 'ltr' | 'rtl'
   /** Optional help system UI (hint/guiding/solution buttons) */
   helpSystem?: React.ReactNode
+  /**
+   * When provided, renders a per-block drawing notebook (toggle button +
+   * inline `AskDrawingCanvas`) at the bottom of the card. The value is
+   * passed as the tutor-prompt title so the AI knows which question the
+   * drawing belongs to. Omit for blocks that don't need a notebook
+   * (interactive SVG hotspots — the geometry/axis blocks don't use
+   * `QuestionCard` at all).
+   */
+  notebookContextTitle?: string
   /** Delay for staggered entrance animation (seconds) */
   animationDelay?: number
   /**
@@ -59,6 +69,7 @@ export function QuestionCard({
   questionLabel,
   dir = 'ltr',
   helpSystem,
+  notebookContextTitle,
   animationDelay = 0,
   variant = 'card',
 }: QuestionCardProps) {
@@ -163,6 +174,12 @@ export function QuestionCard({
             </AnimatePresence>
           </div>
         )}
+
+        {/* Per-block drawing notebook — opt-in via `notebookContextTitle`.
+            Rendered here (below the action row) so the toggle sits at the
+            bottom of the card and the canvas expands the card downward,
+            mirroring the Ask page's AskExerciseCard layout. */}
+        {notebookContextTitle && <QuestionNotebook contextTitle={notebookContextTitle} />}
       </Card>
     </motion.div>
   )

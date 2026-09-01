@@ -757,6 +757,13 @@ export function ExerciseRenderer({
           questionLabel={questionLabel}
           dir={dir}
           helpSystem={helpSystemNode}
+          // Every real question type (mcq / true-false / free-response /
+          // table / matching) gets a per-block notebook. Geometry / axis /
+          // multi-axis don't come through this branch — they render via
+          // `GraphWithPrompt` above and never wrap in `QuestionCard`.
+          // Title is a hint for the tutor prompt; exercise-level context
+          // is already injected by the chat's exercise-context wrapper.
+          notebookContextTitle={`Section ${questionLabel}`}
           animationDelay={nextIndex * 0.08}
           variant={questionCardVariant}
         >
