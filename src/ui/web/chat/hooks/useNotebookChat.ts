@@ -6,6 +6,7 @@ import {
   formatExerciseWelcomeMessage,
 } from '@/infra/llm/exercise-context'
 import { IMAGE_REJECTED_TAG } from '@/server/chat-assets/constants'
+import { uploadDataUrlAsMedia } from '@/infra/media/uploadDataUrl'
 import { SYSTEM_EVENTS, systemEventBus } from '@/infra/system-events'
 
 import { logger } from '@/infra/utils/logger'
@@ -936,31 +937,7 @@ export function useNotebookChat({
     const context = { exerciseId, lessonId, chapterId, courseId, categoryId }
 
     try {
-      // Convert data URL to Blob then File
-      const [header, data] = imageDataUrl.split(',')
-      const mime = header.match(/:(.*?);/)?.[1] || 'image/png'
-      const binary = atob(data)
-      const bytes = new Uint8Array(binary.length)
-      for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i)
-      }
-      const file = new File([new Blob([bytes], { type: mime })], 'solution.png', { type: mime })
-
-      // Upload to media endpoint
-      const formData = new FormData()
-      formData.append('file', file)
-      const response = await fetch('/api/media', {
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
-      })
-
-      if (!response.ok) {
-        throw new Error('Media upload failed')
-      }
-
-      const doc = await response.json()
-      const mediaId = doc.doc?.id || doc.id
+      const mediaId = await uploadDataUrlAsMedia(imageDataUrl, 'solution.png')
 
       // Send canvas drawing + any additional media (e.g. exercise image)
       const allMediaIds = [mediaId, ...(additionalMediaIds ?? [])]

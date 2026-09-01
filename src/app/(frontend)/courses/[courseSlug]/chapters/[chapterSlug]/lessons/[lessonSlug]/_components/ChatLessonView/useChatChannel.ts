@@ -69,7 +69,7 @@ export function useChatChannel({
   const sendingRef = useRef(false)
 
   const runRequest = useCallback(
-    async (message: string, showUserBubble: boolean) => {
+    async (message: string, showUserBubble: boolean, mediaIds?: string[]) => {
       if (sendingRef.current) return
       sendingRef.current = true
       setIsSending(true)
@@ -103,6 +103,7 @@ export function useChatChannel({
             acknowledgment,
             lessonId,
             exerciseId: currentExerciseId ?? undefined,
+            mediaIds: mediaIds && mediaIds.length > 0 ? mediaIds : undefined,
           }),
         })
 
@@ -225,7 +226,22 @@ export function useChatChannel({
     [runRequest],
   )
 
-  return { send, requestCorrection, isSending }
+  /**
+   * Invisible-prompt variant that also attaches uploaded media (drawing
+   * from the notebook, an exercise image, etc.). Used by the notebook
+   * "Check solution" bridge — no student bubble, just the AI reply that
+   * compares the drawing against the question.
+   */
+  const requestWithMedia = useCallback(
+    (prompt: string, mediaIds: string[]) => {
+      const text = prompt.trim()
+      if (!text) return
+      void runRequest(text, false, mediaIds)
+    },
+    [runRequest],
+  )
+
+  return { send, requestCorrection, requestWithMedia, isSending }
 }
 
 interface SseFrame {

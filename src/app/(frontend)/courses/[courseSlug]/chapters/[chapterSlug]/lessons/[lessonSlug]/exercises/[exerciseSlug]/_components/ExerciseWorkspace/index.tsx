@@ -191,9 +191,11 @@ export function ExerciseWorkspace({
         isFullscreen={isFullscreen}
       />
 
-      {/* Handwritten notebook — demo phase: always shown in interactive
-          exercises, per-pathname localStorage, no server persistence. */}
-      <Notebook storageKey={`interactive:${pathname}`} />
+      {/* Drawing notebook — same canvas as the Ask page; check-solution
+          dispatches `ask-action` which ChatInterface handles by uploading
+          the drawing and asking the tutor to compare it against the
+          question. */}
+      <Notebook contextTitle={exerciseTitle} />
     </div>
   )
 }

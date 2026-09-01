@@ -2,6 +2,8 @@
 
 import type { Exercise, Media } from '@/infra/types/content'
 import { formatExerciseContextMessage } from '@/infra/llm/exercise-context'
+import { uploadDataUrlAsMedia } from '@/infra/media/uploadDataUrl'
+import { logger } from '@/infra/utils/logger'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Notebook } from '@/ui/web/notebook'
@@ -79,13 +81,7 @@ interface ActiveChatProps extends ChatLessonRunnerViewProps {
   onExit: () => void
 }
 
-function ActiveChat({
-  lessonTitle: _lessonTitle,
-  lessonId,
-  exercises,
-  mediaMap,
-  onExit,
-}: ActiveChatProps) {
+function ActiveChat({ lessonTitle, lessonId, exercises, mediaMap, onExit }: ActiveChatProps) {
   const t = useTranslations('courses')
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const tts = useBrowserTTS()
@@ -244,6 +240,42 @@ function ActiveChat({
     scrollRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [entries.length])
 
+  // Bridge for the notebook's "Check solution" button. The `<Notebook>`
+  // dispatches an `ask-action` CustomEvent (same contract as the Ask
+  // page); we upload the PNG data URL via the shared `uploadDataUrlAsMedia`
+  // helper and hand the resulting media id to `chat.requestWithMedia`, so
+  // the tutor's reply lands in the stream comparing the drawing against
+  // the current section. No student bubble is shown — the tap on Check
+  // isn't an utterance, matching the Ask-page pattern.
+  const chatErrorText = t('chatViewChatError')
+  useEffect(() => {
+    const handler = async (e: Event) => {
+      const detail = (e as CustomEvent).detail as {
+        type: 'hint' | 'solution' | 'check'
+        title?: string
+        imageData?: string
+      }
+      if (detail.type !== 'check' || !detail.imageData) return
+
+      try {
+        const mediaId = await uploadDataUrlAsMedia(detail.imageData, 'notebook.png')
+        chat.requestWithMedia(
+          `The student drew a solution on the notebook canvas for "${detail.title ?? 'this exercise'}". Look at the attached image and tell them whether their approach and answer look correct. Be encouraging and supportive.`,
+          [mediaId],
+        )
+      } catch (error) {
+        logger.error({ err: error }, 'Notebook check-solution upload failed')
+        append({
+          key: `e-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          kind: 'chat-error',
+          text: chatErrorText,
+        })
+      }
+    }
+    window.addEventListener('ask-action', handler)
+    return () => window.removeEventListener('ask-action', handler)
+  }, [chat, append, chatErrorText])
+
   const handleReset = useCallback(() => {
     cancelPendingAdvance()
     tts.cancel()
@@ -304,9 +336,12 @@ function ActiveChat({
         ttsSupported={tts.supported}
       />
 
-      {/* Handwritten notebook — demo phase: one scratchpad per lesson,
-          client-side only. FAB lifted above the chat input row. */}
-      <Notebook storageKey={`chat:${lessonId}`} fabClassName="bottom-24" />
+      {/* Drawing notebook — same canvas as the Ask page. Check-solution
+          dispatches `ask-action`; the effect above uploads the drawing to
+          /api/media and pipes it into the chat via `requestWithMedia` so
+          the tutor can compare the student's work against the current
+          section. FAB lifted above the pinned chat input row. */}
+      <Notebook contextTitle={lessonTitle} fabClassName="bottom-24" />
     </>
   )
 }
