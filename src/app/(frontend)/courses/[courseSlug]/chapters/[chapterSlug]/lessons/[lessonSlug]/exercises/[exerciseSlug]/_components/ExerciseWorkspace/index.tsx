@@ -5,7 +5,6 @@ import { cn } from '@/infra/utils/ui'
 import type { FormulaSheet } from '@/infra/types/content'
 import { type MobileExerciseViewMode, SplitPaneLayout } from '@/ui/web/components/split-pane-layout'
 import { LessonMenu, useLessonMenuConfig } from '@/ui/web/lesson-menu'
-import { Notebook } from '@/ui/web/notebook'
 import { X } from 'lucide-react'
 import React, { useCallback, useState, type ReactElement } from 'react'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
@@ -133,13 +132,10 @@ export function ExerciseWorkspace({
         onMobileModeChange={handleMobileModeChange}
       />
 
-      {/* Drawing notebook — mounted only when `chatContent` is present,
-          because Check-solution dispatches an `ask-action` CustomEvent
-          only `ChatInterface` listens for. `ChatLessonView` doesn't
-          pass `chatContent`; it embeds its OWN <Notebook> inside
-          ChatLessonRunnerView (with a separate FAB offset for the pinned
-          chat input row), so it's covered without a workspace mount. */}
-      {chatContent && <Notebook contextTitle={exerciseTitle} />}
+      {/* Global floating notebook FAB is gone — notebooks are now
+          attached per question block via `QuestionCard.notebookContextTitle`
+          so each question has its own toggle + inline canvas, matching
+          the Ask page's `AskExerciseCard` pattern. */}
     </div>
   )
 }

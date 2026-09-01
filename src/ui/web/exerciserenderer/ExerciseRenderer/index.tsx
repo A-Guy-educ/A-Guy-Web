@@ -140,6 +140,7 @@ export function ExerciseRenderer({
   hideBatchCheckButton = false,
   checkAllTrigger,
   questionCardVariant = 'card',
+  showNotebook = false,
 }: ExerciseRendererProps) {
   const t = useTranslations('courses')
   const locale = useLocale()
@@ -585,6 +586,11 @@ export function ExerciseRenderer({
         const svgDisabled = svgResult?.isCorrect
         return {
           node: (
+            // Intentionally NO `notebookContextTitle` — interactive SVG
+            // hotspots have no `hint` / `solution` fields (see
+            // `SvgBlock` in `types.ts`), so per boss's spec they're
+            // outside the notebook set alongside geometry / axis. Add
+            // the prop here later if the block gains hint/solution.
             <QuestionCard
               key={svgBlock.id}
               showCheckButton={showCheckAnswer}
@@ -757,6 +763,18 @@ export function ExerciseRenderer({
           questionLabel={questionLabel}
           dir={dir}
           helpSystem={helpSystemNode}
+          // Every real question type (mcq / true-false / free-response /
+          // table / matching) gets a per-block notebook when the caller
+          // opted in via `showNotebook`. Geometry / axis / multi-axis
+          // don't come through this branch — they render via
+          // `GraphWithPrompt` above and never wrap in `QuestionCard`.
+          // Interactive-SVG hotspots use the earlier `QuestionCard`
+          // branch (line ~588) and intentionally skip the notebook
+          // because they have no hint/solution fields to complement it.
+          // The label is a bare token (Hebrew letter or Latin index) —
+          // the tutor prompt already gets full exercise context from
+          // the chat's exercise-context wrapper.
+          notebookContextTitle={showNotebook ? questionLabel : undefined}
           animationDelay={nextIndex * 0.08}
           variant={questionCardVariant}
         >

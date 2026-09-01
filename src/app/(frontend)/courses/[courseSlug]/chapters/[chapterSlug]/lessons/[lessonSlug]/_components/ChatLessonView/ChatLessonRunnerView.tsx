@@ -6,7 +6,6 @@ import { uploadDataUrlAsMedia } from '@/infra/media/uploadDataUrl'
 import { logger } from '@/infra/utils/logger'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Notebook } from '@/ui/web/notebook'
 import { ChatInputPanel } from './ChatInputPanel'
 import { ChatLessonProgress } from './ChatLessonProgress'
 import { ChatLessonStartCard } from './ChatLessonStartCard'
@@ -81,7 +80,7 @@ interface ActiveChatProps extends ChatLessonRunnerViewProps {
   onExit: () => void
 }
 
-function ActiveChat({ lessonTitle, lessonId, exercises, mediaMap, onExit }: ActiveChatProps) {
+function ActiveChat({ lessonId, exercises, mediaMap, onExit }: ActiveChatProps) {
   const t = useTranslations('courses')
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const tts = useBrowserTTS()
@@ -341,12 +340,9 @@ function ActiveChat({ lessonTitle, lessonId, exercises, mediaMap, onExit }: Acti
         ttsSupported={tts.supported}
       />
 
-      {/* Drawing notebook — same canvas as the Ask page. Check-solution
-          dispatches `ask-action`; the effect above uploads the drawing to
-          /api/media and pipes it into the chat via `requestWithMedia` so
-          the tutor can compare the student's work against the current
-          section. FAB lifted above the pinned chat input row. */}
-      <Notebook contextTitle={lessonTitle} fabClassName="bottom-24" />
+      {/* No global notebook FAB — each question block owns its own
+          notebook via `QuestionCard.notebookContextTitle`. The
+          ask-action listener above still picks up their dispatches. */}
     </>
   )
 }

@@ -204,6 +204,7 @@ export function LessonPager({
                         exerciseId={exercise.id}
                         showExerciseNumber={exercise.showQuestionNumbering ?? false}
                         hideLatexBlocks={hideLatexBlocks}
+                        showNotebook={showChat}
                       />
                     </div>
                   </motion.div>
@@ -400,7 +401,7 @@ export function LessonPager({
             <div className="flex-1 overflow-y-auto min-h-0 pb-4">
               <div className="w-full h-full flex flex-col min-h-0">
                 {hasMultipleFiles && (
-                  <div className="flex items-center justify-center gap-2 py-3 text-body-sm text-muted-foreground">
+                  <div className="flex items-center justify-center gap-content-gap-xs py-3 text-body-sm text-muted-foreground">
                     <FileText className="w-4 h-4" />
                     <span>
                       {currentPdfFileIndex + 1} / {validFiles.length}

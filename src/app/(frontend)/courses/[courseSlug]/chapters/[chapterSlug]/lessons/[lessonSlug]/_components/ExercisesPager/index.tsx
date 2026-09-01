@@ -329,6 +329,11 @@ export function ExercisesPager({
                         lessonId={lessonId}
                         exerciseId={currentExercise.id}
                         showExerciseNumber={currentExercise.showQuestionNumbering ?? false}
+                        // The workspace only mounts a chat surface when
+                        // `showChat` is true — mirror that so the per-
+                        // block notebook button doesn't appear without a
+                        // listener to hear its ask-action dispatches.
+                        showNotebook={showChat}
                         onResultsChange={handleExerciseResultsChange}
                         hideLatexBlocks={hideLatexBlocks}
                       />
