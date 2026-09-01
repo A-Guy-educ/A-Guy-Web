@@ -18,7 +18,6 @@ interface SplitPaneLayoutProps {
   maxSize?: number
   mobileMode?: MobileExerciseViewMode
   onMobileModeChange?: (mode: MobileExerciseViewMode) => void
-  isFullscreen?: boolean
 }
 
 type ChatCloneProps = {
@@ -53,7 +52,6 @@ export function SplitPaneLayout({
   maxSize = 80,
   mobileMode,
   onMobileModeChange,
-  isFullscreen = false,
 }: SplitPaneLayoutProps) {
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   const [internalMobileMode, setInternalMobileMode] =
@@ -271,14 +269,7 @@ export function SplitPaneLayout({
   return (
     <div
       ref={containerRef}
-      className={cn(
-        'flex-1 overflow-hidden bg-muted/40',
-        isFullscreen && '[&_.exercise-bottom-nav]:hidden',
-        isFullscreen && '[&_.exercise-header-tabs]:hidden',
-        isFullscreen && '[&_.exercise-top-progress]:hidden',
-        isFullscreen && '[&_.exercise-breadcrumb]:hidden',
-        className,
-      )}
+      className={cn('flex-1 overflow-hidden bg-muted/40', className)}
       data-mobile-mode={activeMobileMode}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}

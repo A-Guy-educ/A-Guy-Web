@@ -68,7 +68,10 @@ export function Notebook({ contextTitle, mediaId, fabClassName }: NotebookProps)
           },
         }),
       )
-      setOpen(false)
+      // Intentionally do NOT close the drawer here — the student may want
+      // to iterate on the same drawing after reading the tutor's reply.
+      // The aside is also always mounted (see below) so even if we did
+      // close, `AskDrawingCanvas` would keep its stroke state alive.
     },
     [contextTitle, mediaId, t],
   )
@@ -92,42 +95,54 @@ export function Notebook({ contextTitle, mediaId, fabClassName }: NotebookProps)
         <NotebookPen className="w-5 h-5" />
       </button>
 
+      {/* Backdrop stays inside AnimatePresence — we WANT it to unmount
+          on close so it stops catching pointer events. */}
       <AnimatePresence>
         {open && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setOpen(false)}
-              className="fixed inset-0 z-[350] bg-black/30"
-            />
-            <motion.aside
-              initial={{ x: enterOffset }}
-              animate={{ x: 0 }}
-              exit={{ x: enterOffset }}
-              transition={{ type: 'tween', duration: 0.25 }}
-              className="fixed inset-y-0 end-0 z-[360] w-full max-w-md bg-card border-s border-border shadow-elevation-4 flex flex-col overflow-y-auto"
-            >
-              <header className="flex items-center justify-between p-3 border-b border-border">
-                <h2 className="text-body-md font-semibold text-foreground">{t('title')}</h2>
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  aria-label={t('close')}
-                  className="p-1.5 rounded-md hover:bg-muted transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </header>
-
-              <div className="flex-1 min-h-0 px-3 pb-3">
-                <AskDrawingCanvas onCheckSolution={handleCheckSolution} />
-              </div>
-            </motion.aside>
-          </>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setOpen(false)}
+            className="fixed inset-0 z-[350] bg-black/30"
+          />
         )}
       </AnimatePresence>
+
+      {/* Drawer aside is ALWAYS mounted so `AskDrawingCanvas` keeps its
+          in-canvas strokes across close/reopen cycles (and across a
+          Check-solution roundtrip). We slide it off-screen and turn off
+          pointer events + aria visibility when closed instead of
+          unmounting. The inline `transform` handles the SSR / pre-
+          hydration frame so the drawer never flashes visible before
+          framer-motion takes over. */}
+      <motion.aside
+        initial={false}
+        animate={{ x: open ? 0 : enterOffset }}
+        transition={{ type: 'tween', duration: 0.25 }}
+        aria-hidden={!open}
+        style={{
+          pointerEvents: open ? 'auto' : 'none',
+          transform: open ? undefined : `translateX(${enterOffset})`,
+        }}
+        className="fixed inset-y-0 end-0 z-[360] w-full max-w-md bg-card border-s border-border shadow-elevation-4 flex flex-col overflow-y-auto"
+      >
+        <header className="flex items-center justify-between p-3 border-b border-border">
+          <h2 className="text-body-md font-semibold text-foreground">{t('title')}</h2>
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            aria-label={t('close')}
+            className="p-1.5 rounded-md hover:bg-muted transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </header>
+
+        <div className="flex-1 min-h-0 px-3 pb-3">
+          <AskDrawingCanvas onCheckSolution={handleCheckSolution} />
+        </div>
+      </motion.aside>
     </>
   )
 }

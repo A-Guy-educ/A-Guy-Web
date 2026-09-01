@@ -45,6 +45,11 @@ export function ChatLessonView({
       exerciseTitle={lessonTitle}
       backUrl={backUrl}
       formulaSheet={formulaSheet}
+      // No `chatContent` here — ChatLessonRunnerView is embedded in
+      // `primaryContent` and mounts its OWN <Notebook> once the student
+      // clicks Start (see ChatLessonRunnerView.tsx). Do NOT opt the
+      // workspace-level Notebook back in here or you'll double up FABs
+      // in ActiveChat.
       primaryContent={
         <div className="flex h-full flex-col">
           {headerSlot}

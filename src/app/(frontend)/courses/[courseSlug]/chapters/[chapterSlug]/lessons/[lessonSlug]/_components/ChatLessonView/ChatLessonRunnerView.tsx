@@ -247,19 +247,24 @@ function ActiveChat({ lessonTitle, lessonId, exercises, mediaMap, onExit }: Acti
   // the tutor's reply lands in the stream comparing the drawing against
   // the current section. No student bubble is shown — the tap on Check
   // isn't an utterance, matching the Ask-page pattern.
+  // Destructure only the piece we actually need so the effect below doesn't
+  // detach + re-attach on every unrelated `chat` object change (identity
+  // shifts whenever `isSending` flips).
+  const { requestWithMedia } = chat
   const chatErrorText = t('chatViewChatError')
   useEffect(() => {
     const handler = async (e: Event) => {
-      const detail = (e as CustomEvent).detail as {
-        type: 'hint' | 'solution' | 'check'
-        title?: string
-        imageData?: string
-      }
-      if (detail.type !== 'check' || !detail.imageData) return
+      // `ask-action` is a bare CustomEvent on `window`; anything on the page
+      // could dispatch a plain Event with no `.detail`. Guard before use.
+      const detail = (e as CustomEvent).detail as
+        | { type?: string; title?: string; imageData?: string }
+        | null
+        | undefined
+      if (!detail || detail.type !== 'check' || !detail.imageData) return
 
       try {
         const mediaId = await uploadDataUrlAsMedia(detail.imageData, 'notebook.png')
-        chat.requestWithMedia(
+        requestWithMedia(
           `The student drew a solution on the notebook canvas for "${detail.title ?? 'this exercise'}". Look at the attached image and tell them whether their approach and answer look correct. Be encouraging and supportive.`,
           [mediaId],
         )
@@ -274,7 +279,7 @@ function ActiveChat({ lessonTitle, lessonId, exercises, mediaMap, onExit }: Acti
     }
     window.addEventListener('ask-action', handler)
     return () => window.removeEventListener('ask-action', handler)
-  }, [chat, append, chatErrorText])
+  }, [requestWithMedia, append, chatErrorText])
 
   const handleReset = useCallback(() => {
     cancelPendingAdvance()
