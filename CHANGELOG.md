@@ -4552,6 +4552,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Gate per-block notebook on admin's showNotebook opt-in ([#1145](https://github.com/A-Guy-educ/A-Guy-Web/pull/1145)) — @aguyshayb
 - feat: Attach notebook per question block; hamburger-only LessonMenu button ([#1144](https://github.com/A-Guy-educ/A-Guy-Web/pull/1144)) — @aguyshayb
 - feat: Floating lesson menu replaces exercise header + tab bar ([#1143](https://github.com/A-Guy-educ/A-Guy-Web/pull/1143)) — @aguyshayb
 - feat: Notebook v2 — reuse Ask-page canvas, wire Check-solution into both chats ([#1142](https://github.com/A-Guy-educ/A-Guy-Web/pull/1142)) — @aguyshayb
