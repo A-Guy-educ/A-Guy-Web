@@ -308,6 +308,9 @@ export function ExerciseSectionBubble({
           exerciseId={exercise.id}
           hideLatexBlocks
           questionCardVariant="flat"
+          // Always on inside the chat runner — ChatLessonRunnerView owns
+          // the ask-action listener regardless of block variant.
+          showNotebook
           onResultsChange={questionCount > 0 ? handleAggregateResults : undefined}
         />
       )}

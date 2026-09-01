@@ -2,6 +2,7 @@
 
 import { cn } from '@/infra/utils/ui'
 import { RichTextRenderer } from '@/ui/web/exerciserenderer/blocks/RichTextRenderer'
+import { QuestionNotebook } from '@/ui/web/exerciserenderer/components/QuestionNotebook'
 import type { QuestionFreeResponseBlock } from '@/ui/web/exerciserenderer/types'
 import { Send } from 'lucide-react'
 import { useMemo, useState } from 'react'
@@ -98,6 +99,12 @@ export function ChatFreeResponseBubble({
           <span className="hidden sm:inline">{sendLabel}</span>
         </button>
       </form>
+
+      {/* Per-block notebook — mirrors the QuestionCard wiring so chat-
+          native questions (which bypass QuestionCard entirely) still get
+          a drawing surface. `ChatLessonRunnerView` already listens for
+          the ask-action event on window. */}
+      <QuestionNotebook contextTitle={questionLabel ?? block.id} />
     </div>
   )
 }

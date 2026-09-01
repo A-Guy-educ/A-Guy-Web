@@ -2,6 +2,7 @@
 
 import { cn } from '@/infra/utils/ui'
 import { RichTextRenderer } from '@/ui/web/exerciserenderer/blocks/RichTextRenderer'
+import { QuestionNotebook } from '@/ui/web/exerciserenderer/components/QuestionNotebook'
 import type {
   InlineRichText,
   QuestionSelectBlock,
@@ -113,6 +114,11 @@ export function ChatQuestionSelectBubble({
           )
         })}
       </div>
+
+      {/* Per-block notebook — chat-native questions bypass QuestionCard,
+          so we attach the toggle here directly. Uses the same ask-action
+          bridge as QuestionCard's version. */}
+      <QuestionNotebook contextTitle={questionLabel ?? block.id} />
     </div>
   )
 }

@@ -272,4 +272,13 @@ export interface ExerciseRendererProps {
    *   inside a teacher bubble.
    */
   questionCardVariant?: 'card' | 'flat'
+  /**
+   * Whether to attach the per-question drawing notebook (toggle + inline
+   * `AskDrawingCanvas`) to each question block. Defaults to `false`
+   * because Check-solution dispatches an `ask-action` CustomEvent that
+   * only `ChatInterface` / `ChatLessonRunnerView` listen for — if the
+   * caller isn't mounting one of those, the button would silently
+   * no-op. Set `true` only when a chat surface is on the page.
+   */
+  showNotebook?: boolean
 }
