@@ -5,7 +5,7 @@ import { cn } from '@/infra/utils/ui'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { AnimatePresence, motion } from 'framer-motion'
 import { NotebookPen } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 /**
  * `ChatInterface` (interactive view) and `ChatLessonRunnerView` (chat view)
@@ -20,6 +20,14 @@ const ASK_ACTION_EVENT = 'ask-action'
 interface QuestionNotebookProps {
   /** Label the tutor prompt uses to identify which block was submitted. */
   contextTitle: string
+  /**
+   * Locks the notebook toggle. Used by chat-view bubbles so a click on a
+   * scroll-back (historical) bubble can't dispatch a Check for an old
+   * question letter while the walker is now on a different step — the
+   * chat channel binds to the CURRENT step, so the tutor would cite the
+   * wrong section otherwise.
+   */
+  disabled?: boolean
 }
 
 /**
@@ -30,9 +38,18 @@ interface QuestionNotebookProps {
  * pattern so the two flows share the same drawing UX and the same
  * `ask-action` dispatch. No more floating FAB — each block has its own.
  */
-export function QuestionNotebook({ contextTitle }: QuestionNotebookProps) {
+export function QuestionNotebook({ contextTitle, disabled }: QuestionNotebookProps) {
   const t = useTranslations('notebook')
   const [open, setOpen] = useState(false)
+
+  // Fold the drawer if the parent transitions to disabled while it's open
+  // (e.g. the student answers the current section and the walker moves on
+  // — this bubble becomes historical). Keeps state in sync with the
+  // freshly-locked toggle so the canvas doesn't linger open on a bubble
+  // that can no longer submit.
+  useEffect(() => {
+    if (disabled) setOpen(false)
+  }, [disabled])
 
   const handleCheckSolution = useCallback(
     (imageData: string) => {
@@ -56,12 +73,14 @@ export function QuestionNotebook({ contextTitle }: QuestionNotebookProps) {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-label={open ? t('close') : t('open')}
+        disabled={disabled}
         className={cn(
           'inline-flex items-center gap-content-gap-xs px-3 py-1.5 rounded-full',
           'text-body-xs font-semibold transition-colors',
           open
             ? 'bg-primary text-primary-foreground hover:bg-primary/90'
             : 'bg-primary/10 text-primary hover:bg-primary/20',
+          'disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-primary/10',
         )}
       >
         <NotebookPen className="w-3.5 h-3.5" />

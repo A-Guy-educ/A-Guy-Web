@@ -308,9 +308,12 @@ export function ExerciseSectionBubble({
           exerciseId={exercise.id}
           hideLatexBlocks
           questionCardVariant="flat"
-          // Always on inside the chat runner — ChatLessonRunnerView owns
-          // the ask-action listener regardless of block variant.
-          showNotebook
+          // Only enable on the walker's current step — scroll-back
+          // (historical) bubbles keep the notebook hidden so a stray
+          // Check-solution click can't dispatch a drawing that
+          // ChatLessonRunnerView would then attribute to whatever
+          // section the walker is on RIGHT NOW.
+          showNotebook={isActive}
           onResultsChange={questionCount > 0 ? handleAggregateResults : undefined}
         />
       )}

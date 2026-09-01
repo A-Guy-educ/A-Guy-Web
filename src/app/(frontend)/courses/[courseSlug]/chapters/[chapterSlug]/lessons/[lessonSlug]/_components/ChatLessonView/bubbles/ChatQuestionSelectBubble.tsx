@@ -117,8 +117,11 @@ export function ChatQuestionSelectBubble({
 
       {/* Per-block notebook — chat-native questions bypass QuestionCard,
           so we attach the toggle here directly. Uses the same ask-action
-          bridge as QuestionCard's version. */}
-      <QuestionNotebook contextTitle={questionLabel ?? block.id} />
+          bridge as QuestionCard's version. `disabled` mirrors the answer
+          input's lock so scroll-back bubbles can't dispatch Check-solution
+          against the walker's current step (which would cite the wrong
+          section letter). */}
+      <QuestionNotebook contextTitle={questionLabel ?? block.id} disabled={disabled} />
     </div>
   )
 }

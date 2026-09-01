@@ -102,9 +102,10 @@ export function ChatFreeResponseBubble({
 
       {/* Per-block notebook — mirrors the QuestionCard wiring so chat-
           native questions (which bypass QuestionCard entirely) still get
-          a drawing surface. `ChatLessonRunnerView` already listens for
-          the ask-action event on window. */}
-      <QuestionNotebook contextTitle={questionLabel ?? block.id} />
+          a drawing surface. `disabled` follows the input lock so
+          scroll-back bubbles can't dispatch Check-solution against the
+          walker's current step (which would cite the wrong section). */}
+      <QuestionNotebook contextTitle={questionLabel ?? block.id} disabled={isDisabled} />
     </div>
   )
 }
