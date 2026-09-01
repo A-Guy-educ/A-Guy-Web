@@ -133,11 +133,13 @@ export function ExerciseWorkspace({
         onMobileModeChange={handleMobileModeChange}
       />
 
-      {/* Drawing notebook — same canvas as the Ask page; check-solution
-          dispatches `ask-action` which ChatInterface handles by uploading
-          the drawing and asking the tutor to compare it against the
-          question. */}
-      <Notebook contextTitle={exerciseTitle} />
+      {/* Drawing notebook — mounted only when a chat surface is present,
+          because Check-solution dispatches an `ask-action` CustomEvent
+          that only `ChatInterface` / `ChatLessonRunnerView` listen for.
+          On EmptyLessonPlaceholder paths (no exercises, no chat), the
+          drawing button would fire an event nobody hears and the student
+          would get no feedback. */}
+      {chatContent && <Notebook contextTitle={exerciseTitle} />}
     </div>
   )
 }

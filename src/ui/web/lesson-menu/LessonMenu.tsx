@@ -90,7 +90,10 @@ export function LessonMenu({
         aria-label={t('lessonViewMode')}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-controls={PANEL_ID}
+        // Only advertise the panel when it's actually in the DOM
+        // (`AnimatePresence` unmounts it on close). A dangling
+        // `aria-controls` reference confuses some AT vendors.
+        aria-controls={open ? PANEL_ID : undefined}
         style={{ top: 'calc(0.5rem + env(safe-area-inset-top))' }}
         className={cn(
           // Sits at logical `start` (top-left LTR, top-right RTL) so it
