@@ -2,6 +2,8 @@
 
 import type { Exercise, Media } from '@/infra/types/content'
 import { formatExerciseContextMessage } from '@/infra/llm/exercise-context'
+import { uploadDataUrlAsMedia } from '@/infra/media/uploadDataUrl'
+import { logger } from '@/infra/utils/logger'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Notebook } from '@/ui/web/notebook'
@@ -240,11 +242,12 @@ function ActiveChat({ lessonTitle, lessonId, exercises, mediaMap, onExit }: Acti
 
   // Bridge for the notebook's "Check solution" button. The `<Notebook>`
   // dispatches an `ask-action` CustomEvent (same contract as the Ask
-  // page); we upload the PNG data URL to /api/media and send an invisible
-  // prompt asking the tutor to compare the drawing against the current
-  // section. The chat channel's `requestWithMedia` handles the attachment
-  // via the stream endpoint's `mediaIds` field — no user bubble appears,
-  // only the AI's response.
+  // page); we upload the PNG data URL via the shared `uploadDataUrlAsMedia`
+  // helper and hand the resulting media id to `chat.requestWithMedia`, so
+  // the tutor's reply lands in the stream comparing the drawing against
+  // the current section. No student bubble is shown — the tap on Check
+  // isn't an utterance, matching the Ask-page pattern.
+  const chatErrorText = t('chatViewChatError')
   useEffect(() => {
     const handler = async (e: Event) => {
       const detail = (e as CustomEvent).detail as {
@@ -255,36 +258,23 @@ function ActiveChat({ lessonTitle, lessonId, exercises, mediaMap, onExit }: Acti
       if (detail.type !== 'check' || !detail.imageData) return
 
       try {
-        const [header, data] = detail.imageData.split(',')
-        const mime = header.match(/:(.*?);/)?.[1] || 'image/png'
-        const binary = atob(data)
-        const bytes = new Uint8Array(binary.length)
-        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
-        const file = new File([new Blob([bytes], { type: mime })], 'notebook.png', { type: mime })
-
-        const formData = new FormData()
-        formData.append('file', file)
-        const response = await fetch('/api/media', {
-          method: 'POST',
-          credentials: 'include',
-          body: formData,
-        })
-        if (!response.ok) return
-        const doc = await response.json()
-        const mediaId = doc.doc?.id || doc.id
-        if (!mediaId) return
-
+        const mediaId = await uploadDataUrlAsMedia(detail.imageData, 'notebook.png')
         chat.requestWithMedia(
           `The student drew a solution on the notebook canvas for "${detail.title ?? 'this exercise'}". Look at the attached image and tell them whether their approach and answer look correct. Be encouraging and supportive.`,
           [mediaId],
         )
-      } catch {
-        // Silent — the chat channel surfaces its own errors when it retries.
+      } catch (error) {
+        logger.error({ err: error }, 'Notebook check-solution upload failed')
+        append({
+          key: `e-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          kind: 'chat-error',
+          text: chatErrorText,
+        })
       }
     }
     window.addEventListener('ask-action', handler)
     return () => window.removeEventListener('ask-action', handler)
-  }, [chat])
+  }, [chat, append, chatErrorText])
 
   const handleReset = useCallback(() => {
     cancelPendingAdvance()
