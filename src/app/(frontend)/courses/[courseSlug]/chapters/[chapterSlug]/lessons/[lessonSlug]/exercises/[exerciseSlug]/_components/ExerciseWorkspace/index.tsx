@@ -4,6 +4,7 @@ import { isRTL } from '@/i18n/config'
 import { cn } from '@/infra/utils/ui'
 import type { FormulaSheet } from '@/infra/types/content'
 import { type MobileExerciseViewMode, SplitPaneLayout } from '@/ui/web/components/split-pane-layout'
+import { LessonMenu, useLessonMenuConfig } from '@/ui/web/lesson-menu'
 import { Notebook } from '@/ui/web/notebook'
 import { X } from 'lucide-react'
 import React, { useCallback, useState, type ReactElement } from 'react'
@@ -70,6 +71,9 @@ function MobileChatPanel({
 
 interface ExerciseWorkspaceProps {
   exerciseTitle: string
+  /** Human-readable label for the floating LessonMenu pill (falls back to `exerciseTitle`). */
+  lessonTitle?: string
+  /** URL used by the LessonMenu back button when the browser has no history to pop. */
   backUrl?: string
   primaryContent: React.ReactNode
   chatContent?: React.ReactNode
@@ -83,7 +87,8 @@ interface ExerciseWorkspaceProps {
 
 export function ExerciseWorkspace({
   exerciseTitle,
-  backUrl: _backUrl,
+  lessonTitle,
+  backUrl,
   primaryContent,
   chatContent,
 }: ExerciseWorkspaceProps) {
@@ -93,13 +98,22 @@ export function ExerciseWorkspace({
     setMobileMode(mode)
   }, [])
 
+  // View-mode config (tabs / active / onSelect) is provided by
+  // DualModeLessonView via `LessonMenuProvider`. When there's no provider
+  // (Ask page mounts ExerciseWorkspace directly), the menu falls back to
+  // its back-only variant — so students on `/ask` still get a way out of
+  // the fixed-inset workspace overlay.
+  const menuConfig = useLessonMenuConfig()
+
   return (
     <div className="fixed inset-0 bg-background z-[200] flex flex-col overflow-hidden">
-      {/* Site header / logo row and the old tab bar are gone — the
-          floating LessonMenu (mounted by DualModeLessonView) surfaces
-          lesson title + view-mode switcher + back navigation instead.
-          Mobile fullscreen mode was removed with the header — the only
-          entry point (Maximize2 in ExerciseHeader) went away with it. */}
+      <LessonMenu
+        lessonTitle={lessonTitle ?? exerciseTitle}
+        tabs={menuConfig?.tabs}
+        activeMode={menuConfig?.activeMode}
+        onSelectMode={menuConfig?.onSelectMode}
+        backUrl={backUrl}
+      />
 
       <SplitPaneLayout
         primaryContent={primaryContent}

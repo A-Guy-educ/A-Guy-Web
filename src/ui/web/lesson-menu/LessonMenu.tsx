@@ -2,8 +2,8 @@
 
 import { isRTL } from '@/i18n/config'
 import { useRouterWithLoading } from '@/infra/loading/hooks/useRouterWithLoading'
+import type { LessonMode } from '@/infra/types/lesson-view'
 import { cn } from '@/infra/utils/ui'
-import type { LessonMode } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/DualModeLessonView/useLessonViewMode'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, BookOpen, Check, Menu } from 'lucide-react'
@@ -32,17 +32,23 @@ export interface LessonMenuTab {
 
 interface LessonMenuProps {
   lessonTitle: string
-  /** Ordered list of view-mode tabs the current lesson permits. */
-  tabs: LessonMenuTab[]
-  activeMode: LessonMode
-  onSelectMode: (mode: LessonMode) => void
+  /**
+   * Ordered list of view-mode tabs the current lesson permits. Empty (or
+   * length-1) collapses the dropdown to a lesson-name header + back
+   * button — the Ask page uses this variant since it has no view modes.
+   */
+  tabs?: LessonMenuTab[]
+  activeMode?: LessonMode
+  onSelectMode?: (mode: LessonMode) => void
   /** Optional fallback URL when the browser's back history is empty. */
   backUrl?: string
 }
 
+const PANEL_ID = 'lesson-menu-panel'
+
 export function LessonMenu({
   lessonTitle,
-  tabs,
+  tabs = [],
   activeMode,
   onSelectMode,
   backUrl,
@@ -82,7 +88,9 @@ export function LessonMenu({
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label={t('lessonViewMode')}
+        aria-haspopup="menu"
         aria-expanded={open}
+        aria-controls={PANEL_ID}
         style={{ top: 'calc(0.5rem + env(safe-area-inset-top))' }}
         className={cn(
           'fixed end-3 z-[400] flex items-center gap-content-gap-xs',
@@ -111,6 +119,7 @@ export function LessonMenu({
               exit={{ opacity: 0, y: -6, scale: 0.98 }}
               transition={{ duration: 0.15 }}
               role="menu"
+              id={PANEL_ID}
               style={{ top: 'calc(3rem + env(safe-area-inset-top))' }}
               className={cn(
                 'fixed end-3 z-[420] w-72 max-w-[calc(100vw-1.5rem)]',
@@ -129,8 +138,10 @@ export function LessonMenu({
                 </div>
               </div>
 
-              {/* View-mode switcher */}
-              {tabs.length > 1 && (
+              {/* View-mode switcher — hidden when the lesson has 0 or 1
+                  mode (nothing to switch between), or when the caller
+                  didn't wire `onSelectMode` (Ask page). */}
+              {tabs.length > 1 && onSelectMode && (
                 <div className="flex flex-col gap-1">
                   {tabs.map((tab) => {
                     const active = tab.mode === activeMode

@@ -24,7 +24,14 @@ export async function uploadDataUrlAsMedia(dataUrl: string, filename: string): P
     throw new Error('Malformed data URL')
   }
   const mime = header.match(/:(.*?);/)?.[1] || 'image/png'
-  const binary = atob(data)
+  let binary: string
+  try {
+    binary = atob(data)
+  } catch (error) {
+    throw new Error(
+      `Malformed base64 payload in data URL: ${error instanceof Error ? error.message : String(error)}`,
+    )
+  }
   const bytes = new Uint8Array(binary.length)
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
   const file = new File([new Blob([bytes], { type: mime })], filename, { type: mime })

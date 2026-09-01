@@ -17,7 +17,7 @@ import React, { useEffect, useMemo } from 'react'
 import type { Exercise, FormulaSheet, Media as MediaType } from '@/infra/types/content'
 import type { ResolvedLessonBlock } from '@/server/repos/queries/lesson-blocks'
 import { ChatInterface } from '@/ui/web/chat'
-import { LessonMenu, type LessonMenuTab } from '@/ui/web/lesson-menu'
+import { LessonMenuProvider, type LessonMenuTab } from '@/ui/web/lesson-menu'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { BlocksDocumentLessonView } from '../BlocksDocumentLessonView'
 import { ChatLessonView } from '../ChatLessonView'
@@ -154,43 +154,33 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
     visibleTabs.chat && { mode: 'chat' as const, label: t('lessonViewModeChat') },
   ].filter((tab): tab is LessonMenuTab => tab !== false)
 
-  const lessonMenu = (
-    <LessonMenu
-      lessonTitle={lessonTitle}
-      tabs={menuTabs}
-      activeMode={effectiveMode}
-      onSelectMode={select}
-      backUrl={backUrl}
-    />
-  )
-
-  if (effectiveMode === 'media') {
-    return (
-      <section>
+  // The LessonMenu itself is mounted by `ExerciseWorkspace` (so the Ask
+  // page — which mounts `ExerciseWorkspace` outside this component — still
+  // gets a back-only pill). We just publish the view-mode config here so
+  // ExerciseWorkspace's context lookup picks it up regardless of which
+  // sub-view (interactive / chat / media / test) is currently rendered.
+  const body = (() => {
+    if (effectiveMode === 'media') {
+      return (
         <MediaTabContent
           lessonTitle={lessonTitle}
           backUrl={backUrl}
           lessonId={lessonId}
           validFiles={validFiles}
           courseSlug={courseSlug}
-          headerSlot={lessonMenu}
           showChat={showChat}
           chatLessonId={chatLessonId}
           formulaSheet={formulaSheet}
         />
-      </section>
-    )
-  }
-
-  if (effectiveMode === 'pdf') {
-    return (
-      <section>
+      )
+    }
+    if (effectiveMode === 'pdf') {
+      return (
         <BlocksDocumentLessonView
           lessonTitle={lessonTitle}
           backUrl={backUrl}
           exercises={exercises}
           mediaMap={mediaMap}
-          headerSlot={lessonMenu}
           chatContent={
             showChat ? (
               <ChatInterface
@@ -202,13 +192,10 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
             ) : null
           }
         />
-      </section>
-    )
-  }
-
-  if (effectiveMode === 'chat') {
-    return (
-      <section>
+      )
+    }
+    if (effectiveMode === 'chat') {
+      return (
         <ChatLessonView
           lessonTitle={lessonTitle}
           backUrl={backUrl}
@@ -216,15 +203,11 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
           exercises={exercises}
           mediaMap={mediaMap}
           formulaSheet={formulaSheet}
-          headerSlot={lessonMenu}
         />
-      </section>
-    )
-  }
-
-  if (interactive.kind === 'blocks') {
-    return (
-      <section>
+      )
+    }
+    if (interactive.kind === 'blocks') {
+      return (
         <ExercisesPager
           exercises={exercises}
           blocks={interactive.blocks}
@@ -239,18 +222,14 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
           mediaMap={mediaMap}
           showChat={showChat}
           formulaSheet={formulaSheet}
-          headerSlot={lessonMenu}
           hideLatexBlocks
           initialExerciseIndex={initialExerciseIndex}
           nextLesson={nextLesson}
         />
-      </section>
-    )
-  }
-
-  if (effectiveMode === 'test') {
-    return (
-      <section>
+      )
+    }
+    if (effectiveMode === 'test') {
+      return (
         <TestViewRenderer
           lessonTitle={lessonTitle}
           backUrl={backUrl}
@@ -262,16 +241,12 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
           mediaMap={mediaMap}
           showChat={showChat}
           formulaSheet={formulaSheet}
-          headerSlot={lessonMenu}
           hideLatexBlocks
           nextLesson={nextLesson}
         />
-      </section>
-    )
-  }
-
-  return (
-    <section>
+      )
+    }
+    return (
       <ExercisesPager
         exercises={interactive.exercises}
         lessonTitle={lessonTitle}
@@ -284,11 +259,16 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
         mediaMap={mediaMap}
         showChat={showChat}
         formulaSheet={formulaSheet}
-        headerSlot={lessonMenu}
         hideLatexBlocks
         initialExerciseIndex={initialExerciseIndex}
         nextLesson={nextLesson}
       />
-    </section>
+    )
+  })()
+
+  return (
+    <LessonMenuProvider value={{ tabs: menuTabs, activeMode: effectiveMode, onSelectMode: select }}>
+      {body}
+    </LessonMenuProvider>
   )
 }

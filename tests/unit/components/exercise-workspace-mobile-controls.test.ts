@@ -22,10 +22,6 @@ describe('ExerciseWorkspace mobile controls contract', () => {
     'utf8',
   )
 
-  it('keeps the current repo mobile menu event', () => {
-    expect(workspaceSource).toContain("new CustomEvent('open-mobile-menu')")
-  })
-
   // The mobile "Unified Help" panel that used to host <FormulaSheetContent>
   // inside ExerciseWorkspace was removed with the HelpCircle FAB. Formula
   // sheet is now reachable via ChatInterface's own FormulaSheetButton inside
@@ -35,29 +31,33 @@ describe('ExerciseWorkspace mobile controls contract', () => {
     expect(pagerSource).toContain('formulaSheet={formulaSheet}')
   })
 
-  it('marks bottom navigation so fullscreen can hide it', () => {
-    expect(pagerSource).toContain('exercise-bottom-nav')
-    expect(pagerSource).toContain('exercise-header-tabs')
-    expect(pagerSource).toContain('exercise-top-progress')
-    expect(pagerSource).toContain('exercise-breadcrumb')
-    expect(splitPaneSource).toContain("isFullscreen && '[&_.exercise-bottom-nav]:hidden'")
-    expect(splitPaneSource).toContain("isFullscreen && '[&_.exercise-header-tabs]:hidden'")
-    expect(splitPaneSource).toContain("isFullscreen && '[&_.exercise-top-progress]:hidden'")
-    expect(splitPaneSource).toContain("isFullscreen && '[&_.exercise-breadcrumb]:hidden'")
+  it('no longer wires the mobile fullscreen toggle (retired with the exercise header)', () => {
+    // The `isFullscreen` prop + its four hidden-class selectors were
+    // dropped from SplitPaneLayout when the mobile Maximize2 entry point
+    // went away with ExerciseHeader. Pinned so the dead code doesn't
+    // quietly get re-added.
+    expect(splitPaneSource).not.toContain('isFullscreen')
   })
 
-  it('renders a mobile-only back-to-exercise header inside the chat panel', () => {
+  it('mounts the floating LessonMenu instead of the old title/back chrome', () => {
+    // The desktop ExerciseHeader (title + logo row) and the mobile
+    // floating back arrow were both replaced by <LessonMenu> mounted
+    // inside ExerciseWorkspace. The LessonMenu handles back navigation +
+    // view-mode switching from a single fixed pill.
+    expect(workspaceSource).toContain('<LessonMenu')
+    expect(workspaceSource).toContain('useLessonMenuConfig()')
+  })
+
+  it('keeps the mobile chat back-to-exercise button inside the chat panel', () => {
     const en = readFileSync(path.join(process.cwd(), 'src/i18n/en.json'), 'utf8')
     const he = readFileSync(path.join(process.cwd(), 'src/i18n/he.json'), 'utf8')
     expect(en).toMatch(/"backToExercise":\s*"back to exercise"/)
     expect(he).toMatch(/"backToExercise":\s*"חזור לתרגיל"/)
 
-    expect(workspaceSource).toContain('lg:hidden')
+    // MobileChatPanel still hosts an X button that flips mobileMode back
+    // to 'exercise' — that's how the student escapes the mobile chat pane.
     expect(workspaceSource).toContain("t('backToExercise')")
-
     expect(workspaceSource).toContain("onBackToExercise={() => handleMobileModeChange('exercise')}")
-    expect(workspaceSource).not.toMatch(/backToExercise.*router\.back/)
-    expect(workspaceSource).not.toMatch(/backToExercise.*router\.push/)
   })
 
   it('does not modify the forbidden files', () => {

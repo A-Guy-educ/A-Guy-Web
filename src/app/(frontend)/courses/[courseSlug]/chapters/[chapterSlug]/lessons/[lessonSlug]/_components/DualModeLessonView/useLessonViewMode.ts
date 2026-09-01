@@ -1,8 +1,9 @@
 'use client'
 
+import type { LessonMode } from '@/infra/types/lesson-view'
 import { useCallback, useEffect, useState } from 'react'
 
-export type LessonMode = 'media' | 'pdf' | 'interactive' | 'test' | 'chat'
+export type { LessonMode } from '@/infra/types/lesson-view'
 
 const STORAGE_PREFIX = 'lesson-view-mode:'
 
