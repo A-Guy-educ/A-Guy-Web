@@ -85,11 +85,10 @@ export function LessonMenu({
         aria-expanded={open}
         style={{ top: 'calc(0.5rem + env(safe-area-inset-top))' }}
         className={cn(
-          'fixed z-[400] flex items-center gap-content-gap-xs',
+          'fixed end-3 z-[400] flex items-center gap-content-gap-xs',
           'h-9 max-w-[70vw] sm:max-w-xs px-3 rounded-full',
           'bg-card/95 backdrop-blur border border-border shadow-elevation-2',
           'text-foreground hover:bg-muted transition-colors',
-          rtl ? 'end-3' : 'end-3',
         )}
       >
         <Menu className="w-4 h-4 text-primary shrink-0" />
@@ -114,10 +113,9 @@ export function LessonMenu({
               role="menu"
               style={{ top: 'calc(3rem + env(safe-area-inset-top))' }}
               className={cn(
-                'fixed z-[420] w-72 max-w-[calc(100vw-1.5rem)]',
+                'fixed end-3 z-[420] w-72 max-w-[calc(100vw-1.5rem)]',
                 'bg-card border border-border shadow-elevation-4 rounded-2xl p-3',
                 'flex flex-col gap-3',
-                rtl ? 'end-3' : 'end-3',
               )}
             >
               {/* Lesson name section */}

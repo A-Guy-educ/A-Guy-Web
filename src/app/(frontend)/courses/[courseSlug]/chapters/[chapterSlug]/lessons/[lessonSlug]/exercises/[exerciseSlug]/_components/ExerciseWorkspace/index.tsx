@@ -5,7 +5,7 @@ import { cn } from '@/infra/utils/ui'
 import type { FormulaSheet } from '@/infra/types/content'
 import { type MobileExerciseViewMode, SplitPaneLayout } from '@/ui/web/components/split-pane-layout'
 import { Notebook } from '@/ui/web/notebook'
-import { Minimize2, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import React, { useCallback, useState, type ReactElement } from 'react'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 
@@ -88,38 +88,18 @@ export function ExerciseWorkspace({
   chatContent,
 }: ExerciseWorkspaceProps) {
   const [mobileMode, setMobileMode] = useState<MobileExerciseViewMode>('exercise')
-  const [isFullscreen, setIsFullscreen] = useState(false)
 
   const handleMobileModeChange = useCallback((mode: MobileExerciseViewMode) => {
     setMobileMode(mode)
   }, [])
 
-  const handleFullscreenToggle = useCallback(() => {
-    setIsFullscreen((value) => !value)
-  }, [])
-
   return (
-    <div
-      className={cn(
-        'fixed inset-0 bg-background z-[200] flex flex-col overflow-hidden',
-        isFullscreen && 'bg-background',
-      )}
-      data-exercise-fullscreen={isFullscreen}
-    >
+    <div className="fixed inset-0 bg-background z-[200] flex flex-col overflow-hidden">
       {/* Site header / logo row and the old tab bar are gone — the
           floating LessonMenu (mounted by DualModeLessonView) surfaces
-          lesson title + view-mode switcher + back navigation instead. */}
-
-      {isFullscreen && (
-        <button
-          type="button"
-          onClick={handleFullscreenToggle}
-          className="fixed top-4 right-4 z-[120] flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card/90 text-foreground shadow-dropdown backdrop-blur transition-colors duration-normal hover:bg-muted lg:hidden"
-          aria-label="Collapse exercise view"
-        >
-          <Minimize2 className="w-5 h-5" />
-        </button>
-      )}
+          lesson title + view-mode switcher + back navigation instead.
+          Mobile fullscreen mode was removed with the header — the only
+          entry point (Maximize2 in ExerciseHeader) went away with it. */}
 
       <SplitPaneLayout
         primaryContent={primaryContent}
@@ -137,7 +117,6 @@ export function ExerciseWorkspace({
         className="flex-1"
         mobileMode={mobileMode}
         onMobileModeChange={handleMobileModeChange}
-        isFullscreen={isFullscreen}
       />
 
       {/* Drawing notebook — same canvas as the Ask page; check-solution
