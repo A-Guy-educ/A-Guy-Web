@@ -77,13 +77,6 @@ interface ExerciseWorkspaceProps {
   backUrl?: string
   primaryContent: React.ReactNode
   chatContent?: React.ReactNode
-  /**
-   * Explicit opt-in for the drawing notebook when a chat listener lives
-   * elsewhere on the page (e.g. `ChatLessonView` embeds its own listener
-   * inside `primaryContent`, not as `chatContent`). Defaults to
-   * `Boolean(chatContent)`, which covers every other caller.
-   */
-  hasChatListener?: boolean
   // Accepted for API compatibility with existing callers. The mobile "Help"
   // panel that consumed these was removed — hint/guiding/formula/notes are
   // now surfaced through the exercise renderer's own controls.
@@ -98,7 +91,6 @@ export function ExerciseWorkspace({
   backUrl,
   primaryContent,
   chatContent,
-  hasChatListener,
 }: ExerciseWorkspaceProps) {
   const [mobileMode, setMobileMode] = useState<MobileExerciseViewMode>('exercise')
 
@@ -141,13 +133,13 @@ export function ExerciseWorkspace({
         onMobileModeChange={handleMobileModeChange}
       />
 
-      {/* Drawing notebook — mounted only when a chat surface is on the
-          page to hear the `ask-action` event. Defaults to the presence
-          of `chatContent`; `ChatLessonView` embeds its listener inside
-          `primaryContent` instead, so it opts in explicitly via
-          `hasChatListener`. Empty-lesson placeholder paths pass neither,
-          so the drawing button (which nobody would hear) stays hidden. */}
-      {(hasChatListener ?? Boolean(chatContent)) && <Notebook contextTitle={exerciseTitle} />}
+      {/* Drawing notebook — mounted only when `chatContent` is present,
+          because Check-solution dispatches an `ask-action` CustomEvent
+          only `ChatInterface` listens for. `ChatLessonView` doesn't
+          pass `chatContent`; it embeds its OWN <Notebook> inside
+          ChatLessonRunnerView (with a separate FAB offset for the pinned
+          chat input row), so it's covered without a workspace mount. */}
+      {chatContent && <Notebook contextTitle={exerciseTitle} />}
     </div>
   )
 }

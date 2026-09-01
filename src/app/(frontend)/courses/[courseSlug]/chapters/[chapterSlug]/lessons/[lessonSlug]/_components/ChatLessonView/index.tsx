@@ -45,11 +45,11 @@ export function ChatLessonView({
       exerciseTitle={lessonTitle}
       backUrl={backUrl}
       formulaSheet={formulaSheet}
-      // The ask-action listener lives inside `ChatLessonRunnerView`
-      // (embedded in `primaryContent`), not in a separate `chatContent`
-      // prop — so the workspace can't infer chat presence from props.
-      // Opt in explicitly so the drawing notebook FAB mounts.
-      hasChatListener
+      // No `chatContent` here — ChatLessonRunnerView is embedded in
+      // `primaryContent` and mounts its OWN <Notebook> once the student
+      // clicks Start (see ChatLessonRunnerView.tsx). Do NOT opt the
+      // workspace-level Notebook back in here or you'll double up FABs
+      // in ActiveChat.
       primaryContent={
         <div className="flex h-full flex-col">
           {headerSlot}
