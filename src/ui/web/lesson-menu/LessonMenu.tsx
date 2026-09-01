@@ -93,7 +93,10 @@ export function LessonMenu({
         aria-controls={PANEL_ID}
         style={{ top: 'calc(0.5rem + env(safe-area-inset-top))' }}
         className={cn(
-          'fixed end-3 z-[400] flex items-center gap-content-gap-xs',
+          // Sits at logical `start` (top-left LTR, top-right RTL) so it
+          // doesn't collide with MobileChatPanel's close-X, which is at
+          // `end` for both directions.
+          'fixed start-3 z-[400] flex items-center gap-content-gap-xs',
           'h-9 max-w-[70vw] sm:max-w-xs px-3 rounded-full',
           'bg-card/95 backdrop-blur border border-border shadow-elevation-2',
           'text-foreground hover:bg-muted transition-colors',
@@ -122,7 +125,10 @@ export function LessonMenu({
               id={PANEL_ID}
               style={{ top: 'calc(3rem + env(safe-area-inset-top))' }}
               className={cn(
-                'fixed end-3 z-[420] w-72 max-w-[calc(100vw-1.5rem)]',
+                // Anchored to the same edge as the trigger pill above so
+                // the dropdown lines up cleanly with the button that
+                // opened it.
+                'fixed start-3 z-[420] w-72 max-w-[calc(100vw-1.5rem)]',
                 'bg-card border border-border shadow-elevation-4 rounded-2xl p-3',
                 'flex flex-col gap-3',
               )}

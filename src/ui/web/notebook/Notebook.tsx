@@ -113,13 +113,18 @@ export function Notebook({ contextTitle, mediaId, fabClassName }: NotebookProps)
           in-canvas strokes across close/reopen cycles (and across a
           Check-solution roundtrip). We slide it off-screen and turn off
           pointer events + aria visibility when closed instead of
-          unmounting. */}
+          unmounting. The inline `transform` handles the SSR / pre-
+          hydration frame so the drawer never flashes visible before
+          framer-motion takes over. */}
       <motion.aside
         initial={false}
         animate={{ x: open ? 0 : enterOffset }}
         transition={{ type: 'tween', duration: 0.25 }}
         aria-hidden={!open}
-        style={{ pointerEvents: open ? 'auto' : 'none' }}
+        style={{
+          pointerEvents: open ? 'auto' : 'none',
+          transform: open ? undefined : `translateX(${enterOffset})`,
+        }}
         className="fixed inset-y-0 end-0 z-[360] w-full max-w-md bg-card border-s border-border shadow-elevation-4 flex flex-col overflow-y-auto"
       >
         <header className="flex items-center justify-between p-3 border-b border-border">
