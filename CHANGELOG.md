@@ -4590,6 +4590,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.34.1 ([#1157](https://github.com/A-Guy-educ/A-Guy-Web/pull/1157)) — @aguyshayb
 - fix(auth): Try every payload-token cookie so a stale variant doesn't lock users out ([#1156](https://github.com/A-Guy-educ/A-Guy-Web/pull/1156)) — @aguyshayb
 - chore: Release v0.34.0 ([#1154](https://github.com/A-Guy-educ/A-Guy-Web/pull/1154)) — @aguyshayb
 - feat: Auto-check single-select MCQ and inline exercise given-data ([#1153](https://github.com/A-Guy-educ/A-Guy-Web/pull/1153)) — @aguyshayb
