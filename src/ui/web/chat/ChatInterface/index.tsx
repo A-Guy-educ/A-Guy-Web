@@ -18,7 +18,6 @@ import {
   RefreshCw,
   RotateCcw,
   Send,
-  Sparkles,
   X,
 } from 'lucide-react'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
@@ -345,19 +344,6 @@ export function ChatInterface({
   const [formulaComposerOpen, setFormulaComposerOpen] = useState(false)
   const [formulaSheetOpen, setFormulaSheetOpen] = useState(false)
   const [isChatInputFocused, setIsChatInputFocused] = useState(false)
-  const [plusMenuOpen, setPlusMenuOpen] = useState(false)
-  const plusMenuRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!plusMenuOpen) return undefined
-    const handleClickOutside = (e: MouseEvent) => {
-      if (plusMenuRef.current && !plusMenuRef.current.contains(e.target as Node)) {
-        setPlusMenuOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [plusMenuOpen])
 
   const handleFormulaInsert = useCallback(
     (latex: string) => {
@@ -437,7 +423,7 @@ export function ChatInterface({
     <div className="flex flex-col h-full min-h-0">
       {/* Header with optional reset button and teacher profile badge */}
       {showResetButton && (
-        <div className="flex items-center justify-between px-3 py-2 sm:px-4">
+        <div className="flex items-center justify-between p-3 border-b border-border">
           <div className="flex items-center gap-content-gap-xs">
             <h3 className="font-medium text-body-sm text-foreground">{tCourses('chatTitle')}</h3>
             {teacherProfileLabel && (
@@ -451,7 +437,7 @@ export function ChatInterface({
               <button
                 onClick={handleReset}
                 disabled={isLoading}
-                className="flex items-center gap-1 text-body-xs text-muted-foreground hover:text-foreground bg-muted/60 hover:bg-muted rounded-full px-2.5 py-1 transition-all duration-normal disabled:opacity-disabled disabled:cursor-not-allowed"
+                className="flex items-center gap-1 text-body-xs text-muted-foreground hover:text-foreground transition-all duration-normal disabled:opacity-disabled disabled:cursor-not-allowed"
                 title={tCourses('chatReset')}
               >
                 <RefreshCw className="w-3 h-3" />
@@ -477,7 +463,7 @@ export function ChatInterface({
       <div
         ref={messagesContainerRef}
         className={cn(
-          'flex-grow overflow-y-auto px-3 sm:px-5 pt-4 pb-2 space-y-3 min-h-0',
+          'flex-grow overflow-y-auto p-5 space-y-4 min-h-0',
           displayMode === 'input-only' && 'hidden',
           formulaSheetOpen && 'hidden',
         )}
@@ -498,124 +484,105 @@ export function ChatInterface({
               <div
                 key={msg.id}
                 className={cn(
-                  'flex items-start gap-content-gap-xs animate-in fade-in-0 duration-normal',
-                  isAssistant ? 'justify-start' : 'justify-end',
+                  'max-w-[95%] px-[18px] py-3.5 text-body-md leading-relaxed shadow-elevation-1 animate-in fade-in-0 duration-normal',
+                  msg.role === ChatMessageRole.User
+                    ? 'ms-auto bg-primary text-primary-foreground rounded-chat-lg rounded-bl-[4px]'
+                    : 'me-auto bg-card text-foreground border border-border rounded-chat-lg rounded-br-[4px]',
+                  isCurrentlyPlaying && 'ring-2 ring-primary/30',
                 )}
               >
-                {isAssistant && (
-                  <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0 shadow-elevation-1 mt-0.5">
-                    <Sparkles className="w-3 h-3" />
-                  </div>
-                )}
-                <div
-                  className={cn(
-                    'max-w-[85%] px-4 py-3 text-body-md leading-relaxed shadow-elevation-1',
-                    isAssistant
-                      ? 'bg-card text-foreground border border-border rounded-2xl rounded-tl-md'
-                      : 'bg-primary text-primary-foreground rounded-2xl rounded-tr-md',
-                    isCurrentlyPlaying && 'ring-2 ring-primary/30',
-                  )}
-                >
-                  {msg.media && msg.media.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mb-2">
-                      {msg.media.map((mediaItem) => (
-                        <div
-                          key={mediaItem.mediaId}
-                          className={cn(
-                            'inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-body-xs',
-                            msg.role === ChatMessageRole.User
-                              ? 'bg-primary-foreground/20'
-                              : 'bg-muted',
-                          )}
-                        >
-                          <ImageIcon className="w-3 h-3" />
-                          <span className="max-w-[120px] truncate">
-                            {mediaItem.filename || mediaItem.mediaId}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {msg.chatAssets && msg.chatAssets.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mb-2">
-                      {msg.chatAssets.map((asset) => (
-                        <div
-                          key={asset.chatAssetId}
-                          className={cn(
-                            'inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-body-xs',
-                            msg.role === ChatMessageRole.User
-                              ? 'bg-primary-foreground/20'
-                              : 'bg-muted',
-                          )}
-                        >
-                          <FileUp className="w-3 h-3" />
-                          <span className="max-w-[120px] truncate">
-                            {asset.filename || asset.chatAssetId}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {msg.stepContext && (
-                    <div className="flex flex-wrap gap-1.5 mb-2">
+                {msg.media && msg.media.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {msg.media.map((mediaItem) => (
                       <div
+                        key={mediaItem.mediaId}
                         className={cn(
                           'inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-body-xs',
                           msg.role === ChatMessageRole.User
                             ? 'bg-primary-foreground/20'
                             : 'bg-muted',
                         )}
-                        title={msg.stepContext.stepTitle || undefined}
                       >
-                        <Play className="w-3 h-3" />
-                        <span className="max-w-[200px] truncate">
-                          {tCourses('chatStepContextBadge')
-                            .replace('{current}', String(msg.stepContext.currentStepId))
-                            .replace('{total}', String(msg.stepContext.totalSteps))}
-                          {msg.stepContext.stepTitle ? `: ${msg.stepContext.stepTitle}` : ''}
+                        <ImageIcon className="w-3 h-3" />
+                        <span className="max-w-[120px] truncate">
+                          {mediaItem.filename || mediaItem.mediaId}
                         </span>
                       </div>
+                    ))}
+                  </div>
+                )}
+                {msg.chatAssets && msg.chatAssets.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {msg.chatAssets.map((asset) => (
+                      <div
+                        key={asset.chatAssetId}
+                        className={cn(
+                          'inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-body-xs',
+                          msg.role === ChatMessageRole.User
+                            ? 'bg-primary-foreground/20'
+                            : 'bg-muted',
+                        )}
+                      >
+                        <FileUp className="w-3 h-3" />
+                        <span className="max-w-[120px] truncate">
+                          {asset.filename || asset.chatAssetId}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {msg.stepContext && (
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    <div
+                      className={cn(
+                        'inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-body-xs',
+                        msg.role === ChatMessageRole.User ? 'bg-primary-foreground/20' : 'bg-muted',
+                      )}
+                      title={msg.stepContext.stepTitle || undefined}
+                    >
+                      <Play className="w-3 h-3" />
+                      <span className="max-w-[200px] truncate">
+                        {tCourses('chatStepContextBadge')
+                          .replace('{current}', String(msg.stepContext.currentStepId))
+                          .replace('{total}', String(msg.stepContext.totalSteps))}
+                        {msg.stepContext.stepTitle ? `: ${msg.stepContext.stepTitle}` : ''}
+                      </span>
                     </div>
-                  )}
-                  <ChatMessageView
-                    content={msg.content}
-                    onChoice={handleViewChoice}
-                    disabled={isLoading}
+                  </div>
+                )}
+                <ChatMessageView
+                  content={msg.content}
+                  onChoice={handleViewChoice}
+                  disabled={isLoading}
+                />
+                {isAssistant && (
+                  <TTSButton
+                    isPlaying={isCurrentlyPlaying}
+                    isPaused={isPaused && isCurrentlyPlaying}
+                    currentRate={currentRate}
+                    onToggle={() => speak(messageId, msg.content)}
+                    onPause={pause}
+                    onResume={resume}
+                    onSetRate={setRate}
+                    labelPlay={tCourses('chatReadAloud')}
+                    labelStop={tCourses('chatStopReading')}
+                    labelPause={tCourses('chatPause')}
+                    labelResume={tCourses('chatResume')}
+                    labelSpeed={tCourses('chatSpeed')}
                   />
-                  {isAssistant && (
-                    <TTSButton
-                      isPlaying={isCurrentlyPlaying}
-                      isPaused={isPaused && isCurrentlyPlaying}
-                      currentRate={currentRate}
-                      onToggle={() => speak(messageId, msg.content)}
-                      onPause={pause}
-                      onResume={resume}
-                      onSetRate={setRate}
-                      labelPlay={tCourses('chatReadAloud')}
-                      labelStop={tCourses('chatStopReading')}
-                      labelPause={tCourses('chatPause')}
-                      labelResume={tCourses('chatResume')}
-                      labelSpeed={tCourses('chatSpeed')}
-                    />
-                  )}
-                  {adminMode && msg.createdAt && (
-                    <span className="block mt-1.5 text-body-xs text-muted-foreground">
-                      {formatMessageTime(msg.createdAt, locale)}
-                    </span>
-                  )}
-                </div>
+                )}
+                {adminMode && msg.createdAt && (
+                  <span className="block mt-1.5 text-body-xs text-muted-foreground">
+                    {formatMessageTime(msg.createdAt, locale)}
+                  </span>
+                )}
               </div>
             )
           })}
         {isLoading && (
-          <div className="flex items-start gap-content-gap-xs animate-in fade-in-0 duration-normal">
-            <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0 shadow-elevation-1 mt-0.5">
-              <Sparkles className="w-3 h-3" />
-            </div>
-            <div className="bg-warning/10 text-warning-foreground border border-warning/30 rounded-2xl rounded-tl-md px-4 py-2.5 flex items-center gap-content-gap-xs shadow-elevation-1">
-              <Loader2 className="w-4 h-4 animate-spin text-warning" />
-              <span className="text-body-sm font-medium">{tCourses('chatThinking')}</span>
-            </div>
+          <div className="me-auto bg-card text-foreground border border-border px-[18px] py-3.5 rounded-chat-lg rounded-br-chat-sm max-w-[85%] flex items-center gap-content-gap-xs shadow-elevation-1">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span>{tCourses('chatThinking')}</span>
           </div>
         )}
         <div ref={messagesEndRef} />
@@ -631,11 +598,11 @@ export function ChatInterface({
         </div>
       )}
 
-      {/* Quick Actions — floating pill row */}
+      {/* Quick Actions */}
       {showQuickActions && (
-        <div className="flex gap-content-gap-xs px-3 sm:px-5 pt-2 pb-1 overflow-x-auto">
+        <div className="flex gap-content-gap-xs p-3 border-t border-border">
           <button
-            className="shrink-0 flex items-center gap-1.5 py-1.5 px-3 rounded-full bg-card border border-border hover:bg-muted text-body-sm font-medium shadow-elevation-1 transition-all duration-normal active:scale-95 disabled:opacity-disabled disabled:cursor-not-allowed"
+            className="flex-1 flex items-center justify-center gap-content-gap-xs py-2 px-3 rounded-lg bg-muted hover:bg-muted/80 text-body-sm font-medium transition-all duration-normal disabled:opacity-disabled disabled:cursor-not-allowed"
             onClick={() => handleQuickAction('hint')}
             disabled={isLoading}
           >
@@ -643,7 +610,7 @@ export function ChatInterface({
             <span>{tCourses('chatHint')}</span>
           </button>
           <button
-            className="shrink-0 flex items-center gap-1.5 py-1.5 px-3 rounded-full bg-card border border-border hover:bg-muted text-body-sm font-medium shadow-elevation-1 transition-all duration-normal active:scale-95 disabled:opacity-disabled disabled:cursor-not-allowed"
+            className="flex-1 flex items-center justify-center gap-content-gap-xs py-2 px-3 rounded-lg bg-muted hover:bg-muted/80 text-body-sm font-medium transition-all duration-normal disabled:opacity-disabled disabled:cursor-not-allowed"
             onClick={() => handleQuickAction('solution')}
             disabled={isLoading}
           >
@@ -651,7 +618,7 @@ export function ChatInterface({
             <span>{tCourses('chatSolution')}</span>
           </button>
           <button
-            className="shrink-0 flex items-center gap-1.5 py-1.5 px-3 rounded-full bg-card border border-border hover:bg-muted text-body-sm font-medium shadow-elevation-1 transition-all duration-normal active:scale-95 disabled:opacity-disabled disabled:cursor-not-allowed"
+            className="flex-1 flex items-center justify-center gap-content-gap-xs py-2 px-3 rounded-lg bg-muted hover:bg-muted/80 text-body-sm font-medium transition-all duration-normal disabled:opacity-disabled disabled:cursor-not-allowed"
             onClick={() => handleQuickAction('full')}
             disabled={isLoading}
           >
@@ -683,11 +650,10 @@ export function ChatInterface({
         </div>
       )}
 
-      {/* Input Container — floating pill design, transparent so messages fade behind */}
+      {/* Input Container */}
       <div
         className={cn(
-          'flex-grow-0 flex-shrink-0 relative px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]',
-          'bg-gradient-to-t from-background via-background/92 to-transparent',
+          'flex-grow-0 flex-shrink-0 bg-card border-t border-border p-5 pb-8 relative',
           fabOpen && 'hidden',
         )}
         data-math-controls
@@ -793,14 +759,14 @@ export function ChatInterface({
           </div>
         )}
 
-        {/* Input Wrapper — floating pill */}
+        {/* Input Wrapper */}
         <form onSubmit={handleFormSubmit}>
-          <div className="max-w-chat mx-auto bg-card/95 backdrop-blur-md rounded-full flex items-center px-3 py-1.5 border border-border shadow-card gap-content-gap-xs relative">
+          <div className="max-w-chat mx-auto bg-muted rounded-chat-2xl flex items-center px-4 py-1.5 border border-input gap-3 relative">
             {/* Input — always mounted */}
             <input
               ref={inputRef}
               type="text"
-              className="flex-1 bg-transparent border-none outline-none py-2 px-1 min-w-0 text-chat-input text-foreground placeholder:text-muted-foreground"
+              className="flex-1 bg-transparent border-none outline-none py-2.5 text-chat-input text-foreground placeholder:text-muted-foreground"
               placeholder={t('chatInputPlaceholder')}
               value={inputValue}
               onChange={handleInputChange}
@@ -819,7 +785,7 @@ export function ChatInterface({
             {showChatViewOverlay && (
               <div
                 onClick={switchChatToEditMode}
-                className="absolute inset-y-0 start-3 end-[90px] flex items-center bg-card cursor-text overflow-hidden"
+                className="absolute inset-y-0 start-4 end-[120px] flex items-center bg-muted cursor-text overflow-hidden"
               >
                 <MathMarkdown
                   content={inputValue}
@@ -828,67 +794,39 @@ export function ChatInterface({
               </div>
             )}
 
-            {/* Plus menu — flyout with attach / math options */}
-            <div className="relative shrink-0" ref={plusMenuRef}>
+            {/* Formula button — inside the pill */}
+            {showMathTools && (
               <button
                 type="button"
-                className={cn(
-                  'w-8 h-8 rounded-full bg-muted hover:bg-muted/70 text-muted-foreground hover:text-foreground border border-border flex items-center justify-center transition-all active:scale-90',
-                  isDirectUploading && 'opacity-disabled cursor-not-allowed',
-                )}
-                onClick={() => setPlusMenuOpen((v) => !v)}
-                disabled={isDirectUploading}
-                aria-label={tCourses('chatAttachFile')}
-                aria-expanded={plusMenuOpen}
+                onClick={() => setFormulaComposerOpen(!formulaComposerOpen)}
+                className="p-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
+                title={tCourses('insertFormula')}
               >
-                {isDirectUploading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Plus className="w-4 h-4" />
-                )}
+                <FunctionSquare className="w-5 h-5" />
               </button>
+            )}
 
-              {plusMenuOpen && (
-                <div className="absolute bottom-11 end-0 w-52 bg-card/98 backdrop-blur-md border border-border shadow-card-hover rounded-2xl p-1.5 z-50 space-y-0.5 animate-in fade-in-0 slide-in-from-bottom-1 duration-fast">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPlusMenuOpen(false)
-                      openFilePicker()
-                    }}
-                    disabled={
-                      directUploads.filter((f) => f.status !== 'cancelled' && f.status !== 'failed')
-                        .length >= 5
-                    }
-                    className="w-full flex items-center gap-content-gap-xs.5 px-2.5 py-2 hover:bg-muted active:bg-muted/70 rounded-xl text-start transition-colors disabled:opacity-disabled disabled:cursor-not-allowed"
-                  >
-                    <span className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                      <ImageIcon className="w-4 h-4" />
-                    </span>
-                    <span className="font-medium text-body-sm text-foreground">
-                      {tCourses('chatAttachFile')}
-                    </span>
-                  </button>
-                  {showMathTools && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPlusMenuOpen(false)
-                        setFormulaComposerOpen(true)
-                      }}
-                      className="w-full flex items-center gap-content-gap-xs.5 px-2.5 py-2 hover:bg-muted active:bg-muted/70 rounded-xl text-start transition-colors"
-                    >
-                      <span className="w-7 h-7 rounded-lg bg-warning/15 text-warning flex items-center justify-center shrink-0">
-                        <FunctionSquare className="w-4 h-4" />
-                      </span>
-                      <span className="font-medium text-body-sm text-foreground">
-                        {tCourses('insertFormula')}
-                      </span>
-                    </button>
-                  )}
-                </div>
+            {/* File Upload */}
+            <button
+              type="button"
+              className={cn(
+                'p-1.5 text-muted-foreground hover:text-primary transition-colors',
+                isDirectUploading && 'opacity-disabled cursor-not-allowed',
               )}
-            </div>
+              onClick={openFilePicker}
+              disabled={
+                isDirectUploading ||
+                directUploads.filter((f) => f.status !== 'cancelled' && f.status !== 'failed')
+                  .length >= 5
+              }
+              aria-label={tCourses('chatAttachFile')}
+            >
+              {isDirectUploading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Plus className="w-5 h-5" />
+              )}
+            </button>
             <input
               ref={fileInputRef}
               type="file"
@@ -904,7 +842,7 @@ export function ChatInterface({
             {/* Send Button */}
             <button
               type="submit"
-              className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-input hover:bg-primary/90 transition-all active:scale-90 shrink-0 disabled:opacity-disabled disabled:cursor-not-allowed"
+              className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-input hover:bg-primary/90 transition-all hover:scale-105 disabled:opacity-disabled disabled:cursor-not-allowed"
               disabled={
                 isLoading ||
                 isDirectUploading ||
@@ -913,7 +851,7 @@ export function ChatInterface({
               }
               aria-label={tCourses('sendMessage')}
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-5 h-5" />
             </button>
           </div>
         </form>
