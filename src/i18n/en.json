@@ -440,6 +440,7 @@
     "chatViewGivenDataShow": "Show data",
     "chatViewGivenDataHide": "Hide data",
     "chatViewGivenDataTitle": "Given data",
+    "chatViewGivenDataEmpty": "No additional data for this exercise",
     "chatViewSendLabel": "Send",
     "chatViewAcknowledgment": "One moment...",
     "chatViewChatError": "Chat error — please try again",

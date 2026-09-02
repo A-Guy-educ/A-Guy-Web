@@ -440,6 +440,7 @@
     "chatViewGivenDataShow": "הצג נתונים",
     "chatViewGivenDataHide": "הסתר נתונים",
     "chatViewGivenDataTitle": "נתוני השאלה",
+    "chatViewGivenDataEmpty": "אין נתונים נוספים לתרגיל זה",
     "chatViewSendLabel": "שלח",
     "chatViewAcknowledgment": "רגע, חושב...",
     "chatViewChatError": "שגיאה בצ׳אט — נסה שוב",
