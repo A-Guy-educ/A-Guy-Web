@@ -1,6 +1,7 @@
 'use client'
 
 import type { Exercise, Media } from '@/infra/types/content'
+import type { RichTextBlock } from '@/infra/types/exercise'
 import { formatExerciseContextMessage } from '@/infra/llm/exercise-context'
 import { uploadDataUrlAsMedia } from '@/infra/media/uploadDataUrl'
 import { logger } from '@/infra/utils/logger'
@@ -9,6 +10,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ChatInputPanel } from './ChatInputPanel'
 import { ChatLessonProgress } from './ChatLessonProgress'
 import { ChatLessonStartCard } from './ChatLessonStartCard'
+import { GivenDataFloating } from './GivenDataFloating'
 import { ContinueButton } from './bubbles/ContinueButton'
 import { ExerciseSectionBubble } from './bubbles/ExerciseSectionBubble'
 import { PendingBubble } from './bubbles/PendingBubble'
@@ -288,9 +290,17 @@ function ActiveChat({ lessonId, exercises, mediaMap, onExit }: ActiveChatProps) 
 
   const showContinueButton = !walker.isComplete && entries.length > 0
 
+  // Given-data rich_text blocks for the current section — surfaced by the
+  // floating amber pill so students can re-check the problem statement /
+  // figures at any time without scrolling back to the top of the section.
+  const currentRichTextBlocks = useMemo<RichTextBlock[]>(() => {
+    if (!walker.currentStep) return []
+    return walker.currentStep.group.blocks.filter((b): b is RichTextBlock => b.type === 'rich_text')
+  }, [walker.currentStep])
+
   return (
     <>
-      <main className="flex-1 overflow-y-auto bg-muted px-4 py-section-sm md:px-6 md:py-section-md">
+      <main className="flex-1 overflow-y-auto bg-muted px-4 pt-16 pb-28 md:px-6 md:pt-20 md:pb-32">
         <div className="max-w-2xl mx-auto flex flex-col gap-content-gap" dir="rtl">
           {entries.map((entry) => (
             <StreamEntryView
@@ -338,6 +348,14 @@ function ActiveChat({ lessonId, exercises, mediaMap, onExit }: ActiveChatProps) 
         onToggleMute={tts.toggleMuted}
         muted={tts.muted}
         ttsSupported={tts.supported}
+      />
+
+      <GivenDataFloating
+        richTextBlocks={currentRichTextBlocks}
+        mediaMap={mediaMap}
+        showLabel={t('chatViewGivenDataShow')}
+        hideLabel={t('chatViewGivenDataHide')}
+        title={t('chatViewGivenDataTitle')}
       />
 
       {/* No global notebook FAB — each question block owns its own

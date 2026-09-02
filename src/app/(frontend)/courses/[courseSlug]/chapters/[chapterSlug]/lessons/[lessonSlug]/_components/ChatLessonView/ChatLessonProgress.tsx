@@ -18,6 +18,12 @@ interface ChatLessonProgressProps {
   ttsSupported?: boolean
 }
 
+/**
+ * Floating progress + controls row for the chat-view mode. Positioned as
+ * an absolutely-placed pill at the top of the parent (the primary content
+ * container in ChatLessonView is `relative` so this anchors correctly).
+ * Sits alongside the workspace's LessonMenu without conflicting.
+ */
 export function ChatLessonProgress({
   stepIndex,
   totalSteps,
@@ -42,15 +48,23 @@ export function ChatLessonProgress({
   const showSectionText = currentExerciseSections > 1 && currentSectionOrdinal > 0
 
   return (
-    <div className="border-t border-border bg-card px-4 py-3 print:hidden">
-      <div className="max-w-2xl mx-auto flex items-center gap-3">
-        <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+    <div
+      className="absolute top-3 inset-x-0 z-30 flex items-center justify-center gap-content-gap-xs px-3 pointer-events-none print:hidden"
+      dir="rtl"
+    >
+      {/* Progress pill */}
+      <div
+        className={cn(
+          'pointer-events-auto flex items-center gap-content-gap-xs px-3 py-1.5 rounded-full',
+          'bg-card/95 backdrop-blur-md border border-border shadow-elevation-1',
+        )}
+      >
+        <div className="w-16 sm:w-24 h-1.5 rounded-full bg-muted overflow-hidden">
           <div
             className="h-full bg-primary transition-[width] duration-slow"
             style={{ width: `${percent}%` }}
           />
         </div>
-
         {(showExerciseText || showSectionText) && (
           <span className="hidden sm:inline text-body-xs font-semibold text-muted-foreground tabular-nums whitespace-nowrap">
             {showExerciseText && `${exerciseLabel} ${currentExerciseOrdinal}/${totalExercises}`}
@@ -59,20 +73,22 @@ export function ChatLessonProgress({
               `${sectionLabel} ${currentSectionOrdinal}/${currentExerciseSections}`}
           </span>
         )}
-
-        <span className="text-body-sm font-bold text-primary tabular-nums min-w-[3ch] text-left">
+        <span className="text-body-xs font-bold text-primary tabular-nums whitespace-nowrap">
           {percent}%
         </span>
+      </div>
+
+      {/* Action controls */}
+      <div className="pointer-events-auto flex items-center gap-1.5">
         {ttsSupported && onToggleMute && (
           <button
             type="button"
             onClick={onToggleMute}
             aria-label={muted ? 'הפעל קול' : 'השתק קול'}
             className={cn(
-              'p-2 rounded-lg transition-colors',
-              muted
-                ? 'bg-muted text-muted-foreground'
-                : 'bg-primary/10 text-primary hover:bg-primary/20',
+              'w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90',
+              'bg-card/95 backdrop-blur-md border border-border shadow-elevation-1',
+              muted ? 'text-muted-foreground' : 'text-primary hover:bg-primary/10',
             )}
           >
             {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
@@ -82,7 +98,11 @@ export function ChatLessonProgress({
           type="button"
           onClick={onReset}
           aria-label="התחל מחדש"
-          className="p-2 rounded-lg bg-muted text-muted-foreground hover:text-foreground transition-colors"
+          className={cn(
+            'w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90',
+            'bg-card/95 backdrop-blur-md border border-border shadow-elevation-1',
+            'text-muted-foreground hover:text-foreground',
+          )}
         >
           <RotateCcw className="w-4 h-4" />
         </button>

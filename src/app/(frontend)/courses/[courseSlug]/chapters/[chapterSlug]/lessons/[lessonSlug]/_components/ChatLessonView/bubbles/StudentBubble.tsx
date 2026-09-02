@@ -19,9 +19,8 @@ export function StudentBubble({ text, isCorrect }: StudentBubbleProps) {
   return (
     <div className="flex justify-end">
       <div
-        className={cn('max-w-[85%] rounded-2xl rounded-tl-none px-5 py-3 shadow-elevation-1', tone)}
+        className={cn('max-w-[85%] rounded-2xl rounded-tl-md px-4 py-2.5 shadow-elevation-1', tone)}
       >
-        <div className="text-body-xs font-semibold opacity-80 mb-1">התשובה שלך</div>
         <div className="text-body-md font-medium leading-relaxed">
           <MathMarkdown content={text} />
         </div>
