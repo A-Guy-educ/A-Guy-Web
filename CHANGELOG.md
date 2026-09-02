@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.34.1 — 2026-09-02
+
+### Fixes
+- Try every payload-token cookie so a stale variant doesn't lock users out (#1156)
+
 ## v0.34.0 — 2026-09-02
 
 ### Features
