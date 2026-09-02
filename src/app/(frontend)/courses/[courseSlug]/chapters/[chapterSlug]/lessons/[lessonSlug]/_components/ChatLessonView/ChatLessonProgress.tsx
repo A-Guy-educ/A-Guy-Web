@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@/infra/utils/ui'
-import { RotateCcw, Volume2, VolumeX } from 'lucide-react'
+import { RotateCcw } from 'lucide-react'
 
 interface ChatLessonProgressProps {
   stepIndex: number
@@ -13,16 +13,24 @@ interface ChatLessonProgressProps {
   exerciseLabel: string
   sectionLabel: string
   onReset: () => void
-  onToggleMute?: () => void
-  muted?: boolean
-  ttsSupported?: boolean
 }
 
 /**
- * Floating progress + controls row for the chat-view mode. Positioned as
- * an absolutely-placed pill at the top of the parent (the primary content
- * container in ChatLessonView is `relative` so this anchors correctly).
- * Sits alongside the workspace's LessonMenu without conflicting.
+ * Floating top-row chrome for the chat-view mode. Two absolutely-placed
+ * pieces inside the primary content container (which is `relative`):
+ *
+ *  - Small progress pill on the RTL-end edge (LEFT visually in Hebrew) —
+ *    opposite the workspace's `LessonMenu`, which sits at RTL-start.
+ *  - Plain reset button at `start-14`, sitting NEXT TO the LessonMenu
+ *    (LessonMenu is fixed at `start-3`; button is `w-8` + gap → ~40px
+ *    of clearance, so start-14 lands right beside it).
+ *
+ * Mute lives inside LessonMenu itself (wired via `LessonMenuProvider`)
+ * so this component doesn't need TTS props at all.
+ *
+ * The middle zone is intentionally empty — the given-data pill
+ * (`GivenDataFloating`) occupies it as a separate absolutely-positioned
+ * component.
  */
 export function ChatLessonProgress({
   stepIndex,
@@ -34,79 +42,60 @@ export function ChatLessonProgress({
   exerciseLabel,
   sectionLabel,
   onReset,
-  onToggleMute,
-  muted,
-  ttsSupported,
 }: ChatLessonProgressProps) {
   const clampedIndex = Math.max(0, Math.min(stepIndex, totalSteps - 1))
   const percent = totalSteps > 0 ? Math.round(((clampedIndex + 1) / totalSteps) * 100) : 0
+  const stepDisplay = totalSteps > 0 ? `${clampedIndex + 1}/${totalSteps}` : ''
 
-  // Only show the exercise/section text when there's actually a range to show
-  // — a single-exercise or single-section lesson doesn't benefit from an
-  // "Exercise 1/1" chip and it just adds noise.
   const showExerciseText = totalExercises > 1 && currentExerciseOrdinal > 0
   const showSectionText = currentExerciseSections > 1 && currentSectionOrdinal > 0
 
   return (
-    <div
-      className="absolute top-3 inset-x-0 z-30 flex items-center justify-center gap-content-gap-xs px-3 pointer-events-none print:hidden"
-      dir="rtl"
-    >
-      {/* Progress pill */}
+    <div dir="rtl" className="print:hidden">
+      {/* Progress pill — RTL end (left visually), opposite the LessonMenu */}
       <div
         className={cn(
-          'pointer-events-auto flex items-center gap-content-gap-xs px-3 py-1.5 rounded-full',
+          'absolute top-3 end-3 z-30 pointer-events-auto',
+          'flex items-center gap-1.5 px-2.5 py-1 rounded-full',
           'bg-card/95 backdrop-blur-md border border-border shadow-elevation-1',
         )}
       >
-        <div className="w-16 sm:w-24 h-1.5 rounded-full bg-muted overflow-hidden">
+        <div className="w-12 h-1.5 rounded-full bg-muted overflow-hidden">
           <div
             className="h-full bg-primary transition-[width] duration-slow"
             style={{ width: `${percent}%` }}
           />
         </div>
+        {stepDisplay && (
+          <span className="text-body-2xs font-bold text-primary tabular-nums whitespace-nowrap">
+            {stepDisplay}
+          </span>
+        )}
         {(showExerciseText || showSectionText) && (
-          <span className="hidden sm:inline text-body-xs font-semibold text-muted-foreground tabular-nums whitespace-nowrap">
+          <span className="hidden sm:inline text-body-2xs font-semibold text-muted-foreground tabular-nums whitespace-nowrap">
             {showExerciseText && `${exerciseLabel} ${currentExerciseOrdinal}/${totalExercises}`}
             {showExerciseText && showSectionText && ' · '}
             {showSectionText &&
               `${sectionLabel} ${currentSectionOrdinal}/${currentExerciseSections}`}
           </span>
         )}
-        <span className="text-body-xs font-bold text-primary tabular-nums whitespace-nowrap">
-          {percent}%
-        </span>
       </div>
 
-      {/* Action controls */}
-      <div className="pointer-events-auto flex items-center gap-1.5">
-        {ttsSupported && onToggleMute && (
-          <button
-            type="button"
-            onClick={onToggleMute}
-            aria-label={muted ? 'הפעל קול' : 'השתק קול'}
-            className={cn(
-              'w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90',
-              'bg-card/95 backdrop-blur-md border border-border shadow-elevation-1',
-              muted ? 'text-muted-foreground' : 'text-primary hover:bg-primary/10',
-            )}
-          >
-            {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-          </button>
+      {/* Reset — RTL start (right visually), offset from the edge so it sits
+          next to the workspace's LessonMenu (fixed at `start-3`). */}
+      <button
+        type="button"
+        onClick={onReset}
+        aria-label="התחל מחדש"
+        className={cn(
+          'absolute top-3 start-14 z-30 pointer-events-auto',
+          'w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90',
+          'bg-card/95 backdrop-blur-md border border-border shadow-elevation-1',
+          'text-muted-foreground hover:text-foreground',
         )}
-        <button
-          type="button"
-          onClick={onReset}
-          aria-label="התחל מחדש"
-          className={cn(
-            'w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90',
-            'bg-card/95 backdrop-blur-md border border-border shadow-elevation-1',
-            'text-muted-foreground hover:text-foreground',
-          )}
-        >
-          <RotateCcw className="w-4 h-4" />
-        </button>
-      </div>
+      >
+        <RotateCcw className="w-4 h-4" />
+      </button>
     </div>
   )
 }

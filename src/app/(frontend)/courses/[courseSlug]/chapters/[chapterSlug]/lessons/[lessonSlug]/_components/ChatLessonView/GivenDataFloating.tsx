@@ -12,49 +12,60 @@ import { useEffect, useState } from 'react'
 const EMPTY_MEDIA_MAP: Record<string, Media> = {}
 
 interface GivenDataFloatingProps {
-  /** Rich-text blocks from the current section — treated as the exercise's
-   *  "given data" (statement, figures, formulas). */
+  /** Rich-text blocks from the current EXERCISE (all sections). Treated as
+   *  the exercise's "given data" (statement, figures, formulas). Stays
+   *  stable while the student walks through sections A-D of the same
+   *  exercise and only changes when they advance to the next exercise. */
   richTextBlocks: RichTextBlock[]
   mediaMap?: Record<string, Media>
+  /** Identity key for the current exercise. Toggling this collapses the
+   *  dropdown so a stale given-data card never overlays a new exercise. */
+  exerciseKey?: string
   showLabel: string
   hideLabel: string
   title: string
+  /** Copy shown inside the dropdown when the current exercise has no
+   *  rich_text blocks (e.g. algebra-only exercises whose statement is
+   *  a bare LaTeX line). Optional — omit to render nothing in that case. */
+  emptyLabel?: string
 }
 
 /**
- * Floating amber pill at top-start that toggles a dropdown showing the
- * current section's given data (rich_text blocks). Auto-collapses when the
- * student advances to a section that has different given data — so a stale
- * dropdown never overlays a new exercise's questions.
+ * Floating amber pill at top-center that toggles a dropdown showing the
+ * current exercise's given data. Always visible while an exercise is
+ * active so students can re-check the statement + figures at any time.
  *
  * Rendered inside the chat-view primary container (which is `relative`).
  */
 export function GivenDataFloating({
   richTextBlocks,
   mediaMap,
+  exerciseKey,
   showLabel,
   hideLabel,
   title,
+  emptyLabel,
 }: GivenDataFloatingProps) {
   const [open, setOpen] = useState(false)
 
-  // Collapse when the underlying content changes (student advanced).
-  // Uses block ids as the identity key to avoid churn on re-renders.
-  const contentKey = richTextBlocks.map((b) => b.id).join('|')
+  // Collapse whenever the student advances to a new exercise so a stale
+  // given-data card never overlays a different exercise's chrome.
   useEffect(() => {
     setOpen(false)
-  }, [contentKey])
+  }, [exerciseKey])
 
-  if (richTextBlocks.length === 0) return null
+  const hasContent = richTextBlocks.length > 0
 
   return (
-    <>
+    <div
+      className="absolute top-3 inset-x-0 z-30 flex justify-center pointer-events-none"
+      dir="rtl"
+    >
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          'absolute top-3 start-3 z-40 pointer-events-auto',
-          'flex items-center gap-1.5 px-3 py-1.5 rounded-full',
+          'pointer-events-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full',
           'bg-warning text-warning-foreground border border-warning shadow-elevation-1',
           'text-body-xs font-bold active:scale-95 transition-all',
         )}
@@ -71,8 +82,7 @@ export function GivenDataFloating({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.18 }}
-            className="absolute top-14 inset-x-3 z-40 max-w-2xl mx-auto pointer-events-auto"
-            dir="rtl"
+            className="absolute top-11 inset-x-3 max-w-2xl mx-auto pointer-events-auto"
             role="dialog"
             aria-label={title}
           >
@@ -88,17 +98,21 @@ export function GivenDataFloating({
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
-              <MediaMapProvider value={mediaMap ?? EMPTY_MEDIA_MAP}>
-                <div className="space-y-3 text-body-md leading-relaxed text-foreground">
-                  {richTextBlocks.map((block) => (
-                    <RichTextRenderer key={block.id} block={block} />
-                  ))}
-                </div>
-              </MediaMapProvider>
+              {hasContent ? (
+                <MediaMapProvider value={mediaMap ?? EMPTY_MEDIA_MAP}>
+                  <div className="space-y-3 text-body-md leading-relaxed text-foreground">
+                    {richTextBlocks.map((block) => (
+                      <RichTextRenderer key={block.id} block={block} />
+                    ))}
+                  </div>
+                </MediaMapProvider>
+              ) : emptyLabel ? (
+                <p className="text-body-sm text-muted-foreground text-center py-3">{emptyLabel}</p>
+              ) : null}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </div>
   )
 }

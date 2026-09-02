@@ -2,6 +2,7 @@
 
 import type { Exercise, Media } from '@/infra/types/content'
 import type { RichTextBlock } from '@/infra/types/exercise'
+import { getExerciseBlocks } from '@/lib/exercises/getExerciseBlocks'
 import { formatExerciseContextMessage } from '@/infra/llm/exercise-context'
 import { uploadDataUrlAsMedia } from '@/infra/media/uploadDataUrl'
 import { logger } from '@/infra/utils/logger'
@@ -55,6 +56,9 @@ interface ChatLessonRunnerViewProps {
   lessonId: string
   exercises: Exercise[]
   mediaMap?: Record<string, Media>
+  /** TTS instance hoisted from the parent (ChatLessonView) so its mute
+   *  state can also drive the LessonMenu's mute item. */
+  tts: ReturnType<typeof useBrowserTTS>
 }
 
 export function ChatLessonRunnerView(props: ChatLessonRunnerViewProps) {
@@ -82,10 +86,9 @@ interface ActiveChatProps extends ChatLessonRunnerViewProps {
   onExit: () => void
 }
 
-function ActiveChat({ lessonId, exercises, mediaMap, onExit }: ActiveChatProps) {
+function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatProps) {
   const t = useTranslations('courses')
   const scrollRef = useRef<HTMLDivElement | null>(null)
-  const tts = useBrowserTTS()
 
   const [entries, setEntries] = useState<StreamEntry[]>([])
   const append = useCallback((entry: StreamEntry) => {
@@ -290,13 +293,16 @@ function ActiveChat({ lessonId, exercises, mediaMap, onExit }: ActiveChatProps) 
 
   const showContinueButton = !walker.isComplete && entries.length > 0
 
-  // Given-data rich_text blocks for the current section — surfaced by the
-  // floating amber pill so students can re-check the problem statement /
-  // figures at any time without scrolling back to the top of the section.
-  const currentRichTextBlocks = useMemo<RichTextBlock[]>(() => {
-    if (!walker.currentStep) return []
-    return walker.currentStep.group.blocks.filter((b): b is RichTextBlock => b.type === 'rich_text')
-  }, [walker.currentStep])
+  // Given-data rich_text blocks for the current EXERCISE (all sections).
+  // Stays stable while the student walks through the exercise's sections
+  // and only changes when they advance to the next exercise — so the
+  // floating amber pill can show statement + figures without churning.
+  const currentExerciseRichTextBlocks = useMemo<RichTextBlock[]>(() => {
+    const exercise = walker.currentStep?.exercise
+    if (!exercise) return []
+    return getExerciseBlocks(exercise).filter((b): b is RichTextBlock => b.type === 'rich_text')
+  }, [walker.currentStep?.exercise])
+  const currentExerciseKey = walker.currentStep?.exercise.id ?? ''
 
   return (
     <>
@@ -345,17 +351,16 @@ function ActiveChat({ lessonId, exercises, mediaMap, onExit }: ActiveChatProps) 
         exerciseLabel={t('chatViewProgressExercise')}
         sectionLabel={t('chatViewProgressSection')}
         onReset={handleReset}
-        onToggleMute={tts.toggleMuted}
-        muted={tts.muted}
-        ttsSupported={tts.supported}
       />
 
       <GivenDataFloating
-        richTextBlocks={currentRichTextBlocks}
+        richTextBlocks={currentExerciseRichTextBlocks}
         mediaMap={mediaMap}
+        exerciseKey={currentExerciseKey}
         showLabel={t('chatViewGivenDataShow')}
         hideLabel={t('chatViewGivenDataHide')}
         title={t('chatViewGivenDataTitle')}
+        emptyLabel={t('chatViewGivenDataEmpty')}
       />
 
       {/* No global notebook FAB — each question block owns its own
