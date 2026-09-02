@@ -133,7 +133,7 @@ export function ChatInputPanel({
                         setPlusMenuOpen(false)
                         setComposerOpen(true)
                       }}
-                      className="w-full flex items-center gap-content-gap-xs.5 px-2.5 py-2 hover:bg-muted active:bg-muted/70 rounded-xl text-start transition-colors"
+                      className="w-full flex items-center gap-content-gap-xs px-2.5 py-2 hover:bg-muted active:bg-muted/70 rounded-xl text-start transition-colors"
                     >
                       <span className="w-7 h-7 rounded-lg bg-warning/15 text-warning flex items-center justify-center shrink-0">
                         <FunctionSquare className="w-4 h-4" />
