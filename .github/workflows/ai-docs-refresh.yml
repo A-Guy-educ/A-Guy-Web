@@ -50,8 +50,11 @@ jobs:
         with:
           branch: chore/ai-docs-refresh
           base: dev
-          title: 'chore(ai-docs): refresh indexes'
-          commit-message: 'chore(ai-docs): refresh indexes'
+          title: 'chore(ai-docs): Refresh indexes'
+          commit-message: |
+            chore(ai-docs): Refresh indexes
+
+            Automated daily refresh of AI docs artifacts: indexes, quick-reference, schemas, BOOTSTRAP.md.
           body: |
             Automated daily refresh of AI docs artifacts.
 
