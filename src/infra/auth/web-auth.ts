@@ -155,14 +155,53 @@ export async function getSessionFromToken(token?: string | null) {
 }
 
 export function tokenFromHeaders(headers: Headers) {
+  return tokensFromHeaders(headers)[0]
+}
+
+/**
+ * Every candidate session token the request carries, in the order the caller
+ * should try them: Authorization header first, then each cookie named
+ * `AUTH_COOKIE_NAME`.
+ *
+ * A browser can hold more than one cookie with the same name at the same time
+ * when the scopes differ (host-only vs `Domain=`-scoped, or one written before
+ * `Partitioned` was toggled on). Both are sent on the same `Cookie` header, and
+ * we only know which one is the live session by trying to verify each. Picking
+ * the first would deauthenticate the user whenever an older, stale variant
+ * happens to lead the header — the exact stuck-cookie-after-redeploy loop
+ * mobile users cannot clear by hand.
+ */
+export function tokensFromHeaders(headers: Headers): string[] {
+  const tokens: string[] = []
+
   const auth = headers.get('authorization')?.match(/^(?:Bearer|JWT)\s+(.+)$/i)?.[1]
-  if (auth) return auth
-  return headers
-    .get('cookie')
-    ?.split(';')
-    .map((cookie) => cookie.trim())
-    .find((cookie) => cookie.startsWith(`${AUTH_COOKIE_NAME}=`))
-    ?.slice(AUTH_COOKIE_NAME.length + 1)
+  if (auth) tokens.push(auth)
+
+  const cookieHeader = headers.get('cookie')
+  if (cookieHeader) {
+    for (const raw of cookieHeader.split(';')) {
+      const cookie = raw.trim()
+      if (cookie.startsWith(`${AUTH_COOKIE_NAME}=`)) {
+        tokens.push(cookie.slice(AUTH_COOKIE_NAME.length + 1))
+      }
+    }
+  }
+
+  return tokens
+}
+
+/**
+ * Resolve the caller's session by trying every token the request presents,
+ * returning the first that verifies against a live DB session. Returns `null`
+ * only when none of them do (i.e. the caller is truly anonymous or every cookie
+ * variant is stale).
+ */
+export async function getSessionFromHeaders(headers: Headers) {
+  for (const token of tokensFromHeaders(headers)) {
+    const session = await getSessionFromToken(token)
+    if (session) return session
+  }
+  return null
 }
 
 export async function loginWithPassword(email: string, password: string) {
