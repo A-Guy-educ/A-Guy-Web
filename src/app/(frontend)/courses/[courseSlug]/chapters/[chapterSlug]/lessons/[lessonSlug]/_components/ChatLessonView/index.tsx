@@ -51,7 +51,7 @@ export function ChatLessonView({
       // workspace-level Notebook back in here or you'll double up FABs
       // in ActiveChat.
       primaryContent={
-        <div className="flex h-full flex-col">
+        <div className="flex h-full flex-col relative">
           {headerSlot}
           <ChatLessonRunnerView
             lessonTitle={lessonTitle}
