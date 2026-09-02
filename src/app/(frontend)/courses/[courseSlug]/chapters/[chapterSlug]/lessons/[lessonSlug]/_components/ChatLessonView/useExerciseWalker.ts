@@ -17,10 +17,24 @@
 'use client'
 
 import type { Exercise } from '@/infra/types/content'
-import type { ExerciseBlockGroup } from '@/infra/types/exercise'
+import type { ExerciseBlockGroup, RichTextBlock } from '@/infra/types/exercise'
 import { getExerciseBlockGroups } from '@/lib/exercises/getExerciseBlocks'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { StreamEntry } from './types'
+
+/**
+ * Pull the exercise's top-level (pre-section) rich_text blocks. These are
+ * the "given data" — statement + figures — that live directly on the
+ * exercise before any section. Per-section rich_text (inline instructions)
+ * is intentionally excluded so the intro card doesn't duplicate content
+ * that renders inside its own section bubble.
+ */
+function extractGivenDataBlocks(exercise: Exercise): RichTextBlock[] {
+  const groups = getExerciseBlockGroups(exercise)
+  const topLevel = groups.find((g) => g.sectionIndex === null)
+  if (!topLevel) return []
+  return topLevel.blocks.filter((b): b is RichTextBlock => b.type === 'rich_text')
+}
 
 /** Block types that require the student to submit an answer. */
 const QUESTION_BLOCK_TYPES = new Set([
@@ -47,7 +61,16 @@ interface WalkerStep {
 function flattenSteps(exercises: Exercise[]): WalkerStep[] {
   const out: WalkerStep[] = []
   exercises.forEach((exercise, exerciseIndex) => {
-    const groups = getExerciseBlockGroups(exercise)
+    // Drop the exercise's top-level (sectionIndex === null) group when it's
+    // pure rich_text — those blocks now surface in the intro entry's amber
+    // "given data" card, and re-emitting them as their own walker step
+    // would double the same statement/figures in the stream. Groups that
+    // mix rich_text with questions/media stay (so nothing is silently
+    // dropped).
+    const groups = getExerciseBlockGroups(exercise).filter((g) => {
+      if (g.sectionIndex !== null) return true
+      return g.blocks.some((b) => b.type !== 'rich_text')
+    })
     const groupsInExercise = groups.length
     if (groupsInExercise === 0) return
     groups.forEach((group, groupIndex) => {
@@ -85,12 +108,14 @@ export function useExerciseWalker({ exercises, append }: UseExerciseWalkerArgs) 
       if (!step) return
       // Prefix each exercise with a single intro bubble (before its first group).
       if (step.groupIndex === 0) {
+        const givenDataBlocks = extractGivenDataBlocks(step.exercise)
         append({
           key: `intro-${step.exercise.id}`,
           kind: 'exercise-intro',
           exerciseIndex: step.exerciseIndex,
           ordinal: step.ordinal,
           title: step.exercise.title ?? undefined,
+          givenDataBlocks: givenDataBlocks.length > 0 ? givenDataBlocks : undefined,
         })
       }
       append({

@@ -10,7 +10,7 @@
  */
 
 import type { Exercise } from '@/infra/types/content'
-import type { ExerciseBlockGroup } from '@/infra/types/exercise'
+import type { ExerciseBlockGroup, RichTextBlock } from '@/infra/types/exercise'
 
 /** Everything rendered in the chat stream is a StreamEntry. */
 export type StreamEntry =
@@ -33,6 +33,12 @@ export interface ExerciseIntroEntry extends EntryBase {
   exerciseIndex: number
   ordinal: number
   title?: string
+  /** Top-level (pre-section) rich_text blocks of the exercise — the "given
+   *  data" (statement, figures, formulas). Rendered as an amber card right
+   *  under the intro label so the student sees the problem context up
+   *  front, matching what the show-data pill exposes. Empty for exercises
+   *  with no top-level rich_text (e.g. algebra-only sections). */
+  givenDataBlocks?: RichTextBlock[]
 }
 
 /** One section (== one ExerciseBlockGroup) rendered inside a teacher bubble. */

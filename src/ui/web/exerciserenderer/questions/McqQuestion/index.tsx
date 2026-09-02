@@ -73,9 +73,12 @@ export function McqQuestion({
 
     const nextAnswer: UserAnswer = { type: 'mcq', selectedIds: newSelectedIds }
 
-    // 2-option single-select buttons: clicking selects AND triggers a check in
-    // one action. Other variants fall through to the explicit Check Answer flow.
-    if (isTwoOptionSingleSelect && onAutoSubmit) {
+    // Single-select MCQs: clicking selects AND triggers a check in one action
+    // (matches the chat-native ChatQuestionSelectBubble behavior — no separate
+    // Check Answer step for a question that only accepts one pick). Multi-
+    // select still uses the explicit Check Answer flow since the student
+    // needs to commit a set of picks.
+    if (!question.answer.multiSelect && onAutoSubmit) {
       onAutoSubmit(nextAnswer)
       return
     }
