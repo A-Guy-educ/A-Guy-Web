@@ -6,8 +6,9 @@ import type { LessonMode } from '@/infra/types/lesson-view'
 import { cn } from '@/infra/utils/ui'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, BookOpen, Check, Menu } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BookOpen, Check, Menu, Volume2, VolumeX } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import type { LessonMenuMute } from './LessonMenuContext'
 
 /**
  * Floating menu button + dropdown that replaces the old exercise chrome
@@ -42,6 +43,9 @@ interface LessonMenuProps {
   onSelectMode?: (mode: LessonMode) => void
   /** Optional fallback URL when the browser's back history is empty. */
   backUrl?: string
+  /** Optional TTS mute toggle rendered as a menu item. Chat view wires
+   *  this from `useBrowserTTS`; other view modes omit it. */
+  mute?: LessonMenuMute
 }
 
 const PANEL_ID = 'lesson-menu-panel'
@@ -52,6 +56,7 @@ export function LessonMenu({
   activeMode,
   onSelectMode,
   backUrl,
+  mute,
 }: LessonMenuProps) {
   const t = useTranslations('courses')
   const locale = useLocale()
@@ -176,6 +181,33 @@ export function LessonMenu({
                     )
                   })}
                 </div>
+              )}
+
+              {/* TTS mute toggle — surfaced here when the current view mode
+                  supports narration (chat view). Other modes omit `mute`. */}
+              {mute && (
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    mute.onToggle()
+                    setOpen(false)
+                  }}
+                  className={cn(
+                    'flex items-center justify-between rounded-lg px-3 py-2',
+                    'text-body-sm font-medium bg-muted text-foreground hover:bg-muted/70',
+                    'transition-colors',
+                  )}
+                >
+                  <span className="flex items-center gap-content-gap-xs">
+                    {mute.muted ? (
+                      <VolumeX className="w-4 h-4 text-primary" />
+                    ) : (
+                      <Volume2 className="w-4 h-4 text-primary" />
+                    )}
+                    {mute.muted ? mute.unmuteLabel : mute.muteLabel}
+                  </span>
+                </button>
               )}
 
               {/* Back navigation */}

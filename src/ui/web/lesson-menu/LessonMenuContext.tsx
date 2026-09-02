@@ -16,10 +16,24 @@ import type { LessonMenuTab } from './LessonMenu'
  * The Ask page mounts `ExerciseWorkspace` directly with no view modes at
  * all — a context lets that path silently fall back to a back-only menu.
  */
+/**
+ * Optional TTS mute toggle rendered inside the LessonMenu dropdown.
+ * Provided by view modes that expose narration (chat view). Callers
+ * pass `null` (or omit) when the mode doesn't do TTS.
+ */
+export interface LessonMenuMute {
+  muted: boolean
+  onToggle: () => void
+  muteLabel: string
+  unmuteLabel: string
+}
+
 export interface LessonMenuConfig {
   tabs: LessonMenuTab[]
   activeMode: LessonMode
   onSelectMode: (mode: LessonMode) => void
+  /** Optional mute toggle surfaced inside the dropdown. */
+  mute?: LessonMenuMute
 }
 
 const LessonMenuContext = createContext<LessonMenuConfig | null>(null)

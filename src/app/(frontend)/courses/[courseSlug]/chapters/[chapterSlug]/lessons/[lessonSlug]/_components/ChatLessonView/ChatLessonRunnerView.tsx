@@ -56,6 +56,9 @@ interface ChatLessonRunnerViewProps {
   lessonId: string
   exercises: Exercise[]
   mediaMap?: Record<string, Media>
+  /** TTS instance hoisted from the parent (ChatLessonView) so its mute
+   *  state can also drive the LessonMenu's mute item. */
+  tts: ReturnType<typeof useBrowserTTS>
 }
 
 export function ChatLessonRunnerView(props: ChatLessonRunnerViewProps) {
@@ -83,10 +86,9 @@ interface ActiveChatProps extends ChatLessonRunnerViewProps {
   onExit: () => void
 }
 
-function ActiveChat({ lessonId, exercises, mediaMap, onExit }: ActiveChatProps) {
+function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatProps) {
   const t = useTranslations('courses')
   const scrollRef = useRef<HTMLDivElement | null>(null)
-  const tts = useBrowserTTS()
 
   const [entries, setEntries] = useState<StreamEntry[]>([])
   const append = useCallback((entry: StreamEntry) => {
@@ -349,9 +351,6 @@ function ActiveChat({ lessonId, exercises, mediaMap, onExit }: ActiveChatProps) 
         exerciseLabel={t('chatViewProgressExercise')}
         sectionLabel={t('chatViewProgressSection')}
         onReset={handleReset}
-        onToggleMute={tts.toggleMuted}
-        muted={tts.muted}
-        ttsSupported={tts.supported}
       />
 
       <GivenDataFloating

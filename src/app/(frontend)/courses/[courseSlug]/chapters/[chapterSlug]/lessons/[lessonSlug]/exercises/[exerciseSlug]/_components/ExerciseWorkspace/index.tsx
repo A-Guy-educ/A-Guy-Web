@@ -112,6 +112,7 @@ export function ExerciseWorkspace({
         activeMode={menuConfig?.activeMode}
         onSelectMode={menuConfig?.onSelectMode}
         backUrl={backUrl}
+        mute={menuConfig?.mute}
       />
 
       <SplitPaneLayout
