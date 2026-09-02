@@ -2,6 +2,7 @@
 
 import { cn } from '@/infra/utils/ui'
 import { RichTextRenderer } from '@/ui/web/exerciserenderer/blocks/RichTextRenderer'
+import { QuestionNotebook } from '@/ui/web/exerciserenderer/components/QuestionNotebook'
 import type {
   InlineRichText,
   QuestionSelectBlock,
@@ -113,6 +114,16 @@ export function ChatQuestionSelectBubble({
           )
         })}
       </div>
+
+      {/* Per-block notebook — chat-native questions bypass QuestionCard,
+          so we attach the toggle here directly. Same ask-action bridge
+          as QuestionCard's version. Admin opt-in required
+          (`block.showNotebook === true`, from admin PR #409); `disabled`
+          mirrors the answer input's lock so scroll-back bubbles can't
+          dispatch Check-solution against the walker's current step. */}
+      {block.showNotebook === true && (
+        <QuestionNotebook contextTitle={questionLabel ?? block.id} disabled={disabled} />
+      )}
     </div>
   )
 }

@@ -1,13 +1,19 @@
 'use client'
 
 import type { Exercise, Media } from '@/infra/types/content'
+import type { RichTextBlock } from '@/infra/types/exercise'
+import { getExerciseBlockGroups } from '@/lib/exercises/getExerciseBlocks'
 import { formatExerciseContextMessage } from '@/infra/llm/exercise-context'
+import { uploadDataUrlAsMedia } from '@/infra/media/uploadDataUrl'
+import { RichTextRenderer } from '@/ui/web/exerciserenderer/blocks/RichTextRenderer'
+import { MediaMapProvider } from '@/ui/web/exerciserenderer/context/MediaMapContext'
+import { logger } from '@/infra/utils/logger'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Notebook } from '@/ui/web/notebook'
 import { ChatInputPanel } from './ChatInputPanel'
 import { ChatLessonProgress } from './ChatLessonProgress'
 import { ChatLessonStartCard } from './ChatLessonStartCard'
+import { GivenDataFloating } from './GivenDataFloating'
 import { ContinueButton } from './bubbles/ContinueButton'
 import { ExerciseSectionBubble } from './bubbles/ExerciseSectionBubble'
 import { PendingBubble } from './bubbles/PendingBubble'
@@ -20,6 +26,10 @@ import { useExerciseWalker } from './useExerciseWalker'
 import { pickWellDone } from './wellDoneMessages'
 
 const CELEBRATION_ADVANCE_MS = 1500
+
+/** Stable empty map — avoids feeding a fresh `{}` into MediaMapProvider on
+ *  every render, which would re-fire every `useMediaMap` descendant. */
+const EMPTY_MEDIA_MAP: Record<string, Media> = {}
 
 /** א, ב, ג, ... — matches the ExerciseRenderer's question-card labeling. */
 const HEBREW_LETTERS = [
@@ -52,6 +62,9 @@ interface ChatLessonRunnerViewProps {
   lessonId: string
   exercises: Exercise[]
   mediaMap?: Record<string, Media>
+  /** TTS instance hoisted from the parent (ChatLessonView) so its mute
+   *  state can also drive the LessonMenu's mute item. */
+  tts: ReturnType<typeof useBrowserTTS>
 }
 
 export function ChatLessonRunnerView(props: ChatLessonRunnerViewProps) {
@@ -79,16 +92,9 @@ interface ActiveChatProps extends ChatLessonRunnerViewProps {
   onExit: () => void
 }
 
-function ActiveChat({
-  lessonTitle: _lessonTitle,
-  lessonId,
-  exercises,
-  mediaMap,
-  onExit,
-}: ActiveChatProps) {
+function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatProps) {
   const t = useTranslations('courses')
   const scrollRef = useRef<HTMLDivElement | null>(null)
-  const tts = useBrowserTTS()
 
   const [entries, setEntries] = useState<StreamEntry[]>([])
   const append = useCallback((entry: StreamEntry) => {
@@ -244,6 +250,47 @@ function ActiveChat({
     scrollRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [entries.length])
 
+  // Bridge for the notebook's "Check solution" button. The `<Notebook>`
+  // dispatches an `ask-action` CustomEvent (same contract as the Ask
+  // page); we upload the PNG data URL via the shared `uploadDataUrlAsMedia`
+  // helper and hand the resulting media id to `chat.requestWithMedia`, so
+  // the tutor's reply lands in the stream comparing the drawing against
+  // the current section. No student bubble is shown — the tap on Check
+  // isn't an utterance, matching the Ask-page pattern.
+  // Destructure only the piece we actually need so the effect below doesn't
+  // detach + re-attach on every unrelated `chat` object change (identity
+  // shifts whenever `isSending` flips).
+  const { requestWithMedia } = chat
+  const chatErrorText = t('chatViewChatError')
+  useEffect(() => {
+    const handler = async (e: Event) => {
+      // `ask-action` is a bare CustomEvent on `window`; anything on the page
+      // could dispatch a plain Event with no `.detail`. Guard before use.
+      const detail = (e as CustomEvent).detail as
+        | { type?: string; title?: string; imageData?: string }
+        | null
+        | undefined
+      if (!detail || detail.type !== 'check' || !detail.imageData) return
+
+      try {
+        const mediaId = await uploadDataUrlAsMedia(detail.imageData, 'notebook.png')
+        requestWithMedia(
+          `The student drew a solution on the notebook canvas for "${detail.title ?? 'this exercise'}". Look at the attached image and tell them whether their approach and answer look correct. Be encouraging and supportive.`,
+          [mediaId],
+        )
+      } catch (error) {
+        logger.error({ err: error }, 'Notebook check-solution upload failed')
+        append({
+          key: `e-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          kind: 'chat-error',
+          text: chatErrorText,
+        })
+      }
+    }
+    window.addEventListener('ask-action', handler)
+    return () => window.removeEventListener('ask-action', handler)
+  }, [requestWithMedia, append, chatErrorText])
+
   const handleReset = useCallback(() => {
     cancelPendingAdvance()
     tts.cancel()
@@ -252,9 +299,23 @@ function ActiveChat({
 
   const showContinueButton = !walker.isComplete && entries.length > 0
 
+  // Given-data rich_text blocks for the current EXERCISE — top-level only
+  // (pre-section content.blocks). Stays stable across sections A-D and only
+  // refreshes on advance to the next exercise. Same source that
+  // `useExerciseWalker` puts into the intro entry's `givenDataBlocks`,
+  // so the floating pill and the inline amber intro card always match.
+  const currentExerciseRichTextBlocks = useMemo<RichTextBlock[]>(() => {
+    const exercise = walker.currentStep?.exercise
+    if (!exercise) return []
+    const topLevel = getExerciseBlockGroups(exercise).find((g) => g.sectionIndex === null)
+    if (!topLevel) return []
+    return topLevel.blocks.filter((b): b is RichTextBlock => b.type === 'rich_text')
+  }, [walker.currentStep?.exercise])
+  const currentExerciseKey = walker.currentStep?.exercise.id ?? ''
+
   return (
     <>
-      <main className="flex-1 overflow-y-auto bg-muted px-4 py-section-sm md:px-6 md:py-section-md">
+      <main className="flex-1 overflow-y-auto bg-muted px-4 pt-16 pb-28 md:px-6 md:pt-20 md:pb-32">
         <div className="max-w-2xl mx-auto flex flex-col gap-content-gap" dir="rtl">
           {entries.map((entry) => (
             <StreamEntryView
@@ -299,14 +360,21 @@ function ActiveChat({
         exerciseLabel={t('chatViewProgressExercise')}
         sectionLabel={t('chatViewProgressSection')}
         onReset={handleReset}
-        onToggleMute={tts.toggleMuted}
-        muted={tts.muted}
-        ttsSupported={tts.supported}
       />
 
-      {/* Handwritten notebook — demo phase: one scratchpad per lesson,
-          client-side only. FAB lifted above the chat input row. */}
-      <Notebook storageKey={`chat:${lessonId}`} fabClassName="bottom-24" />
+      <GivenDataFloating
+        richTextBlocks={currentExerciseRichTextBlocks}
+        mediaMap={mediaMap}
+        exerciseKey={currentExerciseKey}
+        showLabel={t('chatViewGivenDataShow')}
+        hideLabel={t('chatViewGivenDataHide')}
+        title={t('chatViewGivenDataTitle')}
+        emptyLabel={t('chatViewGivenDataEmpty')}
+      />
+
+      {/* No global notebook FAB — each question block owns its own
+          notebook via `QuestionCard.notebookContextTitle`. The
+          ask-action listener above still picks up their dispatches. */}
     </>
   )
 }
@@ -350,14 +418,28 @@ function StreamEntryView({
       const label = entry.title
         ? `${introPrefix} ${entry.ordinal}: ${entry.title}`
         : `${introPrefix} ${entry.ordinal}`
+      const givenDataBlocks = entry.givenDataBlocks ?? []
       return (
-        <TeacherBubble
-          text={label}
-          onSpeak={() => tts.speak(label)}
-          speaking={tts.speaking}
-          muted={tts.muted}
-          ttsSupported={tts.supported}
-        />
+        <div className="flex flex-col gap-content-gap">
+          <TeacherBubble
+            text={label}
+            onSpeak={() => tts.speak(label)}
+            speaking={tts.speaking}
+            muted={tts.muted}
+            ttsSupported={tts.supported}
+          />
+          {givenDataBlocks.length > 0 && (
+            <div className="rounded-2xl border border-warning/30 bg-warning/8 p-card-padding-sm shadow-elevation-1">
+              <MediaMapProvider value={mediaMap ?? EMPTY_MEDIA_MAP}>
+                <div className="space-y-3 text-body-md leading-relaxed text-foreground">
+                  {givenDataBlocks.map((block) => (
+                    <RichTextRenderer key={block.id} block={block} />
+                  ))}
+                </div>
+              </MediaMapProvider>
+            </div>
+          )}
+        </div>
       )
     }
     case 'exercise-section':

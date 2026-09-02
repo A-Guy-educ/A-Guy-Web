@@ -1,5 +1,43 @@
 # Changelog
 
+## v0.34.1 — 2026-09-02
+
+### Fixes
+- Try every payload-token cookie so a stale variant doesn't lock users out (#1156)
+
+## v0.34.0 — 2026-09-02
+
+### Features
+- Auto-check single-select MCQ and inline exercise given-data (#1153)
+- Flip chat-view top row and thread mute through LessonMenu (#1152)
+- Restructure chat-view top row per mockup corrections (#1152)
+- Redesign chat-view mode to floating-pill mockup (#1151)
+- Restyle chat view to floating pill design on mobile (#1147)
+- Gate per-block notebook on admin showNotebook opt-in (#1145)
+- Notebook attached per question block; LessonMenu button hamburger-only (#1144)
+- Floating lesson menu replaces exercise header + tab bar (#1143)
+- Notebook v2 — reuse Ask-page canvas and wire check-solution to chat (#1142)
+
+### Fixes
+- De-dupe given-data render in chat view (#1153)
+- Restore gap utility mangled by design-token codemod (#1150)
+- Lock QuestionNotebook on historical chat bubbles (#1144)
+- Address review of notebook-per-block PR (chat-native gap, dead FAB, SVG note, label) (#1144)
+- Revert pass-5 hasChatListener addition (was duplicating Notebook FAB) (#1143)
+- Address review pass 5 (restore Notebook FAB in chat view + stable resize observer) (#1143)
+- Address review pass 4 findings (canvas resize, double-tap, tokens, aria, mount guard) (#1143)
+- Move LessonMenu to start-3 + inline SSR transform for Notebook aside (#1143)
+- Address real-review findings (fix HIGH ask-page trap + MEDIUM notebook stroke loss) (#1143)
+- Address lesson-menu review pass 1 (kill dead fullscreen, drop no-op ternary) (#1143)
+- Address notebook v2 review pass 1 (dedupe upload, surface errors, tests) (#1142)
+
+### Reverts
+- Undo chat sidebar pill restyle (#1150)
+
+### Chores
+- Bump browserslist to patched 4.28.7+ (#1148)
+- Fix failing scheduled workflows on dev (#1148)
+
 ## v0.33.12 — 2026-09-01
 
 ### Features
@@ -4552,6 +4590,20 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.34.1 ([#1157](https://github.com/A-Guy-educ/A-Guy-Web/pull/1157)) — @aguyshayb
+- fix(auth): Try every payload-token cookie so a stale variant doesn't lock users out ([#1156](https://github.com/A-Guy-educ/A-Guy-Web/pull/1156)) — @aguyshayb
+- chore: Release v0.34.0 ([#1154](https://github.com/A-Guy-educ/A-Guy-Web/pull/1154)) — @aguyshayb
+- feat: Auto-check single-select MCQ and inline exercise given-data ([#1153](https://github.com/A-Guy-educ/A-Guy-Web/pull/1153)) — @aguyshayb
+- feat: Chat-view top-row mockup corrections ([#1152](https://github.com/A-Guy-educ/A-Guy-Web/pull/1152)) — @aguyshayb
+- feat: Redesign chat-view mode to floating-pill mockup ([#1151](https://github.com/A-Guy-educ/A-Guy-Web/pull/1151)) — @aguyshayb
+- revert: Undo chat sidebar pill restyle ([#1150](https://github.com/A-Guy-educ/A-Guy-Web/pull/1150)) — @aguyshayb
+- feat: Restyle chat view to floating pill design on mobile ([#1147](https://github.com/A-Guy-educ/A-Guy-Web/pull/1147)) — @aguyshayb
+- ci: Fix failing scheduled workflows and Fast Gate audit ([#1148](https://github.com/A-Guy-educ/A-Guy-Web/pull/1148)) — @aguyshayb
+- feat: Gate per-block notebook on admin's showNotebook opt-in ([#1145](https://github.com/A-Guy-educ/A-Guy-Web/pull/1145)) — @aguyshayb
+- feat: Attach notebook per question block; hamburger-only LessonMenu button ([#1144](https://github.com/A-Guy-educ/A-Guy-Web/pull/1144)) — @aguyshayb
+- feat: Floating lesson menu replaces exercise header + tab bar ([#1143](https://github.com/A-Guy-educ/A-Guy-Web/pull/1143)) — @aguyshayb
+- feat: Notebook v2 — reuse Ask-page canvas, wire Check-solution into both chats ([#1142](https://github.com/A-Guy-educ/A-Guy-Web/pull/1142)) — @aguyshayb
+- promote: dev -> main (v0.33.12) ([#1141](https://github.com/A-Guy-educ/A-Guy-Web/pull/1141)) — @aguyaharonyair
 - chore: release v0.33.12 ([#1140](https://github.com/A-Guy-educ/A-Guy-Web/pull/1140)) — @aguyaharonyair
 - fix(tts): Bump admin settings fetch timeout to 8s for cold starts ([#1139](https://github.com/A-Guy-educ/A-Guy-Web/pull/1139)) — @aguyshayb
 - feat(tts): Read voice + rate from admin tts_settings global ([#1138](https://github.com/A-Guy-educ/A-Guy-Web/pull/1138)) — @aguyshayb

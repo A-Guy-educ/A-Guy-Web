@@ -73,6 +73,12 @@ export interface QuestionSelectTrueFalseBlock {
   hint?: InlineRichText
   solution?: InlineRichText
   fullSolution?: InlineRichText
+  /**
+   * Admin opt-in for the per-block drawing notebook. Absent / false =
+   * no notebook pill on this block. Authoritative shape lives in the
+   * Admin repo's Exercises collection (see admin PR #409).
+   */
+  showNotebook?: boolean
 }
 
 // ---------------------------------
@@ -88,6 +94,8 @@ export interface QuestionSelectMcqBlock {
   hint?: InlineRichText
   solution?: InlineRichText
   fullSolution?: InlineRichText
+  /** See `QuestionSelectTrueFalseBlock.showNotebook`. */
+  showNotebook?: boolean
 }
 
 // ---------------------------------
@@ -101,6 +109,8 @@ export interface QuestionFreeResponseBlock {
   hint?: InlineRichText
   solution?: InlineRichText
   fullSolution?: InlineRichText
+  /** See `QuestionSelectTrueFalseBlock.showNotebook`. */
+  showNotebook?: boolean
 }
 
 // ---------------------------------
@@ -127,6 +137,8 @@ export interface QuestionTableBlock {
   hint?: InlineRichText
   solution?: InlineRichText
   fullSolution?: InlineRichText
+  /** See `QuestionSelectTrueFalseBlock.showNotebook`. */
+  showNotebook?: boolean
 }
 
 // ---------------------------------
@@ -169,6 +181,8 @@ export interface QuestionMatchingBlock {
   hint?: InlineRichText
   solution?: InlineRichText
   fullSolution?: InlineRichText
+  /** See `QuestionSelectTrueFalseBlock.showNotebook`. */
+  showNotebook?: boolean
 }
 
 // ---------------------------------
@@ -288,6 +302,7 @@ export interface MediaBlock {
 // ---------------------------------
 // Union Type
 // ---------------------------------
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- pre-existing placeholder; the real union lives in ExerciseRenderer's type file. Narrowing here would cascade into every ContentBlock[] consumer.
 export type ContentBlock = any
 
 // ---------------------------------
@@ -305,7 +320,9 @@ export interface ExerciseBlockGroup {
 export type ExerciseContent = ContentData
 
 export const ContentSchema = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- pass-through stub kept for API compatibility with call sites that expected a Zod-like shape.
   parse: (value: unknown): any => value,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- see parse.
   safeParse: (value: unknown): any => ({ success: true, data: value }),
 }
 

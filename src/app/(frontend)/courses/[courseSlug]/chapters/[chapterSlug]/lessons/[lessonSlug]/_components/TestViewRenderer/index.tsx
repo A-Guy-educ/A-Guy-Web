@@ -125,6 +125,7 @@ export function TestViewRenderer({
                         batchCheckMode
                         hideBatchCheckButton
                         checkAllTrigger={checkAllTrigger}
+                        showNotebook={showChat}
                       />
                     </div>
                   </section>

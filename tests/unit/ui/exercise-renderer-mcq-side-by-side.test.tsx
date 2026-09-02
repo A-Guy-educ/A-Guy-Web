@@ -446,7 +446,10 @@ describe('McqQuestion — 2-option single-select side-by-side layout', () => {
       expect(onAutoSubmit).not.toHaveBeenCalled()
     })
 
-    it('does NOT use onAutoSubmit for 3+ option single-select (card-list variant)', () => {
+    it('uses onAutoSubmit for 3+ option single-select (card-list variant)', () => {
+      // All single-select MCQs auto-submit on click — clicking a card is
+      // equivalent to selecting + pressing "Check Answer" in one action.
+      // Only multi-select still needs the explicit Check flow.
       const onChange = vi.fn()
       const onAutoSubmit = vi.fn()
       const answer: UserAnswer = { type: 'mcq', selectedIds: [] }
@@ -466,8 +469,8 @@ describe('McqQuestion — 2-option single-select side-by-side layout', () => {
       const labels = container.querySelectorAll('label')
       fireEvent.click(labels[0])
 
-      expect(onChange).toHaveBeenCalledWith({ type: 'mcq', selectedIds: ['opt-a'] })
-      expect(onAutoSubmit).not.toHaveBeenCalled()
+      expect(onAutoSubmit).toHaveBeenCalledWith({ type: 'mcq', selectedIds: ['opt-a'] })
+      expect(onChange).not.toHaveBeenCalled()
     })
 
     it('does NOT use onAutoSubmit for multi-select MCQ (card-list variant)', () => {

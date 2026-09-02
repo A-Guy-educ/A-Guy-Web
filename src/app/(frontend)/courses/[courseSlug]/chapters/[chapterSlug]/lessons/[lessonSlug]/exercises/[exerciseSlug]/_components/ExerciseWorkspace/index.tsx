@@ -1,17 +1,13 @@
 'use client'
 
-import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { isRTL } from '@/i18n/config'
 import { cn } from '@/infra/utils/ui'
 import type { FormulaSheet } from '@/infra/types/content'
 import { type MobileExerciseViewMode, SplitPaneLayout } from '@/ui/web/components/split-pane-layout'
-import { Notebook } from '@/ui/web/notebook'
-import { ArrowLeft, ArrowRight, Minimize2, X } from 'lucide-react'
-import { usePathname } from 'next/navigation'
+import { LessonMenu, useLessonMenuConfig } from '@/ui/web/lesson-menu'
+import { X } from 'lucide-react'
 import React, { useCallback, useState, type ReactElement } from 'react'
-import { ExerciseHeader } from '../ExerciseHeader'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
-import { useRouterWithLoading } from '@/infra/loading/hooks/useRouterWithLoading'
 
 interface MobileChatPanelProps {
   chatContent: ReactElement
@@ -74,6 +70,9 @@ function MobileChatPanel({
 
 interface ExerciseWorkspaceProps {
   exerciseTitle: string
+  /** Human-readable label for the floating LessonMenu pill (falls back to `exerciseTitle`). */
+  lessonTitle?: string
+  /** URL used by the LessonMenu back button when the browser has no history to pop. */
   backUrl?: string
   primaryContent: React.ReactNode
   chatContent?: React.ReactNode
@@ -87,90 +86,34 @@ interface ExerciseWorkspaceProps {
 
 export function ExerciseWorkspace({
   exerciseTitle,
+  lessonTitle,
   backUrl,
   primaryContent,
   chatContent,
 }: ExerciseWorkspaceProps) {
-  const { user, isLoading: isAuthLoading } = useCurrentUser()
-  const pathname = usePathname()
-  const router = useRouterWithLoading()
-  const locale = useLocale()
-  const rtl = isRTL(locale as 'en' | 'he')
-  const t = useTranslations('courses')
   const [mobileMode, setMobileMode] = useState<MobileExerciseViewMode>('exercise')
-  const [isFullscreen, setIsFullscreen] = useState(false)
-
-  const handleMenuClick = () => {
-    window.dispatchEvent(new CustomEvent('open-mobile-menu'))
-  }
-
-  const handleBackToLesson = useCallback(() => {
-    if (typeof window !== 'undefined' && window.history.length > 1) {
-      router.back()
-    } else if (backUrl) {
-      router.push(backUrl)
-    } else {
-      router.push('/courses')
-    }
-  }, [backUrl, router])
 
   const handleMobileModeChange = useCallback((mode: MobileExerciseViewMode) => {
     setMobileMode(mode)
   }, [])
 
-  const handleFullscreenToggle = useCallback(() => {
-    setIsFullscreen((value) => !value)
-  }, [])
+  // View-mode config (tabs / active / onSelect) is provided by
+  // DualModeLessonView via `LessonMenuProvider`. When there's no provider
+  // (Ask page mounts ExerciseWorkspace directly), the menu falls back to
+  // its back-only variant — so students on `/ask` still get a way out of
+  // the fixed-inset workspace overlay.
+  const menuConfig = useLessonMenuConfig()
 
   return (
-    <div
-      className={cn(
-        'fixed inset-0 bg-background z-[200] flex flex-col overflow-hidden',
-        isFullscreen && 'bg-background',
-      )}
-      data-exercise-fullscreen={isFullscreen}
-    >
-      {!isFullscreen && (
-        <div className="hidden lg:block">
-          <ExerciseHeader
-            exerciseTitle={exerciseTitle}
-            backUrl={backUrl}
-            onMenuClick={handleMenuClick}
-            user={user}
-            isAuthLoading={isAuthLoading}
-            currentUrl={pathname}
-            onFullscreenToggle={handleFullscreenToggle}
-          />
-        </div>
-      )}
-
-      {/* Floating back-to-lesson button — mobile exercise mode only.
-          Chat mode has its own floating X inside MobileChatPanel. */}
-      {mobileMode !== 'chat' && (
-        <button
-          type="button"
-          onClick={handleBackToLesson}
-          aria-label={t('backToLesson')}
-          style={{ top: 'calc(0.75rem + env(safe-area-inset-top))' }}
-          className={cn(
-            'lg:hidden fixed z-[110] flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card/90 text-foreground shadow-elevation-2 backdrop-blur transition-colors duration-normal hover:bg-muted',
-            rtl ? 'right-3' : 'left-3',
-          )}
-        >
-          {rtl ? <ArrowRight className="w-5 h-5" /> : <ArrowLeft className="w-5 h-5" />}
-        </button>
-      )}
-
-      {isFullscreen && (
-        <button
-          type="button"
-          onClick={handleFullscreenToggle}
-          className="fixed top-4 right-4 z-[120] flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card/90 text-foreground shadow-dropdown backdrop-blur transition-colors duration-normal hover:bg-muted lg:hidden"
-          aria-label="Collapse exercise view"
-        >
-          <Minimize2 className="w-5 h-5" />
-        </button>
-      )}
+    <div className="fixed inset-0 bg-background z-[200] flex flex-col overflow-hidden">
+      <LessonMenu
+        lessonTitle={lessonTitle ?? exerciseTitle}
+        tabs={menuConfig?.tabs}
+        activeMode={menuConfig?.activeMode}
+        onSelectMode={menuConfig?.onSelectMode}
+        backUrl={backUrl}
+        mute={menuConfig?.mute}
+      />
 
       <SplitPaneLayout
         primaryContent={primaryContent}
@@ -188,12 +131,12 @@ export function ExerciseWorkspace({
         className="flex-1"
         mobileMode={mobileMode}
         onMobileModeChange={handleMobileModeChange}
-        isFullscreen={isFullscreen}
       />
 
-      {/* Handwritten notebook — demo phase: always shown in interactive
-          exercises, per-pathname localStorage, no server persistence. */}
-      <Notebook storageKey={`interactive:${pathname}`} />
+      {/* Global floating notebook FAB is gone — notebooks are now
+          attached per question block via `QuestionCard.notebookContextTitle`
+          so each question has its own toggle + inline canvas, matching
+          the Ask page's `AskExerciseCard` pattern. */}
     </div>
   )
 }

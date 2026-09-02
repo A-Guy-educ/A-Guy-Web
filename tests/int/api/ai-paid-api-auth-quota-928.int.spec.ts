@@ -48,7 +48,7 @@ describe('chat-quota route (issue #928)', () => {
         await vi.importActual<typeof import('@/infra/auth/web-auth')>('@/infra/auth/web-auth')
       return {
         ...actual,
-        getSessionFromToken: vi.fn(async () => ({
+        getSessionFromHeaders: vi.fn(async () => ({
           token: 'mock-token',
           user: { id: 'mock-user-id', email: 'x', role: 'student', collection: 'users' } as any,
         })),

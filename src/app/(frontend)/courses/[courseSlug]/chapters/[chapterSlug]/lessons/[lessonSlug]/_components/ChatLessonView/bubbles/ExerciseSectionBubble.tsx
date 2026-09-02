@@ -11,9 +11,9 @@ import type {
 import { ExerciseRenderer } from '@/ui/web/exerciserenderer'
 import { RichTextRenderer } from '@/ui/web/exerciserenderer/blocks/RichTextRenderer'
 import { MediaMapProvider } from '@/ui/web/exerciserenderer/context/MediaMapContext'
+import { cn } from '@/infra/utils/ui'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import type { SectionOutcome } from '../types'
-import { TeacherBubble } from './TeacherBubble'
 import { ChatFreeResponseBubble } from './ChatFreeResponseBubble'
 import { ChatQuestionSelectBubble } from './ChatQuestionSelectBubble'
 import { QuickActionChips, type QuickAction } from './QuickActionChips'
@@ -117,10 +117,10 @@ export function ExerciseSectionBubble({
   questionCount,
   lessonId,
   mediaMap,
-  onSpeak,
-  speaking,
-  muted,
-  ttsSupported,
+  onSpeak: _onSpeak,
+  speaking: _speaking,
+  muted: _muted,
+  ttsSupported: _ttsSupported,
   onOutcome,
   onQuestionSubmit,
   onQuickAction,
@@ -232,71 +232,81 @@ export function ExerciseSectionBubble({
     [isActive, onQuickAction],
   )
 
+  // Frameless layout — exercise content flows directly on the background
+  // to match the chat-view mockup. Historical (scroll-back) sections dim
+  // to signal they're locked from further interaction.
   return (
-    <TeacherBubble onSpeak={onSpeak} speaking={speaking} muted={muted} ttsSupported={ttsSupported}>
+    <div
+      className={cn(
+        'flex flex-col gap-content-gap transition-opacity duration-normal',
+        !isActive && 'opacity-60',
+      )}
+    >
       {isChatNativePath ? (
         // MediaMapProvider is required so RichTextRenderer's MediaAttachments
         // (used inside prompts, option labels, and inline rich_text) can look
         // up media by id. The standard ExerciseRenderer path installs this
         // provider itself; the chat-native path has to do it here.
         <MediaMapProvider value={mediaMap ?? EMPTY_MEDIA_MAP}>
-          <div className="flex flex-col gap-content-gap">
-            {group.blocks.map((block) => {
-              if (block.type === 'question_select') {
-                return (
-                  <ChatQuestionSelectBubble
-                    key={block.id}
-                    block={block as QuestionSelectBlock}
-                    questionLabel={questionLabelById?.get(block.id)}
-                    // Lock stale scroll-back bubbles + freeze answering while
-                    // a chat request is in flight (otherwise the resulting
-                    // requestCorrection would be silently dropped).
-                    disabled={!isActive || quickActionsDisabled}
-                    onSubmit={handleChatNativeSubmit}
-                  />
-                )
-              }
-              if (block.type === 'question_free_response') {
-                return (
-                  <ChatFreeResponseBubble
-                    key={block.id}
-                    block={block as QuestionFreeResponseBlock}
-                    questionLabel={questionLabelById?.get(block.id)}
-                    placeholder={freeResponsePlaceholder ?? ''}
-                    sendLabel={freeResponseSendLabel ?? ''}
-                    disabled={!isActive || quickActionsDisabled}
-                    onSubmit={handleChatNativeSubmit}
-                  />
-                )
-              }
-              if (block.type === 'rich_text') {
-                const rt = block as RichTextBlock
-                return (
-                  <div
-                    key={block.id}
-                    className="text-body-md font-medium text-foreground leading-relaxed"
-                  >
-                    <RichTextRenderer block={rt} />
-                  </div>
-                )
-              }
-              return null
-            })}
-
-            {isActive &&
-              !hasAnyAnswer &&
-              onQuickAction &&
-              quickActionLabels &&
-              chatNativeQuestionCount > 0 && (
-                <QuickActionChips
-                  disabled={quickActionsDisabled}
-                  hintLabel={quickActionLabels.hint}
-                  explainLabel={quickActionLabels.explain}
-                  skipLabel={quickActionLabels.skip}
-                  onAction={handleChipAction}
+          {group.blocks.map((block) => {
+            if (block.type === 'question_select') {
+              return (
+                <ChatQuestionSelectBubble
+                  key={block.id}
+                  block={block as QuestionSelectBlock}
+                  questionLabel={questionLabelById?.get(block.id)}
+                  // Lock stale scroll-back bubbles + freeze answering while
+                  // a chat request is in flight (otherwise the resulting
+                  // requestCorrection would be silently dropped).
+                  disabled={!isActive || quickActionsDisabled}
+                  onSubmit={handleChatNativeSubmit}
                 />
-              )}
-          </div>
+              )
+            }
+            if (block.type === 'question_free_response') {
+              return (
+                <ChatFreeResponseBubble
+                  key={block.id}
+                  block={block as QuestionFreeResponseBlock}
+                  questionLabel={questionLabelById?.get(block.id)}
+                  placeholder={freeResponsePlaceholder ?? ''}
+                  sendLabel={freeResponseSendLabel ?? ''}
+                  disabled={!isActive || quickActionsDisabled}
+                  onSubmit={handleChatNativeSubmit}
+                />
+              )
+            }
+            if (block.type === 'rich_text') {
+              const rt = block as RichTextBlock
+              // Rich text at the top of a section is typically the exercise's
+              // "given data" — statement + figures. Amber-tint it so the
+              // student can visually distinguish problem context from
+              // question prompts. Matches the mockup's amber given-data card.
+              return (
+                <div
+                  key={block.id}
+                  className="rounded-2xl border border-warning/30 bg-warning/8 p-card-padding-sm text-body-md font-medium text-foreground leading-relaxed"
+                >
+                  <RichTextRenderer block={rt} />
+                </div>
+              )
+            }
+            return null
+          })}
+
+          {isActive &&
+            !hasAnyAnswer &&
+            onQuickAction &&
+            quickActionLabels &&
+            chatNativeQuestionCount > 0 && (
+              <QuickActionChips
+                disabled={quickActionsDisabled}
+                hintLabel={quickActionLabels.hint}
+                explainLabel={quickActionLabels.explain}
+                skipLabel={quickActionLabels.skip}
+                onAction={handleChipAction}
+              />
+            )}
         </MediaMapProvider>
       ) : (
         <ExerciseRenderer
@@ -308,10 +318,16 @@ export function ExerciseSectionBubble({
           exerciseId={exercise.id}
           hideLatexBlocks
           questionCardVariant="flat"
+          // Only enable on the walker's current step — scroll-back
+          // (historical) bubbles keep the notebook hidden so a stray
+          // Check-solution click can't dispatch a drawing that
+          // ChatLessonRunnerView would then attribute to whatever
+          // section the walker is on RIGHT NOW.
+          showNotebook={isActive}
           onResultsChange={questionCount > 0 ? handleAggregateResults : undefined}
         />
       )}
-    </TeacherBubble>
+    </div>
   )
 }
 

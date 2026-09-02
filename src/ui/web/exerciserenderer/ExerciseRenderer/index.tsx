@@ -140,6 +140,7 @@ export function ExerciseRenderer({
   hideBatchCheckButton = false,
   checkAllTrigger,
   questionCardVariant = 'card',
+  showNotebook = false,
 }: ExerciseRendererProps) {
   const t = useTranslations('courses')
   const locale = useLocale()
@@ -585,6 +586,11 @@ export function ExerciseRenderer({
         const svgDisabled = svgResult?.isCorrect
         return {
           node: (
+            // Intentionally NO `notebookContextTitle` — interactive SVG
+            // hotspots have no `hint` / `solution` fields (see
+            // `SvgBlock` in `types.ts`), so per boss's spec they're
+            // outside the notebook set alongside geometry / axis. Add
+            // the prop here later if the block gains hint/solution.
             <QuestionCard
               key={svgBlock.id}
               showCheckButton={showCheckAnswer}
@@ -709,13 +715,20 @@ export function ExerciseRenderer({
     const checked = hasChecked[question.id] || false
     const disabled = checked && checkResult?.isCorrect
 
-    // True/False and Table questions don't use the generic check button.
-    // In batch check mode the per-question check button is always hidden
-    // — grading happens through the single "Check all" button instead.
+    // True/False, single-select MCQ, and Table questions don't use the generic
+    // check button — TF + single-select MCQ auto-check on click (see
+    // handleAnswerChange + handleAutoCheckMcq). In batch check mode the
+    // per-question check button is always hidden — grading happens through
+    // the single "Check all" button instead.
+    const isSingleSelectMcq =
+      question.type === 'question_select' &&
+      question.variant === 'mcq' &&
+      !question.answer.multiSelect
     const showCheckButton =
       showCheckAnswer &&
       !batchCheckMode &&
       !(question.type === 'question_select' && question.variant === 'true_false') &&
+      !isSingleSelectMcq &&
       question.type !== 'question_table'
 
     // Help system for this question (always shown — AI fallback when no backend content).
@@ -757,6 +770,20 @@ export function ExerciseRenderer({
           questionLabel={questionLabel}
           dir={dir}
           helpSystem={helpSystemNode}
+          // Per-block notebook requires two opt-ins:
+          //   1. Caller-level `showNotebook` — the workspace has a chat
+          //      surface (ChatInterface / ChatLessonRunnerView) to hear
+          //      the ask-action dispatch.
+          //   2. Block-level `question.showNotebook === true` — the
+          //      admin toggled it on for this specific block (Admin
+          //      repo PR #409).
+          // Geometry / axis / multi-axis never wrap in QuestionCard so
+          // they can't opt in even if the field is set. Interactive-SVG
+          // hotspots use the earlier QuestionCard branch and don't
+          // read the field either.
+          notebookContextTitle={
+            showNotebook && question.showNotebook === true ? questionLabel : undefined
+          }
           animationDelay={nextIndex * 0.08}
           variant={questionCardVariant}
         >

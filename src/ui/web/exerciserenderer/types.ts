@@ -126,6 +126,12 @@ export interface QuestionSelectTrueFalseBlock {
   hint?: InlineRichText
   solution?: InlineRichText
   fullSolution?: InlineRichText
+  /**
+   * Admin opt-in for the per-block drawing notebook. Only when strictly
+   * `true` does the "Open notebook" pill render on this block. Field
+   * ships from admin PR #409.
+   */
+  showNotebook?: boolean
 }
 
 // MCQ variant
@@ -139,6 +145,8 @@ export interface QuestionSelectMcqBlock {
   hint?: InlineRichText
   solution?: InlineRichText
   fullSolution?: InlineRichText
+  /** See `QuestionSelectTrueFalseBlock.showNotebook`. */
+  showNotebook?: boolean
 }
 
 export type QuestionSelectBlock = QuestionSelectTrueFalseBlock | QuestionSelectMcqBlock
@@ -151,6 +159,8 @@ export interface QuestionFreeResponseBlock {
   hint?: InlineRichText
   solution?: InlineRichText
   fullSolution?: InlineRichText
+  /** See `QuestionSelectTrueFalseBlock.showNotebook`. */
+  showNotebook?: boolean
 }
 
 export interface QuestionTableBlock {
@@ -161,6 +171,8 @@ export interface QuestionTableBlock {
   hint?: InlineRichText
   solution?: InlineRichText
   fullSolution?: InlineRichText
+  /** See `QuestionSelectTrueFalseBlock.showNotebook`. */
+  showNotebook?: boolean
 }
 
 export type QuestionBlock =
@@ -272,4 +284,13 @@ export interface ExerciseRendererProps {
    *   inside a teacher bubble.
    */
   questionCardVariant?: 'card' | 'flat'
+  /**
+   * Whether to attach the per-question drawing notebook (toggle + inline
+   * `AskDrawingCanvas`) to each question block. Defaults to `false`
+   * because Check-solution dispatches an `ask-action` CustomEvent that
+   * only `ChatInterface` / `ChatLessonRunnerView` listen for — if the
+   * caller isn't mounting one of those, the button would silently
+   * no-op. Set `true` only when a chat surface is on the page.
+   */
+  showNotebook?: boolean
 }
