@@ -4552,6 +4552,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- revert: Undo chat sidebar pill restyle ([#1150](https://github.com/A-Guy-educ/A-Guy-Web/pull/1150)) — @aguyshayb
 - feat: Restyle chat view to floating pill design on mobile ([#1147](https://github.com/A-Guy-educ/A-Guy-Web/pull/1147)) — @aguyshayb
 - ci: Fix failing scheduled workflows and Fast Gate audit ([#1148](https://github.com/A-Guy-educ/A-Guy-Web/pull/1148)) — @aguyshayb
 - feat: Gate per-block notebook on admin's showNotebook opt-in ([#1145](https://github.com/A-Guy-educ/A-Guy-Web/pull/1145)) — @aguyshayb
