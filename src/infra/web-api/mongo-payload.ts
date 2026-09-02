@@ -1,6 +1,6 @@
 import { ObjectId, type Document, type Filter } from 'mongodb'
 
-import { getSessionFromToken, tokenFromHeaders } from '@/infra/auth/web-auth'
+import { getSessionFromHeaders } from '@/infra/auth/web-auth'
 import { getContentDb, objectIdFromString, serializeDoc } from '@/infra/db/content-db'
 
 type Where = Record<string, unknown>
@@ -131,7 +131,7 @@ export async function getWebPayload() {
   return {
     db,
     async auth({ headers }: { headers: Headers }) {
-      const session = await getSessionFromToken(tokenFromHeaders(headers))
+      const session = await getSessionFromHeaders(headers)
       return { user: session?.user ?? null }
     },
     async find(args: {
@@ -218,6 +218,6 @@ export async function getWebPayload() {
 export type WebPayload = Awaited<ReturnType<typeof getWebPayload>>
 
 export async function getWebUser(headers: Headers) {
-  const session = await getSessionFromToken(tokenFromHeaders(headers))
+  const session = await getSessionFromHeaders(headers)
   return session?.user ?? null
 }

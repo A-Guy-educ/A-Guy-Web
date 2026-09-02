@@ -2,22 +2,23 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import {
   appendAuthCookieClearHeaders,
-  getSessionFromToken,
-  tokenFromHeaders,
+  getSessionFromHeaders,
+  tokensFromHeaders,
 } from '@/infra/auth/web-auth'
 
 export const runtime = 'nodejs'
 
 export async function GET(request: NextRequest) {
   // public endpoint: returns anonymous state when no valid session exists
-  const token = tokenFromHeaders(request.headers)
-  const session = await getSessionFromToken(token)
+  const session = await getSessionFromHeaders(request.headers)
   if (!session) {
-    // Stale/invalid token: clear every cookie variant so the next request hits
-    // the middleware login redirect instead of looping through 401s while the
-    // UI thinks the user is signed in.
+    // Every cookie variant the browser sent is stale: clear them all so the
+    // next request hits the middleware login redirect instead of looping
+    // through 401s while the UI thinks the user is signed in.
     const res = NextResponse.json({ user: null }, { status: 401 })
-    if (token) appendAuthCookieClearHeaders(res.headers)
+    if (tokensFromHeaders(request.headers).length > 0) {
+      appendAuthCookieClearHeaders(res.headers)
+    }
     return res
   }
   return NextResponse.json({ user: session.user })

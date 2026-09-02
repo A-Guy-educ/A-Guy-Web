@@ -19,7 +19,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 
-import { getSessionFromToken, tokenFromHeaders } from '@/infra/auth/web-auth'
+import { getSessionFromHeaders } from '@/infra/auth/web-auth'
 import { checkAndIncrementChatQuota, getChatQuotaStatus } from '@/server/services/chat-quota'
 
 type AuthedUser = { id: string }
@@ -42,8 +42,7 @@ function fail(response: NextResponse): GuardFailure {
 export async function requireUser(
   request: NextRequest,
 ): Promise<GuardSuccess<AuthedUser> | GuardFailure> {
-  const token = tokenFromHeaders(request.headers)
-  const session = await getSessionFromToken(token)
+  const session = await getSessionFromHeaders(request.headers)
   if (!session?.user?.id) {
     return fail(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
   }
