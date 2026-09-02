@@ -1,5 +1,38 @@
 # Changelog
 
+## v0.34.0 — 2026-09-02
+
+### Features
+- Auto-check single-select MCQ and inline exercise given-data (#1153)
+- Flip chat-view top row and thread mute through LessonMenu (#1152)
+- Restructure chat-view top row per mockup corrections (#1152)
+- Redesign chat-view mode to floating-pill mockup (#1151)
+- Restyle chat view to floating pill design on mobile (#1147)
+- Gate per-block notebook on admin showNotebook opt-in (#1145)
+- Notebook attached per question block; LessonMenu button hamburger-only (#1144)
+- Floating lesson menu replaces exercise header + tab bar (#1143)
+- Notebook v2 — reuse Ask-page canvas and wire check-solution to chat (#1142)
+
+### Fixes
+- De-dupe given-data render in chat view (#1153)
+- Restore gap utility mangled by design-token codemod (#1150)
+- Lock QuestionNotebook on historical chat bubbles (#1144)
+- Address review of notebook-per-block PR (chat-native gap, dead FAB, SVG note, label) (#1144)
+- Revert pass-5 hasChatListener addition (was duplicating Notebook FAB) (#1143)
+- Address review pass 5 (restore Notebook FAB in chat view + stable resize observer) (#1143)
+- Address review pass 4 findings (canvas resize, double-tap, tokens, aria, mount guard) (#1143)
+- Move LessonMenu to start-3 + inline SSR transform for Notebook aside (#1143)
+- Address real-review findings (fix HIGH ask-page trap + MEDIUM notebook stroke loss) (#1143)
+- Address lesson-menu review pass 1 (kill dead fullscreen, drop no-op ternary) (#1143)
+- Address notebook v2 review pass 1 (dedupe upload, surface errors, tests) (#1142)
+
+### Reverts
+- Undo chat sidebar pill restyle (#1150)
+
+### Chores
+- Bump browserslist to patched 4.28.7+ (#1148)
+- Fix failing scheduled workflows on dev (#1148)
+
 ## v0.33.12 — 2026-09-01
 
 ### Features
