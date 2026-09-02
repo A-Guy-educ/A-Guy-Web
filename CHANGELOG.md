@@ -4552,6 +4552,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Chat-view top-row mockup corrections ([#1152](https://github.com/A-Guy-educ/A-Guy-Web/pull/1152)) — @aguyshayb
 - feat: Redesign chat-view mode to floating-pill mockup ([#1151](https://github.com/A-Guy-educ/A-Guy-Web/pull/1151)) — @aguyshayb
 - revert: Undo chat sidebar pill restyle ([#1150](https://github.com/A-Guy-educ/A-Guy-Web/pull/1150)) — @aguyshayb
 - feat: Restyle chat view to floating pill design on mobile ([#1147](https://github.com/A-Guy-educ/A-Guy-Web/pull/1147)) — @aguyshayb
