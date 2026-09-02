@@ -715,13 +715,20 @@ export function ExerciseRenderer({
     const checked = hasChecked[question.id] || false
     const disabled = checked && checkResult?.isCorrect
 
-    // True/False and Table questions don't use the generic check button.
-    // In batch check mode the per-question check button is always hidden
-    // — grading happens through the single "Check all" button instead.
+    // True/False, single-select MCQ, and Table questions don't use the generic
+    // check button — TF + single-select MCQ auto-check on click (see
+    // handleAnswerChange + handleAutoCheckMcq). In batch check mode the
+    // per-question check button is always hidden — grading happens through
+    // the single "Check all" button instead.
+    const isSingleSelectMcq =
+      question.type === 'question_select' &&
+      question.variant === 'mcq' &&
+      !question.answer.multiSelect
     const showCheckButton =
       showCheckAnswer &&
       !batchCheckMode &&
       !(question.type === 'question_select' && question.variant === 'true_false') &&
+      !isSingleSelectMcq &&
       question.type !== 'question_table'
 
     // Help system for this question (always shown — AI fallback when no backend content).

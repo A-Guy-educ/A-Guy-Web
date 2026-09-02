@@ -2,9 +2,11 @@
 
 import type { Exercise, Media } from '@/infra/types/content'
 import type { RichTextBlock } from '@/infra/types/exercise'
-import { getExerciseBlocks } from '@/lib/exercises/getExerciseBlocks'
+import { getExerciseBlockGroups } from '@/lib/exercises/getExerciseBlocks'
 import { formatExerciseContextMessage } from '@/infra/llm/exercise-context'
 import { uploadDataUrlAsMedia } from '@/infra/media/uploadDataUrl'
+import { RichTextRenderer } from '@/ui/web/exerciserenderer/blocks/RichTextRenderer'
+import { MediaMapProvider } from '@/ui/web/exerciserenderer/context/MediaMapContext'
 import { logger } from '@/infra/utils/logger'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -293,14 +295,17 @@ function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatPr
 
   const showContinueButton = !walker.isComplete && entries.length > 0
 
-  // Given-data rich_text blocks for the current EXERCISE (all sections).
-  // Stays stable while the student walks through the exercise's sections
-  // and only changes when they advance to the next exercise — so the
-  // floating amber pill can show statement + figures without churning.
+  // Given-data rich_text blocks for the current EXERCISE — top-level only
+  // (pre-section content.blocks). Stays stable across sections A-D and only
+  // refreshes on advance to the next exercise. Same source that
+  // `useExerciseWalker` puts into the intro entry's `givenDataBlocks`,
+  // so the floating pill and the inline amber intro card always match.
   const currentExerciseRichTextBlocks = useMemo<RichTextBlock[]>(() => {
     const exercise = walker.currentStep?.exercise
     if (!exercise) return []
-    return getExerciseBlocks(exercise).filter((b): b is RichTextBlock => b.type === 'rich_text')
+    const topLevel = getExerciseBlockGroups(exercise).find((g) => g.sectionIndex === null)
+    if (!topLevel) return []
+    return topLevel.blocks.filter((b): b is RichTextBlock => b.type === 'rich_text')
   }, [walker.currentStep?.exercise])
   const currentExerciseKey = walker.currentStep?.exercise.id ?? ''
 
@@ -409,14 +414,28 @@ function StreamEntryView({
       const label = entry.title
         ? `${introPrefix} ${entry.ordinal}: ${entry.title}`
         : `${introPrefix} ${entry.ordinal}`
+      const givenDataBlocks = entry.givenDataBlocks ?? []
       return (
-        <TeacherBubble
-          text={label}
-          onSpeak={() => tts.speak(label)}
-          speaking={tts.speaking}
-          muted={tts.muted}
-          ttsSupported={tts.supported}
-        />
+        <div className="flex flex-col gap-content-gap">
+          <TeacherBubble
+            text={label}
+            onSpeak={() => tts.speak(label)}
+            speaking={tts.speaking}
+            muted={tts.muted}
+            ttsSupported={tts.supported}
+          />
+          {givenDataBlocks.length > 0 && (
+            <div className="rounded-2xl border border-warning/30 bg-warning/8 p-card-padding-sm shadow-elevation-1">
+              <MediaMapProvider value={mediaMap ?? {}}>
+                <div className="space-y-3 text-body-md leading-relaxed text-foreground">
+                  {givenDataBlocks.map((block) => (
+                    <RichTextRenderer key={block.id} block={block} />
+                  ))}
+                </div>
+              </MediaMapProvider>
+            </div>
+          )}
+        </div>
       )
     }
     case 'exercise-section':
