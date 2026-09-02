@@ -4552,6 +4552,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Auto-check single-select MCQ and inline exercise given-data ([#1153](https://github.com/A-Guy-educ/A-Guy-Web/pull/1153)) — @aguyshayb
 - feat: Chat-view top-row mockup corrections ([#1152](https://github.com/A-Guy-educ/A-Guy-Web/pull/1152)) — @aguyshayb
 - feat: Redesign chat-view mode to floating-pill mockup ([#1151](https://github.com/A-Guy-educ/A-Guy-Web/pull/1151)) — @aguyshayb
 - revert: Undo chat sidebar pill restyle ([#1150](https://github.com/A-Guy-educ/A-Guy-Web/pull/1150)) — @aguyshayb
