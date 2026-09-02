@@ -27,6 +27,10 @@ import { pickWellDone } from './wellDoneMessages'
 
 const CELEBRATION_ADVANCE_MS = 1500
 
+/** Stable empty map — avoids feeding a fresh `{}` into MediaMapProvider on
+ *  every render, which would re-fire every `useMediaMap` descendant. */
+const EMPTY_MEDIA_MAP: Record<string, Media> = {}
+
 /** א, ב, ג, ... — matches the ExerciseRenderer's question-card labeling. */
 const HEBREW_LETTERS = [
   'א',
@@ -426,7 +430,7 @@ function StreamEntryView({
           />
           {givenDataBlocks.length > 0 && (
             <div className="rounded-2xl border border-warning/30 bg-warning/8 p-card-padding-sm shadow-elevation-1">
-              <MediaMapProvider value={mediaMap ?? {}}>
+              <MediaMapProvider value={mediaMap ?? EMPTY_MEDIA_MAP}>
                 <div className="space-y-3 text-body-md leading-relaxed text-foreground">
                   {givenDataBlocks.map((block) => (
                     <RichTextRenderer key={block.id} block={block} />

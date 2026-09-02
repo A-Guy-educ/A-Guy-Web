@@ -61,7 +61,16 @@ interface WalkerStep {
 function flattenSteps(exercises: Exercise[]): WalkerStep[] {
   const out: WalkerStep[] = []
   exercises.forEach((exercise, exerciseIndex) => {
-    const groups = getExerciseBlockGroups(exercise)
+    // Drop the exercise's top-level (sectionIndex === null) group when it's
+    // pure rich_text — those blocks now surface in the intro entry's amber
+    // "given data" card, and re-emitting them as their own walker step
+    // would double the same statement/figures in the stream. Groups that
+    // mix rich_text with questions/media stay (so nothing is silently
+    // dropped).
+    const groups = getExerciseBlockGroups(exercise).filter((g) => {
+      if (g.sectionIndex !== null) return true
+      return g.blocks.some((b) => b.type !== 'rich_text')
+    })
     const groupsInExercise = groups.length
     if (groupsInExercise === 0) return
     groups.forEach((group, groupIndex) => {
