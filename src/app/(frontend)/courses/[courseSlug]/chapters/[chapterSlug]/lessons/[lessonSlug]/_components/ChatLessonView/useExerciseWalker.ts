@@ -17,23 +17,41 @@
 'use client'
 
 import type { Exercise } from '@/infra/types/content'
-import type { ExerciseBlockGroup, RichTextBlock } from '@/infra/types/exercise'
+import type { ContentBlock, ExerciseBlockGroup } from '@/infra/types/exercise'
 import { getExerciseBlockGroups } from '@/lib/exercises/getExerciseBlocks'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { StreamEntry } from './types'
 
 /**
- * Pull the exercise's top-level (pre-section) rich_text blocks. These are
- * the "given data" — statement + figures — that live directly on the
- * exercise before any section. Per-section rich_text (inline instructions)
- * is intentionally excluded so the intro card doesn't duplicate content
- * that renders inside its own section bubble.
+ * Block types that require the student to submit an answer. These stay in
+ * their own section walker step so their answer UI renders. Everything
+ * else at the exercise top level (rich_text, svg, latex, html, media, and
+ * display-only axis/geometry graphs) is treated as "given data" and moves
+ * into the intro card.
  */
-function extractGivenDataBlocks(exercise: Exercise): RichTextBlock[] {
+const ANSWER_REQUIRED_BLOCK_TYPES = new Set([
+  'question_select',
+  'question_free_response',
+  'question_table',
+  'question_matching',
+])
+
+function isAnswerRequired(block: { type: string }): boolean {
+  return ANSWER_REQUIRED_BLOCK_TYPES.has(block.type)
+}
+
+/**
+ * Pull the exercise's top-level (pre-section) non-answer-required blocks.
+ * These are the "given data" — statement, figures, graphs, formulas — that
+ * live directly on the exercise before any section. Per-section content is
+ * intentionally excluded so the intro card doesn't duplicate what renders
+ * in its own section bubble.
+ */
+function extractGivenDataBlocks(exercise: Exercise): ContentBlock[] {
   const groups = getExerciseBlockGroups(exercise)
   const topLevel = groups.find((g) => g.sectionIndex === null)
   if (!topLevel) return []
-  return topLevel.blocks.filter((b): b is RichTextBlock => b.type === 'rich_text')
+  return topLevel.blocks.filter((b) => !isAnswerRequired(b))
 }
 
 /** Block types that require the student to submit an answer. */
@@ -61,15 +79,15 @@ interface WalkerStep {
 function flattenSteps(exercises: Exercise[]): WalkerStep[] {
   const out: WalkerStep[] = []
   exercises.forEach((exercise, exerciseIndex) => {
-    // Drop the exercise's top-level (sectionIndex === null) group when it's
-    // pure rich_text — those blocks now surface in the intro entry's amber
-    // "given data" card, and re-emitting them as their own walker step
-    // would double the same statement/figures in the stream. Groups that
-    // mix rich_text with questions/media stay (so nothing is silently
-    // dropped).
+    // Drop the exercise's top-level (sectionIndex === null) group when it
+    // has no answer-required blocks — those blocks now surface in the
+    // intro entry's amber "given data" card, and re-emitting them as their
+    // own walker step would double the same statement/figures/graphs in
+    // the stream. Groups that include an answer-required question stay as
+    // a walker step so their answer UI renders.
     const groups = getExerciseBlockGroups(exercise).filter((g) => {
       if (g.sectionIndex !== null) return true
-      return g.blocks.some((b) => b.type !== 'rich_text')
+      return g.blocks.some(isAnswerRequired)
     })
     const groupsInExercise = groups.length
     if (groupsInExercise === 0) return
