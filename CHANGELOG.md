@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.34.2 — 2026-09-03
+
+### Fixes
+- Match exercise rich_text preamble size to question prompts (#1163)
+- Scope JSXGraphBoard DOM id per mount to avoid collision (#1161)
+- Hide raw LaTeX and skip intro card for display-only exercises (#1161)
+- Handle interactive SVG and strip display blocks from walker steps (#1161)
+- Include non-text given-data blocks (svg, axis, geometry, etc.) (#1161)
+
+### Chores
+- Bump fast-uri override to >=4.1.3 for Fast Gate audit (#1162)
+- Restore web-release skill and slash-command (#1164)
+
 ## v0.34.1 — 2026-09-02
 
 ### Fixes
