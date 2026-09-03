@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useId, useRef } from 'react'
 import { cn } from '@/infra/utils/ui'
 
 interface JSXGraphBoardProps {
@@ -36,6 +36,16 @@ export function JSXGraphBoard({
   const containerRef = useRef<HTMLDivElement>(null)
   const boardRef = useRef<JXG.Board | null>(null)
   const jxgRef = useRef<typeof JXG | null>(null)
+  // Per-mount unique id. The same block can render in multiple
+  // ExerciseRenderer trees at once (chat-view intro amber card + the
+  // given-data pill), and JSXGraph.initBoard resolves the container via
+  // document.getElementById — which always picks the FIRST match. Without
+  // a per-mount id, the second mount would attach its board to the first
+  // mount's div and then blank it out on cleanup. Colons from useId() are
+  // valid in HTML5 ids but stripped anyway so downstream querySelector
+  // consumers don't need to escape.
+  const reactId = useId().replace(/[^a-zA-Z0-9-]/g, '')
+  const containerId = `jsxgraph-${reactId}-${id}`
 
   useEffect(() => {
     let destroyed = false
@@ -47,7 +57,6 @@ export function JSXGraphBoard({
       if (destroyed || !containerRef.current) return
 
       jxgRef.current = JXGLib
-      const containerId = `jsxgraph-${id}`
 
       // Check if origin is outside the viewport — if so, create axes manually
       const ox = axisConfig?.origin?.x ?? 0
@@ -159,12 +168,12 @@ export function JSXGraphBoard({
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id])
+  }, [containerId])
 
   return (
     <div
       ref={containerRef}
-      id={`jsxgraph-${id}`}
+      id={containerId}
       className={cn('w-full border rounded-lg overflow-hidden bg-white', className)}
       style={{ width, height, maxWidth: '100%' }}
     />

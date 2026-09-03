@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.34.2 — 2026-09-03
+
+### Fixes
+- Match exercise rich_text preamble size to question prompts (#1163)
+- Scope JSXGraphBoard DOM id per mount to avoid collision (#1161)
+- Hide raw LaTeX and skip intro card for display-only exercises (#1161)
+- Handle interactive SVG and strip display blocks from walker steps (#1161)
+- Include non-text given-data blocks (svg, axis, geometry, etc.) (#1161)
+
+### Chores
+- Bump fast-uri override to >=4.1.3 for Fast Gate audit (#1162)
+- Restore web-release skill and slash-command (#1164)
+
 ## v0.34.1 — 2026-09-02
 
 ### Fixes
@@ -4590,6 +4603,14 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.34.2 ([#1165](https://github.com/A-Guy-educ/A-Guy-Web/pull/1165)) — @aguyshayb
+- chore: Restore web-release skill and slash-command ([#1164](https://github.com/A-Guy-educ/A-Guy-Web/pull/1164)) — @aguyshayb
+- fix: Match exercise rich_text preamble size to question prompts ([#1163](https://github.com/A-Guy-educ/A-Guy-Web/pull/1163)) — @aguyshayb
+- fix: Include non-text given-data blocks (svg, axis, geometry, etc.) ([#1161](https://github.com/A-Guy-educ/A-Guy-Web/pull/1161)) — @aguyshayb
+- chore(deps): Bump fast-uri override to >=4.1.3 for Fast Gate audit ([#1162](https://github.com/A-Guy-educ/A-Guy-Web/pull/1162)) — @aguyshayb
+## [v0.34.1] - 2026-09-02
+
+- promote: dev -> main (v0.34.1) ([#1158](https://github.com/A-Guy-educ/A-Guy-Web/pull/1158)) — @aguyshayb
 - chore: Release v0.34.1 ([#1157](https://github.com/A-Guy-educ/A-Guy-Web/pull/1157)) — @aguyshayb
 - fix(auth): Try every payload-token cookie so a stale variant doesn't lock users out ([#1156](https://github.com/A-Guy-educ/A-Guy-Web/pull/1156)) — @aguyshayb
 - chore: Release v0.34.0 ([#1154](https://github.com/A-Guy-educ/A-Guy-Web/pull/1154)) — @aguyshayb
