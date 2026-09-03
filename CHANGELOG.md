@@ -4590,6 +4590,10 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore(deps): Bump fast-uri override to >=4.1.3 for Fast Gate audit ([#1162](https://github.com/A-Guy-educ/A-Guy-Web/pull/1162)) — @aguyshayb
+## [v0.34.1] - 2026-09-02
+
+- promote: dev -> main (v0.34.1) ([#1158](https://github.com/A-Guy-educ/A-Guy-Web/pull/1158)) — @aguyshayb
 - chore: Release v0.34.1 ([#1157](https://github.com/A-Guy-educ/A-Guy-Web/pull/1157)) — @aguyshayb
 - fix(auth): Try every payload-token cookie so a stale variant doesn't lock users out ([#1156](https://github.com/A-Guy-educ/A-Guy-Web/pull/1156)) — @aguyshayb
 - chore: Release v0.34.0 ([#1154](https://github.com/A-Guy-educ/A-Guy-Web/pull/1154)) — @aguyshayb
