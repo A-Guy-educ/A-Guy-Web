@@ -23,21 +23,43 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { StreamEntry } from './types'
 
 /**
- * Block types that require the student to submit an answer. These stay in
- * their own section walker step so their answer UI renders. Everything
- * else at the exercise top level (rich_text, svg, latex, html, media, and
- * display-only axis/geometry graphs) is treated as "given data" and moves
- * into the intro card.
+ * Block types that always require the student to submit an answer. These
+ * stay in their own section walker step so their answer UI renders.
+ * Non-interactive display blocks (rich_text, static svg, latex, html,
+ * media, display-only axis/geometry graphs) fall into "given data" and
+ * move into the intro card.
  */
-const ANSWER_REQUIRED_BLOCK_TYPES = new Set([
+const ALWAYS_ANSWER_REQUIRED_BLOCK_TYPES = new Set([
   'question_select',
   'question_free_response',
   'question_table',
   'question_matching',
 ])
 
-function isAnswerRequired(block: { type: string }): boolean {
-  return ANSWER_REQUIRED_BLOCK_TYPES.has(block.type)
+/**
+ * `svg` is a display type by default, but SVGBlock supports interactive
+ * hotspots (`interactive: true` with a non-empty `hotspots` array + a
+ * `correctHotspotIds` grading rule — see SvgBlock in `types.ts`). When
+ * that's the case ExerciseRenderer renders it inside a graded
+ * QuestionCard, so we must treat it as answer-required. Static SVG
+ * figures (no `interactive` flag) stay in given data.
+ */
+function isInteractiveSvg(block: { type: string; [key: string]: unknown }): boolean {
+  if (block.type !== 'svg') return false
+  const interactive = (block as { interactive?: boolean }).interactive === true
+  const hotspots = (block as { hotspots?: unknown[] }).hotspots
+  return interactive && Array.isArray(hotspots) && hotspots.length > 0
+}
+
+/**
+ * Whether a block needs an answer input. Shared by the walker (to decide
+ * which groups keep a walker step) and by ChatLessonRunnerView (to
+ * derive the pill's given-data set). Kept in one place so the pill and
+ * the intro card never drift apart on a future block-type addition.
+ */
+export function isAnswerRequired(block: { type: string; [key: string]: unknown }): boolean {
+  if (ALWAYS_ANSWER_REQUIRED_BLOCK_TYPES.has(block.type)) return true
+  return isInteractiveSvg(block)
 }
 
 /**
@@ -51,7 +73,7 @@ function extractGivenDataBlocks(exercise: Exercise): ContentBlock[] {
   const groups = getExerciseBlockGroups(exercise)
   const topLevel = groups.find((g) => g.sectionIndex === null)
   if (!topLevel) return []
-  return topLevel.blocks.filter((b) => !isAnswerRequired(b))
+  return topLevel.blocks.filter((b: ContentBlock) => !isAnswerRequired(b))
 }
 
 /** Block types that require the student to submit an answer. */
@@ -79,16 +101,34 @@ interface WalkerStep {
 function flattenSteps(exercises: Exercise[]): WalkerStep[] {
   const out: WalkerStep[] = []
   exercises.forEach((exercise, exerciseIndex) => {
-    // Drop the exercise's top-level (sectionIndex === null) group when it
-    // has no answer-required blocks — those blocks now surface in the
-    // intro entry's amber "given data" card, and re-emitting them as their
-    // own walker step would double the same statement/figures/graphs in
-    // the stream. Groups that include an answer-required question stay as
-    // a walker step so their answer UI renders.
-    const groups = getExerciseBlockGroups(exercise).filter((g) => {
-      if (g.sectionIndex !== null) return true
-      return g.blocks.some(isAnswerRequired)
-    })
+    // Reshape the top-level (sectionIndex === null) group so display blocks
+    // never render twice:
+    //   1. Skip the group entirely when it has no answer-required blocks
+    //      AND the exercise has at least one section — its display blocks
+    //      already surface in the intro amber card, and the sections keep
+    //      the stream moving. Skipping this case avoids duplicating
+    //      statements/figures/graphs across intro card + section bubble.
+    //   2. When there are NO sections either, keep the top-level group as
+    //      the walker step even if it's display-only — otherwise the
+    //      whole exercise would vanish from the stream.
+    //   3. When the group has answer-required blocks (either the
+    //      always-required types or an interactive-hotspot SVG), keep the
+    //      walker step but STRIP the display blocks off it — those live
+    //      in the intro card, so re-rendering them inside the section
+    //      bubble via ExerciseRenderer would double them.
+    const rawGroups = getExerciseBlockGroups(exercise)
+    const hasSections = rawGroups.some((g) => g.sectionIndex !== null)
+    const groups = rawGroups
+      .filter((g) => {
+        if (g.sectionIndex !== null) return true
+        if (g.blocks.some(isAnswerRequired)) return true
+        return !hasSections
+      })
+      .map((g) => {
+        if (g.sectionIndex !== null) return g
+        if (!g.blocks.some(isAnswerRequired)) return g
+        return { ...g, blocks: g.blocks.filter(isAnswerRequired) }
+      })
     const groupsInExercise = groups.length
     if (groupsInExercise === 0) return
     groups.forEach((group, groupIndex) => {

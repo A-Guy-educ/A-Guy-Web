@@ -21,7 +21,7 @@ import { TeacherBubble } from './bubbles/TeacherBubble'
 import type { SectionOutcome, StreamEntry } from './types'
 import { useBrowserTTS } from './useBrowserTTS'
 import { useChatChannel } from './useChatChannel'
-import { useExerciseWalker } from './useExerciseWalker'
+import { isAnswerRequired, useExerciseWalker } from './useExerciseWalker'
 import { pickWellDone } from './wellDoneMessages'
 
 const CELEBRATION_ADVANCE_MS = 1500
@@ -299,24 +299,16 @@ function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatPr
   const showContinueButton = !walker.isComplete && entries.length > 0
 
   // Given-data blocks for the current EXERCISE — top-level only (pre-section
-  // content.blocks) with answer-required questions filtered out. Includes
-  // rich_text, svg, latex, html, media, and display-only graph blocks
-  // (question_axis / question_geometry / question_multi_axis used as
-  // figures). Stays stable across sections A-D and only refreshes on
-  // advance to the next exercise. Matches the source used by
-  // `useExerciseWalker` for the intro card so pill and card are in sync.
+  // content.blocks) with answer-required blocks filtered out via the same
+  // `isAnswerRequired` predicate the walker uses for its intro entry.
+  // Sharing the predicate keeps the floating pill and the inline amber
+  // card in lockstep across future block-type additions.
   const currentExerciseGivenDataBlocks = useMemo<ContentBlock[]>(() => {
     const exercise = walker.currentStep?.exercise
     if (!exercise) return []
     const topLevel = getExerciseBlockGroups(exercise).find((g) => g.sectionIndex === null)
     if (!topLevel) return []
-    return topLevel.blocks.filter(
-      (b) =>
-        b.type !== 'question_select' &&
-        b.type !== 'question_free_response' &&
-        b.type !== 'question_table' &&
-        b.type !== 'question_matching',
-    )
+    return topLevel.blocks.filter((b: ContentBlock) => !isAnswerRequired(b))
   }, [walker.currentStep?.exercise])
   const currentExerciseKey = walker.currentStep?.exercise.id ?? ''
 

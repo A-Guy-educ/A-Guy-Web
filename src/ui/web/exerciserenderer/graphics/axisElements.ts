@@ -44,7 +44,7 @@ function renderAxisPoints(board: JXG.Board, points: PointSpec[]) {
       const attrs: Record<string, unknown> = {
         name: p.label || '',
         fixed: true,
-        size: 4,
+        size: 2.4,
         withLabel: !!p.label,
       }
       if (p.color) {
