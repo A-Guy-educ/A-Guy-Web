@@ -539,16 +539,16 @@ export function ExerciseRenderer({
     //
     // These standalone rich_text blocks act as the exercise's "question data"
     // (נתוני השאלה): the preamble that describes the problem before the
-    // sub-item questions. Sized at text-body-xs / font-medium to match the
-    // weight of the sub-item prompts (McqQuestion et al.) while staying
-    // visually secondary to them. The prose-p:* variants force the size
+    // sub-item questions. Sized at text-body-md / font-medium to match the
+    // sub-item prompts (McqQuestion et al.) so the preamble and questions
+    // read as one continuous exercise. The prose-p:* variants force the size
     // through Tailwind Typography's per-element rules so paragraphs don't
     // fall back to prose's default `p` sizing.
     if (block.type === 'rich_text') {
       return {
         node: (
           <FadeIn key={block.id}>
-            <div className="prose prose-slate dark:prose-invert max-w-none text-foreground text-body-xs font-medium prose-p:text-body-xs prose-p:font-medium">
+            <div className="prose prose-slate dark:prose-invert max-w-none text-foreground text-body-md font-medium prose-p:text-body-md prose-p:font-medium">
               <RichTextRenderer block={block} />
             </div>
           </FadeIn>
