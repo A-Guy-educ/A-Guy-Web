@@ -4603,6 +4603,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- promote: dev -> main (v0.34.2) ([#1166](https://github.com/A-Guy-educ/A-Guy-Web/pull/1166)) — @aguyshayb
 - chore: Release v0.34.2 ([#1165](https://github.com/A-Guy-educ/A-Guy-Web/pull/1165)) — @aguyshayb
 - chore: Restore web-release skill and slash-command ([#1164](https://github.com/A-Guy-educ/A-Guy-Web/pull/1164)) — @aguyshayb
 - fix: Match exercise rich_text preamble size to question prompts ([#1163](https://github.com/A-Guy-educ/A-Guy-Web/pull/1163)) — @aguyshayb
