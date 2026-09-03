@@ -103,7 +103,6 @@ export function GivenDataFloating({
                   mediaMap={mediaMap ?? EMPTY_MEDIA_MAP}
                   showCheckAnswer={false}
                   showExerciseNumber={false}
-                  hideLatexBlocks={false}
                   questionCardVariant="flat"
                 />
               ) : emptyLabel ? (

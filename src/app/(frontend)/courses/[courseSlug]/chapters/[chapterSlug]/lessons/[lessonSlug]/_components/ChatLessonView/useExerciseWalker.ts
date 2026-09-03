@@ -73,6 +73,15 @@ function extractGivenDataBlocks(exercise: Exercise): ContentBlock[] {
   const groups = getExerciseBlockGroups(exercise)
   const topLevel = groups.find((g) => g.sectionIndex === null)
   if (!topLevel) return []
+  // Display-only exercise (no sections + no answer-required at top level):
+  // the walker keeps the top-level group as its sole step (see the
+  // filter/map below), so surfacing the same display blocks in the intro
+  // amber card would render them twice. The show-data pill still gets
+  // them via ChatLessonRunnerView's `currentExerciseGivenDataBlocks` — the
+  // pill is opt-in on-tap, so no duplication there.
+  const hasSections = groups.some((g) => g.sectionIndex !== null)
+  const topLevelHasAnswerRequired = topLevel.blocks.some(isAnswerRequired)
+  if (!hasSections && !topLevelHasAnswerRequired) return []
   return topLevel.blocks.filter((b: ContentBlock) => !isAnswerRequired(b))
 }
 

@@ -435,7 +435,6 @@ function StreamEntryView({
                 lessonId={lessonId}
                 showCheckAnswer={false}
                 showExerciseNumber={false}
-                hideLatexBlocks={false}
                 questionCardVariant="flat"
               />
             </div>
