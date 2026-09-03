@@ -4590,6 +4590,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore(deps): Bump fast-uri override to >=4.1.3 for Fast Gate audit ([#1162](https://github.com/A-Guy-educ/A-Guy-Web/pull/1162)) — @aguyshayb
 ## [v0.34.1] - 2026-09-02
 
 - promote: dev -> main (v0.34.1) ([#1158](https://github.com/A-Guy-educ/A-Guy-Web/pull/1158)) — @aguyshayb
