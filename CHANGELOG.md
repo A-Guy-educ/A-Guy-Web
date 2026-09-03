@@ -4590,6 +4590,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Match exercise rich_text preamble size to question prompts ([#1163](https://github.com/A-Guy-educ/A-Guy-Web/pull/1163)) — @aguyshayb
 - fix: Include non-text given-data blocks (svg, axis, geometry, etc.) ([#1161](https://github.com/A-Guy-educ/A-Guy-Web/pull/1161)) — @aguyshayb
 - chore(deps): Bump fast-uri override to >=4.1.3 for Fast Gate audit ([#1162](https://github.com/A-Guy-educ/A-Guy-Web/pull/1162)) — @aguyshayb
 ## [v0.34.1] - 2026-09-02
