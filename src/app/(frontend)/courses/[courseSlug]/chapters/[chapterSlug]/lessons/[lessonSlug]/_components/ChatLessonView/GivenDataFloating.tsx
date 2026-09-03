@@ -1,10 +1,9 @@
 'use client'
 
 import type { Media } from '@/infra/types/content'
-import type { RichTextBlock } from '@/infra/types/exercise'
+import type { ContentBlock } from '@/infra/types/exercise'
 import { cn } from '@/infra/utils/ui'
-import { RichTextRenderer } from '@/ui/web/exerciserenderer/blocks/RichTextRenderer'
-import { MediaMapProvider } from '@/ui/web/exerciserenderer/context/MediaMapContext'
+import { ExerciseRenderer } from '@/ui/web/exerciserenderer'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Shapes, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -12,11 +11,11 @@ import { useEffect, useState } from 'react'
 const EMPTY_MEDIA_MAP: Record<string, Media> = {}
 
 interface GivenDataFloatingProps {
-  /** Rich-text blocks from the current EXERCISE (all sections). Treated as
-   *  the exercise's "given data" (statement, figures, formulas). Stays
-   *  stable while the student walks through sections A-D of the same
+  /** Non-answer-required top-level blocks of the current EXERCISE. Treated
+   *  as the exercise's "given data" — statement, figures, graphs, formulas.
+   *  Stays stable while the student walks through sections A-D of the same
    *  exercise and only changes when they advance to the next exercise. */
-  richTextBlocks: RichTextBlock[]
+  blocks: ContentBlock[]
   mediaMap?: Record<string, Media>
   /** Identity key for the current exercise. Toggling this collapses the
    *  dropdown so a stale given-data card never overlays a new exercise. */
@@ -25,7 +24,7 @@ interface GivenDataFloatingProps {
   hideLabel: string
   title: string
   /** Copy shown inside the dropdown when the current exercise has no
-   *  rich_text blocks (e.g. algebra-only exercises whose statement is
+   *  given-data blocks (e.g. algebra-only exercises whose statement is
    *  a bare LaTeX line). Optional — omit to render nothing in that case. */
   emptyLabel?: string
 }
@@ -38,7 +37,7 @@ interface GivenDataFloatingProps {
  * Rendered inside the chat-view primary container (which is `relative`).
  */
 export function GivenDataFloating({
-  richTextBlocks,
+  blocks,
   mediaMap,
   exerciseKey,
   showLabel,
@@ -54,7 +53,7 @@ export function GivenDataFloating({
     setOpen(false)
   }, [exerciseKey])
 
-  const hasContent = richTextBlocks.length > 0
+  const hasContent = blocks.length > 0
 
   return (
     <div
@@ -99,13 +98,13 @@ export function GivenDataFloating({
                 </button>
               </div>
               {hasContent ? (
-                <MediaMapProvider value={mediaMap ?? EMPTY_MEDIA_MAP}>
-                  <div className="space-y-3 text-body-md leading-relaxed text-foreground">
-                    {richTextBlocks.map((block) => (
-                      <RichTextRenderer key={block.id} block={block} />
-                    ))}
-                  </div>
-                </MediaMapProvider>
+                <ExerciseRenderer
+                  groups={[{ blocks, sectionIndex: null }]}
+                  mediaMap={mediaMap ?? EMPTY_MEDIA_MAP}
+                  showCheckAnswer={false}
+                  showExerciseNumber={false}
+                  questionCardVariant="flat"
+                />
               ) : emptyLabel ? (
                 <p className="text-body-sm text-muted-foreground text-center py-3">{emptyLabel}</p>
               ) : null}

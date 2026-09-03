@@ -1,12 +1,11 @@
 'use client'
 
 import type { Exercise, Media } from '@/infra/types/content'
-import type { RichTextBlock } from '@/infra/types/exercise'
+import type { ContentBlock } from '@/infra/types/exercise'
 import { getExerciseBlockGroups } from '@/lib/exercises/getExerciseBlocks'
 import { formatExerciseContextMessage } from '@/infra/llm/exercise-context'
 import { uploadDataUrlAsMedia } from '@/infra/media/uploadDataUrl'
-import { RichTextRenderer } from '@/ui/web/exerciserenderer/blocks/RichTextRenderer'
-import { MediaMapProvider } from '@/ui/web/exerciserenderer/context/MediaMapContext'
+import { ExerciseRenderer } from '@/ui/web/exerciserenderer'
 import { logger } from '@/infra/utils/logger'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -22,7 +21,7 @@ import { TeacherBubble } from './bubbles/TeacherBubble'
 import type { SectionOutcome, StreamEntry } from './types'
 import { useBrowserTTS } from './useBrowserTTS'
 import { useChatChannel } from './useChatChannel'
-import { useExerciseWalker } from './useExerciseWalker'
+import { isAnswerRequired, useExerciseWalker } from './useExerciseWalker'
 import { pickWellDone } from './wellDoneMessages'
 
 const CELEBRATION_ADVANCE_MS = 1500
@@ -299,17 +298,17 @@ function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatPr
 
   const showContinueButton = !walker.isComplete && entries.length > 0
 
-  // Given-data rich_text blocks for the current EXERCISE — top-level only
-  // (pre-section content.blocks). Stays stable across sections A-D and only
-  // refreshes on advance to the next exercise. Same source that
-  // `useExerciseWalker` puts into the intro entry's `givenDataBlocks`,
-  // so the floating pill and the inline amber intro card always match.
-  const currentExerciseRichTextBlocks = useMemo<RichTextBlock[]>(() => {
+  // Given-data blocks for the current EXERCISE — top-level only (pre-section
+  // content.blocks) with answer-required blocks filtered out via the same
+  // `isAnswerRequired` predicate the walker uses for its intro entry.
+  // Sharing the predicate keeps the floating pill and the inline amber
+  // card in lockstep across future block-type additions.
+  const currentExerciseGivenDataBlocks = useMemo<ContentBlock[]>(() => {
     const exercise = walker.currentStep?.exercise
     if (!exercise) return []
     const topLevel = getExerciseBlockGroups(exercise).find((g) => g.sectionIndex === null)
     if (!topLevel) return []
-    return topLevel.blocks.filter((b): b is RichTextBlock => b.type === 'rich_text')
+    return topLevel.blocks.filter((b: ContentBlock) => !isAnswerRequired(b))
   }, [walker.currentStep?.exercise])
   const currentExerciseKey = walker.currentStep?.exercise.id ?? ''
 
@@ -363,7 +362,7 @@ function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatPr
       />
 
       <GivenDataFloating
-        richTextBlocks={currentExerciseRichTextBlocks}
+        blocks={currentExerciseGivenDataBlocks}
         mediaMap={mediaMap}
         exerciseKey={currentExerciseKey}
         showLabel={t('chatViewGivenDataShow')}
@@ -430,13 +429,14 @@ function StreamEntryView({
           />
           {givenDataBlocks.length > 0 && (
             <div className="rounded-2xl border border-warning/30 bg-warning/8 p-card-padding-sm shadow-elevation-1">
-              <MediaMapProvider value={mediaMap ?? EMPTY_MEDIA_MAP}>
-                <div className="space-y-3 text-body-md leading-relaxed text-foreground">
-                  {givenDataBlocks.map((block) => (
-                    <RichTextRenderer key={block.id} block={block} />
-                  ))}
-                </div>
-              </MediaMapProvider>
+              <ExerciseRenderer
+                groups={[{ blocks: givenDataBlocks, sectionIndex: null }]}
+                mediaMap={mediaMap ?? EMPTY_MEDIA_MAP}
+                lessonId={lessonId}
+                showCheckAnswer={false}
+                showExerciseNumber={false}
+                questionCardVariant="flat"
+              />
             </div>
           )}
         </div>
