@@ -1,6 +1,750 @@
 {
   "readmes": [
     {
+      "path": "_wiki/a-guy/README.md",
+      "title": "A-Guy Documentation",
+      "sections": ["Files"],
+      "relativeUrl": "_wiki/a-guy/README.md",
+      "category": "_wiki",
+      "wordCount": 35
+    },
+    {
+      "path": "_wiki/access-control/README.md",
+      "title": "Payload Access Control Deep Dive",
+      "sections": [
+        "📂 Architecture Overview",
+        "🔒 Access Control Levels",
+        "🎯 Built-in Access Functions",
+        "📋 Access Control Patterns",
+        "🌳 Hierarchy Access Cascade",
+        "🔐 RBAC Patterns",
+        "🧪 Testing Access Control",
+        "🚫 Common Pitfalls",
+        "📊 Access Control Decision Tree",
+        "🔗 Related Documentation",
+        "📝 Access Control Checklist"
+      ],
+      "relativeUrl": "_wiki/access-control/README.md",
+      "category": "_wiki",
+      "wordCount": 616
+    },
+    {
+      "path": "_wiki/admin-components/README.md",
+      "title": "Payload Admin Custom Components Guide",
+      "sections": [
+        "📂 Architecture Overview",
+        "🎯 Current Custom Components",
+        "🔧 Component Registration",
+        "📝 Component Implementation",
+        "🎨 Styling Custom Components",
+        "🔍 Real Example: ExerciseContentEditor",
+        "🔍 Real Example: Coupons Admin Components",
+        "🔄 Import Map Generation",
+        "🎓 Common Patterns",
+        "🧪 Testing Admin Components",
+        "🔒 Security Considerations",
+        "🚫 Common Pitfalls",
+        "📊 Component Checklist",
+        "🔗 Related Documentation"
+      ],
+      "relativeUrl": "_wiki/admin-components/README.md",
+      "category": "_wiki",
+      "wordCount": 1087
+    },
+    {
+      "path": "_wiki/ai-services/README.md",
+      "title": "AI Services Architecture",
+      "sections": [
+        "📂 Architecture Overview",
+        "🎯 Quick Start",
+        "📊 Service Registry",
+        "🏗️ Core Components",
+        "📦 Services",
+        "🔧 Integration Patterns",
+        "🛡️ Error Handling",
+        "🧪 Testing",
+        "🔗 Related Documentation",
+        "📈 Performance Metrics",
+        "🚀 Future Enhancements",
+        "💡 Best Practices",
+        "🔍 Troubleshooting"
+      ],
+      "relativeUrl": "_wiki/ai-services/README.md",
+      "category": "_wiki",
+      "wordCount": 1868
+    },
+    {
+      "path": "_wiki/ai/indexes/README.md",
+      "title": "Indexes",
+      "sections": [],
+      "relativeUrl": "_wiki/ai/indexes/README.md",
+      "category": "_wiki",
+      "wordCount": 2
+    },
+    {
+      "path": "_wiki/ai/quick-reference/README.md",
+      "title": "Quick Reference",
+      "sections": [],
+      "relativeUrl": "_wiki/ai/quick-reference/README.md",
+      "category": "_wiki",
+      "wordCount": 11
+    },
+    {
+      "path": "_wiki/ai/README.md",
+      "title": "AI Documentation Redirect",
+      "sections": [
+        "New Locations",
+        "Quick Reference",
+        "Scripts Updated",
+        "Migration Complete When"
+      ],
+      "relativeUrl": "_wiki/ai/README.md",
+      "category": "_wiki",
+      "wordCount": 134
+    },
+    {
+      "path": "_wiki/ai/schemas/README.md",
+      "title": "Schemas",
+      "sections": [],
+      "relativeUrl": "_wiki/ai/schemas/README.md",
+      "category": "_wiki",
+      "wordCount": 2
+    },
+    {
+      "path": "_wiki/architecture/README.md",
+      "title": "Architecture",
+      "sections": [],
+      "relativeUrl": "_wiki/architecture/README.md",
+      "category": "_wiki",
+      "wordCount": 12
+    },
+    {
+      "path": "_wiki/audits/README.md",
+      "title": "Audits",
+      "sections": [],
+      "relativeUrl": "_wiki/audits/README.md",
+      "category": "_wiki",
+      "wordCount": 24
+    },
+    {
+      "path": "_wiki/block-rendering/README.md",
+      "title": "Block Renderer Extension Guide",
+      "sections": [
+        "📂 Architecture Overview",
+        "🎯 Current Block Types",
+        "🔄 Rendering Pipeline",
+        "📝 5-Step Guide: Add New Block Type",
+        "🧪 Testing New Block Types",
+        "🎨 Math Rendering (KaTeX)",
+        "🔐 Best Practices",
+        "🎓 Common Patterns",
+        "🔍 Troubleshooting",
+        "📊 Block Type Checklist",
+        "🔗 Related Documentation",
+        "🚀 Future Block Types (Ideas)"
+      ],
+      "relativeUrl": "_wiki/block-rendering/README.md",
+      "category": "_wiki",
+      "wordCount": 1007
+    },
+    {
+      "path": "_wiki/brain-server/README.md",
+      "title": "Brain Server",
+      "sections": [
+        "Architecture",
+        "Services",
+        "Tools Available",
+        "Quick Start",
+        "Server Management",
+        "Network",
+        "Token Management",
+        "Troubleshooting",
+        "Documentation",
+        "Cost"
+      ],
+      "relativeUrl": "_wiki/brain-server/README.md",
+      "category": "_wiki",
+      "wordCount": 365
+    },
+    {
+      "path": "_wiki/contracts/README.md",
+      "title": "Exercise Contracts",
+      "sections": [
+        "Overview",
+        "Structure",
+        "Usage",
+        "Key Design Principles",
+        "Block Types",
+        "Answer Spec Types",
+        "Testing",
+        "Examples",
+        "Future Enhancements",
+        "Contributing"
+      ],
+      "relativeUrl": "_wiki/contracts/README.md",
+      "category": "_wiki",
+      "wordCount": 330
+    },
+    {
+      "path": "_wiki/course-hierarchy/README.md",
+      "title": "Course Hierarchy Query Patterns",
+      "sections": [
+        "📂 Hierarchy Structure",
+        "🎯 Core Query Patterns",
+        "⚡ Performance Optimization",
+        "🔧 Common Use Cases",
+        "🛡️ Type Safety",
+        "📋 Query Reference Table",
+        "💡 Best Practices",
+        "🔗 Related Documentation",
+        "🚀 Future Enhancements"
+      ],
+      "relativeUrl": "_wiki/course-hierarchy/README.md",
+      "category": "_wiki",
+      "wordCount": 814
+    },
+    {
+      "path": "_wiki/exercise-import/README.md",
+      "title": "Exercise Import Pipeline",
+      "sections": [
+        "📂 Architecture Overview",
+        "🎯 Quick Start",
+        "📊 Import Methods Comparison",
+        "🔄 Validation Pipeline (4 Stages)",
+        "🛠️ Implementation Details",
+        "⚠️ Common Errors & Solutions",
+        "🧪 Manual Testing",
+        "🔍 Troubleshooting",
+        "🔗 Related Documentation",
+        "📈 Performance Metrics",
+        "💡 Best Practices",
+        "🚀 Future Enhancements"
+      ],
+      "relativeUrl": "_wiki/exercise-import/README.md",
+      "category": "_wiki",
+      "wordCount": 1527
+    },
+    {
+      "path": "_wiki/exercises/README.md",
+      "title": "Exercises Collection",
+      "sections": [
+        "Overview",
+        "Architecture",
+        "Data Model",
+        "Quick Start",
+        "Lesson Entry Point (#34, #68)",
+        "Implementation Details",
+        "Supported Question Block Types",
+        "Content Block Types",
+        "Testing",
+        "Related Documentation",
+        "Future Enhancements",
+        "Troubleshooting",
+        "Contributing",
+        "License"
+      ],
+      "relativeUrl": "_wiki/exercises/README.md",
+      "category": "_wiki",
+      "wordCount": 1203
+    },
+    {
+      "path": "_wiki/features/chat-contetxt/README.md",
+      "title": "Chat Contetxt",
+      "sections": [],
+      "relativeUrl": "_wiki/features/chat-contetxt/README.md",
+      "category": "_wiki",
+      "wordCount": 24
+    },
+    {
+      "path": "_wiki/features/chat-context/README.md",
+      "title": "Chat Context & Long-Term Memory System",
+      "sections": [
+        "Overview",
+        "Documentation",
+        "Architecture",
+        "Key Features",
+        "Collections",
+        "Implementation",
+        "Testing",
+        "Monitoring",
+        "Performance",
+        "Security",
+        "Troubleshooting",
+        "Resources",
+        "Contributing"
+      ],
+      "relativeUrl": "_wiki/features/chat-context/README.md",
+      "category": "_wiki",
+      "wordCount": 773
+    },
+    {
+      "path": "_wiki/features/connection-pool/README.md",
+      "title": "Connection Pool",
+      "sections": [],
+      "relativeUrl": "_wiki/features/connection-pool/README.md",
+      "category": "_wiki",
+      "wordCount": 8
+    },
+    {
+      "path": "_wiki/features/context-extractions/README.md",
+      "title": "Context Extractions",
+      "sections": [],
+      "relativeUrl": "_wiki/features/context-extractions/README.md",
+      "category": "_wiki",
+      "wordCount": 9
+    },
+    {
+      "path": "_wiki/features/homepage-redesign/README.md",
+      "title": "Homepage Redesign",
+      "sections": [],
+      "relativeUrl": "_wiki/features/homepage-redesign/README.md",
+      "category": "_wiki",
+      "wordCount": 15
+    },
+    {
+      "path": "_wiki/features/media-types/README.md",
+      "title": "Media Types",
+      "sections": [],
+      "relativeUrl": "_wiki/features/media-types/README.md",
+      "category": "_wiki",
+      "wordCount": 9
+    },
+    {
+      "path": "_wiki/features/README.md",
+      "title": "Features",
+      "sections": [],
+      "relativeUrl": "_wiki/features/README.md",
+      "category": "_wiki",
+      "wordCount": 27
+    },
+    {
+      "path": "_wiki/fixes/README.md",
+      "title": "Fixes",
+      "sections": [],
+      "relativeUrl": "_wiki/fixes/README.md",
+      "category": "_wiki",
+      "wordCount": 15
+    },
+    {
+      "path": "_wiki/nightly-docs-agent/README.md",
+      "title": "Nightly Docs Agent",
+      "sections": [],
+      "relativeUrl": "_wiki/nightly-docs-agent/README.md",
+      "category": "_wiki",
+      "wordCount": 20
+    },
+    {
+      "path": "_wiki/payment/README.md",
+      "title": "Payment",
+      "sections": [],
+      "relativeUrl": "_wiki/payment/README.md",
+      "category": "_wiki",
+      "wordCount": 6
+    },
+    {
+      "path": "_wiki/plans/code-quality-boundaries/README.md",
+      "title": "Code Quality Boundaries",
+      "sections": [],
+      "relativeUrl": "_wiki/plans/code-quality-boundaries/README.md",
+      "category": "_wiki",
+      "wordCount": 11
+    },
+    {
+      "path": "_wiki/plans/README.md",
+      "title": "Plans",
+      "sections": [],
+      "relativeUrl": "_wiki/plans/README.md",
+      "category": "_wiki",
+      "wordCount": 75
+    },
+    {
+      "path": "_wiki/project/README.md",
+      "title": "A-Guy: AI-Powered Educational Platform",
+      "sections": [
+        "Overview",
+        "Tech Stack",
+        "Quick Start",
+        "Project Structure",
+        "Key Features",
+        "Collections",
+        "Environment Variables",
+        "Development Commands",
+        "Documentation",
+        "AI Agent Support",
+        "License"
+      ],
+      "relativeUrl": "_wiki/project/README.md",
+      "category": "_wiki",
+      "wordCount": 592
+    },
+    {
+      "path": "_wiki/qa/README.md",
+      "title": "Qa",
+      "sections": [],
+      "relativeUrl": "_wiki/qa/README.md",
+      "category": "_wiki",
+      "wordCount": 11
+    },
+    {
+      "path": "_wiki/README.md",
+      "title": "A-Guy Platform Documentation",
+      "sections": ["Quick Links"],
+      "relativeUrl": "_wiki/README.md",
+      "category": "_wiki",
+      "wordCount": 156
+    },
+    {
+      "path": "_wiki/scripts/brain-server/README.md",
+      "title": "Brain Server Setup Guide",
+      "sections": [
+        "What You'll Get",
+        "Prerequisites (Accounts to Create)",
+        "Setup Steps",
+        "Management Commands",
+        "GitHub Webhook (Optional)",
+        "Troubleshooting",
+        "Architecture",
+        "Alternative: Claude MCP Server",
+        "Cost"
+      ],
+      "relativeUrl": "_wiki/scripts/brain-server/README.md",
+      "category": "_wiki",
+      "wordCount": 752
+    },
+    {
+      "path": "_wiki/scripts/browser-agent/README.md",
+      "title": "A-Guy Browser Agent",
+      "sections": ["Architecture", "Setup", "Usage", "Files", "Capabilities", "Troubleshooting"],
+      "relativeUrl": "_wiki/scripts/browser-agent/README.md",
+      "category": "_wiki",
+      "wordCount": 365
+    },
+    {
+      "path": "_wiki/scripts/README.md",
+      "title": "PDF.js Vercel Blob CDN Setup",
+      "sections": [
+        "Why Vercel Blob CDN?",
+        "Prerequisites",
+        "Upload Process",
+        "Future Updates",
+        "Troubleshooting",
+        "Cost Estimate",
+        "Architecture",
+        "Questions?"
+      ],
+      "relativeUrl": "_wiki/scripts/README.md",
+      "category": "_wiki",
+      "wordCount": 575
+    },
+    {
+      "path": "_wiki/scripts/remote-agent/README.md",
+      "title": "Remote Dev Agent",
+      "sections": [
+        "Architecture",
+        "Setup",
+        "npm Scripts",
+        "Endpoints",
+        "Security",
+        "Environment Variables (Remote Mac)"
+      ],
+      "relativeUrl": "_wiki/scripts/remote-agent/README.md",
+      "category": "_wiki",
+      "wordCount": 350
+    },
+    {
+      "path": "_wiki/scripts/system-test/mock-llm/README.md",
+      "title": "LLM Mock Tool",
+      "sections": [
+        "Overview",
+        "Quick Start",
+        "CLI Options",
+        "API Key",
+        "Architecture",
+        "File Structure",
+        "Endpoints",
+        "Resilience Features",
+        "Future Extensions"
+      ],
+      "relativeUrl": "_wiki/scripts/system-test/mock-llm/README.md",
+      "category": "_wiki",
+      "wordCount": 357
+    },
+    {
+      "path": "_wiki/scripts/system-test/README.md",
+      "title": "System Test",
+      "sections": [],
+      "relativeUrl": "_wiki/scripts/system-test/README.md",
+      "category": "_wiki",
+      "wordCount": 6
+    },
+    {
+      "path": "_wiki/self-growing-pipeline/README.md",
+      "title": "Self-Growing Pipeline",
+      "sections": [
+        "Architecture",
+        "Current Implementation",
+        "Files",
+        "Future: Self-Creating Subagents",
+        "Future: Dynamic MCP Integration",
+        "Metrics & Monitoring"
+      ],
+      "relativeUrl": "_wiki/self-growing-pipeline/README.md",
+      "category": "_wiki",
+      "wordCount": 854
+    },
+    {
+      "path": "_wiki/specs/README.md",
+      "title": "Specs",
+      "sections": [],
+      "relativeUrl": "_wiki/specs/README.md",
+      "category": "_wiki",
+      "wordCount": 66
+    },
+    {
+      "path": "_wiki/src/app/README.md",
+      "title": "App Routes",
+      "sections": [],
+      "relativeUrl": "_wiki/src/app/README.md",
+      "category": "_wiki",
+      "wordCount": 34
+    },
+    {
+      "path": "_wiki/src/brands/README.md",
+      "title": "Brand Bundle Contract",
+      "sections": [
+        "What a brand bundle owns",
+        "Required exports",
+        "Future required exports",
+        "How to add a new brand",
+        "Environment variable",
+        "Phases 2–7 context"
+      ],
+      "relativeUrl": "_wiki/src/brands/README.md",
+      "category": "_wiki",
+      "wordCount": 636
+    },
+    {
+      "path": "_wiki/src/client/hooks/README.md",
+      "title": "Client-Side React Hooks",
+      "sections": ["Hooks", "Entry Point", "Related"],
+      "relativeUrl": "_wiki/src/client/hooks/README.md",
+      "category": "_wiki",
+      "wordCount": 290
+    },
+    {
+      "path": "_wiki/src/client/README.md",
+      "title": "Client-Side Utilities",
+      "sections": ["Structure", "Patterns", "Key Files", "Common Tasks", "Related"],
+      "relativeUrl": "_wiki/src/client/README.md",
+      "category": "_wiki",
+      "wordCount": 163
+    },
+    {
+      "path": "_wiki/src/infra/analytics/README.md",
+      "title": "Analytics System",
+      "sections": [
+        "Implementation Status",
+        "Architecture",
+        "Usage",
+        "Current Events (v1)",
+        "How to Add Event #11 (and Beyond)",
+        "Privacy & Payload Policy",
+        "Environment Configuration",
+        "Feature Flags Behavior",
+        "Validation Behavior",
+        "Page View Tracking",
+        "Session Tracking",
+        "User Identity Flow",
+        "Troubleshooting",
+        "Files Structure",
+        "Testing",
+        "Best Practices",
+        "Support"
+      ],
+      "relativeUrl": "_wiki/src/infra/analytics/README.md",
+      "category": "_wiki",
+      "wordCount": 735
+    },
+    {
+      "path": "_wiki/src/infra/llm/README.md",
+      "title": "LLM Infrastructure",
+      "sections": [
+        "Architecture Overview",
+        "Providers",
+        "Model Configurations",
+        "Services",
+        "Vector Search",
+        "Observability",
+        "Prompts",
+        "Agent Guardrails",
+        "Related Documentation",
+        "Quick Reference"
+      ],
+      "relativeUrl": "_wiki/src/infra/llm/README.md",
+      "category": "_wiki",
+      "wordCount": 421
+    },
+    {
+      "path": "_wiki/src/infra/loading/README.md",
+      "title": "Loading State Manager",
+      "sections": [
+        "Architecture",
+        "Core Concepts",
+        "Usage Patterns",
+        "Loading Types",
+        "Gotchas",
+        "Entry Point",
+        "Related Documentation"
+      ],
+      "relativeUrl": "_wiki/src/infra/loading/README.md",
+      "category": "_wiki",
+      "wordCount": 400
+    },
+    {
+      "path": "_wiki/src/infra/README.md",
+      "title": "Infrastructure Layer",
+      "sections": [
+        "Structure",
+        "Auth System",
+        "Analytics System",
+        "LLM System",
+        "Contracts (JSON Schemas)",
+        "PDF.js Configuration",
+        "Type Definitions",
+        "Utils",
+        "Related Documentation"
+      ],
+      "relativeUrl": "_wiki/src/infra/README.md",
+      "category": "_wiki",
+      "wordCount": 325
+    },
+    {
+      "path": "_wiki/src/README.md",
+      "title": "Src",
+      "sections": [],
+      "relativeUrl": "_wiki/src/README.md",
+      "category": "_wiki",
+      "wordCount": 14
+    },
+    {
+      "path": "_wiki/src/server/api/README.md",
+      "title": "API Utilities",
+      "sections": ["Entry Point", "File Map", "Gotchas"],
+      "relativeUrl": "_wiki/src/server/api/README.md",
+      "category": "_wiki",
+      "wordCount": 230
+    },
+    {
+      "path": "_wiki/src/server/README.md",
+      "title": "Server-Side Payload CMS",
+      "sections": [
+        "Structure",
+        "Collections",
+        "Access Control Patterns",
+        "Collection Pattern: RBAC",
+        "Collection Pattern: Hierarchical",
+        "Block Configurations",
+        "Query Utilities",
+        "Custom Endpoints",
+        "Related Documentation",
+        "File Reference"
+      ],
+      "relativeUrl": "_wiki/src/server/README.md",
+      "category": "_wiki",
+      "wordCount": 306
+    },
+    {
+      "path": "_wiki/src/server/repos/README.md",
+      "title": "Server Repositories",
+      "sections": [],
+      "relativeUrl": "_wiki/src/server/repos/README.md",
+      "category": "_wiki",
+      "wordCount": 39
+    },
+    {
+      "path": "_wiki/src/server/utils/README.md",
+      "title": "Server Utilities",
+      "sections": ["Utilities", "Entry Point", "Gotchas"],
+      "relativeUrl": "_wiki/src/server/utils/README.md",
+      "category": "_wiki",
+      "wordCount": 229
+    },
+    {
+      "path": "_wiki/src/ui/README.md",
+      "title": "Ui",
+      "sections": [],
+      "relativeUrl": "_wiki/src/ui/README.md",
+      "category": "_wiki",
+      "wordCount": 4
+    },
+    {
+      "path": "_wiki/src/ui/web/README.md",
+      "title": "Web UI Components",
+      "sections": [
+        "Structure",
+        "Exercise Renderer (Core Feature)",
+        "Shared Components Usage",
+        "Header/Nav Pattern",
+        "Footer Pattern",
+        "i18n Support",
+        "Component Guidelines",
+        "File Organization",
+        "Related Documentation"
+      ],
+      "relativeUrl": "_wiki/src/ui/web/README.md",
+      "category": "_wiki",
+      "wordCount": 208
+    },
+    {
+      "path": "_wiki/src/ui/web/shared/README.md",
+      "title": "Shared Components",
+      "sections": ["Directory Structure", "Guidelines"],
+      "relativeUrl": "_wiki/src/ui/web/shared/README.md",
+      "category": "_wiki",
+      "wordCount": 87
+    },
+    {
+      "path": "_wiki/system-test/README.md",
+      "title": "Cody Pipeline System Test - Overview",
+      "sections": [
+        "What This Test Does",
+        "Test Configuration",
+        "How to Trigger",
+        "How to Monitor",
+        "Common Issues & Fixes",
+        "Test Artifacts",
+        "Cleanup",
+        "Files Involved"
+      ],
+      "relativeUrl": "_wiki/system-test/README.md",
+      "category": "_wiki",
+      "wordCount": 306
+    },
+    {
+      "path": "_wiki/tests/README.md",
+      "title": "Testing Strategy",
+      "sections": [
+        "Test Structure",
+        "Test Types",
+        "Test File Naming",
+        "Writing Integration Tests",
+        "Writing E2E Tests",
+        "Test Data Patterns",
+        "Common Utilities",
+        "Running Tests",
+        "OpenAI API Mocking",
+        "Test Configuration",
+        "Best Practices",
+        "Debugging Tests",
+        "CI/CD Integration",
+        "Related Documentation",
+        "Quick Reference"
+      ],
+      "relativeUrl": "_wiki/tests/README.md",
+      "category": "_wiki",
+      "wordCount": 689
+    },
+    {
       "path": ".agents/skills/vercel-react-best-practices/README.md",
       "title": "React Best Practices",
       "sections": [
@@ -205,6 +949,14 @@
       "relativeUrl": "eslint-plugin-aguy/README.md",
       "category": "eslint-plugin-aguy",
       "wordCount": 288
+    },
+    {
+      "path": "examples/second-app/README.md",
+      "title": "Second app — shared login example",
+      "sections": ["Run it", "What to copy"],
+      "relativeUrl": "examples/second-app/README.md",
+      "category": "examples",
+      "wordCount": 180
     },
     {
       "path": "docs/exercise-import/README.md",
@@ -425,10 +1177,10 @@
     {
       "path": "src/client/hooks/README.md",
       "title": "Client-Side React Hooks",
-      "sections": [],
+      "sections": ["Hooks", "Entry Point", "Related"],
       "relativeUrl": "src/client/hooks/README.md",
       "category": "src/client",
-      "wordCount": 47
+      "wordCount": 290
     },
     {
       "path": "src/client/README.md",
@@ -516,6 +1268,21 @@
       "relativeUrl": "src/infra/README.md",
       "category": "src/infra",
       "wordCount": 325
+    },
+    {
+      "path": "src/infra/system-events/README.md",
+      "title": "System Events",
+      "sections": [
+        "Architecture",
+        "Core Concepts",
+        "Usage",
+        "Adding a New Event",
+        "Gotchas",
+        "Related Documentation"
+      ],
+      "relativeUrl": "src/infra/system-events/README.md",
+      "category": "src/infra",
+      "wordCount": 525
     },
     {
       "path": "src/server/api/README.md",
@@ -626,15 +1393,24 @@
       "relativeUrl": "tests/README.md",
       "category": "tests",
       "wordCount": 689
+    },
+    {
+      "path": "views/renderers/README.md",
+      "title": "Renderers",
+      "sections": [],
+      "relativeUrl": "views/renderers/README.md",
+      "category": "views",
+      "wordCount": 158
     }
   ],
   "metadata": {
-    "generatedAt": "2026-06-28T12:45:51.748Z",
-    "totalReadmes": 40,
+    "generatedAt": "2026-09-05T05:43:44.731Z",
+    "totalReadmes": 100,
     "categories": {
       ".agents": 1,
       ".claude": 1,
       "root": 1,
+      "_wiki": 57,
       "README.md": 1,
       "a-guy": 1,
       "access-control": 1,
@@ -651,15 +1427,17 @@
       "self-growing-pipeline": 1,
       "system-test": 1,
       "eslint-plugin-aguy": 1,
+      "examples": 1,
       "scripts": 5,
       "site-docs": 1,
       "src/app": 1,
       "src/brands": 1,
       "src/client": 2,
-      "src/infra": 4,
+      "src/infra": 5,
       "src/server": 4,
       "src/ui": 2,
-      "tests": 1
+      "tests": 1,
+      "views": 1
     }
   }
 }
