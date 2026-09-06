@@ -9,61 +9,67 @@
 
 import { ObjectId, type Document } from 'mongodb'
 
-import { getContentDb } from '@/infra/db/content-db'
+import { getContentDb, objectIdFromString } from '@/infra/db/content-db'
 
 /**
  * The tenant that owns uploads on this deployment.
  *
- * Falls back to a literal `'default'` rather than failing: an upload should
- * not break because a tenant document is missing from a fresh environment.
+ * Returns the tenant `_id` as an ObjectId — the Admin-owned `upload-sessions`,
+ * `chat-assets`, and `media` collections all carry a JSON Schema validator
+ * that requires `tenant` to be a `bsonType: "objectId"` relationship, so a
+ * plain string (or the old `'default'` fallback) is rejected at insert time.
+ *
+ * Throws when the tenant document is missing rather than silently falling
+ * back to a non-existent id: an upload with a bogus tenant would fail
+ * validation anyway, and the loud error is easier to diagnose than the
+ * generic `Document failed validation` MongoDB returns.
  */
-export async function resolveDefaultTenantId(): Promise<string> {
+export async function resolveDefaultTenantId(): Promise<ObjectId> {
   const db = await getContentDb()
-  const tenant = await db
-    .collection('tenants')
-    .findOne({ slug: process.env.DEFAULT_TENANT_SLUG || 'AGuy' })
+  const slug = process.env.DEFAULT_TENANT_SLUG || 'AGuy'
+  const tenant = await db.collection('tenants').findOne({ slug })
 
-  return tenant?._id?.toString() || 'default'
+  const id = tenant?._id
+  if (!(id instanceof ObjectId)) {
+    throw new Error(
+      `Default tenant "${slug}" is missing from the tenants collection. ` +
+        `Uploads require a tenant document because the Admin schema marks ` +
+        `the field as a required relationship.`,
+    )
+  }
+
+  return id
 }
 
 export type NewUploadSession = {
-  tenant: string
-  createdBy: string
+  _id: ObjectId
+  tenant: ObjectId
+  createdBy: ObjectId
   purpose: string
   originalFilename: string
   mimeType: string
   expectedSize: number
+  pathname: string
   expiresAt: Date
 }
 
 /**
- * Open a session before any bytes are accepted.
+ * Open a session with the pathname already known.
  *
- * Returns the raw stored id rather than a string: it is handed straight back
- * to `setUploadSessionPathname`, and round-tripping it through text would
- * force a conversion that the database did not ask for.
+ * The Admin schema marks `pathname` as required, so the row cannot be inserted
+ * without it. Callers pre-generate the session `_id` and derive the pathname
+ * from it so the whole row lands in one write instead of an insert-then-update
+ * pair that would fail validation on the initial insert.
  */
-export async function openUploadSession(session: NewUploadSession): Promise<unknown> {
+export async function openUploadSession(session: NewUploadSession): Promise<ObjectId> {
   const db = await getContentDb()
   const now = new Date()
 
-  const result = await db
+  await db
     .collection('upload-sessions')
     .insertOne({ ...session, status: 'initiated', createdAt: now, updatedAt: now })
 
-  return result.insertedId
-}
-
-/** Record where the file will live, once the path is known. */
-export async function setUploadSessionPathname(
-  sessionId: unknown,
-  pathname: string,
-): Promise<void> {
-  const db = await getContentDb()
-
-  await db.collection('upload-sessions').updateOne({ _id: sessionId } as Document, {
-    $set: { pathname, updatedAt: new Date() },
-  })
+  return session._id
 }
 
 /**
@@ -108,8 +114,12 @@ export async function findOwnUploadSessionByBlob(
 ): Promise<Document | null> {
   const db = await getContentDb()
 
+  // createdBy is stored as ObjectId under the Admin schema, but pre-fix
+  // records may still carry the string. objectIdFromString accepts both.
+  const createdBy = objectIdFromString(ownerId)
+
   return db.collection('upload-sessions').findOne({
-    createdBy: ownerId,
+    createdBy,
     $or: [{ blobUrl }, { originalFilename, status: { $in: ['initiated', 'uploaded'] } }],
   })
 }

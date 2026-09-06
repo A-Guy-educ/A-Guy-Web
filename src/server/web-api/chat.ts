@@ -343,6 +343,12 @@ async function loadAttachments(ownerId: string, chatAssetIds?: string[], mediaId
     $in: values.filter(ObjectId.isValid).map((id) => new ObjectId(id)),
   })
 
+  // createdBy is stored as ObjectId under the Admin schema; older Web-written
+  // rows may still be strings. Match either representation so both round-trip.
+  const ownerIdMatch = ObjectId.isValid(ownerId)
+    ? { $in: [ownerId, new ObjectId(ownerId)] }
+    : ownerId
+
   if (chatAssetIds?.length) {
     // Owner-scoped: an asset id alone must never grant access to another
     // user's upload, and expired assets are no longer readable.
@@ -350,7 +356,7 @@ async function loadAttachments(ownerId: string, chatAssetIds?: string[], mediaId
       .collection('chat-assets')
       .find({
         _id: ids(chatAssetIds),
-        createdBy: ownerId,
+        createdBy: ownerIdMatch,
         $or: [{ expiresAt: { $exists: false } }, { expiresAt: { $gt: new Date() } }],
       })
       .toArray()
@@ -361,7 +367,7 @@ async function loadAttachments(ownerId: string, chatAssetIds?: string[], mediaId
   if (mediaIds?.length) {
     const media = await db
       .collection('media')
-      .find({ _id: ids(mediaIds), createdBy: ownerId })
+      .find({ _id: ids(mediaIds), createdBy: ownerIdMatch })
       .toArray()
     for (const item of media) {
       await addAttachment(item, 'Attached media')

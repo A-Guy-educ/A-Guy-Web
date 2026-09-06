@@ -8,7 +8,7 @@ import {
   CHAT_ASSET_MAX_BYTES,
   CHAT_ASSET_RETENTION_DAYS,
 } from '@/server/chat-assets/constants'
-import { serializeDoc } from '@/infra/db/content-db'
+import { objectIdFromString, serializeDoc } from '@/infra/db/content-db'
 import { createChatAsset, findChatAssetById } from '@/server/services/chat-assets'
 import {
   finalizeUploadSession,
@@ -62,7 +62,10 @@ export async function POST(request: NextRequest) {
   }
 
   if (!session) return Response.json({ error: 'Upload session not found' }, { status: 404 })
-  if (session.createdBy !== ownerId) return Response.json({ error: 'Forbidden' }, { status: 403 })
+  // createdBy is stored as ObjectId under the Admin schema, but legacy rows
+  // may still be strings. Compare via string form so both round-trip.
+  if (String(session.createdBy) !== ownerId)
+    return Response.json({ error: 'Forbidden' }, { status: 403 })
 
   if (session.status === 'finalized' && session.chatAssetId) {
     const existing = await findChatAssetById(String(session.chatAssetId))
@@ -106,12 +109,23 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: 'Content type not allowed' }, { status: 415 })
   }
 
+  const tenantValue = session.tenant
+  if (!(tenantValue instanceof ObjectId)) {
+    return Response.json({ error: 'Upload session missing tenant' }, { status: 500 })
+  }
+  const createdByValue = session.createdBy
+  const createdBy =
+    createdByValue instanceof ObjectId ? createdByValue : objectIdFromString(ownerId)
+  if (!(createdBy instanceof ObjectId)) {
+    return Response.json({ error: 'Invalid owner id' }, { status: 400 })
+  }
+
   const asset = await createChatAsset({
-    tenant: session.tenant,
-    createdBy: ownerId,
+    tenant: tenantValue,
+    createdBy,
     url: resolvedUrl,
-    pathname: session.pathname,
-    originalFilename: session.originalFilename || originalFilename,
+    pathname: String(session.pathname),
+    originalFilename: String(session.originalFilename || originalFilename || ''),
     mimeType,
     filesize: size,
     expiresAt: new Date(Date.now() + CHAT_ASSET_RETENTION_DAYS * 24 * 60 * 60 * 1000),
