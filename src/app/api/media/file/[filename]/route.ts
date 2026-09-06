@@ -133,9 +133,33 @@ export async function GET(
   } catch {
     // Media uploaded through the Admin app is stored in a separate Blob store
     // that this app has no token for, so a local lookup can never find it.
-    // Forward to the Admin proxy — the only place holding the file.
+    // Proxy the bytes through Web rather than redirecting: a cross-origin 302
+    // to Admin would force PDF.js (embedded on Web's origin) through CORS on
+    // every hop, and depending on Admin's response headers for the viewer to
+    // render is fragile.
     const adminProxy = resolveMediaSourceUrl(`/api/media/file/${encodeURIComponent(filename)}`)
-    if (adminProxy) return NextResponse.redirect(adminProxy)
+    if (adminProxy) {
+      try {
+        const upstream = await fetch(adminProxy, {
+          redirect: 'follow',
+          signal: AbortSignal.timeout(30_000),
+        })
+        if (!upstream.ok) {
+          return NextResponse.json({ error: 'File not found' }, { status: upstream.status })
+        }
+        return new NextResponse(upstream.body, {
+          status: 200,
+          headers: {
+            'Content-Type':
+              upstream.headers.get('content-type') ||
+              String(media?.mimeType || 'application/octet-stream'),
+            'Cache-Control': 'public, max-age=86400',
+          },
+        })
+      } catch {
+        return NextResponse.json({ error: 'File not found' }, { status: 502 })
+      }
+    }
 
     return NextResponse.json({ error: 'File not found' }, { status: 404 })
   }

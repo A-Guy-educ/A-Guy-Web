@@ -31,5 +31,22 @@ export function resolveMediaSourceUrl(url: string | null | undefined): string | 
   const adminBase = process.env.NEXT_PUBLIC_ADMIN_URL?.replace(/\/+$/, '')
   if (!adminBase) return null
 
-  return `${adminBase}${url}`
+  // Normalize the composed URL so `..` segments or percent-encoded variants
+  // cannot escape /api/media/ and pivot the caller onto another Admin path.
+  // A malicious media doc URL would still need write access to set, but the
+  // response body is echoed back to a chat user, so validation is cheap
+  // defense in depth.
+  let composed: URL
+  let base: URL
+  try {
+    composed = new URL(url, adminBase)
+    base = new URL(adminBase)
+  } catch {
+    return null
+  }
+
+  if (composed.origin !== base.origin) return null
+  if (!composed.pathname.startsWith(MEDIA_PROXY_PREFIX)) return null
+
+  return composed.toString()
 }

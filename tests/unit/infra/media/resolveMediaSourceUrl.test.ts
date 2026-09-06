@@ -57,4 +57,27 @@ describe('resolveMediaSourceUrl', () => {
     expect(resolveMediaSourceUrl('/foo.pdf')).toBeNull()
     expect(resolveMediaSourceUrl('/other/path')).toBeNull()
   })
+
+  it('rejects path traversal that escapes /api/media/ after URL normalization', () => {
+    process.env.NEXT_PUBLIC_ADMIN_URL = 'https://a-guy-admin.vercel.app'
+
+    expect(resolveMediaSourceUrl('/api/media/../../internal-endpoint')).toBeNull()
+    expect(resolveMediaSourceUrl('/api/media/file/../../users/me')).toBeNull()
+  })
+
+  it('rejects percent-encoded traversal that would still land outside /api/media/', () => {
+    process.env.NEXT_PUBLIC_ADMIN_URL = 'https://a-guy-admin.vercel.app'
+
+    // '%2e%2e' decodes to '..' — URL normalization applies it, so the final
+    // pathname escapes /api/media/ and the helper must refuse.
+    expect(resolveMediaSourceUrl('/api/media/%2e%2e/%2e%2e/internal')).toBeNull()
+  })
+
+  it('preserves query strings on legitimate proxy paths', () => {
+    process.env.NEXT_PUBLIC_ADMIN_URL = 'https://a-guy-admin.vercel.app'
+
+    expect(resolveMediaSourceUrl('/api/media/file/foo.pdf?v=1')).toBe(
+      'https://a-guy-admin.vercel.app/api/media/file/foo.pdf?v=1',
+    )
+  })
 })
