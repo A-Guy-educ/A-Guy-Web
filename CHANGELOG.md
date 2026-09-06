@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.34.5 — 2026-09-06
+
+### Fixes
+- Allow https://vercel.com in CSP so direct Blob uploads from the chat window work (#1173)
+- Stop echoing raw error text on upload failures and guard missing pathname (#1172)
+- Satisfy Admin schema validator on media, chat-asset, and upload-session writes (#1172)
+- Proxy Admin media through Web and harden URL normalization (#1171)
+- Forward Admin-owned media proxy URLs to the Admin app (#1171)
+
+### Chores
+- Surface real error from failing upload routes
+
 ## v0.34.4 — 2026-09-06
 
 ### Chores
@@ -4631,6 +4643,11 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.34.5 ([#1174](https://github.com/A-Guy-educ/A-Guy-Web/pull/1174)) — @aguyshayb
+- fix(csp): Allow https://vercel.com so direct Blob uploads from the chat window work ([#1173](https://github.com/A-Guy-educ/A-Guy-Web/pull/1173)) — @aguyshayb
+- fix(uploads): Satisfy Admin schema validator on media, chat-asset, upload-session writes ([#1172](https://github.com/A-Guy-educ/A-Guy-Web/pull/1172)) — @aguyshayb
+- fix(media): Forward Admin-owned media proxy URLs to the Admin app ([#1171](https://github.com/A-Guy-educ/A-Guy-Web/pull/1171)) — @aguyshayb
+- promote: dev -> main (v0.34.4) ([#1170](https://github.com/A-Guy-educ/A-Guy-Web/pull/1170)) — @aguyaharonyair
 - chore: release v0.34.4 ([#1169](https://github.com/A-Guy-educ/A-Guy-Web/pull/1169)) — @aguyaharonyair
 - promote: dev -> main (v0.34.3) ([#1168](https://github.com/A-Guy-educ/A-Guy-Web/pull/1168)) — @aguyaharonyair
 - chore: release v0.34.3 ([#1167](https://github.com/A-Guy-educ/A-Guy-Web/pull/1167)) — @aguyaharonyair

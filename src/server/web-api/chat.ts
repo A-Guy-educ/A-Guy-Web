@@ -4,6 +4,7 @@ import { ObjectId, type Document } from 'mongodb'
 
 import { resolveMediaFilePath } from '@/infra/config/storage'
 import { getContentDb, objectIdFromString, relationId, serializeDoc } from '@/infra/db/content-db'
+import { resolveMediaSourceUrl } from '@/infra/media/resolveMediaSourceUrl'
 import {
   CHAT_ASSET_ALLOWED_MIME_TYPES,
   CHAT_ASSET_MAX_ATTACHMENTS,
@@ -280,8 +281,12 @@ function attachmentName(attachment: AttachmentDoc) {
 }
 
 async function fetchAttachmentBuffer(attachment: AttachmentDoc) {
-  if (typeof attachment.url === 'string' && attachment.url) {
-    const response = await fetch(attachment.url, { signal: AbortSignal.timeout(30_000) })
+  // Media docs uploaded via Admin store a relative proxy URL; a bare fetch of
+  // that path from the server has no origin to resolve against.
+  const fetchUrl = typeof attachment.url === 'string' ? resolveMediaSourceUrl(attachment.url) : null
+
+  if (fetchUrl) {
+    const response = await fetch(fetchUrl, { signal: AbortSignal.timeout(30_000) })
     if (!response.ok) throw new Error(`Attachment fetch failed: ${response.status}`)
 
     return {
@@ -338,6 +343,12 @@ async function loadAttachments(ownerId: string, chatAssetIds?: string[], mediaId
     $in: values.filter(ObjectId.isValid).map((id) => new ObjectId(id)),
   })
 
+  // createdBy is stored as ObjectId under the Admin schema; older Web-written
+  // rows may still be strings. Match either representation so both round-trip.
+  const ownerIdMatch = ObjectId.isValid(ownerId)
+    ? { $in: [ownerId, new ObjectId(ownerId)] }
+    : ownerId
+
   if (chatAssetIds?.length) {
     // Owner-scoped: an asset id alone must never grant access to another
     // user's upload, and expired assets are no longer readable.
@@ -345,7 +356,7 @@ async function loadAttachments(ownerId: string, chatAssetIds?: string[], mediaId
       .collection('chat-assets')
       .find({
         _id: ids(chatAssetIds),
-        createdBy: ownerId,
+        createdBy: ownerIdMatch,
         $or: [{ expiresAt: { $exists: false } }, { expiresAt: { $gt: new Date() } }],
       })
       .toArray()
@@ -356,7 +367,7 @@ async function loadAttachments(ownerId: string, chatAssetIds?: string[], mediaId
   if (mediaIds?.length) {
     const media = await db
       .collection('media')
-      .find({ _id: ids(mediaIds), createdBy: ownerId })
+      .find({ _id: ids(mediaIds), createdBy: ownerIdMatch })
       .toArray()
     for (const item of media) {
       await addAttachment(item, 'Attached media')

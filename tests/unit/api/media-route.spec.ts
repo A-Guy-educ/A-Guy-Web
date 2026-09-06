@@ -6,6 +6,7 @@
  * on and which is easy to lose when the query moves into the service layer.
  */
 
+import { ObjectId } from 'mongodb'
 import { NextRequest } from 'next/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -28,7 +29,20 @@ vi.mock('@/infra/blob/vercel-blob-adapter', () => ({
   },
 }))
 
-const USER_ID = 'user-1'
+// USER_ID and TENANT_ID must be valid ObjectId strings: the route now
+// converts them to ObjectId before writing so the Admin-owned media schema
+// validator accepts the row.
+const USER_ID = '507f1f77bcf86cd799439012'
+const TENANT_ID = '507f1f77bcf86cd799439013'
+const TENANT_SLUG = process.env.DEFAULT_TENANT_SLUG || 'AGuy'
+
+/** Every POST test needs a tenant to exist because resolveDefaultTenantId throws otherwise. */
+function seedWithTenant(extra: Record<string, Doc[]> = {}) {
+  return seed({
+    tenants: [{ _id: new ObjectId(TENANT_ID), slug: TENANT_SLUG }],
+    ...extra,
+  })
+}
 
 function seed(seedData: Record<string, Doc[]> = {}) {
   db.current = mockContentDb(seedData)
@@ -68,7 +82,7 @@ function formWithFile(name = 'photo.png', type = 'image/png') {
 
 describe('POST /api/media', () => {
   beforeEach(() => {
-    seed({ media: [] })
+    seedWithTenant({ media: [] })
     mockRequireUser.mockReset()
     signedIn()
     mockUploadBuffer.mockReset().mockResolvedValue({
@@ -94,18 +108,24 @@ describe('POST /api/media', () => {
   })
 
   it('stores the file and records who uploaded it', async () => {
-    const fake = seed({ media: [] })
+    const fake = seedWithTenant({ media: [] })
 
     const { status, body } = await upload(formWithFile())
 
     expect(status).toBe(200)
     expect(fake.collections.media).toHaveLength(1)
-    expect(fake.collections.media[0]).toMatchObject({
-      createdBy: USER_ID,
+    const media = fake.collections.media[0] as Record<string, unknown>
+    expect(media).toMatchObject({
       mimeType: 'image/png',
       url: 'https://blob.example/media/photo.png',
       pathname: 'media/photo.png',
+      retentionPolicy: 'persistent',
     })
+    // tenant + createdBy stored as ObjectId to satisfy the schema validator.
+    expect(media.createdBy).toBeInstanceOf(ObjectId)
+    expect(String(media.createdBy)).toBe(USER_ID)
+    expect(media.tenant).toBeInstanceOf(ObjectId)
+    expect(String(media.tenant)).toBe(TENANT_ID)
     expect(body.doc).toMatchObject({ url: 'https://blob.example/media/photo.png' })
   })
 
@@ -118,7 +138,7 @@ describe('POST /api/media', () => {
   })
 
   it('makes the stored filename unique and safe', async () => {
-    const fake = seed({ media: [] })
+    const fake = seedWithTenant({ media: [] })
 
     await upload(formWithFile('my report (final).png'))
 
@@ -129,7 +149,7 @@ describe('POST /api/media', () => {
   })
 
   it('falls back to a generic content type when the browser sends none', async () => {
-    const fake = seed({ media: [] })
+    const fake = seedWithTenant({ media: [] })
     const form = new FormData()
     form.set('file', new File([new Uint8Array([1])], 'blob', { type: '' }))
 

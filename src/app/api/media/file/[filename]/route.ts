@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { VercelBlobAdapter } from '@/infra/blob/vercel-blob-adapter'
 import { resolveMediaFilePath } from '@/infra/config/storage'
+import { resolveMediaSourceUrl } from '@/infra/media/resolveMediaSourceUrl'
 import { findMediaByFilename } from '@/server/services/media'
 
 type MediaFileRecord = {
@@ -130,6 +131,36 @@ export async function GET(
       },
     })
   } catch {
+    // Media uploaded through the Admin app is stored in a separate Blob store
+    // that this app has no token for, so a local lookup can never find it.
+    // Proxy the bytes through Web rather than redirecting: a cross-origin 302
+    // to Admin would force PDF.js (embedded on Web's origin) through CORS on
+    // every hop, and depending on Admin's response headers for the viewer to
+    // render is fragile.
+    const adminProxy = resolveMediaSourceUrl(`/api/media/file/${encodeURIComponent(filename)}`)
+    if (adminProxy) {
+      try {
+        const upstream = await fetch(adminProxy, {
+          redirect: 'follow',
+          signal: AbortSignal.timeout(30_000),
+        })
+        if (!upstream.ok) {
+          return NextResponse.json({ error: 'File not found' }, { status: upstream.status })
+        }
+        return new NextResponse(upstream.body, {
+          status: 200,
+          headers: {
+            'Content-Type':
+              upstream.headers.get('content-type') ||
+              String(media?.mimeType || 'application/octet-stream'),
+            'Cache-Control': 'public, max-age=86400',
+          },
+        })
+      } catch {
+        return NextResponse.json({ error: 'File not found' }, { status: 502 })
+      }
+    }
+
     return NextResponse.json({ error: 'File not found' }, { status: 404 })
   }
 }
