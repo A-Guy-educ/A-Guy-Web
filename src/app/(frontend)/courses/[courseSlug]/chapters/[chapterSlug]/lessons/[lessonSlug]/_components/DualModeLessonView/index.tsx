@@ -70,7 +70,7 @@ interface DualModeLessonViewProps {
  * - When `visibleRenderers` is undefined, all four tabs are shown (backward
  *   compatible for lessons created before this feature existed).
  */
-function getVisibleTabs(
+export function getVisibleTabs(
   visibleRenderers: LessonMode[] | undefined,
   hasMedia: boolean,
 ): { media: boolean; pdf: boolean; interactive: boolean; test: boolean; chat: boolean } {

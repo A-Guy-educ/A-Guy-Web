@@ -74,12 +74,25 @@ export function LessonMenu({
     return () => window.removeEventListener('keydown', handler)
   }, [open])
 
+  // Lesson surfaces publish tabs (via LessonMenuProvider in DualModeLessonView);
+  // Ask mounts ExerciseWorkspace directly so tabs is empty. Only lesson surfaces
+  // get the direct-to-course push (label promises "back to course"). Ask keeps
+  // the previous router.back() escape and shows a neutral "Back" label instead.
+  const onLessonSurface = tabs.length > 0
+
   const handleBack = () => {
     setOpen(false)
-    // Label promises "back to course", so route to the course page directly
-    // instead of `router.back()` — history could point at another lesson,
-    // search results, etc., which would violate the promise.
-    router.push(backUrl ?? '/courses')
+    if (onLessonSurface) {
+      router.push(backUrl ?? '/courses')
+      return
+    }
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back()
+    } else if (backUrl) {
+      router.push(backUrl)
+    } else {
+      router.push('/courses')
+    }
   }
 
   const BackIcon = rtl ? ArrowRight : ArrowLeft
@@ -220,7 +233,7 @@ export function LessonMenu({
               >
                 <span className="flex items-center gap-content-gap-xs">
                   <BackIcon className="w-4 h-4 text-primary" />
-                  {t('backToCourse')}
+                  {onLessonSurface ? t('backToCourse') : t('back')}
                 </span>
               </button>
             </motion.div>

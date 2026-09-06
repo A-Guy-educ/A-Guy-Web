@@ -36,7 +36,7 @@ function writeStoredMode(lessonId: string, mode: LessonMode) {
  * Resolves the active mode from a stored preference and a list of allowed modes.
  * Falls back through the priority list when the stored mode is not allowed.
  */
-function resolveEffectiveMode(
+export function resolveEffectiveMode(
   stored: LessonMode | null,
   allowedModes: LessonMode[] | undefined,
 ): LessonMode {
