@@ -19,12 +19,10 @@ export const PDFMedia: React.FC<MediaProps> = (props) => {
   const pdfUrl = React.useMemo(() => {
     if (resource && typeof resource === 'object') {
       const { filename, url } = resource
-      // Use relative URLs to avoid hydration mismatch with port numbers
-      if (url) {
-        // If URL is already absolute, return as-is, otherwise make it relative
-        return url.startsWith('http://') || url.startsWith('https://') ? url : url
-      }
-      return filename ? `/media/${filename}` : null
+      if (url) return url
+      // Fallback goes through the media proxy route so an Admin-owned file can
+      // still be found via redirect; `/media/${filename}` is not a real path.
+      return filename ? `/api/media/file/${encodeURIComponent(String(filename))}` : null
     }
     return null
   }, [resource])

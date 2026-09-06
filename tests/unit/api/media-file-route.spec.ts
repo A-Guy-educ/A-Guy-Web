@@ -147,6 +147,35 @@ describe('/api/media/file/[filename]', () => {
     expect(response.status).toBe(404)
   })
 
+  it('redirects to Admin when the file is not held locally and NEXT_PUBLIC_ADMIN_URL is set', async () => {
+    const originalAdminUrl = process.env.NEXT_PUBLIC_ADMIN_URL
+    process.env.NEXT_PUBLIC_ADMIN_URL = 'https://a-guy-admin.vercel.app'
+    try {
+      const { GET } = await import('@/app/api/media/file/[filename]/route')
+      mocks.findOne.mockResolvedValue({
+        filename: 'admin-owned.pdf',
+        mimeType: 'application/pdf',
+        url: '/api/media/file/admin-owned.pdf',
+      })
+      mocks.readFile.mockRejectedValue(new Error('ENOENT'))
+
+      const response = await GET(
+        new NextRequest('http://localhost:3000/api/media/file/admin-owned.pdf'),
+        {
+          params: Promise.resolve({ filename: 'admin-owned.pdf' }),
+        },
+      )
+
+      expect(response.status).toBe(307)
+      expect(response.headers.get('location')).toBe(
+        'https://a-guy-admin.vercel.app/api/media/file/admin-owned.pdf',
+      )
+    } finally {
+      if (originalAdminUrl === undefined) delete process.env.NEXT_PUBLIC_ADMIN_URL
+      else process.env.NEXT_PUBLIC_ADMIN_URL = originalAdminUrl
+    }
+  })
+
   it('rejects path traversal filenames', async () => {
     const { GET } = await import('@/app/api/media/file/[filename]/route')
 

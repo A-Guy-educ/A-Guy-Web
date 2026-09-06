@@ -4,6 +4,7 @@ import { ObjectId, type Document } from 'mongodb'
 
 import { resolveMediaFilePath } from '@/infra/config/storage'
 import { getContentDb, objectIdFromString, relationId, serializeDoc } from '@/infra/db/content-db'
+import { resolveMediaSourceUrl } from '@/infra/media/resolveMediaSourceUrl'
 import {
   CHAT_ASSET_ALLOWED_MIME_TYPES,
   CHAT_ASSET_MAX_ATTACHMENTS,
@@ -280,8 +281,12 @@ function attachmentName(attachment: AttachmentDoc) {
 }
 
 async function fetchAttachmentBuffer(attachment: AttachmentDoc) {
-  if (typeof attachment.url === 'string' && attachment.url) {
-    const response = await fetch(attachment.url, { signal: AbortSignal.timeout(30_000) })
+  // Media docs uploaded via Admin store a relative proxy URL; a bare fetch of
+  // that path from the server has no origin to resolve against.
+  const fetchUrl = typeof attachment.url === 'string' ? resolveMediaSourceUrl(attachment.url) : null
+
+  if (fetchUrl) {
+    const response = await fetch(fetchUrl, { signal: AbortSignal.timeout(30_000) })
     if (!response.ok) throw new Error(`Attachment fetch failed: ${response.status}`)
 
     return {
