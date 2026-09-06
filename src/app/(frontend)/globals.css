@@ -632,6 +632,27 @@ math-field:focus-within {
   color: hsl(var(--text-wine-red));
 }
 
+/* Fractions and powers stack vertically and read best at a slightly larger
+   size. `.math-tall` is added by rehype-math-wrapper when the TeX source
+   contains \frac, \binom, or a `^` superscript. It's applied on the same
+   wrapper span as `.math-short` / `.math-long`, so we compound the selectors
+   to outrank the chat-scoped rules above that pin `.math-short` to 1em. */
+.math-short.math-tall .katex,
+.math-long.math-tall .katex,
+.chat-message-content .math-short.math-tall .katex,
+.chat-message-content .math-long.math-tall .katex {
+  font-size: 1.2em;
+}
+
+/* Cell layout in chat tables is deliberately pinned to 1em (see lines above);
+   the .math-tall bump would tie-break on specificity and win by cascade order,
+   producing uneven row heights when a table mixes plain text with \frac / ^
+   cells. Add an explicit reset for tall math inside chat tables. */
+.chat-message-content .chat-table .math-short.math-tall .katex,
+.chat-message-content .chat-table .math-long.math-tall .katex {
+  font-size: 1em;
+}
+
 /* Chat callouts — paragraphs tagged by remarkChatCallouts and rendered via
    the ChatCallout component. Colors match boss's spec: note = yellow warning,
    example = sage green, mistake = red error, tip = purple accent, guiding =

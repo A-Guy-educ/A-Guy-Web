@@ -76,6 +76,19 @@ interface ExerciseWorkspaceProps {
   backUrl?: string
   primaryContent: React.ReactNode
   chatContent?: React.ReactNode
+  /**
+   * Which back-button semantics the floating menu should use.
+   * - `'lesson'` — this workspace shell IS a lesson surface (label = "back to
+   *   course", pushes straight to `backUrl`). Callers like LessonIntroPage that
+   *   render lesson chrome without a tab picker should set this.
+   * - `'standalone'` (default) — treat the menu as generic (label = "back",
+   *   uses browser history). Used by /ask and other one-off surfaces.
+   *
+   * Left unset, LessonMenu also infers `'lesson'` when tabs are published via
+   * LessonMenuProvider (DualModeLessonView), so DualModeLessonView doesn't need
+   * to pass this prop.
+   */
+  menuVariant?: 'lesson' | 'standalone'
   // Accepted for API compatibility with existing callers. The mobile "Help"
   // panel that consumed these was removed — hint/guiding/formula/notes are
   // now surfaced through the exercise renderer's own controls.
@@ -90,6 +103,7 @@ export function ExerciseWorkspace({
   backUrl,
   primaryContent,
   chatContent,
+  menuVariant,
 }: ExerciseWorkspaceProps) {
   const [mobileMode, setMobileMode] = useState<MobileExerciseViewMode>('exercise')
 
@@ -113,6 +127,7 @@ export function ExerciseWorkspace({
         onSelectMode={menuConfig?.onSelectMode}
         backUrl={backUrl}
         mute={menuConfig?.mute}
+        variant={menuVariant}
       />
 
       <SplitPaneLayout

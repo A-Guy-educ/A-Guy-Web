@@ -62,7 +62,7 @@ export function TeacherBubble({
 
         {hasText && (
           <div className="text-body-md font-medium text-foreground leading-relaxed">
-            <MathMarkdown content={text!} />
+            <MathMarkdown content={text!} normalizeLatex />
           </div>
         )}
 
