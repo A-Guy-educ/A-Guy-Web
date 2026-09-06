@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.34.4 — 2026-09-06
+
+### Chores
+- add #1168 (44ec250f3)
+- add #1167 (a6158d799)
+- release v0.34.2 (bd065a14e)
+- add #1166 (3db056ca5)
 ## v0.34.3 — 2026-09-05
 
 ### Fixes
@@ -4624,6 +4631,8 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: release v0.34.4 ([#1169](https://github.com/A-Guy-educ/A-Guy-Web/pull/1169)) — @aguyaharonyair
+- promote: dev -> main (v0.34.3) ([#1168](https://github.com/A-Guy-educ/A-Guy-Web/pull/1168)) — @aguyaharonyair
 - chore: release v0.34.3 ([#1167](https://github.com/A-Guy-educ/A-Guy-Web/pull/1167)) — @aguyaharonyair
 ## [v0.34.2] - 2026-09-03
 
