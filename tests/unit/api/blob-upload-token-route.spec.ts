@@ -41,6 +41,11 @@ vi.mock('@vercel/blob/client', () => ({
   },
 }))
 
+const mockLoggerError = vi.hoisted(() => vi.fn())
+vi.mock('@/infra/utils/logger/logger', () => ({
+  logger: { error: mockLoggerError, info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
+}))
+
 // USER_ID and TENANT_ID must be valid ObjectId strings — the route now
 // converts them to ObjectId before writing to satisfy Admin's schema validator
 // on upload-sessions.
@@ -183,18 +188,25 @@ describe('POST /api/blob/upload-token', () => {
     expect(pathname).toContain(USER_ID)
   })
 
-  it('surfaces a clear error when no tenant document exists', async () => {
+  it('logs the missing-tenant error server-side and returns a generic 500 to the client', async () => {
     // The old code silently substituted the string 'default', which fails
-    // Admin's ObjectId validator anyway. The new contract throws so callers
-    // see a real error instead of the generic validator failure.
+    // Admin's ObjectId validator anyway. The new contract throws so we notice.
+    // The response body must NOT leak the raw error — any signed-in caller
+    // could otherwise enumerate the tenant slug + schema by crafting requests.
     seed({ tenants: [] })
+    mockLoggerError.mockClear()
 
     const response = await requestToken()
 
     expect(response.status).toBe(500)
-    const body = (await response.json()) as { message?: string }
-    expect(body.message).toMatch(/Default tenant/)
+    const body = (await response.json()) as Record<string, unknown>
+    expect(body).toEqual({ error: 'Upload token request failed' })
     expect(captured.onBeforeGenerateToken).toBeNull()
+
+    // Real reason is written to logs so ops still see it.
+    expect(mockLoggerError).toHaveBeenCalled()
+    const [logPayload] = mockLoggerError.mock.calls[0]
+    expect(String((logPayload as { err?: Error }).err?.message)).toMatch(/Default tenant/)
   })
 
   it('marks the session uploaded once the file lands', async () => {

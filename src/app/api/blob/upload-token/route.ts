@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
 import { objectIdFromString } from '@/infra/db/content-db'
+import { logger } from '@/infra/utils/logger/logger'
 import {
   CHAT_ASSET_ALLOWED_MIME_TYPES,
   CHAT_ASSET_MAX_BYTES,
@@ -99,13 +100,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result)
   } catch (error) {
-    // Surface the real error to the client so upload failures are debuggable
-    // instead of returning Vercel's opaque empty 500 shell.
-    const message = error instanceof Error ? error.message : String(error)
-    const name = error instanceof Error ? error.name : 'Error'
-    return NextResponse.json(
-      { error: 'Upload token request failed', name, message },
-      { status: 500 },
-    )
+    // Real error goes to logs (and Sentry via the global handler); the client
+    // gets a generic message so an authenticated caller cannot enumerate the
+    // collection schema, tenant slugs, or Zod payload shape by sending crafted
+    // requests and reading the body. Vercel's opaque empty 500 shell was the
+    // symptom that hid this bug — a JSON body with a stable shape is the fix.
+    logger.error({ err: error, ownerId }, 'Upload token request failed')
+    return NextResponse.json({ error: 'Upload token request failed' }, { status: 500 })
   }
 }

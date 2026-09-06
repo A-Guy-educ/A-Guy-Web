@@ -119,12 +119,18 @@ export async function POST(request: NextRequest) {
   if (!(createdBy instanceof ObjectId)) {
     return Response.json({ error: 'Invalid owner id' }, { status: 400 })
   }
+  // Legacy in-flight sessions from the pre-fix insert-then-update flow may
+  // still be missing pathname; String(undefined) would silently persist the
+  // literal "undefined" and corrupt cleanup metadata.
+  if (typeof session.pathname !== 'string' || !session.pathname) {
+    return Response.json({ error: 'Upload session missing pathname' }, { status: 500 })
+  }
 
   const asset = await createChatAsset({
     tenant: tenantValue,
     createdBy,
     url: resolvedUrl,
-    pathname: String(session.pathname),
+    pathname: session.pathname,
     originalFilename: String(session.originalFilename || originalFilename || ''),
     mimeType,
     filesize: size,

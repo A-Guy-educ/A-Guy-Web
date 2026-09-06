@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { VercelBlobAdapter } from '@/infra/blob/vercel-blob-adapter'
 import { objectIdFromString, serializeDoc } from '@/infra/db/content-db'
 import { inferMediaType } from '@/infra/media/inferMediaType'
+import { logger } from '@/infra/utils/logger/logger'
 import { requireUser } from '@/server/auth/api-auth'
 import { createMedia, findMediaById, listRecentMedia } from '@/server/services/media'
 import { resolveDefaultTenantId } from '@/server/services/upload-sessions'
@@ -48,10 +49,12 @@ export async function POST(request: NextRequest) {
     const doc = serializeDoc(stored)
     return NextResponse.json({ doc, ...doc })
   } catch (error) {
-    // Surface the real error instead of returning Vercel's opaque empty 500.
-    const message = error instanceof Error ? error.message : String(error)
-    const name = error instanceof Error ? error.name : 'Error'
-    return NextResponse.json({ error: 'Media upload failed', name, message }, { status: 500 })
+    // Real error goes to logs (and Sentry via the global handler); the client
+    // gets a generic message so an authenticated caller cannot enumerate the
+    // media collection schema, tenant slugs, or validator field names by
+    // sending crafted requests and reading the body.
+    logger.error({ err: error, ownerId: auth.value.id }, 'Media upload failed')
+    return NextResponse.json({ error: 'Media upload failed' }, { status: 500 })
   }
 }
 
