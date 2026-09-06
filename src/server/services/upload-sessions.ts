@@ -9,7 +9,7 @@
 
 import { ObjectId, type Document } from 'mongodb'
 
-import { getContentDb, objectIdFromString } from '@/infra/db/content-db'
+import { getContentDb } from '@/infra/db/content-db'
 
 /**
  * The tenant that owns uploads on this deployment.
@@ -115,8 +115,9 @@ export async function findOwnUploadSessionByBlob(
   const db = await getContentDb()
 
   // createdBy is stored as ObjectId under the Admin schema, but pre-fix
-  // records may still carry the string. objectIdFromString accepts both.
-  const createdBy = objectIdFromString(ownerId)
+  // records may still carry the string. Match either form or a caller with
+  // a legacy in-flight upload silently 404s while the primary-id path works.
+  const createdBy = ObjectId.isValid(ownerId) ? { $in: [ownerId, new ObjectId(ownerId)] } : ownerId
 
   return db.collection('upload-sessions').findOne({
     createdBy,

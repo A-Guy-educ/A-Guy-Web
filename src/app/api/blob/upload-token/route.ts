@@ -29,13 +29,14 @@ export async function POST(request: NextRequest) {
   if (!auth.ok) return auth.response
 
   const ownerId = auth.value.id
-  const ownerObjectId = objectIdFromString(ownerId)
-  if (!(ownerObjectId instanceof ObjectId)) {
-    return NextResponse.json({ error: 'Invalid user id' }, { status: 400 })
-  }
-  const tenantObjectId = await resolveDefaultTenantId()
 
   try {
+    const ownerObjectId = objectIdFromString(ownerId)
+    if (!(ownerObjectId instanceof ObjectId)) {
+      return NextResponse.json({ error: 'Invalid user id' }, { status: 400 })
+    }
+    const tenantObjectId = await resolveDefaultTenantId()
+
     const result = await handleUpload({
       request,
       body: await request.json(),
