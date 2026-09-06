@@ -19,25 +19,32 @@ export async function POST(request: NextRequest) {
   const file = form.get('file')
   if (!(file instanceof File)) return NextResponse.json({ error: 'Missing file' }, { status: 400 })
 
-  const filename = `${Date.now()}-${safeName(file.name)}`
-  const buffer = Buffer.from(await file.arrayBuffer())
-  const blob = await new VercelBlobAdapter({
-    directory: 'media',
-    cacheControlSeconds: 60 * 60 * 24,
-  }).uploadBuffer(filename, buffer, file.type || 'application/octet-stream')
+  try {
+    const filename = `${Date.now()}-${safeName(file.name)}`
+    const buffer = Buffer.from(await file.arrayBuffer())
+    const blob = await new VercelBlobAdapter({
+      directory: 'media',
+      cacheControlSeconds: 60 * 60 * 24,
+    }).uploadBuffer(filename, buffer, file.type || 'application/octet-stream')
 
-  const stored = await createMedia({
-    filename,
-    type: inferMediaType(file.type, filename),
-    mimeType: file.type || 'application/octet-stream',
-    filesize: file.size,
-    url: blob.url,
-    pathname: blob.pathname,
-    createdBy: auth.value.id,
-  })
+    const stored = await createMedia({
+      filename,
+      type: inferMediaType(file.type, filename),
+      mimeType: file.type || 'application/octet-stream',
+      filesize: file.size,
+      url: blob.url,
+      pathname: blob.pathname,
+      createdBy: auth.value.id,
+    })
 
-  const doc = serializeDoc(stored)
-  return NextResponse.json({ doc, ...doc })
+    const doc = serializeDoc(stored)
+    return NextResponse.json({ doc, ...doc })
+  } catch (error) {
+    // Surface the real error instead of returning Vercel's opaque empty 500.
+    const message = error instanceof Error ? error.message : String(error)
+    const name = error instanceof Error ? error.name : 'Error'
+    return NextResponse.json({ error: 'Media upload failed', name, message }, { status: 500 })
+  }
 }
 
 export async function GET(request: NextRequest) {
