@@ -4643,6 +4643,8 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+## [v0.34.5] - 2026-09-06
+
 - promote: dev -> main (v0.34.5) ([#1175](https://github.com/A-Guy-educ/A-Guy-Web/pull/1175)) — @aguyshayb
 - chore: Release v0.34.5 ([#1174](https://github.com/A-Guy-educ/A-Guy-Web/pull/1174)) — @aguyshayb
 - fix(csp): Allow https://vercel.com so direct Blob uploads from the chat window work ([#1173](https://github.com/A-Guy-educ/A-Guy-Web/pull/1173)) — @aguyshayb
