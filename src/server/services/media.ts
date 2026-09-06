@@ -12,23 +12,35 @@ import { ObjectId, type Document } from 'mongodb'
 import { getContentDb, objectIdFromString } from '@/infra/db/content-db'
 
 export type MediaRecord = {
+  tenant: ObjectId
   filename: string
   type: string
   mimeType: string
   filesize: number
   url: string
   pathname: string
-  createdBy: string
+  createdBy: ObjectId
 }
 
-/** Record an uploaded file and return the stored document. */
+/**
+ * Record an uploaded file and return the stored document.
+ *
+ * The Admin-owned `media` collection schema validator requires `tenant` and
+ * `createdBy` as ObjectId relationships and `retentionPolicy` as a required
+ * select. Payload's tenant/retention `beforeValidate` hooks only run for
+ * writes that go through Payload; a raw MongoDB insert has to satisfy the
+ * validator itself.
+ */
 export async function createMedia(record: MediaRecord): Promise<Document | null> {
   const db = await getContentDb()
   const now = new Date()
 
-  const result = await db
-    .collection('media')
-    .insertOne({ ...record, createdAt: now, updatedAt: now })
+  const result = await db.collection('media').insertOne({
+    ...record,
+    retentionPolicy: 'persistent',
+    createdAt: now,
+    updatedAt: now,
+  })
 
   return db.collection('media').findOne({ _id: result.insertedId })
 }

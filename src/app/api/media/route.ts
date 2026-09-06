@@ -2,10 +2,12 @@ import { ObjectId } from 'mongodb'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { VercelBlobAdapter } from '@/infra/blob/vercel-blob-adapter'
-import { serializeDoc } from '@/infra/db/content-db'
+import { objectIdFromString, serializeDoc } from '@/infra/db/content-db'
 import { inferMediaType } from '@/infra/media/inferMediaType'
+import { logger } from '@/infra/utils/logger/logger'
 import { requireUser } from '@/server/auth/api-auth'
 import { createMedia, findMediaById, listRecentMedia } from '@/server/services/media'
+import { resolveDefaultTenantId } from '@/server/services/upload-sessions'
 
 function safeName(name: string) {
   return name.replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '') || 'upload'
@@ -19,25 +21,41 @@ export async function POST(request: NextRequest) {
   const file = form.get('file')
   if (!(file instanceof File)) return NextResponse.json({ error: 'Missing file' }, { status: 400 })
 
-  const filename = `${Date.now()}-${safeName(file.name)}`
-  const buffer = Buffer.from(await file.arrayBuffer())
-  const blob = await new VercelBlobAdapter({
-    directory: 'media',
-    cacheControlSeconds: 60 * 60 * 24,
-  }).uploadBuffer(filename, buffer, file.type || 'application/octet-stream')
+  try {
+    const createdBy = objectIdFromString(auth.value.id)
+    if (!(createdBy instanceof ObjectId)) {
+      return NextResponse.json({ error: 'Invalid user id' }, { status: 400 })
+    }
+    const tenant = await resolveDefaultTenantId()
 
-  const stored = await createMedia({
-    filename,
-    type: inferMediaType(file.type, filename),
-    mimeType: file.type || 'application/octet-stream',
-    filesize: file.size,
-    url: blob.url,
-    pathname: blob.pathname,
-    createdBy: auth.value.id,
-  })
+    const filename = `${Date.now()}-${safeName(file.name)}`
+    const buffer = Buffer.from(await file.arrayBuffer())
+    const blob = await new VercelBlobAdapter({
+      directory: 'media',
+      cacheControlSeconds: 60 * 60 * 24,
+    }).uploadBuffer(filename, buffer, file.type || 'application/octet-stream')
 
-  const doc = serializeDoc(stored)
-  return NextResponse.json({ doc, ...doc })
+    const stored = await createMedia({
+      tenant,
+      filename,
+      type: inferMediaType(file.type, filename),
+      mimeType: file.type || 'application/octet-stream',
+      filesize: file.size,
+      url: blob.url,
+      pathname: blob.pathname,
+      createdBy,
+    })
+
+    const doc = serializeDoc(stored)
+    return NextResponse.json({ doc, ...doc })
+  } catch (error) {
+    // Real error goes to logs (and Sentry via the global handler); the client
+    // gets a generic message so an authenticated caller cannot enumerate the
+    // media collection schema, tenant slugs, or validator field names by
+    // sending crafted requests and reading the body.
+    logger.error({ err: error, ownerId: auth.value.id }, 'Media upload failed')
+    return NextResponse.json({ error: 'Media upload failed' }, { status: 500 })
+  }
 }
 
 export async function GET(request: NextRequest) {

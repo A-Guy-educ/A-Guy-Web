@@ -12,11 +12,11 @@ import { ObjectId, type Document } from 'mongodb'
 import { getContentDb } from '@/infra/db/content-db'
 
 export type NewChatAsset = {
-  tenant: unknown
-  createdBy: string
+  tenant: ObjectId
+  createdBy: ObjectId
   url: string
-  pathname: unknown
-  originalFilename: unknown
+  pathname: string
+  originalFilename: string
   mimeType: string
   filesize: number
   expiresAt: Date
