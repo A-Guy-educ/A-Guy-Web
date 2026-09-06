@@ -4643,6 +4643,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.34.5 ([#1174](https://github.com/A-Guy-educ/A-Guy-Web/pull/1174)) — @aguyshayb
 - fix(csp): Allow https://vercel.com so direct Blob uploads from the chat window work ([#1173](https://github.com/A-Guy-educ/A-Guy-Web/pull/1173)) — @aguyshayb
 - fix(uploads): Satisfy Admin schema validator on media, chat-asset, upload-session writes ([#1172](https://github.com/A-Guy-educ/A-Guy-Web/pull/1172)) — @aguyshayb
 - fix(media): Forward Admin-owned media proxy URLs to the Admin app ([#1171](https://github.com/A-Guy-educ/A-Guy-Web/pull/1171)) — @aguyshayb
