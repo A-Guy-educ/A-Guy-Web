@@ -4631,6 +4631,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix(uploads): Satisfy Admin schema validator on media, chat-asset, upload-session writes ([#1172](https://github.com/A-Guy-educ/A-Guy-Web/pull/1172)) — @aguyshayb
 - fix(media): Forward Admin-owned media proxy URLs to the Admin app ([#1171](https://github.com/A-Guy-educ/A-Guy-Web/pull/1171)) — @aguyshayb
 - promote: dev -> main (v0.34.4) ([#1170](https://github.com/A-Guy-educ/A-Guy-Web/pull/1170)) — @aguyaharonyair
 - chore: release v0.34.4 ([#1169](https://github.com/A-Guy-educ/A-Guy-Web/pull/1169)) — @aguyaharonyair
