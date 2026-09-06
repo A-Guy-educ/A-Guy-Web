@@ -4,7 +4,6 @@ import { cn } from '@/infra/utils/ui'
 import type { Components } from 'react-markdown'
 import { MathMarkdown } from '@/ui/web/shared/MathMarkdown'
 import { SvgAwareImage } from '@/ui/web/shared/MathMarkdown/svgAwareImage'
-import { normalizeLatexDelimiters } from './normalize-latex'
 import { ChatCallout } from './ChatCallout'
 import { remarkChatCallouts, type ChatCalloutKind } from './remark-chat-callouts'
 
@@ -103,18 +102,19 @@ const chatMarkdownComponents: Components = {
  * Chat message content renderer.
  *
  * WHAT THIS ADDS ON TOP OF MathMarkdown:
- * 1. normalizeLatexDelimiters() — converts LLM-style delimiters (\[...\], \(...\))
- *    to the standard $$...$$ that remark-math understands.
+ * 1. escapeBareOrderedListMarkers — keeps stray "1." lines from being parsed
+ *    as ordered lists in LLM output.
  * 2. chatMarkdownComponents — custom Tailwind-styled typography for chat bubbles.
  * 3. "chat-message-content" CSS class — triggers chat-specific KaTeX styling
  *    (muted background, rounded corners, padding) defined in globals.css lines 422-436.
+ *
+ * LaTeX-delimiter normalization now happens inside MathMarkdown itself, so
+ * every caller (chat message view + ChatLessonView bubbles) gets it uniformly.
  */
 export function ChatMessageContent({ content, className }: ChatMessageContentProps) {
-  const normalizedContent = normalizeLatexDelimiters(escapeBareOrderedListMarkers(content))
-
   return (
     <MathMarkdown
-      content={normalizedContent}
+      content={escapeBareOrderedListMarkers(content)}
       className={cn('chat-message-content leading-relaxed', className)}
       components={chatMarkdownComponents}
       remarkPlugins={[remarkChatCallouts]}

@@ -8,6 +8,7 @@
 'use client'
 
 import { cn } from '@/infra/utils/ui'
+import { normalizeLatexDelimiters } from '@/infra/utils/normalize-latex'
 import type { ComponentProps } from 'react'
 import type { Components } from 'react-markdown'
 import ReactMarkdown from 'react-markdown'
@@ -80,6 +81,11 @@ export function MathMarkdown({ content, className, components, remarkPlugins }: 
     remarkColorSyntax,
     ...(remarkPlugins ?? []),
   ] as RemarkPluginsProp
+  // Normalize LLM-style math delimiters (`\[…\]`, `\(…\)`, bare `\frac{…}{…}`,
+  // mismatched Hebrew `$`) into what remark-math actually recognizes. Lifting
+  // this out of ChatMessageContent so ChatLessonView's TeacherBubble /
+  // StudentBubble — which call MathMarkdown directly — render LaTeX too.
+  const normalized = normalizeLatexDelimiters(content)
   return (
     <div className={cn(className)}>
       <ReactMarkdown
@@ -87,7 +93,7 @@ export function MathMarkdown({ content, className, components, remarkPlugins }: 
         rehypePlugins={[rehypeKatex, rehypeMathWrapper]}
         components={components}
       >
-        {content}
+        {normalized}
       </ReactMarkdown>
     </div>
   )

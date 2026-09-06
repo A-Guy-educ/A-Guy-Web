@@ -129,11 +129,11 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
   const effectiveMode = (() => {
     if (!visibleTabs[mode]) {
       // Stored mode points to a tab the admin just disabled — pick the first available.
+      if (visibleTabs.chat) return 'chat'
       if (visibleTabs.media) return 'media'
       if (visibleTabs.pdf) return 'pdf'
       if (visibleTabs.interactive) return 'interactive'
-      if (visibleTabs.test) return 'test'
-      return 'chat'
+      return 'test'
     }
     return mode
   })()

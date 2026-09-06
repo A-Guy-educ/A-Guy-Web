@@ -223,7 +223,7 @@ export function LessonMenu({
               >
                 <span className="flex items-center gap-content-gap-xs">
                   <BackIcon className="w-4 h-4 text-primary" />
-                  {t('backToLesson')}
+                  {t('backToCourse')}
                 </span>
               </button>
             </motion.div>

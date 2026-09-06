@@ -40,13 +40,13 @@ function resolveEffectiveMode(
   stored: LessonMode | null,
   allowedModes: LessonMode[] | undefined,
 ): LessonMode {
-  if (!allowedModes) return stored ?? 'pdf'
+  if (!allowedModes) return stored ?? 'chat'
   if (stored && allowedModes.includes(stored)) return stored
-  const priority: LessonMode[] = ['media', 'pdf', 'interactive', 'test', 'chat']
+  const priority: LessonMode[] = ['chat', 'media', 'pdf', 'interactive', 'test']
   for (const mode of priority) {
     if (allowedModes.includes(mode)) return mode
   }
-  return 'pdf' // Safety fallback — beforeChange validation prevents this being reached
+  return 'chat' // Safety fallback — beforeChange validation prevents this being reached
 }
 
 /**
@@ -60,7 +60,7 @@ function resolveEffectiveMode(
  *                      allowed mode if the stored mode is now disabled.
  */
 export function useLessonViewMode(lessonId: string, allowedModes?: LessonMode[]) {
-  const [mode, setMode] = useState<LessonMode>('pdf')
+  const [mode, setMode] = useState<LessonMode>('chat')
 
   useEffect(() => {
     const stored = readStoredMode(lessonId)
