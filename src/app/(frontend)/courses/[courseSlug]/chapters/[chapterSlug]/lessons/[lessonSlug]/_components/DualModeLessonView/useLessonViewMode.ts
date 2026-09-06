@@ -50,8 +50,9 @@ function resolveEffectiveMode(
 }
 
 /**
- * Tracks the active dual-mode tab for a lesson, defaulting to 'pdf' and
- * persisting the student's choice in localStorage keyed by lesson id.
+ * Tracks the active dual-mode tab for a lesson, defaulting to 'chat' when the
+ * chat renderer is enabled (else the first allowed mode in the fallback list)
+ * and persisting the student's choice in localStorage keyed by lesson id.
  * Hydrates from storage after mount to avoid SSR mismatch.
  *
  * @param lessonId  - The unique lesson identifier, used as localStorage key.

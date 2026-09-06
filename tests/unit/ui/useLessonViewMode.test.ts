@@ -14,10 +14,10 @@ describe('useLessonViewMode', () => {
     vi.restoreAllMocks()
   })
 
-  it('defaults to "pdf" on first mount with empty storage', () => {
+  it('defaults to "chat" on first mount with empty storage', () => {
     const { result } = renderHook(() => useLessonViewMode('lesson-1'))
     const [mode] = result.current
-    expect(mode).toBe('pdf')
+    expect(mode).toBe('chat')
   })
 
   it('hydrates from localStorage when a previous choice exists', () => {
@@ -30,7 +30,7 @@ describe('useLessonViewMode', () => {
   it('ignores corrupted / unrecognised values in storage and keeps default', () => {
     window.localStorage.setItem(STORAGE_KEY('lesson-3'), 'garbage')
     const { result } = renderHook(() => useLessonViewMode('lesson-3'))
-    expect(result.current[0]).toBe('pdf')
+    expect(result.current[0]).toBe('chat')
   })
 
   it('persists the new choice to localStorage on select()', () => {
@@ -53,10 +53,10 @@ describe('useLessonViewMode', () => {
     expect(window.localStorage.getItem(STORAGE_KEY('lesson-A'))).toBe('interactive')
     expect(window.localStorage.getItem(STORAGE_KEY('lesson-B'))).toBeNull()
     // lesson-B's mode remains the default.
-    expect(b.result.current[0]).toBe('pdf')
+    expect(b.result.current[0]).toBe('chat')
   })
 
-  it('resets to "pdf" when lessonId changes to a lesson with no stored preference', () => {
+  it('resets to "chat" when lessonId changes to a lesson with no stored preference', () => {
     // Seed only lesson-X with 'interactive'.
     window.localStorage.setItem(STORAGE_KEY('lesson-X'), 'interactive')
 
@@ -67,10 +67,10 @@ describe('useLessonViewMode', () => {
     expect(result.current[0]).toBe('interactive')
 
     // Switch to a lesson with no stored preference. The effect must actively
-    // reset to the default 'pdf' — not retain the previous lesson's mode.
+    // reset to the default 'chat' — not retain the previous lesson's mode.
     currentLessonId = 'lesson-Y'
     rerender()
-    expect(result.current[0]).toBe('pdf')
+    expect(result.current[0]).toBe('chat')
   })
 
   it('still toggles state when localStorage.setItem throws (quota/private mode)', () => {

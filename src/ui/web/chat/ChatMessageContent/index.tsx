@@ -107,9 +107,11 @@ const chatMarkdownComponents: Components = {
  * 2. chatMarkdownComponents — custom Tailwind-styled typography for chat bubbles.
  * 3. "chat-message-content" CSS class — triggers chat-specific KaTeX styling
  *    (muted background, rounded corners, padding) defined in globals.css lines 422-436.
- *
- * LaTeX-delimiter normalization now happens inside MathMarkdown itself, so
- * every caller (chat message view + ChatLessonView bubbles) gets it uniformly.
+ * 4. `normalizeLatex` — opt-in flag that runs `normalizeLatexDelimiters` inside
+ *    MathMarkdown. Chat needs it because LLMs emit `\[…\]`, bare `\frac{…}{…}`,
+ *    mismatched Hebrew `$`, etc. Admin-authored (exercise / LaTeX doc) content
+ *    does NOT set this flag — the normalizer's rewrites can corrupt handwritten
+ *    markdown (e.g. legitimate 4-space code blocks).
  */
 export function ChatMessageContent({ content, className }: ChatMessageContentProps) {
   return (
@@ -118,6 +120,7 @@ export function ChatMessageContent({ content, className }: ChatMessageContentPro
       className={cn('chat-message-content leading-relaxed', className)}
       components={chatMarkdownComponents}
       remarkPlugins={[remarkChatCallouts]}
+      normalizeLatex
     />
   )
 }

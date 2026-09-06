@@ -44,6 +44,20 @@ export interface MathMarkdownProps {
    * callout tagger without affecting exercise-content rendering.
    */
   remarkPlugins?: RemarkPluginsProp
+
+  /**
+   * Run `normalizeLatexDelimiters` on the input before parsing.
+   *
+   * WHY opt-in: the normalizer is tuned for messy LLM output — it converts
+   * `\[…\]` / `\(…\)` to `$…$`, wraps allowlisted bare macros, escapes
+   * mismatched Hebrew `$` pairs, and collapses 4+ space indents. Admin-authored
+   * exercise / LaTeX-document content already uses correct delimiters and can
+   * be corrupted by these rewrites (e.g. legitimate 4-space code blocks).
+   *
+   * Turn ON for chat bubbles (LLM output). Leave OFF for exercise, LaTeX doc,
+   * help-system, and any other admin-authored surface.
+   */
+  normalizeLatex?: boolean
 }
 
 /**
@@ -68,7 +82,13 @@ export interface MathMarkdownProps {
  * @example With color syntax
  * <MathMarkdown content="This is ::red{important} and ::blue{informational}" />
  */
-export function MathMarkdown({ content, className, components, remarkPlugins }: MathMarkdownProps) {
+export function MathMarkdown({
+  content,
+  className,
+  components,
+  remarkPlugins,
+  normalizeLatex = false,
+}: MathMarkdownProps) {
   // SECURITY: this component does NOT pass a custom `urlTransform` to ReactMarkdown.
   // Safety against `javascript:`, `data:text/html`, and other dangerous URL schemes
   // therefore relies on react-markdown's built-in default. Custom `<img>` overrides
@@ -81,11 +101,7 @@ export function MathMarkdown({ content, className, components, remarkPlugins }: 
     remarkColorSyntax,
     ...(remarkPlugins ?? []),
   ] as RemarkPluginsProp
-  // Normalize LLM-style math delimiters (`\[…\]`, `\(…\)`, bare `\frac{…}{…}`,
-  // mismatched Hebrew `$`) into what remark-math actually recognizes. Lifting
-  // this out of ChatMessageContent so ChatLessonView's TeacherBubble /
-  // StudentBubble — which call MathMarkdown directly — render LaTeX too.
-  const normalized = normalizeLatexDelimiters(content)
+  const source = normalizeLatex ? normalizeLatexDelimiters(content) : content
   return (
     <div className={cn(className)}>
       <ReactMarkdown
@@ -93,7 +109,7 @@ export function MathMarkdown({ content, className, components, remarkPlugins }: 
         rehypePlugins={[rehypeKatex, rehypeMathWrapper]}
         components={components}
       >
-        {normalized}
+        {source}
       </ReactMarkdown>
     </div>
   )

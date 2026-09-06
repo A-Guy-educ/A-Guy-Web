@@ -77,11 +77,19 @@ describe('MathMarkdown', () => {
       expect(container.firstElementChild).not.toBeNull()
     })
 
-    it('normalizes LLM-style \\[...\\] delimiters to KaTeX block math', () => {
-      // MathMarkdown normalizes LaTeX delimiters so every caller (chat bubbles,
-      // exercise renderers) gets consistent math rendering — \[...\] flows
-      // through normalizeLatexDelimiters into $$...$$ and reaches remark-math.
+    it('does NOT normalize LaTeX delimiters by default (opt-in via normalizeLatex)', () => {
+      // Default is off: admin-authored exercise/LaTeX-doc content shouldn't be
+      // rewritten by the LLM-focused normalizer, so `\[...\]` reaches
+      // remark-math untouched and no KaTeX is produced.
       const { container } = render(<MathMarkdown content="\\[ x^2 \\]" />)
+
+      expect(container.querySelector('.katex')).toBeNull()
+    })
+
+    it('normalizes LLM-style \\[...\\] delimiters when normalizeLatex is set', () => {
+      // Chat callers pass `normalizeLatex` so `\[...\]` is rewritten to
+      // `$$...$$`, which remark-math then converts to a KaTeX display block.
+      const { container } = render(<MathMarkdown content="\\[ x^2 \\]" normalizeLatex />)
 
       expect(container.querySelector('.katex')).not.toBeNull()
     })

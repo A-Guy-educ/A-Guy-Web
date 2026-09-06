@@ -76,13 +76,10 @@ export function LessonMenu({
 
   const handleBack = () => {
     setOpen(false)
-    if (typeof window !== 'undefined' && window.history.length > 1) {
-      router.back()
-    } else if (backUrl) {
-      router.push(backUrl)
-    } else {
-      router.push('/courses')
-    }
+    // Label promises "back to course", so route to the course page directly
+    // instead of `router.back()` — history could point at another lesson,
+    // search results, etc., which would violate the promise.
+    router.push(backUrl ?? '/courses')
   }
 
   const BackIcon = rtl ? ArrowRight : ArrowLeft
