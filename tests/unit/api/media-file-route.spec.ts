@@ -147,6 +147,50 @@ describe('/api/media/file/[filename]', () => {
     expect(response.status).toBe(404)
   })
 
+  it('proxies bytes from Admin when the file is not held locally and NEXT_PUBLIC_ADMIN_URL is set', async () => {
+    const originalAdminUrl = process.env.NEXT_PUBLIC_ADMIN_URL
+    process.env.NEXT_PUBLIC_ADMIN_URL = 'https://a-guy-admin.vercel.app'
+    const originalFetch = globalThis.fetch
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(Buffer.from('%PDF-1.4 from admin'), {
+          status: 200,
+          headers: { 'content-type': 'application/pdf' },
+        }),
+    )
+    globalThis.fetch = fetchMock as unknown as typeof fetch
+    try {
+      const { GET } = await import('@/app/api/media/file/[filename]/route')
+      mocks.findOne.mockResolvedValue({
+        filename: 'admin-owned.pdf',
+        mimeType: 'application/pdf',
+        url: '/api/media/file/admin-owned.pdf',
+      })
+      mocks.readFile.mockRejectedValue(new Error('ENOENT'))
+
+      const response = await GET(
+        new NextRequest('http://localhost:3000/api/media/file/admin-owned.pdf'),
+        {
+          params: Promise.resolve({ filename: 'admin-owned.pdf' }),
+        },
+      )
+
+      expect(response.status).toBe(200)
+      expect(response.headers.get('location')).toBeNull()
+      expect(response.headers.get('content-type')).toBe('application/pdf')
+      const body = Buffer.from(await response.arrayBuffer()).toString('utf-8')
+      expect(body).toBe('%PDF-1.4 from admin')
+      expect(fetchMock).toHaveBeenCalledWith(
+        'https://a-guy-admin.vercel.app/api/media/file/admin-owned.pdf',
+        expect.objectContaining({ redirect: 'follow' }),
+      )
+    } finally {
+      globalThis.fetch = originalFetch
+      if (originalAdminUrl === undefined) delete process.env.NEXT_PUBLIC_ADMIN_URL
+      else process.env.NEXT_PUBLIC_ADMIN_URL = originalAdminUrl
+    }
+  })
+
   it('rejects path traversal filenames', async () => {
     const { GET } = await import('@/app/api/media/file/[filename]/route')
 
