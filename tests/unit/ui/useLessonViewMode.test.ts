@@ -14,8 +14,19 @@ describe('useLessonViewMode', () => {
     vi.restoreAllMocks()
   })
 
-  it('defaults to "chat" on first mount with empty storage', () => {
+  it('defaults to "pdf" when allowedModes is undefined and storage is empty', () => {
+    // With no allowedModes the hook mirrors getVisibleTabs's legacy default
+    // (media/pdf/interactive/test — chat opt-in) and hands back 'pdf'. Lessons
+    // that opt into chat pass allowedModes and get chat-first behaviour instead.
     const { result } = renderHook(() => useLessonViewMode('lesson-1'))
+    const [mode] = result.current
+    expect(mode).toBe('pdf')
+  })
+
+  it('defaults to "chat" when chat is in allowedModes and storage is empty', () => {
+    const { result } = renderHook(() =>
+      useLessonViewMode('lesson-1a', ['media', 'pdf', 'interactive', 'test', 'chat']),
+    )
     const [mode] = result.current
     expect(mode).toBe('chat')
   })
@@ -30,7 +41,7 @@ describe('useLessonViewMode', () => {
   it('ignores corrupted / unrecognised values in storage and keeps default', () => {
     window.localStorage.setItem(STORAGE_KEY('lesson-3'), 'garbage')
     const { result } = renderHook(() => useLessonViewMode('lesson-3'))
-    expect(result.current[0]).toBe('chat')
+    expect(result.current[0]).toBe('pdf')
   })
 
   it('persists the new choice to localStorage on select()', () => {
@@ -53,10 +64,10 @@ describe('useLessonViewMode', () => {
     expect(window.localStorage.getItem(STORAGE_KEY('lesson-A'))).toBe('interactive')
     expect(window.localStorage.getItem(STORAGE_KEY('lesson-B'))).toBeNull()
     // lesson-B's mode remains the default.
-    expect(b.result.current[0]).toBe('chat')
+    expect(b.result.current[0]).toBe('pdf')
   })
 
-  it('resets to "chat" when lessonId changes to a lesson with no stored preference', () => {
+  it('resets to the default when lessonId changes to a lesson with no stored preference', () => {
     // Seed only lesson-X with 'interactive'.
     window.localStorage.setItem(STORAGE_KEY('lesson-X'), 'interactive')
 
@@ -67,10 +78,10 @@ describe('useLessonViewMode', () => {
     expect(result.current[0]).toBe('interactive')
 
     // Switch to a lesson with no stored preference. The effect must actively
-    // reset to the default 'chat' — not retain the previous lesson's mode.
+    // reset to the default 'pdf' — not retain the previous lesson's mode.
     currentLessonId = 'lesson-Y'
     rerender()
-    expect(result.current[0]).toBe('chat')
+    expect(result.current[0]).toBe('pdf')
   })
 
   it('still toggles state when localStorage.setItem throws (quota/private mode)', () => {

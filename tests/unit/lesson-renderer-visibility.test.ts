@@ -169,13 +169,16 @@ describe('resolveEffectiveMode', () => {
     expect(resolveEffectiveMode('pdf', [])).toBe('chat')
   })
 
-  it('honours stored mode when allowedModes is undefined; defaults to chat when stored is null', () => {
+  it('honours stored mode when allowedModes is undefined; defaults to pdf when stored is null', () => {
+    // When allowedModes is undefined the hook mirrors getVisibleTabs's legacy
+    // fallback (chat opt-in), so an unstored preference lands on 'pdf' — not
+    // 'chat' — so the two helpers agree on the same input.
     expect(resolveEffectiveMode('pdf', undefined)).toBe('pdf')
     expect(resolveEffectiveMode('media', undefined)).toBe('media')
     expect(resolveEffectiveMode('interactive', undefined)).toBe('interactive')
     expect(resolveEffectiveMode('test', undefined)).toBe('test')
     expect(resolveEffectiveMode('chat', undefined)).toBe('chat')
-    expect(resolveEffectiveMode(null, undefined)).toBe('chat')
+    expect(resolveEffectiveMode(null, undefined)).toBe('pdf')
   })
 
   it('returns chat first when stored is null and chat is allowed', () => {

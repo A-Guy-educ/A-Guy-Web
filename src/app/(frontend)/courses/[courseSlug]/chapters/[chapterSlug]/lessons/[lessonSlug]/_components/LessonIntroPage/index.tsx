@@ -174,6 +174,7 @@ export function LessonIntroPage({
         backUrl={backUrl}
         primaryContent={<EmptyLessonPlaceholder lessonTitle={lesson.title} />}
         chatContent={workspaceChatContent}
+        menuVariant="lesson"
       />
     )
   }
@@ -197,6 +198,7 @@ export function LessonIntroPage({
           backUrl={backUrl}
           primaryContent={<EmptyLessonPlaceholder lessonTitle={lesson.title} />}
           chatContent={workspaceChatContent}
+          menuVariant="lesson"
         />
       )
     }

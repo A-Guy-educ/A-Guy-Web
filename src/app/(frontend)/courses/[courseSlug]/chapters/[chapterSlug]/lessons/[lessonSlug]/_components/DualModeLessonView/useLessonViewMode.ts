@@ -40,7 +40,12 @@ export function resolveEffectiveMode(
   stored: LessonMode | null,
   allowedModes: LessonMode[] | undefined,
 ): LessonMode {
-  if (!allowedModes) return stored ?? 'chat'
+  // When allowedModes is undefined, the sibling `getVisibleTabs` in
+  // DualModeLessonView falls back to the four legacy modes (chat opt-in), so
+  // returning 'chat' here would hand the caller a mode the tab picker won't
+  // surface. Match that default and hand back 'pdf' — the historical default —
+  // so both helpers agree on the same input.
+  if (!allowedModes) return stored ?? 'pdf'
   if (stored && allowedModes.includes(stored)) return stored
   const priority: LessonMode[] = ['chat', 'media', 'pdf', 'interactive', 'test']
   for (const mode of priority) {
