@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.34.5 — 2026-09-06
+
+### Fixes
+- Allow https://vercel.com in CSP so direct Blob uploads from the chat window work (#1173)
+- Stop echoing raw error text on upload failures and guard missing pathname (#1172)
+- Satisfy Admin schema validator on media, chat-asset, and upload-session writes (#1172)
+- Proxy Admin media through Web and harden URL normalization (#1171)
+- Forward Admin-owned media proxy URLs to the Admin app (#1171)
+
+### Chores
+- Surface real error from failing upload routes
+
 ## v0.34.4 — 2026-09-06
 
 ### Chores
