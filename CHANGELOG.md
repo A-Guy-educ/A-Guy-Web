@@ -1,5 +1,36 @@
 # Changelog
 
+## v0.34.6 — 2026-09-07
+
+### Features
+- Chat default, back-to-course label, math sizing, chat latex (cd329d62b)
+
+### Fixes
+- Chat-table math size, helper drift, lesson-intro back label (9ac756bd2)
+- Preserve ask back button, cover chat in visibility tests (781c83f0d)
+- Scope latex normalizer, fix back button, update tests (a76513720)
+- Allow https://vercel.com so direct Blob uploads from the chat window work (6be2f217d)
+- Stop echoing raw error text on upload failures + guard missing pathname (16d341dc9)
+- Address review + repair characterization tests (39551272e)
+- Satisfy Admin schema validator on media, chat-asset, upload-session writes (74a4c85c6)
+- Proxy Admin media through Web and harden URL normalization (4f664faee)
+- Forward Admin-owned media proxy URLs to the Admin app (0e87e4a90)
+
+### Chores
+- add #1176 (98a2df045)
+- release v0.34.5 (36034ba94)
+- add #1175 (f90473ace)
+- add #1174 (b75351e7d)
+- add #1173 (4f20d2927)
+- add #1172 (a419d82c9)
+- Surface real error from failing upload routes (29459ca76)
+- add #1171 (325390db1)
+- add #1170 (753100c8d)
+- add #1169 (5a0c458ad)
+- add #1168 (44ec250f3)
+- add #1167 (a6158d799)
+- release v0.34.2 (bd065a14e)
+- add #1166 (3db056ca5)
 ## v0.34.5 — 2026-09-06
 
 ### Fixes
