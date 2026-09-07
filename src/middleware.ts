@@ -6,6 +6,11 @@ import {
   locales,
   getLocaleFromSubdomain,
 } from './i18n/config'
+import {
+  GUEST_SESSION_COOKIE,
+  GUEST_SESSION_MAX_AGE_SECONDS,
+  NEW_GUEST_SESSION_HEADER,
+} from './infra/analytics/guest-session-cookie'
 import { AUTH_COOKIE_NAME } from './infra/auth/shared-login/auth-cookie'
 import { toCookieDomain } from './infra/auth/shared-login/policy'
 import { getSharedLoginPolicy } from './infra/auth/shared-login/policy.env'
@@ -15,6 +20,20 @@ import {
   applyPreflightHeaders,
   resolveAllowedApiOrigin,
 } from './infra/security/cors'
+
+/**
+ * User-Agent substrings we treat as automated traffic. Kept as a coarse
+ * denylist — the goal is to avoid inflating the "landed but didn't sign up"
+ * count with obvious scrapers, previews, and monitoring, not to detect every
+ * bot in the wild.
+ */
+const BOT_UA_RE =
+  /bot|crawler|spider|slurp|facebookexternalhit|whatsapp|telegrambot|prerender|lighthouse|headlesschrome|pingdom|uptimerobot|axios|curl|wget|python-requests|node-fetch|go-http-client/i
+
+function isBotUserAgent(userAgent: string | null): boolean {
+  if (!userAgent) return true
+  return BOT_UA_RE.test(userAgent)
+}
 
 /**
  * Check if a path is a protected learning route that requires authentication.
@@ -129,16 +148,57 @@ function resolveLocaleCookieDomain(host: string): string | undefined {
 // Media CDN redirects are handled by next.config.js redirects (baked in at build time).
 // This avoids Edge middleware env var availability issues.
 
+/**
+ * Decide whether the request is a fresh anonymous landing worth tracking, and
+ * return a new session id if so. Returns null when the caller is signed in,
+ * already has a guest cookie, is a bot, or is on a non-page path.
+ */
+function resolveNewGuestSessionId(request: NextRequest, pathname: string): string | null {
+  if (pathname.startsWith('/api') || pathname.startsWith('/_next') || pathname.startsWith('/admin'))
+    return null
+  if (pathname.includes('.')) return null
+  if (request.cookies.get(AUTH_COOKIE_NAME)) return null
+  if (request.cookies.get(GUEST_SESSION_COOKIE)) return null
+  if (isBotUserAgent(request.headers.get('user-agent'))) return null
+  return crypto.randomUUID()
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const host = request.headers.get('host') || ''
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set('x-pathname', pathname)
+  // The layout treats this header as trust-me-it-came-from-middleware, so any
+  // client-supplied value has to be stripped before we decide whether to set
+  // our own — otherwise a caller can spoof it and trigger an unbounded
+  // recordGuestSession insert per request.
+  requestHeaders.delete(NEW_GUEST_SESSION_HEADER)
+
+  // Anonymous first-touch: decided before we return the response so the
+  // request header the layout reads is present on the same request. We only
+  // set the cookie/header — the DB insert fires in the root layout.
+  const newGuestSessionId = resolveNewGuestSessionId(request, pathname)
+  if (newGuestSessionId) {
+    requestHeaders.set(NEW_GUEST_SESSION_HEADER, newGuestSessionId)
+  }
+
   const response = NextResponse.next({
     request: {
       headers: requestHeaders,
     },
   })
+
+  if (newGuestSessionId) {
+    const isHttps = request.nextUrl.protocol === 'https:'
+    const isProd = process.env.NODE_ENV === 'production'
+    response.cookies.set(GUEST_SESSION_COOKIE, newGuestSessionId, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: isHttps || isProd,
+      path: '/',
+      maxAge: GUEST_SESSION_MAX_AGE_SECONDS,
+    })
+  }
 
   if (!pathname.startsWith('/api/pdfjs-viewer')) {
     response.headers.set('Content-Security-Policy', contentSecurityPolicy)
