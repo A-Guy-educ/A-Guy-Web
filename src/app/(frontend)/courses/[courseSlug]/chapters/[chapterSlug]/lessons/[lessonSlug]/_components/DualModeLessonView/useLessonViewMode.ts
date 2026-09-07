@@ -36,22 +36,28 @@ function writeStoredMode(lessonId: string, mode: LessonMode) {
  * Resolves the active mode from a stored preference and a list of allowed modes.
  * Falls back through the priority list when the stored mode is not allowed.
  */
-function resolveEffectiveMode(
+export function resolveEffectiveMode(
   stored: LessonMode | null,
   allowedModes: LessonMode[] | undefined,
 ): LessonMode {
+  // When allowedModes is undefined, the sibling `getVisibleTabs` in
+  // DualModeLessonView falls back to the four legacy modes (chat opt-in), so
+  // returning 'chat' here would hand the caller a mode the tab picker won't
+  // surface. Match that default and hand back 'pdf' — the historical default —
+  // so both helpers agree on the same input.
   if (!allowedModes) return stored ?? 'pdf'
   if (stored && allowedModes.includes(stored)) return stored
-  const priority: LessonMode[] = ['media', 'pdf', 'interactive', 'test', 'chat']
+  const priority: LessonMode[] = ['chat', 'media', 'pdf', 'interactive', 'test']
   for (const mode of priority) {
     if (allowedModes.includes(mode)) return mode
   }
-  return 'pdf' // Safety fallback — beforeChange validation prevents this being reached
+  return 'chat' // Safety fallback — beforeChange validation prevents this being reached
 }
 
 /**
- * Tracks the active dual-mode tab for a lesson, defaulting to 'pdf' and
- * persisting the student's choice in localStorage keyed by lesson id.
+ * Tracks the active dual-mode tab for a lesson, defaulting to 'chat' when the
+ * chat renderer is enabled (else the first allowed mode in the fallback list)
+ * and persisting the student's choice in localStorage keyed by lesson id.
  * Hydrates from storage after mount to avoid SSR mismatch.
  *
  * @param lessonId  - The unique lesson identifier, used as localStorage key.
@@ -60,7 +66,7 @@ function resolveEffectiveMode(
  *                      allowed mode if the stored mode is now disabled.
  */
 export function useLessonViewMode(lessonId: string, allowedModes?: LessonMode[]) {
-  const [mode, setMode] = useState<LessonMode>('pdf')
+  const [mode, setMode] = useState<LessonMode>('chat')
 
   useEffect(() => {
     const stored = readStoredMode(lessonId)

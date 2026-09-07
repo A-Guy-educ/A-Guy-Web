@@ -14,10 +14,21 @@ describe('useLessonViewMode', () => {
     vi.restoreAllMocks()
   })
 
-  it('defaults to "pdf" on first mount with empty storage', () => {
+  it('defaults to "pdf" when allowedModes is undefined and storage is empty', () => {
+    // With no allowedModes the hook mirrors getVisibleTabs's legacy default
+    // (media/pdf/interactive/test — chat opt-in) and hands back 'pdf'. Lessons
+    // that opt into chat pass allowedModes and get chat-first behaviour instead.
     const { result } = renderHook(() => useLessonViewMode('lesson-1'))
     const [mode] = result.current
     expect(mode).toBe('pdf')
+  })
+
+  it('defaults to "chat" when chat is in allowedModes and storage is empty', () => {
+    const { result } = renderHook(() =>
+      useLessonViewMode('lesson-1a', ['media', 'pdf', 'interactive', 'test', 'chat']),
+    )
+    const [mode] = result.current
+    expect(mode).toBe('chat')
   })
 
   it('hydrates from localStorage when a previous choice exists', () => {
@@ -56,7 +67,7 @@ describe('useLessonViewMode', () => {
     expect(b.result.current[0]).toBe('pdf')
   })
 
-  it('resets to "pdf" when lessonId changes to a lesson with no stored preference', () => {
+  it('resets to the default when lessonId changes to a lesson with no stored preference', () => {
     // Seed only lesson-X with 'interactive'.
     window.localStorage.setItem(STORAGE_KEY('lesson-X'), 'interactive')
 
