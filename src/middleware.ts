@@ -168,6 +168,11 @@ export function middleware(request: NextRequest) {
   const host = request.headers.get('host') || ''
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set('x-pathname', pathname)
+  // The layout treats this header as trust-me-it-came-from-middleware, so any
+  // client-supplied value has to be stripped before we decide whether to set
+  // our own — otherwise a caller can spoof it and trigger an unbounded
+  // recordGuestSession insert per request.
+  requestHeaders.delete(NEW_GUEST_SESSION_HEADER)
 
   // Anonymous first-touch: decided before we return the response so the
   // request header the layout reads is present on the same request. We only
