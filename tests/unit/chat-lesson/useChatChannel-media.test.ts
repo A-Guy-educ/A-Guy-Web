@@ -75,6 +75,29 @@ describe('useChatChannel — mediaIds forwarding', () => {
     expect(body.mediaIds).toBeUndefined()
   })
 
+  it('send with mediaIds forwards them and shows a user bubble', async () => {
+    const append = vi.fn()
+    const { result } = renderHook(() => useChatChannel({ ...baseArgs, append }))
+    await act(async () => {
+      result.current.send('here is my drawing', ['media-xyz'])
+      await new Promise((r) => setTimeout(r, 20))
+    })
+
+    const [, init] = vi.mocked(globalThis.fetch).mock.calls[0]!
+    const body = JSON.parse((init as RequestInit).body as string) as {
+      mediaIds?: string[]
+    }
+    expect(body.mediaIds).toEqual(['media-xyz'])
+
+    // Unlike requestWithMedia, plain send is a visible utterance — the
+    // student's bubble MUST land in the stream so scroll-back shows what
+    // they asked, even when files are attached.
+    const userEntries = append.mock.calls
+      .map((c) => c[0] as { kind: string })
+      .filter((entry) => entry.kind === 'chat-user')
+    expect(userEntries).toHaveLength(1)
+  })
+
   it('requestWithMedia does not push a user bubble into the stream', async () => {
     const append = vi.fn()
     const { result } = renderHook(() => useChatChannel({ ...baseArgs, append }))

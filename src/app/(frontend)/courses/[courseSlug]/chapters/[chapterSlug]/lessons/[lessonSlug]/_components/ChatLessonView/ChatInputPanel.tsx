@@ -49,6 +49,7 @@ export function ChatInputPanel({
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const isUploading = uploads.some((u) => u.status === 'uploading')
+  const hasFailedUpload = uploads.some((u) => u.status === 'failed')
   const completedMediaIds = uploads
     .filter((u): u is UploadItem & { mediaId: string } => u.status === 'complete' && !!u.mediaId)
     .map((u) => u.mediaId)
@@ -56,7 +57,7 @@ export function ChatInputPanel({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const trimmed = value.trim()
-    if (!trimmed || disabled || isSending || isUploading) return
+    if (!trimmed || disabled || isSending || isUploading || hasFailedUpload) return
     onSubmit(trimmed, completedMediaIds)
     setValue('')
     setUploads([])
@@ -80,11 +81,15 @@ export function ChatInputPanel({
     [value],
   )
 
-  const addFiles = useCallback((files: FileList | null) => {
-    if (!files || files.length === 0) return
-    setUploads((prev) => {
-      const remaining = MAX_ATTACHMENTS - prev.length
-      if (remaining <= 0) return prev
+  const addFiles = useCallback(
+    (files: FileList | null) => {
+      if (!files || files.length === 0) return
+      // Compute the batch + fire uploads OUTSIDE setUploads. React 18 StrictMode
+      // double-invokes state updaters in dev; if we scheduled uploads from
+      // inside the updater we'd upload each file twice and leak orphan media
+      // docs for the losing invocation whose localIds never landed in state.
+      const remaining = MAX_ATTACHMENTS - uploads.length
+      if (remaining <= 0) return
       const nextItems: UploadItem[] = Array.from(files)
         .slice(0, remaining)
         .map((file) => ({
@@ -92,36 +97,34 @@ export function ChatInputPanel({
           file,
           status: 'uploading',
         }))
-      // Fire uploads outside the setState updater to keep it pure.
-      queueMicrotask(() => {
-        for (const item of nextItems) {
-          uploadFileAsMedia(item.file)
-            .then((mediaId) =>
-              setUploads((cur) =>
-                cur.map((u) =>
-                  u.localId === item.localId ? { ...u, status: 'complete', mediaId } : u,
-                ),
+      setUploads((prev) => [...prev, ...nextItems])
+      for (const item of nextItems) {
+        uploadFileAsMedia(item.file)
+          .then((mediaId) =>
+            setUploads((cur) =>
+              cur.map((u) =>
+                u.localId === item.localId ? { ...u, status: 'complete', mediaId } : u,
+              ),
+            ),
+          )
+          .catch((err: unknown) => {
+            logger.error({ err }, 'Chat attachment upload failed')
+            setUploads((cur) =>
+              cur.map((u) =>
+                u.localId === item.localId
+                  ? {
+                      ...u,
+                      status: 'failed',
+                      error: err instanceof Error ? err.message : 'Failed',
+                    }
+                  : u,
               ),
             )
-            .catch((err: unknown) => {
-              logger.error({ err }, 'Chat attachment upload failed')
-              setUploads((cur) =>
-                cur.map((u) =>
-                  u.localId === item.localId
-                    ? {
-                        ...u,
-                        status: 'failed',
-                        error: err instanceof Error ? err.message : 'Failed',
-                      }
-                    : u,
-                ),
-              )
-            })
-        }
-      })
-      return [...prev, ...nextItems]
-    })
-  }, [])
+          })
+      }
+    },
+    [uploads.length],
+  )
 
   const removeUpload = useCallback((localId: string) => {
     setUploads((cur) => cur.filter((u) => u.localId !== localId))
