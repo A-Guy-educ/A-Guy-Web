@@ -26,6 +26,7 @@ import type {
   MonthlySignup,
   RevenueMetrics,
   SessionTimeByLessonType,
+  SignupSourceBreakdown,
   TokenMetrics,
   TopLesson,
   TopLessonByTokens,
@@ -329,6 +330,65 @@ export async function aggregateUsers(
     registeredLastMonth: firstCount(result.registeredLastMonth),
     totalUsersBeforePeriod: firstCount(result.totalUsersBeforePeriod),
   }
+}
+
+// ---------------------------------------------------------------------------
+// users — signup-source breakdown for the selected period. Groups users
+// registered inside the window by the `signupSource` we stamped at
+// createGoogleUser time. `unknown` collects rows without the field (users
+// registered before the capture shipped) so the breakdown always adds up
+// to the total signups in the period.
+//
+// Matches on `createdAt` (not `registeredAt`) so pre-capture users still
+// appear in `unknown` instead of falling out of the pipeline — this is what
+// makes the buckets sum to the same total as aggregateUsers for the same
+// window (both anchor on createdAt).
+// ---------------------------------------------------------------------------
+
+interface SignupSourceRow {
+  _id: string
+  count: number
+}
+
+const SIGNUP_SOURCE_KEYS: readonly (keyof SignupSourceBreakdown)[] = [
+  'google',
+  'guykoren',
+  'direct',
+  'other',
+  'unknown',
+]
+
+export async function aggregateSignupSources(
+  db: Db,
+  buckets: DateBuckets,
+): Promise<SignupSourceBreakdown> {
+  const rows = await db
+    .collection('users')
+    .aggregate<SignupSourceRow>([
+      { $match: { createdAt: { $gte: buckets.periodStart } } },
+      {
+        $group: {
+          _id: { $ifNull: ['$signupSource', 'unknown'] },
+          count: { $sum: 1 },
+        },
+      },
+    ])
+    .toArray()
+
+  const result: SignupSourceBreakdown = {
+    google: 0,
+    guykoren: 0,
+    direct: 0,
+    other: 0,
+    unknown: 0,
+  }
+  for (const row of rows) {
+    const key = SIGNUP_SOURCE_KEYS.includes(row._id as keyof SignupSourceBreakdown)
+      ? (row._id as keyof SignupSourceBreakdown)
+      : 'other'
+    result[key] += row.count
+  }
+  return result
 }
 
 // ---------------------------------------------------------------------------
@@ -833,8 +893,9 @@ export function buildUserMetrics(input: {
   userStats: Awaited<ReturnType<typeof aggregateUserStats>>
   users: Awaited<ReturnType<typeof aggregateUsers>>
   guests: Awaited<ReturnType<typeof aggregateGuestSessions>>
+  signupSourceBreakdown: SignupSourceBreakdown
 }): UserMetrics {
-  const { userStats, users, guests } = input
+  const { userStats, users, guests, signupSourceBreakdown } = input
 
   const guestToRegisteredPercentage = safePct(guests.converted, guests.total)
   const returnedOncePercentage = safePct(userStats.returnedOnceCount, users.total)
@@ -864,6 +925,7 @@ export function buildUserMetrics(input: {
     returnedMultiplePercentage,
     returningUsers: userStats.returningInPeriod,
     returningUsersTotal: users.totalUsersBeforePeriod,
+    signupSourceBreakdown,
   }
 }
 
