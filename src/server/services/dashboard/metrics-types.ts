@@ -10,6 +10,20 @@ export type Period = 'week' | 'month' | 'year'
 
 export const VALID_PERIODS: readonly Period[] = ['week', 'month', 'year']
 
+/**
+ * Registration attribution counts for the selected `period`. `unknown` covers
+ * users registered before the signup-source cookie shipped (and any race where
+ * the cookie was blocked). All buckets count users with `registeredAt` inside
+ * the period window.
+ */
+export interface SignupSourceBreakdown {
+  google: number
+  guykoren: number
+  direct: number
+  other: number
+  unknown: number
+}
+
 export interface UserMetrics {
   activeUsersToday: number
   activeUsersYesterday: number
@@ -34,6 +48,7 @@ export interface UserMetrics {
   returnedMultiplePercentage: number
   returningUsers: number
   returningUsersTotal: number
+  signupSourceBreakdown: SignupSourceBreakdown
 }
 
 /** One month bucket for the year-view signups chart. `month` is "YYYY-MM". */

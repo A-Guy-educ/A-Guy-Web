@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
+import { classifySignupSource } from '@/infra/analytics/classify-signup-source'
+import {
+  SIGNUP_SOURCE_COOKIE,
+  parseSignupSourceCookie,
+} from '@/infra/analytics/signup-source-cookie'
 import { logOAuthError, logOAuthEvent } from '@/infra/auth/oauth_logger'
 import { validateOAuthState } from '@/infra/auth/oauth_state'
 import { getPublicBaseUrl } from '@/infra/auth/oauth_url'
@@ -11,6 +16,7 @@ import {
   findUserByGoogleSub,
   linkGoogleUser,
   setAuthCookie,
+  type GoogleUserAttribution,
 } from '@/infra/auth/web-auth'
 import { sanitizeReturnTo } from '@/infra/auth/oauth_sanitize'
 import { getSharedLoginPolicy } from '@/infra/auth/shared-login/policy.env'
@@ -66,9 +72,14 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const byGoogle = await findUserByGoogleSub(google.sub)
     const byEmail = byGoogle ? null : await findUserByEmail(google.email)
     const isNewUser = !byGoogle && !byEmail
-    const user = byGoogle ?? byEmail ?? (await createGoogleUser(google))
+    // Attribution is captured on first landing and only stamped when we
+    // actually create a new user — existing-user logins never touch these
+    // fields so a first touch keeps its original bucket.
+    const attribution = isNewUser ? readSignupAttribution(req) : null
+    const user = byGoogle ?? byEmail ?? (await createGoogleUser(google, attribution ?? undefined))
     if (!user) throw new Error('user_not_found')
     if (!byGoogle) await linkGoogleUser(user, google)
+    if (isNewUser) clearSignupSourceCookie(res)
 
     const { token } = await createSession(user)
     setAuthCookie(res, token, req.headers)
@@ -92,4 +103,20 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     res.headers.set('Location', new URL('/login?error=auth_error', req.url).toString())
     return res
   }
+}
+
+function readSignupAttribution(req: NextRequest): GoogleUserAttribution | null {
+  const raw = req.cookies.get(SIGNUP_SOURCE_COOKIE)?.value
+  const payload = parseSignupSourceCookie(raw)
+  if (!payload) return null
+  return {
+    signupSource: classifySignupSource(payload.referrer, req.nextUrl.hostname),
+    utmSource: payload.utmSource,
+    utmMedium: payload.utmMedium,
+    utmCampaign: payload.utmCampaign,
+  }
+}
+
+function clearSignupSourceCookie(res: NextResponse): void {
+  res.cookies.set(SIGNUP_SOURCE_COOKIE, '', { path: '/', maxAge: 0 })
 }
