@@ -4,8 +4,11 @@ import { cn } from '@/infra/utils/ui'
 import { RichTextRenderer } from '@/ui/web/exerciserenderer/blocks/RichTextRenderer'
 import { QuestionNotebook } from '@/ui/web/exerciserenderer/components/QuestionNotebook'
 import type { QuestionFreeResponseBlock } from '@/ui/web/exerciserenderer/types'
-import { Send } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { FormulaComposer } from '@/ui/web/shared/MathInput/FormulaComposer'
+import { useTranslations } from '@/ui/web/providers/I18n'
+import { AnimatePresence, motion } from 'framer-motion'
+import { FunctionSquare, Send } from 'lucide-react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 
 interface ChatFreeResponseBubbleProps {
   block: QuestionFreeResponseBlock
@@ -41,8 +44,11 @@ export function ChatFreeResponseBubble({
   disabled,
   onSubmit,
 }: ChatFreeResponseBubbleProps) {
+  const t = useTranslations('courses')
   const [value, setValue] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [composerOpen, setComposerOpen] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const acceptedAnswers = useMemo(() => block.answer.acceptedAnswers ?? [], [block.answer])
   const canSubmit = acceptedAnswers.length > 0
@@ -54,9 +60,27 @@ export function ChatFreeResponseBubble({
     const trimmed = value.trim()
     if (!trimmed || isDisabled) return
     setSubmitted(true)
+    setComposerOpen(false)
     const isCorrect = matchesAny(trimmed, acceptedAnswers)
     onSubmit(block.id, trimmed, isCorrect)
   }
+
+  const handleFormulaInsert = useCallback(
+    (latex: string) => {
+      const el = inputRef.current
+      const start = el?.selectionStart ?? value.length
+      const end = el?.selectionEnd ?? value.length
+      const wrapped = `$${latex}$`
+      setValue(value.substring(0, start) + wrapped + value.substring(end))
+      setComposerOpen(false)
+      requestAnimationFrame(() => {
+        const caret = start + wrapped.length
+        el?.focus()
+        el?.setSelectionRange(caret, caret)
+      })
+    },
+    [value],
+  )
 
   return (
     <div className="flex flex-col gap-content-gap">
@@ -70,35 +94,71 @@ export function ChatFreeResponseBubble({
         <RichTextRenderer block={block.prompt} />
       </div>
 
-      <form onSubmit={handleSubmit} className="flex items-center gap-content-gap-xs mt-2" dir="rtl">
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          placeholder={placeholder}
-          disabled={isDisabled}
-          dir="rtl"
-          className={cn(
-            'flex-1 rounded-xl border border-input bg-background px-4 py-2.5',
-            'text-body-md text-foreground placeholder:text-muted-foreground',
-            'focus:outline-none focus:border-primary transition-colors',
-            'disabled:opacity-60 disabled:cursor-not-allowed',
+      <div className="relative mt-2" data-math-controls>
+        <form onSubmit={handleSubmit} className="flex items-center gap-content-gap-xs" dir="rtl">
+          <input
+            ref={inputRef}
+            type="text"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder={placeholder}
+            disabled={isDisabled}
+            dir="rtl"
+            className={cn(
+              'flex-1 rounded-xl border border-input bg-background px-4 py-2.5',
+              'text-body-md text-foreground placeholder:text-muted-foreground',
+              'focus:outline-none focus:border-primary transition-colors',
+              'disabled:opacity-60 disabled:cursor-not-allowed',
+            )}
+          />
+
+          {!isDisabled && (
+            <button
+              type="button"
+              onClick={() => setComposerOpen((v) => !v)}
+              aria-label={t('insertFormula')}
+              title={t('insertFormula')}
+              className={cn(
+                'w-10 h-10 rounded-xl shrink-0 flex items-center justify-center transition-all active:scale-95',
+                'bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20',
+              )}
+            >
+              <FunctionSquare className="w-5 h-5" />
+            </button>
           )}
-        />
-        <button
-          type="submit"
-          disabled={isDisabled || !value.trim()}
-          aria-label={sendLabel}
-          className={cn(
-            'px-3.5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold',
-            'flex items-center gap-content-gap-xs hover:bg-primary/90 transition-colors',
-            'disabled:opacity-50 disabled:cursor-not-allowed',
+
+          <button
+            type="submit"
+            disabled={isDisabled || !value.trim()}
+            aria-label={sendLabel}
+            className={cn(
+              'px-3.5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold',
+              'flex items-center gap-content-gap-xs hover:bg-primary/90 transition-colors',
+              'disabled:opacity-50 disabled:cursor-not-allowed',
+            )}
+          >
+            <Send className="w-4 h-4" aria-hidden="true" />
+            <span className="hidden sm:inline">{sendLabel}</span>
+          </button>
+        </form>
+
+        <AnimatePresence>
+          {composerOpen && !isDisabled && (
+            <motion.div
+              initial={{ opacity: 0, y: -4, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -4, scale: 0.97 }}
+              transition={{ duration: 0.18 }}
+              className="absolute top-full inset-x-0 mt-2 z-20"
+            >
+              <FormulaComposer
+                onInsert={handleFormulaInsert}
+                onClose={() => setComposerOpen(false)}
+              />
+            </motion.div>
           )}
-        >
-          <Send className="w-4 h-4" aria-hidden="true" />
-          <span className="hidden sm:inline">{sendLabel}</span>
-        </button>
-      </form>
+        </AnimatePresence>
+      </div>
 
       {/* Per-block notebook — chat-native path bypasses QuestionCard so
           we mount here. Admin opt-in required (`block.showNotebook ===

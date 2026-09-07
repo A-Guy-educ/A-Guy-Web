@@ -35,7 +35,15 @@ export async function uploadDataUrlAsMedia(dataUrl: string, filename: string): P
   const bytes = new Uint8Array(binary.length)
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
   const file = new File([new Blob([bytes], { type: mime })], filename, { type: mime })
+  return uploadFileAsMedia(file)
+}
 
+/**
+ * Upload a `File` (from an `<input type="file">` or drag/drop) to
+ * `/api/media` and return the created Payload media document id. Shares
+ * the response-shape handling with `uploadDataUrlAsMedia` above.
+ */
+export async function uploadFileAsMedia(file: File): Promise<string> {
   const formData = new FormData()
   formData.append('file', file)
   const response = await fetch('/api/media', {
@@ -47,8 +55,6 @@ export async function uploadDataUrlAsMedia(dataUrl: string, filename: string): P
     throw new Error(`Media upload failed (${response.status})`)
   }
 
-  // Payload returns `{ doc: { id, ... } }` on create — the `?? doc.id`
-  // fallback covers older response shapes without breaking on refactor.
   const doc = (await response.json()) as { doc?: { id?: string }; id?: string }
   const mediaId = doc.doc?.id ?? doc.id
   if (!mediaId) {
