@@ -261,7 +261,7 @@ export function ChatInputPanel({
 
           <button
             type="submit"
-            disabled={disabled || isSending || isUploading || !value.trim()}
+            disabled={disabled || isSending || isUploading || hasFailedUpload || !value.trim()}
             aria-label={sendLabel}
             className={cn(
               'w-8 h-8 rounded-full shrink-0 flex items-center justify-center transition-all active:scale-90',
