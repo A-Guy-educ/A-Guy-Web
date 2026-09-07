@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
 import { classifySignupSource } from '@/infra/analytics/classify-signup-source'
+import { GUEST_SESSION_COOKIE, isValidGuestSessionId } from '@/infra/analytics/guest-session-cookie'
 import {
   SIGNUP_SOURCE_COOKIE,
   parseSignupSourceCookie,
@@ -21,6 +22,7 @@ import {
 import { sanitizeReturnTo } from '@/infra/auth/oauth_sanitize'
 import { getSharedLoginPolicy } from '@/infra/auth/shared-login/policy.env'
 import { getOnboardingRedirect, START_WIZARD_COMPLETED_COOKIE } from '@/infra/onboarding/redirect'
+import { claimGuestSession } from '@/server/services/guest-sessions/guest-session-writer'
 
 const googleUserSchema = z.object({
   sub: z.string().min(1),
@@ -79,7 +81,10 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const user = byGoogle ?? byEmail ?? (await createGoogleUser(google, attribution ?? undefined))
     if (!user) throw new Error('user_not_found')
     if (!byGoogle) await linkGoogleUser(user, google)
-    if (isNewUser) clearSignupSourceCookie(res)
+    if (isNewUser) {
+      clearSignupSourceCookie(res)
+      await claimGuestSessionForNewUser(req, res, String(user._id))
+    }
 
     const { token } = await createSession(user)
     setAuthCookie(res, token, req.headers)
@@ -119,4 +124,20 @@ function readSignupAttribution(req: NextRequest): GoogleUserAttribution | null {
 
 function clearSignupSourceCookie(res: NextResponse): void {
   res.cookies.set(SIGNUP_SOURCE_COOKIE, '', { path: '/', maxAge: 0 })
+}
+
+/**
+ * Link the guest-sessions row this visitor accumulated pre-signup to the new
+ * user. Clears the cookie so the same row isn't re-claimed on the next login
+ * (or, worse, claimed by a different account sharing the browser).
+ */
+async function claimGuestSessionForNewUser(
+  req: NextRequest,
+  res: NextResponse,
+  userId: string,
+): Promise<void> {
+  const sessionId = req.cookies.get(GUEST_SESSION_COOKIE)?.value
+  if (!isValidGuestSessionId(sessionId)) return
+  await claimGuestSession(sessionId, userId)
+  res.cookies.set(GUEST_SESSION_COOKIE, '', { path: '/', maxAge: 0 })
 }
