@@ -178,6 +178,13 @@ function matchesAny(input: string, accepted: readonly string[]): boolean {
   return accepted.some((candidate) => normalize(candidate) === normalized)
 }
 
+/**
+ * Applied to both the student input and each acceptedAnswer before equality.
+ * `$` is stripped so a composer-produced `$x^2$` matches a plain `x^2` accepted
+ * answer — otherwise inserting via the formula composer silently fails to
+ * grade against pre-existing blocks whose answers were authored without
+ * LaTeX delimiters.
+ */
 function normalize(s: string): string {
-  return s.trim().replace(/\s+/g, '').toLowerCase()
+  return s.trim().replace(/\$/g, '').replace(/\s+/g, '').toLowerCase()
 }
