@@ -11,10 +11,14 @@ export type Period = 'week' | 'month' | 'year'
 export const VALID_PERIODS: readonly Period[] = ['week', 'month', 'year']
 
 /**
- * Registration attribution counts for the selected `period`. `unknown` covers
- * users registered before the signup-source cookie shipped (and any race where
- * the cookie was blocked). All buckets count users with `registeredAt` inside
- * the period window.
+ * Registration attribution counts for the selected `period`. Only Google OAuth
+ * signups carry a `signupSource` — that's the only signup path we attribute.
+ * `unknown` therefore covers three cases: users registered before the
+ * signup-source cookie shipped, Google signups where the cookie was blocked,
+ * and any password-collection users (admin seeds, legacy accounts) that never
+ * flow through the OAuth callback. All buckets count users with `createdAt`
+ * inside the period window so the totals match aggregateUsers for the same
+ * range.
  */
 export interface SignupSourceBreakdown {
   google: number
