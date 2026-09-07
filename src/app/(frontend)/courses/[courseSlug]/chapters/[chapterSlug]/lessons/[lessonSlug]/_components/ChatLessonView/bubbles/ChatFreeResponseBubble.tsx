@@ -180,11 +180,14 @@ function matchesAny(input: string, accepted: readonly string[]): boolean {
 
 /**
  * Applied to both the student input and each acceptedAnswer before equality.
- * `$` is stripped so a composer-produced `$x^2$` matches a plain `x^2` accepted
- * answer — otherwise inserting via the formula composer silently fails to
- * grade against pre-existing blocks whose answers were authored without
- * LaTeX delimiters.
+ * The `$…$` unwrap targets composer-produced LaTeX spans (`$x^2$` → `x^2`) so
+ * they match plain accepted answers, but leaves lone `$` intact so a
+ * currency-style acceptedAnswer like `$5` still needs an exact `$5`.
  */
 function normalize(s: string): string {
-  return s.trim().replace(/\$/g, '').replace(/\s+/g, '').toLowerCase()
+  return s
+    .trim()
+    .replace(/\$([^$]+)\$/g, '$1')
+    .replace(/\s+/g, '')
+    .toLowerCase()
 }

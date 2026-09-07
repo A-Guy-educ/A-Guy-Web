@@ -55,6 +55,8 @@ export async function uploadFileAsMedia(file: File): Promise<string> {
     throw new Error(`Media upload failed (${response.status})`)
   }
 
+  // Payload returns `{ doc: { id, ... } }` on create — the `?? doc.id`
+  // fallback covers older response shapes without breaking on refactor.
   const doc = (await response.json()) as { doc?: { id?: string }; id?: string }
   const mediaId = doc.doc?.id ?? doc.id
   if (!mediaId) {
