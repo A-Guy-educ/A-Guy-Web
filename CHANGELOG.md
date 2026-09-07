@@ -4674,6 +4674,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- promote: dev -> main (v0.34.6) ([#1178](https://github.com/A-Guy-educ/A-Guy-Web/pull/1178)) — @aguyaharonyair
 - chore: release v0.34.6 ([#1177](https://github.com/A-Guy-educ/A-Guy-Web/pull/1177)) — @aguyaharonyair
 - feat: Chat default, back-to-course label, math sizing, chat LaTeX ([#1176](https://github.com/A-Guy-educ/A-Guy-Web/pull/1176)) — @aguyshayb
 ## [v0.34.5] - 2026-09-06
