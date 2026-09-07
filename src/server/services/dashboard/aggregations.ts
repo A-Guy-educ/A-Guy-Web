@@ -338,6 +338,11 @@ export async function aggregateUsers(
 // createGoogleUser time. `unknown` collects rows without the field (users
 // registered before the capture shipped) so the breakdown always adds up
 // to the total signups in the period.
+//
+// Matches on `createdAt` (not `registeredAt`) so pre-capture users still
+// appear in `unknown` instead of falling out of the pipeline — this is what
+// makes the buckets sum to the same total as aggregateUsers for the same
+// window (both anchor on createdAt).
 // ---------------------------------------------------------------------------
 
 interface SignupSourceRow {
@@ -360,7 +365,7 @@ export async function aggregateSignupSources(
   const rows = await db
     .collection('users')
     .aggregate<SignupSourceRow>([
-      { $match: { registeredAt: { $gte: buckets.periodStart } } },
+      { $match: { createdAt: { $gte: buckets.periodStart } } },
       {
         $group: {
           _id: { $ifNull: ['$signupSource', 'unknown'] },

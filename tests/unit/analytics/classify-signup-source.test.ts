@@ -28,6 +28,14 @@ describe('classifySignupSource', () => {
     expect(classifySignupSource('https://facebook.com/', site)).toBe('other')
     expect(classifySignupSource('https://reddit.com/r/x', site)).toBe('other')
   })
+
+  it('rejects attacker-controlled hosts that spell "google" as a subdomain', () => {
+    // Regression: the older `/(^|\.)google\.[a-z.]+$/i` regex let
+    // `google.evil.com` through because `[a-z.]+` matched `evil.com`.
+    expect(classifySignupSource('https://google.evil.com/', site)).toBe('other')
+    expect(classifySignupSource('https://mygoogle.io/', site)).toBe('other')
+    expect(classifySignupSource('https://google-lookalike.com/', site)).toBe('other')
+  })
 })
 
 describe('parseSignupSourceCookie', () => {

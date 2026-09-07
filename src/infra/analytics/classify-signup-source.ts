@@ -26,8 +26,10 @@ function hostnameOf(url: string): string | null {
 }
 
 function isGoogleHost(host: string): boolean {
-  // *.google.<tld> — includes www.google.com, news.google.co.uk, etc.
-  return /(^|\.)google\.[a-z.]+$/i.test(host)
+  // Anchor both ends so `google.evil.com` can't slip in via a permissive
+  // trailing `[a-z.]+`. TLD grammar covers `.com`, `.co.uk`, `.co.il`, `.de`,
+  // `.com.au`, etc. — the shapes Google actually uses across regions.
+  return /^(?:[a-z0-9-]+\.)*google\.(?:[a-z]{2,}|co\.[a-z]{2}|com\.[a-z]{2})$/i.test(host)
 }
 
 function isGuyKorenHost(host: string): boolean {

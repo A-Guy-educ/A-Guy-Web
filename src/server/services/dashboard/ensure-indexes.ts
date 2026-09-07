@@ -46,16 +46,6 @@ async function createIndexes(db: Db): Promise<void> {
         partialFilterExpression: { currentCourse: { $exists: true, $ne: null } },
       },
     ),
-    // Backs aggregateSignupSources — partial so we only index users
-    // registered after the signup-source capture shipped, matching the
-    // pipeline's `registeredAt >= periodStart` predicate.
-    db.collection('users').createIndex(
-      { registeredAt: 1 },
-      {
-        name: 'users_registered_at',
-        partialFilterExpression: { registeredAt: { $exists: true } },
-      },
-    ),
   ])
 }
 
