@@ -201,12 +201,17 @@ export function useChatChannel({
     ],
   )
 
-  /** Freeform student question — shows their bubble + AI reply. */
+  /**
+   * Freeform student question — shows their bubble + AI reply. `mediaIds`
+   * (optional) attaches uploaded media to the request; the AI sees the
+   * files alongside the question, same as the notebook Check-solution
+   * bridge but with a visible student bubble.
+   */
   const send = useCallback(
-    (rawText: string) => {
+    (rawText: string, mediaIds?: string[]) => {
       const text = rawText.trim()
       if (!text) return
-      void runRequest(text, true)
+      void runRequest(text, true, mediaIds)
     },
     [runRequest],
   )

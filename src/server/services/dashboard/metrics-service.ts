@@ -15,6 +15,7 @@ import {
   aggregateLessonTypes,
   aggregateMonthlySignups,
   aggregateSessionTimeByLessonType,
+  aggregateSignupSources,
   aggregateTokenMetrics,
   aggregateTopLessonsByOpens,
   aggregateTransactions,
@@ -47,6 +48,7 @@ export async function computeDashboardMetrics(period: Period): Promise<Dashboard
     sessionTimeByLessonType,
     tokenMetrics,
     usersPerCourse,
+    signupSourceBreakdown,
   ] = await Promise.all([
     aggregateUserStats(db, buckets),
     aggregateUsers(db, buckets),
@@ -60,11 +62,12 @@ export async function computeDashboardMetrics(period: Period): Promise<Dashboard
     aggregateSessionTimeByLessonType(db),
     aggregateTokenMetrics(db),
     aggregateUsersPerCurrentCourse(db),
+    aggregateSignupSources(db, buckets),
   ])
 
   return {
     period,
-    userMetrics: buildUserMetrics({ userStats, users, guests }),
+    userMetrics: buildUserMetrics({ userStats, users, guests, signupSourceBreakdown }),
     monthlySignups,
     contentCounts: {
       courses: simpleCounts.courses,

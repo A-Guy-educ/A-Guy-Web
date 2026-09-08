@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.35.0 — 2026-09-08
+
+### Features
+- Chatview formula button inline and plus-menu attach for media (#1179)
+- Capture signup source and expose dashboard breakdown (#1180)
+- Wire guest-session write path for anonymous visitors (#1181)
+
+### Fixes
+- Strip $ delimiters when grading chat free-response (#1179)
+- Reflect failed-upload gate in send button state (#1179)
+- Narrow $ strip to LaTeX spans and restore response comment (#1179)
+- Address chat input attach review findings (#1179)
+- Address signup-source review findings (#1180)
+- Strip client-supplied guest-session header in middleware (#1181)
+
+### Docs
+- Clarify signupSourceBreakdown scope and date field (#1180)
+
 ## v0.34.6 — 2026-09-07
 
 ### Features
@@ -4674,6 +4692,11 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.35.0 ([#1182](https://github.com/A-Guy-educ/A-Guy-Web/pull/1182)) — @aguyshayb
+- feat: Wire guest-session write path for anonymous visitors ([#1181](https://github.com/A-Guy-educ/A-Guy-Web/pull/1181)) — @aguyshayb
+- feat: Capture signup source and expose dashboard breakdown ([#1180](https://github.com/A-Guy-educ/A-Guy-Web/pull/1180)) — @aguyshayb
+- feat: Chatview formula button inline, plus for media ([#1179](https://github.com/A-Guy-educ/A-Guy-Web/pull/1179)) — @aguyshayb
+- promote: dev -> main (v0.34.6) ([#1178](https://github.com/A-Guy-educ/A-Guy-Web/pull/1178)) — @aguyaharonyair
 - chore: release v0.34.6 ([#1177](https://github.com/A-Guy-educ/A-Guy-Web/pull/1177)) — @aguyaharonyair
 - feat: Chat default, back-to-course label, math sizing, chat LaTeX ([#1176](https://github.com/A-Guy-educ/A-Guy-Web/pull/1176)) — @aguyshayb
 ## [v0.34.5] - 2026-09-06

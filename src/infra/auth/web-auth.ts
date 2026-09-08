@@ -264,12 +264,22 @@ export async function linkGoogleUser(
   )
 }
 
-export async function createGoogleUser(google: {
-  sub: string
-  email: string
-  name?: string
-  picture?: string
-}) {
+export interface GoogleUserAttribution {
+  signupSource: 'google' | 'guykoren' | 'direct' | 'other'
+  utmSource: string | null
+  utmMedium: string | null
+  utmCampaign: string | null
+}
+
+export async function createGoogleUser(
+  google: {
+    sub: string
+    email: string
+    name?: string
+    picture?: string
+  },
+  attribution?: GoogleUserAttribution,
+) {
   const secret = generateSecret()
   const password = await hashPassword(secret)
   const now = new Date()
@@ -284,6 +294,14 @@ export async function createGoogleUser(google: {
     googleProfile: { name: google.name, picture: google.picture },
     registrationMethod: 'google',
     registeredAt: now,
+    ...(attribution
+      ? {
+          signupSource: attribution.signupSource,
+          utmSource: attribution.utmSource,
+          utmMedium: attribution.utmMedium,
+          utmCampaign: attribution.utmCampaign,
+        }
+      : {}),
     oauthLoginSecretEnc: encrypt(secret),
     hash: password.hash,
     salt: password.salt,

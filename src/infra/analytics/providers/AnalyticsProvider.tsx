@@ -11,6 +11,7 @@ import { SYSTEM_EVENTS, systemEventBus } from '@/infra/system-events'
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { GA4Scripts } from '../adapters/ga4/scripts'
 import { MixpanelScripts } from '../adapters/mixpanel/scripts'
+import { SignupSourceCapture } from '../components/SignupSourceCapture'
 import { UserIdentificationTracker } from '../components/UserIdentificationTracker'
 import { analyticsConfig } from '../config'
 import { analytics, getSessionId, initializeAnalytics } from '../index'
@@ -81,6 +82,9 @@ export function AnalyticsProvider({ children }: AnalyticsProviderProps) {
       {/* Load analytics scripts */}
       <GA4Scripts />
       <MixpanelScripts />
+
+      {/* Capture first-touch referrer / UTMs for signup attribution */}
+      <SignupSourceCapture />
 
       {/* Track user identification */}
       <UserIdentificationTracker />

@@ -1,6 +1,12 @@
 import type { Metadata, Viewport } from 'next'
 import { headers } from 'next/headers'
+import { after } from 'next/server'
 
+import {
+  NEW_GUEST_SESSION_HEADER,
+  isValidGuestSessionId,
+} from '@/infra/analytics/guest-session-cookie'
+import { recordGuestSession } from '@/server/services/guest-sessions/guest-session-writer'
 import { cn } from '@/infra/utils/ui'
 import { GeistMono } from 'geist/font/mono'
 import { GeistSans } from 'geist/font/sans'
@@ -48,6 +54,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale = await getSystemLocale()
   const headersList = await headers()
   const pathname = headersList.get('x-pathname') ?? ''
+
+  const newGuestSessionId = headersList.get(NEW_GUEST_SESSION_HEADER)
+  if (isValidGuestSessionId(newGuestSessionId)) {
+    // Fire-and-forget: `after` keeps the promise alive past the response so
+    // the page render doesn't block on the analytics insert.
+    after(() => recordGuestSession(newGuestSessionId))
+  }
   // Lesson viewport claims the full screen — no site header, nav, or footer.
   // Matches `/courses/<c>/chapters/<ch>/lessons/<l>` and any subpath.
   const isLessonRoute = /^\/courses\/[^/]+\/chapters\/[^/]+\/lessons\/[^/]+(?:\/|$)/.test(pathname)
