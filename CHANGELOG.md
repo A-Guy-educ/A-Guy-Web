@@ -4692,6 +4692,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.35.0 ([#1182](https://github.com/A-Guy-educ/A-Guy-Web/pull/1182)) — @aguyshayb
 - feat: Wire guest-session write path for anonymous visitors ([#1181](https://github.com/A-Guy-educ/A-Guy-Web/pull/1181)) — @aguyshayb
 - feat: Capture signup source and expose dashboard breakdown ([#1180](https://github.com/A-Guy-educ/A-Guy-Web/pull/1180)) — @aguyshayb
 - feat: Chatview formula button inline, plus for media ([#1179](https://github.com/A-Guy-educ/A-Guy-Web/pull/1179)) — @aguyshayb
