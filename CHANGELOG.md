@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.35.0 — 2026-09-08
+
+### Features
+- Chatview formula button inline and plus-menu attach for media (#1179)
+- Capture signup source and expose dashboard breakdown (#1180)
+- Wire guest-session write path for anonymous visitors (#1181)
+
+### Fixes
+- Strip $ delimiters when grading chat free-response (#1179)
+- Reflect failed-upload gate in send button state (#1179)
+- Narrow $ strip to LaTeX spans and restore response comment (#1179)
+- Address chat input attach review findings (#1179)
+- Address signup-source review findings (#1180)
+- Strip client-supplied guest-session header in middleware (#1181)
+
+### Docs
+- Clarify signupSourceBreakdown scope and date field (#1180)
+
 ## v0.34.6 — 2026-09-07
 
 ### Features
