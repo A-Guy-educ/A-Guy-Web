@@ -4692,6 +4692,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Bump next to 15.5.24 and sharp to 0.35.4 (Fast Gate CVEs) ([#1185](https://github.com/A-Guy-educ/A-Guy-Web/pull/1185)) — @aguyshayb
 ## [v0.35.0] - 2026-09-08
 
 - promote: dev -> main (v0.35.0) ([#1183](https://github.com/A-Guy-educ/A-Guy-Web/pull/1183)) — @aguyshayb
