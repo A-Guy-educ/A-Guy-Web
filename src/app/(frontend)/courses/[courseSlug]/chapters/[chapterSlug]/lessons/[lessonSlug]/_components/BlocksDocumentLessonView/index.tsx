@@ -23,8 +23,11 @@ import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import type { Exercise, Media as MediaType } from '@/infra/types/content'
 import type { QuestionBlock, InlineRichText, RichTextBlock } from '@/ui/web/exerciserenderer/types'
 import { ExerciseWorkspace } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseWorkspace'
-import { HEBREW_LETTERS } from '@/ui/web/exerciserenderer/constants'
 import { getExerciseBlockGroups } from '@/lib/exercises/getExerciseBlocks'
+import {
+  computeQuestionLabels,
+  WORKSHEET_QUESTION_TYPES,
+} from '@/lib/exercises/computeSectionLabels'
 
 type WorksheetGroups = React.ComponentProps<typeof ExerciseWorksheet>['groups']
 
@@ -79,9 +82,11 @@ const QUESTION_BLOCK_TYPES = new Set([
  * exercises had solutions, so the solution number lines up with the exercise
  * the student is reading.
  *
- * Within an exercise that has multiple solved sub-questions, each sub-solution
- * gets a sub-label (א./ב./ג. in RTL, a./b./c. in LTR). A single solution per
- * exercise renders without a sub-label.
+ * Sub-labels reuse the exercise's per-question labels (from
+ * `computeQuestionLabels`) so the solution list mirrors the labels the
+ * student saw on the worksheet — `סעיף ד3` in the exercise shows as `ד3.`
+ * in the solutions, not `א./ב./ג.` from an independent counter. A single
+ * solution per exercise still renders without a sub-label.
  */
 function getSolutionsByExercise(
   exercises: Exercise[],
@@ -91,7 +96,13 @@ function getSolutionsByExercise(
   const entries: ExerciseSolutionEntry[] = []
 
   exercises.forEach((exercise, exerciseIdx) => {
-    const blocks = flattenGroups(getGroups(exercise))
+    const groups = getGroups(exercise)
+    // Solutions render alongside the printed worksheet, so use the same
+    // worksheet-scoped question set (adds geometry/axis) — otherwise a
+    // geometry solution would appear without the sub-label the worksheet
+    // shows for the corresponding question.
+    const questionLabels = computeQuestionLabels(groups, isRtl, WORKSHEET_QUESTION_TYPES)
+    const blocks = flattenGroups(groups)
     const exerciseSolutions: ExerciseSolutionEntry['solutions'] = []
 
     for (const block of blocks) {
@@ -106,12 +117,10 @@ function getSolutionsByExercise(
 
     if (exerciseSolutions.length === 0) return
 
-    const subLabeled = exerciseSolutions.map((s, i) => {
+    const subLabeled = exerciseSolutions.map((s) => {
       if (exerciseSolutions.length === 1) return { ...s, subLabel: null }
-      const subLabel = isRtl
-        ? `${HEBREW_LETTERS[i] || String(i + 1)}.`
-        : `${String.fromCharCode(97 + i)}.` // a., b., c., …
-      return { ...s, subLabel }
+      const label = questionLabels.get(s.blockId)
+      return { ...s, subLabel: label ? `${label}.` : null }
     })
 
     entries.push({

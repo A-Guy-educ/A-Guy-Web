@@ -58,41 +58,7 @@ import {
 import { MediaMapProvider } from '../context/MediaMapContext'
 import { VideoPlayer } from '../components/VideoPlayer'
 import { getMediaUrl } from '@/infra/utils/getMediaUrl'
-
-/**
- * Hebrew letters for question numbering
- */
-const HEBREW_LETTERS = [
-  'א',
-  'ב',
-  'ג',
-  'ד',
-  'ה',
-  'ו',
-  'ז',
-  'ח',
-  'ט',
-  'י',
-  'כ',
-  'ל',
-  'מ',
-  'נ',
-  'ס',
-  'ע',
-  'פ',
-  'צ',
-  'ק',
-  'ר',
-  'ש',
-  'ת',
-]
-
-/**
- * Get English letter for question index (a, b, c, ...)
- */
-function getEnglishLetter(index: number): string {
-  return String.fromCharCode('a'.charCodeAt(0) + (index - 1))
-}
+import { computeQuestionLabels } from '@/lib/exercises/computeSectionLabels'
 
 /**
  * Format student's answer as readable text for AI context
@@ -141,6 +107,7 @@ export function ExerciseRenderer({
   checkAllTrigger,
   questionCardVariant = 'card',
   showNotebook = false,
+  questionLabelsOverride,
 }: ExerciseRendererProps) {
   const t = useTranslations('courses')
   const locale = useLocale()
@@ -158,6 +125,24 @@ export function ExerciseRenderer({
       connectionError: t('connectionError'),
     }),
     [t],
+  )
+
+  // Determine direction based on locale. Section label language follows the
+  // locale prefix — Hebrew: א/ב/ג..., English: a/b/c (lowercase).
+  const isHebrew = locale?.toLowerCase().startsWith('he') ?? false
+  const dir: 'ltr' | 'rtl' = isHebrew ? 'rtl' : 'ltr'
+
+  // Pre-compute one label per question block. Titled sections (`סעיף X`)
+  // stamp X on every card (single question → `X`; multiple → `X1`, `X2`);
+  // untitled sections keep the per-question running counter across the
+  // whole exercise. `questionLabelsOverride` lets callers that render a
+  // subset of an exercise's groups (e.g. chat-view section bubbles handing
+  // in one group at a time) inject the exercise-wide map so the counter
+  // doesn't restart at `א` per bubble and untitled multi-question sections
+  // don't collapse to `א1/א2`.
+  const questionLabels = useMemo(
+    () => questionLabelsOverride ?? computeQuestionLabels(groups, isHebrew),
+    [groups, isHebrew, questionLabelsOverride],
   )
 
   // Track answers and check results for each question block
@@ -705,10 +690,11 @@ export function ExerciseRenderer({
     // Question blocks - render with answer UI
     const question = block as QuestionBlock
 
-    // Compute question letter label
-    const questionLabel = isHebrew
-      ? HEBREW_LETTERS[nextIndex - 1] || String(nextIndex)
-      : getEnglishLetter(nextIndex)
+    // Section-aware label from the pre-computed map (`א`, `ד3`, `א1`, ...).
+    // Falls back to the numeric position when a block somehow escaped the
+    // map (defensive — computeQuestionLabels covers every question block
+    // that appears in `groups`).
+    const questionLabel = questionLabels.get(question.id) ?? String(nextIndex)
 
     const answer = answers[question.id] ?? getInitialAnswer(question)
     const checkResult = checkResults[question.id] || null
@@ -869,12 +855,6 @@ export function ExerciseRenderer({
     )
   }
 
-  // Determine direction based on locale
-  // NOTE: Section label language is determined ONLY by locale prefix.
-  // Hebrew: א/ב/ג..., English: a/b/c... (lowercase).
-  const isHebrew = locale?.toLowerCase().startsWith('he')
-  const dir: 'ltr' | 'rtl' = isHebrew ? 'rtl' : 'ltr'
-
   return (
     <MediaMapProvider value={mediaMap}>
       <div className={cn('w-full max-w-3xl mx-auto', className)}>
@@ -907,7 +887,7 @@ export function ExerciseRenderer({
                   const result = checkResults[q.id]
                   const isCorrect = result?.isCorrect
                   const isChecked = !!result
-                  const qLabel = isHebrew ? HEBREW_LETTERS[i] || String(i + 1) : String(i + 1)
+                  const qLabel = questionLabels.get(q.id) ?? String(i + 1)
                   return (
                     <div
                       key={q.id}

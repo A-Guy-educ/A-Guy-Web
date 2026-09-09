@@ -20,36 +20,18 @@ import { QuickActionChips, type QuickAction } from './QuickActionChips'
 
 const EMPTY_MEDIA_MAP: Record<string, Media> = {}
 
-/** Question letters for chat-native multi-question sections. */
-const HEBREW_LETTERS = [
-  'א',
-  'ב',
-  'ג',
-  'ד',
-  'ה',
-  'ו',
-  'ז',
-  'ח',
-  'ט',
-  'י',
-  'כ',
-  'ל',
-  'מ',
-  'נ',
-  'ס',
-  'ע',
-  'פ',
-  'צ',
-  'ק',
-  'ר',
-  'ש',
-  'ת',
-]
-
 interface ExerciseSectionBubbleProps {
   exercise: Exercise
   ordinal: number
   group: ExerciseBlockGroup
+  /**
+   * Exercise-wide `block.id → label` map. Computed once by the walker
+   * from ALL of the exercise's groups so labels don't restart at `א` per
+   * bubble and untitled multi-question sections still show `א/ב/ג`
+   * instead of collapsing to `א1/א2`. Missing entries fall back to
+   * `String(idx + 1)` in the chat-native path.
+   */
+  questionLabels: Map<string, string>
   questionCount: number
   lessonId: string
   mediaMap?: Record<string, Media>
@@ -114,6 +96,7 @@ export function ExerciseSectionBubble({
   exercise,
   ordinal,
   group,
+  questionLabels,
   questionCount,
   lessonId,
   mediaMap,
@@ -174,21 +157,13 @@ export function ExerciseSectionBubble({
   )
 
   // Only label individual questions when the section has more than one — a
-  // solo question doesn't need a leading "א" badge. Mirrors ExerciseRenderer's
-  // per-question letter labels so students can reference "question ב" in a
-  // follow-up chat question.
+  // solo question doesn't need a leading badge. We look each block up in
+  // the exercise-wide `questionLabels` map so both schemes (titled `X1/X2`
+  // and untitled per-question `א/ב/ג` running counter) surface correctly.
   const questionLabelById = useMemo(() => {
     if (!isChatNativePath || chatNativeQuestionCount < 2) return null
-    const map = new Map<string, string>()
-    let i = 0
-    for (const block of group.blocks) {
-      if (isChatNativeQuestion(block)) {
-        map.set(block.id, HEBREW_LETTERS[i] ?? String(i + 1))
-        i++
-      }
-    }
-    return map
-  }, [chatNativeQuestionCount, group.blocks, isChatNativePath])
+    return questionLabels
+  }, [chatNativeQuestionCount, questionLabels, isChatNativePath])
 
   const handleChatNativeSubmit = useCallback(
     (blockId: string, text: string, isCorrect: boolean) => {
@@ -311,6 +286,7 @@ export function ExerciseSectionBubble({
       ) : (
         <ExerciseRenderer
           groups={[group]}
+          questionLabelsOverride={questionLabels}
           mediaMap={mediaMap}
           exerciseNumber={ordinal}
           showExerciseNumber={false}

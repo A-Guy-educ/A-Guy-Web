@@ -19,6 +19,7 @@
 import type { Exercise } from '@/infra/types/content'
 import type { ContentBlock, ExerciseBlockGroup } from '@/infra/types/exercise'
 import { getExerciseBlockGroups } from '@/lib/exercises/getExerciseBlocks'
+import { computeQuestionLabels, computeSectionLabels } from '@/lib/exercises/computeSectionLabels'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { StreamEntry } from './types'
 
@@ -105,9 +106,17 @@ interface WalkerStep {
   /** Number of groups the exercise has (used to know when to emit the intro). */
   groupsInExercise: number
   questionCount: number
+  /**
+   * Exercise-wide section label (`א`, `ד3`, …). Computed from the FULL
+   * group list (before walker filtering) so titled subsections keep their
+   * label regardless of which groups the walker chose to skip.
+   */
+  sectionLabel: string
+  /** Exercise-wide `block.id → label` map (shared identity across the exercise's steps). */
+  questionLabels: Map<string, string>
 }
 
-function flattenSteps(exercises: Exercise[]): WalkerStep[] {
+function flattenSteps(exercises: Exercise[], isHebrew: boolean): WalkerStep[] {
   const out: WalkerStep[] = []
   exercises.forEach((exercise, exerciseIndex) => {
     // Reshape the top-level (sectionIndex === null) group so display blocks
@@ -126,6 +135,19 @@ function flattenSteps(exercises: Exercise[]): WalkerStep[] {
     //      in the intro card, so re-rendering them inside the section
     //      bubble via ExerciseRenderer would double them.
     const rawGroups = getExerciseBlockGroups(exercise)
+    const rawSectionLabels = computeSectionLabels(rawGroups, isHebrew)
+    // One shared question-label map per exercise — passed by reference into
+    // every step for this exercise so ExerciseRenderer's useMemo dep list
+    // stays stable across walker advances and StreamEntryView re-renders.
+    const questionLabels = computeQuestionLabels(rawGroups, isHebrew)
+    // Map each raw group (by reference) to its section label so the walker
+    // can look up the same label after filtering + reshaping the group list
+    // below (spread + filter break reference equality; sectionIndex identifies
+    // sections uniquely, and `null` covers the single preamble group).
+    const labelByGroupKey = new Map<number | null, string>()
+    rawGroups.forEach((g, idx) => {
+      labelByGroupKey.set(g.sectionIndex, rawSectionLabels[idx] ?? '')
+    })
     const hasSections = rawGroups.some((g) => g.sectionIndex !== null)
     const groups = rawGroups
       .filter((g) => {
@@ -152,6 +174,8 @@ function flattenSteps(exercises: Exercise[]): WalkerStep[] {
         groupIndex,
         groupsInExercise,
         questionCount,
+        sectionLabel: labelByGroupKey.get(group.sectionIndex) ?? '',
+        questionLabels,
       })
     })
   })
@@ -161,10 +185,12 @@ function flattenSteps(exercises: Exercise[]): WalkerStep[] {
 interface UseExerciseWalkerArgs {
   exercises: Exercise[]
   append: (entry: StreamEntry) => void
+  /** Locale flag for the section label alphabet — Hebrew (`א/ב/ג`) vs Latin (`a/b/c`). */
+  isHebrew: boolean
 }
 
-export function useExerciseWalker({ exercises, append }: UseExerciseWalkerArgs) {
-  const steps = useMemo(() => flattenSteps(exercises), [exercises])
+export function useExerciseWalker({ exercises, append, isHebrew }: UseExerciseWalkerArgs) {
+  const steps = useMemo(() => flattenSteps(exercises, isHebrew), [exercises, isHebrew])
   const [stepCursor, setStepCursor] = useState(0)
   const [isComplete, setIsComplete] = useState(false)
   const seededRef = useRef(false)
@@ -193,6 +219,8 @@ export function useExerciseWalker({ exercises, append }: UseExerciseWalkerArgs) 
         exercise: step.exercise,
         group: step.group,
         questionCount: step.questionCount,
+        sectionLabel: step.sectionLabel,
+        questionLabels: step.questionLabels,
       })
     },
     [append, steps],
