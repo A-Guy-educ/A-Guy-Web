@@ -58,10 +58,7 @@ import {
 import { MediaMapProvider } from '../context/MediaMapContext'
 import { VideoPlayer } from '../components/VideoPlayer'
 import { getMediaUrl } from '@/infra/utils/getMediaUrl'
-import {
-  computeSectionLabels,
-  questionLabelsFromSectionLabels,
-} from '@/lib/exercises/computeSectionLabels'
+import { computeQuestionLabels } from '@/lib/exercises/computeSectionLabels'
 
 /**
  * Format student's answer as readable text for AI context
@@ -110,7 +107,7 @@ export function ExerciseRenderer({
   checkAllTrigger,
   questionCardVariant = 'card',
   showNotebook = false,
-  sectionLabelOverrides,
+  questionLabelsOverride,
 }: ExerciseRendererProps) {
   const t = useTranslations('courses')
   const locale = useLocale()
@@ -135,19 +132,18 @@ export function ExerciseRenderer({
   const isHebrew = locale?.toLowerCase().startsWith('he') ?? false
   const dir: 'ltr' | 'rtl' = isHebrew ? 'rtl' : 'ltr'
 
-  // Pre-compute one label per question block. Sections with an explicit
-  // `סעיף X` title get X verbatim (e.g. `ד3`); the rest auto-increment
-  // through the alphabet. Multi-question sections append a 1-based suffix
-  // (`א`, `א1`, `א2`). Renderers look this up by `block.id`.
-  //
-  // `sectionLabelOverrides` lets callers that render a subset of an
-  // exercise's groups (e.g. chat-view section bubbles handling one group
-  // at a time) inject the exercise-wide section label so the counter
-  // doesn't restart at `א` per bubble.
-  const questionLabels = useMemo(() => {
-    const sectionLabels = sectionLabelOverrides ?? computeSectionLabels(groups, isHebrew)
-    return questionLabelsFromSectionLabels(groups, sectionLabels)
-  }, [groups, isHebrew, sectionLabelOverrides])
+  // Pre-compute one label per question block. Titled sections (`סעיף X`)
+  // stamp X on every card (single question → `X`; multiple → `X1`, `X2`);
+  // untitled sections keep the per-question running counter across the
+  // whole exercise. `questionLabelsOverride` lets callers that render a
+  // subset of an exercise's groups (e.g. chat-view section bubbles handing
+  // in one group at a time) inject the exercise-wide map so the counter
+  // doesn't restart at `א` per bubble and untitled multi-question sections
+  // don't collapse to `א1/א2`.
+  const questionLabels = useMemo(
+    () => questionLabelsOverride ?? computeQuestionLabels(groups, isHebrew),
+    [groups, isHebrew, questionLabelsOverride],
+  )
 
   // Track answers and check results for each question block
   const flatBlocks: ContentBlock[] = useMemo(

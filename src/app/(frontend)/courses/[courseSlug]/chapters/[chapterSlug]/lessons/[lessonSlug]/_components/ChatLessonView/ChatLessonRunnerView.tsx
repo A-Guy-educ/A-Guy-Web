@@ -422,7 +422,7 @@ function StreamEntryView({
           exercise={entry.exercise}
           ordinal={entry.ordinal}
           group={entry.group}
-          sectionLabel={entry.sectionLabel}
+          questionLabels={entry.questionLabels}
           questionCount={entry.questionCount}
           lessonId={lessonId}
           mediaMap={mediaMap}

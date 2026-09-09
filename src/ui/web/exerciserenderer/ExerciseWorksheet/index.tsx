@@ -43,7 +43,10 @@ import { GraphWithPrompt } from '../blocks/GraphWithPrompt'
 import { MultiAxisRenderer } from '../blocks/MultiAxisRenderer'
 import { LatexBlockRenderer } from '../blocks/LatexBlockRenderer'
 import { getMediaUrl } from '@/infra/utils/getMediaUrl'
-import { computeQuestionLabels } from '@/lib/exercises/computeSectionLabels'
+import {
+  computeQuestionLabels,
+  WORKSHEET_QUESTION_TYPES,
+} from '@/lib/exercises/computeSectionLabels'
 import type { Media } from '@/infra/types/content'
 import type {
   ContentBlock,
@@ -99,9 +102,12 @@ export function ExerciseWorksheet({
   //   - RTL -> text on the right, diagram on the left -> 'textRight'
   const sideBySideLayout: GraphLayout = isRtl ? 'textRight' : 'textLeft'
 
-  // Section-aware labels keyed by block id — matches ExerciseRenderer so the
-  // worksheet, interactive view, and AI-chat context all agree on `סעיף X`.
-  const questionLabels = computeQuestionLabels(groups, isRtl)
+  // Section-aware labels keyed by block id — matches ExerciseRenderer's
+  // `סעיף X` scheme, but with WORKSHEET_QUESTION_TYPES so geometry/axis
+  // (which the worksheet labels via WorksheetQuestionLabel, unlike the
+  // interactive renderer) get their own letter slot instead of silently
+  // shifting the surrounding blocks.
+  const questionLabels = computeQuestionLabels(groups, isRtl, WORKSHEET_QUESTION_TYPES)
 
   return (
     <MediaMapProvider value={mediaMap}>

@@ -294,11 +294,13 @@ export interface ExerciseRendererProps {
    */
   showNotebook?: boolean
   /**
-   * Optional per-group section labels (matching `groups.length`) that
-   * override the internally-computed labels. Passed by callers that render
-   * a subset of an exercise's groups (e.g. `ExerciseSectionBubble`, which
-   * hands the renderer a single group but needs the exercise-wide `סעיף X`
-   * label preserved instead of restarting at `א`).
+   * Optional `block.id → label` map that overrides the internally-computed
+   * question labels. Passed by callers that render a subset of an
+   * exercise's groups (e.g. `ExerciseSectionBubble`, which hands the
+   * renderer a single group but needs exercise-wide labels — the running
+   * counter would otherwise restart at `א` per bubble and untitled multi-
+   * question sections would collapse). Superset maps are safe; entries
+   * for blocks the renderer doesn't render are ignored.
    */
-  sectionLabelOverrides?: string[]
+  questionLabelsOverride?: Map<string, string>
 }

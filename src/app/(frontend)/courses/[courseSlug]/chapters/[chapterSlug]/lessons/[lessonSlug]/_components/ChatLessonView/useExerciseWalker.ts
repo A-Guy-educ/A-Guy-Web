@@ -19,7 +19,7 @@
 import type { Exercise } from '@/infra/types/content'
 import type { ContentBlock, ExerciseBlockGroup } from '@/infra/types/exercise'
 import { getExerciseBlockGroups } from '@/lib/exercises/getExerciseBlocks'
-import { computeSectionLabels } from '@/lib/exercises/computeSectionLabels'
+import { computeQuestionLabels, computeSectionLabels } from '@/lib/exercises/computeSectionLabels'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { StreamEntry } from './types'
 
@@ -112,6 +112,8 @@ interface WalkerStep {
    * label regardless of which groups the walker chose to skip.
    */
   sectionLabel: string
+  /** Exercise-wide `block.id → label` map (shared identity across the exercise's steps). */
+  questionLabels: Map<string, string>
 }
 
 function flattenSteps(exercises: Exercise[], isHebrew: boolean): WalkerStep[] {
@@ -134,6 +136,10 @@ function flattenSteps(exercises: Exercise[], isHebrew: boolean): WalkerStep[] {
     //      bubble via ExerciseRenderer would double them.
     const rawGroups = getExerciseBlockGroups(exercise)
     const rawSectionLabels = computeSectionLabels(rawGroups, isHebrew)
+    // One shared question-label map per exercise — passed by reference into
+    // every step for this exercise so ExerciseRenderer's useMemo dep list
+    // stays stable across walker advances and StreamEntryView re-renders.
+    const questionLabels = computeQuestionLabels(rawGroups, isHebrew)
     // Map each raw group (by reference) to its section label so the walker
     // can look up the same label after filtering + reshaping the group list
     // below (spread + filter break reference equality; sectionIndex identifies
@@ -169,6 +175,7 @@ function flattenSteps(exercises: Exercise[], isHebrew: boolean): WalkerStep[] {
         groupsInExercise,
         questionCount,
         sectionLabel: labelByGroupKey.get(group.sectionIndex) ?? '',
+        questionLabels,
       })
     })
   })
@@ -213,6 +220,7 @@ export function useExerciseWalker({ exercises, append, isHebrew }: UseExerciseWa
         group: step.group,
         questionCount: step.questionCount,
         sectionLabel: step.sectionLabel,
+        questionLabels: step.questionLabels,
       })
     },
     [append, steps],

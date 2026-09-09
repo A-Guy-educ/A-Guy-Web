@@ -11,7 +11,6 @@ import type {
 import { ExerciseRenderer } from '@/ui/web/exerciserenderer'
 import { RichTextRenderer } from '@/ui/web/exerciserenderer/blocks/RichTextRenderer'
 import { MediaMapProvider } from '@/ui/web/exerciserenderer/context/MediaMapContext'
-import { questionLabelsFromSectionLabels } from '@/lib/exercises/computeSectionLabels'
 import { cn } from '@/infra/utils/ui'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import type { SectionOutcome } from '../types'
@@ -26,11 +25,13 @@ interface ExerciseSectionBubbleProps {
   ordinal: number
   group: ExerciseBlockGroup
   /**
-   * Exercise-wide section label for this group (`א`, `ד3`, …). Computed by
-   * the parent from ALL groups in the exercise so the label doesn't
-   * restart at `א` per bubble. Empty string for preamble-only groups.
+   * Exercise-wide `block.id → label` map. Computed once by the walker
+   * from ALL of the exercise's groups so labels don't restart at `א` per
+   * bubble and untitled multi-question sections still show `א/ב/ג`
+   * instead of collapsing to `א1/א2`. Missing entries fall back to
+   * `String(idx + 1)` in the chat-native path.
    */
-  sectionLabel: string
+  questionLabels: Map<string, string>
   questionCount: number
   lessonId: string
   mediaMap?: Record<string, Media>
@@ -95,7 +96,7 @@ export function ExerciseSectionBubble({
   exercise,
   ordinal,
   group,
-  sectionLabel,
+  questionLabels,
   questionCount,
   lessonId,
   mediaMap,
@@ -156,14 +157,13 @@ export function ExerciseSectionBubble({
   )
 
   // Only label individual questions when the section has more than one — a
-  // solo question doesn't need a leading badge. Sub-labels mirror
-  // `computeQuestionLabels`'s scheme: base section label + 1-based suffix
-  // (`א1`, `א2`, `ד3.1` if the section itself were labelled `ד3.`… — here
-  // `ד31`, `ד32`).
+  // solo question doesn't need a leading badge. We look each block up in
+  // the exercise-wide `questionLabels` map so both schemes (titled `X1/X2`
+  // and untitled per-question `א/ב/ג` running counter) surface correctly.
   const questionLabelById = useMemo(() => {
     if (!isChatNativePath || chatNativeQuestionCount < 2) return null
-    return questionLabelsFromSectionLabels([group], [sectionLabel])
-  }, [chatNativeQuestionCount, group, sectionLabel, isChatNativePath])
+    return questionLabels
+  }, [chatNativeQuestionCount, questionLabels, isChatNativePath])
 
   const handleChatNativeSubmit = useCallback(
     (blockId: string, text: string, isCorrect: boolean) => {
@@ -286,7 +286,7 @@ export function ExerciseSectionBubble({
       ) : (
         <ExerciseRenderer
           groups={[group]}
-          sectionLabelOverrides={[sectionLabel]}
+          questionLabelsOverride={questionLabels}
           mediaMap={mediaMap}
           exerciseNumber={ordinal}
           showExerciseNumber={false}
