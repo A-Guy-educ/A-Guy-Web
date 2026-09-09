@@ -4692,6 +4692,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Derive section labels from Payload section titles ([#1184](https://github.com/A-Guy-educ/A-Guy-Web/pull/1184)) — @aguyshayb
 - chore: Bump next to 15.5.24 and sharp to 0.35.4 (Fast Gate CVEs) ([#1185](https://github.com/A-Guy-educ/A-Guy-Web/pull/1185)) — @aguyshayb
 ## [v0.35.0] - 2026-09-08
 
