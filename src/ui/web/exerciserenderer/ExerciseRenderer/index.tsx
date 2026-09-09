@@ -58,41 +58,10 @@ import {
 import { MediaMapProvider } from '../context/MediaMapContext'
 import { VideoPlayer } from '../components/VideoPlayer'
 import { getMediaUrl } from '@/infra/utils/getMediaUrl'
-
-/**
- * Hebrew letters for question numbering
- */
-const HEBREW_LETTERS = [
-  'א',
-  'ב',
-  'ג',
-  'ד',
-  'ה',
-  'ו',
-  'ז',
-  'ח',
-  'ט',
-  'י',
-  'כ',
-  'ל',
-  'מ',
-  'נ',
-  'ס',
-  'ע',
-  'פ',
-  'צ',
-  'ק',
-  'ר',
-  'ש',
-  'ת',
-]
-
-/**
- * Get English letter for question index (a, b, c, ...)
- */
-function getEnglishLetter(index: number): string {
-  return String.fromCharCode('a'.charCodeAt(0) + (index - 1))
-}
+import {
+  computeSectionLabels,
+  questionLabelsFromSectionLabels,
+} from '@/lib/exercises/computeSectionLabels'
 
 /**
  * Format student's answer as readable text for AI context
@@ -141,6 +110,7 @@ export function ExerciseRenderer({
   checkAllTrigger,
   questionCardVariant = 'card',
   showNotebook = false,
+  sectionLabelOverrides,
 }: ExerciseRendererProps) {
   const t = useTranslations('courses')
   const locale = useLocale()
@@ -159,6 +129,25 @@ export function ExerciseRenderer({
     }),
     [t],
   )
+
+  // Determine direction based on locale. Section label language follows the
+  // locale prefix — Hebrew: א/ב/ג..., English: a/b/c (lowercase).
+  const isHebrew = locale?.toLowerCase().startsWith('he') ?? false
+  const dir: 'ltr' | 'rtl' = isHebrew ? 'rtl' : 'ltr'
+
+  // Pre-compute one label per question block. Sections with an explicit
+  // `סעיף X` title get X verbatim (e.g. `ד3`); the rest auto-increment
+  // through the alphabet. Multi-question sections append a 1-based suffix
+  // (`א`, `א1`, `א2`). Renderers look this up by `block.id`.
+  //
+  // `sectionLabelOverrides` lets callers that render a subset of an
+  // exercise's groups (e.g. chat-view section bubbles handling one group
+  // at a time) inject the exercise-wide section label so the counter
+  // doesn't restart at `א` per bubble.
+  const questionLabels = useMemo(() => {
+    const sectionLabels = sectionLabelOverrides ?? computeSectionLabels(groups, isHebrew)
+    return questionLabelsFromSectionLabels(groups, sectionLabels)
+  }, [groups, isHebrew, sectionLabelOverrides])
 
   // Track answers and check results for each question block
   const flatBlocks: ContentBlock[] = useMemo(
@@ -705,10 +694,11 @@ export function ExerciseRenderer({
     // Question blocks - render with answer UI
     const question = block as QuestionBlock
 
-    // Compute question letter label
-    const questionLabel = isHebrew
-      ? HEBREW_LETTERS[nextIndex - 1] || String(nextIndex)
-      : getEnglishLetter(nextIndex)
+    // Section-aware label from the pre-computed map (`א`, `ד3`, `א1`, ...).
+    // Falls back to the numeric position when a block somehow escaped the
+    // map (defensive — computeQuestionLabels covers every question block
+    // that appears in `groups`).
+    const questionLabel = questionLabels.get(question.id) ?? String(nextIndex)
 
     const answer = answers[question.id] ?? getInitialAnswer(question)
     const checkResult = checkResults[question.id] || null
@@ -869,12 +859,6 @@ export function ExerciseRenderer({
     )
   }
 
-  // Determine direction based on locale
-  // NOTE: Section label language is determined ONLY by locale prefix.
-  // Hebrew: א/ב/ג..., English: a/b/c... (lowercase).
-  const isHebrew = locale?.toLowerCase().startsWith('he')
-  const dir: 'ltr' | 'rtl' = isHebrew ? 'rtl' : 'ltr'
-
   return (
     <MediaMapProvider value={mediaMap}>
       <div className={cn('w-full max-w-3xl mx-auto', className)}>
@@ -907,7 +891,7 @@ export function ExerciseRenderer({
                   const result = checkResults[q.id]
                   const isCorrect = result?.isCorrect
                   const isChecked = !!result
-                  const qLabel = isHebrew ? HEBREW_LETTERS[i] || String(i + 1) : String(i + 1)
+                  const qLabel = questionLabels.get(q.id) ?? String(i + 1)
                   return (
                     <div
                       key={q.id}

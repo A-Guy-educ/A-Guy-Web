@@ -315,6 +315,8 @@ export interface ContentData {
 export interface ExerciseBlockGroup {
   blocks: ContentBlock[]
   sectionIndex: number | null
+  /** Section's Payload `title` field — used by label computation to parse `סעיף X` prefixes. Preamble groups (sectionIndex === null) leave this undefined. */
+  title?: string | null
 }
 
 export type ExerciseContent = ContentData

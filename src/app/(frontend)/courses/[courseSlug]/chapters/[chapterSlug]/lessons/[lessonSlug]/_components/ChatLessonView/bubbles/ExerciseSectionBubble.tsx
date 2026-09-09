@@ -11,6 +11,7 @@ import type {
 import { ExerciseRenderer } from '@/ui/web/exerciserenderer'
 import { RichTextRenderer } from '@/ui/web/exerciserenderer/blocks/RichTextRenderer'
 import { MediaMapProvider } from '@/ui/web/exerciserenderer/context/MediaMapContext'
+import { questionLabelsFromSectionLabels } from '@/lib/exercises/computeSectionLabels'
 import { cn } from '@/infra/utils/ui'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import type { SectionOutcome } from '../types'
@@ -20,36 +21,16 @@ import { QuickActionChips, type QuickAction } from './QuickActionChips'
 
 const EMPTY_MEDIA_MAP: Record<string, Media> = {}
 
-/** Question letters for chat-native multi-question sections. */
-const HEBREW_LETTERS = [
-  'א',
-  'ב',
-  'ג',
-  'ד',
-  'ה',
-  'ו',
-  'ז',
-  'ח',
-  'ט',
-  'י',
-  'כ',
-  'ל',
-  'מ',
-  'נ',
-  'ס',
-  'ע',
-  'פ',
-  'צ',
-  'ק',
-  'ר',
-  'ש',
-  'ת',
-]
-
 interface ExerciseSectionBubbleProps {
   exercise: Exercise
   ordinal: number
   group: ExerciseBlockGroup
+  /**
+   * Exercise-wide section label for this group (`א`, `ד3`, …). Computed by
+   * the parent from ALL groups in the exercise so the label doesn't
+   * restart at `א` per bubble. Empty string for preamble-only groups.
+   */
+  sectionLabel: string
   questionCount: number
   lessonId: string
   mediaMap?: Record<string, Media>
@@ -114,6 +95,7 @@ export function ExerciseSectionBubble({
   exercise,
   ordinal,
   group,
+  sectionLabel,
   questionCount,
   lessonId,
   mediaMap,
@@ -174,21 +156,14 @@ export function ExerciseSectionBubble({
   )
 
   // Only label individual questions when the section has more than one — a
-  // solo question doesn't need a leading "א" badge. Mirrors ExerciseRenderer's
-  // per-question letter labels so students can reference "question ב" in a
-  // follow-up chat question.
+  // solo question doesn't need a leading badge. Sub-labels mirror
+  // `computeQuestionLabels`'s scheme: base section label + 1-based suffix
+  // (`א1`, `א2`, `ד3.1` if the section itself were labelled `ד3.`… — here
+  // `ד31`, `ד32`).
   const questionLabelById = useMemo(() => {
     if (!isChatNativePath || chatNativeQuestionCount < 2) return null
-    const map = new Map<string, string>()
-    let i = 0
-    for (const block of group.blocks) {
-      if (isChatNativeQuestion(block)) {
-        map.set(block.id, HEBREW_LETTERS[i] ?? String(i + 1))
-        i++
-      }
-    }
-    return map
-  }, [chatNativeQuestionCount, group.blocks, isChatNativePath])
+    return questionLabelsFromSectionLabels([group], [sectionLabel])
+  }, [chatNativeQuestionCount, group, sectionLabel, isChatNativePath])
 
   const handleChatNativeSubmit = useCallback(
     (blockId: string, text: string, isCorrect: boolean) => {
@@ -311,6 +286,7 @@ export function ExerciseSectionBubble({
       ) : (
         <ExerciseRenderer
           groups={[group]}
+          sectionLabelOverrides={[sectionLabel]}
           mediaMap={mediaMap}
           exerciseNumber={ordinal}
           showExerciseNumber={false}

@@ -43,7 +43,7 @@ import { GraphWithPrompt } from '../blocks/GraphWithPrompt'
 import { MultiAxisRenderer } from '../blocks/MultiAxisRenderer'
 import { LatexBlockRenderer } from '../blocks/LatexBlockRenderer'
 import { getMediaUrl } from '@/infra/utils/getMediaUrl'
-import { HEBREW_LETTERS } from '../constants'
+import { computeQuestionLabels } from '@/lib/exercises/computeSectionLabels'
 import type { Media } from '@/infra/types/content'
 import type {
   ContentBlock,
@@ -99,8 +99,9 @@ export function ExerciseWorksheet({
   //   - RTL -> text on the right, diagram on the left -> 'textRight'
   const sideBySideLayout: GraphLayout = isRtl ? 'textRight' : 'textLeft'
 
-  // Track question index for Hebrew letter labels (RTL only)
-  let questionIndex = 0
+  // Section-aware labels keyed by block id — matches ExerciseRenderer so the
+  // worksheet, interactive view, and AI-chat context all agree on `סעיף X`.
+  const questionLabels = computeQuestionLabels(groups, isRtl)
 
   return (
     <MediaMapProvider value={mediaMap}>
@@ -108,15 +109,15 @@ export function ExerciseWorksheet({
         {groups.map((group, groupIdx) => {
           const groupNodes: React.ReactNode[] = []
           group.blocks.forEach((block, blockIdx) => {
-            const { block: renderedBlock, incremented } = renderBlockWithLabel({
+            const label = questionLabels.get((block as { id?: string }).id ?? '')
+            const renderedBlock = renderBlockWithLabel({
               block,
               mediaMap,
               sideBySideLayout,
               isRtl,
-              questionIndex,
+              label,
               hideLatexBlocks,
             })
-            if (incremented) questionIndex++
             groupNodes.push(
               <React.Fragment key={getBlockKey(block, blockIdx)}>{renderedBlock}</React.Fragment>,
             )
@@ -147,44 +148,35 @@ interface RenderBlockParams {
   mediaMap: Record<string, Media>
   sideBySideLayout: GraphLayout
   isRtl: boolean
-  questionIndex: number
+  /** Pre-computed section-aware label (`א`, `ד3`, `א1`, ...). Undefined for non-question blocks or when the block escaped the label map. */
+  label: string | undefined
   hideLatexBlocks: boolean
 }
 
 /**
- * Renders a block and returns it with a Hebrew question label if applicable.
- * Returns { block: ReactNode, incremented: boolean } where incremented indicates
- * whether the question index was used (so the caller can increment the counter).
+ * Renders a block and, when it's a labelled question type, wraps it with the
+ * pre-computed section-aware label badge.
  */
 function renderBlockWithLabel({
   block,
   mediaMap,
   sideBySideLayout,
   isRtl,
-  questionIndex,
+  label,
   hideLatexBlocks,
-}: RenderBlockParams): { block: React.ReactNode; incremented: boolean } {
+}: RenderBlockParams): React.ReactNode {
   const isLabelledQuestion = LABELLED_QUESTION_TYPES.has(block.type)
 
-  if (isLabelledQuestion) {
-    const label = isRtl
-      ? `${HEBREW_LETTERS[questionIndex] || String(questionIndex + 1)}.`
-      : `${questionIndex + 1}.`
+  if (isLabelledQuestion && label) {
     const inner = renderBlockContent({ block, mediaMap, sideBySideLayout, hideLatexBlocks })
-    return {
-      block: (
-        <WorksheetQuestionLabel label={label} dir={isRtl ? 'rtl' : 'ltr'}>
-          {inner}
-        </WorksheetQuestionLabel>
-      ),
-      incremented: true,
-    }
+    return (
+      <WorksheetQuestionLabel label={`${label}.`} dir={isRtl ? 'rtl' : 'ltr'}>
+        {inner}
+      </WorksheetQuestionLabel>
+    )
   }
 
-  return {
-    block: renderBlockContent({ block, mediaMap, sideBySideLayout, hideLatexBlocks }),
-    incremented: false,
-  }
+  return renderBlockContent({ block, mediaMap, sideBySideLayout, hideLatexBlocks })
 }
 
 /** Renders the content of a single block (no label) */
@@ -193,7 +185,7 @@ function renderBlockContent({
   mediaMap,
   sideBySideLayout,
   hideLatexBlocks,
-}: Omit<RenderBlockParams, 'isRtl' | 'questionIndex'>): React.ReactNode {
+}: Omit<RenderBlockParams, 'isRtl' | 'label'>): React.ReactNode {
   if (block.type === 'latex') {
     if (hideLatexBlocks) return null
     return <LatexBlockRenderer block={block as import('@/infra/types/exercise').LatexBlock} />

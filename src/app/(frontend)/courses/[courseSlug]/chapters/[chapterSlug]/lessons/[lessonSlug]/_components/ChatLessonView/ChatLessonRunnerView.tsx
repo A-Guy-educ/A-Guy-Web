@@ -7,7 +7,7 @@ import { formatExerciseContextMessage } from '@/infra/llm/exercise-context'
 import { uploadDataUrlAsMedia } from '@/infra/media/uploadDataUrl'
 import { ExerciseRenderer } from '@/ui/web/exerciserenderer'
 import { logger } from '@/infra/utils/logger'
-import { useTranslations } from '@/ui/web/providers/I18n'
+import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ChatInputPanel } from './ChatInputPanel'
 import { ChatLessonProgress } from './ChatLessonProgress'
@@ -29,32 +29,6 @@ const CELEBRATION_ADVANCE_MS = 1500
 /** Stable empty map — avoids feeding a fresh `{}` into MediaMapProvider on
  *  every render, which would re-fire every `useMediaMap` descendant. */
 const EMPTY_MEDIA_MAP: Record<string, Media> = {}
-
-/** א, ב, ג, ... — matches the ExerciseRenderer's question-card labeling. */
-const HEBREW_LETTERS = [
-  'א',
-  'ב',
-  'ג',
-  'ד',
-  'ה',
-  'ו',
-  'ז',
-  'ח',
-  'ט',
-  'י',
-  'כ',
-  'ל',
-  'מ',
-  'נ',
-  'ס',
-  'ע',
-  'פ',
-  'צ',
-  'ק',
-  'ר',
-  'ש',
-  'ת',
-]
 
 interface ChatLessonRunnerViewProps {
   lessonTitle: string
@@ -93,6 +67,8 @@ interface ActiveChatProps extends ChatLessonRunnerViewProps {
 
 function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatProps) {
   const t = useTranslations('courses')
+  const locale = useLocale()
+  const isHebrew = locale?.toLowerCase().startsWith('he') ?? false
   const scrollRef = useRef<HTMLDivElement | null>(null)
 
   const [entries, setEntries] = useState<StreamEntry[]>([])
@@ -103,7 +79,7 @@ function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatPr
     setEntries((prev) => prev.map((e) => (e.key === key ? entry : e)))
   }, [])
 
-  const walker = useExerciseWalker({ exercises, append })
+  const walker = useExerciseWalker({ exercises, append, isHebrew })
   const currentStep = walker.currentStep
   const currentExercise = currentStep?.exercise ?? null
 
@@ -114,11 +90,9 @@ function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatPr
   // student is actually on.
   const currentExerciseContext = useMemo(() => {
     if (!currentStep) return null
-    const { exercise, group, groupIndex } = currentStep
+    const { exercise, group, sectionLabel } = currentStep
     const baseTitle = exercise.title?.trim() ?? ''
-    const sectionLetter =
-      group.sectionIndex !== null ? (HEBREW_LETTERS[groupIndex] ?? String(groupIndex + 1)) : null
-    const title = sectionLetter ? `${baseTitle} — סעיף ${sectionLetter}`.trim() : baseTitle
+    const title = sectionLabel ? `${baseTitle} — סעיף ${sectionLabel}`.trim() : baseTitle
     // Cast: our lesson-fetched Media has `filename: string | null | undefined`
     // where the formatter's MediaItem expects `string | undefined`. The
     // formatter only ever falsy-checks filename, so a runtime null is fine.
@@ -448,6 +422,7 @@ function StreamEntryView({
           exercise={entry.exercise}
           ordinal={entry.ordinal}
           group={entry.group}
+          sectionLabel={entry.sectionLabel}
           questionCount={entry.questionCount}
           lessonId={lessonId}
           mediaMap={mediaMap}

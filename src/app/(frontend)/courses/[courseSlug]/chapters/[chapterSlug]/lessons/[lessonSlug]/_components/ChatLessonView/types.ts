@@ -52,6 +52,12 @@ export interface ExerciseSectionEntry extends EntryBase {
   group: ExerciseBlockGroup
   /** Number of question blocks in the group; 0 for intro-only groups. */
   questionCount: number
+  /**
+   * Exercise-wide section label (`א`, `ד3`, …) — computed once from the
+   * full group list so subsections and named sections keep their label
+   * consistent across every view. Empty string for preamble-only entries.
+   */
+  sectionLabel: string
 }
 
 /**

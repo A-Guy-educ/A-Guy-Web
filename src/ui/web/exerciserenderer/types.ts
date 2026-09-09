@@ -293,4 +293,12 @@ export interface ExerciseRendererProps {
    * no-op. Set `true` only when a chat surface is on the page.
    */
   showNotebook?: boolean
+  /**
+   * Optional per-group section labels (matching `groups.length`) that
+   * override the internally-computed labels. Passed by callers that render
+   * a subset of an exercise's groups (e.g. `ExerciseSectionBubble`, which
+   * hands the renderer a single group but needs the exercise-wide `סעיף X`
+   * label preserved instead of restarting at `א`).
+   */
+  sectionLabelOverrides?: string[]
 }

@@ -132,6 +132,7 @@ function resolveSectionGroups(exercise: Exercise): ExerciseBlockGroup[] {
   return ordered.map((section, idx) => ({
     blocks: getSectionBlocks(section),
     sectionIndex: idx,
+    title: section.title ?? null,
   }))
 }
 
