@@ -7,7 +7,7 @@
  * granularity/course-filter changes don't multiply DB load.
  */
 
-import { type Db } from 'mongodb'
+import { getContentDb } from '@/infra/db/content-db'
 
 import { fetchAvailableCourses } from './available-courses'
 import {
@@ -35,10 +35,10 @@ const CALCULATOR_MAP: Record<ProductHealthKpi, (ctx: KpiContext) => KpiCalculato
 }
 
 export async function computeProductHealth(
-  db: Db,
   params: ParsedProductHealthParams,
   now: Date = new Date(),
 ): Promise<ProductHealthPayload> {
+  const db = await getContentDb()
   const resolved = resolvePeriod(params, now)
   const span = { start: signalWindowStart(resolved), end: resolved.period.end }
   const [signals, availableCourses] = await Promise.all([

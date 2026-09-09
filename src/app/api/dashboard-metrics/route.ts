@@ -17,7 +17,6 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 import { AccountRole } from '@/infra/auth/roles'
-import { getContentDb } from '@/infra/db/content-db'
 import { getWebUser } from '@/infra/web-api/mongo-payload'
 import { logger } from '@/infra/utils/logger/logger'
 import { computeDashboardMetrics } from '@/server/services/dashboard/metrics-service'
@@ -61,12 +60,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const [data, productHealth] = await Promise.all([
       computeDashboardMetrics(period),
       productHealthResult?.ok
-        ? computeProductHealth(await getContentDb(), productHealthResult.params).catch(
-            (err: unknown) => {
-              logger.warn({ err }, 'dashboard-metrics: productHealth slice failed — omitting')
-              return undefined as ProductHealthPayload | undefined
-            },
-          )
+        ? computeProductHealth(productHealthResult.params).catch((err: unknown) => {
+            logger.warn({ err }, 'dashboard-metrics: productHealth slice failed — omitting')
+            return undefined as ProductHealthPayload | undefined
+          })
         : Promise.resolve(undefined),
     ])
     const durationMs = Date.now() - startedAt
