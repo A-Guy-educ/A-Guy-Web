@@ -16,30 +16,23 @@ const HEBREW_LETTER_INDEX = new Map<string, number>(
 const SECTION_TITLE_RE = /^\s*סעיף\s+(\S+)\s*$/
 
 /**
- * Types the interactive renderer (ExerciseRenderer) wraps in a QuestionCard
- * and stamps with a section-letter badge. Excludes `question_geometry` and
- * `question_axis` because those render inline through GraphWithPrompt with
- * no card wrapper (see the trailing comment in ExerciseRenderer's render
- * loop). Consuming a label slot for them would visually skip a letter in
- * the interactive view.
+ * Block types that count as a standalone labelled question — both the
+ * interactive renderer and the printed worksheet apply badges to this
+ * exact set. Excludes `question_geometry` and `question_axis` because
+ * those render inline through GraphWithPrompt as diagram companions of
+ * a nearby question, not as their own question units. Consuming a label
+ * slot for them would visually skip a letter in interactive and drop a
+ * stray badge next to a graph in scroll view.
+ *
+ * Exported so callers passing a custom `questionTypes` can narrow (e.g.
+ * chat-native section bubbles that render only select/free-response),
+ * but the default behaviour matches every renderer we ship today.
  */
 export const INTERACTIVE_QUESTION_TYPES: ReadonlySet<string> = new Set<string>([
   'question_select',
   'question_free_response',
   'question_table',
   'question_matching',
-])
-
-/**
- * Types the printed worksheet (ExerciseWorksheet) stamps with a section-
- * letter badge. Adds geometry/axis on top of the interactive set because
- * WorksheetQuestionLabel wraps geometry/axis prompts too — each diagram
- * carries its own leading letter in the printed layout.
- */
-export const WORKSHEET_QUESTION_TYPES: ReadonlySet<string> = new Set<string>([
-  ...INTERACTIVE_QUESTION_TYPES,
-  'question_geometry',
-  'question_axis',
 ])
 
 function englishLetter(idx: number): string {
@@ -95,11 +88,10 @@ function autoLetter(idx: number, isHebrew: boolean): string {
  *   directly in `exercise.content.blocks` still show `א/ב/ג` and multi-
  *   question untitled sections don't collapse to `א1/א2`.
  *
- * `questionTypes` narrows which block types get a label — pass
- * `INTERACTIVE_QUESTION_TYPES` (default) for ExerciseRenderer, or
- * `WORKSHEET_QUESTION_TYPES` for ExerciseWorksheet and the solutions
- * list. Using the wrong set silently skips letters (geometry claims a
- * slot but renders no badge) or leaves visible blocks unlabelled.
+ * `questionTypes` narrows which block types count as questions. The
+ * default (`INTERACTIVE_QUESTION_TYPES`) matches every current renderer
+ * — override only when the caller renders a strict subset (e.g. chat-
+ * native section bubbles that only draw select / free-response cards).
  */
 export function computeQuestionLabels(
   groups: ExerciseBlockGroup[],

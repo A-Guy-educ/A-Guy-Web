@@ -15,8 +15,8 @@
  *   - rich_text                  -> paragraph
  *   - latex                      -> rendered via LatexBlockRenderer (hideLatexBlocks prop controls visibility)
  *   - svg / media                -> figure
- *   - question_geometry          -> Hebrew label + prompt + diagram side-by-side via GraphWithPrompt
- *   - question_axis              -> Hebrew label + prompt + diagram side-by-side via GraphWithPrompt
+ *   - question_geometry          -> prompt + diagram side-by-side via GraphWithPrompt (unlabeled — companion of a nearby question)
+ *   - question_axis              -> prompt + diagram side-by-side via GraphWithPrompt (unlabeled — companion of a nearby question)
  *   - question_multi_axis        -> prompt above/below grid of diagrams
  *   - question_select(true_false)-> Hebrew label + prompt + bulleted choice list (empty checkboxes)
  *   - question_select(mcq)       -> Hebrew label + prompt + bulleted choice list (empty radios)
@@ -43,10 +43,7 @@ import { GraphWithPrompt } from '../blocks/GraphWithPrompt'
 import { MultiAxisRenderer } from '../blocks/MultiAxisRenderer'
 import { LatexBlockRenderer } from '../blocks/LatexBlockRenderer'
 import { getMediaUrl } from '@/infra/utils/getMediaUrl'
-import {
-  computeQuestionLabels,
-  WORKSHEET_QUESTION_TYPES,
-} from '@/lib/exercises/computeSectionLabels'
+import { computeQuestionLabels } from '@/lib/exercises/computeSectionLabels'
 import type { Media } from '@/infra/types/content'
 import type {
   ContentBlock,
@@ -103,11 +100,13 @@ export function ExerciseWorksheet({
   const sideBySideLayout: GraphLayout = isRtl ? 'textRight' : 'textLeft'
 
   // Section-aware labels keyed by block id — matches ExerciseRenderer's
-  // `סעיף X` scheme, but with WORKSHEET_QUESTION_TYPES so geometry/axis
-  // (which the worksheet labels via WorksheetQuestionLabel, unlike the
-  // interactive renderer) get their own letter slot instead of silently
-  // shifting the surrounding blocks.
-  const questionLabels = computeQuestionLabels(groups, isRtl, WORKSHEET_QUESTION_TYPES)
+  // `סעיף X` scheme. Uses the default (interactive) question set so
+  // geometry / axis diagrams stay unlabeled companions of a nearby
+  // question instead of getting their own auto-incremented badge (which
+  // legacy per-block worksheet code did, before section collections
+  // existed — a `question_geometry` between two `question_select`s
+  // would appear as its own `א.` / `ב.` unit in the scroll view).
+  const questionLabels = computeQuestionLabels(groups, isRtl)
 
   return (
     <MediaMapProvider value={mediaMap}>
@@ -139,14 +138,18 @@ function getBlockKey(block: ContentBlock, index: number): string {
   return 'id' in block && block.id ? block.id : `block_${index}`
 }
 
-/** Question types that receive Hebrew letter labels */
+/**
+ * Question types that receive a Hebrew letter badge in the printed
+ * worksheet. Kept in lockstep with `computeQuestionLabels`'s default
+ * (interactive) set — geometry / axis diagrams stay unlabeled companions
+ * of a nearby question, matching the interactive view and avoiding the
+ * stray badge next to a graph that legacy per-block worksheet code emitted.
+ */
 const LABELLED_QUESTION_TYPES = new Set([
   'question_select',
   'question_free_response',
   'question_table',
   'question_matching',
-  'question_geometry',
-  'question_axis',
 ])
 
 interface RenderBlockParams {

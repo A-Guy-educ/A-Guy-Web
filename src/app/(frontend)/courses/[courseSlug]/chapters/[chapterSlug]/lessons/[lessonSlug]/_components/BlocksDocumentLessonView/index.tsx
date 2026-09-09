@@ -24,10 +24,7 @@ import type { Exercise, Media as MediaType } from '@/infra/types/content'
 import type { QuestionBlock, InlineRichText, RichTextBlock } from '@/ui/web/exerciserenderer/types'
 import { ExerciseWorkspace } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseWorkspace'
 import { getExerciseBlockGroups } from '@/lib/exercises/getExerciseBlocks'
-import {
-  computeQuestionLabels,
-  WORKSHEET_QUESTION_TYPES,
-} from '@/lib/exercises/computeSectionLabels'
+import { computeQuestionLabels } from '@/lib/exercises/computeSectionLabels'
 
 type WorksheetGroups = React.ComponentProps<typeof ExerciseWorksheet>['groups']
 
@@ -97,11 +94,11 @@ function getSolutionsByExercise(
 
   exercises.forEach((exercise, exerciseIdx) => {
     const groups = getGroups(exercise)
-    // Solutions render alongside the printed worksheet, so use the same
-    // worksheet-scoped question set (adds geometry/axis) — otherwise a
-    // geometry solution would appear without the sub-label the worksheet
-    // shows for the corresponding question.
-    const questionLabels = computeQuestionLabels(groups, isRtl, WORKSHEET_QUESTION_TYPES)
+    // Match the worksheet's label set exactly — geometry / axis are
+    // unlabeled diagrams there, so their solutions render without a
+    // sub-label (falling into the same rendering path as a single-
+    // solution exercise, which also skips the sub-label).
+    const questionLabels = computeQuestionLabels(groups, isRtl)
     const blocks = flattenGroups(groups)
     const exerciseSolutions: ExerciseSolutionEntry['solutions'] = []
 
