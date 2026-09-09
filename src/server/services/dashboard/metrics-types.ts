@@ -178,4 +178,12 @@ export interface DashboardMetricsResponse {
   engagement: EngagementMetrics
   revenueMetrics: RevenueMetrics
   tokenMetrics: TokenMetrics
+  /**
+   * Optional Product Health tab payload. Gated behind
+   * `PRODUCT_HEALTH_ENABLED`; the field is omitted (undefined) when off so
+   * Dash's optional-field degradation path stays exercised until launch.
+   * Shape lives with the service in
+   * `src/server/services/dashboard/product-health/types.ts`.
+   */
+  productHealth?: import('./product-health/types').ProductHealthPayload
 }
