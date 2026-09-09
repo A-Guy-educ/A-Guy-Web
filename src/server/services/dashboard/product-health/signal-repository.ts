@@ -1,6 +1,7 @@
 /**
- * Fetches every raw signal the Product Health KPIs need in one round-trip
- * per collection (four parallel Mongo queries).
+ * Fetches every raw signal the Product Health KPIs need. One round-trip
+ * to resolve the eligible-user pool (spec §9 exclusion rules + courseId
+ * filter), then three parallel Mongo queries scoped to that pool.
  *
  * Design note: we intentionally fetch flat (userId, date) tuples for the
  * full signal span rather than pre-bucketing in Mongo. Bucketing lives
@@ -11,7 +12,7 @@
 import { type Db } from 'mongodb'
 
 import { fetchChatDays } from './chat-days'
-import { fetchIdentifiedPopulation } from './identified-population'
+import { fetchEligibleUsers } from './eligible-users'
 import { fetchLessonActiveDays } from './lesson-active-days'
 import { fetchLessonAttempts } from './lesson-attempts'
 import type { AllSignals, SignalSpan } from './signal-types'
@@ -21,11 +22,16 @@ export async function fetchAllSignals(
   span: SignalSpan,
   courseId: string | null,
 ): Promise<AllSignals> {
-  const [population, lessonActiveDays, chatDays, lessonAttempts] = await Promise.all([
-    fetchIdentifiedPopulation(db, span, courseId),
-    fetchLessonActiveDays(db, span, courseId),
-    fetchChatDays(db, span, courseId),
-    fetchLessonAttempts(db, span, courseId),
+  const eligible = await fetchEligibleUsers(db, span, courseId)
+  const [lessonActiveDays, chatDays, lessonAttempts] = await Promise.all([
+    fetchLessonActiveDays(db, span, eligible.refs),
+    fetchChatDays(db, span, eligible.refs),
+    fetchLessonAttempts(db, span, eligible.refs),
   ])
-  return { population, lessonActiveDays, chatDays, lessonAttempts }
+  return {
+    population: { createdAt: eligible.createdAt },
+    lessonActiveDays,
+    chatDays,
+    lessonAttempts,
+  }
 }

@@ -6,9 +6,9 @@
  * change here breaks the widgets — coordinate before touching.
  */
 
-export type Period = 'week' | 'month' | 'year'
+export type Period = 'day' | 'week' | 'month' | 'year'
 
-export const VALID_PERIODS: readonly Period[] = ['week', 'month', 'year']
+export const VALID_PERIODS: readonly Period[] = ['day', 'week', 'month', 'year']
 
 /**
  * Registration attribution counts for the selected `period`. Only Google OAuth

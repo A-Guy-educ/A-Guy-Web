@@ -4,8 +4,14 @@
  *
  * Source: `user-progresses.progressRecords[]` with
  *   - `recordType === 'lesson'`
- *   - `timeSpentSeconds >= 60` (cumulative on the record; see §9 note)
+ *   - `timeSpentSeconds >= 60`
  *   - `lastAccessedAt` inside the signal span
+ *
+ * §9.1 note: `timeSpentSeconds` is cumulative across all sessions of a
+ * lesson (bumped by /api/stats/heartbeat in 1-120s batches). A lesson
+ * touched twice for 30s each counts once the second visit crosses 60s.
+ * That's a v1 proxy for "session dwell >60s" — v2 target is a per-session
+ * dwell log emitted from the lesson viewer.
  *
  * Returns one row per (userId, day) tuple. Callers reduce over windows
  * without averaging (spec §4).
@@ -13,7 +19,6 @@
 
 import { type Db } from 'mongodb'
 
-import { courseUserFilter } from './course-filter'
 import type { SignalSpan, UserDay } from './signal-types'
 
 interface Row {
@@ -24,39 +29,39 @@ interface Row {
 export async function fetchLessonActiveDays(
   db: Db,
   span: SignalSpan,
-  courseId: string | null,
+  eligibleRefs: unknown[],
 ): Promise<UserDay[]> {
-  const scope = await courseUserFilter(db, courseId)
-  const pipeline: Record<string, unknown>[] = []
-  if (scope) pipeline.push({ $match: { user: scope } })
-  pipeline.push(
-    { $unwind: '$progressRecords' },
-    {
-      $match: {
-        'progressRecords.recordType': 'lesson',
-        'progressRecords.timeSpentSeconds': { $gte: 60 },
-        'progressRecords.lastAccessedAt': {
-          $gte: span.start.toISOString(),
-          $lt: span.end.toISOString(),
+  if (eligibleRefs.length === 0) return []
+  return db
+    .collection('user-progresses')
+    .aggregate<Row>([
+      { $match: { user: { $in: eligibleRefs } } },
+      { $unwind: '$progressRecords' },
+      {
+        $match: {
+          'progressRecords.recordType': 'lesson',
+          'progressRecords.timeSpentSeconds': { $gte: 60 },
+          'progressRecords.lastAccessedAt': {
+            $gte: span.start.toISOString(),
+            $lt: span.end.toISOString(),
+          },
         },
       },
-    },
-    {
-      $group: {
-        _id: {
-          user: '$user',
-          day: { $substrBytes: ['$progressRecords.lastAccessedAt', 0, 10] },
+      {
+        $group: {
+          _id: {
+            user: '$user',
+            day: { $substrBytes: ['$progressRecords.lastAccessedAt', 0, 10] },
+          },
         },
       },
-    },
-    {
-      $project: {
-        _id: 0,
-        userId: { $toString: '$_id.user' },
-        date: '$_id.day',
+      {
+        $project: {
+          _id: 0,
+          userId: { $toString: '$_id.user' },
+          date: '$_id.day',
+        },
       },
-    },
-  )
-
-  return db.collection('user-progresses').aggregate<Row>(pipeline).toArray()
+    ])
+    .toArray()
 }
