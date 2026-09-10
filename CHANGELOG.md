@@ -4716,6 +4716,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Skip auth-required checks in prod smoke when no cookie provided ([#1195](https://github.com/A-Guy-educ/A-Guy-Web/pull/1195)) — @aguyshayb
 ## [v0.37.0] - 2026-09-10
 
 - promote: dev -> main (v0.37.0) ([#1194](https://github.com/A-Guy-educ/A-Guy-Web/pull/1194)) — @aguyshayb
