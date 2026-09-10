@@ -4707,6 +4707,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.36.0 ([#1188](https://github.com/A-Guy-educ/A-Guy-Web/pull/1188)) — @aguyshayb
 - feat: Product Health KPI slice + day period on dashboard-metrics ([#1187](https://github.com/A-Guy-educ/A-Guy-Web/pull/1187)) — @aguyshayb
 - fix: Stop labeling geometry and axis blocks in scroll view ([#1186](https://github.com/A-Guy-educ/A-Guy-Web/pull/1186)) — @aguyshayb
 - feat: Derive section labels from Payload section titles ([#1184](https://github.com/A-Guy-educ/A-Guy-Web/pull/1184)) — @aguyshayb
