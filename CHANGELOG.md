@@ -4707,6 +4707,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat(graphics): 1:1 aspect + optional schema fields (Admin PR #440 sync) ([#1190](https://github.com/A-Guy-educ/A-Guy-Web/pull/1190)) — @aguyshayb
 ## [v0.36.0] - 2026-09-10
 
 - promote: dev -> main (v0.36.0) ([#1189](https://github.com/A-Guy-educ/A-Guy-Web/pull/1189)) — @aguyshayb
