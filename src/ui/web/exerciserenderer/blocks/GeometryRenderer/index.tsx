@@ -1,9 +1,10 @@
 'use client'
 
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import type { GeometrySpecV1 } from '@/infra/contracts'
 import { renderGeometrySpec } from '../../graphics/geometryElements'
+import { computeBoardSize } from '@/infra/utils/graphics/board-sizing'
 
 const JSXGraphBoard = dynamic(
   () => import('../../graphics/JSXGraphBoard').then((m) => ({ default: m.JSXGraphBoard })),
@@ -32,12 +33,45 @@ export function GeometryRenderer({ blockId, spec }: GeometryRendererProps) {
     [canvas.boundingBox, canvas.width, canvas.height],
   )
 
+  // Size the container to match the bounding box aspect ratio so 1 unit on
+  // x and 1 unit on y produce the same pixel length. Without this the
+  // container was left at canvas.width × canvas.height and CSS max-width
+  // stretched it to whatever the parent gave — unit circles rendered as
+  // ~1.2:1 ellipses on the default 600×400 canvas.
+  const [bbXMin, bbYMax, bbXMax, bbYMin] = boundingBox
+  const xRange = Math.abs(bbXMax - bbXMin)
+  const yRange = Math.abs(bbYMax - bbYMin)
+
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [dimensions, setDimensions] = useState({ width: canvas.width, height: canvas.height })
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+    const recompute = () => {
+      const size = computeBoardSize({
+        xRange,
+        yRange,
+        availableWidth: container.clientWidth,
+        maxWidth: canvas.width,
+        maxHeight: canvas.height,
+        minWidth: Math.min(200, canvas.width),
+        minHeight: Math.min(200, canvas.height),
+      })
+      setDimensions(size)
+    }
+    recompute()
+    const observer = new ResizeObserver(recompute)
+    observer.observe(container)
+    return () => observer.disconnect()
+  }, [xRange, yRange, canvas.width, canvas.height])
+
   return (
-    <div className="my-4 flex justify-center">
+    <div className="my-4 flex justify-center" ref={containerRef}>
       <JSXGraphBoard
         id={blockId}
-        width={canvas.width}
-        height={canvas.height}
+        width={dimensions.width}
+        height={dimensions.height}
         boundingBox={boundingBox}
         showGrid={canvas.grid ?? false}
         showAxis={canvas.axis ?? false}
