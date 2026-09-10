@@ -42,6 +42,13 @@ let prerequisiteLessonSlug: string
 /** A lesson that has a prerequisite set */
 let lessonWithPrerequisiteId: string
 let lessonWithPrerequisiteSlug: string
+/** Course that is intentionally inactive — exercises the lenient populate chain */
+let inactiveCourseId: string
+/** Chapter that points to the inactive course */
+let inactiveCourseChapterId: string
+/** Lesson whose course is inactive — must still be findable via queryLessonBySlug */
+let lessonInInactiveCourseId: string
+let lessonInInactiveCourseSlug: string
 
 const TENANT_SLUG = `lesson-intro-test-tenant-${Date.now()}`
 
@@ -69,6 +76,9 @@ beforeAll(async () => {
   const pdfLessonObjectId = new ObjectId()
   const prerequisiteLessonObjectId = new ObjectId()
   const lessonWithPrerequisiteObjectId = new ObjectId()
+  const inactiveCourseObjectId = new ObjectId()
+  const inactiveCourseChapterObjectId = new ObjectId()
+  const lessonInInactiveCourseObjectId = new ObjectId()
 
   courseId = courseObjectId.toString()
   chapterId = chapterObjectId.toString()
@@ -84,6 +94,10 @@ beforeAll(async () => {
   prerequisiteLessonSlug = `prerequisite-lesson-${timestamp}`
   lessonWithPrerequisiteId = lessonWithPrerequisiteObjectId.toString()
   lessonWithPrerequisiteSlug = `lesson-with-prereq-${timestamp}`
+  inactiveCourseId = inactiveCourseObjectId.toString()
+  inactiveCourseChapterId = inactiveCourseChapterObjectId.toString()
+  lessonInInactiveCourseId = lessonInInactiveCourseObjectId.toString()
+  lessonInInactiveCourseSlug = `lesson-inactive-course-${timestamp}`
 
   await db.collection('tenants').insertOne({
     _id: tenantObjectId,
@@ -240,6 +254,54 @@ beforeAll(async () => {
     contentFiles: [],
     prerequisites: [prerequisiteLessonObjectId],
   })
+
+  // Course that is intentionally inactive — exercises the lenient populate chain
+  // so the lesson page still renders when its course is not published+active.
+  await db.collection('courses').insertOne({
+    _id: inactiveCourseObjectId,
+    courseLabel: `LI-INACTIVE-${timestamp}`,
+    title: `LessonIntro Inactive Course ${timestamp}`,
+    slug: `lesson-intro-inactive-course-${timestamp}`,
+    status: 'draft',
+    categories: [categoryObjectId],
+    tenant: tenantObjectId,
+    accessType: 'free',
+    contentStatus: 'none',
+    contentStatusVisible: true,
+    isActive: false,
+  })
+
+  await db.collection('chapters').insertOne({
+    _id: inactiveCourseChapterObjectId,
+    title: `LessonIntro Inactive Chapter ${timestamp}`,
+    chapterLabel: `LI-INACTIVE-${timestamp}`,
+    slug: `lesson-intro-inactive-chapter-${timestamp}`,
+    course: inactiveCourseObjectId,
+    order: 0,
+    status: 'draft',
+    isActive: false,
+    tenant: tenantObjectId,
+    locale: 'he',
+  })
+
+  // Lesson in the inactive course — its own status is published+active,
+  // so it must be findable via queryLessonBySlug regardless of the course's state.
+  await db.collection('lessons').insertOne({
+    _id: lessonInInactiveCourseObjectId,
+    title: `Lesson In Inactive Course ${timestamp}`,
+    slug: lessonInInactiveCourseSlug,
+    chapter: inactiveCourseChapterObjectId,
+    type: 'learning',
+    order: 1,
+    status: 'published',
+    isActive: true,
+    tenant: tenantObjectId,
+    locale: 'he',
+    accessType: 'inherit',
+    contentStatus: 'none',
+    contentStatusVisible: true,
+    contentFiles: [],
+  })
 }, 120_000)
 
 afterAll(async () => {
@@ -251,13 +313,18 @@ afterAll(async () => {
         pdfLessonId,
         prerequisiteLessonId,
         lessonWithPrerequisiteId,
+        lessonInInactiveCourseId,
       ].map((id) => new ObjectId(id)),
     },
   })
   await db?.collection('media').deleteOne({ _id: new ObjectId(mediaFileId) })
   await db?.collection('content-pages').deleteOne({ _id: new ObjectId(contentPageId) })
-  await db?.collection('chapters').deleteOne({ _id: new ObjectId(chapterId) })
-  await db?.collection('courses').deleteOne({ _id: new ObjectId(courseId) })
+  await db?.collection('chapters').deleteMany({
+    _id: { $in: [chapterId, inactiveCourseChapterId].map((id) => new ObjectId(id)) },
+  })
+  await db?.collection('courses').deleteMany({
+    _id: { $in: [courseId, inactiveCourseId].map((id) => new ObjectId(id)) },
+  })
   await db?.collection('categories').deleteOne({ _id: new ObjectId(categoryId) })
   await db?.collection('tenants').deleteOne({ slug: TENANT_SLUG })
 
@@ -412,5 +479,33 @@ describe('LessonIntroPage data layer', () => {
     expect(lesson).not.toBeNull()
     expect(lesson?.id).toBe(prerequisiteLessonId)
     expect(lesson?.prerequisites ?? []).toHaveLength(0)
+  })
+
+  it('queryLessonBySlug returns the lesson even when its course is inactive (F1 fix)', async () => {
+    // Regression test for the QA finding (issue #714 F1): the lesson start
+    // page must render even when the lesson's chapter or course is not strictly
+    // published+active. The lesson itself was filtered by visibleContentFilter
+    // in queryLessonBySlug — that's the only visibility gate the public page
+    // should care about. populateLesson must NOT bail out when chapter/course
+    // publication state differs from the lesson's own.
+    const lesson = await queryLessonBySlug({ slug: lessonInInactiveCourseSlug })
+    expect(lesson).not.toBeNull()
+    expect(lesson?.id).toBe(lessonInInactiveCourseId)
+
+    // Chapter should still be populated — its existence is required.
+    const chapter = lesson && typeof lesson.chapter === 'object' ? lesson.chapter : null
+    expect(chapter).not.toBeNull()
+    expect(chapter?.id).toBe(inactiveCourseChapterId)
+
+    // The chapter's course field falls back to the course ID string when the
+    // course lookup fails (here because the course is draft + inactive).
+    // relationId normalizes both populated and string forms to a string ID.
+    const chapterCourseId =
+      chapter && typeof chapter.course === 'object'
+        ? chapter.course.id
+        : typeof chapter?.course === 'string'
+          ? chapter.course
+          : null
+    expect(chapterCourseId).toBe(inactiveCourseId)
   })
 })
