@@ -4716,6 +4716,8 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+## [v0.37.0] - 2026-09-10
+
 - promote: dev -> main (v0.37.0) ([#1194](https://github.com/A-Guy-educ/A-Guy-Web/pull/1194)) — @aguyshayb
 - chore: Release v0.37.0 ([#1193](https://github.com/A-Guy-educ/A-Guy-Web/pull/1193)) — @aguyshayb
 - fix: One badge per section, not per question ([#1192](https://github.com/A-Guy-educ/A-Guy-Web/pull/1192)) — @aguyshayb
