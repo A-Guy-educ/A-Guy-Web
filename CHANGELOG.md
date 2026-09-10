@@ -4707,6 +4707,8 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+## [v0.36.0] - 2026-09-10
+
 - promote: dev -> main (v0.36.0) ([#1189](https://github.com/A-Guy-educ/A-Guy-Web/pull/1189)) — @aguyshayb
 - chore: Release v0.36.0 ([#1188](https://github.com/A-Guy-educ/A-Guy-Web/pull/1188)) — @aguyshayb
 - feat: Product Health KPI slice + day period on dashboard-metrics ([#1187](https://github.com/A-Guy-educ/A-Guy-Web/pull/1187)) — @aguyshayb
