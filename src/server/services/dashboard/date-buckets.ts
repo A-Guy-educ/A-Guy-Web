@@ -59,6 +59,10 @@ function ymd(date: Date): string {
 function periodStartFor(now: Date, period: Period): Date {
   const d = new Date(now)
   d.setHours(0, 0, 0, 0)
+  // 'day' → today at 00:00: `registeredThisMonth`-style fields anchored on
+  // periodStart cover the last 24h. Matches Dash PR #17's Day/Week/Month/Year
+  // period picker on the Users tab.
+  if (period === 'day') return d
   if (period === 'week') d.setDate(d.getDate() - 7)
   else if (period === 'month') d.setMonth(d.getMonth() - 1)
   else d.setFullYear(d.getFullYear() - 1)

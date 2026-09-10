@@ -15,8 +15,8 @@
  *   - rich_text                  -> paragraph
  *   - latex                      -> rendered via LatexBlockRenderer (hideLatexBlocks prop controls visibility)
  *   - svg / media                -> figure
- *   - question_geometry          -> Hebrew label + prompt + diagram side-by-side via GraphWithPrompt
- *   - question_axis              -> Hebrew label + prompt + diagram side-by-side via GraphWithPrompt
+ *   - question_geometry          -> prompt + diagram side-by-side via GraphWithPrompt (unlabeled — companion of a nearby question)
+ *   - question_axis              -> prompt + diagram side-by-side via GraphWithPrompt (unlabeled — companion of a nearby question)
  *   - question_multi_axis        -> prompt above/below grid of diagrams
  *   - question_select(true_false)-> Hebrew label + prompt + bulleted choice list (empty checkboxes)
  *   - question_select(mcq)       -> Hebrew label + prompt + bulleted choice list (empty radios)
@@ -43,7 +43,7 @@ import { GraphWithPrompt } from '../blocks/GraphWithPrompt'
 import { MultiAxisRenderer } from '../blocks/MultiAxisRenderer'
 import { LatexBlockRenderer } from '../blocks/LatexBlockRenderer'
 import { getMediaUrl } from '@/infra/utils/getMediaUrl'
-import { HEBREW_LETTERS } from '../constants'
+import { computeQuestionLabels } from '@/lib/exercises/computeSectionLabels'
 import type { Media } from '@/infra/types/content'
 import type {
   ContentBlock,
@@ -99,8 +99,14 @@ export function ExerciseWorksheet({
   //   - RTL -> text on the right, diagram on the left -> 'textRight'
   const sideBySideLayout: GraphLayout = isRtl ? 'textRight' : 'textLeft'
 
-  // Track question index for Hebrew letter labels (RTL only)
-  let questionIndex = 0
+  // Section-aware labels keyed by block id — matches ExerciseRenderer's
+  // `סעיף X` scheme. Uses the default (interactive) question set so
+  // geometry / axis diagrams stay unlabeled companions of a nearby
+  // question instead of getting their own auto-incremented badge (which
+  // legacy per-block worksheet code did, before section collections
+  // existed — a `question_geometry` between two `question_select`s
+  // would appear as its own `א.` / `ב.` unit in the scroll view).
+  const questionLabels = computeQuestionLabels(groups, isRtl)
 
   return (
     <MediaMapProvider value={mediaMap}>
@@ -108,15 +114,15 @@ export function ExerciseWorksheet({
         {groups.map((group, groupIdx) => {
           const groupNodes: React.ReactNode[] = []
           group.blocks.forEach((block, blockIdx) => {
-            const { block: renderedBlock, incremented } = renderBlockWithLabel({
+            const label = questionLabels.get((block as { id?: string }).id ?? '')
+            const renderedBlock = renderBlockWithLabel({
               block,
               mediaMap,
               sideBySideLayout,
               isRtl,
-              questionIndex,
+              label,
               hideLatexBlocks,
             })
-            if (incremented) questionIndex++
             groupNodes.push(
               <React.Fragment key={getBlockKey(block, blockIdx)}>{renderedBlock}</React.Fragment>,
             )
@@ -132,14 +138,18 @@ function getBlockKey(block: ContentBlock, index: number): string {
   return 'id' in block && block.id ? block.id : `block_${index}`
 }
 
-/** Question types that receive Hebrew letter labels */
+/**
+ * Question types that receive a Hebrew letter badge in the printed
+ * worksheet. Kept in lockstep with `computeQuestionLabels`'s default
+ * (interactive) set — geometry / axis diagrams stay unlabeled companions
+ * of a nearby question, matching the interactive view and avoiding the
+ * stray badge next to a graph that legacy per-block worksheet code emitted.
+ */
 const LABELLED_QUESTION_TYPES = new Set([
   'question_select',
   'question_free_response',
   'question_table',
   'question_matching',
-  'question_geometry',
-  'question_axis',
 ])
 
 interface RenderBlockParams {
@@ -147,44 +157,35 @@ interface RenderBlockParams {
   mediaMap: Record<string, Media>
   sideBySideLayout: GraphLayout
   isRtl: boolean
-  questionIndex: number
+  /** Pre-computed section-aware label (`א`, `ד3`, `א1`, ...). Undefined for non-question blocks or when the block escaped the label map. */
+  label: string | undefined
   hideLatexBlocks: boolean
 }
 
 /**
- * Renders a block and returns it with a Hebrew question label if applicable.
- * Returns { block: ReactNode, incremented: boolean } where incremented indicates
- * whether the question index was used (so the caller can increment the counter).
+ * Renders a block and, when it's a labelled question type, wraps it with the
+ * pre-computed section-aware label badge.
  */
 function renderBlockWithLabel({
   block,
   mediaMap,
   sideBySideLayout,
   isRtl,
-  questionIndex,
+  label,
   hideLatexBlocks,
-}: RenderBlockParams): { block: React.ReactNode; incremented: boolean } {
+}: RenderBlockParams): React.ReactNode {
   const isLabelledQuestion = LABELLED_QUESTION_TYPES.has(block.type)
 
-  if (isLabelledQuestion) {
-    const label = isRtl
-      ? `${HEBREW_LETTERS[questionIndex] || String(questionIndex + 1)}.`
-      : `${questionIndex + 1}.`
+  if (isLabelledQuestion && label) {
     const inner = renderBlockContent({ block, mediaMap, sideBySideLayout, hideLatexBlocks })
-    return {
-      block: (
-        <WorksheetQuestionLabel label={label} dir={isRtl ? 'rtl' : 'ltr'}>
-          {inner}
-        </WorksheetQuestionLabel>
-      ),
-      incremented: true,
-    }
+    return (
+      <WorksheetQuestionLabel label={`${label}.`} dir={isRtl ? 'rtl' : 'ltr'}>
+        {inner}
+      </WorksheetQuestionLabel>
+    )
   }
 
-  return {
-    block: renderBlockContent({ block, mediaMap, sideBySideLayout, hideLatexBlocks }),
-    incremented: false,
-  }
+  return renderBlockContent({ block, mediaMap, sideBySideLayout, hideLatexBlocks })
 }
 
 /** Renders the content of a single block (no label) */
@@ -193,7 +194,7 @@ function renderBlockContent({
   mediaMap,
   sideBySideLayout,
   hideLatexBlocks,
-}: Omit<RenderBlockParams, 'isRtl' | 'questionIndex'>): React.ReactNode {
+}: Omit<RenderBlockParams, 'isRtl' | 'label'>): React.ReactNode {
   if (block.type === 'latex') {
     if (hideLatexBlocks) return null
     return <LatexBlockRenderer block={block as import('@/infra/types/exercise').LatexBlock} />

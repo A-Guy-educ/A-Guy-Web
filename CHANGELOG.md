@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.36.0 — 2026-09-10
+
+### Features
+- Add Product Health KPI slice to dashboard-metrics (#1187)
+- Add day period and eligible-users domain exclusion (#1187)
+- Derive section labels from Payload section titles (#1184)
+
+### Fixes
+- Move getContentDb call out of dashboard-metrics route (#1187)
+- Stop labeling geometry and axis blocks in scroll view (#1186)
+- Address section-label review findings (#1184)
+
+### Chores
+- Bump next to 15.5.24 and sharp to 0.35.4 for CVEs (#1185)
+
 ## v0.35.0 — 2026-09-08
 
 ### Features
@@ -4692,6 +4707,14 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.36.0 ([#1188](https://github.com/A-Guy-educ/A-Guy-Web/pull/1188)) — @aguyshayb
+- feat: Product Health KPI slice + day period on dashboard-metrics ([#1187](https://github.com/A-Guy-educ/A-Guy-Web/pull/1187)) — @aguyshayb
+- fix: Stop labeling geometry and axis blocks in scroll view ([#1186](https://github.com/A-Guy-educ/A-Guy-Web/pull/1186)) — @aguyshayb
+- feat: Derive section labels from Payload section titles ([#1184](https://github.com/A-Guy-educ/A-Guy-Web/pull/1184)) — @aguyshayb
+- chore: Bump next to 15.5.24 and sharp to 0.35.4 (Fast Gate CVEs) ([#1185](https://github.com/A-Guy-educ/A-Guy-Web/pull/1185)) — @aguyshayb
+## [v0.35.0] - 2026-09-08
+
+- promote: dev -> main (v0.35.0) ([#1183](https://github.com/A-Guy-educ/A-Guy-Web/pull/1183)) — @aguyshayb
 - chore: Release v0.35.0 ([#1182](https://github.com/A-Guy-educ/A-Guy-Web/pull/1182)) — @aguyshayb
 - feat: Wire guest-session write path for anonymous visitors ([#1181](https://github.com/A-Guy-educ/A-Guy-Web/pull/1181)) — @aguyshayb
 - feat: Capture signup source and expose dashboard breakdown ([#1180](https://github.com/A-Guy-educ/A-Guy-Web/pull/1180)) — @aguyshayb

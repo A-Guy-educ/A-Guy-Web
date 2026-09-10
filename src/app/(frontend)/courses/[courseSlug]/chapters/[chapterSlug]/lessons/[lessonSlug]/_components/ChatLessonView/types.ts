@@ -52,6 +52,20 @@ export interface ExerciseSectionEntry extends EntryBase {
   group: ExerciseBlockGroup
   /** Number of question blocks in the group; 0 for intro-only groups. */
   questionCount: number
+  /**
+   * Exercise-wide section label (`א`, `ד3`, …). Used for the AI-context
+   * header ("סעיף X") and matches the label of the section's first
+   * question card. Empty string for preamble-only entries.
+   */
+  sectionLabel: string
+  /**
+   * Exercise-wide `block.id → label` map computed once by the walker.
+   * Passed to `ExerciseSectionBubble` (and through to `ExerciseRenderer`)
+   * so labels stay consistent across bubbles and untitled multi-question
+   * sections keep their per-question `א/ב/ג` numbering instead of
+   * restarting at `א` per rendered group.
+   */
+  questionLabels: Map<string, string>
 }
 
 /**

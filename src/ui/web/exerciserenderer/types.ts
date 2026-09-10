@@ -293,4 +293,14 @@ export interface ExerciseRendererProps {
    * no-op. Set `true` only when a chat surface is on the page.
    */
   showNotebook?: boolean
+  /**
+   * Optional `block.id → label` map that overrides the internally-computed
+   * question labels. Passed by callers that render a subset of an
+   * exercise's groups (e.g. `ExerciseSectionBubble`, which hands the
+   * renderer a single group but needs exercise-wide labels — the running
+   * counter would otherwise restart at `א` per bubble and untitled multi-
+   * question sections would collapse). Superset maps are safe; entries
+   * for blocks the renderer doesn't render are ignored.
+   */
+  questionLabelsOverride?: Map<string, string>
 }

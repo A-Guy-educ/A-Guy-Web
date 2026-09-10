@@ -181,7 +181,7 @@ describe('getExerciseBlockGroups', () => {
     }
 
     const groups = getExerciseBlockGroups(exercise)
-    expect(groups).toEqual([{ sectionIndex: 0, blocks: [block('s1-a')] }])
+    expect(groups).toEqual([{ sectionIndex: 0, blocks: [block('s1-a')], title: null }])
   })
 
   it('numbers section groups in playlist order starting at 0', () => {
@@ -201,8 +201,8 @@ describe('getExerciseBlockGroups', () => {
     const groups = getExerciseBlockGroups(exercise)
     expect(groups).toEqual([
       { sectionIndex: null, blocks: [block('own-1')] },
-      { sectionIndex: 0, blocks: [block('s2-a'), block('s2-b')] },
-      { sectionIndex: 1, blocks: [block('s1-a')] },
+      { sectionIndex: 0, blocks: [block('s2-a'), block('s2-b')], title: null },
+      { sectionIndex: 1, blocks: [block('s1-a')], title: null },
     ])
   })
 
@@ -221,9 +221,9 @@ describe('getExerciseBlockGroups', () => {
     const groups = getExerciseBlockGroups(exercise)
     expect(groups).toEqual([
       { sectionIndex: null, blocks: [block('own-1')] },
-      { sectionIndex: 0, blocks: [block('s1-a')] },
-      { sectionIndex: 1, blocks: [block('s2-a')] },
-      { sectionIndex: 2, blocks: [block('s3-a')] },
+      { sectionIndex: 0, blocks: [block('s1-a')], title: null },
+      { sectionIndex: 1, blocks: [block('s2-a')], title: null },
+      { sectionIndex: 2, blocks: [block('s3-a')], title: null },
     ])
   })
 
