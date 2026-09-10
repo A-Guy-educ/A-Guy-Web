@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.36.0 — 2026-09-10
+
+### Features
+- Add Product Health KPI slice to dashboard-metrics (#1187)
+- Add day period and eligible-users domain exclusion (#1187)
+- Derive section labels from Payload section titles (#1184)
+
+### Fixes
+- Move getContentDb call out of dashboard-metrics route (#1187)
+- Stop labeling geometry and axis blocks in scroll view (#1186)
+- Address section-label review findings (#1184)
+
+### Chores
+- Bump next to 15.5.24 and sharp to 0.35.4 for CVEs (#1185)
+
 ## v0.35.0 — 2026-09-08
 
 ### Features
