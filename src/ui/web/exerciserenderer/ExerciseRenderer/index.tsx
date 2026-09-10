@@ -690,11 +690,12 @@ export function ExerciseRenderer({
     // Question blocks - render with answer UI
     const question = block as QuestionBlock
 
-    // Section-aware label from the pre-computed map (`א`, `ד3`, `א1`, ...).
-    // Falls back to the numeric position when a block somehow escaped the
-    // map (defensive — computeQuestionLabels covers every question block
-    // that appears in `groups`).
-    const questionLabel = questionLabels.get(question.id) ?? String(nextIndex)
+    // Section-aware label from the pre-computed map (`א`, `ד3`, ...).
+    // `computeQuestionLabels` only stamps the FIRST question in each
+    // section, so multi-question sections show one badge and the rest of
+    // the cards flow under it unlabeled — `undefined` tells QuestionCard
+    // to skip its badge slot.
+    const questionLabel = questionLabels.get(question.id)
 
     const answer = answers[question.id] ?? getInitialAnswer(question)
     const checkResult = checkResults[question.id] || null
@@ -881,13 +882,17 @@ export function ExerciseRenderer({
               <p className="text-body-xs text-muted-foreground">
                 {correctCount} / {totalQuestions} נכון
               </p>
-              {/* Dot indicators — one per question */}
+              {/* Dot indicators — one per question. Uses a running 1..N
+                  index (not the section letter) so multi-question sections
+                  don't collapse to identical dots — the section letter is
+                  a section-scoped anchor, whereas dots are a per-question
+                  progress readout. */}
               <div className="flex items-center gap-1.5">
                 {questionBlocks.map((q, i) => {
                   const result = checkResults[q.id]
                   const isCorrect = result?.isCorrect
                   const isChecked = !!result
-                  const qLabel = questionLabels.get(q.id) ?? String(i + 1)
+                  const qLabel = String(i + 1)
                   return (
                     <div
                       key={q.id}

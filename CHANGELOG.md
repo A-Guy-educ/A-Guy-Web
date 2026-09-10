@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.37.0 — 2026-09-10
+
+### Features
+- 1:1 aspect ratio and optional schema fields on axis (Admin PR #440 sync) (#1190)
+
+### Fixes
+- Remove padding around geometry and axis boards (#1191)
+- One badge per section, not per question (#1192)
+
 ## v0.36.0 — 2026-09-10
 
 ### Features
@@ -4707,6 +4716,13 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.37.0 ([#1193](https://github.com/A-Guy-educ/A-Guy-Web/pull/1193)) — @aguyshayb
+- fix: One badge per section, not per question ([#1192](https://github.com/A-Guy-educ/A-Guy-Web/pull/1192)) — @aguyshayb
+- fix(graphics): Remove padding around geometry and axis boards ([#1191](https://github.com/A-Guy-educ/A-Guy-Web/pull/1191)) — @aguyshayb
+- feat(graphics): 1:1 aspect + optional schema fields (Admin PR #440 sync) ([#1190](https://github.com/A-Guy-educ/A-Guy-Web/pull/1190)) — @aguyshayb
+## [v0.36.0] - 2026-09-10
+
+- promote: dev -> main (v0.36.0) ([#1189](https://github.com/A-Guy-educ/A-Guy-Web/pull/1189)) — @aguyshayb
 - chore: Release v0.36.0 ([#1188](https://github.com/A-Guy-educ/A-Guy-Web/pull/1188)) — @aguyshayb
 - feat: Product Health KPI slice + day period on dashboard-metrics ([#1187](https://github.com/A-Guy-educ/A-Guy-Web/pull/1187)) — @aguyshayb
 - fix: Stop labeling geometry and axis blocks in scroll view ([#1186](https://github.com/A-Guy-educ/A-Guy-Web/pull/1186)) — @aguyshayb

@@ -72,21 +72,23 @@ function autoLetter(idx: number, isHebrew: boolean): string {
 }
 
 /**
- * Map from `block.id` → the label that renderers stamp on each question
- * card. Two schemes coexist inside the same running counter:
+ * Map from `block.id` → the section-letter badge for that block. One
+ * label per SECTION, stamped only on the FIRST gradable question in the
+ * section — every other block in the same section (including additional
+ * question cards) renders WITHOUT a badge, visually flowing beneath the
+ * first card's label. This matches the "a section can have 4 blocks and
+ * they all sit under the same label" spec: a section with 3 selects
+ * shows one `א` badge on the first card, not `א1/א2/א3`.
  *
- * - **Titled section** (`title` matches `סעיף X`): all questions in the
- *   section share the base X. A single question renders as `X`; multiple
- *   questions render as `X1`, `X2`, … so chat can still reference a
- *   specific one. The counter then advances past X's base letter so the
- *   next untitled section doesn't collide with the parent letter (`ד3`
- *   pushes the next auto to `ה`, not `ד`).
+ * - **Titled section** (`title` matches `סעיף X`): first question in the
+ *   section carries `X` verbatim (e.g. `ד3` for a subsection). The
+ *   counter then advances past X's base letter so the next untitled
+ *   section doesn't collide with the parent (`ד3` pushes the next auto
+ *   to `ה`, not `ד`).
  *
- * - **Untitled section / legacy preamble** (any group with no `סעיף X`
- *   title): each question consumes one auto-letter. Matches the pre-
- *   change per-question counter so legacy exercises whose questions live
- *   directly in `exercise.content.blocks` still show `א/ב/ג` and multi-
- *   question untitled sections don't collapse to `א1/א2`.
+ * - **Untitled section / legacy preamble**: first question carries the
+ *   next auto-letter; the counter advances by one per section, not per
+ *   question.
  *
  * `questionTypes` narrows which block types count as questions. The
  * default (`INTERACTIVE_QUESTION_TYPES`) matches every current renderer
@@ -104,21 +106,13 @@ export function computeQuestionLabels(
     const questions = group.blocks.filter((b) => isQuestionBlock(b, questionTypes))
     if (questions.length === 0) continue
     const explicit = group.sectionIndex !== null ? parseExplicitLabel(group.title) : null
+    const sectionLabel = explicit ?? autoLetter(counter, isHebrew)
+    const firstId = (questions[0] as { id?: string }).id
+    if (firstId) map.set(firstId, sectionLabel)
     if (explicit !== null) {
-      questions.forEach((q, qIdx) => {
-        const id = (q as { id?: string }).id
-        if (!id) return
-        const label = questions.length === 1 ? explicit : `${explicit}${qIdx + 1}`
-        map.set(id, label)
-      })
       const baseIdx = baseLetterIndex(explicit)
       if (baseIdx >= 0 && baseIdx + 1 > counter) counter = baseIdx + 1
-      continue
-    }
-    for (const q of questions) {
-      const id = (q as { id?: string }).id
-      if (!id) continue
-      map.set(id, autoLetter(counter, isHebrew))
+    } else {
       counter += 1
     }
   }
