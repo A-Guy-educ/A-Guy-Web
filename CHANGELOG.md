@@ -4716,6 +4716,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.37.0 ([#1193](https://github.com/A-Guy-educ/A-Guy-Web/pull/1193)) — @aguyshayb
 - fix: One badge per section, not per question ([#1192](https://github.com/A-Guy-educ/A-Guy-Web/pull/1192)) — @aguyshayb
 - fix(graphics): Remove padding around geometry and axis boards ([#1191](https://github.com/A-Guy-educ/A-Guy-Web/pull/1191)) — @aguyshayb
 - feat(graphics): 1:1 aspect + optional schema fields (Admin PR #440 sync) ([#1190](https://github.com/A-Guy-educ/A-Guy-Web/pull/1190)) — @aguyshayb
