@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.37.0 — 2026-09-10
+
+### Features
+- 1:1 aspect ratio and optional schema fields on axis (Admin PR #440 sync) (#1190)
+
+### Fixes
+- Remove padding around geometry and axis boards (#1191)
+- One badge per section, not per question (#1192)
+
 ## v0.36.0 — 2026-09-10
 
 ### Features
