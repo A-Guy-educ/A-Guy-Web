@@ -72,9 +72,9 @@ export function AxisRenderer({ blockId, spec, displaySize = 'full' }: AxisRender
         yRange: viewportSize.yRange,
         availableWidth,
         proportion,
-        maxWidth: 600,
-        maxHeight: 600,
-        minWidth: 200,
+        maxWidth: availableWidth,
+        maxHeight: Number.POSITIVE_INFINITY,
+        minWidth: Math.min(200, availableWidth),
         minHeight: 200,
       })
       setDimensions(size)
@@ -86,11 +86,8 @@ export function AxisRenderer({ blockId, spec, displaySize = 'full' }: AxisRender
     return () => resizeObserver.disconnect()
   }, [displaySize, viewportSize.xRange, viewportSize.yRange, proportion])
 
-  // Determine container width style based on displaySize
-  const containerWidth = displaySize === 'full' ? 'w-full' : ''
-
   return (
-    <div className={`my-4 flex justify-center ${containerWidth}`} ref={containerRef}>
+    <div className="w-full" ref={containerRef}>
       <JSXGraphBoard
         id={blockId}
         width={dimensions.width}
