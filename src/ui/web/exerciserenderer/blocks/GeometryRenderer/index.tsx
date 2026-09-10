@@ -49,14 +49,15 @@ export function GeometryRenderer({ blockId, spec }: GeometryRendererProps) {
     const container = containerRef.current
     if (!container) return
     const recompute = () => {
+      const availableWidth = container.clientWidth
       const size = computeBoardSize({
         xRange,
         yRange,
-        availableWidth: container.clientWidth,
-        maxWidth: canvas.width,
-        maxHeight: canvas.height,
-        minWidth: Math.min(200, canvas.width),
-        minHeight: Math.min(200, canvas.height),
+        availableWidth,
+        maxWidth: availableWidth,
+        maxHeight: Number.POSITIVE_INFINITY,
+        minWidth: Math.min(200, availableWidth),
+        minHeight: 200,
       })
       setDimensions(size)
     }
@@ -64,10 +65,10 @@ export function GeometryRenderer({ blockId, spec }: GeometryRendererProps) {
     const observer = new ResizeObserver(recompute)
     observer.observe(container)
     return () => observer.disconnect()
-  }, [xRange, yRange, canvas.width, canvas.height])
+  }, [xRange, yRange])
 
   return (
-    <div className="my-4 flex justify-center" ref={containerRef}>
+    <div className="w-full" ref={containerRef}>
       <JSXGraphBoard
         id={blockId}
         width={dimensions.width}
