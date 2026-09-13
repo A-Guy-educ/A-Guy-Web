@@ -1,3 +1,3 @@
 # Context Extractions
 
-- [Context Extractions: Decoupled PDF-to-Exercise Storage](CONTEXT-EXTRACTIONS)
+- [Context Extractions: Decoupled PDF-to-Exercise Storage](./CONTEXT-EXTRACTIONS.md)
