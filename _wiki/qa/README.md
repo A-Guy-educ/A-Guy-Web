@@ -1,3 +1,3 @@
 # Qa
 
-- [Scenario-Driven QA Architecture for A-Guy Student Web App](student-qa-architecture)
+- [Scenario-Driven QA Architecture for A-Guy Student Web App](./student-qa-architecture.md)
