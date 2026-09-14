@@ -6,7 +6,8 @@
  *
  * Auth: HMAC over the sessionId with PAYLOAD_SECRET, sent as `x-signature`.
  * The route is on the public /api surface so signature verification is the
- * only thing preventing arbitrary callers from inflating the funnel.
+ * only thing preventing arbitrary callers from inflating the funnel — same
+ * shape as a signed webhook.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -19,6 +20,50 @@ import { recordGuestSession } from '@/server/services/guest-sessions/guest-sessi
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+interface VerifiedGuestSessionCallback {
+  ok: true
+  sessionId: string
+}
+
+interface RejectedGuestSessionCallback {
+  ok: false
+  status: 400 | 401
+}
+
+type GuestSessionCallbackResult = VerifiedGuestSessionCallback | RejectedGuestSessionCallback
+
+/**
+ * Verify the signed loopback payload from middleware. HMAC-over-sessionId
+ * with PAYLOAD_SECRET is the access boundary — no cookie, no bearer token.
+ * Every rejection collapses to a single opaque 401 for external callers.
+ */
+async function verifyGuestSessionWebhook(
+  request: NextRequest,
+  secret: string,
+): Promise<GuestSessionCallbackResult> {
+  const signature = request.headers.get('x-signature')
+  if (!signature) return { ok: false, status: 401 }
+
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return { ok: false, status: 400 }
+  }
+
+  const sessionId = (body as { sessionId?: unknown } | null)?.sessionId
+  if (typeof sessionId !== 'string' || !isValidGuestSessionId(sessionId)) {
+    return { ok: false, status: 400 }
+  }
+
+  const expected = await signGuestSessionId(sessionId, secret)
+  if (!timingSafeEqualHex(signature, expected)) {
+    return { ok: false, status: 401 }
+  }
+
+  return { ok: true, sessionId }
+}
+
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const secret = process.env.PAYLOAD_SECRET
   if (!secret) {
@@ -26,26 +71,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return new NextResponse(null, { status: 500 })
   }
 
-  const signature = request.headers.get('x-signature')
-  if (!signature) return new NextResponse(null, { status: 401 })
+  const result = await verifyGuestSessionWebhook(request, secret)
+  if (!result.ok) return new NextResponse(null, { status: result.status })
 
-  let body: unknown
-  try {
-    body = await request.json()
-  } catch {
-    return new NextResponse(null, { status: 400 })
-  }
-
-  const sessionId = (body as { sessionId?: unknown } | null)?.sessionId
-  if (typeof sessionId !== 'string' || !isValidGuestSessionId(sessionId)) {
-    return new NextResponse(null, { status: 400 })
-  }
-
-  const expected = await signGuestSessionId(sessionId, secret)
-  if (!timingSafeEqualHex(signature, expected)) {
-    return new NextResponse(null, { status: 401 })
-  }
-
-  await recordGuestSession(sessionId)
+  await recordGuestSession(result.sessionId)
   return new NextResponse(null, { status: 204 })
 }
