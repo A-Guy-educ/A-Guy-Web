@@ -9,6 +9,7 @@
 
 import { getContentDb } from '@/infra/db/content-db'
 
+import { fetchAdminUserRefs } from './admin-users'
 import {
   aggregateCourseEnrollments,
   aggregateGuestSessions,
@@ -34,6 +35,12 @@ export async function computeDashboardMetrics(period: Period): Promise<Dashboard
   await ensureDashboardIndexes(db)
 
   const buckets = computeDateBuckets(period)
+  // One lookup up-front so every downstream aggregation runs on the same
+  // exclusion set. lesson-stats top-N/session-time widgets can't honour
+  // this filter — those collections are pre-aggregated per lesson with no
+  // user reference, so any admin activity that already touched them stays
+  // baked in until a write-time guard lands separately.
+  const adminUserRefs = await fetchAdminUserRefs(db)
 
   const [
     userStats,
@@ -50,17 +57,17 @@ export async function computeDashboardMetrics(period: Period): Promise<Dashboard
     usersPerCourse,
     signupSourceBreakdown,
   ] = await Promise.all([
-    aggregateUserStats(db, buckets),
+    aggregateUserStats(db, buckets, adminUserRefs),
     aggregateUsers(db, buckets),
-    aggregateGuestSessions(db, buckets),
-    aggregateTransactions(db, buckets),
-    aggregateCourseEnrollments(db),
+    aggregateGuestSessions(db, buckets, adminUserRefs),
+    aggregateTransactions(db, buckets, adminUserRefs),
+    aggregateCourseEnrollments(db, adminUserRefs),
     aggregateLessonTypes(db),
     countSimpleContent(db),
     aggregateMonthlySignups(db),
     aggregateTopLessonsByOpens(db),
     aggregateSessionTimeByLessonType(db),
-    aggregateTokenMetrics(db),
+    aggregateTokenMetrics(db, adminUserRefs),
     aggregateUsersPerCurrentCourse(db),
     aggregateSignupSources(db, buckets),
   ])
