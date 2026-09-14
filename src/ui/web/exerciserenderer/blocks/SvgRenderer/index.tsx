@@ -5,6 +5,7 @@ import { cn } from '@/infra/utils/ui'
 import type { SvgBlock, CheckResult } from '../../types'
 import { RichTextRenderer } from '../RichTextRenderer'
 import { sanitizeSvg } from '../../utils/svgSanitize'
+import { expandViewBoxWhenReady } from '@/ui/web/media/SVGMedia/expandViewBoxToContent'
 
 interface SvgRendererProps {
   block: SvgBlock
@@ -59,6 +60,12 @@ export function SvgRenderer({
     }
     svg.setAttribute('width', '100%')
     svg.setAttribute('height', 'auto')
+
+    // Authored width/height often under-estimates the real extent of the
+    // rendered content (emoji <text>, wider-than-expected labels). Grow the
+    // viewBox to cover the actual bbox so `width="100%"` scale-up doesn't
+    // preserve a clip on the right/bottom edges.
+    expandViewBoxWhenReady(svg)
   }, [sanitizedSvg])
 
   const getHotspotState = useCallback(
