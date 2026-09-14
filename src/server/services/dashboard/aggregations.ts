@@ -18,6 +18,7 @@
 
 import { ObjectId, type Db, type Document } from 'mongodb'
 
+import type { AdminUserRefs } from './admin-users'
 import type {
   ContentCounts,
   CourseEnrollment,
@@ -71,6 +72,7 @@ interface UserStatsFacetResult {
 export async function aggregateUserStats(
   db: Db,
   buckets: DateBuckets,
+  adminUserRefs: AdminUserRefs,
 ): Promise<{
   active: {
     today: number
@@ -89,6 +91,11 @@ export async function aggregateUserStats(
   const [result] = (await db
     .collection('user-stats')
     .aggregate<UserStatsFacetResult>([
+      // Admins are excluded from every dashboard metric. user-stats stores
+      // the user relationship as either an ObjectId or its string form
+      // (see progress.ts `userFilter`); adminUserRefs.refs carries both
+      // encodings so $nin matches regardless of which shape the row used.
+      { $match: { user: { $nin: adminUserRefs.refs } } },
       {
         $facet: {
           activeToday: [{ $match: { lastActiveDate: buckets.todayStr } }, { $count: 'n' }],
@@ -272,6 +279,10 @@ export async function aggregateUsers(
   const [result] = (await db
     .collection('users')
     .aggregate<UsersFacetResult>([
+      // Admins are excluded from every dashboard metric. Filtering here
+      // keeps every sub-bucket in the $facet (total, registered*, etc.)
+      // consistent without having to repeat the predicate five times.
+      { $match: { role: { $ne: 'admin' } } },
       {
         $facet: {
           total: [{ $count: 'n' }],
@@ -365,7 +376,7 @@ export async function aggregateSignupSources(
   const rows = await db
     .collection('users')
     .aggregate<SignupSourceRow>([
-      { $match: { createdAt: { $gte: buckets.periodStart } } },
+      { $match: { createdAt: { $gte: buckets.periodStart }, role: { $ne: 'admin' } } },
       {
         $group: {
           _id: { $ifNull: ['$signupSource', 'unknown'] },
@@ -409,7 +420,7 @@ export async function aggregateMonthlySignups(db: Db): Promise<MonthlySignup[]> 
   const rows = await db
     .collection('users')
     .aggregate<MonthlySignupRow>([
-      { $match: { createdAt: { $gte: start } } },
+      { $match: { createdAt: { $gte: start }, role: { $ne: 'admin' } } },
       {
         $group: {
           _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
@@ -446,6 +457,7 @@ interface GuestsFacetResult {
 export async function aggregateGuestSessions(
   db: Db,
   buckets: DateBuckets,
+  adminUserRefs: AdminUserRefs,
 ): Promise<{
   total: number
   today: number
@@ -476,7 +488,14 @@ export async function aggregateGuestSessions(
             },
             { $count: 'n' },
           ],
-          converted: [{ $match: { claimedByUser: { $exists: true } } }, { $count: 'n' }],
+          // Only `converted` carries a user reference (`claimedByUser`);
+          // total/today/lastWeek/lastMonth count anonymous sessions and
+          // can't be filtered by role. Exclude admin claims so the
+          // guest→user conversion rate reflects real signups only.
+          converted: [
+            { $match: { claimedByUser: { $exists: true, $nin: adminUserRefs.refs } } },
+            { $count: 'n' },
+          ],
         },
       },
     ])
@@ -509,11 +528,20 @@ interface TransactionsFacetResult {
 
 const DEFAULT_CURRENCIES = ['ILS', 'USD', 'EUR']
 
-export async function aggregateTransactions(db: Db, buckets: DateBuckets): Promise<RevenueMetrics> {
+export async function aggregateTransactions(
+  db: Db,
+  buckets: DateBuckets,
+  adminUserRefs: AdminUserRefs,
+): Promise<RevenueMetrics> {
   const [result] = (await db
     .collection('transactions')
     .aggregate<TransactionsFacetResult>([
-      { $match: { createdAt: { $gte: buckets.periodStart } } },
+      {
+        $match: {
+          createdAt: { $gte: buckets.periodStart },
+          user: { $nin: adminUserRefs.refs },
+        },
+      },
       {
         $facet: {
           revenueByCurrency: [
@@ -617,7 +645,10 @@ interface CourseWithCountResult {
   activeEnrollmentCount: number
 }
 
-export async function aggregateCourseEnrollments(db: Db): Promise<CourseEnrollment[]> {
+export async function aggregateCourseEnrollments(
+  db: Db,
+  adminUserRefs: AdminUserRefs,
+): Promise<CourseEnrollment[]> {
   const rows = await db
     .collection('courses')
     .aggregate<CourseWithCountResult>([
@@ -630,6 +661,7 @@ export async function aggregateCourseEnrollments(db: Db): Promise<CourseEnrollme
               $match: {
                 $expr: { $eq: ['$course', '$$courseId'] },
                 status: 'active',
+                user: { $nin: adminUserRefs.refs },
               },
             },
             { $count: 'n' },
@@ -681,7 +713,12 @@ export async function aggregateUsersPerCurrentCourse(db: Db): Promise<UsersPerCo
   const rows = await db
     .collection('users')
     .aggregate<UsersPerCourseRow>([
-      { $match: { currentCourse: { $ne: null, $exists: true } } },
+      {
+        $match: {
+          currentCourse: { $ne: null, $exists: true },
+          role: { $ne: 'admin' },
+        },
+      },
       { $group: { _id: '$currentCourse', count: { $sum: 1 } } },
       { $sort: { count: -1 } },
       // Same headroom as aggregateCourseEnrollments — the widget shows
@@ -947,23 +984,40 @@ interface TokenUsageFacetResult {
   perLessonAvg: Array<{ avg: number }>
 }
 
-export async function aggregateTokenMetrics(db: Db): Promise<TokenMetrics> {
+export async function aggregateTokenMetrics(
+  db: Db,
+  adminUserRefs: AdminUserRefs,
+): Promise<TokenMetrics> {
   const now = new Date()
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
   const startOfYear = new Date(now.getFullYear(), 0, 1)
 
+  // llm-usage stores `userId` as a plain string (llm-usage.ts:150), so use
+  // the stringIds slice rather than the mixed refs list. `$nin: []` is a
+  // no-op when there are no admins, so this is safe when the list is empty.
+  const adminUserIdStrings = adminUserRefs.stringIds
   const [usageFacet] = (await db
     .collection('llm-usage')
     .aggregate<TokenUsageFacetResult>([
       {
         $facet: {
           today: [
-            { $match: { createdAt: { $gte: startOfToday } } },
+            {
+              $match: {
+                createdAt: { $gte: startOfToday },
+                userId: { $nin: adminUserIdStrings },
+              },
+            },
             { $group: { _id: null, total: { $sum: '$totalTokens' } } },
           ],
           thisMonth: [
-            { $match: { createdAt: { $gte: startOfMonth } } },
+            {
+              $match: {
+                createdAt: { $gte: startOfMonth },
+                userId: { $nin: adminUserIdStrings },
+              },
+            },
             {
               $group: {
                 _id: null,
@@ -974,7 +1028,12 @@ export async function aggregateTokenMetrics(db: Db): Promise<TokenMetrics> {
             { $project: { total: 1, users: { $size: '$users' } } },
           ],
           thisYear: [
-            { $match: { createdAt: { $gte: startOfYear } } },
+            {
+              $match: {
+                createdAt: { $gte: startOfYear },
+                userId: { $nin: adminUserIdStrings },
+              },
+            },
             { $group: { _id: null, total: { $sum: '$totalTokens' } } },
           ],
           // Top-lessons candidates. Limit is intentionally larger than the
@@ -985,6 +1044,7 @@ export async function aggregateTokenMetrics(db: Db): Promise<TokenMetrics> {
               $match: {
                 createdAt: { $gte: startOfMonth },
                 lessonId: { $ne: null },
+                userId: { $nin: adminUserIdStrings },
               },
             },
             {
@@ -1005,6 +1065,7 @@ export async function aggregateTokenMetrics(db: Db): Promise<TokenMetrics> {
               $match: {
                 createdAt: { $gte: startOfMonth },
                 lessonId: { $ne: null },
+                userId: { $nin: adminUserIdStrings },
               },
             },
             { $group: { _id: '$lessonId', total: { $sum: '$totalTokens' } } },
@@ -1072,7 +1133,11 @@ export async function aggregateTokenMetrics(db: Db): Promise<TokenMetrics> {
   const userRows = await db
     .collection('users')
     .find(
-      { llmTokensUsed: { $gt: 0 }, llmTokensResetAt: { $gt: now } },
+      {
+        llmTokensUsed: { $gt: 0 },
+        llmTokensResetAt: { $gt: now },
+        role: { $ne: 'admin' },
+      },
       {
         projection: { _id: 1, email: 1, name: 1, llmTokensUsed: 1 },
         sort: { llmTokensUsed: -1 },
