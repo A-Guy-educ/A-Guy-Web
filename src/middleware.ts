@@ -229,19 +229,20 @@ export function middleware(request: NextRequest) {
   const host = request.headers.get('host') || ''
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set('x-pathname', pathname)
-  // The layout treats this header as trust-me-it-came-from-middleware, so any
-  // client-supplied value has to be stripped before we decide whether to set
-  // our own — otherwise a caller can spoof it and trigger an unbounded
-  // recordGuestSession insert per request.
+  // No downstream consumer today (the layout used to read this and fire the
+  // insert itself). Strip anyway so nothing forged by a client leaks into
+  // any future reader.
   requestHeaders.delete(NEW_GUEST_SESSION_HEADER)
 
-  // Anonymous first-touch: decided before we return the response so the
-  // request header the layout reads is present on the same request. We only
-  // set the cookie/header — the DB insert fires in the root layout.
-  const newGuestSessionId = resolveNewGuestSessionId(request, pathname)
-  if (newGuestSessionId) {
-    requestHeaders.set(NEW_GUEST_SESSION_HEADER, newGuestSessionId)
-  }
+  // Anonymous first-touch: mint a session id, set the cookie on whatever
+  // response we return below (including redirects, via `applyGuestCookie`),
+  // and fire the DB insert via a signed loopback to the Node route so the
+  // write path doesn't depend on any downstream render.
+  //
+  // Skipped on the API host: those responses never carry the Set-Cookie
+  // header, so the row would be orphaned and unclaimable.
+  const trackingHost = !isPublicApiHost(host)
+  const newGuestSessionId = trackingHost ? resolveNewGuestSessionId(request, pathname) : null
 
   const response = NextResponse.next({
     request: {
@@ -252,11 +253,6 @@ export function middleware(request: NextRequest) {
   const guestCookie = newGuestSessionId ? buildGuestSessionCookieAttrs(request) : null
   if (newGuestSessionId && guestCookie) {
     response.cookies.set(GUEST_SESSION_COOKIE, newGuestSessionId, guestCookie)
-    // Fire the DB insert via a signed internal endpoint. The layout-based
-    // `after()` was flaky in production and lost every visitor whose first
-    // hit was a route that redirects (protected paths, /courses). Firing
-    // from middleware makes the write independent of what response we
-    // return below.
     after(() => triggerGuestSessionInsert(request, newGuestSessionId))
   }
 

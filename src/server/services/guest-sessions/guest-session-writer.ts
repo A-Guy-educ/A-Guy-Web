@@ -57,9 +57,10 @@ async function ensureSessionIdIndex(): Promise<void> {
  * that were actually claimed.
  */
 export async function recordGuestSession(sessionId: string): Promise<void> {
-  // Info-level so a hit shows up in Vercel logs. Cheap and short-lived —
-  // remove once the write path is proven stable in prod.
-  logger.info({ sessionId }, 'guest-sessions: recording')
+  // Debug-level: the sessionId is the exact value that later links an
+  // anonymous visit to a signup, so it doesn't belong in default prod logs.
+  // Set LOG_LEVEL=debug when actively diagnosing the write path.
+  logger.debug({ sessionId }, 'guest-sessions: recording')
   try {
     await ensureSessionIdIndex()
     const col = await collection()
