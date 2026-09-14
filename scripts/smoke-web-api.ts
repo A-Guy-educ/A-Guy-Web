@@ -107,117 +107,146 @@ function mongoUrlForDb(dbName: string) {
   return parsed.toString()
 }
 
-async function smokeTarget(target: SmokeTarget) {
-  const results: string[] = []
+const AUTH_CHECKS = ['quota', 'conversation', 'chat', 'validate-answer', 'media-upload'] as const
+const AUTH_DEPENDENT_CHECKS = ['media-file', 'pdf-viewer'] as const
+
+type TargetResult = {
+  passed: string[]
+  skipped: string[]
+}
+
+async function smokeTarget(target: SmokeTarget): Promise<TargetResult> {
+  const passed: string[] = []
+  const skipped: string[] = []
   const jsonHeaders = { 'Content-Type': 'application/json' }
+  const authCookie = process.env.SMOKE_AUTH_COOKIE || ''
+  const authHeaders = authCookie ? { Cookie: authCookie } : {}
 
-  let result = await jsonFetch(`${target.url}/api/agent/chat-quota`)
-  assertOk(result.response.ok, `${target.name}: chat quota returned ${result.response.status}`)
-  assertOk(record(result.json).allowed === true, `${target.name}: chat quota denied`)
-  results.push('quota')
+  if (!authCookie) {
+    // Auth-required endpoints (tightened by #941). Without a session cookie the
+    // whole paid-API chain 401s. Skip cleanly so we still surface regressions
+    // in the public endpoints below. Provide SMOKE_AUTH_COOKIE to run the full
+    // suite.
+    skipped.push(...AUTH_CHECKS, ...AUTH_DEPENDENT_CHECKS)
+  } else {
+    let result = await jsonFetch(`${target.url}/api/agent/chat-quota`, { headers: authHeaders })
+    assertOk(result.response.ok, `${target.name}: chat quota returned ${result.response.status}`)
+    assertOk(record(result.json).allowed === true, `${target.name}: chat quota denied`)
+    passed.push('quota')
 
-  const contextKey = `${runId}:${target.name}`
-  contextKeys.push({ ...target, contextKey })
-  result = await jsonFetch(`${target.url}/api/agent/conversation`, {
-    method: 'POST',
-    headers: jsonHeaders,
-    body: JSON.stringify({ contextKey }),
-  })
-  assertOk(result.response.ok, `${target.name}: conversation returned ${result.response.status}`)
-  assertOk(record(result.json).success === true, `${target.name}: conversation did not succeed`)
-  const cookie = result.response.headers.get('set-cookie')?.split(';')[0] || ''
-  results.push('conversation')
+    const contextKey = `${runId}:${target.name}`
+    contextKeys.push({ ...target, contextKey })
+    result = await jsonFetch(`${target.url}/api/agent/conversation`, {
+      method: 'POST',
+      headers: { ...jsonHeaders, ...authHeaders },
+      body: JSON.stringify({ contextKey }),
+    })
+    assertOk(result.response.ok, `${target.name}: conversation returned ${result.response.status}`)
+    assertOk(record(result.json).success === true, `${target.name}: conversation did not succeed`)
+    const conversationCookie = result.response.headers.get('set-cookie')?.split(';')[0] || ''
+    const chatCookie = [authCookie, conversationCookie].filter(Boolean).join('; ')
+    passed.push('conversation')
 
-  result = await jsonFetch(`${target.url}/api/agent/chat`, {
-    method: 'POST',
-    headers: { ...jsonHeaders, ...(cookie ? { Cookie: cookie } : {}) },
-    body: JSON.stringify({
-      contextKeyOverride: contextKey,
-      message: 'smoke test: say ok',
-      acknowledgment: 'ok',
-    }),
-  })
-  assertOk(result.response.ok, `${target.name}: chat returned ${result.response.status}`)
-  assertOk(record(result.json).success === true, `${target.name}: chat did not succeed`)
-  assertOk(typeof record(result.json).message === 'string', `${target.name}: chat returned no text`)
-  results.push('chat')
+    result = await jsonFetch(`${target.url}/api/agent/chat`, {
+      method: 'POST',
+      headers: { ...jsonHeaders, ...(chatCookie ? { Cookie: chatCookie } : {}) },
+      body: JSON.stringify({
+        contextKeyOverride: contextKey,
+        message: 'smoke test: say ok',
+        acknowledgment: 'ok',
+      }),
+    })
+    assertOk(result.response.ok, `${target.name}: chat returned ${result.response.status}`)
+    assertOk(record(result.json).success === true, `${target.name}: chat did not succeed`)
+    assertOk(
+      typeof record(result.json).message === 'string',
+      `${target.name}: chat returned no text`,
+    )
+    passed.push('chat')
 
-  result = await jsonFetch(`${target.url}/api/exercises/validate-answer`, {
-    method: 'POST',
-    headers: jsonHeaders,
-    body: JSON.stringify({
-      questionId: `${runId}-q`,
-      questionText: 'What is 2+2?',
-      acceptedAnswers: ['4'],
-      studentAnswer: '4',
-    }),
-  })
-  assertOk(result.response.ok, `${target.name}: answer check returned ${result.response.status}`)
+    result = await jsonFetch(`${target.url}/api/exercises/validate-answer`, {
+      method: 'POST',
+      headers: { ...jsonHeaders, ...authHeaders },
+      body: JSON.stringify({
+        questionId: `${runId}-q`,
+        questionText: 'What is 2+2?',
+        acceptedAnswers: ['4'],
+        studentAnswer: '4',
+      }),
+    })
+    assertOk(result.response.ok, `${target.name}: answer check returned ${result.response.status}`)
+    assertOk(
+      record(record(result.json).data).isCorrect === true,
+      `${target.name}: answer check failed`,
+    )
+    passed.push('validate-answer')
+
+    const form = new FormData()
+    form.append('file', new Blob([PDF_BYTES], { type: 'application/pdf' }), `${runId}.pdf`)
+    result = await jsonFetch(`${target.url}/api/media`, {
+      method: 'POST',
+      headers: authHeaders,
+      body: form,
+    })
+    const doc = record(record(result.json).doc)
+    assertOk(result.response.ok, `${target.name}: media upload returned ${result.response.status}`)
+    assertOk(typeof doc.id === 'string', `${target.name}: media upload returned no id`)
+    assertOk(typeof doc.filename === 'string', `${target.name}: media upload returned no filename`)
+    uploadedMedia.push({
+      ...target,
+      id: doc.id,
+      filename: doc.filename,
+      url: typeof doc.url === 'string' ? doc.url : undefined,
+    })
+    passed.push('media-upload')
+
+    const fileResponse = await fetch(
+      `${target.url}/api/media/file/${encodeURIComponent(doc.filename)}`,
+      {
+        redirect: 'manual',
+        signal: AbortSignal.timeout(30_000),
+      },
+    )
+    assertOk(
+      [200, 302, 307, 308].includes(fileResponse.status),
+      `${target.name}: media file returned ${fileResponse.status}`,
+    )
+    passed.push('media-file')
+
+    const viewerResponse = await fetch(
+      `${target.url}/api/pdfjs-viewer?file=${encodeURIComponent(`/api/media/file/${doc.filename}`)}`,
+      { signal: AbortSignal.timeout(30_000) },
+    )
+    const viewerText = await viewerResponse.text()
+    assertOk(viewerResponse.ok, `${target.name}: PDF viewer returned ${viewerResponse.status}`)
+    assertOk(
+      /pdf|viewer/i.test(viewerText),
+      `${target.name}: PDF viewer returned unexpected content`,
+    )
+    passed.push('pdf-viewer')
+  }
+
+  const teacherResult = await jsonFetch(`${target.url}/api/teacher-profiles`)
   assertOk(
-    record(record(result.json).data).isCorrect === true,
-    `${target.name}: answer check failed`,
+    teacherResult.response.ok,
+    `${target.name}: teacher profiles returned ${teacherResult.response.status}`,
   )
-  results.push('validate-answer')
+  assertOk(hasTeacherProfiles(teacherResult.json), `${target.name}: teacher profiles shape changed`)
+  passed.push('teacher-profiles')
 
-  result = await jsonFetch(`${target.url}/api/teacher-profiles`)
-  assertOk(
-    result.response.ok,
-    `${target.name}: teacher profiles returned ${result.response.status}`,
-  )
-  assertOk(hasTeacherProfiles(result.json), `${target.name}: teacher profiles shape changed`)
-  results.push('teacher-profiles')
-
-  result = await jsonFetch(`${target.url}/api/exercises/import?lessonId=000000000000000000000000`, {
-    method: 'POST',
-  })
-  assertOk(
-    result.response.status === 400 || result.response.status === 404,
-    `${target.name}: import route returned ${result.response.status}`,
-  )
-  results.push('import-safe')
-
-  const form = new FormData()
-  form.append('file', new Blob([PDF_BYTES], { type: 'application/pdf' }), `${runId}.pdf`)
-  result = await jsonFetch(`${target.url}/api/media`, {
-    method: 'POST',
-    headers: cookie ? { Cookie: cookie } : undefined,
-    body: form,
-  })
-  const doc = record(record(result.json).doc)
-  assertOk(result.response.ok, `${target.name}: media upload returned ${result.response.status}`)
-  assertOk(typeof doc.id === 'string', `${target.name}: media upload returned no id`)
-  assertOk(typeof doc.filename === 'string', `${target.name}: media upload returned no filename`)
-  uploadedMedia.push({
-    ...target,
-    id: doc.id,
-    filename: doc.filename,
-    url: typeof doc.url === 'string' ? doc.url : undefined,
-  })
-  results.push('media-upload')
-
-  const fileResponse = await fetch(
-    `${target.url}/api/media/file/${encodeURIComponent(doc.filename)}`,
+  const importResult = await jsonFetch(
+    `${target.url}/api/exercises/import?lessonId=000000000000000000000000`,
     {
-      redirect: 'manual',
-      signal: AbortSignal.timeout(30_000),
+      method: 'POST',
     },
   )
   assertOk(
-    [200, 302, 307, 308].includes(fileResponse.status),
-    `${target.name}: media file returned ${fileResponse.status}`,
+    importResult.response.status === 400 || importResult.response.status === 404,
+    `${target.name}: import route returned ${importResult.response.status}`,
   )
-  results.push('media-file')
+  passed.push('import-safe')
 
-  const viewerResponse = await fetch(
-    `${target.url}/api/pdfjs-viewer?file=${encodeURIComponent(`/api/media/file/${doc.filename}`)}`,
-    { signal: AbortSignal.timeout(30_000) },
-  )
-  const viewerText = await viewerResponse.text()
-  assertOk(viewerResponse.ok, `${target.name}: PDF viewer returned ${viewerResponse.status}`)
-  assertOk(/pdf|viewer/i.test(viewerText), `${target.name}: PDF viewer returned unexpected content`)
-  results.push('pdf-viewer')
-
-  return results
+  return { passed, skipped }
 }
 
 async function cleanup() {
@@ -266,14 +295,20 @@ async function cleanup() {
 
 async function main() {
   const targets = smokeTargets()
-  const summary: Array<{ target: string; ok: boolean; results?: string[]; error?: string }> = []
+  const summary: Array<{
+    target: string
+    ok: boolean
+    passed?: string[]
+    skipped?: string[]
+    error?: string
+  }> = []
   let failed = false
 
   try {
     for (const target of targets) {
       try {
-        const results = await smokeTarget(target)
-        summary.push({ target: target.name, ok: true, results })
+        const { passed, skipped } = await smokeTarget(target)
+        summary.push({ target: target.name, ok: true, passed, skipped })
       } catch (error) {
         failed = true
         summary.push({

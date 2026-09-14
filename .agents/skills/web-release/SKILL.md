@@ -296,7 +296,9 @@ SMOKE_BASE_URLS="https://www.aguy.co.il" \
 
 Use the `www.` canonical, not the bare `aguy.co.il`. The bare domain 307-redirects to `www.`, and multipart POSTs (the media-upload check) don't survive that redirect — you'll get a false-positive 500. Both aliases point at the same deploy, so testing `www.` covers prod.
 
-Exit code 0 = all endpoints (chat quota, conversation, chat, validate-answer, teacher-profiles, media upload, PDF viewer) responded. Non-zero = investigate before declaring success. **Note:** `chat-quota` returns 401 unauthenticated — `ok:false` in the JSON summary is expected; real signal is exit 0.
+Exit code 0 = smoke succeeded. Non-zero = investigate before declaring success.
+
+Without `SMOKE_AUTH_COOKIE` set, the auth-required endpoints (chat-quota, conversation, chat, validate-answer, media upload, media file, PDF viewer — all gated by PR #941) are recorded as **skipped**, not failed. Only the public endpoints (teacher-profiles, import-safe) run — enough to catch routing, DB-connection, and serverless-entry regressions on prod. To exercise the full paid-API chain, export a valid `payload-token` cookie value as `SMOKE_AUTH_COOKIE` before running.
 
 ### 6b. Version check
 

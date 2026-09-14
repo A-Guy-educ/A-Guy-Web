@@ -32,7 +32,6 @@ const here = path.dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(here, '../..')
 
 const PREP7_PAGE = path.join(projectRoot, 'src/app/(frontend)/prep7/page.tsx')
-const DEMO_LANDING_PAGE = path.join(projectRoot, 'src/ui/web/homepage/DemoLandingPage/index.tsx')
 
 function read(p: string): string {
   return fs.readFileSync(p, 'utf8')
@@ -244,16 +243,5 @@ describe('Issue #670 — contrast for dark-background sections', () => {
     }
 
     describeSectionAssertion('prep7 CourseFeatures', body)
-  })
-
-  it('DemoLandingPage / KnowledgeAndFeatures does not render dark text on a dark canvas in light mode', () => {
-    const source = read(DEMO_LANDING_PAGE)
-    const body = extractComponentBody(source, 'KnowledgeAndFeatures')
-
-    // Sanity check: this is the exact dark-background section from the bug
-    // report — line 187: `<section ... bg-foreground ...>`.
-    expect(body).toContain('bg-foreground')
-
-    describeSectionAssertion('DemoLandingPage KnowledgeAndFeatures', body)
   })
 })

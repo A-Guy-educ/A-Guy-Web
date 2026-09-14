@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.38.0 — 2026-09-14
+
+### Features
+- Match teacher and mood cards to Sep 14 mockup (#1205)
+- Simplify landing page to match Sep 14 mockup (#1202)
+- Exclude admin users from dashboard aggregations (#1197)
+
+### Fixes
+- Remove typewriter animation on /start onboarding (#1205)
+- Expand SVG viewBox to fit rendered content (#1203)
+- Satisfy Admin's guest-sessions validator so writes actually land (#1201)
+- Fire guest-session insert from middleware, not layout after() (#1198)
+- Remove padding around SVG blocks (#1196)
+- Skip auth-required checks in prod smoke when no cookie provided (#1195)
+
+### Tests
+- Lock in day-period support for dashboard-metrics (#1204)
+
+### Chores
+- Bump prod-dependencies group with 32 updates (#1200)
+
 ## v0.37.0 — 2026-09-10
 
 ### Features
@@ -4716,6 +4737,20 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.38.0 ([#1206](https://github.com/A-Guy-educ/A-Guy-Web/pull/1206)) — @aguyshayb
+- fix: Remove typewriter animation on /start onboarding ([#1205](https://github.com/A-Guy-educ/A-Guy-Web/pull/1205)) — @aguyshayb
+- test: Lock in day-period support for /api/dashboard-metrics ([#1204](https://github.com/A-Guy-educ/A-Guy-Web/pull/1204)) — @aguyshayb
+- fix: Expand SVG viewBox to fit rendered content ([#1203](https://github.com/A-Guy-educ/A-Guy-Web/pull/1203)) — @aguyshayb
+- chore(deps): bump the prod-dependencies group with 32 updates ([#1200](https://github.com/A-Guy-educ/A-Guy-Web/pull/1200)) — @dependabot[bot]
+- feat: Simplify landing page to match Sep 14 mockup ([#1202](https://github.com/A-Guy-educ/A-Guy-Web/pull/1202)) — @aguyshayb
+- fix: Satisfy Admin's guest-sessions validator so writes actually land ([#1201](https://github.com/A-Guy-educ/A-Guy-Web/pull/1201)) — @aguyshayb
+- fix: Fire guest-session insert from middleware, not layout after() ([#1198](https://github.com/A-Guy-educ/A-Guy-Web/pull/1198)) — @aguyshayb
+- feat: exclude admins from dashboard aggregations ([#1197](https://github.com/A-Guy-educ/A-Guy-Web/pull/1197)) — @aguyshayb
+- fix(graphics): Remove padding around SVG blocks ([#1196](https://github.com/A-Guy-educ/A-Guy-Web/pull/1196)) — @aguyshayb
+- fix: Skip auth-required checks in prod smoke when no cookie provided ([#1195](https://github.com/A-Guy-educ/A-Guy-Web/pull/1195)) — @aguyshayb
+## [v0.37.0] - 2026-09-10
+
+- promote: dev -> main (v0.37.0) ([#1194](https://github.com/A-Guy-educ/A-Guy-Web/pull/1194)) — @aguyshayb
 - chore: Release v0.37.0 ([#1193](https://github.com/A-Guy-educ/A-Guy-Web/pull/1193)) — @aguyshayb
 - fix: One badge per section, not per question ([#1192](https://github.com/A-Guy-educ/A-Guy-Web/pull/1192)) — @aguyshayb
 - fix(graphics): Remove padding around geometry and axis boards ([#1191](https://github.com/A-Guy-educ/A-Guy-Web/pull/1191)) — @aguyshayb

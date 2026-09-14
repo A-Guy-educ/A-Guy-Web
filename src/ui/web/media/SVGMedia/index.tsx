@@ -1,13 +1,14 @@
 'use client'
 
 import { cn } from '@/infra/utils/ui'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 
 import type { Props as MediaProps } from '../types'
 
 import { getMediaUrl } from '@/infra/utils/getMediaUrl'
 import { fetchInlineSvg } from './fetchInlineSvg'
+import { expandViewBoxWhenReady } from './expandViewBoxToContent'
 
 export const SVGMedia: React.FC<MediaProps> = (props) => {
   const { resource, className, imgClassName, alt } = props
@@ -22,6 +23,7 @@ export const SVGMedia: React.FC<MediaProps> = (props) => {
   const svgUrl = url ? getMediaUrl(url) : filename ? getMediaUrl(`/media/${filename}`) : null
 
   const [inlineMarkup, setInlineMarkup] = useState<string | null>(null)
+  const inlineHostRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     // Reset immediately so a URL swap cannot leak the previous SVG's markup
@@ -47,6 +49,19 @@ export const SVGMedia: React.FC<MediaProps> = (props) => {
     }
   }, [svgUrl])
 
+  // Grow the injected SVG's viewBox to cover its real content bbox once
+  // the markup is committed to the DOM. Mirrors the fix in SvgRenderer:
+  // author dimensions frequently under-estimate emoji / long-label widths,
+  // and the container scale-up preserves that shortfall as a clip.
+  useEffect(() => {
+    if (!inlineMarkup) return
+    const host = inlineHostRef.current
+    if (!host) return
+    const svg = host.querySelector(':scope > svg') as SVGSVGElement | null
+    if (!svg) return
+    expandViewBoxWhenReady(svg)
+  }, [inlineMarkup])
+
   if (!resourceObj || !svgUrl) return null
 
   const altText = alt || altFromResource || 'SVG image'
@@ -59,6 +74,7 @@ export const SVGMedia: React.FC<MediaProps> = (props) => {
         aria-label={altText}
       >
         <div
+          ref={inlineHostRef}
           className={cn(
             'max-w-full h-auto dark:invert [&>svg]:max-w-full [&>svg]:h-auto',
             imgClassName,

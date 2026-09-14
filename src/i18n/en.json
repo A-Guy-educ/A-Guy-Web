@@ -1,31 +1,24 @@
 {
   "landingPage": {
     "hero": {
-      "eyebrow": "The next generation of learning is here",
-      "title": "Like a private tutor, only more available, affordable, and tailored to you",
-      "subtitle": "Whatever your current level is, Aguy helps you start learning math from the ground up. The platform diagnoses, teaches, encourages independent learning, and tracks progress according to the official curriculum.",
-      "trialCta": "Free trial",
-      "loginCta": "Already subscribed?",
-      "previewBadge": "System preview",
-      "stats": {
-        "lessons": {
-          "label": "Lessons",
-          "value": "1,000+"
-        },
-        "exercises": {
-          "label": "Exercises",
-          "value": "100K+"
-        },
-        "exams": {
-          "label": "Exams and simulations",
-          "value": "500+"
-        }
-      }
+      "headline": "The world changes faster than any curriculum",
+      "subheadline": "That's why learning has to adapt too",
+      "brand": "Meet Aguy",
+      "role": "A private math tutor for elementary, middle, high school, and Bagrut prep",
+      "pitch": "Learn any topic from scratch with a unique pedagogical method, personalized practice, mock exams, and homework help.",
+      "trialCta": "Start learning",
+      "trialCtaNote": "(free)",
+      "loginCta": "Already registered? Sign in"
+    },
+    "value": {
+      "title": "Effective learning that saves time and money",
+      "paragraph1Prefix": "We took tens of thousands of teaching hours, hundreds of thousands of original exercises, and thousands of lesson plans — ",
+      "paragraph1Bold": "and built a professional, patient tutor.",
+      "paragraph2": "Everything is grounded in a unique pedagogy that builds strong learning habits, deep understanding, and the ability to keep learning independently."
     },
     "comparison": {
       "title": "Everything good about a private tutor. Only better.",
       "description": "We took personal attention, understanding of difficulties, and close guidance, then turned them into accessible smart technology.",
-      "criteria": "Criteria",
       "aguy": "Aguy",
       "tutor": "Regular private tutor",
       "rows": {
@@ -61,107 +54,41 @@
         }
       }
     },
-    "story": {
-      "title": "Human knowledge turned into technology.",
-      "description": "With deep awareness of how different students learn, we built a platform shaped by tens of thousands of private and group teaching hours.",
-      "stats": {
-        "experience": {
-          "value": "20+",
-          "label": "years of experience"
-        },
-        "hours": {
-          "value": "50K+",
-          "label": "teaching hours"
-        },
-        "exercises": {
-          "value": "100K+",
-          "label": "exercises"
-        },
-        "lessons": {
-          "value": "1,000+",
-          "label": "lesson plans"
-        },
-        "research": {
-          "value": "Thousands",
-          "label": "learning research hours"
-        }
-      }
-    },
     "features": {
-      "title": "What does the system include?",
-      "description": "A complete learning environment that covers every step, from foundations to advanced practice.",
+      "title": "What's included?",
       "items": {
         "lessons": {
-          "title": "1,000+ lessons",
-          "description": "Deep learning and practice lessons that explain the material from scratch."
+          "title": "1,000 lessons",
+          "description": "Learn any topic from scratch in a short time."
         },
         "exercises": {
-          "title": "100K+ exercises",
-          "description": "A large practice bank for every topic and difficulty level."
+          "title": "500 practice sets",
+          "description": "Original exercises for every level, from basics to challenge."
         },
         "exams": {
-          "title": "500+ exams",
-          "description": "Simulations and summary tests that prepare students for real exams."
+          "title": "500 exams",
+          "description": "Simulations for the school year and Bagrut prep."
         },
         "teacher": {
-          "title": "A close digital teacher",
-          "description": "Virtual guidance that explains mistakes and how to improve."
+          "title": "Math tutor",
+          "description": "Ask questions and get your answers checked instantly."
         },
         "plan": {
-          "title": "Personal learning plan",
-          "description": "A focused schedule based on exam dates and personal goals."
+          "title": "Learning plan",
+          "description": "Build a focused plan for an upcoming exam."
         },
         "emotional": {
-          "title": "Emotional learning features",
-          "description": "Smart diagnosis, dynamic feedback, real-time encouragement, and progress reports."
+          "title": "Special features",
+          "description": "Extra tools that support the learning journey."
         }
-      }
-    },
-    "simulation": {
-      "title": "Learning that works. Aligned with the official curriculum.",
-      "description": "A quick look at the lessons dashboard, guided chat, and smart notebook.",
-      "tabs": {
-        "dashboard": "Lessons dashboard",
-        "chat": "Chat and practice",
-        "notebook": "Smart notebook"
-      },
-      "dashboard": {
-        "url": "app.aguy.co.il/math/dashboard",
-        "title": "Grade 7",
-        "progress": "3% complete",
-        "triangles": {
-          "badge": "Continue learning",
-          "title": "Special segments in triangles",
-          "status": "50% complete"
-        },
-        "order": {
-          "badge": "New lesson 1",
-          "title": "Order of operations",
-          "status": "Not started yet"
-        },
-        "fractions": {
-          "badge": "New lesson 2",
-          "title": "Multiplying fractions",
-          "status": "Not started yet"
-        }
-      },
-      "chat": {
-        "teacher": "Aguy - digital teacher",
-        "message": "Hi! Let's solve section B together and place the missing values on the number line.",
-        "feedback": "Learning feedback: great placement! What about the last value on the right?",
-        "exerciseTitle": "Section B: complete the missing numbers on the line",
-        "next": "Next practice"
-      },
-      "notebook": {
-        "title": "Smart notebook",
-        "prompt": "Draw the function graph and determine the parabola vertex.",
-        "feedback": "Excellent! You can see the vertex and the shape of the parabola."
       }
     },
     "cta": {
-      "title": "Anyone can learn math independently.",
+      "title": "Anyone can learn math on their own.",
       "description": "Start with a system that guides, explains, and encourages at every step.",
-      "trial": "Free trial"
+      "trial": "Start learning",
+      "trialNote": "(free)",
+      "loginCta": "Already registered? Click here to sign in"
     }
   },
   "landing": {

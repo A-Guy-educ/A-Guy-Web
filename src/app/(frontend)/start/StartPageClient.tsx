@@ -1,7 +1,7 @@
 'use client'
 
-import { Bot } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { BookOpen, Bot, Crosshair, GraduationCap, Sparkles, type LucideIcon } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { selectCourse, setUserProfile } from '@/client/state/localStorage/userProfile'
@@ -51,23 +51,22 @@ const START_COPY = {
     footer: 'Aguy Onboarding Platform © 2026. כל הזכויות שמורות.',
     moods: {
       excellent: {
-        emoji: '😊',
-        title: 'מצוין',
-        description: 'מלאי מוטיבציה ואנרגיה ללמוד',
-        response: 'איזה כיף! ננצל את האנרגיה הזאת',
+        emoji: '🔥',
+        title: 'אש, הולך טוב, רק צריך לתרגל',
       },
       good: {
         emoji: '👍',
-        title: 'אחלה',
-        description: 'מוכנים להתקדם כרגיל',
-        response: 'מעולה, נתקדם בקצב טוב',
+        title: 'סבבה, אבל יש דברים שצריך לחדד',
       },
       tired: {
-        emoji: '🥱',
-        title: 'קצת עייף',
-        description: 'נשמור על קצב קליל וממוקד',
-        response: 'אין בעיה, ניקח את זה קל וממוקד',
+        emoji: '💪',
+        title: 'הולך קשה, חייב ללמוד מאפס חלק מהדברים',
       },
+    },
+    teacherBadges: {
+      detailed: 'בקטע טוב',
+      focused: 'רק מה שצריך',
+      recommended: 'ההמלצה שלנו',
     },
   },
   en: {
@@ -91,23 +90,22 @@ const START_COPY = {
     footer: 'Aguy Onboarding Platform © 2026. All rights reserved.',
     moods: {
       excellent: {
-        emoji: '😊',
-        title: 'Excellent',
-        description: 'Motivated and ready to learn',
-        response: "Great. Let's use that energy.",
+        emoji: '🔥',
+        title: "On fire — I'm doing well, just need to practice",
       },
       good: {
         emoji: '👍',
-        title: 'Good',
-        description: 'Ready to keep moving',
-        response: "Perfect. We'll move at a steady pace.",
+        title: 'Alright, but there are things I need to sharpen',
       },
       tired: {
-        emoji: '🥱',
-        title: 'A bit tired',
-        description: 'We will keep it light and focused',
-        response: "No problem. We'll keep it simple and focused.",
+        emoji: '💪',
+        title: 'Struggling — I need to learn some things from scratch',
       },
+    },
+    teacherBadges: {
+      detailed: 'Deep dive',
+      focused: 'Just the essentials',
+      recommended: 'Our recommendation',
     },
   },
 } as const
@@ -121,26 +119,16 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
   const [interaction, setInteraction] = useState<Interaction>('none')
   const [displayedText, setDisplayedText] = useState('')
   const [audioEnabled] = useState(true)
-  const [isSpeaking, setIsSpeaking] = useState(false)
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
   const [teacherProfiles, setTeacherProfiles] = useState<TeacherProfile[]>([])
   const [selectedTeacherProfile, setSelectedTeacherProfile] = useState<TeacherProfile | null>(null)
   const [showLoginModal, setShowLoginModal] = useState(false)
-  const runIdRef = useRef(0)
   const { user, isLoading: isAuthLoading } = useCurrentUser()
 
   useEffect(() => {
     document.body.classList.add('landing-page')
     return () => document.body.classList.remove('landing-page')
   }, [])
-
-  const sleep = useCallback(
-    (ms: number) =>
-      new Promise((resolve) => {
-        window.setTimeout(resolve, ms)
-      }),
-    [],
-  )
 
   const playTone = useCallback(
     (freq = 600, duration = 70) => {
@@ -171,23 +159,9 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
     [audioEnabled],
   )
 
-  const typeText = useCallback(
-    async (text: string, speed = 45) => {
-      const currentRun = ++runIdRef.current
-      setDisplayedText('')
-      setIsSpeaking(true)
-
-      for (let i = 0; i < text.length; i += 1) {
-        if (runIdRef.current !== currentRun) return
-        setDisplayedText(text.slice(0, i + 1))
-        if (Math.random() > 0.65) playTone(600 + Math.random() * 150, 40)
-        await sleep(speed)
-      }
-
-      if (runIdRef.current === currentRun) setIsSpeaking(false)
-    },
-    [playTone, sleep],
-  )
+  const showText = useCallback((text: string) => {
+    setDisplayedText(text)
+  }, [])
 
   const fetchTeacherProfiles = useCallback(async () => {
     try {
@@ -207,11 +181,9 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
     setPane('conversation')
     setInteraction('none')
     await fetchTeacherProfiles()
-    await typeText(copy.intro, 40)
-    await sleep(900)
-    await typeText(copy.teacherQuestion, 45)
+    showText(copy.teacherQuestion)
     setInteraction('teacher')
-  }, [copy.intro, copy.teacherQuestion, fetchTeacherProfiles, sleep, typeText])
+  }, [copy.teacherQuestion, fetchTeacherProfiles, showText])
 
   useEffect(() => {
     if (pane === 'conversation') {
@@ -220,15 +192,12 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
   }, [pane, startConversation])
 
   const selectMood = useCallback(
-    async (mood: Mood) => {
-      setInteraction('none')
+    (_mood: Mood) => {
       playTone(580, 120)
-      await typeText(copy.moods[mood].response, 45)
-      await sleep(900)
-      await typeText(copy.courseQuestion, 45)
+      showText(copy.courseQuestion)
       setInteraction('courses')
     },
-    [copy.courseQuestion, copy.moods, playTone, sleep, typeText],
+    [copy.courseQuestion, playTone, showText],
   )
 
   const saveTeacherProfile = useCallback(async (slug: string) => {
@@ -251,16 +220,12 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
   const selectTeacher = useCallback(
     async (teacher: TeacherProfile) => {
       setSelectedTeacherProfile(teacher)
-      setInteraction('none')
       playTone(580, 120)
-      const response = copy.teacherSelected.replace('{teacher}', teacher.label)
-      await typeText(response, 45)
-      await saveTeacherProfile(teacher.slug)
-      await sleep(900)
-      await typeText(copy.moodQuestion, 45)
+      showText(copy.moodQuestion)
       setInteraction('mood')
+      await saveTeacherProfile(teacher.slug)
     },
-    [copy.teacherSelected, copy.moodQuestion, playTone, saveTeacherProfile, sleep, typeText],
+    [copy.moodQuestion, playTone, saveTeacherProfile, showText],
   )
 
   const selectCourseHandler = useCallback(
@@ -282,8 +247,7 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
       }
       setInteraction('none')
       playTone(580, 120)
-      await typeText(copy.selected, 50)
-      await sleep(900)
+      showText(copy.selected)
 
       const isAnonymous = !user && !isAuthLoading
       if (isAnonymous) {
@@ -297,7 +261,7 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
         window.location.assign(getCourseHref(course))
       }, 800)
     },
-    [copy.selected, isAuthLoading, playTone, sleep, typeText, user],
+    [copy.selected, isAuthLoading, playTone, showText, user],
   )
 
   return (
@@ -321,7 +285,6 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
               courses={courses}
               displayedText={displayedText}
               interaction={interaction}
-              isSpeaking={isSpeaking}
               selectedCourse={selectedCourse}
               teacherProfiles={teacherProfiles}
               selectedTeacherProfile={selectedTeacherProfile}
@@ -351,7 +314,6 @@ function ConversationPane({
   courses,
   displayedText,
   interaction,
-  isSpeaking,
   selectedCourse,
   teacherProfiles,
   selectedTeacherProfile,
@@ -363,7 +325,6 @@ function ConversationPane({
   courses: Course[]
   displayedText: string
   interaction: Interaction
-  isSpeaking: boolean
   selectedCourse: Course | null
   teacherProfiles: TeacherProfile[]
   selectedTeacherProfile: TeacherProfile | null
@@ -376,24 +337,10 @@ function ConversationPane({
       <div className="mb-10 flex flex-col items-center text-center">
         <div className="relative mb-8 flex h-20 w-20 items-center justify-center rounded-full border border-border bg-card text-primary shadow-elevation-1">
           <Bot className="h-10 w-10" aria-hidden />
-          <div className="absolute -bottom-3 flex h-7 items-end gap-1 rounded-full bg-card px-2 py-1 shadow-elevation-1">
-            {[0, 1, 2].map((item) => (
-              <span
-                key={item}
-                className={cn(
-                  'w-1 rounded-full bg-primary transition-all duration-normal',
-                  isSpeaking ? 'h-5 animate-pulse' : 'h-2',
-                )}
-              />
-            ))}
-          </div>
         </div>
 
         <p className="min-h-24 max-w-3xl text-display-sm font-extrabold leading-relaxed text-foreground md:text-display-md">
           {displayedText}
-          {isSpeaking ? (
-            <span className="me-1 inline-block h-6 w-1 animate-pulse bg-primary" />
-          ) : null}
         </p>
       </div>
 
@@ -433,21 +380,18 @@ function MoodGrid({
   onSelectMood: (mood: Mood) => void
 }) {
   return (
-    <div className="mx-auto grid max-w-2xl grid-cols-1 gap-content-gap-sm md:grid-cols-3">
+    <div className="mx-auto grid max-w-4xl grid-cols-1 gap-content-gap-sm md:grid-cols-3">
       {moodOrder.map((mood) => (
         <button
           key={mood}
           type="button"
           onClick={() => onSelectMood(mood)}
-          className="flex flex-col items-center rounded-2xl border border-border bg-card p-5 text-center shadow-elevation-1 transition-transform duration-normal hover:-translate-y-0.5 hover:border-primary/50"
+          className="flex flex-col items-center gap-content-gap-xs rounded-2xl border-2 border-transparent bg-card p-card-padding text-center shadow-elevation-1 transition-all duration-normal hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-elevation-2"
         >
-          <span className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-heading-md">
-            {copy.moods[mood].emoji}
-          </span>
-          <span className="mb-1 text-body-md font-extrabold text-card-foreground">
+          <span className="text-display-md leading-none">{copy.moods[mood].emoji}</span>
+          <span className="text-heading-md font-bold leading-snug text-card-foreground">
             {copy.moods[mood].title}
           </span>
-          <span className="text-body-xs text-muted-foreground">{copy.moods[mood].description}</span>
         </button>
       ))}
     </div>
@@ -503,6 +447,36 @@ function CourseGrid({
   )
 }
 
+type TeacherVariant = 'detailed' | 'recommended' | 'focused' | 'default'
+
+interface TeacherVisual {
+  variant: TeacherVariant
+  icon: LucideIcon
+  iconWrapClass: string
+}
+
+function resolveTeacherVisual(slug: string): TeacherVisual {
+  const s = slug.toLowerCase()
+  if (s.includes('guy') || s.includes('balanced') || s.includes('recommended')) {
+    return {
+      variant: 'recommended',
+      icon: GraduationCap,
+      iconWrapClass: 'bg-success/15 text-success',
+    }
+  }
+  if (s.includes('detailed') || s.includes('deep') || s.includes('detail')) {
+    return { variant: 'detailed', icon: BookOpen, iconWrapClass: 'bg-primary/10 text-primary' }
+  }
+  if (s.includes('focused') || s.includes('brief') || s.includes('short')) {
+    return {
+      variant: 'focused',
+      icon: Crosshair,
+      iconWrapClass: 'bg-accent/40 text-accent-foreground',
+    }
+  }
+  return { variant: 'default', icon: Sparkles, iconWrapClass: 'bg-muted text-muted-foreground' }
+}
+
 function TeacherGrid({
   copy,
   teacherProfiles,
@@ -523,27 +497,67 @@ function TeacherGrid({
   }
 
   return (
-    <div className="mx-auto grid max-w-4xl grid-cols-1 gap-3 md:grid-cols-2">
-      {teacherProfiles.map((teacher) => (
-        <button
-          key={teacher.slug}
-          type="button"
-          onClick={() => onSelectTeacher(teacher)}
-          className={cn(
-            'min-h-24 rounded-xl border border-border bg-card p-card-padding-sm text-start shadow-elevation-1 transition-transform duration-normal hover:-translate-y-0.5 hover:border-primary/50',
-            selectedTeacherProfile?.slug === teacher.slug && 'border-primary',
-          )}
-        >
-          <span className="block text-heading-sm font-extrabold text-card-foreground">
-            {teacher.label}
-          </span>
-          {teacher.description ? (
-            <span className="mt-2 line-clamp-2 block text-body-xs text-muted-foreground">
-              {teacher.description}
+    <div className="mx-auto grid max-w-5xl grid-cols-1 gap-content-gap md:grid-cols-3">
+      {teacherProfiles.map((teacher) => {
+        const visual = resolveTeacherVisual(teacher.slug)
+        const isSelected = selectedTeacherProfile?.slug === teacher.slug
+        const isRecommended = visual.variant === 'recommended'
+        const secondaryBadge =
+          visual.variant === 'detailed'
+            ? copy.teacherBadges.detailed
+            : visual.variant === 'focused'
+              ? copy.teacherBadges.focused
+              : null
+
+        const Icon = visual.icon
+
+        return (
+          <button
+            key={teacher.slug}
+            type="button"
+            onClick={() => onSelectTeacher(teacher)}
+            className={cn(
+              'group relative flex flex-col items-center rounded-2xl border-2 bg-card p-card-padding text-center shadow-elevation-1 transition-all duration-normal hover:-translate-y-0.5 hover:shadow-elevation-2',
+              isSelected
+                ? 'border-primary bg-primary/5'
+                : isRecommended
+                  ? 'border-success/30 hover:border-success/60'
+                  : 'border-transparent hover:border-primary/40',
+            )}
+          >
+            {isRecommended ? (
+              <span className="absolute -top-3 end-4 rotate-3 rounded-full bg-success px-3 py-1 text-body-xs font-bold text-success-foreground shadow-elevation-2">
+                {copy.teacherBadges.recommended}
+              </span>
+            ) : null}
+
+            <span
+              className={cn(
+                'mb-4 flex h-16 w-16 items-center justify-center rounded-full text-heading-xl',
+                visual.iconWrapClass,
+              )}
+            >
+              <Icon className="h-7 w-7" aria-hidden />
             </span>
-          ) : null}
-        </button>
-      ))}
+
+            <span className="mb-2 text-heading-lg font-bold text-card-foreground">
+              {teacher.label}
+            </span>
+
+            {secondaryBadge ? (
+              <span className="mb-2 rounded-full bg-muted/60 px-2.5 py-0.5 text-body-xs font-semibold text-muted-foreground">
+                {secondaryBadge}
+              </span>
+            ) : null}
+
+            {teacher.description ? (
+              <span className="text-body-sm leading-snug text-muted-foreground">
+                {teacher.description}
+              </span>
+            ) : null}
+          </button>
+        )
+      })}
     </div>
   )
 }

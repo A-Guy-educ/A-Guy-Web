@@ -9,6 +9,8 @@
  * claiming user id when that visitor later signs up.
  */
 
+import { createHash, randomBytes } from 'crypto'
+
 import { ObjectId, type Collection, type Document } from 'mongodb'
 
 import { getContentDb } from '@/infra/db/content-db'
@@ -16,6 +18,40 @@ import { logger } from '@/infra/utils/logger/logger'
 
 const COLLECTION = 'guest-sessions'
 const DUPLICATE_KEY_ERROR = 11000
+
+/**
+ * Admin's Payload collection ships a strict schema validator on
+ * `guest-sessions` (tokenHash/tokenVersion/lastActiveAt/expiresAt/
+ * hardExpiresAt/status/messageCount all required). Our funnel-tracking write
+ * has to satisfy that validator or Mongo rejects the doc — which was the
+ * silent failure that kept the dashboard tile stuck at 3.
+ *
+ * We fill the Admin-required fields with sensible defaults: tokenHash from a
+ * per-row random salt (unique per doc), a 30-day expiry matching the guest
+ * cookie, status=active, messageCount=0. Our own sessionId is added on top.
+ */
+const GUEST_SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000
+
+function buildGuestSessionDoc(sessionId: string): Document {
+  const now = new Date()
+  const expiresAt = new Date(now.getTime() + GUEST_SESSION_TTL_MS)
+  // tokenHash is a UNIQUE index in Admin's collection, so it has to differ
+  // per row. Hash a random salt + the sessionId so we never collide even
+  // across concurrent inserts.
+  const tokenHash = createHash('sha256').update(sessionId).update(randomBytes(16)).digest('hex')
+  return {
+    sessionId,
+    tokenHash,
+    tokenVersion: 1,
+    createdAt: now,
+    lastActiveAt: now,
+    expiresAt,
+    hardExpiresAt: expiresAt,
+    status: 'active',
+    messageCount: 0,
+    updatedAt: now,
+  }
+}
 
 let indexEnsured: Promise<void> | null = null
 
@@ -60,10 +96,7 @@ export async function recordGuestSession(sessionId: string): Promise<void> {
   try {
     await ensureSessionIdIndex()
     const col = await collection()
-    await col.insertOne({
-      sessionId,
-      createdAt: new Date(),
-    })
+    await col.insertOne(buildGuestSessionDoc(sessionId))
   } catch (err) {
     if ((err as { code?: number })?.code === DUPLICATE_KEY_ERROR) return
     logger.warn({ err, sessionId }, 'guest-sessions: insert failed')
