@@ -4716,6 +4716,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Simplify landing page to match Sep 14 mockup ([#1202](https://github.com/A-Guy-educ/A-Guy-Web/pull/1202)) — @aguyshayb
 - fix: Satisfy Admin's guest-sessions validator so writes actually land ([#1201](https://github.com/A-Guy-educ/A-Guy-Web/pull/1201)) — @aguyshayb
 - fix: Fire guest-session insert from middleware, not layout after() ([#1198](https://github.com/A-Guy-educ/A-Guy-Web/pull/1198)) — @aguyshayb
 - feat: exclude admins from dashboard aggregations ([#1197](https://github.com/A-Guy-educ/A-Guy-Web/pull/1197)) — @aguyshayb
