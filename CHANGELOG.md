@@ -4716,6 +4716,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Fire guest-session insert from middleware, not layout after() ([#1198](https://github.com/A-Guy-educ/A-Guy-Web/pull/1198)) — @aguyshayb
 - feat: exclude admins from dashboard aggregations ([#1197](https://github.com/A-Guy-educ/A-Guy-Web/pull/1197)) — @aguyshayb
 - fix(graphics): Remove padding around SVG blocks ([#1196](https://github.com/A-Guy-educ/A-Guy-Web/pull/1196)) — @aguyshayb
 - fix: Skip auth-required checks in prod smoke when no cookie provided ([#1195](https://github.com/A-Guy-educ/A-Guy-Web/pull/1195)) — @aguyshayb
