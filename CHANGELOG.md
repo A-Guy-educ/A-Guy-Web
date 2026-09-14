@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.38.0 — 2026-09-14
+
+### Features
+- Match teacher and mood cards to Sep 14 mockup (#1205)
+- Simplify landing page to match Sep 14 mockup (#1202)
+- Exclude admin users from dashboard aggregations (#1197)
+
+### Fixes
+- Remove typewriter animation on /start onboarding (#1205)
+- Expand SVG viewBox to fit rendered content (#1203)
+- Satisfy Admin's guest-sessions validator so writes actually land (#1201)
+- Fire guest-session insert from middleware, not layout after() (#1198)
+- Remove padding around SVG blocks (#1196)
+- Skip auth-required checks in prod smoke when no cookie provided (#1195)
+
+### Tests
+- Lock in day-period support for dashboard-metrics (#1204)
+
+### Chores
+- Bump prod-dependencies group with 32 updates (#1200)
+
 ## v0.37.0 — 2026-09-10
 
 ### Features
