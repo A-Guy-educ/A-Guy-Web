@@ -143,7 +143,7 @@ export function SvgRenderer({
     : null
 
   return (
-    <div className="rounded-xl border border-border/20 overflow-hidden bg-card shadow-elevation-1 p-3">
+    <div className="rounded-xl border border-border/20 overflow-hidden bg-card shadow-elevation-1">
       <div
         ref={containerRef}
         role={isInteractive ? 'application' : 'img'}
@@ -156,7 +156,7 @@ export function SvgRenderer({
         dangerouslySetInnerHTML={{ __html: sanitizedSvg }}
       />
       {captionBlock && (
-        <div className="mt-2 text-body-sm text-muted-foreground text-center">
+        <div className="px-3 pb-3 pt-2 text-body-sm text-muted-foreground text-center">
           <RichTextRenderer block={captionBlock} />
         </div>
       )}
