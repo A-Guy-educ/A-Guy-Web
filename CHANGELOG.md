@@ -4716,6 +4716,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Expand SVG viewBox to fit rendered content ([#1203](https://github.com/A-Guy-educ/A-Guy-Web/pull/1203)) — @aguyshayb
 - chore(deps): bump the prod-dependencies group with 32 updates ([#1200](https://github.com/A-Guy-educ/A-Guy-Web/pull/1200)) — @dependabot[bot]
 - feat: Simplify landing page to match Sep 14 mockup ([#1202](https://github.com/A-Guy-educ/A-Guy-Web/pull/1202)) — @aguyshayb
 - fix: Satisfy Admin's guest-sessions validator so writes actually land ([#1201](https://github.com/A-Guy-educ/A-Guy-Web/pull/1201)) — @aguyshayb
