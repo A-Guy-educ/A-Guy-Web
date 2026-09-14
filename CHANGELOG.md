@@ -4737,6 +4737,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- promote: dev -> main (v0.38.0) ([#1207](https://github.com/A-Guy-educ/A-Guy-Web/pull/1207)) — @aguyshayb
 - chore: Release v0.38.0 ([#1206](https://github.com/A-Guy-educ/A-Guy-Web/pull/1206)) — @aguyshayb
 - fix: Remove typewriter animation on /start onboarding ([#1205](https://github.com/A-Guy-educ/A-Guy-Web/pull/1205)) — @aguyshayb
 - test: Lock in day-period support for /api/dashboard-metrics ([#1204](https://github.com/A-Guy-educ/A-Guy-Web/pull/1204)) — @aguyshayb
