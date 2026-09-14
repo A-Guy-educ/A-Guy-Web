@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import {
   cookieName,
   defaultLocale,
@@ -11,6 +11,7 @@ import {
   GUEST_SESSION_MAX_AGE_SECONDS,
   NEW_GUEST_SESSION_HEADER,
 } from './infra/analytics/guest-session-cookie'
+import { signGuestSessionId } from './infra/analytics/guest-session-signing'
 import { AUTH_COOKIE_NAME } from './infra/auth/shared-login/auth-cookie'
 import { toCookieDomain } from './infra/auth/shared-login/policy'
 import { getSharedLoginPolicy } from './infra/auth/shared-login/policy.env'
@@ -163,6 +164,66 @@ function resolveNewGuestSessionId(request: NextRequest, pathname: string): strin
   return crypto.randomUUID()
 }
 
+interface GuestCookieAttrs {
+  httpOnly: true
+  sameSite: 'lax'
+  secure: boolean
+  path: string
+  maxAge: number
+}
+
+function buildGuestSessionCookieAttrs(request: NextRequest): GuestCookieAttrs {
+  const isHttps = request.nextUrl.protocol === 'https:'
+  const isProd = process.env.NODE_ENV === 'production'
+  return {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: isHttps || isProd,
+    path: '/',
+    maxAge: GUEST_SESSION_MAX_AGE_SECONDS,
+  }
+}
+
+/**
+ * Fire the DB insert via a signed POST to the Node route. Middleware runs
+ * on Edge so it can't call Mongo directly; the loopback fetch keeps the
+ * write path off the layout, which was proving unreliable in production.
+ */
+async function triggerGuestSessionInsert(request: NextRequest, sessionId: string): Promise<void> {
+  const secret = process.env.PAYLOAD_SECRET
+  if (!secret) return
+  try {
+    const signature = await signGuestSessionId(sessionId, secret)
+    const url = new URL('/api/internal/guest-session/create', request.url)
+    await fetch(url, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-signature': signature,
+      },
+      body: JSON.stringify({ sessionId }),
+    })
+  } catch {
+    // Fire-and-forget analytics; a failed insert must never break the request.
+  }
+}
+
+/**
+ * Apply the newly-minted guest cookie to any response the middleware ends up
+ * returning — including `NextResponse.redirect(...)` used for the anonymous
+ * auth guards. Without this, an anon visitor whose first hit is a protected
+ * route gets a redirect that discards the cookie set on the fallthrough
+ * response, and we lose the entry-point signal entirely.
+ */
+function decorateWithGuestCookie(
+  target: NextResponse,
+  sessionId: string,
+  attrs: GuestCookieAttrs,
+): NextResponse {
+  target.cookies.set(GUEST_SESSION_COOKIE, sessionId, attrs)
+  return target
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const host = request.headers.get('host') || ''
@@ -188,16 +249,15 @@ export function middleware(request: NextRequest) {
     },
   })
 
-  if (newGuestSessionId) {
-    const isHttps = request.nextUrl.protocol === 'https:'
-    const isProd = process.env.NODE_ENV === 'production'
-    response.cookies.set(GUEST_SESSION_COOKIE, newGuestSessionId, {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: isHttps || isProd,
-      path: '/',
-      maxAge: GUEST_SESSION_MAX_AGE_SECONDS,
-    })
+  const guestCookie = newGuestSessionId ? buildGuestSessionCookieAttrs(request) : null
+  if (newGuestSessionId && guestCookie) {
+    response.cookies.set(GUEST_SESSION_COOKIE, newGuestSessionId, guestCookie)
+    // Fire the DB insert via a signed internal endpoint. The layout-based
+    // `after()` was flaky in production and lost every visitor whose first
+    // hit was a route that redirects (protected paths, /courses). Firing
+    // from middleware makes the write independent of what response we
+    // return below.
+    after(() => triggerGuestSessionInsert(request, newGuestSessionId))
   }
 
   if (!pathname.startsWith('/api/pdfjs-viewer')) {
@@ -228,6 +288,11 @@ export function middleware(request: NextRequest) {
     return response
   }
 
+  const applyGuestCookie = (redirect: NextResponse): NextResponse =>
+    newGuestSessionId && guestCookie
+      ? decorateWithGuestCookie(redirect, newGuestSessionId, guestCookie)
+      : redirect
+
   // Auth guard: redirect unauthenticated users to login for protected learning routes
   if (
     isProtectedLearningPath(pathname) &&
@@ -236,18 +301,18 @@ export function middleware(request: NextRequest) {
   ) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('returnTo', `${pathname}${request.nextUrl.search}`)
-    return NextResponse.redirect(loginUrl)
+    return applyGuestCookie(NextResponse.redirect(loginUrl))
   }
 
   if (isCourseCatalogPath(pathname) && !hasAuthToken(request)) {
     const startUrl = new URL('/start', request.url)
-    return NextResponse.redirect(startUrl)
+    return applyGuestCookie(NextResponse.redirect(startUrl))
   }
 
   if (isCourseContentPath(pathname) && !hasAuthToken(request)) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('returnTo', `${pathname}${request.nextUrl.search}`)
-    return NextResponse.redirect(loginUrl)
+    return applyGuestCookie(NextResponse.redirect(loginUrl))
   }
 
   let locale: Locale = defaultLocale

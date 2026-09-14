@@ -57,6 +57,9 @@ async function ensureSessionIdIndex(): Promise<void> {
  * that were actually claimed.
  */
 export async function recordGuestSession(sessionId: string): Promise<void> {
+  // Info-level so a hit shows up in Vercel logs. Cheap and short-lived —
+  // remove once the write path is proven stable in prod.
+  logger.info({ sessionId }, 'guest-sessions: recording')
   try {
     await ensureSessionIdIndex()
     const col = await collection()
