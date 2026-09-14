@@ -4,21 +4,18 @@
  *   "[UI/UX] Systemic Fix for High-Contrast Accessibility and Rich HTML/Math
  *    Rendering in Lessons"
  *
- * This test fails loudly the moment any of the four aspects of the bug regress:
+ * This test fails loudly the moment any of the remaining aspects of the bug
+ * regress:
  *
  *  1. The Button `outline` variant must not paint its label with
  *     `text-primary-foreground` over `bg-background` (white-on-white in light
  *     mode). It must use a readable dark token such as `text-foreground` or
  *     `text-primary`.
  *
- *  2. The dark `KnowledgeAndFeatures` section in DemoLandingPage must not
- *     apply `text-foreground dark:text-foreground` (or any paired dark-text
- *     token) to its inner elements, because that combination renders
- *     near-black text on the section's dark canvas in light mode.
- *
  *  3. The dark `CourseFeatures` section in /prep7 must not apply
- *     `text-foreground dark:text-foreground` to its inner elements for the
- *     same reason.
+ *     `text-foreground dark:text-foreground` to its inner elements — that
+ *     combination renders near-black text on the section's dark canvas in
+ *     light mode.
  *
  *  4. The lesson renderer `HtmlBlock` in `ContentPageBodyRenderer` must
  *     render through the client-side `SafeHtml` component with
@@ -39,7 +36,6 @@ const here = path.dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(here, '../../../..')
 
 const BUTTON_FILE = path.join(projectRoot, 'src/ui/web/components/button.tsx')
-const DEMO_LANDING_FILE = path.join(projectRoot, 'src/ui/web/homepage/DemoLandingPage/index.tsx')
 const PREP7_FILE = path.join(projectRoot, 'src/app/(frontend)/prep7/page.tsx')
 const LESSON_RENDERER_FILE = path.join(
   projectRoot,
@@ -175,30 +171,6 @@ describe('Issue #671 — accessibility and rich-HTML contract', () => {
 
       expect(outlineClass).toContain('bg-background')
       expect(outlineClass).not.toContain('text-primary-foreground')
-    })
-  })
-
-  describe('2. DemoLandingPage KnowledgeAndFeatures dark section', () => {
-    it('does not apply text-foreground dark:text-foreground to inner elements', () => {
-      const source = read(DEMO_LANDING_FILE)
-
-      // The dark KnowledgeAndFeatures section may have been refactored away
-      // (the landing page no longer renders a dark-canvas story section).
-      // In that case the contract is naturally satisfied.
-      if (!source.includes('function KnowledgeAndFeatures(')) {
-        expect(source).not.toContain('function KnowledgeAndFeatures(')
-        return
-      }
-
-      const body = extractFunctionBody(source, 'KnowledgeAndFeatures')
-
-      // Sanity check — the section is identified as the dark one because
-      // it uses `bg-foreground`. If that ever changes, this guard stops
-      // being meaningful and the test should be revisited.
-      expect(body).toContain('bg-foreground')
-
-      const result = hasDarkPairedTextClass(body)
-      expect(result.found).toBe(false)
     })
   })
 

@@ -135,9 +135,9 @@ function ValueProp({ t }: { t: (key: string) => string }) {
         <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-card-padding shadow-elevation-2 text-center md:p-card-padding-lg">
           <div className="pointer-events-none absolute right-0 top-0 h-32 w-32 rounded-bl-full bg-primary/10" />
           <div className="pointer-events-none absolute bottom-0 left-0 h-24 w-24 rounded-tr-full bg-primary/10" />
-          <h3 className="mb-6 text-display-sm font-bold text-foreground md:text-display-md">
+          <h2 className="mb-6 text-display-sm font-bold text-foreground md:text-display-md">
             {t('value.title')}
-          </h3>
+          </h2>
           <p className="mx-auto mb-6 max-w-3xl text-body-lg leading-relaxed text-muted-foreground">
             {t('value.paragraph1Prefix')}
             <strong className="text-foreground">{t('value.paragraph1Bold')}</strong>
