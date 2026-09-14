@@ -7,7 +7,6 @@ import {
   Check,
   ClipboardCheck,
   MessageCircle,
-  NotebookTabs,
   Play,
   Sparkles,
   Star,
@@ -16,17 +15,17 @@ import {
   X,
   type LucideIcon,
 } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 
+import telescopeSvg from '@/brands/aguy/assets/telescope.svg'
 import { LanguageSwitcher } from '@/ui/web/LanguageSwitcher'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import { ThemeSelector } from '@/ui/web/providers/Theme/ThemeSelector'
 
-type SimTab = 'dashboard' | 'chat' | 'notebook'
 type ComparisonKey = 'personal' | 'plan' | 'experience' | 'emotional' | 'cost' | 'availability'
 type FeatureKey = 'lessons' | 'exercises' | 'exams' | 'teacher' | 'plan' | 'emotional'
-type StoryStatKey = 'experience' | 'hours' | 'exercises' | 'lessons' | 'research'
 
 const comparisonRows: ComparisonKey[] = [
   'personal',
@@ -38,7 +37,6 @@ const comparisonRows: ComparisonKey[] = [
 ]
 
 const featureKeys: FeatureKey[] = ['lessons', 'exercises', 'exams', 'teacher', 'plan', 'emotional']
-const storyStats: StoryStatKey[] = ['experience', 'hours', 'exercises', 'lessons', 'research']
 
 const featureIcons: Record<FeatureKey, LucideIcon> = {
   lessons: BookOpen,
@@ -49,10 +47,7 @@ const featureIcons: Record<FeatureKey, LucideIcon> = {
   emotional: Star,
 }
 
-const simTabs: SimTab[] = ['dashboard', 'chat', 'notebook']
-
 export function DemoLandingPage() {
-  const [activeTab, setActiveTab] = useState<SimTab>('dashboard')
   const locale = useLocale()
   const t = useTranslations('landingPage')
   const isRtl = locale === 'he'
@@ -73,9 +68,9 @@ export function DemoLandingPage() {
       </div>
 
       <Hero t={t} />
+      <ValueProp t={t} />
       <Comparison t={t} />
-      <KnowledgeAndFeatures t={t} />
-      <Simulation activeTab={activeTab} onTabChange={setActiveTab} t={t} />
+      <Features t={t} />
       <BottomCta t={t} />
     </main>
   )
@@ -83,54 +78,73 @@ export function DemoLandingPage() {
 
 function Hero({ t }: { t: (key: string) => string }) {
   return (
-    <section className="relative flex min-h-[88vh] flex-col items-center justify-center overflow-hidden border-b border-border bg-background px-4 pb-20 pt-24 text-center">
+    <section className="relative flex flex-col items-center overflow-hidden border-b border-border bg-background px-4 pb-16 pt-20 text-center md:pt-24">
       <div className="pointer-events-none absolute inset-x-0 top-0 mx-auto h-[520px] max-w-5xl rounded-full bg-primary/10 blur-3xl" />
-      <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col items-center">
-        <LogoMark />
+      <div className="relative z-10 mx-auto flex w-full max-w-4xl flex-col items-center">
+        <Image
+          src={telescopeSvg}
+          alt="Aguy"
+          width={160}
+          height={160}
+          className="mb-8 h-28 w-auto drop-shadow-elevation-3 md:h-36"
+          priority
+        />
 
-        <div className="mb-6 inline-flex items-center gap-content-gap-xs rounded-full border border-success/20 bg-success/10 px-4 py-2 text-body-sm font-bold text-success">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-success" />
-          {t('hero.eyebrow')}
-        </div>
-
-        <h1 className="mb-6 max-w-4xl text-display-md font-extrabold leading-tight text-foreground md:text-display-lg lg:text-display-xl">
-          {t('hero.title')}
+        <h1 className="mb-4 max-w-3xl text-display-md font-extrabold leading-tight text-foreground md:text-display-lg">
+          {t('hero.headline')}
         </h1>
-        <p className="mx-auto mb-10 max-w-3xl text-heading-lg leading-relaxed text-muted-foreground">
-          {t('hero.subtitle')}
+        <p className="mb-8 max-w-2xl text-heading-lg font-medium text-muted-foreground">
+          {t('hero.subheadline')}
         </p>
 
-        <div className="flex justify-center">
+        <p className="mb-2 text-heading-md font-bold text-primary">{t('hero.brand')}</p>
+        <p className="mb-6 max-w-2xl text-body-lg font-bold text-foreground">{t('hero.role')}</p>
+        <p className="mx-auto mb-10 max-w-2xl text-body-md leading-relaxed text-muted-foreground">
+          {t('hero.pitch')}
+        </p>
+
+        <div className="flex flex-col items-center gap-content-gap">
           <Link
             href="/start"
-            className="flex items-center justify-center gap-content-gap-xs rounded-xl border border-success/30 bg-card px-8 py-section-xs text-body-lg font-bold text-success shadow-elevation-1 transition-all duration-normal hover:-translate-y-1 hover:border-success hover:bg-success/10"
+            className="flex flex-col items-center rounded-full bg-primary px-10 py-3 text-primary-foreground shadow-elevation-2 transition-transform duration-normal hover:-translate-y-0.5 hover:bg-primary/90"
           >
-            <Play className="h-4 w-4 fill-current" aria-hidden />
-            {t('hero.trialCta')}
+            <span className="flex items-center gap-content-gap-xs text-heading-md font-bold">
+              <Play className="h-4 w-4 fill-current" aria-hidden />
+              {t('hero.trialCta')}
+            </span>
+            <span className="mt-1 text-body-xs font-normal opacity-80">
+              {t('hero.trialCtaNote')}
+            </span>
+          </Link>
+          <Link
+            href="/login"
+            className="text-body-sm font-medium text-muted-foreground underline underline-offset-4 transition-colors duration-normal hover:text-primary"
+          >
+            {t('hero.loginCta')}
           </Link>
         </div>
+      </div>
+    </section>
+  )
+}
 
-        <Link
-          href="/login"
-          className="mt-6 text-body-sm font-medium text-muted-foreground underline underline-offset-4 transition-colors duration-normal hover:text-primary"
-        >
-          {t('hero.loginCta')}
-        </Link>
-
-        <div className="mt-14 grid w-full max-w-3xl grid-cols-1 gap-content-gap-sm sm:grid-cols-3">
-          {(['lessons', 'exercises', 'exams'] as const).map((key) => (
-            <div
-              key={key}
-              className="rounded-2xl border border-border bg-card/80 p-card-padding-sm shadow-elevation-1 backdrop-blur"
-            >
-              <p className="text-display-sm font-black text-primary">
-                {t(`hero.stats.${key}.value`)}
-              </p>
-              <p className="text-body-sm font-semibold text-muted-foreground">
-                {t(`hero.stats.${key}.label`)}
-              </p>
-            </div>
-          ))}
+function ValueProp({ t }: { t: (key: string) => string }) {
+  return (
+    <section className="bg-background px-4 py-section-lg">
+      <div className="mx-auto max-w-5xl">
+        <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-card-padding shadow-elevation-2 text-center md:p-card-padding-lg">
+          <div className="pointer-events-none absolute right-0 top-0 h-32 w-32 rounded-bl-full bg-primary/10" />
+          <div className="pointer-events-none absolute bottom-0 left-0 h-24 w-24 rounded-tr-full bg-primary/10" />
+          <h3 className="mb-6 text-display-sm font-bold text-foreground md:text-display-md">
+            {t('value.title')}
+          </h3>
+          <p className="mx-auto mb-6 max-w-3xl text-body-lg leading-relaxed text-muted-foreground">
+            {t('value.paragraph1Prefix')}
+            <strong className="text-foreground">{t('value.paragraph1Bold')}</strong>
+          </p>
+          <p className="mx-auto max-w-3xl text-body-lg leading-relaxed text-muted-foreground">
+            {t('value.paragraph2')}
+          </p>
         </div>
       </div>
     </section>
@@ -176,112 +190,37 @@ function Comparison({ t }: { t: (key: string) => string }) {
   )
 }
 
-function KnowledgeAndFeatures({ t }: { t: (key: string) => string }) {
+function Features({ t }: { t: (key: string) => string }) {
   return (
-    <section className="relative overflow-hidden bg-foreground px-4 py-section-xl text-background dark:bg-card">
-      <div className="pointer-events-none absolute inset-0 bg-primary/10" />
-      <div className="relative z-10 mx-auto max-w-6xl">
-        <div className="mb-20 grid items-center gap-content-gap-xl md:grid-cols-2">
-          <div>
-            <p className="mb-3 text-body-sm font-bold uppercase text-success">
-              {t('hero.previewBadge')}
-            </p>
-            <h2 className="mb-6 text-display-sm font-extrabold md:text-display-md text-background dark:text-foreground">
-              {t('story.title')}
-            </h2>
-            <p className="text-heading-lg leading-relaxed text-background/75 dark:text-foreground">
-              {t('story.description')}
-            </p>
-          </div>
+    <section className="bg-background px-4 py-section-xl">
+      <div className="mx-auto max-w-6xl">
+        <div className="mx-auto mb-12 max-w-3xl text-center">
+          <h2 className="text-display-sm font-extrabold text-foreground md:text-display-md">
+            {t('features.title')}
+          </h2>
+        </div>
 
-          <div className="grid grid-cols-2 gap-content-gap-sm">
-            {storyStats.map((key, index) => (
+        <div className="grid gap-content-gap-lg md:grid-cols-2 lg:grid-cols-3">
+          {featureKeys.map((key) => {
+            const Icon = featureIcons[key]
+
+            return (
               <div
                 key={key}
-                className={
-                  index === 0
-                    ? 'rounded-2xl border border-foreground/10 bg-foreground/10 p-card-padding-sm backdrop-blur sm:col-span-2 dark:border-background/10 dark:bg-background/10'
-                    : 'rounded-2xl border border-foreground/10 bg-foreground/10 p-card-padding-sm backdrop-blur dark:border-background/10 dark:bg-background/10'
-                }
+                className="rounded-2xl border border-border bg-muted/40 p-card-padding transition-all duration-normal hover:-translate-y-0.5 hover:shadow-elevation-2"
               >
-                <p className="text-display-sm font-black text-background dark:text-foreground">
-                  {t(`story.stats.${key}.value`)}
-                </p>
-                <p className="text-body-sm font-semibold text-background/70 dark:text-foreground">
-                  {t(`story.stats.${key}.label`)}
+                <div className="mb-4 text-heading-xl text-primary">
+                  <Icon className="h-7 w-7" aria-hidden />
+                </div>
+                <h3 className="mb-2 text-heading-xl font-bold text-foreground">
+                  {t(`features.items.${key}.title`)}
+                </h3>
+                <p className="text-body-sm text-muted-foreground">
+                  {t(`features.items.${key}.description`)}
                 </p>
               </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="border-t border-background/10 pt-20">
-          <SectionHeader
-            title={t('features.title')}
-            description={t('features.description')}
-            inverted
-          />
-
-          <div className="grid gap-content-gap-lg md:grid-cols-2 lg:grid-cols-3">
-            {featureKeys.map((key) => {
-              const Icon = featureIcons[key]
-
-              return (
-                <div
-                  key={key}
-                  className="rounded-3xl border border-foreground/10 bg-foreground/10 p-card-padding-lg transition-colors duration-normal hover:border-foreground/30 dark:border-background/10 dark:bg-background/10"
-                >
-                  <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-foreground/10 text-success dark:bg-background/10">
-                    <Icon className="h-7 w-7" aria-hidden />
-                  </div>
-                  <h4 className="mb-2 text-heading-xl font-bold text-background dark:text-foreground">
-                    {t(`features.items.${key}.title`)}
-                  </h4>
-                  <p className="text-background/70 dark:text-foreground">
-                    {t(`features.items.${key}.description`)}
-                  </p>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function Simulation({
-  activeTab,
-  onTabChange,
-  t,
-}: {
-  activeTab: SimTab
-  onTabChange: (tab: SimTab) => void
-  t: (key: string) => string
-}) {
-  return (
-    <section className="border-b border-border bg-background px-4 py-section-xl">
-      <div className="mx-auto max-w-6xl">
-        <SectionHeader title={t('simulation.title')} description={t('simulation.description')} />
-
-        <div className="mb-8 flex flex-wrap justify-center gap-content-gap-sm">
-          {simTabs.map((tab) => (
-            <SimButton key={tab} active={activeTab === tab} onClick={() => onTabChange(tab)}>
-              {t(`simulation.tabs.${tab}`)}
-            </SimButton>
-          ))}
-        </div>
-
-        <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-elevation-2">
-          <div className="flex items-center border-b border-border bg-muted/40 px-5 py-section-xs">
-            <span className="h-3 w-3 rounded-full bg-destructive/70" />
-            <span className="h-3 w-3 rounded-full bg-warning/70" />
-            <span className="h-3 w-3 rounded-full bg-success/70" />
-          </div>
-
-          {activeTab === 'dashboard' && <DashboardPreview t={t} />}
-          {activeTab === 'chat' && <ChatPreview t={t} />}
-          {activeTab === 'notebook' && <NotebookPreview t={t} />}
+            )
+          })}
         </div>
       </div>
     </section>
@@ -290,52 +229,35 @@ function Simulation({
 
 function BottomCta({ t }: { t: (key: string) => string }) {
   return (
-    <section className="bg-primary px-4 py-20 text-center text-primary-foreground">
+    <section className="bg-primary px-4 py-section-xl text-center text-primary-foreground">
       <h2 className="mb-4 text-display-sm font-extrabold md:text-display-lg">{t('cta.title')}</h2>
       <p className="mx-auto mb-8 max-w-2xl text-heading-lg text-primary-foreground/80">
         {t('cta.description')}
       </p>
-      <div className="flex justify-center">
+      <div className="flex flex-col items-center gap-content-gap">
         <Link
           href="/start"
-          className="rounded-xl border border-primary-foreground/30 bg-primary-foreground/10 px-8 py-section-xs text-body-lg font-bold text-primary-foreground transition-all duration-normal hover:bg-primary-foreground/20"
+          className="flex flex-col items-center rounded-full bg-primary-foreground px-10 py-3 text-primary shadow-elevation-2 transition-transform duration-normal hover:-translate-y-0.5"
         >
-          {t('cta.trial')}
+          <span className="text-heading-md font-bold">{t('cta.trial')}</span>
+          <span className="mt-1 text-body-xs font-normal opacity-80">{t('cta.trialNote')}</span>
+        </Link>
+        <Link
+          href="/login"
+          className="text-body-sm font-medium text-primary-foreground/80 underline underline-offset-4 transition-colors duration-normal hover:text-primary-foreground"
+        >
+          {t('cta.loginCta')}
         </Link>
       </div>
     </section>
   )
 }
 
-function LogoMark() {
-  return (
-    <div className="mb-10 flex h-24 w-24 items-center justify-center rounded-3xl bg-card text-display-sm font-black text-primary shadow-elevation-2">
-      A
-    </div>
-  )
-}
-
-function SectionHeader({
-  title,
-  description,
-  inverted = false,
-}: {
-  title: string
-  description: string
-  inverted?: boolean
-}) {
+function SectionHeader({ title, description }: { title: string; description: string }) {
   return (
     <div className="mx-auto mb-14 max-w-3xl text-center">
       <h2 className="mb-4 text-display-sm font-extrabold md:text-display-md">{title}</h2>
-      <p
-        className={
-          inverted
-            ? 'text-heading-lg text-background/75 dark:text-foreground'
-            : 'text-heading-lg text-muted-foreground'
-        }
-      >
-        {description}
-      </p>
+      <p className="text-heading-lg text-muted-foreground">{description}</p>
     </div>
   )
 }
@@ -405,205 +327,5 @@ function ComparisonItem({
         <span className="text-body-sm text-muted-foreground">{value}</span>
       </div>
     </li>
-  )
-}
-
-function SimButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  children: ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={
-        active
-          ? 'min-w-[150px] flex-1 rounded-2xl border-2 border-primary bg-primary px-5 py-3 font-bold text-primary-foreground shadow-elevation-3 transition-all duration-normal'
-          : 'min-w-[150px] flex-1 rounded-2xl border border-border bg-card px-5 py-3 font-bold text-muted-foreground transition-all duration-normal hover:bg-muted'
-      }
-    >
-      {children}
-    </button>
-  )
-}
-
-function DashboardPreview({ t }: { t: (key: string) => string }) {
-  const cards = ['triangles', 'order', 'fractions'] as const
-
-  return (
-    <div className="bg-muted/30 p-card-padding-sm md:p-card-padding-lg">
-      <div className="mb-8 text-center">
-        <h3 className="mb-1 text-display-sm font-extrabold text-foreground">
-          {t('simulation.dashboard.title')}
-        </h3>
-        <div className="relative mx-auto mt-2 h-2.5 w-full max-w-md overflow-hidden rounded-full bg-muted">
-          <div className="h-full w-[3%] rounded-full bg-primary" />
-          <span className="absolute left-2 -top-1.5 text-[9px] font-bold text-muted-foreground">
-            {t('simulation.dashboard.progress')}
-          </span>
-        </div>
-      </div>
-
-      <div className="mb-8 flex flex-col items-center justify-between gap-content-gap rounded-3xl border border-border bg-card p-card-padding shadow-elevation-1 md:flex-row">
-        <div className="flex items-center gap-content-gap">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <Play className="h-6 w-6 fill-current" aria-hidden />
-          </div>
-          <div>
-            <p className="text-body-sm font-bold text-primary">
-              {t('simulation.dashboard.triangles.badge')}
-            </p>
-            <h4 className="text-heading-xl font-extrabold text-foreground">
-              {t('simulation.dashboard.triangles.title')}
-            </h4>
-            <p className="text-body-sm text-muted-foreground">
-              {t('simulation.dashboard.triangles.status')}
-            </p>
-          </div>
-        </div>
-        <Link
-          href="/start"
-          className="self-stretch rounded-2xl bg-primary px-8 py-3 text-center font-bold text-primary-foreground shadow-elevation-3 transition-all duration-normal hover:bg-primary md:self-auto"
-        >
-          {t('hero.trialCta')}
-        </Link>
-      </div>
-
-      <div className="grid gap-content-gap-lg text-start md:grid-cols-3">
-        {cards.map((card) => (
-          <div
-            key={card}
-            className="rounded-2xl border border-border bg-card p-5 shadow-elevation-1"
-          >
-            <div className="mb-4 flex items-start justify-between gap-content-gap-sm">
-              <span className="rounded-full bg-success/10 px-2.5 py-1 text-body-xs font-bold text-success">
-                {t(`simulation.dashboard.${card}.badge`)}
-              </span>
-            </div>
-            <h5 className="mb-2 text-body-lg font-bold text-foreground">
-              {t(`simulation.dashboard.${card}.title`)}
-            </h5>
-            <p className="text-body-xs text-muted-foreground">
-              {t(`simulation.dashboard.${card}.status`)}
-            </p>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function ChatPreview({ t }: { t: (key: string) => string }) {
-  return (
-    <div className="grid min-h-[500px] grid-cols-1 bg-muted/30 lg:grid-cols-12">
-      <div className="flex flex-col gap-content-gap border-border bg-card p-card-padding-sm lg:col-span-5 lg:border-e">
-        <MessageBubble label={t('simulation.chat.teacher')} tone="primary">
-          {t('simulation.chat.message')}
-        </MessageBubble>
-        <MessageBubble label={t('simulation.chat.feedback')} tone="success">
-          {t('simulation.chat.feedback')}
-        </MessageBubble>
-      </div>
-
-      <div className="p-card-padding lg:col-span-7">
-        <span className="mb-1 block text-body-xs font-bold uppercase text-muted-foreground">
-          {t('simulation.tabs.chat')}
-        </span>
-        <h3 className="mb-6 text-body-lg font-bold text-foreground">
-          {t('simulation.chat.exerciseTitle')}
-        </h3>
-        <div className="my-4 w-full rounded-3xl border border-border bg-card p-card-padding text-center shadow-elevation-1">
-          <NumberLine />
-        </div>
-        <Link
-          href="/start"
-          className="inline-block rounded-2xl bg-success px-6 py-3 font-bold text-success-foreground shadow-elevation-3"
-        >
-          {t('simulation.chat.next')}
-        </Link>
-      </div>
-    </div>
-  )
-}
-
-function NotebookPreview({ t }: { t: (key: string) => string }) {
-  return (
-    <div className="grid min-h-[500px] grid-cols-1 bg-muted/30 lg:grid-cols-12">
-      <div className="flex flex-col justify-between border-border bg-card p-card-padding-sm lg:col-span-5 lg:border-e">
-        <MessageBubble label={t('simulation.chat.teacher')} tone="primary">
-          {t('simulation.notebook.prompt')}
-        </MessageBubble>
-      </div>
-
-      <div className="p-card-padding lg:col-span-7">
-        <div className="rounded-3xl border border-border bg-card p-card-padding shadow-elevation-1">
-          <div className="mb-4 flex items-center gap-content-gap-xs text-muted-foreground">
-            <NotebookTabs className="h-5 w-5 text-primary" />
-            <span className="text-body-sm font-bold">{t('simulation.notebook.title')}</span>
-          </div>
-          <div className="h-60 rounded-2xl border border-dashed border-border bg-muted/40 p-card-padding-sm">
-            <div className="mx-auto h-full max-w-sm rounded-full border-2 border-primary/70" />
-          </div>
-          <p className="mt-4 rounded-2xl bg-success/10 p-card-padding-sm text-body-sm font-bold text-success">
-            {t('simulation.notebook.feedback')}
-          </p>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function MessageBubble({
-  label,
-  tone,
-  children,
-}: {
-  label: string
-  tone: 'primary' | 'success'
-  children: ReactNode
-}) {
-  return (
-    <div className="rounded-2xl border border-border bg-background p-card-padding-sm text-start">
-      <div className="mb-3 flex items-center gap-content-gap-xs">
-        <div
-          className={
-            tone === 'primary'
-              ? 'flex h-6 w-6 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground'
-              : 'flex h-6 w-6 items-center justify-center rounded-full bg-success text-[10px] font-bold text-success-foreground'
-          }
-        >
-          {tone === 'primary' ? 'A' : '✓'}
-        </div>
-        <span className="text-body-xs font-bold text-muted-foreground">{label}</span>
-      </div>
-      <p className="text-body-sm font-bold leading-relaxed text-foreground">{children}</p>
-    </div>
-  )
-}
-
-function NumberLine() {
-  const values = ['-5', '-4', '-3', '-2', '-1', '0', '1', '2']
-
-  return (
-    <div className="relative mx-auto flex max-w-xl items-center justify-between border-t-2 border-border pt-4">
-      {values.map((value) => (
-        <div key={value} className="relative flex flex-col items-center gap-content-gap-xs">
-          <span className="absolute -top-[25px] h-3 w-0.5 bg-border" />
-          <span className="text-body-sm font-bold text-muted-foreground">{value}</span>
-          {value === '-3' || value === '-1' || value === '2' ? (
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-body-xs font-bold text-primary-foreground shadow-elevation-3">
-              {value === '-3' ? 'A' : value === '-1' ? 'B' : 'C'}
-            </span>
-          ) : (
-            <span className="h-7 w-7" />
-          )}
-        </div>
-      ))}
-    </div>
   )
 }

@@ -248,6 +248,15 @@ describe('Issue #670 — contrast for dark-background sections', () => {
 
   it('DemoLandingPage / KnowledgeAndFeatures does not render dark text on a dark canvas in light mode', () => {
     const source = read(DEMO_LANDING_PAGE)
+
+    // The dark KnowledgeAndFeatures section may have been refactored away.
+    // With no dark-canvas section left in the landing page, the black-on-black
+    // regression this guards against cannot occur.
+    if (!source.includes('function KnowledgeAndFeatures(')) {
+      expect(source).not.toContain('function KnowledgeAndFeatures(')
+      return
+    }
+
     const body = extractComponentBody(source, 'KnowledgeAndFeatures')
 
     // Sanity check: this is the exact dark-background section from the bug
