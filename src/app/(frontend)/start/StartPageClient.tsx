@@ -1,7 +1,7 @@
 'use client'
 
 import { Bot } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { selectCourse, setUserProfile } from '@/client/state/localStorage/userProfile'
@@ -121,26 +121,16 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
   const [interaction, setInteraction] = useState<Interaction>('none')
   const [displayedText, setDisplayedText] = useState('')
   const [audioEnabled] = useState(true)
-  const [isSpeaking, setIsSpeaking] = useState(false)
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
   const [teacherProfiles, setTeacherProfiles] = useState<TeacherProfile[]>([])
   const [selectedTeacherProfile, setSelectedTeacherProfile] = useState<TeacherProfile | null>(null)
   const [showLoginModal, setShowLoginModal] = useState(false)
-  const runIdRef = useRef(0)
   const { user, isLoading: isAuthLoading } = useCurrentUser()
 
   useEffect(() => {
     document.body.classList.add('landing-page')
     return () => document.body.classList.remove('landing-page')
   }, [])
-
-  const sleep = useCallback(
-    (ms: number) =>
-      new Promise((resolve) => {
-        window.setTimeout(resolve, ms)
-      }),
-    [],
-  )
 
   const playTone = useCallback(
     (freq = 600, duration = 70) => {
@@ -171,23 +161,9 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
     [audioEnabled],
   )
 
-  const typeText = useCallback(
-    async (text: string, speed = 45) => {
-      const currentRun = ++runIdRef.current
-      setDisplayedText('')
-      setIsSpeaking(true)
-
-      for (let i = 0; i < text.length; i += 1) {
-        if (runIdRef.current !== currentRun) return
-        setDisplayedText(text.slice(0, i + 1))
-        if (Math.random() > 0.65) playTone(600 + Math.random() * 150, 40)
-        await sleep(speed)
-      }
-
-      if (runIdRef.current === currentRun) setIsSpeaking(false)
-    },
-    [playTone, sleep],
-  )
+  const showText = useCallback((text: string) => {
+    setDisplayedText(text)
+  }, [])
 
   const fetchTeacherProfiles = useCallback(async () => {
     try {
@@ -207,11 +183,9 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
     setPane('conversation')
     setInteraction('none')
     await fetchTeacherProfiles()
-    await typeText(copy.intro, 40)
-    await sleep(900)
-    await typeText(copy.teacherQuestion, 45)
+    showText(copy.teacherQuestion)
     setInteraction('teacher')
-  }, [copy.intro, copy.teacherQuestion, fetchTeacherProfiles, sleep, typeText])
+  }, [copy.teacherQuestion, fetchTeacherProfiles, showText])
 
   useEffect(() => {
     if (pane === 'conversation') {
@@ -220,15 +194,12 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
   }, [pane, startConversation])
 
   const selectMood = useCallback(
-    async (mood: Mood) => {
-      setInteraction('none')
+    (_mood: Mood) => {
       playTone(580, 120)
-      await typeText(copy.moods[mood].response, 45)
-      await sleep(900)
-      await typeText(copy.courseQuestion, 45)
+      showText(copy.courseQuestion)
       setInteraction('courses')
     },
-    [copy.courseQuestion, copy.moods, playTone, sleep, typeText],
+    [copy.courseQuestion, playTone, showText],
   )
 
   const saveTeacherProfile = useCallback(async (slug: string) => {
@@ -251,16 +222,12 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
   const selectTeacher = useCallback(
     async (teacher: TeacherProfile) => {
       setSelectedTeacherProfile(teacher)
-      setInteraction('none')
       playTone(580, 120)
-      const response = copy.teacherSelected.replace('{teacher}', teacher.label)
-      await typeText(response, 45)
-      await saveTeacherProfile(teacher.slug)
-      await sleep(900)
-      await typeText(copy.moodQuestion, 45)
+      showText(copy.moodQuestion)
       setInteraction('mood')
+      await saveTeacherProfile(teacher.slug)
     },
-    [copy.teacherSelected, copy.moodQuestion, playTone, saveTeacherProfile, sleep, typeText],
+    [copy.moodQuestion, playTone, saveTeacherProfile, showText],
   )
 
   const selectCourseHandler = useCallback(
@@ -282,8 +249,7 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
       }
       setInteraction('none')
       playTone(580, 120)
-      await typeText(copy.selected, 50)
-      await sleep(900)
+      showText(copy.selected)
 
       const isAnonymous = !user && !isAuthLoading
       if (isAnonymous) {
@@ -297,7 +263,7 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
         window.location.assign(getCourseHref(course))
       }, 800)
     },
-    [copy.selected, isAuthLoading, playTone, sleep, typeText, user],
+    [copy.selected, isAuthLoading, playTone, showText, user],
   )
 
   return (
@@ -321,7 +287,6 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
               courses={courses}
               displayedText={displayedText}
               interaction={interaction}
-              isSpeaking={isSpeaking}
               selectedCourse={selectedCourse}
               teacherProfiles={teacherProfiles}
               selectedTeacherProfile={selectedTeacherProfile}
@@ -351,7 +316,6 @@ function ConversationPane({
   courses,
   displayedText,
   interaction,
-  isSpeaking,
   selectedCourse,
   teacherProfiles,
   selectedTeacherProfile,
@@ -363,7 +327,6 @@ function ConversationPane({
   courses: Course[]
   displayedText: string
   interaction: Interaction
-  isSpeaking: boolean
   selectedCourse: Course | null
   teacherProfiles: TeacherProfile[]
   selectedTeacherProfile: TeacherProfile | null
@@ -376,24 +339,10 @@ function ConversationPane({
       <div className="mb-10 flex flex-col items-center text-center">
         <div className="relative mb-8 flex h-20 w-20 items-center justify-center rounded-full border border-border bg-card text-primary shadow-elevation-1">
           <Bot className="h-10 w-10" aria-hidden />
-          <div className="absolute -bottom-3 flex h-7 items-end gap-1 rounded-full bg-card px-2 py-1 shadow-elevation-1">
-            {[0, 1, 2].map((item) => (
-              <span
-                key={item}
-                className={cn(
-                  'w-1 rounded-full bg-primary transition-all duration-normal',
-                  isSpeaking ? 'h-5 animate-pulse' : 'h-2',
-                )}
-              />
-            ))}
-          </div>
         </div>
 
         <p className="min-h-24 max-w-3xl text-display-sm font-extrabold leading-relaxed text-foreground md:text-display-md">
           {displayedText}
-          {isSpeaking ? (
-            <span className="me-1 inline-block h-6 w-1 animate-pulse bg-primary" />
-          ) : null}
         </p>
       </div>
 
