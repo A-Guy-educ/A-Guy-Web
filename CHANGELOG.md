@@ -4716,6 +4716,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Remove typewriter animation on /start onboarding ([#1205](https://github.com/A-Guy-educ/A-Guy-Web/pull/1205)) — @aguyshayb
 - test: Lock in day-period support for /api/dashboard-metrics ([#1204](https://github.com/A-Guy-educ/A-Guy-Web/pull/1204)) — @aguyshayb
 - fix: Expand SVG viewBox to fit rendered content ([#1203](https://github.com/A-Guy-educ/A-Guy-Web/pull/1203)) — @aguyshayb
 - chore(deps): bump the prod-dependencies group with 32 updates ([#1200](https://github.com/A-Guy-educ/A-Guy-Web/pull/1200)) — @dependabot[bot]
