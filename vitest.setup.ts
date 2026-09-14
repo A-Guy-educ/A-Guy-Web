@@ -5,6 +5,133 @@ import 'dotenv/config'
 import { vi } from 'vitest'
 import { getTestDatabaseUrl } from './tests/setup/db-config'
 
+// ---------------------------------------------------------------------------
+// DOM globals for tests that use // @vitest-environment jsdom
+// vitest's jsdom environment provides window/document but not bare globals.
+// ---------------------------------------------------------------------------
+// jsdom creates separate window and globalThis objects in Node.js. We bridge
+// them here so that bare localStorage/sessionStorage (which resolve to
+// globalThis.*) hit the same storage as window.* that tests spy on.
+//
+// localStorage: if window.localStorage is a proper Storage object, use it.
+// Otherwise fall back to a mock so product code always has access to storage.
+//
+// sessionStorage: delegate to window.sessionStorage so that bare
+// sessionStorage in product code uses the same object that tests spy on.
+// ---------------------------------------------------------------------------
+// Fallback mock storage - uses Storage.prototype if available so prototype spies intercept calls
+const createStorageMock = (): Storage => {
+  // In jsdom, Storage is available as window.Storage
+  const proto = typeof Storage !== 'undefined' && Storage.prototype ? Storage.prototype : {}
+  const mock = Object.create(proto) as Storage
+  const data = new Map<string, string>()
+  mock.getItem = function (key: string): string | null {
+    return data.get(key) ?? null
+  }
+  mock.setItem = function (key: string, value: string): void {
+    // Call through to Storage.prototype so that any spy on
+    // Storage.prototype.setItem is triggered (e.g. test mocks that throw).
+    // If the prototype call throws (e.g. instanceof check fails in jsdom 26.1.0
+    // on Node 26), we catch the error and still store locally.
+    try {
+      Storage.prototype.setItem.call(this, key, String(value))
+    } catch {
+      // Prototype call failed (e.g. jsdom instanceof check) — store directly.
+    }
+    data.set(key, String(value))
+  }
+  mock.removeItem = function (key: string): void {
+    data.delete(key)
+  }
+  mock.clear = function (): void {
+    data.clear()
+  }
+  Object.defineProperty(mock, 'length', {
+    get(): number {
+      return data.size
+    },
+    enumerable: false,
+    configurable: true,
+  })
+  mock.key = function (index: number): string | null {
+    const keys = Array.from(data.keys())
+    return keys[index] ?? null
+  }
+  return mock
+}
+
+// Provide localStorage/sessionStorage to product code that uses bare access.
+// In jsdom, window.localStorage is a proper Storage object; bridge it to globalThis.
+// If window.localStorage is unavailable (e.g., jsdom without storage resource or opaque
+// origin throwing SecurityError), use a fallback mock so product code and tests both
+// have access to a working Storage object.
+if (typeof window !== 'undefined') {
+  // localStorage
+  try {
+    const ls = window.localStorage
+    // Validate it's a real Storage (not broken/noop) — broken Storage has undefined methods
+    if (typeof ls?.getItem === 'function') {
+      Object.defineProperty(globalThis, 'localStorage', {
+        value: ls,
+        writable: true,
+        configurable: true,
+      })
+    } else {
+      // Broken Storage: exists but methods are undefined. Throw to trigger fallback.
+      throw new Error('window.localStorage has no getItem method')
+    }
+  } catch {
+    const fallback = createStorageMock()
+    Object.defineProperty(globalThis, 'localStorage', {
+      value: fallback,
+      writable: true,
+      configurable: true,
+    })
+    Object.defineProperty(window, 'localStorage', {
+      value: fallback,
+      writable: true,
+      configurable: true,
+    })
+  }
+  // sessionStorage
+  try {
+    const ss = window.sessionStorage
+    if (typeof ss?.getItem === 'function') {
+      Object.defineProperty(globalThis, 'sessionStorage', {
+        value: ss,
+        writable: true,
+        configurable: true,
+      })
+    } else {
+      throw new Error('window.sessionStorage has no getItem method')
+    }
+  } catch {
+    const fallback = createStorageMock()
+    Object.defineProperty(globalThis, 'sessionStorage', {
+      value: fallback,
+      writable: true,
+      configurable: true,
+    })
+    Object.defineProperty(window, 'sessionStorage', {
+      value: fallback,
+      writable: true,
+      configurable: true,
+    })
+  }
+} else if (typeof globalThis.localStorage === 'undefined') {
+  // Node-only environment (no jsdom): fall back to a minimal mock.
+  Object.defineProperty(globalThis, 'localStorage', {
+    value: createStorageMock(),
+    writable: true,
+    configurable: true,
+  })
+  Object.defineProperty(globalThis, 'sessionStorage', {
+    value: createStorageMock(),
+    writable: true,
+    configurable: true,
+  })
+}
+
 // Set required environment variables for tests if not already set
 if (!process.env.PAYLOAD_SECRET) {
   process.env.PAYLOAD_SECRET = 'test-secret-key-for-integration-tests-only-minimum-32-chars'
