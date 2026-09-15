@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.39.1 — 2026-09-15
+
+### Fixes
+- Rebuild and throttle geometry board on resize; mirror admin angle-renderer fixes (#1215)
+- Force square marker on non-90-degree angles (#1216)
+
 ## v0.39.0 — 2026-09-15
 
 ### Features
