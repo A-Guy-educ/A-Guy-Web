@@ -125,13 +125,20 @@ function renderAngles(board: JXG.Board, angles: AngleSpec[], pointMap: Map<strin
 
     const color = a.color ?? getDefaultTextColor()
     const isSquare = a.style === 'square'
+    // `orthoType` only wins when the measured angle is within JSXGraph's
+    // `orthoSensitivity` (default 1°) of 90°. Anything drawn at, say,
+    // 88° with `style: 'square'` silently falls back to `type` — which
+    // defaults to 'sector' — and the square marker never appears. Set
+    // both fields to the same shape so the authored style always wins,
+    // no matter what the measured angle is.
+    const shape = isSquare ? 'square' : 'sector'
     const attrs: Record<string, unknown> = {
       // `radius: 1` (or undefined) draws an invisible arc at this canvas
       // scale; 30 matches what admin renders and is what the reader
-      // actually sees. `orthoType` — not `type` — is the JSXGraph knob
-      // that switches between a sector and a right-angle square mark.
+      // actually sees.
       radius: a.arcRadius ?? 30,
-      orthoType: isSquare ? 'square' : 'sector',
+      type: shape,
+      orthoType: shape,
       strokeColor: color,
       fillColor: color,
       fillOpacity: 0.15,
