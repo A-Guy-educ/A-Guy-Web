@@ -17,6 +17,9 @@ interface OnboardingCompleteLoginModalProps {
   returnTo: string
 }
 
+// Non-dismissible on purpose (#778): the user must complete OAuth to save the
+// onboarding selections. Do not add a Close button, dismiss handler, or Skip
+// link without re-litigating that flow.
 export function OnboardingCompleteLoginModal({
   isOpen,
   returnTo,

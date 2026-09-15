@@ -456,7 +456,7 @@ interface TeacherVisual {
 }
 
 const RECOMMENDED_KEYWORDS = ['guy', 'balanced', 'recommended', 'גיא']
-const DETAILED_KEYWORDS = ['detailed', 'detail', 'deep', 'patient', 'סבלני', 'חופר', 'מעמיק']
+const DETAILED_KEYWORDS = ['detail', 'deep', 'patient', 'סבלני', 'חופר', 'מעמיק']
 const FOCUSED_KEYWORDS = ['focused', 'brief', 'short', 'ממוקד']
 
 function matchesAny(haystack: string, needles: string[]): boolean {
