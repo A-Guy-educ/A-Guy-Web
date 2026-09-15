@@ -4,7 +4,7 @@
       "headline": "The world changes faster than any curriculum",
       "subheadline": "That's why learning has to adapt too",
       "brand": "Meet Aguy",
-      "role": "A private math tutor for elementary, middle, high school, and Bagrut prep",
+      "role": "A private AI math tutor for elementary, middle, high school, and Bagrut prep",
       "pitch": "Learn any topic from scratch with a unique pedagogical method, personalized practice, mock exams, and homework help.",
       "trialCta": "Start learning",
       "trialCtaNote": "(free)",
@@ -201,9 +201,8 @@
       }
     },
     "onboardingComplete": {
-      "title": "Great! 🎉",
-      "descriptionBold": "I've prepared your personalized learning system.",
-      "descriptionRest": "Just a quick sign-in and we're on our way together",
+      "title": "Awesome, we're ready!",
+      "descriptionRest": "To save your progress and start learning, just sign in.",
       "primaryCta": "Quick sign-in with Google"
     },
     "login": {
@@ -358,8 +357,6 @@
     "lessonViewModeInteractive": "Interactive",
     "lessonViewModeTest": "Test",
     "lessonViewModeChat": "Chat",
-    "chatViewStart": "Start Chat Lesson",
-    "chatViewExercisesCount": "Exercises",
     "chatViewIntroPrefix": "Exercise",
     "chatViewFinishTitle": "Nice work — you finished the lesson!",
     "chatViewInputPlaceholder": "Ask a question about this exercise...",

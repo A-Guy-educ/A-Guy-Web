@@ -2,8 +2,7 @@
 
 import { useRef, useState } from 'react'
 
-import Image from 'next/image'
-
+import { BrandLogo } from '@/ui/web/BrandLogo'
 import { GoogleLoginButton } from '@/ui/web/auth/GoogleLoginButton'
 import { Button } from '@/ui/web/components/button'
 import { Card, CardContent, CardHeader } from '@/ui/web/components/card'
@@ -13,7 +12,6 @@ import { usePasswordLogin } from '@/ui/web/providers/PasswordLoginProvider'
 import { useI18n, useTranslations } from '@/ui/web/providers/I18n'
 import type { SafeDestination } from '@/infra/auth/oauth_sanitize'
 import { loginAction } from './login_authenticate-action'
-import telescopeSvg from '@/brands/aguy/assets/telescope.svg'
 
 /**
  * `returnTo` arrives already sanitized from the server component: deciding
@@ -78,7 +76,7 @@ export function LoginForm({ returnTo }: { returnTo: SafeDestination }) {
       <CardHeader className="pb-3">
         {/* Logo */}
         <div className="flex flex-col items-center gap-1">
-          <Image src={telescopeSvg} alt="A-Guy" className="h-24 w-auto" width={224} height={204} />
+          <BrandLogo className="h-24 w-auto" />
           <p className="text-primary font-semibold">{tBrand('brand.heroSubtitle')}</p>
         </div>
         {/* Section label with decorative line */}

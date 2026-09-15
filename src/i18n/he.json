@@ -4,7 +4,7 @@
       "headline": "העולם משתנה מהר יותר מכל תוכנית למידה",
       "subheadline": "לכן גם הלמידה צריכה להיות מותאמת",
       "brand": "הכירו את Aguy",
-      "role": "מורה פרטי למתמטיקה לתלמידי יסודי, תיכון והכנה לבגרות",
+      "role": "מורה פרטי AI למתמטיקה לתלמידי יסודי, תיכון והכנה לבגרות",
       "pitch": "ללמוד נושא מאפס בשיטה פדגוגית ייחודית, תרגול מותאם אישית, בחינות סימולציה וגם אפשרות לעזרה בשיעורי בית.",
       "trialCta": "להתחיל ללמוד",
       "trialCtaNote": "(ללא עלות)",
@@ -201,9 +201,8 @@
       }
     },
     "onboardingComplete": {
-      "title": "נהדר! 🎉",
-      "descriptionBold": "הכנתי עבורך את מערכת הלמידה המותאמת אישית.",
-      "descriptionRest": "רק חיבור מהיר ויוצאים לדרך המשותפת",
+      "title": "מעולה, אנחנו מוכנים!",
+      "descriptionRest": "כדי לשמור את ההתקדמות שלך ולהתחיל ללמוד, נשאר רק להתחבר.",
       "primaryCta": "כניסה מהירה עם Google"
     },
     "signup": {
@@ -358,8 +357,6 @@
     "lessonViewModeInteractive": "אינטראקטיבי",
     "lessonViewModeTest": "מבחן",
     "lessonViewModeChat": "צ׳אט",
-    "chatViewStart": "התחל שיעור צ׳אט",
-    "chatViewExercisesCount": "תרגילים",
     "chatViewIntroPrefix": "תרגיל",
     "chatViewFinishTitle": "כל הכבוד! סיימת את השיעור",
     "chatViewInputPlaceholder": "שאל שאלה על התרגיל...",

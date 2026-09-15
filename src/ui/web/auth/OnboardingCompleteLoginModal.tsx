@@ -1,5 +1,7 @@
 'use client'
 
+import { Rocket } from 'lucide-react'
+
 import {
   Dialog,
   DialogContent,
@@ -15,12 +17,9 @@ interface OnboardingCompleteLoginModalProps {
   returnTo: string
 }
 
-/**
- * Non-dismissible registration popup shown at the end of the `/start`
- * onboarding wizard for unauthenticated visitors. Mirrors `AuthGateModal`'s
- * structural pattern (Dialog with `allowDismiss={false}` + Google button)
- * but with onboarding-specific copy and no escape-hatch link.
- */
+// Non-dismissible on purpose (#778): the user must complete OAuth to save the
+// onboarding selections. Do not add a Close button, dismiss handler, or Skip
+// link without re-litigating that flow.
 export function OnboardingCompleteLoginModal({
   isOpen,
   returnTo,
@@ -29,16 +28,27 @@ export function OnboardingCompleteLoginModal({
 
   return (
     <Dialog open={isOpen}>
-      <DialogContent allowDismiss={false} className="sm:max-w-md">
+      <DialogContent
+        allowDismiss={false}
+        className="rounded-3xl border border-border bg-card p-card-padding-lg text-center sm:max-w-md sm:rounded-3xl"
+      >
+        <div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <Rocket className="h-7 w-7" aria-hidden />
+        </div>
         <DialogHeader className="text-center sm:text-center">
-          <DialogTitle className="text-heading-xl">{t('title')}</DialogTitle>
-          <DialogDescription className="mt-2">
-            <span className="block font-bold">{t('descriptionBold')}</span>
-            <span className="block font-normal">{t('descriptionRest')}</span>
+          <DialogTitle className="text-heading-xl font-bold text-foreground">
+            {t('title')}
+          </DialogTitle>
+          <DialogDescription className="mx-auto mt-2 max-w-xs text-body-sm text-muted-foreground">
+            {t('descriptionRest')}
           </DialogDescription>
         </DialogHeader>
-        <div className="mt-4 flex flex-col items-center gap-3">
-          <GoogleLoginButton returnTo={returnTo} label={t('primaryCta')} className="w-full" />
+        <div className="mt-6 flex flex-col items-center gap-3">
+          <GoogleLoginButton
+            returnTo={returnTo}
+            label={t('primaryCta')}
+            className="h-12 w-full rounded-xl border-2 text-body-md font-semibold"
+          />
         </div>
       </DialogContent>
     </Dialog>

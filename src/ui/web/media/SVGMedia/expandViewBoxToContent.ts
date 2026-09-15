@@ -20,6 +20,11 @@
  * Behaviour:
  *  - Only expands, never shrinks — author padding around the content is
  *    preserved so this is safe to run on already-well-sized diagrams.
+ *  - Numeric `width` / `height` attributes are scaled by the same factor
+ *    the viewBox grew by, so content pixel density is preserved when the
+ *    SVG is rendered at its intrinsic size (SVGMedia's default). Percent /
+ *    unit-suffixed / `auto` dimensions are left alone — the caller
+ *    intentionally deferred sizing to the render context.
  *  - No-op when the SVG has no `viewBox`, when `getBBox()` throws (jsdom,
  *    disconnected trees), or when the bbox is empty.
  *  - Idempotent: running it a second time with the same content produces
@@ -65,6 +70,33 @@ export function expandViewBoxToContent(svg: SVGSVGElement): void {
   }
 
   svg.setAttribute('viewBox', `${left} ${top} ${newW} ${newH}`)
+
+  // Keep the intrinsic pixel dimensions in lock-step with the viewBox
+  // growth. Without this, an SVG authored at width="250" whose viewBox we
+  // grow to 310 units still renders at 250 CSS pixels — the browser packs
+  // 310 units of content into 250 pixels and every glyph shrinks by ~20%.
+  // Renderers that force `width="100%"` (SvgRenderer) are unaffected
+  // because the scaler skips non-numeric values.
+  scaleIntrinsicDimension(svg, 'width', newW / vw)
+  scaleIntrinsicDimension(svg, 'height', newH / vh)
+}
+
+function scaleIntrinsicDimension(
+  svg: SVGSVGElement,
+  attr: 'width' | 'height',
+  factor: number,
+): void {
+  if (Math.abs(factor - 1) < 1e-6) return
+  const raw = svg.getAttribute(attr)
+  if (!raw) return
+  // Only touch bare-number and px-suffixed values. Percentages / em / vw /
+  // `auto` are container-relative — the caller intentionally deferred to
+  // the render context, so multiplying them would fight the layout.
+  const match = raw.trim().match(/^([\d.]+)(px)?$/i)
+  if (!match) return
+  const value = parseFloat(match[1])
+  if (!Number.isFinite(value) || value <= 0) return
+  svg.setAttribute(attr, `${value * factor}${match[2] ?? ''}`)
 }
 
 /**

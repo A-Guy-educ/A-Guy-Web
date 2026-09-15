@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.39.0 — 2026-09-15
+
+### Features
+- Load Heebo via next/font and add AI to hero role (#1211)
+- Polish /start teacher cards and login modal to match mockup (#1209)
+- Swap telescope asset for BrandLogo and gate bug widget to authed users (#1210)
+
+### Fixes
+- Drop redundant chat-view start card and stop clipping geometry (#1212)
+- Scale SVG intrinsic width/height when expanding viewBox (#1208)
+
 ## v0.38.0 — 2026-09-14
 
 ### Features
@@ -4737,6 +4748,13 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.39.0 ([#1213](https://github.com/A-Guy-educ/A-Guy-Web/pull/1213)) — @aguyshayb
+- fix: Drop redundant chat-view start card and stop clipping geometry ([#1212](https://github.com/A-Guy-educ/A-Guy-Web/pull/1212)) — @aguyshayb
+- feat: Load Heebo via next/font and add AI to hero role ([#1211](https://github.com/A-Guy-educ/A-Guy-Web/pull/1211)) — @aguyshayb
+- feat: Polish /start teacher cards and login modal ([#1209](https://github.com/A-Guy-educ/A-Guy-Web/pull/1209)) — @aguyshayb
+- feat: Swap telescope for BrandLogo and gate bug widget to auth ([#1210](https://github.com/A-Guy-educ/A-Guy-Web/pull/1210)) — @aguyshayb
+- fix: Scale SVG intrinsic width/height when expanding viewBox ([#1208](https://github.com/A-Guy-educ/A-Guy-Web/pull/1208)) — @aguyshayb
+- promote: dev -> main (v0.38.0) ([#1207](https://github.com/A-Guy-educ/A-Guy-Web/pull/1207)) — @aguyshayb
 - chore: Release v0.38.0 ([#1206](https://github.com/A-Guy-educ/A-Guy-Web/pull/1206)) — @aguyshayb
 - fix: Remove typewriter animation on /start onboarding ([#1205](https://github.com/A-Guy-educ/A-Guy-Web/pull/1205)) — @aguyshayb
 - test: Lock in day-period support for /api/dashboard-metrics ([#1204](https://github.com/A-Guy-educ/A-Guy-Web/pull/1204)) — @aguyshayb

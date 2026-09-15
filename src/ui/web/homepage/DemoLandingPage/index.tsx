@@ -15,11 +15,10 @@ import {
   X,
   type LucideIcon,
 } from 'lucide-react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, type ReactNode } from 'react'
 
-import telescopeSvg from '@/brands/aguy/assets/telescope.svg'
+import { BrandLogo } from '@/ui/web/BrandLogo'
 import { LanguageSwitcher } from '@/ui/web/LanguageSwitcher'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import { ThemeSelector } from '@/ui/web/providers/Theme/ThemeSelector'
@@ -81,14 +80,7 @@ function Hero({ t }: { t: (key: string) => string }) {
     <section className="relative flex flex-col items-center overflow-hidden border-b border-border bg-background px-4 pb-16 pt-20 text-center md:pt-24">
       <div className="pointer-events-none absolute inset-x-0 top-0 mx-auto h-[520px] max-w-5xl rounded-full bg-primary/10 blur-3xl" />
       <div className="relative z-10 mx-auto flex w-full max-w-4xl flex-col items-center">
-        <Image
-          src={telescopeSvg}
-          alt="Aguy"
-          width={160}
-          height={160}
-          className="mb-8 h-28 w-auto drop-shadow-elevation-3 md:h-36"
-          priority
-        />
+        <BrandLogo className="mb-8 h-28 w-auto drop-shadow-elevation-3 md:h-36" />
 
         <h1 className="mb-4 max-w-3xl text-display-md font-extrabold leading-tight text-foreground md:text-display-lg">
           {t('hero.headline')}
