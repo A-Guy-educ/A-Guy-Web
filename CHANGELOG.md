@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.39.0 — 2026-09-15
+
+### Features
+- Load Heebo via next/font and add AI to hero role (#1211)
+- Polish /start teacher cards and login modal to match mockup (#1209)
+- Swap telescope asset for BrandLogo and gate bug widget to authed users (#1210)
+
+### Fixes
+- Drop redundant chat-view start card and stop clipping geometry (#1212)
+- Scale SVG intrinsic width/height when expanding viewBox (#1208)
+
 ## v0.38.0 — 2026-09-14
 
 ### Features
