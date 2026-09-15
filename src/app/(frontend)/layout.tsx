@@ -37,7 +37,7 @@ const stixTwoText = STIX_Two_Text({
 // stop falling through to Segoe UI / -apple-system for Hebrew glyphs.
 const heebo = Heebo({
   subsets: ['hebrew', 'latin'],
-  weight: ['300', '400', '600', '700', '800'],
+  weight: ['300', '400', '500', '600', '700', '800'],
   variable: '--font-heebo',
   display: 'swap',
 })
