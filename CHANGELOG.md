@@ -4737,6 +4737,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Load Heebo via next/font and add AI to hero role ([#1211](https://github.com/A-Guy-educ/A-Guy-Web/pull/1211)) — @aguyshayb
 - feat: Polish /start teacher cards and login modal ([#1209](https://github.com/A-Guy-educ/A-Guy-Web/pull/1209)) — @aguyshayb
 - feat: Swap telescope for BrandLogo and gate bug widget to auth ([#1210](https://github.com/A-Guy-educ/A-Guy-Web/pull/1210)) — @aguyshayb
 - fix: Scale SVG intrinsic width/height when expanding viewBox ([#1208](https://github.com/A-Guy-educ/A-Guy-Web/pull/1208)) — @aguyshayb
