@@ -167,28 +167,19 @@ export function JSXGraphBoard({
         boardRef.current = null
       }
     }
+    // Re-init on width/height change so the SVG matches the container.
+    // `initBoard` reads the container size once from the DOM; if width/height
+    // props change afterwards (parents run a ResizeObserver → recompute →
+    // setDimensions in GeometryRenderer / AxisRenderer, or a view switch
+    // remounts the parent with different dimensions), the CSS box updates
+    // but the SVG stays cropped to the initial rectangle. A mid-flight
+    // `resizeContainer` can't reliably catch this because `init` is async
+    // and `boardRef` is often still null when the first dimension change
+    // fires — so we tear the board down and rebuild it, matching the
+    // page-refresh path which is the one we've confirmed always renders
+    // correctly.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [containerId])
-
-  // Keep JSXGraph's SVG in sync with the container's width/height props.
-  // Without this, initBoard reads the container size once on mount and the
-  // SVG stays pinned to that size — so when parents compute a different
-  // size after mount (ResizeObserver in GeometryRenderer / AxisRenderer) or
-  // the user switches away and back to a view that mounts fresh with new
-  // dimensions, the CSS box grows but the drawing stays cropped to the
-  // original SVG rectangle. `true` on the third arg keeps us in charge of
-  // the container's inline CSS (already set via the style prop below).
-  useEffect(() => {
-    const board = boardRef.current
-    if (!board || !Number.isFinite(width) || !Number.isFinite(height)) return
-    if (width <= 0 || height <= 0) return
-    try {
-      board.resizeContainer(width, height, true)
-      board.fullUpdate()
-    } catch {
-      /* ignore resize errors — board may be mid-teardown */
-    }
-  }, [width, height])
+  }, [containerId, width, height])
 
   return (
     <div
