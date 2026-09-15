@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.39.1 — 2026-09-15
+
+### Fixes
+- Rebuild and throttle geometry board on resize; mirror admin angle-renderer fixes (#1215)
+- Force square marker on non-90-degree angles (#1216)
+
 ## v0.39.0 — 2026-09-15
 
 ### Features
@@ -4748,6 +4754,10 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.39.1 ([#1217](https://github.com/A-Guy-educ/A-Guy-Web/pull/1217)) — @aguyshayb
+- fix: Force square marker on non-90-degree angles ([#1216](https://github.com/A-Guy-educ/A-Guy-Web/pull/1216)) — @aguyshayb
+- fix: Rebuild geometry board on resize and mirror admin angle fixes ([#1215](https://github.com/A-Guy-educ/A-Guy-Web/pull/1215)) — @aguyshayb
+- promote: dev -> main (v0.39.0) ([#1214](https://github.com/A-Guy-educ/A-Guy-Web/pull/1214)) — @aguyshayb
 - chore: Release v0.39.0 ([#1213](https://github.com/A-Guy-educ/A-Guy-Web/pull/1213)) — @aguyshayb
 - fix: Drop redundant chat-view start card and stop clipping geometry ([#1212](https://github.com/A-Guy-educ/A-Guy-Web/pull/1212)) — @aguyshayb
 - feat: Load Heebo via next/font and add AI to hero role ([#1211](https://github.com/A-Guy-educ/A-Guy-Web/pull/1211)) — @aguyshayb

@@ -23,6 +23,8 @@ function mapLabelOffset(pos?: string): [number, number] {
   return map[pos || 'r'] || [d, 0]
 }
 
+const TIMES_NEW_ROMAN_CSS = "font-family: 'Times New Roman', Times, serif;"
+
 function renderPoints(board: JXG.Board, points: PointSpec[]): Map<string, any> {
   const pointMap = new Map<string, any>()
   for (const p of points) {
@@ -37,7 +39,11 @@ function renderPoints(board: JXG.Board, points: PointSpec[]): Map<string, any> {
       label: {
         offset: mapLabelOffset(p.position),
         fontSize: p.fontSize ?? 12,
-        fontFamily: 'Times New Roman',
+        // JSXGraph silently drops `fontFamily` on label attrs — the only
+        // knob it honors is `cssStyle` (which becomes inline `style=` on
+        // the label element). Without this the point labels fall back to
+        // JSXGraph's default sans-serif.
+        cssStyle: TIMES_NEW_ROMAN_CSS,
       },
     })
     pointMap.set(p.name, pt)
@@ -84,7 +90,7 @@ function renderLines(
         anchorY: 'middle',
         display: 'internal',
         rotate: deg,
-        fontFamily: 'Times New Roman',
+        cssStyle: TIMES_NEW_ROMAN_CSS,
       })
     }
   }
@@ -117,18 +123,44 @@ function renderAngles(board: JXG.Board, angles: AngleSpec[], pointMap: Map<strin
     const ray2 = pointMap.get(a.ray2)
     if (!center || !ray1 || !ray2) continue
 
+    const color = a.color ?? getDefaultTextColor()
+    const isSquare = a.style === 'square'
+    // `orthoType` only wins when the measured angle is within JSXGraph's
+    // `orthoSensitivity` (default 1°) of 90°. Anything drawn at, say,
+    // 88° with `style: 'square'` silently falls back to `type` — which
+    // defaults to 'sector' — and the square marker never appears. Set
+    // both fields to the same shape so the authored style always wins,
+    // no matter what the measured angle is.
+    const shape = isSquare ? 'square' : 'sector'
     const attrs: Record<string, unknown> = {
-      radius: a.arcRadius ?? 1,
-      type: a.style === 'square' ? 'square' : 'sector',
+      // `radius: 1` (or undefined) draws an invisible arc at this canvas
+      // scale; 30 matches what admin renders and is what the reader
+      // actually sees.
+      radius: a.arcRadius ?? 30,
+      type: shape,
+      orthoType: shape,
+      strokeColor: color,
+      fillColor: color,
+      fillOpacity: 0.15,
+      strokeWidth: 2,
+      fixed: true,
     }
-    if (a.color) attrs.fillColor = a.color
     if (a.label?.value) {
       attrs.name = a.label.value
       attrs.withLabel = true
       attrs.label = {
         fontSize: a.label.fontSize ?? 10,
-        fontFamily: 'Times New Roman',
+        cssStyle: TIMES_NEW_ROMAN_CSS,
       }
+    } else {
+      // JSXGraph auto-assigns Greek letters (α, β, γ, …) via the `name`
+      // default whenever an angle element is created — `withLabel: false`
+      // alone doesn't suppress it. Force-blanking `name`, disabling the
+      // label, and hiding it via the label attrs is what actually
+      // prevents the phantom α.
+      attrs.name = ''
+      attrs.withLabel = false
+      attrs.label = { visible: false }
     }
 
     board.create('angle', [ray1, center, ray2], attrs)
