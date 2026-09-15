@@ -357,8 +357,6 @@
     "lessonViewModeInteractive": "אינטראקטיבי",
     "lessonViewModeTest": "מבחן",
     "lessonViewModeChat": "צ׳אט",
-    "chatViewStart": "התחל שיעור צ׳אט",
-    "chatViewExercisesCount": "תרגילים",
     "chatViewIntroPrefix": "תרגיל",
     "chatViewFinishTitle": "כל הכבוד! סיימת את השיעור",
     "chatViewInputPlaceholder": "שאל שאלה על התרגיל...",
