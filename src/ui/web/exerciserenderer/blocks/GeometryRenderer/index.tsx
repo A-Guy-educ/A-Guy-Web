@@ -62,9 +62,26 @@ export function GeometryRenderer({ blockId, spec }: GeometryRendererProps) {
       setDimensions(size)
     }
     recompute()
-    const observer = new ResizeObserver(recompute)
+    // JSXGraphBoard rebuilds the whole board (freeBoard + initBoard +
+    // renderGeometrySpec) whenever width/height change. Without an rAF
+    // gate, a window drag fires ResizeObserver at animation-frame cadence
+    // and every tick triggers a full O(elements) rebuild — heavy specs
+    // visibly stutter. Coalescing consecutive ticks into one paint means
+    // at most one rebuild per frame.
+    let rafId: number | null = null
+    const scheduleRecompute = () => {
+      if (rafId !== null) return
+      rafId = requestAnimationFrame(() => {
+        rafId = null
+        recompute()
+      })
+    }
+    const observer = new ResizeObserver(scheduleRecompute)
     observer.observe(container)
-    return () => observer.disconnect()
+    return () => {
+      observer.disconnect()
+      if (rafId !== null) cancelAnimationFrame(rafId)
+    }
   }, [xRange, yRange])
 
   return (

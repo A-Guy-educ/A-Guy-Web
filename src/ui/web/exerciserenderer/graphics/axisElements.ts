@@ -4,6 +4,11 @@ import type { AxisSpecV1 } from '@/infra/contracts'
 import { getDefaultTextColor } from '@/infra/contracts/graphics/textColors'
 import { parseMathExpression } from '../utils/safeMathEval'
 
+// JSXGraph silently drops `fontFamily` on label/text attrs; only `cssStyle`
+// (which becomes inline `style=`) makes it through. Kept here so every
+// axis text uses the same Times New Roman stack.
+const TIMES_NEW_ROMAN_CSS = "font-family: 'Times New Roman', Times, serif;"
+
 type GraphSpec = AxisSpecV1['elements']['graphs'][number]
 type PointSpec = AxisSpecV1['elements']['points'][number]
 type LocusSpec = NonNullable<AxisSpecV1['elements']['geometricLoci']>[number]
@@ -56,7 +61,7 @@ function renderAxisPoints(board: JXG.Board, points: PointSpec[]) {
         fontSize: 14,
         anchorX: 'middle',
         anchorY: 'middle',
-        fontFamily: 'Times New Roman',
+        cssStyle: TIMES_NEW_ROMAN_CSS,
       })
     } else {
       const attrs: Record<string, unknown> = {
@@ -67,7 +72,7 @@ function renderAxisPoints(board: JXG.Board, points: PointSpec[]) {
         label: {
           offset: mapPointLabelOffset(p.labelPosition),
           fontSize: 12,
-          fontFamily: 'Times New Roman',
+          cssStyle: TIMES_NEW_ROMAN_CSS,
         },
       }
       if (p.color) {
