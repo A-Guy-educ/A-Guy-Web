@@ -3,8 +3,8 @@
  *
  * Mirrors the slot/positioning/styling of the (now-parked) FloatingAgentButton
  * so swapping the two doesn't disturb the layout or mobile chat-panel stacking.
- * Unlike its predecessor, this button renders for anonymous AND authenticated
- * users — bug reports must work for logged-out visitors too.
+ * Gated to authenticated users only — LayoutClient hides it on the landing /
+ * login / onboarding funnel where the widget would just be noise.
  *
  * Localization: the tooltip/aria-label is sourced from the `bugReport` i18n
  * namespace. Hebrew ("דווח תקלה") falls back to the key name when the
