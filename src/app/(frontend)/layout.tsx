@@ -4,7 +4,7 @@ import { headers } from 'next/headers'
 import { cn } from '@/infra/utils/ui'
 import { GeistMono } from 'geist/font/mono'
 import { GeistSans } from 'geist/font/sans'
-import { STIX_Two_Text } from 'next/font/google'
+import { Heebo, STIX_Two_Text } from 'next/font/google'
 import React from 'react'
 
 import { isPasswordLoginEnabled } from '@/infra/config/system-params'
@@ -29,6 +29,16 @@ import { getBrand } from '@/brands'
 const stixTwoText = STIX_Two_Text({
   subsets: ['latin'],
   variable: '--font-stix-two-text',
+  display: 'swap',
+})
+
+// Heebo is the Hebrew sans the demo mockup used and mirrors the Assistant
+// family the CSS referenced by name. next/font ships it so desktop browsers
+// stop falling through to Segoe UI / -apple-system for Hebrew glyphs.
+const heebo = Heebo({
+  subsets: ['hebrew', 'latin'],
+  weight: ['300', '400', '600', '700', '800'],
+  variable: '--font-heebo',
   display: 'swap',
 })
 
@@ -60,7 +70,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html
-      className={cn(GeistSans.variable, GeistMono.variable, stixTwoText.variable)}
+      className={cn(GeistSans.variable, GeistMono.variable, stixTwoText.variable, heebo.variable)}
       dir={dir}
       lang={locale}
       suppressHydrationWarning
