@@ -81,9 +81,26 @@ export function AxisRenderer({ blockId, spec, displaySize = 'full' }: AxisRender
     }
 
     recompute()
-    const resizeObserver = new ResizeObserver(recompute)
+    // JSXGraphBoard rebuilds the whole board (freeBoard + initBoard +
+    // renderAxisSpec) whenever width/height change. Without an rAF gate,
+    // a window drag fires ResizeObserver at animation-frame cadence and
+    // every tick triggers a full O(elements) rebuild — heavy specs
+    // visibly stutter. Coalescing consecutive ticks into one paint means
+    // at most one rebuild per frame.
+    let rafId: number | null = null
+    const scheduleRecompute = () => {
+      if (rafId !== null) return
+      rafId = requestAnimationFrame(() => {
+        rafId = null
+        recompute()
+      })
+    }
+    const resizeObserver = new ResizeObserver(scheduleRecompute)
     resizeObserver.observe(container)
-    return () => resizeObserver.disconnect()
+    return () => {
+      resizeObserver.disconnect()
+      if (rafId !== null) cancelAnimationFrame(rafId)
+    }
   }, [displaySize, viewportSize.xRange, viewportSize.yRange, proportion])
 
   return (

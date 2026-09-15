@@ -123,18 +123,20 @@ function renderAngles(board: JXG.Board, angles: AngleSpec[], pointMap: Map<strin
     const ray2 = pointMap.get(a.ray2)
     if (!center || !ray1 || !ray2) continue
 
+    const color = a.color ?? getDefaultTextColor()
+    const isSquare = a.style === 'square'
     const attrs: Record<string, unknown> = {
-      radius: a.arcRadius ?? 1,
-      type: a.style === 'square' ? 'square' : 'sector',
-    }
-    if (a.color) {
-      // JSXGraph paints the arc stroke separately from the sector fill, so
-      // setting only `fillColor` leaves the outline in the default color.
-      // Setting both keeps the whole angle in the authored color, matching
-      // the admin renderer.
-      attrs.fillColor = a.color
-      attrs.strokeColor = a.color
-      attrs.fillOpacity = 0.15
+      // `radius: 1` (or undefined) draws an invisible arc at this canvas
+      // scale; 30 matches what admin renders and is what the reader
+      // actually sees. `orthoType` — not `type` — is the JSXGraph knob
+      // that switches between a sector and a right-angle square mark.
+      radius: a.arcRadius ?? 30,
+      orthoType: isSquare ? 'square' : 'sector',
+      strokeColor: color,
+      fillColor: color,
+      fillOpacity: 0.15,
+      strokeWidth: 2,
+      fixed: true,
     }
     if (a.label?.value) {
       attrs.name = a.label.value
