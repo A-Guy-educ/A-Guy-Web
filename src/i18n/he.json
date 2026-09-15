@@ -201,9 +201,9 @@
       }
     },
     "onboardingComplete": {
-      "title": "נהדר! 🎉",
+      "title": "מעולה, אנחנו מוכנים!",
       "descriptionBold": "הכנתי עבורך את מערכת הלמידה המותאמת אישית.",
-      "descriptionRest": "רק חיבור מהיר ויוצאים לדרך המשותפת",
+      "descriptionRest": "כדי לשמור את ההתקדמות שלך ולהתחיל ללמוד, נשאר רק להתחבר.",
       "primaryCta": "כניסה מהירה עם Google"
     },
     "signup": {

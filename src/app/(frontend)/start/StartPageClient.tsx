@@ -455,19 +455,30 @@ interface TeacherVisual {
   iconWrapClass: string
 }
 
-function resolveTeacherVisual(slug: string): TeacherVisual {
-  const s = slug.toLowerCase()
-  if (s.includes('guy') || s.includes('balanced') || s.includes('recommended')) {
+const RECOMMENDED_KEYWORDS = ['guy', 'balanced', 'recommended', 'גיא']
+const DETAILED_KEYWORDS = ['detailed', 'detail', 'deep', 'patient', 'סבלני', 'חופר', 'מעמיק']
+const FOCUSED_KEYWORDS = ['focused', 'brief', 'short', 'ממוקד']
+
+function matchesAny(haystack: string, needles: string[]): boolean {
+  return needles.some((n) => haystack.includes(n))
+}
+
+function resolveTeacherVisual(teacher: TeacherProfile): TeacherVisual {
+  // Match on both slug and label so DBs that use opaque slugs but readable
+  // Hebrew/English labels still get the intended visual.
+  const haystack = `${teacher.slug} ${teacher.label}`.toLowerCase()
+
+  if (matchesAny(haystack, RECOMMENDED_KEYWORDS)) {
     return {
       variant: 'recommended',
       icon: GraduationCap,
       iconWrapClass: 'bg-success/15 text-success',
     }
   }
-  if (s.includes('detailed') || s.includes('deep') || s.includes('detail')) {
+  if (matchesAny(haystack, DETAILED_KEYWORDS)) {
     return { variant: 'detailed', icon: BookOpen, iconWrapClass: 'bg-primary/10 text-primary' }
   }
-  if (s.includes('focused') || s.includes('brief') || s.includes('short')) {
+  if (matchesAny(haystack, FOCUSED_KEYWORDS)) {
     return {
       variant: 'focused',
       icon: Crosshair,
@@ -499,7 +510,7 @@ function TeacherGrid({
   return (
     <div className="mx-auto grid max-w-5xl grid-cols-1 gap-content-gap md:grid-cols-3">
       {teacherProfiles.map((teacher) => {
-        const visual = resolveTeacherVisual(teacher.slug)
+        const visual = resolveTeacherVisual(teacher)
         const isSelected = selectedTeacherProfile?.slug === teacher.slug
         const isRecommended = visual.variant === 'recommended'
         const secondaryBadge =

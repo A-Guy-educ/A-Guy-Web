@@ -201,9 +201,9 @@
       }
     },
     "onboardingComplete": {
-      "title": "Great! 🎉",
+      "title": "Awesome, we're ready!",
       "descriptionBold": "I've prepared your personalized learning system.",
-      "descriptionRest": "Just a quick sign-in and we're on our way together",
+      "descriptionRest": "To save your progress and start learning, just sign in.",
       "primaryCta": "Quick sign-in with Google"
     },
     "login": {
