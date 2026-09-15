@@ -4748,6 +4748,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Rebuild geometry board on resize and mirror admin angle fixes ([#1215](https://github.com/A-Guy-educ/A-Guy-Web/pull/1215)) — @aguyshayb
 - promote: dev -> main (v0.39.0) ([#1214](https://github.com/A-Guy-educ/A-Guy-Web/pull/1214)) — @aguyshayb
 - chore: Release v0.39.0 ([#1213](https://github.com/A-Guy-educ/A-Guy-Web/pull/1213)) — @aguyshayb
 - fix: Drop redundant chat-view start card and stop clipping geometry ([#1212](https://github.com/A-Guy-educ/A-Guy-Web/pull/1212)) — @aguyshayb
