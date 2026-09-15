@@ -18,11 +18,13 @@ import { useEffect, useState } from 'react'
 // import { FloatingAgentButton } from '@/ui/web/learning-agent/FloatingAgentButton'
 // import { AgentChatWindow } from '@/ui/web/learning-agent/AgentChatWindow'
 
+import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { FloatingBugReportButton } from '@/ui/web/bug-report/FloatingBugReportButton'
 import { BugReportForm } from '@/ui/web/bug-report/BugReportForm'
 
 export function LayoutClient() {
   const [isBugReportOpen, setIsBugReportOpen] = useState(false)
+  const { user, isLoading: isAuthLoading } = useCurrentUser()
 
   // Emit SITE_INIT once on mount
   // Other services (like analytics) subscribe to this event
@@ -47,10 +49,19 @@ export function LayoutClient() {
     }
   }, [])
 
+  // The Report-a-Bug widget is only meaningful once the user is inside the
+  // authenticated product surface. Hiding it on the landing / login / onboarding
+  // funnel keeps those pages clean and matches the demo mockup.
+  const showBugReport = Boolean(user) && !isAuthLoading
+
   return (
     <>
-      <FloatingBugReportButton onClick={() => setIsBugReportOpen(true)} />
-      <BugReportForm isOpen={isBugReportOpen} onClose={() => setIsBugReportOpen(false)} />
+      {showBugReport ? (
+        <>
+          <FloatingBugReportButton onClick={() => setIsBugReportOpen(true)} />
+          <BugReportForm isOpen={isBugReportOpen} onClose={() => setIsBugReportOpen(false)} />
+        </>
+      ) : null}
     </>
   )
 }
