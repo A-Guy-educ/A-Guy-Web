@@ -27,7 +27,7 @@ export function OnboardingCompleteLoginModal({
     <Dialog open={isOpen}>
       <DialogContent
         allowDismiss={false}
-        className="sm:max-w-md rounded-3xl border border-border bg-card p-card-padding-lg text-center"
+        className="rounded-3xl border border-border bg-card p-card-padding-lg text-center sm:max-w-md sm:rounded-3xl"
       >
         <div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
           <Rocket className="h-7 w-7" aria-hidden />
