@@ -4754,6 +4754,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.39.1 ([#1217](https://github.com/A-Guy-educ/A-Guy-Web/pull/1217)) — @aguyshayb
 - fix: Force square marker on non-90-degree angles ([#1216](https://github.com/A-Guy-educ/A-Guy-Web/pull/1216)) — @aguyshayb
 - fix: Rebuild geometry board on resize and mirror admin angle fixes ([#1215](https://github.com/A-Guy-educ/A-Guy-Web/pull/1215)) — @aguyshayb
 - promote: dev -> main (v0.39.0) ([#1214](https://github.com/A-Guy-educ/A-Guy-Web/pull/1214)) — @aguyshayb
