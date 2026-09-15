@@ -109,6 +109,71 @@ describe('expandViewBoxToContent', () => {
   })
 })
 
+describe('expandViewBoxToContent — intrinsic width/height scaling', () => {
+  it('scales numeric width and height in lock-step with the viewBox growth', () => {
+    const svg = makeSvg('0 0 250 70', rect(10, 20, 300, 40))
+    svg.setAttribute('width', '250')
+    svg.setAttribute('height', '70')
+
+    expandViewBoxToContent(svg)
+
+    // viewBox grew width 250 → 310 (factor 1.24). Height unchanged.
+    expect(svg.getAttribute('viewBox')).toBe('0 0 310 70')
+    expect(svg.getAttribute('width')).toBe('310')
+    expect(svg.getAttribute('height')).toBe('70')
+  })
+
+  it('preserves a px suffix when scaling', () => {
+    const svg = makeSvg('0 0 100 100', rect(0, 0, 200, 100))
+    svg.setAttribute('width', '100px')
+    svg.setAttribute('height', '100px')
+
+    expandViewBoxToContent(svg)
+
+    expect(svg.getAttribute('width')).toBe('200px')
+    expect(svg.getAttribute('height')).toBe('100px')
+  })
+
+  it('leaves percentage widths untouched (deferred to render context)', () => {
+    const svg = makeSvg('0 0 250 70', rect(10, 20, 300, 40))
+    svg.setAttribute('width', '100%')
+    svg.setAttribute('height', 'auto')
+
+    expandViewBoxToContent(svg)
+
+    // viewBox still expands, but the container-relative attrs stay put so
+    // we don't fight the layout the caller wired up (e.g. SvgRenderer).
+    expect(svg.getAttribute('viewBox')).toBe('0 0 310 70')
+    expect(svg.getAttribute('width')).toBe('100%')
+    expect(svg.getAttribute('height')).toBe('auto')
+  })
+
+  it('does not touch width or height when the viewBox itself did not change', () => {
+    const svg = makeSvg('0 0 250 70', rect(10, 10, 100, 40))
+    svg.setAttribute('width', '250')
+    svg.setAttribute('height', '70')
+
+    expandViewBoxToContent(svg)
+
+    expect(svg.getAttribute('viewBox')).toBe('0 0 250 70')
+    expect(svg.getAttribute('width')).toBe('250')
+    expect(svg.getAttribute('height')).toBe('70')
+  })
+
+  it('scales both dimensions independently when both bbox extents overflow', () => {
+    const svg = makeSvg('0 0 100 50', rect(0, 0, 200, 100))
+    svg.setAttribute('width', '100')
+    svg.setAttribute('height', '50')
+
+    expandViewBoxToContent(svg)
+
+    // Width factor 200/100 = 2, height factor 100/50 = 2.
+    expect(svg.getAttribute('viewBox')).toBe('0 0 200 100')
+    expect(svg.getAttribute('width')).toBe('200')
+    expect(svg.getAttribute('height')).toBe('100')
+  })
+})
+
 describe('expandViewBoxWhenReady', () => {
   it('expands the viewBox synchronously so no-text SVGs never render clipped', () => {
     const svg = makeSvg('0 0 100 50', rect(0, 0, 200, 50))
