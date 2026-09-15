@@ -11,7 +11,6 @@ import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ChatInputPanel } from './ChatInputPanel'
 import { ChatLessonProgress } from './ChatLessonProgress'
-import { ChatLessonStartCard } from './ChatLessonStartCard'
 import { GivenDataFloating } from './GivenDataFloating'
 import { ContinueButton } from './bubbles/ContinueButton'
 import { ExerciseSectionBubble } from './bubbles/ExerciseSectionBubble'
@@ -31,7 +30,6 @@ const CELEBRATION_ADVANCE_MS = 1500
 const EMPTY_MEDIA_MAP: Record<string, Media> = {}
 
 interface ChatLessonRunnerViewProps {
-  lessonTitle: string
   lessonId: string
   exercises: Exercise[]
   mediaMap?: Record<string, Media>
@@ -41,24 +39,11 @@ interface ChatLessonRunnerViewProps {
 }
 
 export function ChatLessonRunnerView(props: ChatLessonRunnerViewProps) {
-  const [hasStarted, setHasStarted] = useState(false)
-  const t = useTranslations('courses')
-
-  if (!hasStarted) {
-    return (
-      <div className="flex-1 overflow-y-auto bg-muted">
-        <ChatLessonStartCard
-          lessonTitle={props.lessonTitle}
-          exerciseCount={props.exercises.length}
-          startLabel={t('chatViewStart')}
-          exercisesCountLabel={t('chatViewExercisesCount')}
-          onStart={() => setHasStarted(true)}
-        />
-      </div>
-    )
-  }
-
-  return <ActiveChat {...props} onExit={() => setHasStarted(false)} />
+  // Reset button remounts ActiveChat so all internal state (entries, walker,
+  // chat channel) starts fresh — the same guarantee the previous
+  // hasStarted-toggling flow gave us, minus the extra start card.
+  const [resetKey, setResetKey] = useState(0)
+  return <ActiveChat key={resetKey} {...props} onExit={() => setResetKey((k) => k + 1)} />
 }
 
 interface ActiveChatProps extends ChatLessonRunnerViewProps {

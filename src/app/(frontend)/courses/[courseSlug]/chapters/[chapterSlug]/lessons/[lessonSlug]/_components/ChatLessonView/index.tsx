@@ -84,7 +84,6 @@ export function ChatLessonView({
         <div className="flex h-full flex-col relative">
           {headerSlot}
           <ChatLessonRunnerView
-            lessonTitle={lessonTitle}
             lessonId={lessonId}
             exercises={exercises}
             mediaMap={mediaMap}

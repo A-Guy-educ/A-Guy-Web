@@ -102,6 +102,12 @@ declare module 'jsxgraph' {
     objects: Record<string, JXGElement>
     objectsList: JXGElement[]
     setBoundingBox(bbox: [number, number, number, number], keepAspectRatio?: boolean): void
+    resizeContainer(
+      width: number,
+      height: number,
+      dontSetCssWidthAndHeight?: boolean,
+      dontSetBoundingBox?: boolean,
+    ): void
     update(): void
     fullUpdate(): void
     suspendUpdate(): void
