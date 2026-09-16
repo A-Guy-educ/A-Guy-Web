@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.40.0 — 2026-09-16
+
+### Features
+- Render optional question attachment side-by-side (#1219)
+- Honor displaySize on svg and geometry sketch blocks (#1222)
+
+### Fixes
+- SVG rendering — force LTR and re-expand on visibility change (#1220)
+- Bake SVG viewBox into markup at sanitize time (#1221)
+- Center shrunk geometry and axis boards horizontally (#1222)
+
 ## v0.39.1 — 2026-09-15
 
 ### Fixes
