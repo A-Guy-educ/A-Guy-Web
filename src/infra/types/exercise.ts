@@ -79,6 +79,8 @@ export interface QuestionSelectTrueFalseBlock {
    * Admin repo's Exercises collection (see admin PR #409).
    */
   showNotebook?: boolean
+  /** Optional sketch shown side-by-side with the question. See Admin PR #461. */
+  attachment?: QuestionAttachment
 }
 
 // ---------------------------------
@@ -96,6 +98,8 @@ export interface QuestionSelectMcqBlock {
   fullSolution?: InlineRichText
   /** See `QuestionSelectTrueFalseBlock.showNotebook`. */
   showNotebook?: boolean
+  /** Optional sketch shown side-by-side with the question. See Admin PR #461. */
+  attachment?: QuestionAttachment
 }
 
 // ---------------------------------
@@ -111,6 +115,8 @@ export interface QuestionFreeResponseBlock {
   fullSolution?: InlineRichText
   /** See `QuestionSelectTrueFalseBlock.showNotebook`. */
   showNotebook?: boolean
+  /** Optional sketch shown side-by-side with the question. See Admin PR #461. */
+  attachment?: QuestionAttachment
 }
 
 // ---------------------------------
@@ -139,6 +145,8 @@ export interface QuestionTableBlock {
   fullSolution?: InlineRichText
   /** See `QuestionSelectTrueFalseBlock.showNotebook`. */
   showNotebook?: boolean
+  /** Optional sketch shown side-by-side with the question. See Admin PR #461. */
+  attachment?: QuestionAttachment
 }
 
 // ---------------------------------
@@ -183,6 +191,8 @@ export interface QuestionMatchingBlock {
   fullSolution?: InlineRichText
   /** See `QuestionSelectTrueFalseBlock.showNotebook`. */
   showNotebook?: boolean
+  /** Optional sketch shown side-by-side with the question. See Admin PR #461. */
+  attachment?: QuestionAttachment
 }
 
 // ---------------------------------
@@ -225,6 +235,40 @@ export type QuestionAnswer =
 // Graph Layout Type (for geometry and axis blocks)
 // ---------------------------------
 export type GraphLayout = 'textAbove' | 'textBelow' | 'textLeft' | 'textRight'
+
+// ---------------------------------
+// SVG Attachment Content (subset of SvgBlock — no id/type/hotspots/answers)
+// ---------------------------------
+export interface SvgAttachmentContent {
+  value: string
+  altText?: string
+  caption?: InlineRichText
+}
+
+// ---------------------------------
+// Question Attachment — optional visual sketch shown side-by-side with
+// a question block. The attachment carries no answer state; the parent
+// question owns prompt + answer + grading. Field shape mirrors what
+// Admin emits for the standalone `svg`, `question_geometry`, and
+// `question_axis` blocks so the same renderers can be reused.
+// ---------------------------------
+export type QuestionAttachment =
+  | {
+      kind: 'svg'
+      layout: GraphLayout
+      svg: SvgAttachmentContent
+    }
+  | {
+      kind: 'geometry'
+      layout: GraphLayout
+      geometry: GeometrySpecV1
+    }
+  | {
+      kind: 'axis'
+      layout: GraphLayout
+      axis: AxisSpecV1
+      displaySize?: 'small' | 'medium' | 'large' | 'full'
+    }
 
 // ---------------------------------
 // Question Geometry Block
