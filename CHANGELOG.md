@@ -4754,6 +4754,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Render optional question attachment side-by-side ([#1219](https://github.com/A-Guy-educ/A-Guy-Web/pull/1219)) — @aguyshayb
 - promote: dev -> main (v0.39.1) ([#1218](https://github.com/A-Guy-educ/A-Guy-Web/pull/1218)) — @aguyshayb
 - chore: Release v0.39.1 ([#1217](https://github.com/A-Guy-educ/A-Guy-Web/pull/1217)) — @aguyshayb
 - fix: Force square marker on non-90-degree angles ([#1216](https://github.com/A-Guy-educ/A-Guy-Web/pull/1216)) — @aguyshayb
