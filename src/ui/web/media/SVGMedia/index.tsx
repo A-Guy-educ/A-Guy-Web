@@ -59,7 +59,7 @@ export const SVGMedia: React.FC<MediaProps> = (props) => {
     if (!host) return
     const svg = host.querySelector(':scope > svg') as SVGSVGElement | null
     if (!svg) return
-    expandViewBoxWhenReady(svg)
+    return expandViewBoxWhenReady(svg)
   }, [inlineMarkup])
 
   if (!resourceObj || !svgUrl) return null
@@ -75,6 +75,12 @@ export const SVGMedia: React.FC<MediaProps> = (props) => {
       >
         <div
           ref={inlineHostRef}
+          // dir="ltr" prevents author-LTR SVG text (math notation, mixed
+          // Latin+RTL captions) from being visually reordered when the SVG
+          // is rendered inside an RTL page — SVG text inherits the
+          // ancestor's CSS `direction`, and no author expects "4 + 3 · 2 ="
+          // to render as "= 2 · 3 + 4".
+          dir="ltr"
           className={cn(
             'max-w-full h-auto dark:invert [&>svg]:max-w-full [&>svg]:h-auto',
             imgClassName,
