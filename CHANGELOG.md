@@ -4765,6 +4765,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- promote: dev -> main (v0.40.0) ([#1224](https://github.com/A-Guy-educ/A-Guy-Web/pull/1224)) — @aguyshayb
 - chore: Release v0.40.0 ([#1223](https://github.com/A-Guy-educ/A-Guy-Web/pull/1223)) — @aguyshayb
 - feat: Honor displaySize on svg and geometry sketch blocks ([#1222](https://github.com/A-Guy-educ/A-Guy-Web/pull/1222)) — @aguyshayb
 - fix: Bake SVG viewBox into markup at sanitize time ([#1221](https://github.com/A-Guy-educ/A-Guy-Web/pull/1221)) — @aguyshayb
