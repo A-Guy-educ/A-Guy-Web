@@ -6,6 +6,7 @@ import type { SvgBlock, CheckResult } from '../../types'
 import { RichTextRenderer } from '../RichTextRenderer'
 import { sanitizeSvg } from '../../utils/svgSanitize'
 import { expandViewBoxWhenReady } from '@/ui/web/media/SVGMedia/expandViewBoxToContent'
+import { ensureSvgViewBox } from '@/ui/web/media/SVGMedia/ensureSvgViewBox'
 
 interface SvgRendererProps {
   block: SvgBlock
@@ -25,7 +26,15 @@ export function SvgRenderer({
   correctHotspotIds,
 }: SvgRendererProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const sanitizedSvg = useMemo(() => sanitizeSvg(block.value), [block.value])
+  // Bake the viewBox into the markup BEFORE it hits the DOM so the SVG is
+  // always sized by its coordinate system, not by fixed-pixel width/height
+  // attributes. The post-mount useEffect below is the belt for width=100%
+  // and content-bbox expansion; this is the suspenders — greyed chat
+  // history has been observed with the raw authored SVG in the DOM (no
+  // viewBox, no width=100%), suggesting the effect can miss under some
+  // React remount timing. Doing this in useMemo means the viewBox is
+  // present the first time React inserts the HTML.
+  const sanitizedSvg = useMemo(() => sanitizeSvg(ensureSvgViewBox(block.value)), [block.value])
 
   const isInteractive = block.interactive && block.hotspots && block.hotspots.length > 0
 
