@@ -17,7 +17,7 @@ const JSXGraphBoard = dynamic(
 
 // Display size to percentage mapping
 const SIZE_MAP = {
-  small: 0.33,
+  small: 0.25,
   medium: 0.5,
   large: 0.75,
   full: 1,
@@ -103,8 +103,11 @@ export function AxisRenderer({ blockId, spec, displaySize = 'full' }: AxisRender
     }
   }, [displaySize, viewportSize.xRange, viewportSize.yRange, proportion])
 
+  // See GeometryRenderer for the centering rationale — shrunk boards
+  // sit flush left inside `w-full` unless we center the fixed-pixel
+  // JSXGraph child.
   return (
-    <div className="w-full" ref={containerRef}>
+    <div className="w-full flex justify-center" ref={containerRef}>
       <JSXGraphBoard
         id={blockId}
         width={dimensions.width}

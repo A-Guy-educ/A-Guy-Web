@@ -101,7 +101,13 @@ function renderQuestionAttachment(
 ): React.ReactNode {
   const attachmentId = `${blockId}-attachment`
   if (attachment.kind === 'geometry') {
-    return <GeometryRenderer blockId={attachmentId} spec={attachment.geometry} />
+    return (
+      <GeometryRenderer
+        blockId={attachmentId}
+        spec={attachment.geometry}
+        displaySize={attachment.displaySize}
+      />
+    )
   }
   if (attachment.kind === 'axis') {
     return (
@@ -119,7 +125,7 @@ function renderQuestionAttachment(
     altText: attachment.svg.altText,
     caption: attachment.svg.caption,
   }
-  return <SvgRenderer block={svgBlock} />
+  return <SvgRenderer block={svgBlock} displaySize={attachment.displaySize} />
 }
 
 /**
@@ -486,7 +492,10 @@ export function ExerciseRenderer({
       prompt?: unknown
     }
     if (b.type === ('question_geometry' as string)) {
-      const geometryBlock = b as ContentBlock & { geometry?: GeometrySpecV1 }
+      const geometryBlock = b as ContentBlock & {
+        geometry?: GeometrySpecV1
+        displaySize?: DisplaySize
+      }
       return {
         node: (
           <GraphWithPrompt
@@ -497,7 +506,11 @@ export function ExerciseRenderer({
             }
             prompt={b.prompt as import('@/infra/types/exercise').InlineRichText | undefined}
           >
-            <GeometryRenderer blockId={b.id} spec={geometryBlock.geometry as GeometrySpecV1} />
+            <GeometryRenderer
+              blockId={b.id}
+              spec={geometryBlock.geometry as GeometrySpecV1}
+              displaySize={geometryBlock.displaySize}
+            />
           </GraphWithPrompt>
         ),
         nextIndex: questionIndex,
@@ -633,6 +646,7 @@ export function ExerciseRenderer({
                 disabled={!!svgDisabled}
                 checkResult={svgResult}
                 correctHotspotIds={svgBlock.correctHotspotIds}
+                displaySize={svgBlock.displaySize}
               />
             </QuestionCard>
           ),
@@ -642,7 +656,7 @@ export function ExerciseRenderer({
       return {
         node: (
           <div key={svgBlock.id}>
-            <SvgRenderer block={svgBlock} />
+            <SvgRenderer block={svgBlock} displaySize={svgBlock.displaySize} />
           </div>
         ),
         nextIndex: questionIndex,
