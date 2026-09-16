@@ -4754,6 +4754,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: SVG rendering — force LTR and re-expand on visibility change ([#1220](https://github.com/A-Guy-educ/A-Guy-Web/pull/1220)) — @aguyshayb
 - feat: Render optional question attachment side-by-side ([#1219](https://github.com/A-Guy-educ/A-Guy-Web/pull/1219)) — @aguyshayb
 - promote: dev -> main (v0.39.1) ([#1218](https://github.com/A-Guy-educ/A-Guy-Web/pull/1218)) — @aguyshayb
 - chore: Release v0.39.1 ([#1217](https://github.com/A-Guy-educ/A-Guy-Web/pull/1217)) — @aguyshayb
