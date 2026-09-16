@@ -219,6 +219,7 @@ export interface SvgBlock {
   hint?: InlineRichText
   solution?: InlineRichText
   fullSolution?: InlineRichText
+  displaySize?: 'small' | 'medium' | 'large' | 'full'
 }
 
 // ---------------------------------
@@ -257,11 +258,13 @@ export type QuestionAttachment =
       kind: 'svg'
       layout: GraphLayout
       svg: SvgAttachmentContent
+      displaySize?: 'small' | 'medium' | 'large' | 'full'
     }
   | {
       kind: 'geometry'
       layout: GraphLayout
       geometry: GeometrySpecV1
+      displaySize?: 'small' | 'medium' | 'large' | 'full'
     }
   | {
       kind: 'axis'
@@ -279,6 +282,7 @@ export interface QuestionGeometryBlock {
   prompt: InlineRichText
   layout?: GraphLayout
   geometry: GeometrySpecV1
+  displaySize?: 'small' | 'medium' | 'large' | 'full'
   answer?: QuestionAnswer
   hint?: InlineRichText
   solution?: InlineRichText

@@ -8,6 +8,15 @@ import { sanitizeSvg } from '../../utils/svgSanitize'
 import { expandViewBoxWhenReady } from '@/ui/web/media/SVGMedia/expandViewBoxToContent'
 import { ensureSvgViewBox } from '@/ui/web/media/SVGMedia/ensureSvgViewBox'
 
+export type DisplaySize = 'small' | 'medium' | 'large' | 'full'
+
+const SIZE_MAP: Record<DisplaySize, string> = {
+  small: '25%',
+  medium: '50%',
+  large: '75%',
+  full: '100%',
+}
+
 interface SvgRendererProps {
   block: SvgBlock
   selectedHotspotIds?: string[]
@@ -15,6 +24,7 @@ interface SvgRendererProps {
   disabled?: boolean
   checkResult?: CheckResult | null
   correctHotspotIds?: string[]
+  displaySize?: DisplaySize
 }
 
 export function SvgRenderer({
@@ -24,6 +34,7 @@ export function SvgRenderer({
   disabled,
   checkResult,
   correctHotspotIds,
+  displaySize = 'full',
 }: SvgRendererProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   // Bake the viewBox into the markup BEFORE it hits the DOM so the SVG is
@@ -159,8 +170,13 @@ export function SvgRenderer({
     ? { ...block.caption, id: `${block.id}-caption`, mediaIds: block.caption.mediaIds || [] }
     : null
 
+  const widthPercent = SIZE_MAP[displaySize]
+
   return (
-    <div className="rounded-xl border border-border/20 overflow-hidden bg-card shadow-elevation-1">
+    <div
+      className="rounded-xl border border-border/20 overflow-hidden bg-card shadow-elevation-1 mx-auto"
+      style={{ width: widthPercent, maxWidth: '100%' }}
+    >
       <div
         ref={containerRef}
         role={isInteractive ? 'application' : 'img'}
