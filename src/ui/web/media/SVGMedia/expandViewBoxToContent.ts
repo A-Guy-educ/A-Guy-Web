@@ -100,24 +100,57 @@ function scaleIntrinsicDimension(
 }
 
 /**
- * Expand the viewBox immediately, then again after web fonts finish
- * loading if the SVG contains `<text>`. Text bbox measurements before
- * fonts resolve use fallback metrics and can under-report width by 20%+.
+ * Expand the viewBox immediately, then keep retrying at the two points
+ * that reliably change what `getBBox()` returns:
+ *
+ *  1. `document.fonts.ready` — text bbox before fonts resolve uses fallback
+ *     metrics and can under-report width by 20%+.
+ *  2. First non-zero size via `ResizeObserver` — an SVG mounted while any
+ *     ancestor is `display:none` (collapsed accordion, inactive tab,
+ *     off-screen chat bubble that later scrolls into view) reports an empty
+ *     bbox on mount; without a re-run, it stays clipped forever once
+ *     revealed.
+ *
+ * Returns a cleanup function that disconnects the observer. Callers should
+ * invoke it from the `useEffect` cleanup so we don't leak observers on
+ * unmount / prop changes.
  */
-export function expandViewBoxWhenReady(svg: SVGSVGElement): void {
+export function expandViewBoxWhenReady(svg: SVGSVGElement): () => void {
   expandViewBoxToContent(svg)
 
-  if (typeof document === 'undefined') return
-  const fonts = (document as Document & { fonts?: FontFaceSet }).fonts
-  if (!fonts?.ready) return
-  if (!svg.querySelector('text')) return
+  const cleanups: (() => void)[] = []
 
-  fonts.ready
-    .then(() => {
-      if (svg.isConnected) expandViewBoxToContent(svg)
+  if (typeof document !== 'undefined') {
+    const fonts = (document as Document & { fonts?: FontFaceSet }).fonts
+    if (fonts?.ready && svg.querySelector('text')) {
+      fonts.ready
+        .then(() => {
+          if (svg.isConnected) expandViewBoxToContent(svg)
+        })
+        .catch(() => {
+          // Font loading failure just means we keep the pre-fonts bbox —
+          // no worse than the current behaviour, so nothing to escalate.
+        })
+    }
+  }
+
+  if (typeof ResizeObserver !== 'undefined') {
+    let done = false
+    const observer = new ResizeObserver((entries) => {
+      if (done) return
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect
+        if (width > 0 && height > 0) {
+          done = true
+          expandViewBoxToContent(svg)
+          observer.disconnect()
+          break
+        }
+      }
     })
-    .catch(() => {
-      // Font loading failure just means we keep the pre-fonts bbox — no
-      // worse than the current behaviour, so nothing to escalate.
-    })
+    observer.observe(svg)
+    cleanups.push(() => observer.disconnect())
+  }
+
+  return () => cleanups.forEach((fn) => fn())
 }
