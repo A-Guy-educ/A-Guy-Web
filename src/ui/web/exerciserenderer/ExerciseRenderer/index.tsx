@@ -15,6 +15,7 @@ import { CheckCircle2, Loader2, XCircle } from 'lucide-react'
 import type {
   ExerciseRendererProps,
   ContentBlock,
+  QuestionAttachment,
   QuestionBlock,
   QuestionSelectTrueFalseBlock,
   QuestionSelectMcqBlock,
@@ -38,6 +39,7 @@ import { SvgRenderer } from '../blocks/SvgRenderer'
 import { GeometryRenderer } from '../blocks/GeometryRenderer'
 import { AxisRenderer } from '../blocks/AxisRenderer'
 import { GraphWithPrompt } from '../blocks/GraphWithPrompt'
+import { QuestionWithAttachment } from '../blocks/QuestionWithAttachment'
 import { LatexBlockRenderer } from '../blocks/LatexBlockRenderer'
 import { MultiAxisRenderer } from '../blocks/MultiAxisRenderer'
 import { TrueFalseQuestion } from '../questions/TrueFalseQuestion'
@@ -83,6 +85,47 @@ function formatStudentAnswer(question: QuestionBlock, answer: UserAnswer): strin
     return answer.connections.map((c) => `${c.leftId} → ${c.rightId}`).join(', ')
   }
   return ''
+}
+
+/**
+ * Render the visual side of a question attachment. Reuses the standalone
+ * SVG / geometry / axis renderers so the attachment looks identical to
+ * its `svg` / `question_geometry` / `question_axis` block counterpart.
+ * The attachment carries no answer state — the SVG variant intentionally
+ * omits hotspot / interactive fields (those stay on the standalone SVG
+ * block).
+ */
+function renderQuestionAttachment(
+  blockId: string,
+  attachment: QuestionAttachment,
+): React.ReactNode {
+  const attachmentId = `${blockId}-attachment`
+  if (attachment.kind === 'geometry') {
+    return (
+      <GeometryRenderer
+        blockId={attachmentId}
+        spec={attachment.geometry}
+        displaySize={attachment.displaySize}
+      />
+    )
+  }
+  if (attachment.kind === 'axis') {
+    return (
+      <AxisRenderer
+        blockId={attachmentId}
+        spec={attachment.axis}
+        displaySize={attachment.displaySize}
+      />
+    )
+  }
+  const svgBlock: SvgBlock = {
+    id: attachmentId,
+    type: 'svg',
+    value: attachment.svg.value,
+    altText: attachment.svg.altText,
+    caption: attachment.svg.caption,
+  }
+  return <SvgRenderer block={svgBlock} displaySize={attachment.displaySize} />
 }
 
 /**
@@ -449,7 +492,10 @@ export function ExerciseRenderer({
       prompt?: unknown
     }
     if (b.type === ('question_geometry' as string)) {
-      const geometryBlock = b as ContentBlock & { geometry?: GeometrySpecV1 }
+      const geometryBlock = b as ContentBlock & {
+        geometry?: GeometrySpecV1
+        displaySize?: DisplaySize
+      }
       return {
         node: (
           <GraphWithPrompt
@@ -460,7 +506,11 @@ export function ExerciseRenderer({
             }
             prompt={b.prompt as import('@/infra/types/exercise').InlineRichText | undefined}
           >
-            <GeometryRenderer blockId={b.id} spec={geometryBlock.geometry as GeometrySpecV1} />
+            <GeometryRenderer
+              blockId={b.id}
+              spec={geometryBlock.geometry as GeometrySpecV1}
+              displaySize={geometryBlock.displaySize}
+            />
           </GraphWithPrompt>
         ),
         nextIndex: questionIndex,
@@ -596,6 +646,7 @@ export function ExerciseRenderer({
                 disabled={!!svgDisabled}
                 checkResult={svgResult}
                 correctHotspotIds={svgBlock.correctHotspotIds}
+                displaySize={svgBlock.displaySize}
               />
             </QuestionCard>
           ),
@@ -605,7 +656,7 @@ export function ExerciseRenderer({
       return {
         node: (
           <div key={svgBlock.id}>
-            <SvgRenderer block={svgBlock} />
+            <SvgRenderer block={svgBlock} displaySize={svgBlock.displaySize} />
           </div>
         ),
         nextIndex: questionIndex,
@@ -741,98 +792,109 @@ export function ExerciseRenderer({
       />
     )
 
-    return {
-      node: (
-        <QuestionCard
-          key={question.id}
-          showCheckButton={showCheckButton}
-          onCheckAnswer={() => handleCheckAnswer(question.id)}
-          disabled={!!disabled}
-          loading={!!isChecking[question.id]}
-          checked={checked}
-          checkResult={checkResult}
-          checkAnswerText={t('checkAnswer')}
-          correctText={t('correct')}
-          incorrectText={t('incorrect')}
-          questionLabel={questionLabel}
-          dir={dir}
-          helpSystem={helpSystemNode}
-          // Per-block notebook requires two opt-ins:
-          //   1. Caller-level `showNotebook` — the workspace has a chat
-          //      surface (ChatInterface / ChatLessonRunnerView) to hear
-          //      the ask-action dispatch.
-          //   2. Block-level `question.showNotebook === true` — the
-          //      admin toggled it on for this specific block (Admin
-          //      repo PR #409).
-          // Geometry / axis / multi-axis never wrap in QuestionCard so
-          // they can't opt in even if the field is set. Interactive-SVG
-          // hotspots use the earlier QuestionCard branch and don't
-          // read the field either.
-          notebookContextTitle={
-            showNotebook && question.showNotebook === true ? questionLabel : undefined
-          }
-          animationDelay={nextIndex * 0.08}
-          variant={questionCardVariant}
-        >
-          {/* Render appropriate question component based on type */}
-          {question.type === 'question_select' && question.variant === 'true_false' && (
-            <TrueFalseQuestion
-              question={question as QuestionSelectTrueFalseBlock}
-              answer={answer}
-              onChange={(ans) => handleAnswerChange(question.id, ans)}
-              disabled={!!disabled}
-              checkResult={checkResult}
-            />
-          )}
-          {question.type === 'question_select' && question.variant === 'mcq' && (
-            <McqQuestion
-              question={question as QuestionSelectMcqBlock}
-              answer={answer}
-              onChange={(ans) => handleAnswerChange(question.id, ans)}
-              disabled={!!disabled}
-              checkResult={checkResult}
-              t={t}
-              onAutoSubmit={
-                batchCheckMode ? undefined : (ans) => handleAutoCheckMcq(question.id, ans)
-              }
-            />
-          )}
-          {question.type === 'question_free_response' && (
-            <FreeResponseQuestion
-              question={question as QuestionFreeResponseBlock}
-              answer={answer}
-              onChange={(ans) => handleAnswerChange(question.id, ans)}
-              disabled={!!disabled}
-              checkResult={checkResult}
-              t={t}
-            />
-          )}
-          {question.type === 'question_table' && (
-            <TableQuestion
-              question={question as QuestionTableBlock}
-              answer={answer}
-              onChange={(ans) => handleAnswerChange(question.id, ans)}
-              disabled={!!disabled}
-              checked={checked}
-              allCorrect={!!disabled}
-              onCheckResult={(correct) => handleTableCheckResult(question.id, correct)}
-              t={t}
-            />
-          )}
-          {question.type === 'question_matching' && (
-            <MatchingQuestion
-              question={question as QuestionMatchingBlock}
-              answer={answer}
-              onChange={(ans) => handleAnswerChange(question.id, ans)}
-              disabled={!!disabled}
-              checkResult={checkResult}
-              t={t}
-            />
-          )}
-        </QuestionCard>
-      ),
-      nextIndex,
-    }
+    const cardNode = (
+      <QuestionCard
+        key={question.id}
+        showCheckButton={showCheckButton}
+        onCheckAnswer={() => handleCheckAnswer(question.id)}
+        disabled={!!disabled}
+        loading={!!isChecking[question.id]}
+        checked={checked}
+        checkResult={checkResult}
+        checkAnswerText={t('checkAnswer')}
+        correctText={t('correct')}
+        incorrectText={t('incorrect')}
+        questionLabel={questionLabel}
+        dir={dir}
+        helpSystem={helpSystemNode}
+        // Per-block notebook requires two opt-ins:
+        //   1. Caller-level `showNotebook` — the workspace has a chat
+        //      surface (ChatInterface / ChatLessonRunnerView) to hear
+        //      the ask-action dispatch.
+        //   2. Block-level `question.showNotebook === true` — the
+        //      admin toggled it on for this specific block (Admin
+        //      repo PR #409).
+        // Geometry / axis / multi-axis never wrap in QuestionCard so
+        // they can't opt in even if the field is set. Interactive-SVG
+        // hotspots use the earlier QuestionCard branch and don't
+        // read the field either.
+        notebookContextTitle={
+          showNotebook && question.showNotebook === true ? questionLabel : undefined
+        }
+        animationDelay={nextIndex * 0.08}
+        variant={questionCardVariant}
+      >
+        {/* Render appropriate question component based on type */}
+        {question.type === 'question_select' && question.variant === 'true_false' && (
+          <TrueFalseQuestion
+            question={question as QuestionSelectTrueFalseBlock}
+            answer={answer}
+            onChange={(ans) => handleAnswerChange(question.id, ans)}
+            disabled={!!disabled}
+            checkResult={checkResult}
+          />
+        )}
+        {question.type === 'question_select' && question.variant === 'mcq' && (
+          <McqQuestion
+            question={question as QuestionSelectMcqBlock}
+            answer={answer}
+            onChange={(ans) => handleAnswerChange(question.id, ans)}
+            disabled={!!disabled}
+            checkResult={checkResult}
+            t={t}
+            onAutoSubmit={
+              batchCheckMode ? undefined : (ans) => handleAutoCheckMcq(question.id, ans)
+            }
+          />
+        )}
+        {question.type === 'question_free_response' && (
+          <FreeResponseQuestion
+            question={question as QuestionFreeResponseBlock}
+            answer={answer}
+            onChange={(ans) => handleAnswerChange(question.id, ans)}
+            disabled={!!disabled}
+            checkResult={checkResult}
+            t={t}
+          />
+        )}
+        {question.type === 'question_table' && (
+          <TableQuestion
+            question={question as QuestionTableBlock}
+            answer={answer}
+            onChange={(ans) => handleAnswerChange(question.id, ans)}
+            disabled={!!disabled}
+            checked={checked}
+            allCorrect={!!disabled}
+            onCheckResult={(correct) => handleTableCheckResult(question.id, correct)}
+            t={t}
+          />
+        )}
+        {question.type === 'question_matching' && (
+          <MatchingQuestion
+            question={question as QuestionMatchingBlock}
+            answer={answer}
+            onChange={(ans) => handleAnswerChange(question.id, ans)}
+            disabled={!!disabled}
+            checkResult={checkResult}
+            t={t}
+          />
+        )}
+      </QuestionCard>
+    )
+
+    const attachment = (question as QuestionBlock & { attachment?: QuestionAttachment }).attachment
+    const node = attachment ? (
+      <QuestionWithAttachment
+        key={question.id}
+        layout={attachment.layout}
+        question={cardNode}
+        attachment={renderQuestionAttachment(question.id, attachment)}
+      />
+    ) : (
+      cardNode
+    )
+
+    return { node, nextIndex }
   }
 
   // Validate content structure

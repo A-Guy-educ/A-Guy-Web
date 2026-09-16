@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.40.0 — 2026-09-16
+
+### Features
+- Render optional question attachment side-by-side (#1219)
+- Honor displaySize on svg and geometry sketch blocks (#1222)
+
+### Fixes
+- SVG rendering — force LTR and re-expand on visibility change (#1220)
+- Bake SVG viewBox into markup at sanitize time (#1221)
+- Center shrunk geometry and axis boards horizontally (#1222)
+
 ## v0.39.1 — 2026-09-15
 
 ### Fixes
@@ -4754,6 +4765,12 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.40.0 ([#1223](https://github.com/A-Guy-educ/A-Guy-Web/pull/1223)) — @aguyshayb
+- feat: Honor displaySize on svg and geometry sketch blocks ([#1222](https://github.com/A-Guy-educ/A-Guy-Web/pull/1222)) — @aguyshayb
+- fix: Bake SVG viewBox into markup at sanitize time ([#1221](https://github.com/A-Guy-educ/A-Guy-Web/pull/1221)) — @aguyshayb
+- fix: SVG rendering — force LTR and re-expand on visibility change ([#1220](https://github.com/A-Guy-educ/A-Guy-Web/pull/1220)) — @aguyshayb
+- feat: Render optional question attachment side-by-side ([#1219](https://github.com/A-Guy-educ/A-Guy-Web/pull/1219)) — @aguyshayb
+- promote: dev -> main (v0.39.1) ([#1218](https://github.com/A-Guy-educ/A-Guy-Web/pull/1218)) — @aguyshayb
 - chore: Release v0.39.1 ([#1217](https://github.com/A-Guy-educ/A-Guy-Web/pull/1217)) — @aguyshayb
 - fix: Force square marker on non-90-degree angles ([#1216](https://github.com/A-Guy-educ/A-Guy-Web/pull/1216)) — @aguyshayb
 - fix: Rebuild geometry board on resize and mirror admin angle fixes ([#1215](https://github.com/A-Guy-educ/A-Guy-Web/pull/1215)) — @aguyshayb

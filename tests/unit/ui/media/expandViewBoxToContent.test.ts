@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   expandViewBoxToContent,
@@ -7,6 +7,42 @@ import {
 } from '@/ui/web/media/SVGMedia/expandViewBoxToContent'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
+
+/**
+ * jsdom does not implement ResizeObserver. Tests that exercise the
+ * deferred-visibility re-run install a controllable stub that records
+ * callbacks so we can drive them from the test.
+ */
+type ResizeObserverCallback = (
+  entries: { contentRect: { width: number; height: number } }[],
+) => void
+type ResizeObserverStub = {
+  callback: ResizeObserverCallback
+  observed: Element[]
+  disconnected: boolean
+}
+const observers: ResizeObserverStub[] = []
+
+class MockResizeObserver {
+  private stub: ResizeObserverStub
+  constructor(callback: ResizeObserverCallback) {
+    this.stub = { callback, observed: [], disconnected: false }
+    observers.push(this.stub)
+  }
+  observe(el: Element): void {
+    this.stub.observed.push(el)
+  }
+  unobserve(): void {}
+  disconnect(): void {
+    this.stub.disconnected = true
+  }
+}
+
+function fireResize(width: number, height: number, at = observers.length - 1): void {
+  const stub = observers[at]
+  if (!stub) throw new Error('No ResizeObserver instance to fire')
+  stub.callback([{ contentRect: { width, height } }])
+}
 
 /**
  * Build a mounted `<svg>` whose `getBBox()` returns the supplied rect.
@@ -32,6 +68,13 @@ function rect(x: number, y: number, width: number, height: number): DOMRect {
 
 beforeEach(() => {
   document.body.innerHTML = ''
+  observers.length = 0
+  ;(globalThis as unknown as { ResizeObserver: typeof MockResizeObserver }).ResizeObserver =
+    MockResizeObserver
+})
+
+afterEach(() => {
+  delete (globalThis as unknown as { ResizeObserver?: unknown }).ResizeObserver
 })
 
 describe('expandViewBoxToContent', () => {
@@ -224,5 +267,83 @@ describe('expandViewBoxWhenReady', () => {
 
     expandViewBoxWhenReady(svg)
     expect(readySpy).not.toHaveBeenCalled()
+  })
+
+  it('returns a cleanup function that disconnects the ResizeObserver', () => {
+    const svg = makeSvg('0 0 100 50', rect(0, 0, 100, 50))
+    const cleanup = expandViewBoxWhenReady(svg)
+    expect(observers).toHaveLength(1)
+    expect(observers[0].disconnected).toBe(false)
+    cleanup()
+    expect(observers[0].disconnected).toBe(true)
+  })
+})
+
+describe('expandViewBoxWhenReady — deferred visibility', () => {
+  it('re-runs expansion the first time the SVG becomes non-zero-sized', () => {
+    // Simulate the mount-while-hidden case: getBBox returns empty on
+    // first pass, then wider content on the second call after the SVG
+    // becomes visible.
+    const svg = document.createElementNS(SVG_NS, 'svg') as SVGSVGElement
+    svg.setAttribute('viewBox', '0 0 250 70')
+    document.body.appendChild(svg)
+
+    let call = 0
+    Object.defineProperty(svg, 'getBBox', {
+      configurable: true,
+      value: () => {
+        call += 1
+        return call === 1 ? rect(0, 0, 0, 0) : rect(10, 10, 340, 40)
+      },
+    })
+
+    expandViewBoxWhenReady(svg)
+    // Hidden → empty bbox → no change on first pass.
+    expect(svg.getAttribute('viewBox')).toBe('0 0 250 70')
+
+    // Container becomes visible; ResizeObserver fires with non-zero size.
+    fireResize(400, 100)
+    expect(svg.getAttribute('viewBox')).toBe('0 0 350 70')
+  })
+
+  it('ignores ResizeObserver callbacks with zero-sized contentRect', () => {
+    const svg = makeSvg('0 0 250 70', rect(10, 20, 300, 40))
+    expandViewBoxWhenReady(svg)
+    const before = svg.getAttribute('viewBox')
+
+    // A ResizeObserver with a 0×0 rect means the SVG is still hidden.
+    // We should not re-run — leaving the pre-existing (correct) viewBox.
+    fireResize(0, 0)
+    expect(svg.getAttribute('viewBox')).toBe(before)
+  })
+
+  it('disconnects the observer after the first successful re-measure', () => {
+    const svg = document.createElementNS(SVG_NS, 'svg') as SVGSVGElement
+    svg.setAttribute('viewBox', '0 0 100 50')
+    document.body.appendChild(svg)
+
+    let call = 0
+    Object.defineProperty(svg, 'getBBox', {
+      configurable: true,
+      value: () => {
+        call += 1
+        return call === 1 ? rect(0, 0, 0, 0) : rect(0, 0, 200, 50)
+      },
+    })
+
+    expandViewBoxWhenReady(svg)
+    expect(observers[0].disconnected).toBe(false)
+
+    fireResize(200, 50)
+    expect(svg.getAttribute('viewBox')).toBe('0 0 200 50')
+    expect(observers[0].disconnected).toBe(true)
+
+    // Further callbacks (parent-driven resizes) must not re-run expansion.
+    const before = svg.getAttribute('viewBox')
+    // Callback is still bound to the same closure — firing shouldn't
+    // mutate state after disconnect, but even if we somehow reach it, the
+    // `done` guard blocks re-entry.
+    fireResize(400, 100)
+    expect(svg.getAttribute('viewBox')).toBe(before)
   })
 })

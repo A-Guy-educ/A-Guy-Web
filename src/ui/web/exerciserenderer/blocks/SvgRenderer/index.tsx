@@ -6,6 +6,16 @@ import type { SvgBlock, CheckResult } from '../../types'
 import { RichTextRenderer } from '../RichTextRenderer'
 import { sanitizeSvg } from '../../utils/svgSanitize'
 import { expandViewBoxWhenReady } from '@/ui/web/media/SVGMedia/expandViewBoxToContent'
+import { ensureSvgViewBox } from '@/ui/web/media/SVGMedia/ensureSvgViewBox'
+
+export type DisplaySize = 'small' | 'medium' | 'large' | 'full'
+
+const SIZE_MAP: Record<DisplaySize, string> = {
+  small: '25%',
+  medium: '50%',
+  large: '75%',
+  full: '100%',
+}
 
 interface SvgRendererProps {
   block: SvgBlock
@@ -14,6 +24,7 @@ interface SvgRendererProps {
   disabled?: boolean
   checkResult?: CheckResult | null
   correctHotspotIds?: string[]
+  displaySize?: DisplaySize
 }
 
 export function SvgRenderer({
@@ -23,9 +34,18 @@ export function SvgRenderer({
   disabled,
   checkResult,
   correctHotspotIds,
+  displaySize = 'full',
 }: SvgRendererProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const sanitizedSvg = useMemo(() => sanitizeSvg(block.value), [block.value])
+  // Bake the viewBox into the markup BEFORE it hits the DOM so the SVG is
+  // always sized by its coordinate system, not by fixed-pixel width/height
+  // attributes. The post-mount useEffect below is the belt for width=100%
+  // and content-bbox expansion; this is the suspenders — greyed chat
+  // history has been observed with the raw authored SVG in the DOM (no
+  // viewBox, no width=100%), suggesting the effect can miss under some
+  // React remount timing. Doing this in useMemo means the viewBox is
+  // present the first time React inserts the HTML.
+  const sanitizedSvg = useMemo(() => sanitizeSvg(ensureSvgViewBox(block.value)), [block.value])
 
   const isInteractive = block.interactive && block.hotspots && block.hotspots.length > 0
 
@@ -64,8 +84,9 @@ export function SvgRenderer({
     // Authored width/height often under-estimates the real extent of the
     // rendered content (emoji <text>, wider-than-expected labels). Grow the
     // viewBox to cover the actual bbox so `width="100%"` scale-up doesn't
-    // preserve a clip on the right/bottom edges.
-    expandViewBoxWhenReady(svg)
+    // preserve a clip on the right/bottom edges. Returns a cleanup that
+    // disconnects the ResizeObserver used to catch deferred visibility.
+    return expandViewBoxWhenReady(svg)
   }, [sanitizedSvg])
 
   const getHotspotState = useCallback(
@@ -149,12 +170,23 @@ export function SvgRenderer({
     ? { ...block.caption, id: `${block.id}-caption`, mediaIds: block.caption.mediaIds || [] }
     : null
 
+  const widthPercent = SIZE_MAP[displaySize]
+
   return (
-    <div className="rounded-xl border border-border/20 overflow-hidden bg-card shadow-elevation-1">
+    <div
+      className="rounded-xl border border-border/20 overflow-hidden bg-card shadow-elevation-1 mx-auto"
+      style={{ width: widthPercent, maxWidth: '100%' }}
+    >
       <div
         ref={containerRef}
         role={isInteractive ? 'application' : 'img'}
         aria-label={block.altText || 'Diagram'}
+        // dir="ltr" prevents author-LTR SVG text (math notation, mixed
+        // Latin+RTL labels) from being visually reordered when the exercise
+        // is rendered inside an RTL page — SVG text inherits the ancestor's
+        // CSS `direction`, and no author expects "4 + 3 · 2 =" to render as
+        // "= 2 · 3 + 4".
+        dir="ltr"
         className={cn(
           'w-full max-w-full overflow-hidden',
           '[&>svg]:block [&>svg]:mx-auto [&>svg]:w-full [&>svg]:max-w-full [&>svg]:h-auto',

@@ -7,6 +7,7 @@
 import type {
   ExerciseBlockGroup,
   LatexBlock,
+  QuestionAttachment,
   QuestionMatchingBlock,
   SvgBlock,
   MatchingOption,
@@ -18,6 +19,7 @@ import type {
 export type {
   ExerciseBlockGroup,
   LatexBlock,
+  QuestionAttachment,
   QuestionMatchingBlock,
   SvgBlock,
   MatchingOption,
@@ -132,6 +134,8 @@ export interface QuestionSelectTrueFalseBlock {
    * ships from admin PR #409.
    */
   showNotebook?: boolean
+  /** Optional sketch shown side-by-side with the question. See Admin PR #461. */
+  attachment?: QuestionAttachment
 }
 
 // MCQ variant
@@ -147,6 +151,8 @@ export interface QuestionSelectMcqBlock {
   fullSolution?: InlineRichText
   /** See `QuestionSelectTrueFalseBlock.showNotebook`. */
   showNotebook?: boolean
+  /** Optional sketch shown side-by-side with the question. See Admin PR #461. */
+  attachment?: QuestionAttachment
 }
 
 export type QuestionSelectBlock = QuestionSelectTrueFalseBlock | QuestionSelectMcqBlock
@@ -161,6 +167,8 @@ export interface QuestionFreeResponseBlock {
   fullSolution?: InlineRichText
   /** See `QuestionSelectTrueFalseBlock.showNotebook`. */
   showNotebook?: boolean
+  /** Optional sketch shown side-by-side with the question. See Admin PR #461. */
+  attachment?: QuestionAttachment
 }
 
 export interface QuestionTableBlock {
@@ -173,6 +181,8 @@ export interface QuestionTableBlock {
   fullSolution?: InlineRichText
   /** See `QuestionSelectTrueFalseBlock.showNotebook`. */
   showNotebook?: boolean
+  /** Optional sketch shown side-by-side with the question. See Admin PR #461. */
+  attachment?: QuestionAttachment
 }
 
 export type QuestionBlock =

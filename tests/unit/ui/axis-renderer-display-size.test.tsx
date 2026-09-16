@@ -18,7 +18,7 @@ interface AxisRendererProps {
 }
 
 const SIZE_MAP = {
-  small: '33%',
+  small: '25%',
   medium: '50%',
   large: '75%',
   full: '100%',
@@ -78,13 +78,13 @@ describe('AxisRenderer displaySize', () => {
   })
 
   describe('Width percentage application', () => {
-    it('applies 33% width for small displaySize', () => {
+    it('applies 25% width for small displaySize', () => {
       const spec = createMockSpec()
 
       render(<MockAxisRenderer blockId="test-1" spec={spec} displaySize="small" />)
 
       const container = screen.getByTestId('axis-renderer-container')
-      expect(container).toHaveStyle({ width: '33%' })
+      expect(container).toHaveStyle({ width: '25%' })
       expect(container).toHaveAttribute('data-display-size', 'small')
     })
 
