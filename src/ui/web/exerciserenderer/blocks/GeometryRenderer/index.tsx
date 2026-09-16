@@ -95,8 +95,13 @@ export function GeometryRenderer({ blockId, spec, displaySize = 'full' }: Geomet
     }
   }, [xRange, yRange, displaySize])
 
+  // When displaySize shrinks the board below the container width, center
+  // the fixed-pixel JSXGraph child so it doesn't sit flush against the
+  // inline-start edge (SvgRenderer centers its scaled wrapper the same
+  // way via mx-auto — this keeps svg / geometry / axis sketches visually
+  // consistent when authored side-by-side at the same displaySize).
   return (
-    <div className="w-full" ref={containerRef}>
+    <div className="w-full flex justify-center" ref={containerRef}>
       <JSXGraphBoard
         id={blockId}
         width={dimensions.width}
