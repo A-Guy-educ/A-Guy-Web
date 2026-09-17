@@ -26,6 +26,9 @@ const GeometryPointSchema = z.object({
   position: PositionEnumSchema.optional(),
   fontSize: z.number().positive().optional(),
   visible: z.boolean().optional(),
+  // Mirrors Admin PR #465. When false, the point renders but its letter label is
+  // hidden. When true or missing, the label renders (default: true).
+  labelVisible: z.boolean().optional(),
   color: ColorStringSchema.optional(),
   size: z.number().int().min(1).max(5).optional(),
 })
