@@ -40,13 +40,12 @@ export function useLessonQuickSearchState({ nodes }: Options) {
   }, [query, open])
 
   useEffect(() => {
+    if (!open) return
+    // Cmd/Ctrl+K is intentionally not bound here — the site-wide CourseSearch
+    // already owns it, and adding a second handler would toggle both overlays
+    // on a single keystroke (verified in review of PR #1225).
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault()
-        setOpen((o) => !o)
-      } else if (e.key === 'Escape' && open) {
-        setOpen(false)
-      }
+      if (e.key === 'Escape') setOpen(false)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
