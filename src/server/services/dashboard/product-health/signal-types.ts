@@ -22,16 +22,11 @@ export interface LessonAttempt {
   completed: boolean
 }
 
-/** Identified-user snapshot; per-bucket count uses `createdAt <= bucket.end`. */
-export interface IdentifiedPopulation {
-  createdAt: Map<string, Date>
-}
-
 export interface AllSignals {
   lessonActiveDays: UserDay[]
   chatDays: UserDay[]
   lessonAttempts: LessonAttempt[]
-  population: IdentifiedPopulation
+  presentUserDays: UserDay[]
 }
 
 export type WindowSpec = Window

@@ -24,8 +24,8 @@ export interface NumDenom {
 export interface KpiContext {
   lessonActiveByUser: Map<string, Set<string>>
   chatByUser: Map<string, Set<string>>
+  presentByUser: Map<string, Set<string>>
   attempts: LessonAttempt[]
-  identifiedCreatedAt: Map<string, Date>
   retentionLookbackDays: number
 }
 
@@ -33,23 +33,16 @@ export function buildKpiContext(signals: AllSignals, retentionLookbackDays: numb
   return {
     lessonActiveByUser: indexUserDays(signals.lessonActiveDays),
     chatByUser: indexUserDays(signals.chatDays),
+    presentByUser: indexUserDays(signals.presentUserDays),
     attempts: signals.lessonAttempts,
-    identifiedCreatedAt: signals.population.createdAt,
     retentionLookbackDays,
   }
 }
 
-function countIdentifiedBefore(ctx: KpiContext, end: Date): number {
-  let n = 0
-  for (const createdAt of ctx.identifiedCreatedAt.values()) {
-    if (createdAt < end) n += 1
-  }
-  return n
-}
-
 export function activeUserRate(ctx: KpiContext, window: Window): NumDenom {
   const active = usersActiveIn(ctx.lessonActiveByUser, window)
-  return { numerator: active.size, denominator: countIdentifiedBefore(ctx, window.end) }
+  const present = usersActiveIn(ctx.presentByUser, window)
+  return { numerator: active.size, denominator: present.size }
 }
 
 export function engagementRate(ctx: KpiContext, window: Window): NumDenom {
