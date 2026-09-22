@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.41.0 — 2026-09-22
+
+### Features
+- Add quick lesson search on course page (#1225)
+- Honor labelVisible on geometry point spec (#1225)
+
+### Fixes
+- Scope activeUserRate denominator to users present in window (#1228)
+- Drop lesson quick search Cmd+K to avoid CourseSearch collision (#1225)
+- Drop redundant frame around worksheet sketch blocks (#1225)
+
+### Refactor
+- Reorder course page — title, tabs, search, hero (#1227)
+
 ## v0.40.0 — 2026-09-16
 
 ### Features
