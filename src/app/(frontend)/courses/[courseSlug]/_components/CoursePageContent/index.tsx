@@ -54,7 +54,6 @@ export function CoursePageContent({
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
       <CourseAnalytics courseId={course.id} courseTitle={course.title} />
-      <CourseTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
       {/* Locale fallback notice */}
       {isLocaleFallback && (
@@ -79,6 +78,8 @@ export function CoursePageContent({
           </h1>
         </div>
       </div>
+
+      <CourseTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
       {/* Main content with AnimatePresence for smooth tab transitions */}
       <main className="container mx-auto px-6 py-section-sm max-w-5xl">
