@@ -26,31 +26,36 @@ function context(overrides: Partial<AllSignals> = {}, lookbackDays = 30): KpiCon
     lessonActiveDays: [],
     chatDays: [],
     lessonAttempts: [],
-    population: { createdAt: new Map() },
+    presentUserDays: [],
     ...overrides,
   }
   return buildKpiContext(signals, lookbackDays)
 }
 
 describe('activeUserRate', () => {
-  it('counts distinct active users over identified users with createdAt < window.end', () => {
+  it('counts distinct active users over distinct users present in the same window', () => {
+    // Active = lesson dwell ≥60s (numerator source).
     const lessonActiveDays: UserDay[] = [
       { userId: 'u1', date: '2026-03-02' },
       { userId: 'u1', date: '2026-03-04' }, // deduped
       { userId: 'u2', date: '2026-03-07' },
-      { userId: 'u3', date: '2026-02-28' }, // before window
+      { userId: 'u3', date: '2026-02-28' }, // before window → excluded
     ]
-    const createdAt = new Map<string, Date>([
-      ['u1', new Date('2026-01-01T00:00:00.000Z')],
-      ['u2', new Date('2026-01-15T00:00:00.000Z')],
-      ['u3', new Date('2026-02-01T00:00:00.000Z')],
-      ['u4', new Date('2026-03-09T00:00:00.000Z')], // registered after window end → excluded
-    ])
-    const ctx = context({ lessonActiveDays, population: { createdAt } })
+    // Present = any progressRecord touched in the window (superset of active).
+    // u4 opened a lesson but never crossed 60s → present, not active.
+    // u5 was present outside the window only → excluded.
+    // u6 registered but never touched any record → not present.
+    const presentUserDays: UserDay[] = [
+      { userId: 'u1', date: '2026-03-02' },
+      { userId: 'u2', date: '2026-03-07' },
+      { userId: 'u4', date: '2026-03-05' },
+      { userId: 'u5', date: '2026-02-20' },
+    ]
+    const ctx = context({ lessonActiveDays, presentUserDays })
     expect(activeUserRate(ctx, window)).toEqual({ numerator: 2, denominator: 3 })
   })
 
-  it('returns denominator=0 when there are no identified users', () => {
+  it('returns denominator=0 when no user was present in the window', () => {
     expect(activeUserRate(context(), window)).toEqual({ numerator: 0, denominator: 0 })
   })
 })
