@@ -4765,6 +4765,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- refactor: Reorder course page header to match demo ([#1227](https://github.com/A-Guy-educ/A-Guy-Web/pull/1227)) — @aguyshayb
 - feat: Point labelVisible, lesson quick search, single sketch frame ([#1225](https://github.com/A-Guy-educ/A-Guy-Web/pull/1225)) — @aguyshayb
 ## [v0.40.0] - 2026-09-16
 
