@@ -168,6 +168,8 @@ export function LessonListTab({
 
   return (
     <>
+      <LessonQuickSearch nodes={allNodes} courseSlug={courseSlug} />
+
       <CourseLessonsHero
         completed={completed}
         total={total}
@@ -175,8 +177,6 @@ export function LessonListTab({
         accentColor={accentColor}
         onFocusNext={handleFocusNext}
       />
-
-      <LessonQuickSearch nodes={allNodes} courseSlug={courseSlug} />
 
       <CourseLessonsFilterBar mode={filterMode} onChange={setFilterMode} />
 
