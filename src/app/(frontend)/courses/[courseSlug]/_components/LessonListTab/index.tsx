@@ -17,6 +17,7 @@ import { useProgressMap } from '@/client/hooks/useProgressMap'
 import { ChapterAccordion } from './ChapterAccordion'
 import { CourseLessonsFilterBar } from './CourseLessonsFilterBar'
 import { CourseLessonsHero } from './CourseLessonsHero'
+import { LessonQuickSearch } from './LessonQuickSearch'
 import { formatMessage } from './formatMessage'
 import { countTotals, findFeaturedNode, useLessonGrouping } from './useLessonGrouping'
 import type { FilterMode, LessonRoadmapNode } from './lessonRoadmapTypes'
@@ -139,6 +140,8 @@ export function LessonListTab({
     return groups
   }, [filterMode, featured, groups])
 
+  const allNodes = useMemo(() => groups.flatMap((g) => g.lessons), [groups])
+
   const visibleLessonsFor = (lessons: LessonRoadmapNode[]) => {
     if (filterMode === 'uncompleted') return lessons.filter((n) => n.status !== 'completed')
     return lessons
@@ -165,6 +168,8 @@ export function LessonListTab({
 
   return (
     <>
+      <LessonQuickSearch nodes={allNodes} courseSlug={courseSlug} />
+
       <CourseLessonsHero
         completed={completed}
         total={total}

@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.41.0 — 2026-09-22
+
+### Features
+- Add quick lesson search on course page (#1225)
+- Honor labelVisible on geometry point spec (#1225)
+
+### Fixes
+- Scope activeUserRate denominator to users present in window (#1228)
+- Drop lesson quick search Cmd+K to avoid CourseSearch collision (#1225)
+- Drop redundant frame around worksheet sketch blocks (#1225)
+
+### Refactor
+- Reorder course page — title, tabs, search, hero (#1227)
+
 ## v0.40.0 — 2026-09-16
 
 ### Features
@@ -4765,6 +4779,13 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.41.0 ([#1229](https://github.com/A-Guy-educ/A-Guy-Web/pull/1229)) — @aguyshayb
+- fix: Scope activeUserRate denominator to users present in window ([#1228](https://github.com/A-Guy-educ/A-Guy-Web/pull/1228)) — @aguyshayb
+- refactor: Reorder course page header to match demo ([#1227](https://github.com/A-Guy-educ/A-Guy-Web/pull/1227)) — @aguyshayb
+- feat: Point labelVisible, lesson quick search, single sketch frame ([#1225](https://github.com/A-Guy-educ/A-Guy-Web/pull/1225)) — @aguyshayb
+## [v0.40.0] - 2026-09-16
+
+- promote: dev -> main (v0.40.0) ([#1224](https://github.com/A-Guy-educ/A-Guy-Web/pull/1224)) — @aguyshayb
 - chore: Release v0.40.0 ([#1223](https://github.com/A-Guy-educ/A-Guy-Web/pull/1223)) — @aguyshayb
 - feat: Honor displaySize on svg and geometry sketch blocks ([#1222](https://github.com/A-Guy-educ/A-Guy-Web/pull/1222)) — @aguyshayb
 - fix: Bake SVG viewBox into markup at sanitize time ([#1221](https://github.com/A-Guy-educ/A-Guy-Web/pull/1221)) — @aguyshayb

@@ -26,13 +26,11 @@ import type { SignalSpan } from './signal-types'
 const DEFAULT_EXCLUDED_DOMAINS = 'aguy.co.il'
 
 export interface EligibleUsers {
-  createdAt: Map<string, Date>
   refs: unknown[]
 }
 
 interface UserRow {
   _id: unknown
-  createdAt?: Date
 }
 
 function excludedDomains(): string[] {
@@ -72,19 +70,17 @@ export async function fetchEligibleUsers(
 
   const rows = (await db
     .collection('users')
-    .find(match, { projection: { _id: 1, createdAt: 1 } })
+    .find(match, { projection: { _id: 1 } })
     .toArray()) as UserRow[]
 
-  const createdAt = new Map<string, Date>()
   const refs: unknown[] = []
   for (const row of rows) {
     const idStr = String(row._id)
-    createdAt.set(idStr, row.createdAt ?? span.start)
     if (ObjectId.isValid(idStr)) {
       refs.push(row._id as ObjectId, idStr)
     } else {
       refs.push(idStr)
     }
   }
-  return { createdAt, refs }
+  return { refs }
 }

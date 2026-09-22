@@ -245,7 +245,7 @@ function renderBlockContent({
         prompt={b.prompt}
         worksheetLayout={{ sideContentAspectRatio: aspectRatio, proportions: '50-50' }}
       >
-        <div className="my-4 rounded-xl border bg-card p-card-padding-sm">
+        <div className="my-4">
           <GeometryRenderer blockId={b.id} spec={b.geometry} displaySize={b.displaySize} />
         </div>
       </GraphWithPrompt>
@@ -266,7 +266,7 @@ function renderBlockContent({
         prompt={b.prompt}
         worksheetLayout={{ sideContentAspectRatio: axisAspectRatio, proportions: '50-50' }}
       >
-        <div className="my-4 rounded-xl border bg-card p-card-padding-sm">
+        <div className="my-4">
           <AxisRenderer blockId={b.id} spec={b.axis} displaySize={b.displaySize} />
         </div>
       </GraphWithPrompt>

@@ -29,6 +29,10 @@ function renderPoints(board: JXG.Board, points: PointSpec[]): Map<string, any> {
   const pointMap = new Map<string, any>()
   for (const p of points) {
     const pointColor = p.color ?? getDefaultTextColor()
+    // Both `withLabel` and `label.visible` are set — JSXGraph honors one or the
+    // other depending on the render path, and setting only one leaks the letter
+    // in some paths (see Admin PR #465).
+    const labelVisible = p.labelVisible !== false
     const pt = board.create('point', [p.x, p.y], {
       name: p.name,
       fixed: true,
@@ -36,9 +40,11 @@ function renderPoints(board: JXG.Board, points: PointSpec[]): Map<string, any> {
       fillColor: pointColor,
       strokeColor: pointColor,
       size: p.size ?? 4,
+      withLabel: labelVisible,
       label: {
         offset: mapLabelOffset(p.position),
         fontSize: p.fontSize ?? 12,
+        visible: labelVisible,
         // JSXGraph silently drops `fontFamily` on label attrs — the only
         // knob it honors is `cssStyle` (which becomes inline `style=` on
         // the label element). Without this the point labels fall back to
