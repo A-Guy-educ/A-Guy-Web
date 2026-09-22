@@ -4779,6 +4779,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- promote: dev -> main (v0.41.0) ([#1230](https://github.com/A-Guy-educ/A-Guy-Web/pull/1230)) — @aguyshayb
 - chore: Release v0.41.0 ([#1229](https://github.com/A-Guy-educ/A-Guy-Web/pull/1229)) — @aguyshayb
 - fix: Scope activeUserRate denominator to users present in window ([#1228](https://github.com/A-Guy-educ/A-Guy-Web/pull/1228)) — @aguyshayb
 - refactor: Reorder course page header to match demo ([#1227](https://github.com/A-Guy-educ/A-Guy-Web/pull/1227)) — @aguyshayb
