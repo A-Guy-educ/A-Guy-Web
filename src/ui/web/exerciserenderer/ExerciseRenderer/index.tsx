@@ -40,6 +40,7 @@ import { GeometryRenderer } from '../blocks/GeometryRenderer'
 import { AxisRenderer } from '../blocks/AxisRenderer'
 import { GraphWithPrompt } from '../blocks/GraphWithPrompt'
 import { QuestionWithAttachment } from '../blocks/QuestionWithAttachment'
+import { renderQuestionAttachment } from '../blocks/renderQuestionAttachment'
 import { LatexBlockRenderer } from '../blocks/LatexBlockRenderer'
 import { MultiAxisRenderer } from '../blocks/MultiAxisRenderer'
 import { TrueFalseQuestion } from '../questions/TrueFalseQuestion'
@@ -85,47 +86,6 @@ function formatStudentAnswer(question: QuestionBlock, answer: UserAnswer): strin
     return answer.connections.map((c) => `${c.leftId} → ${c.rightId}`).join(', ')
   }
   return ''
-}
-
-/**
- * Render the visual side of a question attachment. Reuses the standalone
- * SVG / geometry / axis renderers so the attachment looks identical to
- * its `svg` / `question_geometry` / `question_axis` block counterpart.
- * The attachment carries no answer state — the SVG variant intentionally
- * omits hotspot / interactive fields (those stay on the standalone SVG
- * block).
- */
-function renderQuestionAttachment(
-  blockId: string,
-  attachment: QuestionAttachment,
-): React.ReactNode {
-  const attachmentId = `${blockId}-attachment`
-  if (attachment.kind === 'geometry') {
-    return (
-      <GeometryRenderer
-        blockId={attachmentId}
-        spec={attachment.geometry}
-        displaySize={attachment.displaySize}
-      />
-    )
-  }
-  if (attachment.kind === 'axis') {
-    return (
-      <AxisRenderer
-        blockId={attachmentId}
-        spec={attachment.axis}
-        displaySize={attachment.displaySize}
-      />
-    )
-  }
-  const svgBlock: SvgBlock = {
-    id: attachmentId,
-    type: 'svg',
-    value: attachment.svg.value,
-    altText: attachment.svg.altText,
-    caption: attachment.svg.caption,
-  }
-  return <SvgRenderer block={svgBlock} displaySize={attachment.displaySize} />
 }
 
 /**
