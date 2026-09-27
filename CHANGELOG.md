@@ -4779,6 +4779,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Render question attachments in worksheet and chat views ([#1231](https://github.com/A-Guy-educ/A-Guy-Web/pull/1231)) — @aguyshayb
 ## [v0.41.0] - 2026-09-22
 
 - promote: dev -> main (v0.41.0) ([#1230](https://github.com/A-Guy-educ/A-Guy-Web/pull/1230)) — @aguyshayb
