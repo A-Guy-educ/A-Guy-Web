@@ -4784,6 +4784,8 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+## [v0.41.1] - 2026-09-27
+
 - promote: dev -> main (v0.41.1) ([#1233](https://github.com/A-Guy-educ/A-Guy-Web/pull/1233)) — @aguyshayb
 - chore: Release v0.41.1 ([#1232](https://github.com/A-Guy-educ/A-Guy-Web/pull/1232)) — @aguyshayb
 - fix: Render question attachments in worksheet and chat views ([#1231](https://github.com/A-Guy-educ/A-Guy-Web/pull/1231)) — @aguyshayb
