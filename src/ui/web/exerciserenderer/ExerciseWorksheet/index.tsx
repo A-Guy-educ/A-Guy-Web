@@ -42,6 +42,8 @@ import { AxisRenderer } from '../blocks/AxisRenderer'
 import { GraphWithPrompt } from '../blocks/GraphWithPrompt'
 import { MultiAxisRenderer } from '../blocks/MultiAxisRenderer'
 import { LatexBlockRenderer } from '../blocks/LatexBlockRenderer'
+import { QuestionWithAttachment } from '../blocks/QuestionWithAttachment'
+import { renderQuestionAttachment } from '../blocks/renderQuestionAttachment'
 import { getMediaUrl } from '@/infra/utils/getMediaUrl'
 import { computeQuestionLabels } from '@/lib/exercises/computeSectionLabels'
 import type { Media } from '@/infra/types/content'
@@ -51,6 +53,7 @@ import type {
   GraphLayout,
   InlineRichText,
   MediaBlock,
+  QuestionAttachment,
   QuestionAxisBlock,
   QuestionGeometryBlock,
   QuestionFreeResponseBlock,
@@ -164,7 +167,10 @@ interface RenderBlockParams {
 
 /**
  * Renders a block and, when it's a labelled question type, wraps it with the
- * pre-computed section-aware label badge.
+ * pre-computed section-aware label badge. When the labelled question carries
+ * an `attachment` (svg / geometry / axis sketch), the question body is
+ * further wrapped in `QuestionWithAttachment` so the sketch renders next to
+ * the printed question — matching what the interactive view shows.
  */
 function renderBlockWithLabel({
   block,
@@ -177,7 +183,12 @@ function renderBlockWithLabel({
   const isLabelledQuestion = LABELLED_QUESTION_TYPES.has(block.type)
 
   if (isLabelledQuestion && label) {
-    const inner = renderBlockContent({ block, mediaMap, sideBySideLayout, hideLatexBlocks })
+    const inner = renderQuestionWithOptionalAttachment({
+      block,
+      mediaMap,
+      sideBySideLayout,
+      hideLatexBlocks,
+    })
     return (
       <WorksheetQuestionLabel label={`${label}.`} dir={isRtl ? 'rtl' : 'ltr'}>
         {inner}
@@ -186,6 +197,31 @@ function renderBlockWithLabel({
   }
 
   return renderBlockContent({ block, mediaMap, sideBySideLayout, hideLatexBlocks })
+}
+
+/**
+ * Wraps the question body in QuestionWithAttachment when the block carries an
+ * `attachment` field. Labelled question types (mcq / true-false / free
+ * response / table / matching) can attach a sketch that the interactive
+ * renderer places side-by-side with the question card — mirror that here so
+ * the printed worksheet doesn't silently drop the sketch.
+ */
+function renderQuestionWithOptionalAttachment({
+  block,
+  mediaMap,
+  sideBySideLayout,
+  hideLatexBlocks,
+}: Omit<RenderBlockParams, 'isRtl' | 'label'>): React.ReactNode {
+  const inner = renderBlockContent({ block, mediaMap, sideBySideLayout, hideLatexBlocks })
+  const attachment = (block as ContentBlock & { attachment?: QuestionAttachment }).attachment
+  if (!attachment) return inner
+  return (
+    <QuestionWithAttachment
+      layout={attachment.layout}
+      question={inner}
+      attachment={renderQuestionAttachment(block.id, attachment)}
+    />
+  )
 }
 
 /** Renders the content of a single block (no label) */
