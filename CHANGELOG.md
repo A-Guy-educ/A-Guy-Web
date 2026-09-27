@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.41.1 — 2026-09-27
+
+### Fixes
+- Render question attachments in worksheet and chat views (#1231)
+
 ## v0.41.0 — 2026-09-22
 
 ### Features
