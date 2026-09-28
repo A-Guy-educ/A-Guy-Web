@@ -1,0 +1,116 @@
+/**
+ * The default lemma catalogue for grades 7–8 core content.
+ *
+ * Deliberately excluded from v1 (marked "weird" per initial scoping):
+ *  - Circle theorems (list.pdf #60-#83, #99-#101)
+ *  - Medians / centroid / incenter / circumcenter (list.pdf #45-#54)
+ *  - Regular-polygon inscribing (#58, #59)
+ *  - Cyclic / tangential quadrilaterals (#56, #57)
+ *  - Geometric-mean & right-triangle projections (#102, #103)
+ *  - Polygon interior-angle formula (#104)
+ *  - Thales & angle-bisector proportional cutting (#90-#94)
+ *  - Kite (#21)
+ *  - 30-60-90 special right (#88, #89) — needs numeric side handling
+ */
+import type { Lemma } from '../types.js'
+import {
+  HALF_OF_180,
+  REFLEXIVE_ANGLE,
+  REFLEXIVE_SEGMENT,
+  TRANSITIVE_ANGLE_EQ,
+  TRANSITIVE_SEGMENT_EQ,
+} from './equality.js'
+import {
+  ANGLE_ADDITION_EQ,
+  LINEAR_PAIR,
+  LINEAR_PAIR_JUMP,
+  RIGHT_ANGLE_ON_LINE_TO_PERP,
+  RIGHT_ANGLE_TO_PERP,
+  SUPPLEMENTS_OF_EQUAL_ANGLES,
+  SUPPLEMENTS_OF_SAME_ANGLE,
+  TRIANGLE_ANGLE_SUM,
+  TRIANGLE_THIRD_ANGLE,
+  VERTICAL_ANGLES,
+} from './angles.js'
+import { ASA, CPCTC_ANGLE, CPCTC_SIDE, SAS, SSS } from './congruence.js'
+import {
+  EQUAL_ANGLES_TO_EQUAL_SIDES,
+  ISOSCELES_BASE_ANGLES,
+  ISOSCELES_LEGS_EQUAL,
+} from './isosceles.js'
+import {
+  ALTERNATE_ANGLES_TO_PARALLEL,
+  PARALLEL_ALTERNATE_AT_ENDPOINTS,
+  PARALLEL_TO_ALTERNATE_ANGLES,
+} from './parallel.js'
+import {
+  OPPOSITE_ANGLES_EQ_TO_PARALLELOGRAM,
+  OPPOSITE_SIDES_EQ_TO_PARALLELOGRAM,
+  PAIR_PARALLEL_EQ_TO_PARALLELOGRAM,
+  PARALLELOGRAM_CONSECUTIVE_ANGLES_SUP,
+  PARALLELOGRAM_OPPOSITE_ANGLES,
+  PARALLELOGRAM_OPPOSITE_SIDES,
+  PARALLELOGRAM_PARALLEL_SIDES,
+  RECTANGLE_DIAGONALS_EQUAL,
+  RECTANGLE_IS_PARALLELOGRAM,
+  RHOMBUS_DIAGONALS_PERP,
+  RHOMBUS_IS_PARALLELOGRAM,
+} from './quadrilaterals.js'
+import { MIDPOINT_COLLINEAR, MIDPOINT_DIVIDES_EQUAL } from './definitions.js'
+import { SIMILARITY_AA, SIMILAR_CORRESPONDING_ANGLES } from './similarity.js'
+
+export const ALL_LEMMAS: readonly Lemma[] = [
+  // equality
+  REFLEXIVE_SEGMENT,
+  REFLEXIVE_ANGLE,
+  TRANSITIVE_SEGMENT_EQ,
+  TRANSITIVE_ANGLE_EQ,
+  HALF_OF_180,
+  // angles
+  LINEAR_PAIR,
+  VERTICAL_ANGLES,
+  SUPPLEMENTS_OF_SAME_ANGLE,
+  SUPPLEMENTS_OF_EQUAL_ANGLES,
+  LINEAR_PAIR_JUMP,
+  TRIANGLE_ANGLE_SUM,
+  TRIANGLE_THIRD_ANGLE,
+  ANGLE_ADDITION_EQ,
+  RIGHT_ANGLE_TO_PERP,
+  RIGHT_ANGLE_ON_LINE_TO_PERP,
+  // congruence
+  SAS,
+  ASA,
+  SSS,
+  CPCTC_SIDE,
+  CPCTC_ANGLE,
+  // isosceles
+  ISOSCELES_LEGS_EQUAL,
+  ISOSCELES_BASE_ANGLES,
+  EQUAL_ANGLES_TO_EQUAL_SIDES,
+  // parallel
+  PARALLEL_TO_ALTERNATE_ANGLES,
+  PARALLEL_ALTERNATE_AT_ENDPOINTS,
+  ALTERNATE_ANGLES_TO_PARALLEL,
+  // quadrilaterals
+  PARALLELOGRAM_OPPOSITE_SIDES,
+  PARALLELOGRAM_OPPOSITE_ANGLES,
+  PARALLELOGRAM_PARALLEL_SIDES,
+  PARALLELOGRAM_CONSECUTIVE_ANGLES_SUP,
+  OPPOSITE_SIDES_EQ_TO_PARALLELOGRAM,
+  OPPOSITE_ANGLES_EQ_TO_PARALLELOGRAM,
+  PAIR_PARALLEL_EQ_TO_PARALLELOGRAM,
+  RECTANGLE_DIAGONALS_EQUAL,
+  RHOMBUS_DIAGONALS_PERP,
+  RECTANGLE_IS_PARALLELOGRAM,
+  RHOMBUS_IS_PARALLELOGRAM,
+  // definitions
+  MIDPOINT_DIVIDES_EQUAL,
+  MIDPOINT_COLLINEAR,
+  // similarity
+  SIMILARITY_AA,
+  SIMILAR_CORRESPONDING_ANGLES,
+]
+
+export const LEMMA_BY_ID: Readonly<Record<string, Lemma>> = Object.fromEntries(
+  ALL_LEMMAS.map((l) => [l.id, l]),
+)
