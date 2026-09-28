@@ -23,7 +23,12 @@ type ClaimableKind =
 
 // Day 1: parallelogram-diagonal-extension only needs these three. Restore the
 // full list by removing this array (StepInput falls back to `KIND_SPECS` keys).
-const VISIBLE_KINDS: readonly ClaimableKind[] = ['angle_eq', 'triangle_congruent', 'segment_eq']
+const VISIBLE_KINDS: readonly ClaimableKind[] = [
+  'angle_eq',
+  'triangle_congruent',
+  'segment_eq',
+  'parallel',
+]
 
 interface FieldSpec {
   size: number

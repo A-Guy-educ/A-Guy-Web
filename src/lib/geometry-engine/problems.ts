@@ -24,6 +24,14 @@ export interface GeometryProofProblem {
   spec: GeometrySpecV1
   extraGivens: readonly Fact[]
   goal: Fact
+  /**
+   * The subset of facts shown to the student in the "given" panel. Everything
+   * else in `extraGivens` (plus spec-derived facts and coordinate-derived
+   * ray_between facts) stays in the engine's fact pool but is hidden from
+   * the UI — those are diagram-obvious bootstraps, not real problem givens.
+   * Falls back to the full initial fact pool when omitted.
+   */
+  displayGivens?: readonly Fact[]
 }
 
 export const PROBLEMS: readonly GeometryProofProblem[] = [
@@ -84,21 +92,21 @@ export const PROBLEMS: readonly GeometryProofProblem[] = [
       canvas: { width: 620, height: 420 },
       elements: {
         points: [
-          { name: 'E', x: 100, y: 350, position: 'tl' },
-          { name: 'A', x: 200, y: 280, position: 'tr' },
-          { name: 'B', x: 450, y: 290, position: 'tr' },
-          { name: 'D', x: 150, y: 130, position: 'bl' },
-          { name: 'C', x: 400, y: 140, position: 'b' },
-          { name: 'F', x: 500, y: 70, position: 'br' },
+          { name: 'E', x: 100, y: 350, position: 'tl', color: '#000000' },
+          { name: 'A', x: 200, y: 280, position: 'tr', color: '#000000' },
+          { name: 'B', x: 450, y: 290, position: 'tr', color: '#000000' },
+          { name: 'D', x: 150, y: 130, position: 'bl', color: '#000000' },
+          { name: 'C', x: 400, y: 140, position: 'b', color: '#000000' },
+          { name: 'F', x: 500, y: 70, position: 'br', color: '#000000' },
         ],
         lines: [
-          { from: 'A', to: 'B', style: 'solid' },
-          { from: 'B', to: 'C', style: 'solid' },
-          { from: 'C', to: 'D', style: 'solid' },
-          { from: 'D', to: 'A', style: 'solid' },
-          { from: 'E', to: 'F', style: 'solid' },
-          { from: 'D', to: 'E', style: 'solid' },
-          { from: 'B', to: 'F', style: 'solid' },
+          { from: 'A', to: 'B', style: 'solid', color: '#722F37' },
+          { from: 'B', to: 'C', style: 'solid', color: '#722F37' },
+          { from: 'C', to: 'D', style: 'solid', color: '#722F37' },
+          { from: 'D', to: 'A', style: 'solid', color: '#722F37' },
+          { from: 'E', to: 'F', style: 'solid', color: '#722F37' },
+          { from: 'D', to: 'E', style: 'solid', color: '#722F37' },
+          { from: 'B', to: 'F', style: 'solid', color: '#722F37' },
         ],
         circles: [],
         angles: [],
@@ -117,6 +125,10 @@ export const PROBLEMS: readonly GeometryProofProblem[] = [
       { kind: 'parallel', a: ['A', 'D'], b: ['B', 'C'] },
       { kind: 'segment_eq', a: ['A', 'D'], b: ['B', 'C'] },
       { kind: 'angle_eq', a: ['A', 'D', 'C'], b: ['A', 'B', 'C'] },
+    ],
+    displayGivens: [
+      { kind: 'parallelogram', q: ['A', 'B', 'C', 'D'] },
+      { kind: 'segment_eq', a: ['A', 'E'], b: ['C', 'F'] },
     ],
     goal: { kind: 'angle_eq', a: ['E', 'D', 'C'], b: ['F', 'B', 'A'] },
   },

@@ -28,13 +28,13 @@ interface GeometryProofPlayerProps {
 }
 
 export function GeometryProofPlayer({ problem }: GeometryProofPlayerProps) {
-  const { initialState, initialFacts, pointNames } = useMemo(() => {
+  const { initialState, displayFacts, pointNames } = useMemo(() => {
     const parsed = specToFacts(problem.spec)
     const derived = computeDerivedGeometryFacts(parsed.placedPoints)
     const facts: Fact[] = [...parsed.facts, ...problem.extraGivens, ...derived]
     return {
       initialState: initState(facts),
-      initialFacts: facts,
+      displayFacts: problem.displayGivens ?? facts,
       pointNames: parsed.pointNames,
     }
   }, [problem])
@@ -79,7 +79,7 @@ export function GeometryProofPlayer({ problem }: GeometryProofPlayerProps) {
         <aside className="space-y-4">
           <section>
             <h2 className="mb-2 text-body-sm font-semibold text-foreground">נתונים</h2>
-            <FactList facts={initialFacts} />
+            <FactList facts={displayFacts} />
           </section>
           <section>
             <h2 className="mb-2 text-body-sm font-semibold text-foreground">להוכיח</h2>
