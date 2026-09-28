@@ -1,8 +1,7 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type KeyboardEvent } from 'react'
 import { Button } from '@/ui/web/components/button'
-import { Label } from '@/ui/web/components/label'
 import {
   Select,
   SelectContent,
@@ -22,37 +21,79 @@ type ClaimableKind =
   | 'midpoint'
   | 'isosceles'
 
-const KIND_LABELS_HE: Record<ClaimableKind, string> = {
-  segment_eq: 'קטעים שווים (AB = CD)',
-  angle_eq: 'זוויות שוות (∠ABC = ∠DEF)',
-  angle_measure: 'מידת זווית (∠ABC = X°)',
-  triangle_congruent: 'משולשים חופפים (△ABC ≅ △DEF)',
-  perpendicular: 'ניצבים (AB ⊥ CD)',
-  parallel: 'מקבילים (AB ∥ CD)',
-  midpoint: 'אמצע קטע',
-  isosceles: 'משולש שווה־שוקיים',
+interface FieldSpec {
+  size: number
+  placeholder: string
+  prefix?: string
 }
 
-const KIND_POINT_COUNTS: Record<ClaimableKind, number> = {
-  segment_eq: 4,
-  angle_eq: 6,
-  angle_measure: 3,
-  triangle_congruent: 6,
-  perpendicular: 4,
-  parallel: 4,
-  midpoint: 3,
-  isosceles: 3,
+interface KindSpec {
+  labelHe: string
+  fields: readonly FieldSpec[]
+  separator: string
+  hasDegrees?: boolean
 }
 
-const POINT_LABELS_HE: Record<ClaimableKind, readonly string[]> = {
-  segment_eq: ['A', 'B', 'C', 'D'],
-  angle_eq: ['A', 'B', 'C', 'D', 'E', 'F'],
-  angle_measure: ['A (קרן)', 'B (קודקוד)', 'C (קרן)'],
-  triangle_congruent: ['A', 'B', 'C', 'D', 'E', 'F'],
-  perpendicular: ['A', 'B', 'C', 'D'],
-  parallel: ['A', 'B', 'C', 'D'],
-  midpoint: ['M (האמצע)', 'A', 'B'],
-  isosceles: ['A (קודקוד)', 'B', 'C'],
+const KIND_SPECS: Record<ClaimableKind, KindSpec> = {
+  segment_eq: {
+    labelHe: 'קטעים שווים',
+    fields: [
+      { size: 2, placeholder: 'AB' },
+      { size: 2, placeholder: 'CD' },
+    ],
+    separator: '=',
+  },
+  angle_eq: {
+    labelHe: 'זוויות שוות',
+    fields: [
+      { size: 3, placeholder: 'ABC', prefix: '∠' },
+      { size: 3, placeholder: 'DEF', prefix: '∠' },
+    ],
+    separator: '=',
+  },
+  angle_measure: {
+    labelHe: 'מידת זווית',
+    fields: [{ size: 3, placeholder: 'ABC', prefix: '∠' }],
+    separator: '=',
+    hasDegrees: true,
+  },
+  triangle_congruent: {
+    labelHe: 'משולשים חופפים',
+    fields: [
+      { size: 3, placeholder: 'ABC', prefix: '△' },
+      { size: 3, placeholder: 'DEF', prefix: '△' },
+    ],
+    separator: '≅',
+  },
+  perpendicular: {
+    labelHe: 'ניצבים',
+    fields: [
+      { size: 2, placeholder: 'AB' },
+      { size: 2, placeholder: 'CD' },
+    ],
+    separator: '⊥',
+  },
+  parallel: {
+    labelHe: 'מקבילים',
+    fields: [
+      { size: 2, placeholder: 'AB' },
+      { size: 2, placeholder: 'CD' },
+    ],
+    separator: '∥',
+  },
+  midpoint: {
+    labelHe: 'אמצע קטע',
+    fields: [
+      { size: 1, placeholder: 'M' },
+      { size: 2, placeholder: 'AB' },
+    ],
+    separator: 'אמצע',
+  },
+  isosceles: {
+    labelHe: 'שווה־שוקיים',
+    fields: [{ size: 3, placeholder: 'ABC', prefix: '△' }],
+    separator: '',
+  },
 }
 
 interface StepInputProps {
@@ -62,135 +103,184 @@ interface StepInputProps {
 }
 
 export function StepInput({ points, onSubmit, disabled }: StepInputProps) {
-  const [kind, setKind] = useState<ClaimableKind>('segment_eq')
-  const [selected, setSelected] = useState<readonly (string | undefined)[]>([])
+  const [kind, setKind] = useState<ClaimableKind>('angle_eq')
+  const [values, setValues] = useState<readonly string[]>(['', ''])
   const [degrees, setDegrees] = useState<string>('90')
 
-  const pointCount = KIND_POINT_COUNTS[kind]
-  const labels = POINT_LABELS_HE[kind]
+  const spec = KIND_SPECS[kind]
 
   const canSubmit = useMemo(() => {
-    for (let i = 0; i < pointCount; i++) {
-      if (!selected[i]) return false
+    for (let i = 0; i < spec.fields.length; i++) {
+      if ((values[i]?.length ?? 0) !== spec.fields[i]!.size) return false
     }
-    if (kind === 'angle_measure') {
-      const n = Number(degrees)
-      if (!Number.isFinite(n)) return false
-    }
+    if (spec.hasDegrees && !Number.isFinite(Number(degrees))) return false
     return true
-  }, [selected, pointCount, kind, degrees])
+  }, [spec, values, degrees])
 
   const handleKindChange = (next: ClaimableKind) => {
     setKind(next)
-    setSelected([])
+    setValues(new Array(KIND_SPECS[next].fields.length).fill(''))
   }
 
-  const handlePointChange = (index: number, value: string) => {
-    setSelected((prev) => {
+  const handleFieldChange = (i: number, v: string) => {
+    setValues((prev) => {
       const next = [...prev]
-      next[index] = value
+      next[i] = v
       return next
     })
   }
 
-  const handleSubmit = () => {
-    if (!canSubmit) return
-    const p = selected as readonly PointName[]
-    let claim: Fact
+  const buildClaim = (): Fact | null => {
+    const v = values
     switch (kind) {
       case 'segment_eq':
-        claim = { kind, a: [p[0]!, p[1]!] as Seg, b: [p[2]!, p[3]!] as Seg }
-        break
+        return { kind, a: [v[0]![0]!, v[0]![1]!] as Seg, b: [v[1]![0]!, v[1]![1]!] as Seg }
       case 'angle_eq':
-        claim = {
+        return {
           kind,
-          a: [p[0]!, p[1]!, p[2]!] as Angle,
-          b: [p[3]!, p[4]!, p[5]!] as Angle,
+          a: [v[0]![0]!, v[0]![1]!, v[0]![2]!] as Angle,
+          b: [v[1]![0]!, v[1]![1]!, v[1]![2]!] as Angle,
         }
-        break
       case 'angle_measure':
-        claim = {
+        return {
           kind,
-          angle: [p[0]!, p[1]!, p[2]!] as Angle,
+          angle: [v[0]![0]!, v[0]![1]!, v[0]![2]!] as Angle,
           degrees: Number(degrees),
         }
-        break
       case 'triangle_congruent':
-        claim = {
+        return {
           kind,
-          t1: [p[0]!, p[1]!, p[2]!] as Triangle,
-          t2: [p[3]!, p[4]!, p[5]!] as Triangle,
+          t1: [v[0]![0]!, v[0]![1]!, v[0]![2]!] as Triangle,
+          t2: [v[1]![0]!, v[1]![1]!, v[1]![2]!] as Triangle,
         }
-        break
       case 'perpendicular':
-        claim = { kind, a: [p[0]!, p[1]!] as Seg, b: [p[2]!, p[3]!] as Seg }
-        break
+        return { kind, a: [v[0]![0]!, v[0]![1]!] as Seg, b: [v[1]![0]!, v[1]![1]!] as Seg }
       case 'parallel':
-        claim = { kind, a: [p[0]!, p[1]!] as Seg, b: [p[2]!, p[3]!] as Seg }
-        break
+        return { kind, a: [v[0]![0]!, v[0]![1]!] as Seg, b: [v[1]![0]!, v[1]![1]!] as Seg }
       case 'midpoint':
-        claim = { kind, m: p[0]!, a: p[1]!, b: p[2]! }
-        break
+        return { kind, m: v[0]![0]!, a: v[1]![0]!, b: v[1]![1]! }
       case 'isosceles':
-        claim = { kind, t: [p[0]!, p[1]!, p[2]!] as Triangle }
-        break
+        return {
+          kind,
+          t: [v[0]![0]!, v[0]![1]!, v[0]![2]!] as Triangle,
+        }
     }
+  }
+
+  const handleSubmit = () => {
+    if (!canSubmit) return
+    const claim = buildClaim()
+    if (!claim) return
     onSubmit(claim)
-    setSelected([])
+    setValues(new Array(spec.fields.length).fill(''))
+  }
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' && canSubmit) {
+      e.preventDefault()
+      handleSubmit()
+    }
   }
 
   return (
-    <div className="space-y-4 rounded-lg border border-border bg-card p-card-padding-sm">
+    <div className="space-y-3 rounded-lg border border-border bg-card p-card-padding-sm">
       <div className="space-y-2">
-        <Label>סוג הטענה</Label>
         <Select value={kind} onValueChange={(v) => handleKindChange(v as ClaimableKind)}>
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {(Object.keys(KIND_LABELS_HE) as ClaimableKind[]).map((k) => (
+            {(Object.keys(KIND_SPECS) as ClaimableKind[]).map((k) => (
               <SelectItem key={k} value={k}>
-                {KIND_LABELS_HE[k]}
+                {KIND_SPECS[k].labelHe}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {labels.map((label, i) => (
-          <div key={i} className="space-y-1">
-            <Label className="text-body-xs text-muted-foreground">{label}</Label>
-            <Select value={selected[i] ?? ''} onValueChange={(v) => handlePointChange(i, v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="בחר" />
-              </SelectTrigger>
-              <SelectContent>
-                {points.map((p) => (
-                  <SelectItem key={p} value={p}>
-                    {p}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      <div
+        className="flex items-center justify-center gap-content-gap-xs py-2"
+        dir="ltr"
+        onKeyDown={handleKeyDown}
+      >
+        {spec.fields.map((f, i) => (
+          <div key={i} className="flex items-center gap-1">
+            {i > 0 && (
+              <span className="mx-1 font-mono text-body-sm text-muted-foreground">
+                {spec.separator}
+              </span>
+            )}
+            {f.prefix && (
+              <span className="font-mono text-body-base text-foreground">{f.prefix}</span>
+            )}
+            <PointsInput
+              value={values[i] ?? ''}
+              onChange={(next) => handleFieldChange(i, next)}
+              size={f.size}
+              placeholder={f.placeholder}
+              autoFocus={i === 0}
+            />
           </div>
         ))}
-        {kind === 'angle_measure' && (
-          <div className="space-y-1">
-            <Label className="text-body-xs text-muted-foreground">מעלות</Label>
+        {spec.hasDegrees && (
+          <>
+            <span className="mx-1 font-mono text-body-sm text-muted-foreground">
+              {spec.separator}
+            </span>
             <input
               type="number"
               value={degrees}
               onChange={(e) => setDegrees(e.target.value)}
-              className="h-9 w-full rounded-md border border-input bg-background px-3 text-body-sm"
+              className="w-16 rounded-md border border-input bg-background px-2 py-1.5 text-center text-body-sm"
             />
-          </div>
+            <span className="font-mono text-body-sm text-muted-foreground">°</span>
+          </>
         )}
       </div>
 
+      {points.length > 0 && (
+        <p className="text-center text-body-xs text-muted-foreground" dir="ltr">
+          נקודות: {points.join(', ')}
+        </p>
+      )}
+
       <Button onClick={handleSubmit} disabled={disabled || !canSubmit} className="w-full">
-        הוסף צעד
+        הוסף צעד (Enter)
       </Button>
     </div>
+  )
+}
+
+function PointsInput({
+  value,
+  onChange,
+  size,
+  placeholder,
+  autoFocus,
+}: {
+  value: string
+  onChange: (v: string) => void
+  size: number
+  placeholder: string
+  autoFocus?: boolean
+}) {
+  return (
+    <input
+      value={value}
+      onChange={(e) => {
+        const cleaned = e.target.value
+          .toUpperCase()
+          .replace(/[^A-Z]/g, '')
+          .slice(0, size)
+        onChange(cleaned)
+      }}
+      placeholder={placeholder}
+      maxLength={size}
+      autoFocus={autoFocus}
+      style={{ width: `${Math.max(size + 1, 3)}ch` }}
+      dir="ltr"
+      className="rounded-md border border-input bg-background px-2 py-1.5 text-center font-mono text-body-base uppercase focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+    />
   )
 }
