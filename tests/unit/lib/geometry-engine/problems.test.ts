@@ -1,52 +1,72 @@
 import { describe, expect, it } from 'vitest'
-import { canonicalize } from '@/lib/geometry-engine/canonical'
+import { canonicalize, factKey } from '@/lib/geometry-engine/canonical'
 import { computeDerivedGeometryFacts } from '@/lib/geometry-engine/derive-facts'
-import { PROBLEMS } from '@/lib/geometry-engine/problems'
+import { PROBLEMS, type GeometryProofProblem } from '@/lib/geometry-engine/problems'
 import { specToFacts } from '@/lib/geometry-engine/spec-to-facts'
 import type { Fact } from '@/lib/geometry-engine/types'
-import { initState, validateEasy } from '@/lib/geometry-engine/validator'
+import { initState, validateEasy, type ProofState } from '@/lib/geometry-engine/validator'
 
-describe('POC problems', () => {
-  it('isosceles-median-perp: full proof succeeds via easy mode', () => {
-    const problem = PROBLEMS.find((p) => p.id === 'isosceles-median-perp')!
-    const parsed = specToFacts(problem.spec)
-    const derived = computeDerivedGeometryFacts(parsed.placedPoints)
-    const givens = [...parsed.facts, ...problem.extraGivens, ...derived]
+function seedState(problem: GeometryProofProblem): ProofState {
+  const parsed = specToFacts(problem.spec)
+  const derived = computeDerivedGeometryFacts(parsed.placedPoints)
+  return initState([...parsed.facts, ...problem.extraGivens, ...derived])
+}
 
-    let state = initState(givens)
-
-    const steps: readonly Fact[] = [
-      { kind: 'segment_eq', a: ['A', 'D'], b: ['A', 'D'] },
-      { kind: 'triangle_congruent', t1: ['A', 'B', 'D'], t2: ['A', 'C', 'D'] },
-      { kind: 'angle_eq', a: ['A', 'D', 'B'], b: ['A', 'D', 'C'] },
-      {
-        kind: 'angle_sum',
-        angles: [
-          ['A', 'D', 'B'],
-          ['A', 'D', 'C'],
-        ],
-        degrees: 180,
-      },
-      { kind: 'angle_measure', angle: ['A', 'D', 'B'], degrees: 90 },
-      { kind: 'perpendicular', a: ['A', 'D'], b: ['B', 'C'] },
-    ]
-
-    for (const claim of steps) {
-      const result = validateEasy(claim, state)
-      expect(result.ok, `step failed: ${JSON.stringify(claim)}`).toBe(true)
-      if (!result.ok) return
-      state = result.state
+function walk(problem: GeometryProofProblem, steps: readonly Fact[]): ProofState {
+  let state = seedState(problem)
+  for (const claim of steps) {
+    const result = validateEasy(claim, state)
+    if (!result.ok) {
+      throw new Error(`step failed: ${JSON.stringify(claim)} — ${result.reason}`)
     }
+    state = result.state
+  }
+  return state
+}
 
-    expect(state.keys.has(JSON.stringify(canonicalize(problem.goal)))).toBe(true)
+function assertSolved(state: ProofState, goal: Fact) {
+  expect(state.keys.has(factKey(canonicalize(goal)))).toBe(true)
+}
+
+describe('POC problems: end-to-end proof walks', () => {
+  it('isosceles-EF-through-altitude: 3 steps to GE = GF', () => {
+    const problem = PROBLEMS.find((p) => p.id === 'isosceles-EF-through-altitude')!
+    const state = walk(problem, [
+      { kind: 'segment_eq', a: ['A', 'G'], b: ['A', 'G'] },
+      { kind: 'triangle_congruent', t1: ['E', 'A', 'G'], t2: ['F', 'A', 'G'] },
+      { kind: 'segment_eq', a: ['G', 'E'], b: ['G', 'F'] },
+    ])
+    assertSolved(state, problem.goal)
   })
 
-  it('parallelogram-diagonal-congruent: parses cleanly and goal is not yet in state', () => {
-    const problem = PROBLEMS.find((p) => p.id === 'parallelogram-diagonal-congruent')!
-    const parsed = specToFacts(problem.spec)
-    const derived = computeDerivedGeometryFacts(parsed.placedPoints)
-    const givens = [...parsed.facts, ...problem.extraGivens, ...derived]
-    const state = initState(givens)
-    expect(state.keys.has(JSON.stringify(canonicalize(problem.goal)))).toBe(false)
+  it('parallelogram-diagonal-extension: 5 steps to ∠EDC = ∠FBA', () => {
+    const problem = PROBLEMS.find((p) => p.id === 'parallelogram-diagonal-extension')!
+    const state = walk(problem, [
+      { kind: 'angle_eq', a: ['D', 'A', 'C'], b: ['B', 'C', 'A'] },
+      { kind: 'angle_eq', a: ['D', 'A', 'E'], b: ['B', 'C', 'F'] },
+      { kind: 'triangle_congruent', t1: ['D', 'A', 'E'], t2: ['B', 'C', 'F'] },
+      { kind: 'angle_eq', a: ['A', 'D', 'E'], b: ['C', 'B', 'F'] },
+      { kind: 'angle_eq', a: ['E', 'D', 'C'], b: ['F', 'B', 'A'] },
+    ])
+    assertSolved(state, problem.goal)
   })
+
+  it('parallelogram-long-side-midpoint-bisector: 3 steps to AE bisects ∠BAD', () => {
+    const problem = PROBLEMS.find((p) => p.id === 'parallelogram-long-side-midpoint-bisector')!
+    const state = walk(problem, [
+      { kind: 'angle_eq', a: ['D', 'A', 'E'], b: ['D', 'E', 'A'] },
+      { kind: 'angle_eq', a: ['D', 'E', 'A'], b: ['B', 'A', 'E'] },
+      { kind: 'angle_eq', a: ['D', 'A', 'E'], b: ['B', 'A', 'E'] },
+    ])
+    assertSolved(state, problem.goal)
+  })
+})
+
+describe('POC problems: initial state sanity', () => {
+  for (const problem of PROBLEMS) {
+    it(`${problem.id}: goal not yet in initial state`, () => {
+      const state = seedState(problem)
+      expect(state.keys.has(factKey(canonicalize(problem.goal)))).toBe(false)
+    })
+  }
 })
