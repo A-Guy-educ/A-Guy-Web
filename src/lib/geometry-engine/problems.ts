@@ -36,13 +36,13 @@ export const PROBLEMS: readonly GeometryProofProblem[] = [
       canvas: { width: 500, height: 400 },
       elements: {
         points: [
-          { name: 'A', x: 250, y: 60, position: 't' },
-          { name: 'B', x: 100, y: 340, position: 'bl' },
-          { name: 'C', x: 400, y: 340, position: 'br' },
-          { name: 'D', x: 250, y: 340, position: 'b' },
-          { name: 'E', x: 190, y: 172, position: 'l' },
-          { name: 'F', x: 310, y: 172, position: 'r' },
-          { name: 'G', x: 250, y: 172, position: 'tl' },
+          { name: 'A', x: 250, y: 340, position: 't' },
+          { name: 'B', x: 100, y: 60, position: 'bl' },
+          { name: 'C', x: 400, y: 60, position: 'br' },
+          { name: 'D', x: 250, y: 60, position: 'b' },
+          { name: 'E', x: 190, y: 228, position: 'l' },
+          { name: 'F', x: 310, y: 228, position: 'r' },
+          { name: 'G', x: 250, y: 228, position: 'tl' },
         ],
         lines: [
           { from: 'A', to: 'B', style: 'solid' },
@@ -84,12 +84,12 @@ export const PROBLEMS: readonly GeometryProofProblem[] = [
       canvas: { width: 620, height: 420 },
       elements: {
         points: [
-          { name: 'E', x: 60, y: 68, position: 'tl' },
-          { name: 'A', x: 200, y: 120, position: 't' },
-          { name: 'B', x: 430, y: 120, position: 'tr' },
-          { name: 'D', x: 120, y: 300, position: 'bl' },
-          { name: 'C', x: 350, y: 300, position: 'b' },
-          { name: 'F', x: 490, y: 352, position: 'br' },
+          { name: 'E', x: 100, y: 350, position: 'tl' },
+          { name: 'A', x: 200, y: 280, position: 'tr' },
+          { name: 'B', x: 450, y: 290, position: 'tr' },
+          { name: 'D', x: 150, y: 130, position: 'bl' },
+          { name: 'C', x: 400, y: 140, position: 'b' },
+          { name: 'F', x: 500, y: 70, position: 'br' },
         ],
         lines: [
           { from: 'A', to: 'B', style: 'solid' },
@@ -130,11 +130,11 @@ export const PROBLEMS: readonly GeometryProofProblem[] = [
       canvas: { width: 620, height: 380 },
       elements: {
         points: [
-          { name: 'A', x: 100, y: 100, position: 'tl' },
-          { name: 'B', x: 500, y: 100, position: 'tr' },
-          { name: 'C', x: 560, y: 300, position: 'br' },
-          { name: 'D', x: 160, y: 300, position: 'bl' },
-          { name: 'E', x: 360, y: 300, position: 'b' },
+          { name: 'A', x: 100, y: 280, position: 'tl' },
+          { name: 'B', x: 500, y: 280, position: 'tr' },
+          { name: 'C', x: 560, y: 80, position: 'br' },
+          { name: 'D', x: 160, y: 80, position: 'bl' },
+          { name: 'E', x: 360, y: 80, position: 'b' },
         ],
         lines: [
           { from: 'A', to: 'B', style: 'solid' },
