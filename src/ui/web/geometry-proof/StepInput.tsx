@@ -21,6 +21,10 @@ type ClaimableKind =
   | 'midpoint'
   | 'isosceles'
 
+// Day 1: parallelogram-diagonal-extension only needs these three. Restore the
+// full list by removing this array (StepInput falls back to `KIND_SPECS` keys).
+const VISIBLE_KINDS: readonly ClaimableKind[] = ['angle_eq', 'triangle_congruent', 'segment_eq']
+
 interface FieldSpec {
   size: number
   placeholder: string
@@ -190,7 +194,7 @@ export function StepInput({ points, onSubmit, disabled }: StepInputProps) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {(Object.keys(KIND_SPECS) as ClaimableKind[]).map((k) => (
+            {VISIBLE_KINDS.map((k) => (
               <SelectItem key={k} value={k}>
                 {KIND_SPECS[k].labelHe}
               </SelectItem>
@@ -200,19 +204,21 @@ export function StepInput({ points, onSubmit, disabled }: StepInputProps) {
       </div>
 
       <div
-        className="flex items-center justify-center gap-content-gap-xs py-2"
+        className="flex items-center justify-center gap-3 py-section-xs"
         dir="ltr"
         onKeyDown={handleKeyDown}
       >
         {spec.fields.map((f, i) => (
-          <div key={i} className="flex items-center gap-1">
+          <div key={i} className="flex items-center gap-content-gap-xs">
             {i > 0 && (
-              <span className="mx-1 font-mono text-body-sm text-muted-foreground">
+              <span className="mx-2 font-mono text-muted-foreground" style={{ fontSize: '2rem' }}>
                 {spec.separator}
               </span>
             )}
             {f.prefix && (
-              <span className="font-mono text-body-base text-foreground">{f.prefix}</span>
+              <span className="font-mono text-foreground" style={{ fontSize: '2.25rem' }}>
+                {f.prefix}
+              </span>
             )}
             <PointsInput
               value={values[i] ?? ''}
@@ -225,16 +231,19 @@ export function StepInput({ points, onSubmit, disabled }: StepInputProps) {
         ))}
         {spec.hasDegrees && (
           <>
-            <span className="mx-1 font-mono text-body-sm text-muted-foreground">
+            <span className="mx-2 font-mono text-muted-foreground" style={{ fontSize: '2rem' }}>
               {spec.separator}
             </span>
             <input
               type="number"
               value={degrees}
               onChange={(e) => setDegrees(e.target.value)}
-              className="w-16 rounded-md border border-input bg-background px-2 py-1.5 text-center text-body-sm"
+              style={{ fontSize: '1.75rem', width: '5rem', height: '4rem' }}
+              className="rounded-md border border-input bg-background px-3 text-center"
             />
-            <span className="font-mono text-body-sm text-muted-foreground">°</span>
+            <span className="font-mono text-muted-foreground" style={{ fontSize: '2rem' }}>
+              °
+            </span>
           </>
         )}
       </div>
@@ -278,9 +287,13 @@ function PointsInput({
       placeholder={placeholder}
       maxLength={size}
       autoFocus={autoFocus}
-      style={{ width: `${Math.max(size + 1, 3)}ch` }}
+      style={{
+        width: `${size * 1.8 + 1}rem`,
+        height: '4rem',
+        fontSize: '2rem',
+      }}
       dir="ltr"
-      className="rounded-md border border-input bg-background px-2 py-1.5 text-center font-mono text-body-base uppercase focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+      className="rounded-md border-2 border-input bg-background px-2 text-center font-mono uppercase focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary"
     />
   )
 }
