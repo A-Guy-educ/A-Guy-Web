@@ -171,18 +171,6 @@
       "resources": "משאבים",
       "search": "חיפוש",
       "language": "שפה"
-    },
-    "courseSearch": {
-      "placeholder": "חיפוש...",
-      "noResults": "לא נמצאו תוצאות",
-      "enrollRequired": "תחילה יש להירשם",
-      "courses": "קורסים",
-      "lessons": "שיעורים",
-      "exercises": "תרגילים",
-      "questions": "שאלות",
-      "minChars": "הקלד/י לפחות 2 תווים",
-      "searching": "מחפש...",
-      "error": "החיפוש נכשל. אנא נסה שוב."
     }
   },
   "auth": {
@@ -714,6 +702,11 @@
     "quickSearchTrigger": "חיפוש מהיר של שיעור",
     "quickSearchPlaceholder": "הקלד שם שיעור או מספר...",
     "quickSearchNoResults": "לא נמצאו שיעורים תואמים.",
+    "quickSearchType": {
+      "learning": "למידה",
+      "practice": "תרגול",
+      "exam": "בחינה"
+    },
     "moreCourses": "קורסים נוספים",
     "loading": "טוען...",
     "deleteConversation": "מחק שיחה",

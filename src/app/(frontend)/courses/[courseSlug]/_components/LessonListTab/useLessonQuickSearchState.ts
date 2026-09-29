@@ -2,16 +2,16 @@
  * @fileType hook
  * @domain frontend
  * @pattern lesson-quick-search-state
- * @ai-summary Owns open/query/selection state and side effects (Cmd+K / Esc / outside-click) for LessonQuickSearch, plus the filtered-nodes derivation.
+ * @ai-summary Owns open/query/selection state and side effects (Esc / outside-click) for LessonQuickSearch, plus the filtered-nodes derivation across all lesson types.
  */
 
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { LessonRoadmapNode } from './lessonRoadmapTypes'
+import type { LessonSearchNode } from './lessonRoadmapTypes'
 
 interface Options {
-  nodes: LessonRoadmapNode[]
+  nodes: LessonSearchNode[]
 }
 
 export function useLessonQuickSearchState({ nodes }: Options) {
@@ -22,13 +22,7 @@ export function useLessonQuickSearchState({ nodes }: Options) {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) {
-      const idx = Math.max(
-        0,
-        nodes.findIndex((n) => n.isFeatured),
-      )
-      return nodes.slice(idx, idx + 5)
-    }
+    if (!q) return nodes.slice(0, 5)
     return nodes.filter((n) => {
       const title = (n.lesson.title ?? '').toLowerCase()
       return title.includes(q) || String(n.displayIndex) === q
@@ -41,9 +35,6 @@ export function useLessonQuickSearchState({ nodes }: Options) {
 
   useEffect(() => {
     if (!open) return
-    // Cmd/Ctrl+K is intentionally not bound here — the site-wide CourseSearch
-    // already owns it, and adding a second handler would toggle both overlays
-    // on a single keystroke (verified in review of PR #1225).
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false)
     }

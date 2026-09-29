@@ -11,7 +11,7 @@
  * Key services:
  * - Chat: conversation-service, chat-quota, rate-limit, user-learning-context
  * - Auth: entitlement_check
- * - Courses: course-search-service, course-list-service, course-tree-isolation
+ * - Courses: course-list-service, course-tree-isolation
  * - Exercises: exercise-conversion (v2/v3), lesson-duplication, lesson-export
  * - AI: agent-behavior-prompt-resolver, teacher-profile-resolver
  * - Utils: pdf-fetcher, diff

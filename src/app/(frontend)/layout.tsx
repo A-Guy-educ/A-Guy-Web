@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from 'next'
-import { headers } from 'next/headers'
 
 import { cn } from '@/infra/utils/ui'
 import { GeistMono } from 'geist/font/mono'
@@ -22,6 +21,7 @@ import { getSystemLocale } from '@/i18n/server-locale'
 import { I18nProvider } from '@/ui/web/providers/I18n'
 import './globals.css'
 import { LayoutClient } from './LayoutClient'
+import { LayoutChromeGate } from './LayoutChromeGate'
 import { NavigationBar } from '@/ui/web/homepage/NavigationBar'
 import { ActiveTimeProvider } from '@/client/providers/ActiveTimeProvider'
 import { getBrand } from '@/brands'
@@ -56,13 +56,6 @@ async function getMessages(locale: string) {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = await getSystemLocale()
-  const headersList = await headers()
-  const pathname = headersList.get('x-pathname') ?? ''
-
-  // Lesson viewport claims the full screen — no site header, nav, or footer.
-  // Matches `/courses/<c>/chapters/<ch>/lessons/<l>` and any subpath.
-  const isLessonRoute = /^\/courses\/[^/]+\/chapters\/[^/]+\/lessons\/[^/]+(?:\/|$)/.test(pathname)
-  const hideChrome = pathname === '/' || pathname === '/start' || isLessonRoute
   const messages = await getMessages(locale)
   const dir = getDirection(locale)
 
@@ -96,12 +89,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </a>
                 <RouteLoadingIndicator />
                 <LayoutClient />
-                {!hideChrome && <Header />}
-                {!hideChrome && <NavigationBar />}
+                <LayoutChromeGate>
+                  <Header />
+                </LayoutChromeGate>
+                <LayoutChromeGate>
+                  <NavigationBar />
+                </LayoutChromeGate>
                 <div id="main-content" className="flex-1">
                   {children}
                 </div>
-                {!hideChrome && <Footer />}
+                <LayoutChromeGate>
+                  <Footer />
+                </LayoutChromeGate>
                 <Toaster />
               </PasswordLoginProvider>
             </ActiveTimeProvider>

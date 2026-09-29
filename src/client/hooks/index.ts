@@ -15,7 +15,6 @@
  * | `useActiveTimeTracker` | Heartbeat + streak tracking | Sends only when tab is visible; streak resets at midnight local time |
  * | `useCurrentUser` | Auth state from `/api/users/me` | Listens to `auth:changed` window event; returns null user (not throw) when unauthenticated |
  * | `useProgressMap` | Per-grade progress batch-fetch | `gradeLevel` must be content grade, not user grade — mismatch silently returns empty maps |
- * | `useCourseSearch` | Debounced course/lesson/exercise search | Aborts in-flight requests on new query; requires `courseSlug` for scoped search |
  * | `useExamCountdown` | Exam dates from localStorage | Polls every 60s; dates are local-only (not synced to server) |
  *
  * ## Anti-Patterns

@@ -6,13 +6,15 @@ import type { Chapter, Course, Lesson } from '@/infra/types/content'
 import type { LessonProgress } from '../types'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { BarChart3, GraduationCap } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AskTab } from '../AskTab'
 import { CourseAnalytics } from '../CourseAnalytics'
 import { CourseTabs, TAB_COLORS, type CourseTab } from '../CourseTabs'
 import { ExamReminderBubble } from '../ExamReminderBubble'
 import { LessonListTab } from '../LessonListTab'
+import { LessonQuickSearch } from '../LessonListTab/LessonQuickSearch'
+import { buildLessonSearchNodes } from '../LessonListTab/buildLessonSearchNodes'
 import { LocaleFallbackBanner } from '../../../_components/LocaleFallbackBanner'
 
 interface CoursePageContentProps {
@@ -51,6 +53,11 @@ export function CoursePageContent({
 
   const activeColor = TAB_COLORS[activeTab].stroke
 
+  const searchNodes = useMemo(
+    () => buildLessonSearchNodes({ chapters, lessons }),
+    [chapters, lessons],
+  )
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
       <CourseAnalytics courseId={course.id} courseTitle={course.title} />
@@ -78,6 +85,12 @@ export function CoursePageContent({
           </h1>
         </div>
       </div>
+
+      {searchNodes.length > 0 && (
+        <div className="container mx-auto px-6 max-w-5xl">
+          <LessonQuickSearch nodes={searchNodes} courseSlug={courseSlug} />
+        </div>
+      )}
 
       <CourseTabs activeTab={activeTab} onTabChange={setActiveTab} />
 

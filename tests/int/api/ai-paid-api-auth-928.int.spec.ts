@@ -5,7 +5,6 @@
  *  - /api/tts/synthesize (Google Cloud TTS)
  *  - /api/exercises/validate-answer (Gemini)
  *  - /api/agent/generate-interactive-lesson (Gemini + image)
- *  - /api/course-search (embedding/search)
  *  - /api/agent/chat-quota (fake-quota endpoint)
  *
  * Acceptance criterion: anonymous calls to all listed routes are rejected
@@ -108,12 +107,6 @@ describe('AI / paid-API routes — anonymous → 401 (issue #928)', () => {
         body: JSON.stringify({ mediaId: 'm1', locale: 'he' }),
       }),
     )
-    expect(res.status).toBe(401)
-  })
-
-  it('/api/course-search rejects anonymous', async () => {
-    const { GET } = await import('@/app/api/course-search/route')
-    const res = await GET(makeRequest('http://localhost/api/course-search?q=test'))
     expect(res.status).toBe(401)
   })
 
