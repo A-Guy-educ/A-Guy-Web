@@ -4784,6 +4784,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Fix header chrome and rework course search ([#1235](https://github.com/A-Guy-educ/A-Guy-Web/pull/1235)) — @aguyshayb
 ## [v0.41.1] - 2026-09-27
 
 - promote: dev -> main (v0.41.1) ([#1233](https://github.com/A-Guy-educ/A-Guy-Web/pull/1233)) — @aguyshayb
