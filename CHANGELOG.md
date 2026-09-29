@@ -4790,6 +4790,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Lesson-suggest via Gemini REST + Hebrew stem tolerance ([#1239](https://github.com/A-Guy-educ/A-Guy-Web/pull/1239)) — @aguyshayb
 - feat: Replace course tab bar and search with chat composer ([#1238](https://github.com/A-Guy-educ/A-Guy-Web/pull/1238)) — @aguyshayb
 ## [v0.41.2] - 2026-09-29
 
