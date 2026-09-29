@@ -36,6 +36,10 @@ function hash(value: string): string {
 }
 
 export async function POST(request: NextRequest) {
+  // public endpoint — course pages are browsable without login, so the
+  // composer's suggestion helper must work for anonymous visitors too.
+  // Abuse is bounded by the per-IP+UA rate limit below and the strict Zod
+  // body cap (query ≤ 200 chars, lessons ≤ 100).
   const ip =
     request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
     request.headers.get('x-real-ip') ??
@@ -56,13 +60,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
-  const [{ getPayload }, { generateLessonSuggestion }] = await Promise.all([
-    import('@/infra/types/backend'),
-    import('@/server/services/lesson-suggest/generateLessonSuggestion'),
-  ])
-
-  const payload = await getPayload()
-  const result = await generateLessonSuggestion(body, payload)
+  const { generateLessonSuggestion } =
+    await import('@/server/services/lesson-suggest/generateLessonSuggestion')
+  const result = await generateLessonSuggestion(body)
 
   if (!result.success) {
     logger.warn({ error: result.error }, '[LessonSuggest] service returned failure')

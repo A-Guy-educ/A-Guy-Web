@@ -39,7 +39,13 @@ interface CourseComposerState {
 
 function matchesQuery(node: LessonSearchNode, q: string): boolean {
   const title = (node.lesson.title ?? '').toLowerCase()
-  return title.includes(q) || String(node.displayIndex) === q
+  if (String(node.displayIndex) === q) return true
+  if (title.includes(q)) return true
+  // Hebrew inflection tolerance: "חפיפה" should match "חפיפת משולשים".
+  // Retry with the last character stripped when the query is 3+ chars so
+  // typing a base form still hits construct-state / gender-inflected titles.
+  if (q.length >= 3 && title.includes(q.slice(0, -1))) return true
+  return false
 }
 
 export function useCourseComposerState({
