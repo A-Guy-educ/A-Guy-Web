@@ -6,6 +6,7 @@
  */
 
 import type { Chapter, Lesson } from '@/infra/types/content'
+import type { LessonType } from '@/server/constants/lesson-types'
 
 export type LessonRoadmapStatus = 'completed' | 'active' | 'available' | 'locked' | 'soon'
 
@@ -16,6 +17,16 @@ export interface LessonRoadmapNode {
   progressPercent: number
   status: LessonRoadmapStatus
   isFeatured: boolean
+}
+
+// Search-only projection: covers all lesson types simultaneously (Learn /
+// Practice / Exam), numbered independently per type so `displayIndex` matches
+// what the user sees in each tab.
+export interface LessonSearchNode {
+  lesson: Lesson
+  chapterSlug: string
+  displayIndex: number
+  lessonType: LessonType
 }
 
 export interface ChapterRoadmapGroup {

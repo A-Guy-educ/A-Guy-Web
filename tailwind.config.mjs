@@ -158,6 +158,9 @@ const config = {
           DEFAULT: 'hsl(var(--surface-elevated))',
           foreground: 'hsl(var(--surface-elevated-fg))',
         },
+        'tab-learn': 'hsl(var(--tab-learn))',
+        'tab-practice': 'hsl(var(--tab-practice))',
+        'tab-exams': 'hsl(var(--tab-exams))',
       },
       fontFamily: {
         mono: ['var(--font-geist-mono)'],
