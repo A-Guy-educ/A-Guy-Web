@@ -56,13 +56,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
-  const [{ getPayload }, { generateLessonSuggestion }] = await Promise.all([
-    import('@/infra/types/backend'),
-    import('@/server/services/lesson-suggest/generateLessonSuggestion'),
-  ])
-
-  const payload = await getPayload()
-  const result = await generateLessonSuggestion(body, payload)
+  const { generateLessonSuggestion } =
+    await import('@/server/services/lesson-suggest/generateLessonSuggestion')
+  const result = await generateLessonSuggestion(body)
 
   if (!result.success) {
     logger.warn({ error: result.error }, '[LessonSuggest] service returned failure')
