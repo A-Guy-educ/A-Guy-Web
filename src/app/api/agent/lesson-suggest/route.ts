@@ -36,6 +36,10 @@ function hash(value: string): string {
 }
 
 export async function POST(request: NextRequest) {
+  // public endpoint — course pages are browsable without login, so the
+  // composer's suggestion helper must work for anonymous visitors too.
+  // Abuse is bounded by the per-IP+UA rate limit below and the strict Zod
+  // body cap (query ≤ 200 chars, lessons ≤ 100).
   const ip =
     request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
     request.headers.get('x-real-ip') ??
