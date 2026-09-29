@@ -2,10 +2,14 @@ import { createHash } from 'crypto'
 import { type NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
-import { getPayload } from '@/infra/types/backend'
 import { logger } from '@/infra/utils/logger'
 import { applyRateLimitHeaders, checkRateLimit } from '@/server/services/rate-limit'
-import { generateLessonSuggestion } from '@/server/services/lesson-suggest/generateLessonSuggestion'
+
+// Heavy Genkit / Payload deps are dynamically imported inside the handler so
+// `next build`'s "Collecting page data" step does not evaluate provider code
+// (which would fail at build time when GEMINI env is not present).
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 const MAX_QUERY_LENGTH = 200
 const MAX_LESSONS = 100
@@ -51,6 +55,11 @@ export async function POST(request: NextRequest) {
   } catch {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
+
+  const [{ getPayload }, { generateLessonSuggestion }] = await Promise.all([
+    import('@/infra/types/backend'),
+    import('@/server/services/lesson-suggest/generateLessonSuggestion'),
+  ])
 
   const payload = await getPayload()
   const result = await generateLessonSuggestion(body, payload)
