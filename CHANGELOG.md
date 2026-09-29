@@ -4790,6 +4790,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Replace course tab bar and search with chat composer ([#1238](https://github.com/A-Guy-educ/A-Guy-Web/pull/1238)) — @aguyshayb
 ## [v0.41.2] - 2026-09-29
 
 - promote: dev -> main (v0.41.2) ([#1237](https://github.com/A-Guy-educ/A-Guy-Web/pull/1237)) — @aguyshayb
