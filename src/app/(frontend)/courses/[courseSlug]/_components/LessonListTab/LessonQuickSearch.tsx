@@ -26,19 +26,10 @@ function buildHref(node: LessonSearchNode, courseSlug: string): string | null {
   return `/courses/${courseSlug}/chapters/${node.chapterSlug}/lessons/${node.lesson.slug}`
 }
 
-const BADGE_VARS: Record<LessonType, string> = {
-  learning: '--tab-learn',
-  practice: '--tab-practice',
-  exam: '--tab-exams',
-}
-
-function badgeStyle(type: LessonType): React.CSSProperties {
-  const cssVar = BADGE_VARS[type]
-  return {
-    backgroundColor: `hsl(var(${cssVar}) / 0.1)`,
-    color: `hsl(var(${cssVar}))`,
-    borderColor: `hsl(var(${cssVar}) / 0.3)`,
-  }
+const BADGE_CLASSES: Record<LessonType, string> = {
+  learning: 'bg-tab-learn/10 text-tab-learn border-tab-learn/30',
+  practice: 'bg-tab-practice/10 text-tab-practice border-tab-practice/30',
+  exam: 'bg-tab-exams/10 text-tab-exams border-tab-exams/30',
 }
 
 export function LessonQuickSearch({ nodes, courseSlug }: LessonQuickSearchProps) {
@@ -128,8 +119,10 @@ export function LessonQuickSearch({ nodes, courseSlug }: LessonQuickSearchProps)
                       <span className="truncate">{n.lesson.title}</span>
                     </div>
                     <span
-                      className="shrink-0 ms-content-gap-xs text-body-2xs font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-full border"
-                      style={badgeStyle(n.lessonType)}
+                      className={cn(
+                        'shrink-0 ms-content-gap-xs text-body-2xs font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-full border',
+                        BADGE_CLASSES[n.lessonType],
+                      )}
                     >
                       {t(`quickSearchType.${n.lessonType}`)}
                     </span>
