@@ -2,7 +2,7 @@
  * @fileType component
  * @domain frontend
  * @pattern lesson-quick-search
- * @ai-summary Compact search trigger + floating dropdown that filters the current tab's lessons by title or displayIndex and navigates to the picked lesson. Arrows navigate the list, Enter follows the highlighted link, Esc / outside click close.
+ * @ai-summary Compact search trigger + floating dropdown that filters lessons across every type (Learn / Practice / Exam) by title or displayIndex, tags each result with a type badge, and navigates to the picked lesson. Arrows navigate the list, Enter follows the highlighted link, Esc / outside click close.
  */
 
 'use client'
@@ -12,17 +12,33 @@ import { useEffect, useRef } from 'react'
 import { cn } from '@/infra/utils/ui'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
 import { useTranslations } from '@/ui/web/providers/I18n'
-import type { LessonRoadmapNode } from './lessonRoadmapTypes'
+import type { LessonType } from '@/server/constants/lesson-types'
+import type { LessonSearchNode } from './lessonRoadmapTypes'
 import { useLessonQuickSearchState } from './useLessonQuickSearchState'
 
 interface LessonQuickSearchProps {
-  nodes: LessonRoadmapNode[]
+  nodes: LessonSearchNode[]
   courseSlug: string
 }
 
-function buildHref(node: LessonRoadmapNode, courseSlug: string): string | null {
+function buildHref(node: LessonSearchNode, courseSlug: string): string | null {
   if (!node.chapterSlug) return null
   return `/courses/${courseSlug}/chapters/${node.chapterSlug}/lessons/${node.lesson.slug}`
+}
+
+const BADGE_VARS: Record<LessonType, string> = {
+  learning: '--tab-learn',
+  practice: '--tab-practice',
+  exam: '--tab-exams',
+}
+
+function badgeStyle(type: LessonType): React.CSSProperties {
+  const cssVar = BADGE_VARS[type]
+  return {
+    backgroundColor: `hsl(var(${cssVar}) / 0.1)`,
+    color: `hsl(var(${cssVar}))`,
+    borderColor: `hsl(var(${cssVar}) / 0.3)`,
+  }
 }
 
 export function LessonQuickSearch({ nodes, courseSlug }: LessonQuickSearchProps) {
@@ -91,7 +107,7 @@ export function LessonQuickSearch({ nodes, courseSlug }: LessonQuickSearchProps)
                 if (!href) return null
                 return (
                   <SystemLink
-                    key={n.lesson.id}
+                    key={`${n.lessonType}-${n.lesson.id}`}
                     href={href}
                     ref={(el) => {
                       itemRefs.current[idx] = el
@@ -109,12 +125,14 @@ export function LessonQuickSearch({ nodes, courseSlug }: LessonQuickSearchProps)
                       <span className="text-body-2xs px-1.5 py-0.5 rounded border border-border shrink-0 font-mono tabular-nums">
                         {String(n.displayIndex).padStart(2, '0')}
                       </span>
-                      <span
-                        className={cn('truncate', n.isFeatured && 'font-semibold text-primary')}
-                      >
-                        {n.lesson.title}
-                      </span>
+                      <span className="truncate">{n.lesson.title}</span>
                     </div>
+                    <span
+                      className="shrink-0 ms-content-gap-xs text-body-2xs font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-full border"
+                      style={badgeStyle(n.lessonType)}
+                    >
+                      {t(`quickSearchType.${n.lessonType}`)}
+                    </span>
                   </SystemLink>
                 )
               })

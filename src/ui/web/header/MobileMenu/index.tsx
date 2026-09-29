@@ -9,7 +9,6 @@ import { LanguageSwitcher } from '@/ui/web/LanguageSwitcher'
 import { usePasswordLogin } from '@/ui/web/providers/PasswordLoginProvider'
 import { useTranslations, useLocale } from '@/ui/web/providers/I18n'
 import { getNavItemsForLocale } from '@/ui/web/nav-variants'
-import { CourseSearch } from '@/ui/web/header/CourseSearch'
 import { MobileMenuAuthSection } from './MobileMenuAuthSection'
 
 interface MobileMenuProps {
@@ -127,8 +126,6 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
               </div>
             </div>
           )}
-
-          <CourseSearch variant="mobile" onNavigate={onClose} />
 
           <div className="px-6 py-section-xs">
             <h3 className="text-body-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
