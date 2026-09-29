@@ -10,10 +10,10 @@ import { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AskTab } from '../AskTab'
 import { CourseAnalytics } from '../CourseAnalytics'
+import { CourseComposer } from '../CourseComposer'
 import { CourseTabs, TAB_COLORS, type CourseTab } from '../CourseTabs'
 import { ExamReminderBubble } from '../ExamReminderBubble'
 import { LessonListTab } from '../LessonListTab'
-import { LessonQuickSearch } from '../LessonListTab/LessonQuickSearch'
 import { buildLessonSearchNodes } from '../LessonListTab/buildLessonSearchNodes'
 import { LocaleFallbackBanner } from '../../../_components/LocaleFallbackBanner'
 
@@ -58,6 +58,15 @@ export function CoursePageContent({
     [chapters, lessons],
   )
 
+  const lessonsForSuggest = useMemo(() => {
+    const chapterTitleById = new Map(chapters.map((c) => [c.id, c.title]))
+    return lessons.map((l) => {
+      const chapterId = typeof l.chapter === 'string' ? l.chapter : (l.chapter?.id ?? null)
+      const chapter = chapterId ? chapterTitleById.get(chapterId) : undefined
+      return { title: l.title, chapter }
+    })
+  }, [chapters, lessons])
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
       <CourseAnalytics courseId={course.id} courseTitle={course.title} />
@@ -86,13 +95,19 @@ export function CoursePageContent({
         </div>
       </div>
 
+      <CourseTabs activeTab={activeTab} onTabChange={setActiveTab} />
+
       {searchNodes.length > 0 && (
-        <div className="container mx-auto px-6 max-w-5xl">
-          <LessonQuickSearch nodes={searchNodes} courseSlug={courseSlug} />
+        <div className="container mx-auto px-6 max-w-5xl mb-content-gap">
+          <CourseComposer
+            nodes={searchNodes}
+            courseSlug={courseSlug}
+            courseTitle={course.title}
+            lessonsForSuggest={lessonsForSuggest}
+            activeTab={activeTab}
+          />
         </div>
       )}
-
-      <CourseTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
       {/* Main content with AnimatePresence for smooth tab transitions */}
       <main className="container mx-auto px-6 py-section-sm max-w-5xl">
