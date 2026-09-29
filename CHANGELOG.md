@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.41.2 — 2026-09-29
+
+### Fixes
+- Fix header chrome and rework course search (#1235)
+- Move badge colors to Tailwind tokens and dedupe getVersion (#1235)
+
 ## v0.41.1 — 2026-09-27
 
 ### Fixes
