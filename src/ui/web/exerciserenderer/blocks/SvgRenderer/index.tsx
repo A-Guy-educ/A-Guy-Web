@@ -7,6 +7,7 @@ import { RichTextRenderer } from '../RichTextRenderer'
 import { sanitizeSvg } from '../../utils/svgSanitize'
 import { expandViewBoxWhenReady } from '@/ui/web/media/SVGMedia/expandViewBoxToContent'
 import { ensureSvgViewBox } from '@/ui/web/media/SVGMedia/ensureSvgViewBox'
+import { useEffectiveDisplaySize } from '../../hooks/useEffectiveDisplaySize'
 
 export type DisplaySize = 'small' | 'medium' | 'large' | 'full'
 
@@ -170,7 +171,8 @@ export function SvgRenderer({
     ? { ...block.caption, id: `${block.id}-caption`, mediaIds: block.caption.mediaIds || [] }
     : null
 
-  const widthPercent = SIZE_MAP[displaySize]
+  const effectiveDisplaySize = useEffectiveDisplaySize(displaySize) ?? 'full'
+  const widthPercent = SIZE_MAP[effectiveDisplaySize]
 
   return (
     <div

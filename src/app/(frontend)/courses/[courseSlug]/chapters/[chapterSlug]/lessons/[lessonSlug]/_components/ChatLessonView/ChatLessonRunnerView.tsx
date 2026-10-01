@@ -21,6 +21,7 @@ import type { SectionOutcome, StreamEntry } from './types'
 import { useBrowserTTS } from './useBrowserTTS'
 import { useChatChannel } from './useChatChannel'
 import { isAnswerRequired, useExerciseWalker } from './useExerciseWalker'
+import { useLessonChatProgress } from './useLessonChatProgress'
 import { pickWellDone } from './wellDoneMessages'
 
 const CELEBRATION_ADVANCE_MS = 1500
@@ -77,9 +78,21 @@ function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatPr
     setEntries((prev) => prev.map((e) => (e.key === key ? entry : e)))
   }, [])
 
-  const walker = useExerciseWalker({ exercises, append, isHebrew })
+  // Persist walker position across visits so re-entering the lesson resumes
+  // on the student's current section instead of restarting from exercise 1.
+  // Chat Q&A is NOT restored here — only walker progress — see
+  // useLessonChatProgress for the rationale.
+  const { initialStepCursor, saveStepCursor, clearProgress } = useLessonChatProgress(lessonId)
+
+  const walker = useExerciseWalker({ exercises, append, isHebrew, initialStepCursor })
   const currentStep = walker.currentStep
   const currentExercise = currentStep?.exercise ?? null
+
+  // Mirror every walker advance into storage. Fires on seed too (cursor is
+  // whatever we resumed to), which is harmless — same value in, same value out.
+  useEffect(() => {
+    saveStepCursor(walker.stepCursor)
+  }, [walker.stepCursor, saveStepCursor])
 
   // Scope the AI's attention to the current section (not the whole exercise
   // or, worse, whatever exercise the shared lesson-conversation was last
@@ -291,8 +304,12 @@ function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatPr
   const handleReset = useCallback(() => {
     cancelPendingAdvance()
     tts.cancel()
+    // Wipe persistence BEFORE remount — the fresh ActiveChat reads
+    // localStorage during its first render via useState lazy-init, so an
+    // uncleared entry would resurrect the walker at the just-reset position.
+    clearProgress()
     onExit()
-  }, [cancelPendingAdvance, onExit, tts])
+  }, [cancelPendingAdvance, clearProgress, onExit, tts])
 
   const showContinueButton = !walker.isComplete && entries.length > 0
 

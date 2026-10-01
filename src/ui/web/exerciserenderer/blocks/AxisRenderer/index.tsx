@@ -6,6 +6,7 @@ import type { AxisSpecV1 } from '@/infra/contracts'
 import { renderAxisSpec } from '../../graphics/axisElements'
 import { resolveViewport } from '@/infra/utils/graphics/viewport-utils'
 import { computeBoardSize } from '@/infra/utils/graphics/board-sizing'
+import { useEffectiveDisplaySize } from '../../hooks/useEffectiveDisplaySize'
 
 const JSXGraphBoard = dynamic(
   () => import('../../graphics/JSXGraphBoard').then((m) => ({ default: m.JSXGraphBoard })),
@@ -32,6 +33,7 @@ interface AxisRendererProps {
 }
 
 export function AxisRenderer({ blockId, spec, displaySize = 'full' }: AxisRendererProps) {
+  const effectiveDisplaySize = useEffectiveDisplaySize(displaySize) ?? 'full'
   const handleBoardReady = useCallback(
     (board: JXG.Board) => {
       renderAxisSpec(board, spec)
@@ -63,7 +65,7 @@ export function AxisRenderer({ blockId, spec, displaySize = 'full' }: AxisRender
     const container = containerRef.current
     if (!container) return
 
-    const percentage = SIZE_MAP[displaySize]
+    const percentage = SIZE_MAP[effectiveDisplaySize]
 
     const recompute = () => {
       const availableWidth = container.clientWidth * percentage
@@ -101,7 +103,7 @@ export function AxisRenderer({ blockId, spec, displaySize = 'full' }: AxisRender
       resizeObserver.disconnect()
       if (rafId !== null) cancelAnimationFrame(rafId)
     }
-  }, [displaySize, viewportSize.xRange, viewportSize.yRange, proportion])
+  }, [effectiveDisplaySize, viewportSize.xRange, viewportSize.yRange, proportion])
 
   // See GeometryRenderer for the centering rationale — shrunk boards
   // sit flush left inside `w-full` unless we center the fixed-pixel
