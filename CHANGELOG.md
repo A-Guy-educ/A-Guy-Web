@@ -4806,6 +4806,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.42.0 ([#1247](https://github.com/A-Guy-educ/A-Guy-Web/pull/1247)) — @aguyshayb
 - feat: Persist lesson chat progress and auto-size diagrams on mobile ([#1246](https://github.com/A-Guy-educ/A-Guy-Web/pull/1246)) — @aguyshayb
 - fix: Use dir=auto on the global chat input too ([#1245](https://github.com/A-Guy-educ/A-Guy-Web/pull/1245)) — @aguyshayb
 - fix: Rename lesson back button to back to home page ([#1244](https://github.com/A-Guy-educ/A-Guy-Web/pull/1244)) — @aguyshayb
