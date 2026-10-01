@@ -48,7 +48,7 @@ interface LessonMenuProps {
   mute?: LessonMenuMute
   /**
    * Back-button semantics. `'lesson'` promises a course destination (label =
-   * "back to course", push straight to `backUrl`). `'standalone'` (the default
+   * "back to home page", push straight to `backUrl`). `'standalone'` (the default
    * when neither this prop nor `tabs` is set) uses browser history and a
    * neutral "back" label. When `tabs.length > 0` (DualModeLessonView publishes
    * tabs via LessonMenuProvider), lesson semantics apply automatically so this
@@ -89,7 +89,7 @@ export function LessonMenu({
   // via LessonMenuProvider) or explicitly opts in via `variant="lesson"`
   // (LessonIntroPage's empty-workspace branches, which render lesson chrome
   // without a tab picker). Lesson surfaces get the direct-to-course push and
-  // the "back to course" label. Ask (no tabs, no variant) keeps the previous
+  // the "back to home page" label. Ask (no tabs, no variant) keeps the previous
   // router.back() escape and a neutral "Back" label.
   const onLessonSurface = variant === 'lesson' || tabs.length > 0
 
