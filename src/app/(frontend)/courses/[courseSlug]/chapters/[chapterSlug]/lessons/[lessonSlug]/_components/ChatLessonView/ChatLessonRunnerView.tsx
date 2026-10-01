@@ -57,8 +57,21 @@ function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatPr
   const scrollRef = useRef<HTMLDivElement | null>(null)
 
   const [entries, setEntries] = useState<StreamEntry[]>([])
+  // Separate tick for "stream grew at the end" — the scroll-to-bottom effect
+  // keys on this instead of entries.length so that answering a past section
+  // (which inserts feedback mid-stream) doesn't yank the viewport away from
+  // where the student is reading.
+  const [appendTick, setAppendTick] = useState(0)
   const append = useCallback((entry: StreamEntry) => {
     setEntries((prev) => [...prev, entry])
+    setAppendTick((t) => t + 1)
+  }, [])
+  const insertAfter = useCallback((targetKey: string, entry: StreamEntry) => {
+    setEntries((prev) => {
+      const idx = prev.findIndex((e) => e.key === targetKey)
+      if (idx === -1) return [...prev, entry]
+      return [...prev.slice(0, idx + 1), entry, ...prev.slice(idx + 1)]
+    })
   }, [])
   const replace = useCallback((key: string, entry: StreamEntry) => {
     setEntries((prev) => prev.map((e) => (e.key === key ? entry : e)))
@@ -116,53 +129,87 @@ function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatPr
     walker.advance()
   }, [cancelPendingAdvance, walker])
 
+  // Key of the current walker step. Declared here (above the outcome +
+  // submit handlers) so those callbacks can tell whether a reported event
+  // came from the ACTIVE section (append feedback at the end + advance the
+  // walker) or a PAST one (insert feedback right under that section's
+  // bubble, leave the walker where it is).
+  const activeStepKey = walker.currentStep
+    ? `sec-${walker.currentStep.exercise.id}-${walker.currentStep.groupIndex}`
+    : null
+
   const correctionPrompt = t('chatViewCorrectionPrompt')
   const correctAnswerLabel = t('chatViewCorrectAnswerLabel')
   const handleOutcome = useCallback(
-    (outcome: SectionOutcome) => {
+    (sectionKey: string, outcome: SectionOutcome) => {
+      const isCurrent = sectionKey === activeStepKey
       if (outcome.kind === 'correct') {
-        append({
+        const celebrateEntry: StreamEntry = {
           key: `celebrate-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
           kind: 'chat-assistant',
           text: pickWellDone(),
-        })
-        cancelPendingAdvance()
-        pendingAdvanceRef.current = setTimeout(() => {
-          pendingAdvanceRef.current = null
-          walker.advance()
-        }, CELEBRATION_ADVANCE_MS)
+        }
+        if (isCurrent) {
+          append(celebrateEntry)
+          cancelPendingAdvance()
+          pendingAdvanceRef.current = setTimeout(() => {
+            pendingAdvanceRef.current = null
+            walker.advance()
+          }, CELEBRATION_ADVANCE_MS)
+        } else {
+          // Past section finished correctly on scroll-back — route the
+          // well-done bubble under THAT section and leave the walker on
+          // the current step.
+          insertAfter(sectionKey, celebrateEntry)
+        }
       } else {
-        // Post the correct-answer bubble immediately (from block data — no
-        // model roundtrip), THEN kick off the AI explanation. Anchors the
-        // student on the answer while the fuller correction is being
-        // generated.
         if (outcome.correctAnswerText) {
-          append({
+          const ansEntry: StreamEntry = {
             key: `ans-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
             kind: 'chat-assistant',
             text: `${correctAnswerLabel}: ${outcome.correctAnswerText}`,
-          })
+          }
+          if (isCurrent) append(ansEntry)
+          else insertAfter(sectionKey, ansEntry)
         }
-        chat.requestCorrection(correctionPrompt)
+        // The AI correction request pulls context from the walker's CURRENT
+        // step; firing it for a past section would mis-attribute the
+        // explanation. Only kick off the AI explain pass for the active
+        // section — past sections rely on the inline "correct answer: X"
+        // bubble inserted above.
+        if (isCurrent) chat.requestCorrection(correctionPrompt)
       }
     },
-    [append, cancelPendingAdvance, chat, correctAnswerLabel, correctionPrompt, walker],
+    [
+      activeStepKey,
+      append,
+      cancelPendingAdvance,
+      chat,
+      correctAnswerLabel,
+      correctionPrompt,
+      insertAfter,
+      walker,
+    ],
   )
 
   const handleQuestionSubmit = useCallback(
-    (text: string, isCorrect: boolean) => {
+    (sectionKey: string, text: string, isCorrect: boolean) => {
       // Echo the student's answer as a right-side bubble; color is derived
       // from isCorrect so the "chose the correct option" and "chose wrong"
       // states are immediately visible even before the section outcome
-      // fires the celebration or correction below.
-      append({
+      // fires the celebration or correction below. Past-section answers
+      // insert their echo immediately under that section instead of
+      // appending at the end of the stream.
+      const entry: StreamEntry = {
         key: `q-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         kind: 'chat-user',
         text,
         isCorrect,
-      })
+      }
+      if (sectionKey === activeStepKey) append(entry)
+      else insertAfter(sectionKey, entry)
     },
-    [append],
+    [activeStepKey, append, insertAfter],
   )
 
   // Quick-action chip dispatcher. Hint + explain go through the invisible
@@ -191,14 +238,6 @@ function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatPr
     [t],
   )
 
-  // Key of the current walker step — used by StreamEntryView to mark the
-  // matching bubble as "active". Historical bubbles (anything else) render
-  // as read-only so scroll-back clicks can't dispatch through the runner
-  // with the wrong context.
-  const activeStepKey = walker.currentStep
-    ? `sec-${walker.currentStep.exercise.id}-${walker.currentStep.groupIndex}`
-    : null
-
   // Narration is click-only. Each TeacherBubble exposes an `onSpeak` button
   // (wired below to `tts.speak(...)`) so the student decides when to hear a
   // line. Auto-playing on entry arrival was removed per product request —
@@ -206,7 +245,7 @@ function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatPr
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
-  }, [entries.length])
+  }, [appendTick])
 
   // Bridge for the notebook's "Check solution" button. The `<Notebook>`
   // dispatches an `ask-action` CustomEvent (same contract as the Ask
@@ -344,8 +383,8 @@ interface StreamEntryViewProps {
   lessonId: string
   mediaMap?: Record<string, Media>
   tts: ReturnType<typeof useBrowserTTS>
-  onOutcome: (outcome: SectionOutcome) => void
-  onQuestionSubmit: (text: string, isCorrect: boolean) => void
+  onOutcome: (sectionKey: string, outcome: SectionOutcome) => void
+  onQuestionSubmit: (sectionKey: string, text: string, isCorrect: boolean) => void
   onQuickAction: (action: 'hint' | 'explain' | 'skip') => void
   quickActionLabels: { hint: string; explain: string; skip: string }
   quickActionsDisabled: boolean
@@ -415,6 +454,7 @@ function StreamEntryView({
           muted={tts.muted}
           ttsSupported={tts.supported}
           isActive={isActive}
+          sectionKey={entry.key}
           onOutcome={onOutcome}
           onQuestionSubmit={onQuestionSubmit}
           onQuickAction={onQuickAction}
