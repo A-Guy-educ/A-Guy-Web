@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import type { GeometrySpecV1 } from '@/infra/contracts'
 import { renderGeometrySpec } from '../../graphics/geometryElements'
 import { computeBoardSize } from '@/infra/utils/graphics/board-sizing'
+import { useEffectiveDisplaySize } from '../../hooks/useEffectiveDisplaySize'
 
 const JSXGraphBoard = dynamic(
   () => import('../../graphics/JSXGraphBoard').then((m) => ({ default: m.JSXGraphBoard })),
@@ -30,6 +31,7 @@ interface GeometryRendererProps {
 }
 
 export function GeometryRenderer({ blockId, spec, displaySize = 'full' }: GeometryRendererProps) {
+  const effectiveDisplaySize = useEffectiveDisplaySize(displaySize) ?? 'full'
   const handleBoardReady = useCallback(
     (board: JXG.Board) => {
       renderGeometrySpec(board, spec)
@@ -58,7 +60,7 @@ export function GeometryRenderer({ blockId, spec, displaySize = 'full' }: Geomet
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
-    const percentage = SIZE_MAP[displaySize]
+    const percentage = SIZE_MAP[effectiveDisplaySize]
     const recompute = () => {
       const availableWidth = container.clientWidth * percentage
       const size = computeBoardSize({
@@ -93,7 +95,7 @@ export function GeometryRenderer({ blockId, spec, displaySize = 'full' }: Geomet
       observer.disconnect()
       if (rafId !== null) cancelAnimationFrame(rafId)
     }
-  }, [xRange, yRange, displaySize])
+  }, [xRange, yRange, effectiveDisplaySize])
 
   // When displaySize shrinks the board below the container width, center
   // the fixed-pixel JSXGraph child so it doesn't sit flush against the
