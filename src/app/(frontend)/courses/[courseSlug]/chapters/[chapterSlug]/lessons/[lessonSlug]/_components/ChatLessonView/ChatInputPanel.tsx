@@ -206,7 +206,11 @@ export function ChatInputPanel({
             onChange={(e) => setValue(e.target.value)}
             placeholder={placeholder}
             disabled={disabled || isSending}
-            dir="rtl"
+            // Pure-math input like `(-2,3)` is all bidi-neutral/weak chars;
+            // an RTL base direction reorders it visually (minus swaps with
+            // the leading digit). `dir="auto"` falls back to LTR when no
+            // strong char is present and flips to RTL on first Hebrew letter.
+            dir="auto"
             className={cn(
               'flex-1 min-w-0 bg-transparent border-none outline-none py-2 px-1',
               'text-body-md text-foreground placeholder:text-muted-foreground',

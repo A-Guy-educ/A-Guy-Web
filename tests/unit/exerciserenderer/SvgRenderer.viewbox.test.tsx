@@ -1,10 +1,29 @@
 // @vitest-environment jsdom
 import React from 'react'
 import { render } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 
 import { SvgRenderer } from '@/ui/web/exerciserenderer/blocks/SvgRenderer'
 import type { SvgBlock } from '@/ui/web/exerciserenderer/types'
+
+// SvgRenderer now calls useMediaQuery to collapse displaySize to 'full' on
+// mobile. jsdom doesn't ship window.matchMedia, so stub it with a never-match
+// implementation — the test assertions only care about viewBox markup, not
+// responsive sizing, so returning `matches: false` keeps SvgRenderer on the
+// desktop-sized code path.
+beforeAll(() => {
+  if (typeof window === 'undefined' || window.matchMedia) return
+  window.matchMedia = (query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  })
+})
 
 /**
  * Regression: greyed chat history was rendering author-sized SVGs (fixed

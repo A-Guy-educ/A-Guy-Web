@@ -318,7 +318,7 @@
     "liveContent": "תוכן חדש מתווסף באופן קבוע",
     "featuredTitle": "קורסים מומלצים",
     "featuredDescription": "קורסים שנבחרו בקפידה כדי לעזור לך במסע הלמידה שלך.",
-    "backToCourses": "חזרה לקורס",
+    "backToCourses": "חזרה לדף הבית",
     "backToChapter": "חזור לפרק",
     "back": "חזור",
     "openCourse": "פתח קורס",
@@ -382,7 +382,7 @@
     "freeResponseBadge": "תשובה חופשית",
     "notFound": "לא נמצא",
     "backToLesson": "חזור לשיעור",
-    "backToCourse": "חזור לקורס",
+    "backToCourse": "חזרה לדף הבית",
     "back": "חזור",
     "backToExercise": "חזור לתרגיל",
     "exerciseTitle": "תרגיל",
@@ -706,6 +706,18 @@
       "learning": "למידה",
       "practice": "תרגול",
       "exam": "בחינה"
+    },
+    "composer": {
+      "placeholder": {
+        "learn": "מה תרצה ללמוד? נסה נושא, או בחר שיעור למטה",
+        "practice": "מה תרצה לתרגל?",
+        "exams": "לקראת מה אתה מתכונן?",
+        "ask": "שאל על כל דבר בקורס"
+      },
+      "send": "שלח",
+      "thinking": "חושב…",
+      "noLessonsFallback": "מצטער, לא נמצאו שיעורים שמתאימים בקורס הזה.",
+      "suggestError": "לא הצלחתי להתחבר לעוזר. נסה שוב."
     },
     "moreCourses": "קורסים נוספים",
     "loading": "טוען...",

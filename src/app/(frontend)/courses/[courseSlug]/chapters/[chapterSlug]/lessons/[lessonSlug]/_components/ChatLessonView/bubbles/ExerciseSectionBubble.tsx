@@ -11,7 +11,6 @@ import type {
 import { ExerciseRenderer } from '@/ui/web/exerciserenderer'
 import { RichTextRenderer } from '@/ui/web/exerciserenderer/blocks/RichTextRenderer'
 import { MediaMapProvider } from '@/ui/web/exerciserenderer/context/MediaMapContext'
-import { cn } from '@/infra/utils/ui'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import type { SectionOutcome } from '../types'
 import { ChatFreeResponseBubble } from './ChatFreeResponseBubble'
@@ -41,18 +40,26 @@ interface ExerciseSectionBubbleProps {
   muted?: boolean
   ttsSupported?: boolean
   /**
+   * Stream key of THIS section's entry (`sec-${exerciseId}-${groupIndex}`).
+   * Echoed back on outcome / question submit so the runner can position the
+   * feedback bubbles under THIS section instead of unconditionally appending
+   * to the end of the stream — needed once past (scroll-back) sections are
+   * answerable.
+   */
+  sectionKey: string
+  /**
    * Fires when the student has finished the section — either all questions
    * checked correctly or at least one wrong. Fires once. Not called for
    * intro-only groups (questionCount === 0).
    */
-  onOutcome?: (outcome: SectionOutcome) => void
+  onOutcome?: (sectionKey: string, outcome: SectionOutcome) => void
   /**
    * Fires per-question when the student picks an answer in the chat-native
    * path. Used by the runner to emit right-aligned student bubbles into the
    * shared stream. Not called in the fallback (ExerciseRenderer) path — those
    * students see the check button + inline correct/wrong strip instead.
    */
-  onQuestionSubmit?: (text: string, isCorrect: boolean) => void
+  onQuestionSubmit?: (sectionKey: string, text: string, isCorrect: boolean) => void
   /**
    * Fires when the student taps a quick-action chip (hint / explain / skip)
    * on a chat-native section. Runner dispatches: hint/explain → invisible
@@ -69,9 +76,10 @@ interface ExerciseSectionBubbleProps {
   freeResponseSendLabel?: string
   /**
    * True only for the walker's current step. Historical (scroll-back)
-   * bubbles pass false, which locks their answer buttons + chips — otherwise
-   * a click on an old bubble would dispatch through the runner with the
-   * CURRENT step's context (wrong hint / wrong skip target).
+   * bubbles pass false — the student CAN still answer them (feedback is
+   * routed to the right place via `sectionKey`), but quick-action chips
+   * and the notebook stay gated to the active step because those dispatch
+   * through runner callbacks that are inherently scoped to "current".
    */
   isActive?: boolean
 }
@@ -112,6 +120,7 @@ export function ExerciseSectionBubble({
   freeResponsePlaceholder,
   freeResponseSendLabel,
   isActive = true,
+  sectionKey,
 }: ExerciseSectionBubbleProps) {
   const outcomeReportedRef = useRef(false)
   // Chips hide the moment the student starts answering — they're a discovery
@@ -138,12 +147,12 @@ export function ExerciseSectionBubble({
       if (results.checkedCount < results.totalQuestions) return
       outcomeReportedRef.current = true
       if (results.correctCount === results.totalQuestions) {
-        onOutcome?.({ kind: 'correct' })
+        onOutcome?.(sectionKey, { kind: 'correct' })
       } else {
-        onOutcome?.({ kind: 'wrong', correctAnswerText: allCorrectAnswerText })
+        onOutcome?.(sectionKey, { kind: 'wrong', correctAnswerText: allCorrectAnswerText })
       }
     },
-    [allCorrectAnswerText, onOutcome],
+    [allCorrectAnswerText, onOutcome, sectionKey],
   )
 
   // ── CHAT-NATIVE path ─────────────────────────────────────────────────────
@@ -171,7 +180,7 @@ export function ExerciseSectionBubble({
       if (isCorrect) correctCountRef.current += 1
       else wrongBlockIdsRef.current.add(blockId)
       setHasAnyAnswer(true)
-      onQuestionSubmit?.(text, isCorrect)
+      onQuestionSubmit?.(sectionKey, text, isCorrect)
 
       if (
         !outcomeReportedRef.current &&
@@ -180,9 +189,9 @@ export function ExerciseSectionBubble({
       ) {
         outcomeReportedRef.current = true
         if (correctCountRef.current === chatNativeQuestionCount) {
-          onOutcome?.({ kind: 'correct' })
+          onOutcome?.(sectionKey, { kind: 'correct' })
         } else {
-          onOutcome?.({
+          onOutcome?.(sectionKey, {
             kind: 'wrong',
             // Scope the echoed "correct answer" to only the questions the
             // student got wrong — don't leak answers to ones they nailed.
@@ -191,7 +200,7 @@ export function ExerciseSectionBubble({
         }
       }
     },
-    [chatNativeQuestionCount, group, onOutcome, onQuestionSubmit],
+    [chatNativeQuestionCount, group, onOutcome, onQuestionSubmit, sectionKey],
   )
 
   // Wrap chip clicks so a scroll-back click can't dispatch through the runner
@@ -208,15 +217,11 @@ export function ExerciseSectionBubble({
   )
 
   // Frameless layout — exercise content flows directly on the background
-  // to match the chat-view mockup. Historical (scroll-back) sections dim
-  // to signal they're locked from further interaction.
+  // to match the chat-view mockup. Past (scroll-back) sections render at
+  // full opacity and remain answerable: the runner routes their feedback
+  // under the correct section via `sectionKey`.
   return (
-    <div
-      className={cn(
-        'flex flex-col gap-content-gap transition-opacity duration-normal',
-        !isActive && 'opacity-60',
-      )}
-    >
+    <div className="flex flex-col gap-content-gap">
       {isChatNativePath ? (
         // MediaMapProvider is required so RichTextRenderer's MediaAttachments
         // (used inside prompts, option labels, and inline rich_text) can look
@@ -230,10 +235,11 @@ export function ExerciseSectionBubble({
                   key={block.id}
                   block={block as QuestionSelectBlock}
                   questionLabel={questionLabelById?.get(block.id)}
-                  // Lock stale scroll-back bubbles + freeze answering while
-                  // a chat request is in flight (otherwise the resulting
-                  // requestCorrection would be silently dropped).
-                  disabled={!isActive || quickActionsDisabled}
+                  // Freeze only while a chat request is in flight (otherwise
+                  // the resulting requestCorrection would be silently
+                  // dropped). Past-section bubbles stay answerable so a
+                  // student can go back and finish anything they skipped.
+                  disabled={quickActionsDisabled}
                   onSubmit={handleChatNativeSubmit}
                 />
               )
@@ -246,7 +252,7 @@ export function ExerciseSectionBubble({
                   questionLabel={questionLabelById?.get(block.id)}
                   placeholder={freeResponsePlaceholder ?? ''}
                   sendLabel={freeResponseSendLabel ?? ''}
-                  disabled={!isActive || quickActionsDisabled}
+                  disabled={quickActionsDisabled}
                   onSubmit={handleChatNativeSubmit}
                 />
               )

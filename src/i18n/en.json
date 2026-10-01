@@ -318,7 +318,7 @@
     "liveContent": "New content added regularly",
     "featuredTitle": "Featured Courses",
     "featuredDescription": "Hand-picked courses to help you on your learning journey.",
-    "backToCourses": "back to course",
+    "backToCourses": "back to home page",
     "backToChapter": "back to chapter",
     "back": "back",
     "openCourse": "Open Course",
@@ -382,7 +382,7 @@
     "freeResponseBadge": "Free Response",
     "notFound": "Not Found",
     "backToLesson": "back to lesson",
-    "backToCourse": "back to course",
+    "backToCourse": "back to home page",
     "back": "back",
     "backToExercise": "back to exercise",
     "exerciseTitle": "Exercise",
@@ -706,6 +706,18 @@
       "learning": "Study",
       "practice": "Practice",
       "exam": "Exam"
+    },
+    "composer": {
+      "placeholder": {
+        "learn": "What do you want to study? Try a topic, or pick a lesson below",
+        "practice": "What do you want to practice?",
+        "exams": "What are you preparing for?",
+        "ask": "Ask about anything in this course"
+      },
+      "send": "Send",
+      "thinking": "Thinking…",
+      "noLessonsFallback": "Sorry, no lessons seem to fit in this course.",
+      "suggestError": "Couldn’t reach the assistant. Please try again."
     },
     "moreCourses": "More courses",
     "loading": "Loading...",

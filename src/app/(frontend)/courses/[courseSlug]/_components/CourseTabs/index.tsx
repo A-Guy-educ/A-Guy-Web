@@ -27,43 +27,31 @@ export function CourseTabs({ activeTab, onTabChange }: CourseTabsProps) {
     <div className="py-content-gap">
       <div
         role="tablist"
-        className="relative p-1 rounded-2xl flex items-center justify-center max-w-xl mx-auto bg-card border border-border/60 shadow-card"
+        className="flex flex-wrap items-center justify-center gap-content-gap-xs max-w-xl mx-auto"
       >
         {TABS.map((tab) => {
           const isActive = activeTab === tab
           const color = TAB_COLORS[tab]
 
           return (
-            <button
+            <motion.button
               key={tab}
               role="tab"
               aria-selected={isActive}
               onClick={() => onTabChange(tab)}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
               className={cn(
-                'relative z-10 flex-1 px-4 py-2.5 min-h-[44px] text-body-sm rounded-xl transition-all duration-fast font-semibold',
+                'rounded-full border px-4 py-2 min-h-[36px] text-body-sm font-semibold transition-all duration-fast',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-                !isActive && 'text-muted-foreground hover:text-foreground hover:bg-muted/40',
+                isActive
+                  ? 'bg-muted/60 shadow-elevation-1'
+                  : 'bg-card text-muted-foreground border-border hover:bg-muted/40 hover:text-foreground',
               )}
-              style={{ color: isActive ? color.text : undefined }}
+              style={isActive ? { color: color.text, borderColor: color.stroke } : undefined}
             >
-              {isActive && (
-                <motion.div
-                  layoutId="activeTab"
-                  className="absolute inset-0 rounded-xl bg-gradient-to-b from-card to-muted/30 border border-border/40"
-                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                  style={{ zIndex: -1 }}
-                />
-              )}
-              <span className={cn('relative z-20', isActive && 'font-bold')}>{t(tab)}</span>
-              {isActive && (
-                <motion.div
-                  className="absolute bottom-0.5 start-3 end-3 h-0.5 rounded-full"
-                  style={{ backgroundColor: color.text }}
-                  layoutId="activeIndicator"
-                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                />
-              )}
-            </button>
+              {t(tab)}
+            </motion.button>
           )
         })}
       </div>

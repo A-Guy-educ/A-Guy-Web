@@ -187,11 +187,30 @@ interface UseExerciseWalkerArgs {
   append: (entry: StreamEntry) => void
   /** Locale flag for the section label alphabet — Hebrew (`א/ב/ג`) vs Latin (`a/b/c`). */
   isHebrew: boolean
+  /**
+   * Walker step to resume from on seed. When set, the seed effect emits every
+   * intro+section from 0 through this index so the stream picks up at the
+   * student's saved section. Null / out-of-range values fall back to 0 (fresh
+   * start) — important when a lesson's exercises change between visits and the
+   * saved cursor no longer points at a real step.
+   */
+  initialStepCursor?: number | null
 }
 
-export function useExerciseWalker({ exercises, append, isHebrew }: UseExerciseWalkerArgs) {
+export function useExerciseWalker({
+  exercises,
+  append,
+  isHebrew,
+  initialStepCursor,
+}: UseExerciseWalkerArgs) {
   const steps = useMemo(() => flattenSteps(exercises, isHebrew), [exercises, isHebrew])
-  const [stepCursor, setStepCursor] = useState(0)
+  const resumeCursor =
+    typeof initialStepCursor === 'number' &&
+    initialStepCursor >= 0 &&
+    initialStepCursor < steps.length
+      ? initialStepCursor
+      : 0
+  const [stepCursor, setStepCursor] = useState(resumeCursor)
   const [isComplete, setIsComplete] = useState(false)
   const seededRef = useRef(false)
 
@@ -226,8 +245,10 @@ export function useExerciseWalker({ exercises, append, isHebrew }: UseExerciseWa
     [append, steps],
   )
 
-  // Seed the first step once, guarded so React 18 strict-mode double
-  // invocation doesn't re-emit.
+  // Seed the walker once, guarded so React 18 strict-mode double invocation
+  // doesn't re-emit. When resuming from a saved cursor we replay every intro
+  // and section from 0 up to (and including) that cursor so the stream mirrors
+  // what the student saw before leaving.
   useEffect(() => {
     if (seededRef.current) return
     seededRef.current = true
@@ -236,8 +257,8 @@ export function useExerciseWalker({ exercises, append, isHebrew }: UseExerciseWa
       append({ key: 'lesson-complete', kind: 'lesson-complete' })
       return
     }
-    emitStep(0)
-  }, [append, emitStep, steps.length])
+    for (let i = 0; i <= resumeCursor; i++) emitStep(i)
+  }, [append, emitStep, resumeCursor, steps.length])
 
   const advance = useCallback(() => {
     if (isComplete) return
