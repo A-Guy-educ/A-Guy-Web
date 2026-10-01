@@ -103,7 +103,11 @@ export function ChatFreeResponseBubble({
             onChange={(e) => setValue(e.target.value)}
             placeholder={placeholder}
             disabled={isDisabled}
-            dir="rtl"
+            // Pure-math inputs like `(2,3)` or `(2,-3)` are all bidi-neutral/weak
+            // chars; an RTL base direction reorders them visually to `(3,2)` /
+            // `(3-,2)`. `dir="auto"` falls back to LTR when no strong char is
+            // present, and flips to RTL once a Hebrew letter is typed.
+            dir="auto"
             className={cn(
               'flex-1 rounded-xl border border-input bg-background px-4 py-2.5',
               'text-body-md text-foreground placeholder:text-muted-foreground',

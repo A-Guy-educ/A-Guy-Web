@@ -121,6 +121,11 @@ export function FreeResponseQuestion({
             onBlur={handleBlur}
             disabled={disabled}
             placeholder={t('enterAnswer')}
+            // Pure-math answers like `(2,3)` or `(2,-3)` are bidi-neutral/weak
+            // chars; inheriting the page's RTL direction reorders them visually
+            // to `(3,2)` / `(3-,2)`. `dir="auto"` falls back to LTR when no
+            // strong char is present and flips to RTL on first Hebrew letter.
+            dir="auto"
             className="text-body-md min-h-0 resize-none overflow-hidden pe-10 bg-transparent border-none shadow-none focus:outline-none focus:ring-0 focus:shadow-none placeholder:text-muted-foreground/50 placeholder:italic"
             rows={3}
           />
@@ -134,6 +139,7 @@ export function FreeResponseQuestion({
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.15 }}
                 onClick={switchToEditMode}
+                dir="auto"
                 className="absolute inset-0 px-3 py-2 pe-10 bg-transparent text-body-md leading-relaxed cursor-text overflow-hidden"
               >
                 <MathMarkdown content={value} />
