@@ -48,14 +48,14 @@ describe('Issue #733 — lesson intro back button goes to course page', () => {
     expect(content).toMatch(/<SystemLink href=\{href\}>/)
   })
 
-  it('backToCourses translation should be "חזרה לקורס" (Hebrew) and "back to course" (English)', () => {
+  it('backToCourses translation should be "חזרה לדף הבית" (Hebrew) and "back to home page" (English)', () => {
     const hePath = path.join(process.cwd(), 'src/i18n/he.json')
     const enPath = path.join(process.cwd(), 'src/i18n/en.json')
 
     const heContent = fs.readFileSync(hePath, 'utf-8')
     const enContent = fs.readFileSync(enPath, 'utf-8')
 
-    expect(heContent).toContain('"backToCourses": "חזרה לקורס"')
-    expect(enContent).toContain('"backToCourses": "back to course"')
+    expect(heContent).toContain('"backToCourses": "חזרה לדף הבית"')
+    expect(enContent).toContain('"backToCourses": "back to home page"')
   })
 })
