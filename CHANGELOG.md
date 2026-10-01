@@ -4790,6 +4790,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Keep past chat sections answerable with scoped feedback ([#1243](https://github.com/A-Guy-educ/A-Guy-Web/pull/1243)) — @aguyshayb
 - fix: Keep math like (2,3) rendering correctly in free-response inputs ([#1240](https://github.com/A-Guy-educ/A-Guy-Web/pull/1240)) — @aguyshayb
 - chore: Bump transitive deps to patch high-severity CVEs ([#1241](https://github.com/A-Guy-educ/A-Guy-Web/pull/1241)) — @aguyshayb
 - fix: Lesson-suggest via Gemini REST + Hebrew stem tolerance ([#1239](https://github.com/A-Guy-educ/A-Guy-Web/pull/1239)) — @aguyshayb
