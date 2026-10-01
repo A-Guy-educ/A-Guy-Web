@@ -4790,6 +4790,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Keep math like (2,3) rendering correctly in free-response inputs ([#1240](https://github.com/A-Guy-educ/A-Guy-Web/pull/1240)) — @aguyshayb
 - chore: Bump transitive deps to patch high-severity CVEs ([#1241](https://github.com/A-Guy-educ/A-Guy-Web/pull/1241)) — @aguyshayb
 - fix: Lesson-suggest via Gemini REST + Hebrew stem tolerance ([#1239](https://github.com/A-Guy-educ/A-Guy-Web/pull/1239)) — @aguyshayb
 - feat: Replace course tab bar and search with chat composer ([#1238](https://github.com/A-Guy-educ/A-Guy-Web/pull/1238)) — @aguyshayb
