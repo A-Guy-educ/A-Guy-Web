@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.42.0 — 2026-10-01
+
+### Features
+- Persist lesson chat progress and auto-size diagrams on mobile (#1246)
+- Replace course tab bar and search with chat composer (#1238)
+
+### Fixes
+- Use dir=auto on the global chat input (#1245)
+- Rename lesson back button to back to home page (#1244)
+- Keep past chat sections answerable with scoped feedback (#1243)
+- Use dir=auto on free-response inputs (#1240)
+- Use Gemini REST directly and add Hebrew stem tolerance (#1239)
+
+### Chores
+- Bump transitive deps to patch high-severity CVEs (#1241)
+
 ## v0.41.2 — 2026-09-29
 
 ### Fixes
