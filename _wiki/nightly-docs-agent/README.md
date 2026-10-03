@@ -1,5 +1,5 @@
 # Nightly Docs Agent
 
-- [Nightly Docs Agent Behavior](BEHAVIOR)
-- [Nightly Docs Agent Configuration](CONFIG)
-- [Nightly Docs Agent Testing Guide](TESTING)
+- [Nightly Docs Agent Behavior](./BEHAVIOR.md)
+- [Nightly Docs Agent Configuration](./CONFIG.md)
+- [Nightly Docs Agent Testing Guide](./TESTING.md)
