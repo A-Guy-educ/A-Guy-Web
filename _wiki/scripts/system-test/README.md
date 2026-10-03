@@ -1,3 +1,3 @@
 # System Test
 
-- [Mock Llm](mock-llm/)
+- [Mock Llm](./mock-llm/README.md)

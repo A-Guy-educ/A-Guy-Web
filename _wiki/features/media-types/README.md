@@ -1,3 +1,3 @@
 # Media Types
 
-- [Media Type Enum Implementation Plan](plan)
+- [Media Type Enum Implementation Plan](./plan.md)

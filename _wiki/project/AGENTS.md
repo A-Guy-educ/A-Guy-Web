@@ -1249,7 +1249,7 @@ const results = search.query('How do I create a published collection?')
 import type { User, Course, CollectionConfig } from '@/types'
 ```
 
-See [docs/ai/README.md](./docs/ai/README.md) for full guide and [BOOTSTRAP.md](.ai-docs/BOOTSTRAP.md) for quick reference.
+See [docs/ai/README.md](./docs/ai/README.md) for full guide and [BOOTSTRAP.md](../../.ai-docs/BOOTSTRAP.md) for quick reference.
 
 ## Resources
 
