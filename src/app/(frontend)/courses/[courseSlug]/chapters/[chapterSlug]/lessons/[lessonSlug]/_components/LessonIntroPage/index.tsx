@@ -1,8 +1,8 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { BookOpen, ChevronLeft, FileText, Globe, Layers, RotateCcw, Sparkles } from 'lucide-react'
-import { useSearchParams } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 
 import { ExerciseWorkspace } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseWorkspace'
 import type { Lesson, LessonPrerequisite, Media } from '@/infra/types/content'
@@ -10,10 +10,19 @@ import type { ResolvedLessonBlock } from '@/server/repos/queries/lesson-blocks'
 import { getExerciseBlocks } from '@/lib/exercises/getExerciseBlocks'
 import { getEffectiveLessonType } from '@/server/constants/lesson-types'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
+import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { ChatInterface } from '@/ui/web/chat'
 import { BackToCourses } from '@/app/(frontend)/courses/_components/BackToCourses'
 import { Button } from '@/ui/web/components/button'
 import { Card, CardContent } from '@/ui/web/components/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/ui/web/components/dialog'
+import { GoogleLoginButton } from '@/ui/web/auth/GoogleLoginButton'
 import { Progress } from '@/ui/web/components/progress'
 import { useTranslations } from '@/ui/web/providers/I18n'
 
@@ -109,6 +118,23 @@ export function LessonIntroPage({
     hasContentPagesPreamble: contentPageCount > 0,
     initialBlockIndex: parsedBlockIndex,
   })
+
+  // Anonymous visitors are allowed to view the intro (per SEO and share-link
+  // flows) but clicking "Start" must prompt them to sign in — the lesson
+  // content itself is behind auth. `isLoading` keeps the button neutral during
+  // the OAuth flicker window noted in useCurrentUser docs.
+  const { user, isLoading: isAuthLoading } = useCurrentUser()
+  const isAnonymous = !user && !isAuthLoading
+  const pathname = usePathname()
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+
+  const requestStart = (index: number) => {
+    if (isAnonymous) {
+      setShowLoginPrompt(true)
+      return
+    }
+    handleStart(index)
+  }
   const pdfCount = mediaFiles.length
   const description = plainText(lesson.description)
 
@@ -343,7 +369,7 @@ export function LessonIntroPage({
 
                 <div className="flex flex-col gap-content-gap-xs md:gap-content-gap-sm">
                   <Button
-                    onClick={() => handleStart(primaryExerciseIndex)}
+                    onClick={() => requestStart(primaryExerciseIndex)}
                     size="lg"
                     className="w-full transition-all duration-normal"
                   >
@@ -352,7 +378,7 @@ export function LessonIntroPage({
                   </Button>
                   {hasProgress ? (
                     <Button
-                      onClick={() => handleStart(0)}
+                      onClick={() => requestStart(0)}
                       variant="outline"
                       size="lg"
                       className="w-full transition-all duration-normal"
@@ -396,6 +422,20 @@ export function LessonIntroPage({
           </aside>
         </section>
       </main>
+
+      <Dialog open={showLoginPrompt} onOpenChange={setShowLoginPrompt}>
+        <DialogContent allowDismiss={true} className="sm:max-w-md">
+          <DialogHeader className="text-center sm:text-center">
+            <DialogTitle className="text-heading-xl">{t('startLoginPromptTitle')}</DialogTitle>
+            <DialogDescription className="mt-2">
+              {t('startLoginPromptDescription')}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4 flex justify-center">
+            <GoogleLoginButton returnTo={pathname} className="w-full" />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

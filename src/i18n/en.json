@@ -325,6 +325,8 @@
     "shareLesson": "Share lesson",
     "shareCourse": "Share course",
     "linkCopied": "Link copied to clipboard",
+    "startLoginPromptTitle": "Sign in to start the lesson",
+    "startLoginPromptDescription": "Create a free account to track your progress and continue where you left off.",
     "openCourse": "Open Course",
     "viewChapter": "View Chapter",
     "viewLesson": "View Lesson",
