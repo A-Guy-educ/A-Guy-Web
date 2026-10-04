@@ -4806,6 +4806,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Share button, tab persistence, math stack fix ([#1249](https://github.com/A-Guy-educ/A-Guy-Web/pull/1249)) — @aguyshayb
 - feat: Add sitemap, robots.txt, and OpenGraph tags for SEO ([#1250](https://github.com/A-Guy-educ/A-Guy-Web/pull/1250)) — @aguyshayb
 - chore(deps): Ignore unpatched node-forge and braces advisories in pnpm audit ([#1251](https://github.com/A-Guy-educ/A-Guy-Web/pull/1251)) — @aguyshayb
 ## [v0.42.0] - 2026-10-01
