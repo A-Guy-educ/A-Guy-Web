@@ -4822,6 +4822,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.43.0 ([#1260](https://github.com/A-Guy-educ/A-Guy-Web/pull/1260)) — @aguyshayb
 - fix: Double base math font-size for legible nested scripts ([#1259](https://github.com/A-Guy-educ/A-Guy-Web/pull/1259)) — @aguyshayb
 - fix: Align katex version so superscripts actually shrink ([#1258](https://github.com/A-Guy-educ/A-Guy-Web/pull/1258)) — @aguyshayb
 - fix: Persist chat-native single-select and free-response answers ([#1257](https://github.com/A-Guy-educ/A-Guy-Web/pull/1257)) — @aguyshayb
