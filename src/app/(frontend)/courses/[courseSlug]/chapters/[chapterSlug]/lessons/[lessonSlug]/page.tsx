@@ -32,6 +32,7 @@ import { findUserProgress } from '@/server/web-api/progress'
 import { LessonAnalytics } from './_components/LessonAnalytics'
 import { LessonIntroPage } from './_components/LessonIntroPage'
 import { queryLessonBlocks } from '@/server/repos/queries/lesson-blocks'
+import { mergeOpenGraph } from '@/infra/utils/mergeOpenGraph'
 
 // Must render fresh per request: the entitlement check (via checkPaidAccess)
 // reads `enrollments` from Mongo, and after a new PayPal-funded enrollment the
@@ -313,10 +314,21 @@ export async function generateMetadata({ params }: LessonPageProps) {
 
   const { course, lesson } = lessonData
 
+  const pageTitle = `${lesson.meta?.title || lesson.title} - ${course.title}`
+  const pageDescription =
+    lesson.meta?.description ||
+    (lesson.description ? stripHtml(lesson.description) : `Lesson: ${lesson.title}`)
+  const canonicalPath = `/courses/${courseSlug}/chapters/${chapterSlug}/lessons/${lessonSlug}`
+
   return {
-    title: `${lesson.meta?.title || lesson.title} - ${course.title}`,
-    description:
-      lesson.meta?.description ||
-      (lesson.description ? stripHtml(lesson.description) : `Lesson: ${lesson.title}`),
+    title: pageTitle,
+    description: pageDescription,
+    alternates: { canonical: canonicalPath },
+    openGraph: mergeOpenGraph({
+      type: 'article',
+      title: pageTitle,
+      description: pageDescription,
+      url: canonicalPath,
+    }),
   }
 }
