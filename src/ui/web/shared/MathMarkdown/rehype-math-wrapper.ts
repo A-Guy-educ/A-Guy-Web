@@ -53,11 +53,15 @@ export function rehypeMathWrapper() {
       const source = extractLatexSource(node)
       const tallClass: string[] = []
       if (hasCompoundVerticalStack(source)) {
-        // Compound stack (fraction inside a superscript, nested superscripts,
-        // etc.) extends far above the baseline — needs more line-box height
-        // than plain `math-tall` provides or it clips the line above.
+        // Compound stack: a fraction combined with a superscript or subscript
+        // anywhere in the expression (e.g. `\frac{10}{e^x}`, `e^{\frac{1}{x}}`,
+        // `\frac{e^x}{x^2 - x - 2}`). The two stacking constructs together
+        // tower far above the baseline — needs the biggest line-box bump.
         tallClass.push('math-tall', 'math-xtall')
-      } else if (hasFractionOrPower(source)) {
+      } else if (hasFraction(source)) {
+        // A plain fraction (no super/subscripts). Display-styled by the remark
+        // plugin so numerator and denominator render properly, but doesn't
+        // need the extra height a compound stack does.
         tallClass.push('math-tall')
       }
 
@@ -100,44 +104,33 @@ export function rehypeMathWrapper() {
 }
 
 /**
- * True when the TeX source contains a fraction-like macro or a superscript.
- * These typographic constructs stack vertically and read best at a slightly
- * larger size — CSS bumps `.math-tall` by 20% via globals.css.
+ * True when the TeX source contains a fraction-like macro. Display-styled by
+ * remark-math-displaystyle so numerator/denominator get the full block-math
+ * layout; the wrapper then needs a slightly taller line-box via `.math-tall`.
  */
-function hasFractionOrPower(source: string): boolean {
+function hasFraction(source: string): boolean {
   if (!source) return false
-  if (/\^/.test(source)) return true
   return /\\(?:d|t)?frac\b|\\(?:d|t)?binom\b/.test(source)
 }
 
 /**
- * True when the TeX source stacks constructs on top of each other — e.g.
- * a fraction inside a superscript (`e^{\frac{1}{x}}`) or nested superscripts
- * (`x^{y^2}`). These expressions tower far above the baseline, so the normal
- * `.math-tall` bump isn't enough — the ascender collides with the previous
- * line unless we also grow the line box. `.math-xtall` adds that breathing
- * room in CSS.
+ * True when the TeX source combines a fraction with a superscript or subscript
+ * anywhere in the expression — any of:
+ *   - `\frac{10}{e^x}` (power in the denominator)
+ *   - `\frac{e^x}{x^2 - x - 2}` (powers in both)
+ *   - `e^{\frac{1}{x}}` (fraction inside a superscript)
+ * These compound stacks tower far above the baseline, so plain `.math-tall`
+ * isn't enough — the ascender collides with the line above unless we grow
+ * the line box more aggressively via `.math-xtall`.
+ *
+ * A simple fraction with no power (e.g. `\frac{1}{2}`) stays on `.math-tall`;
+ * a lone superscript (`x^2`) needs no special treatment at all.
  */
 function hasCompoundVerticalStack(source: string): boolean {
   if (!source) return false
-  // Walk every `^{...}` or `_{...}` group with balanced-brace matching and
-  // report whether the body contains another stacking construct.
-  for (let i = 0; i < source.length - 1; i++) {
-    const ch = source[i]
-    if ((ch !== '^' && ch !== '_') || source[i + 1] !== '{') continue
-    let depth = 1
-    const start = i + 2
-    let j = start
-    while (j < source.length && depth > 0) {
-      if (source[j] === '{') depth++
-      else if (source[j] === '}') depth--
-      if (depth === 0) break
-      j++
-    }
-    const body = source.slice(start, j)
-    if (/\\(?:d|t)?frac\b|\\(?:d|t)?binom\b|\^|_/.test(body)) return true
-  }
-  return false
+  const hasFracMacro = /\\(?:d|t)?frac\b|\\(?:d|t)?binom\b/.test(source)
+  const hasSuperOrSub = /\^|_/.test(source)
+  return hasFracMacro && hasSuperOrSub
 }
 
 function getClassName(node: Element): string {
