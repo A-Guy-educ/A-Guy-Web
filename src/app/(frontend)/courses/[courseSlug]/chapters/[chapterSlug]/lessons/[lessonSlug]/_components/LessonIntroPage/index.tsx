@@ -22,6 +22,7 @@ import { DualModeLessonView } from '../DualModeLessonView'
 import type { LessonMode } from '../DualModeLessonView/useLessonViewMode'
 import { EmptyLessonPlaceholder } from '../EmptyLessonPlaceholder'
 import { useLessonIntroPage } from './useLessonIntroPage'
+import { ShareButton } from '@/ui/web/shared/ShareButton'
 
 interface LessonProgressSummary {
   completed: number
@@ -236,7 +237,8 @@ export function LessonIntroPage({
   return (
     <div className="min-h-screen bg-background">
       <main className="mx-auto flex w-full max-w-6xl flex-col px-4 py-5 sm:px-6 md:min-h-screen md:py-section-lg">
-        <div className="flex w-full justify-end">
+        <div className="flex w-full items-center justify-between">
+          <ShareButton title={lesson.title} ariaLabel={t('shareLesson')} />
           <BackToCourses href={backUrl} />
         </div>
 

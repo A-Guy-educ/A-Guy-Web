@@ -6,7 +6,7 @@ import type { Chapter, Course, Lesson } from '@/infra/types/content'
 import type { LessonProgress } from '../types'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { BarChart3, GraduationCap } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AskTab } from '../AskTab'
 import { CourseAnalytics } from '../CourseAnalytics'
@@ -16,6 +16,7 @@ import { ExamReminderBubble } from '../ExamReminderBubble'
 import { LessonListTab } from '../LessonListTab'
 import { buildLessonSearchNodes } from '../LessonListTab/buildLessonSearchNodes'
 import { LocaleFallbackBanner } from '../../../_components/LocaleFallbackBanner'
+import { ShareButton } from '@/ui/web/shared/ShareButton'
 
 interface CoursePageContentProps {
   course: Course
@@ -48,7 +49,21 @@ export function CoursePageContent({
   purchaseHref,
 }: CoursePageContentProps) {
   const t = useTranslations('coursePage')
+  const tCourses = useTranslations('courses')
+  // Persist active tab per-course so returning from a lesson via "back to home
+  // page" lands on the originating tab. SSR starts on 'learn' (default), then a
+  // mount-time effect swaps to the stored value — avoids a hydration mismatch
+  // vs. reading localStorage during render.
   const [activeTab, setActiveTab] = useState<CourseTab>('learn')
+  useEffect(() => {
+    const raw = readStoredCourseTab(courseSlug)
+    if (raw && raw !== activeTab) setActiveTab(raw)
+    // Only on mount: later tab changes are written below, not re-read.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [courseSlug])
+  useEffect(() => {
+    writeStoredCourseTab(courseSlug, activeTab)
+  }, [courseSlug, activeTab])
   const { hasUpcomingExam, daysUntil } = useExamCountdown(course.id)
 
   const activeColor = TAB_COLORS[activeTab].stroke
@@ -92,6 +107,9 @@ export function CoursePageContent({
           <h1 className="text-display-sm md:text-display-md font-black text-foreground mt-4 text-center">
             {course.title}
           </h1>
+          <div className="absolute top-0 end-0">
+            <ShareButton title={course.title} ariaLabel={tCourses('shareCourse')} />
+          </div>
         </div>
       </div>
 
@@ -164,4 +182,26 @@ export function CoursePageContent({
       </main>
     </div>
   )
+}
+
+const TAB_STORAGE_PREFIX = 'aguy:courseTab:'
+const VALID_TABS: readonly CourseTab[] = ['learn', 'practice', 'exams', 'ask']
+
+function readStoredCourseTab(courseSlug: string): CourseTab | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = window.localStorage.getItem(`${TAB_STORAGE_PREFIX}${courseSlug}`)
+    return (VALID_TABS as readonly string[]).includes(raw ?? '') ? (raw as CourseTab) : null
+  } catch {
+    return null
+  }
+}
+
+function writeStoredCourseTab(courseSlug: string, tab: CourseTab): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(`${TAB_STORAGE_PREFIX}${courseSlug}`, tab)
+  } catch {
+    // Private-mode / quota exceeded: silently drop; non-essential UX.
+  }
 }

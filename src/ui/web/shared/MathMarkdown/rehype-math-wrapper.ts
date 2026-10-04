@@ -51,7 +51,15 @@ export function rehypeMathWrapper() {
       if (!isBlockMath && !isInlineMath) return
 
       const source = extractLatexSource(node)
-      const tallClass = hasFractionOrPower(source) ? ['math-tall'] : []
+      const tallClass: string[] = []
+      if (hasCompoundVerticalStack(source)) {
+        // Compound stack (fraction inside a superscript, nested superscripts,
+        // etc.) extends far above the baseline — needs more line-box height
+        // than plain `math-tall` provides or it clips the line above.
+        tallClass.push('math-tall', 'math-xtall')
+      } else if (hasFractionOrPower(source)) {
+        tallClass.push('math-tall')
+      }
 
       if (isBlockMath) {
         parent.children[index] = {
@@ -100,6 +108,36 @@ function hasFractionOrPower(source: string): boolean {
   if (!source) return false
   if (/\^/.test(source)) return true
   return /\\(?:d|t)?frac\b|\\(?:d|t)?binom\b/.test(source)
+}
+
+/**
+ * True when the TeX source stacks constructs on top of each other — e.g.
+ * a fraction inside a superscript (`e^{\frac{1}{x}}`) or nested superscripts
+ * (`x^{y^2}`). These expressions tower far above the baseline, so the normal
+ * `.math-tall` bump isn't enough — the ascender collides with the previous
+ * line unless we also grow the line box. `.math-xtall` adds that breathing
+ * room in CSS.
+ */
+function hasCompoundVerticalStack(source: string): boolean {
+  if (!source) return false
+  // Walk every `^{...}` or `_{...}` group with balanced-brace matching and
+  // report whether the body contains another stacking construct.
+  for (let i = 0; i < source.length - 1; i++) {
+    const ch = source[i]
+    if ((ch !== '^' && ch !== '_') || source[i + 1] !== '{') continue
+    let depth = 1
+    const start = i + 2
+    let j = start
+    while (j < source.length && depth > 0) {
+      if (source[j] === '{') depth++
+      else if (source[j] === '}') depth--
+      if (depth === 0) break
+      j++
+    }
+    const body = source.slice(start, j)
+    if (/\\(?:d|t)?frac\b|\\(?:d|t)?binom\b|\^|_/.test(body)) return true
+  }
+  return false
 }
 
 function getClassName(node: Element): string {
