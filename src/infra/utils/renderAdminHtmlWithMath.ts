@@ -57,28 +57,18 @@ function hasFractionMacro(source: string): boolean {
 }
 
 /**
- * True when `^{...}` or `_{...}` contains another stacking construct — a
- * fraction, binom, or nested super/subscript. These towers need extra line
- * height; `.math-xtall` provides it in globals.css.
+ * True when the TeX source combines a fraction with a superscript or subscript
+ * anywhere in the expression — any of:
+ *   - `\frac{10}{e^x}` (power in the denominator)
+ *   - `\frac{e^x}{x^2 - x - 2}` (powers in both)
+ *   - `e^{\frac{1}{x}}` (fraction inside a superscript)
+ * These compound stacks tower far above the baseline, so plain `.math-tall`
+ * isn't enough — the ascender collides with the line above unless we grow
+ * the line box more aggressively via `.math-xtall`.
  */
 function hasCompoundVerticalStack(source: string): boolean {
   if (!source) return false
-  for (let i = 0; i < source.length - 1; i += 1) {
-    const ch = source[i]
-    if ((ch !== '^' && ch !== '_') || source[i + 1] !== '{') continue
-    let depth = 1
-    const start = i + 2
-    let j = start
-    while (j < source.length && depth > 0) {
-      if (source[j] === '{') depth += 1
-      else if (source[j] === '}') depth -= 1
-      if (depth === 0) break
-      j += 1
-    }
-    const body = source.slice(start, j)
-    if (/\\(?:d|t)?frac\b|\\(?:d|t)?binom\b|\^|_/.test(body)) return true
-  }
-  return false
+  return hasFractionMacro(source) && /\^|_/.test(source)
 }
 
 /** Short atoms ("x", "AB", "\pi") read inline; everything else is "long". */
@@ -116,7 +106,10 @@ function renderMath(source: string, displayMode: boolean): string | null {
   const stackClasses: string[] = []
   if (hasCompoundVerticalStack(value)) {
     stackClasses.push('math-tall', 'math-xtall')
-  } else if (hasFractionMacro(value) || /\^|_/.test(value)) {
+  } else if (hasFractionMacro(value)) {
+    // Plain fraction (no powers): display-styled numerator/denominator fit
+    // in `.math-tall`'s line-box. Lone superscripts like `x^2` need no
+    // special treatment and are left unflagged.
     stackClasses.push('math-tall')
   }
 
