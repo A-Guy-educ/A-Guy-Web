@@ -4806,6 +4806,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Align katex version so superscripts actually shrink ([#1258](https://github.com/A-Guy-educ/A-Guy-Web/pull/1258)) — @aguyshayb
 - fix: Persist chat-native single-select and free-response answers ([#1257](https://github.com/A-Guy-educ/A-Guy-Web/pull/1257)) — @aguyshayb
 - fix: Treat fractions-with-powers as compound math stacks ([#1256](https://github.com/A-Guy-educ/A-Guy-Web/pull/1256)) — @aguyshayb
 - fix: Media tab PDF viewer cuts off at bottom ([#1255](https://github.com/A-Guy-educ/A-Guy-Web/pull/1255)) — @aguyshayb
