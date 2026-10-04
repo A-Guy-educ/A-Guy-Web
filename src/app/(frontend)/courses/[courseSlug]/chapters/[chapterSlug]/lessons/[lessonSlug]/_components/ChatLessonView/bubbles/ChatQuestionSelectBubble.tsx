@@ -9,6 +9,10 @@ import type {
   QuestionSelectMcqBlock,
   QuestionSelectTrueFalseBlock,
 } from '@/ui/web/exerciserenderer/types'
+import {
+  patchExerciseStateBlock,
+  readExerciseState,
+} from '@/ui/web/exerciserenderer/utils/exerciseStateStorage'
 import { ArrowLeft } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
@@ -23,6 +27,13 @@ interface ChatQuestionSelectBubbleProps {
    * useChatChannel's `sendingRef` early-return).
    */
   disabled?: boolean
+  /**
+   * Exercise id used to key the persisted answer bundle. When present, the
+   * bubble hydrates its pickedId from localStorage on mount and writes back
+   * on each pick so single-select MCQ and true/false restore their locked +
+   * green/red look on re-entry. Falsy = don't persist (unit tests, previews).
+   */
+  exerciseId?: string
   onSubmit: (blockId: string, optionText: string, isCorrect: boolean) => void
 }
 
@@ -49,9 +60,21 @@ export function ChatQuestionSelectBubble({
   block,
   questionLabel,
   disabled,
+  exerciseId,
   onSubmit,
 }: ChatQuestionSelectBubbleProps) {
-  const [pickedId, setPickedId] = useState<string | null>(null)
+  // Hydrate pickedId from the saved bundle so a return visit shows the same
+  // locked option (and the green/red styling derived from correctIds) that
+  // the student left. Writes back on every pick via patchExerciseStateBlock,
+  // sharing the same `a-guy:exercise-state:v1:<exerciseId>` key the fallback
+  // ExerciseRenderer path uses — Reset wipes both at once.
+  const [pickedId, setPickedId] = useState<string | null>(() => {
+    if (!exerciseId) return null
+    const saved = readExerciseState(exerciseId)
+    const answer = saved?.answers[block.id]
+    if (!answer || answer.type !== 'mcq' || answer.selectedIds.length === 0) return null
+    return answer.selectedIds[0]
+  })
 
   const choices = useMemo(() => getChoices(block), [block])
   const correctIds = useMemo(() => getCorrectIds(block), [block])
@@ -60,6 +83,12 @@ export function ChatQuestionSelectBubble({
     if (pickedId || disabled) return
     setPickedId(choice.id)
     const isCorrect = correctIds.has(choice.id)
+    if (exerciseId) {
+      patchExerciseStateBlock(exerciseId, block.id, {
+        answer: { type: 'mcq', selectedIds: [choice.id] },
+        checkResult: { isCorrect },
+      })
+    }
     onSubmit(block.id, choice.labelValue, isCorrect)
   }
 
