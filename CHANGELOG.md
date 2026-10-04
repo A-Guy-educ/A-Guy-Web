@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.43.0 — 2026-10-04
+
+### Features
+- Persist exercise answer and solved state across visits (#1254)
+- Add sitemap, robots.txt, and OpenGraph tags for SEO (#1250)
+- Share button, tab persistence, and math stack fix (#1249)
+
+### Fixes
+- Double base math font-size for legible nested scripts (#1259)
+- Align katex version so superscripts actually shrink (#1258)
+- Persist chat-native single-select and free-response answers (#1257)
+- Catch fractions-with-powers as compound math stacks (#1256)
+- Readable inline fractions and public course content pages (#1252)
+- Admin HTML math readability and anon lesson-start login prompt (#1253)
+- Media tab PDF viewer cuts off at bottom (#1242)
+
 ## v0.42.0 — 2026-10-01
 
 ### Features
