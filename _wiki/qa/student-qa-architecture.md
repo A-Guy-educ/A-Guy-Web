@@ -555,9 +555,7 @@ export async function runScenario(page: Page, scenarioPath: string): Promise<Sce
       scenarioId: scenario.id,
       status: 'failed',
       duration: Date.now() - start,
-      failedStep: {
-        /* captured from error context */
-      },
+      failedStep: {/* captured from error context */},
     }
   } finally {
     // 3. Teardown — ALWAYS runs, deletes seeded data in reverse dependency order

@@ -13,8 +13,7 @@ export type ValidationError =
  * Validation result
  */
 export type ValidationResult =
-  | { valid: true; url: string }
-  | { valid: false; error: ValidationError }
+  { valid: true; url: string } | { valid: false; error: ValidationError }
 
 /**
  * Redact sensitive URL for safe logging

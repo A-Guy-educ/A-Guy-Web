@@ -111,12 +111,8 @@ const validate = ajv.compile(collectionSchema)
 
 const myCollection = {
   slug: 'courses',
-  fields: [
-    /* ... */
-  ],
-  access: {
-    /* ... */
-  },
+  fields: [/* ... */],
+  access: {/* ... */},
 }
 
 if (!validate(myCollection)) {

@@ -91,15 +91,11 @@ const mcqAnswer = {
   options: [
     {
       id: 'o1',
-      content: [
-        /* blocks */
-      ],
+      content: [/* blocks */],
     },
     {
       id: 'o2',
-      content: [
-        /* blocks */
-      ],
+      content: [/* blocks */],
     },
   ],
   correctOptionIds: ['o1'],

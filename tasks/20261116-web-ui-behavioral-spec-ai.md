@@ -11,13 +11,14 @@
 ### Existing System (Already Implemented)
 
 **Current Question Types**:
-| Block Type | Status | Description |
-|------------|--------|-------------|
-| `question_select` (true_false) | ✅ Done | True/False selection |
-| `question_select` (mcq) | ✅ Done | Multiple choice |
-| `question_free_response` | ✅ Done | Free text/numeric input |
-| `table` | ✅ Done | Table-based questions |
-| `rich_text` | ✅ Done | Rich text content |
+
+| Block Type                     | Status  | Description             |
+| ------------------------------ | ------- | ----------------------- |
+| `question_select` (true_false) | ✅ Done | True/False selection    |
+| `question_select` (mcq)        | ✅ Done | Multiple choice         |
+| `question_free_response`       | ✅ Done | Free text/numeric input |
+| `table`                        | ✅ Done | Table-based questions   |
+| `rich_text`                    | ✅ Done | Rich text content       |
 
 **Existing Renderer Structure** (`src/ui/web/exerciserenderer/`):
 
@@ -92,13 +93,14 @@ interface MatchingConnection {
 ```
 
 **Visual States**:
-| State | Visual |
-|-------|--------|
-| `default` | Standard styling |
-| `selected` | Blue border + background |
+
+| State       | Visual                   |
+| ----------- | ------------------------ |
+| `default`   | Standard styling         |
+| `selected`  | Blue border + background |
 | `connected` | Colored line + indicator |
-| `correct` | Green border + line |
-| `incorrect` | Red border + line |
+| `correct`   | Green border + line      |
+| `incorrect` | Red border + line        |
 
 **Integration Points**:
 
@@ -113,12 +115,13 @@ interface MatchingConnection {
 **Reference**: [`SvgBlock`](src/shared/exercise-content/types.ts:174)
 
 **Rendering Modes**:
-| Mode | Interaction | Use Case |
-|------|-------------|----------|
-| `static` | None | Display only |
+
+| Mode          | Interaction    | Use Case            |
+| ------------- | -------------- | ------------------- |
+| `static`      | None           | Display only        |
 | `interactive` | Click hotspots | Selection questions |
-| `annotated` | Overlay labels | Educational |
-| `zoomable` | Pan/zoom | Complex diagrams |
+| `annotated`   | Overlay labels | Educational         |
+| `zoomable`    | Pan/zoom       | Complex diagrams    |
 
 **Hotspot Structure**:
 

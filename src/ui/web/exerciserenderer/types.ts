@@ -186,10 +186,7 @@ export interface QuestionTableBlock {
 }
 
 export type QuestionBlock =
-  | QuestionSelectBlock
-  | QuestionFreeResponseBlock
-  | QuestionTableBlock
-  | QuestionMatchingBlock
+  QuestionSelectBlock | QuestionFreeResponseBlock | QuestionTableBlock | QuestionMatchingBlock
 
 export interface HtmlBlock {
   id: string
@@ -198,12 +195,7 @@ export interface HtmlBlock {
 }
 
 export type ContentBlock =
-  | RichTextBlock
-  | LatexBlock
-  | HtmlBlock
-  | QuestionBlock
-  | SvgBlock
-  | MediaBlock
+  RichTextBlock | LatexBlock | HtmlBlock | QuestionBlock | SvgBlock | MediaBlock
 
 /**
  * Help system state per question

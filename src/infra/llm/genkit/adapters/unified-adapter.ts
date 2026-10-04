@@ -449,8 +449,7 @@ export async function createGenkitUnifiedAdapter(
               ]
 
               const responseMessages = result.messages as
-                | Array<{ role: string; content: Array<Record<string, unknown>> }>
-                | undefined
+                Array<{ role: string; content: Array<Record<string, unknown>> }> | undefined
               if (responseMessages) {
                 for (const message of responseMessages) {
                   if (message.content && Array.isArray(message.content)) {

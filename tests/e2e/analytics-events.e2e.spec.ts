@@ -93,8 +93,7 @@ async function loadAppAndGetEvents(page: Page): Promise<CapturedEvent[]> {
   await waitForCapturedEvent(page, 'page_view')
   const events = await page.evaluate(() => {
     return (window as unknown as Record<string, unknown>).__capturedMixpanelEvents as
-      | CapturedEvent[]
-      | undefined
+      CapturedEvent[] | undefined
   })
   return events ?? []
 }
@@ -102,8 +101,7 @@ async function loadAppAndGetEvents(page: Page): Promise<CapturedEvent[]> {
 async function getCapturedEvents(page: Page): Promise<CapturedEvent[]> {
   const events = await page.evaluate(() => {
     return (window as unknown as Record<string, unknown>).__capturedMixpanelEvents as
-      | CapturedEvent[]
-      | undefined
+      CapturedEvent[] | undefined
   })
 
   return events ?? []
@@ -113,8 +111,7 @@ async function waitForCapturedEvent(page: Page, eventName: string): Promise<void
   await page.waitForFunction(
     (name) => {
       const events = (window as unknown as Record<string, unknown>).__capturedMixpanelEvents as
-        | CapturedEvent[]
-        | undefined
+        CapturedEvent[] | undefined
 
       return events?.some((event) => event.event === name) ?? false
     },
@@ -227,8 +224,7 @@ test.describe('Analytics Events E2E', () => {
 
     const events = await page.evaluate(() => {
       return (window as unknown as Record<string, unknown>).__capturedMixpanelEvents as
-        | CapturedEvent[]
-        | undefined
+        CapturedEvent[] | undefined
     })
     const lessonStarted = events?.find((e) => e.event === 'lesson_started')
     expect(lessonStarted).toBeDefined()
@@ -251,8 +247,7 @@ test.describe('Analytics Events E2E', () => {
 
     const events = await page.evaluate(() => {
       return (window as unknown as Record<string, unknown>).__capturedMixpanelEvents as
-        | CapturedEvent[]
-        | undefined
+        CapturedEvent[] | undefined
     })
     const courseEntered = events?.find((e) => e.event === 'course_entered')
     expect(courseEntered).toBeDefined()
@@ -264,8 +259,7 @@ test.describe('Analytics Events E2E', () => {
     // Emit via system event bus
     const emitted = await page.evaluate(() => {
       const bus = (window as unknown as Record<string, unknown>).__systemEventBus as
-        | undefined
-        | { emit: (name: string, payload: unknown) => void }
+        undefined | { emit: (name: string, payload: unknown) => void }
       if (!bus) return false
       bus.emit('system.registration_completed', {
         user_id: 'e2e-test-reg-user',
@@ -279,8 +273,7 @@ test.describe('Analytics Events E2E', () => {
 
     const events = await page.evaluate(() => {
       return (window as unknown as Record<string, unknown>).__capturedMixpanelEvents as
-        | CapturedEvent[]
-        | undefined
+        CapturedEvent[] | undefined
     })
     const regCompleted = events?.find((e) => e.event === 'registration_completed')
     expect(regCompleted).toBeDefined()
@@ -295,8 +288,7 @@ test.describe('Analytics Events E2E', () => {
 
     await page.evaluate(() => {
       const bus = (window as unknown as Record<string, unknown>).__systemEventBus as
-        | undefined
-        | { emit: (name: string, payload: unknown) => void }
+        undefined | { emit: (name: string, payload: unknown) => void }
       bus?.emit('system.exercise_completed', {
         lesson_id: 'lesson-ex-e2e',
         exercise_id: 'ex-1-e2e',
@@ -311,8 +303,7 @@ test.describe('Analytics Events E2E', () => {
 
     const events = await page.evaluate(() => {
       return (window as unknown as Record<string, unknown>).__capturedMixpanelEvents as
-        | CapturedEvent[]
-        | undefined
+        CapturedEvent[] | undefined
     })
     const exCompleted = events?.find((e) => e.event === 'exercise_completed')
     expect(exCompleted).toBeDefined()
@@ -329,8 +320,7 @@ test.describe('Analytics Events E2E', () => {
 
     await page.evaluate(() => {
       const bus = (window as unknown as Record<string, unknown>).__systemEventBus as
-        | undefined
-        | { emit: (name: string, payload: unknown) => void }
+        undefined | { emit: (name: string, payload: unknown) => void }
       bus?.emit('system.hint_clicked', {
         lesson_id: 'lesson-hint',
         exercise_id: 'ex-hint',
@@ -344,8 +334,7 @@ test.describe('Analytics Events E2E', () => {
 
     const events = await page.evaluate(() => {
       return (window as unknown as Record<string, unknown>).__capturedMixpanelEvents as
-        | CapturedEvent[]
-        | undefined
+        CapturedEvent[] | undefined
     })
     const hintClicked = events?.find((e) => e.event === 'hint_clicked')
     expect(hintClicked).toBeDefined()

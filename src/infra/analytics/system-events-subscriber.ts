@@ -255,11 +255,7 @@ export function initAnalyticsSubscriber(): () => void {
       analytics.track(PRODUCT_EVENTS.REGISTRATION_COMPLETED, {
         user_id: payload.user_id,
         registration_method: payload.auth_method as
-          | 'email'
-          | 'google'
-          | 'social'
-          | 'anonymous_upgrade'
-          | undefined,
+          'email' | 'google' | 'social' | 'anonymous_upgrade' | undefined,
       })
       // Alias anonymous user to registered user, THEN identify
       if (payload.user_id) {

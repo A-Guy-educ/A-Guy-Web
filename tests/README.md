@@ -124,23 +124,17 @@ describe('Feature Name', () => {
   describe('specific function/endpoint', () => {
     test('should do something correctly', () => {
       // Arrange
-      const input = {
-        /* test data */
-      }
+      const input = {/* test data */}
 
       // Act
       const result = functionUnderTest(input)
 
       // Assert
-      expect(result).toEqual({
-        /* expected output */
-      })
+      expect(result).toEqual({/* expected output */})
     })
 
     test('should handle errors', () => {
-      const invalidInput = {
-        /* bad data */
-      }
+      const invalidInput = {/* bad data */}
 
       expect(() => functionUnderTest(invalidInput)).toThrow('Error message')
     })
@@ -361,9 +355,7 @@ export const testCourse = {
 export const testLesson = {
   lessonLabel: 'TEST-LESSON-1',
   title: 'Test Lesson',
-  content: [
-    /* exercise blocks */
-  ],
+  content: [/* exercise blocks */],
 }
 ```
 

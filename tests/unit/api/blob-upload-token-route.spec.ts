@@ -19,11 +19,9 @@ const db = vi.hoisted(() => ({ current: null as ReturnType<typeof mockContentDb>
 const mockRequireUser = vi.hoisted(() => vi.fn())
 const captured = vi.hoisted(() => ({
   onBeforeGenerateToken: null as
-    | ((pathname: string, payload: string | null) => Promise<Record<string, unknown>>)
-    | null,
+    ((pathname: string, payload: string | null) => Promise<Record<string, unknown>>) | null,
   onUploadCompleted: null as
-    | ((event: { blob: Record<string, string>; tokenPayload: string }) => Promise<void>)
-    | null,
+    ((event: { blob: Record<string, string>; tokenPayload: string }) => Promise<void>) | null,
 }))
 
 vi.mock('@/infra/db/content-db', async (importOriginal) => {

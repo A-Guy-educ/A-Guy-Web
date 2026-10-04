@@ -556,9 +556,7 @@ Public or authenticated?
 // WRONG - No access control
 export const BadCollection: CollectionConfig = {
   slug: 'bad',
-  fields: [
-    /* ... */
-  ],
+  fields: [/* ... */],
   // Missing: access property
 }
 ```

@@ -456,9 +456,7 @@ function validateSegment(s: Record<string, unknown>) {
     from,
     to,
     style: (['solid', 'dashed', 'bold'].includes(s.style as string) ? s.style : 'solid') as
-      | 'solid'
-      | 'dashed'
-      | 'bold',
+      'solid' | 'dashed' | 'bold',
     color:
       typeof s.color === 'string' && !['solid', 'dashed', 'bold'].includes(s.color)
         ? s.color
