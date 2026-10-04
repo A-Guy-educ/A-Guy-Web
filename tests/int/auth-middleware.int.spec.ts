@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { middleware } from '../../src/middleware'
 
 /**
@@ -21,14 +21,7 @@ const createRequest = (path: string, host = 'example.com', cookies?: string) => 
 
 describe('Auth Middleware - Learning Feature Protection', () => {
   describe('Protected routes - should redirect to /login when not authenticated', () => {
-    const protectedRoutes = [
-      '/study',
-      '/practice',
-      '/test',
-      '/ask',
-      '/courses/advanced-math',
-      '/courses/math/chapters/intro/lessons/first-lesson',
-    ]
+    const protectedRoutes = ['/study', '/practice', '/test', '/ask']
 
     it.each(protectedRoutes)('should redirect unauthenticated request to %s to /login', (route) => {
       const request = createRequest(route)
@@ -51,7 +44,14 @@ describe('Auth Middleware - Learning Feature Protection', () => {
   })
 
   describe('Public routes - should pass through without redirect', () => {
-    const publicRoutes = ['/']
+    // Course detail pages are publicly crawlable so Google can index lesson
+    // intros and link recipients can preview before signing up. Per-page
+    // AccessGateProvider still gates actual paid/mandatory content in-component.
+    const publicRoutes = [
+      '/',
+      '/courses/advanced-math',
+      '/courses/math/chapters/intro/lessons/first-lesson',
+    ]
 
     it.each(publicRoutes)('should allow unauthenticated request to %s', (route) => {
       const request = createRequest(route)
@@ -101,26 +101,23 @@ describe('Auth Middleware - Learning Feature Protection', () => {
       expect(response.headers.get('location')).toBe('http://example.com/start')
     })
 
-    it('should handle course slug routes correctly', () => {
+    it('should pass anonymous course slug routes through without redirecting', () => {
+      // Course detail pages are now public — see "Public routes" group above.
       const courseRoute = '/courses/advanced-math'
       const request = createRequest(courseRoute)
       const response = middleware(request)
 
-      expect(response.status).toBe(307)
-      expect(response.headers.get('location')).toContain('/login')
-      expect(response.headers.get('location')).toContain(
-        `returnTo=${encodeURIComponent(courseRoute)}`,
-      )
+      expect(response.status).toBe(200)
+      expect(response.headers.get('location')).toBeNull()
     })
 
-    it('should redirect anonymous nested course routes to login', () => {
+    it('should pass anonymous nested course routes through without redirecting', () => {
       const route = '/courses/math/chapters/intro/lessons/first-lesson/content/page-1'
       const request = createRequest(route)
       const response = middleware(request)
 
-      expect(response.status).toBe(307)
-      expect(response.headers.get('location')).toContain('/login')
-      expect(response.headers.get('location')).toContain(`returnTo=${encodeURIComponent(route)}`)
+      expect(response.status).toBe(200)
+      expect(response.headers.get('location')).toBeNull()
     })
   })
 })

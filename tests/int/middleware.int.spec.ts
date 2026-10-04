@@ -147,24 +147,25 @@ describe('Middleware - Locale Routing', () => {
       expect(response.headers.get('location')).toBeNull()
     })
 
-    it('should redirect anonymous course detail visitors to /login with returnTo', () => {
+    it('should pass anonymous course detail visitors through without redirecting', () => {
+      // Course detail pages are publicly viewable so Google can crawl lesson
+      // intros and share-link recipients can preview. Per-page AccessGateProvider
+      // still gates actual paid/mandatory content in-component.
       const path = '/courses/advanced-math?tab=overview'
       const request = createRequest('example.com', path)
       const response = middleware(request)
 
-      expect(response.status).toBe(307)
-      expect(response.headers.get('location')).toContain('/login')
-      expect(response.headers.get('location')).toContain(`returnTo=${encodeURIComponent(path)}`)
+      expect(response.status).toBe(200)
+      expect(response.headers.get('location')).toBeNull()
     })
 
-    it('should redirect anonymous nested course route visitors to /login with returnTo', () => {
+    it('should pass anonymous nested course route visitors through without redirecting', () => {
       const path = '/courses/math/chapters/intro/lessons/first-lesson'
       const request = createRequest('example.com', path)
       const response = middleware(request)
 
-      expect(response.status).toBe(307)
-      expect(response.headers.get('location')).toContain('/login')
-      expect(response.headers.get('location')).toContain(`returnTo=${encodeURIComponent(path)}`)
+      expect(response.status).toBe(200)
+      expect(response.headers.get('location')).toBeNull()
     })
 
     it('should not let the preview auth bypass expose the anonymous course catalog', () => {
@@ -181,7 +182,8 @@ describe('Middleware - Locale Routing', () => {
       }
     })
 
-    it('should not let the preview auth bypass expose anonymous course detail pages', () => {
+    it('should pass anonymous course detail pages through on Kody preview hosts', () => {
+      // Course detail pages are public — preview-host behavior matches prod.
       const previous = process.env.KODY_PREVIEW_AUTH_BYPASS
       process.env.KODY_PREVIEW_AUTH_BYPASS = 'true'
       try {
@@ -189,9 +191,8 @@ describe('Middleware - Locale Routing', () => {
         const request = createRequest('kp-issue-673.fly.dev', path)
         const response = middleware(request)
 
-        expect(response.status).toBe(307)
-        expect(response.headers.get('location')).toContain('/login')
-        expect(response.headers.get('location')).toContain(`returnTo=${encodeURIComponent(path)}`)
+        expect(response.status).toBe(200)
+        expect(response.headers.get('location')).toBeNull()
       } finally {
         process.env.KODY_PREVIEW_AUTH_BYPASS = previous
       }
