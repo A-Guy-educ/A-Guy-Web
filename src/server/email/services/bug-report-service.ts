@@ -49,8 +49,7 @@ type SupportedLocale = 'en' | 'he'
 const SITE_NAME = 'A-Guy'
 
 export type SendBugReportResult =
-  | { delivered: true }
-  | { delivered: false; reason: 'no_adapter' | 'error' }
+  { delivered: true } | { delivered: false; reason: 'no_adapter' | 'error' }
 
 let _resendClient: Resend | null = null
 function getResendClient(): Resend | null {

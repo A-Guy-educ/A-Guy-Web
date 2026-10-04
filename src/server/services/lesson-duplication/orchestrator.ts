@@ -696,10 +696,7 @@ export async function runDuplicationOrchestrator(
     // reuse the existing output lesson recorded on the record.
     let outputLessonId: string
     const existingOutputLessonRef = duplication.outputLesson as
-      | string
-      | { id?: string }
-      | null
-      | undefined
+      string | { id?: string } | null | undefined
     const existingOutputLessonId =
       typeof existingOutputLessonRef === 'string'
         ? existingOutputLessonRef

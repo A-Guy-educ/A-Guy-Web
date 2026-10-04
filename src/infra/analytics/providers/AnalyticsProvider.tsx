@@ -124,8 +124,7 @@ function AnalyticsHooks() {
           // Push to shared capture array for E2E tests
           const captured = (window as unknown as Record<string, unknown>)
             .__capturedMixpanelEvents as
-            | Array<{ event: string; properties: Record<string, unknown> }>
-            | undefined
+            Array<{ event: string; properties: Record<string, unknown> }> | undefined
           captured?.push({ event, properties: properties || {} })
         }
         clearInterval(interval)

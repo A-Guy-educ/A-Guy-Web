@@ -39,10 +39,7 @@ const log = rootLogger.child({ module: 'AgentBehaviorPromptResolver' })
  * Resolution source tracking for logging
  */
 export type ResolvedAgentBehaviorFrom =
-  | 'user-settings'
-  | 'default-config'
-  | 'highest-priority'
-  | 'failsafe'
+  'user-settings' | 'default-config' | 'highest-priority' | 'failsafe'
 
 /**
  * Resolved agent behavior prompt result

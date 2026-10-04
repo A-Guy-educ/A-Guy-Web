@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.43.0 — 2026-10-04
+
+### Features
+- Persist exercise answer and solved state across visits (#1254)
+- Add sitemap, robots.txt, and OpenGraph tags for SEO (#1250)
+- Share button, tab persistence, and math stack fix (#1249)
+
+### Fixes
+- Double base math font-size for legible nested scripts (#1259)
+- Align katex version so superscripts actually shrink (#1258)
+- Persist chat-native single-select and free-response answers (#1257)
+- Catch fractions-with-powers as compound math stacks (#1256)
+- Readable inline fractions and public course content pages (#1252)
+- Admin HTML math readability and anon lesson-start login prompt (#1253)
+- Media tab PDF viewer cuts off at bottom (#1242)
+
 ## v0.42.0 — 2026-10-01
 
 ### Features
@@ -4806,6 +4822,23 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.43.0 ([#1260](https://github.com/A-Guy-educ/A-Guy-Web/pull/1260)) — @aguyshayb
+- fix: Double base math font-size for legible nested scripts ([#1259](https://github.com/A-Guy-educ/A-Guy-Web/pull/1259)) — @aguyshayb
+- fix: Align katex version so superscripts actually shrink ([#1258](https://github.com/A-Guy-educ/A-Guy-Web/pull/1258)) — @aguyshayb
+- fix: Persist chat-native single-select and free-response answers ([#1257](https://github.com/A-Guy-educ/A-Guy-Web/pull/1257)) — @aguyshayb
+- fix: Treat fractions-with-powers as compound math stacks ([#1256](https://github.com/A-Guy-educ/A-Guy-Web/pull/1256)) — @aguyshayb
+- fix: Media tab PDF viewer cuts off at bottom ([#1255](https://github.com/A-Guy-educ/A-Guy-Web/pull/1255)) — @aguyshayb
+- chore(deps-dev): Bump the dev-dependencies group across 1 directory with 17 updates ([#1242](https://github.com/A-Guy-educ/A-Guy-Web/pull/1242)) — @dependabot[bot]
+- feat: Persist exercise answer and solved state across visits ([#1254](https://github.com/A-Guy-educ/A-Guy-Web/pull/1254)) — @aguyshayb
+- chore(deps): Bump the prod-dependencies group across 1 directory with 10 updates ([#1234](https://github.com/A-Guy-educ/A-Guy-Web/pull/1234)) — @dependabot[bot]
+- fix: Admin HTML math readability + anon lesson-start login prompt ([#1253](https://github.com/A-Guy-educ/A-Guy-Web/pull/1253)) — @aguyshayb
+- fix: Readable inline fractions and public course content pages ([#1252](https://github.com/A-Guy-educ/A-Guy-Web/pull/1252)) — @aguyshayb
+- feat: Share button, tab persistence, math stack fix ([#1249](https://github.com/A-Guy-educ/A-Guy-Web/pull/1249)) — @aguyshayb
+- feat: Add sitemap, robots.txt, and OpenGraph tags for SEO ([#1250](https://github.com/A-Guy-educ/A-Guy-Web/pull/1250)) — @aguyshayb
+- chore(deps): Ignore unpatched node-forge and braces advisories in pnpm audit ([#1251](https://github.com/A-Guy-educ/A-Guy-Web/pull/1251)) — @aguyshayb
+## [v0.42.0] - 2026-10-01
+
+- promote: dev -> main (v0.42.0) ([#1248](https://github.com/A-Guy-educ/A-Guy-Web/pull/1248)) — @aguyshayb
 - chore: Release v0.42.0 ([#1247](https://github.com/A-Guy-educ/A-Guy-Web/pull/1247)) — @aguyshayb
 - feat: Persist lesson chat progress and auto-size diagrams on mobile ([#1246](https://github.com/A-Guy-educ/A-Guy-Web/pull/1246)) — @aguyshayb
 - fix: Use dir=auto on the global chat input too ([#1245](https://github.com/A-Guy-educ/A-Guy-Web/pull/1245)) — @aguyshayb

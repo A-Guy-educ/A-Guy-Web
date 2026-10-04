@@ -29,8 +29,7 @@ const withTimeout = <T>(promise: Promise<T>, stage: string): Promise<T> =>
 export const SEMANTIC_FAILURE_CODE = 'SEMANTIC_MISMATCH' as const
 
 export type SemanticValidationResult =
-  | { ok: true; reasons?: string[] }
-  | { ok: false; reasons: string[] }
+  { ok: true; reasons?: string[] } | { ok: false; reasons: string[] }
 
 const SEMANTIC_PROMPT = `You are a strict exercise quality reviewer.
 

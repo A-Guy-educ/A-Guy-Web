@@ -288,6 +288,7 @@ For the agent to work, target docs need anchor markers.
 - `Courses`
 - `Lessons`
 - `Users`
+
 <!-- nightly-docs:collections-list:end -->
 
 ## Other Section

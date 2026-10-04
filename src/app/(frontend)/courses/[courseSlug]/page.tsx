@@ -14,6 +14,7 @@ import { stripHtml } from '@/utils/strip-html'
 import { getContentDb, objectIdFromString, relationId } from '@/infra/db/content-db'
 import { findUserProgress } from '@/server/web-api/progress'
 import { CoursePageContent } from './_components/CoursePageContent'
+import { mergeOpenGraph } from '@/infra/utils/mergeOpenGraph'
 
 export const dynamic = 'force-dynamic'
 
@@ -151,9 +152,20 @@ export async function generateMetadata({ params }: CoursePageProps) {
     return { title: 'Course Not Found' }
   }
 
+  const pageTitle = course.meta?.title || course.title
+  const pageDescription =
+    course.meta?.description || (course.description ? stripHtml(course.description) : undefined)
+  const canonicalPath = `/courses/${courseSlug}`
+
   return {
-    title: course.meta?.title || course.title,
-    description:
-      course.meta?.description || (course.description ? stripHtml(course.description) : undefined),
+    title: pageTitle,
+    description: pageDescription,
+    alternates: { canonical: canonicalPath },
+    openGraph: mergeOpenGraph({
+      type: 'website',
+      title: pageTitle,
+      description: pageDescription,
+      url: canonicalPath,
+    }),
   }
 }

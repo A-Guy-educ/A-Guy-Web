@@ -7,9 +7,7 @@ const SCHEMA_DIR = path.join(REPO_ROOT, '.ai-docs', 'schemas')
 const INDEX_DIR = path.join(REPO_ROOT, '.ai-docs', 'indexes')
 
 type SchemaName =
-  | 'readme-index.schema.json'
-  | 'route-index.schema.json'
-  | 'collection-slug-map.schema.json'
+  'readme-index.schema.json' | 'route-index.schema.json' | 'collection-slug-map.schema.json'
 
 function readJson(p: string) {
   return JSON.parse(fs.readFileSync(p, 'utf8'))

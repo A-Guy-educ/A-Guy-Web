@@ -54,10 +54,6 @@ function isCourseCatalogPath(pathname: string): boolean {
   return pathname === '/courses'
 }
 
-function isCourseContentPath(pathname: string): boolean {
-  return pathname.startsWith('/courses/')
-}
-
 /**
  * Check if the request has a valid Payload auth token.
  * Checks for the payload-token cookie.
@@ -305,11 +301,12 @@ export function middleware(request: NextRequest) {
     return applyGuestCookie(NextResponse.redirect(startUrl))
   }
 
-  if (isCourseContentPath(pathname) && !hasAuthToken(request)) {
-    const loginUrl = new URL('/login', request.url)
-    loginUrl.searchParams.set('returnTo', `${pathname}${request.nextUrl.search}`)
-    return applyGuestCookie(NextResponse.redirect(loginUrl))
-  }
+  // Course content pages (/courses/<slug>/...) are publicly viewable so Google
+  // can crawl the lesson intros and visitors can preview before signing up.
+  // Actual content gating still happens in-page via `AccessGateProvider`:
+  // paid lessons render an empty gate shell for anon users, mandatory/gated
+  // lessons render the intro behind a sign-in prompt. The middleware no longer
+  // short-circuits with a hard login redirect.
 
   let locale: Locale = defaultLocale
   let shouldSetCookie = false

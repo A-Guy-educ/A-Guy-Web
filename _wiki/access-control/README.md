@@ -54,9 +54,7 @@ export const Posts: CollectionConfig = {
     update: isAdminOrOwner, // Admin or owner can update
     delete: adminOnly, // Admin only can delete
   },
-  fields: [
-    /* ... */
-  ],
+  fields: [/* ... */],
 }
 ```
 
@@ -460,9 +458,7 @@ describe('Access Control', () => {
 export const BadCollection: CollectionConfig = {
   slug: 'bad',
   // Missing: access property
-  fields: [
-    /* ... */
-  ],
+  fields: [/* ... */],
 }
 
 // ✅ CORRECT: Always define access
@@ -474,9 +470,7 @@ export const GoodCollection: CollectionConfig = {
     update: authenticated,
     delete: adminOnly,
   },
-  fields: [
-    /* ... */
-  ],
+  fields: [/* ... */],
 }
 ```
 

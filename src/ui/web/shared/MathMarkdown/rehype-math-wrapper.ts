@@ -51,7 +51,6 @@ export function rehypeMathWrapper() {
       if (!isBlockMath && !isInlineMath) return
 
       const source = extractLatexSource(node)
-      const tallClass = hasFractionOrPower(source) ? ['math-tall'] : []
 
       if (isBlockMath) {
         parent.children[index] = {
@@ -59,15 +58,7 @@ export function rehypeMathWrapper() {
           tagName: 'div',
           properties: {
             dir: 'ltr',
-            className: [
-              'isolate',
-              'block',
-              'text-center',
-              'mt-3',
-              'mb-3',
-              'math-long',
-              ...tallClass,
-            ],
+            className: ['isolate', 'block', 'text-center', 'mt-3', 'mb-3', 'math-long'],
           },
           children: [node],
         }
@@ -83,23 +74,12 @@ export function rehypeMathWrapper() {
         tagName: 'span',
         properties: {
           dir: 'ltr',
-          className: ['isolate', 'inline-block', 'align-middle', lengthClass, ...tallClass],
+          className: ['isolate', 'inline-block', 'align-middle', lengthClass],
         },
         children: [node],
       }
     })
   }
-}
-
-/**
- * True when the TeX source contains a fraction-like macro or a superscript.
- * These typographic constructs stack vertically and read best at a slightly
- * larger size — CSS bumps `.math-tall` by 20% via globals.css.
- */
-function hasFractionOrPower(source: string): boolean {
-  if (!source) return false
-  if (/\^/.test(source)) return true
-  return /\\(?:d|t)?frac\b|\\(?:d|t)?binom\b/.test(source)
 }
 
 function getClassName(node: Element): string {

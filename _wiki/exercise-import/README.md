@@ -239,9 +239,7 @@ const questionBlock = QuestionSelectBlockSchema.parse({
   },
   answer: {
     multiSelect: false,
-    options: [
-      /* ... */
-    ],
+    options: [/* ... */],
     correctOptionIds: ['opt-1'],
   },
 })
@@ -250,9 +248,7 @@ const questionBlock = QuestionSelectBlockSchema.parse({
 const questionBlock = QuestionSelectBlockSchema.parse({
   type: 'question_select',
   // Missing required 'id' field!
-  prompt: {
-    /* ... */
-  },
+  prompt: {/* ... */},
 })
 // Error: Required field 'id' is missing
 ```

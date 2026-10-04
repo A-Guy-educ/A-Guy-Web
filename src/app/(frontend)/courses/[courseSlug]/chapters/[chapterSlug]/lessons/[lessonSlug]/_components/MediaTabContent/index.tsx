@@ -122,16 +122,16 @@ export function MediaTabContent({
           {headerSlot}
           <div className="flex-1 overflow-y-auto min-h-0">
             <div
-              className="w-full p-card-padding-sm md:p-card-padding flex flex-col gap-content-gap"
+              className="w-full h-full p-card-padding-sm md:p-card-padding flex flex-col gap-content-gap"
               onTouchStart={onTouchStart}
               onTouchMove={onTouchMove}
               onTouchEnd={onTouchEnd}
             >
               {currentFile && (
-                <div className="w-full h-[calc(100vh-120px)]">
+                <div className="w-full flex-1 min-h-0">
                   <div className="border rounded-lg overflow-hidden bg-card shadow-card h-full flex flex-col">
                     {hasMultipleFiles && (
-                      <div className="flex items-center justify-center gap-2 py-2 px-4 bg-muted/50 border-b border-border/50 text-body-sm text-muted-foreground shrink-0">
+                      <div className="flex items-center justify-center gap-content-gap-xs py-2 px-4 bg-muted/50 border-b border-border/50 text-body-sm text-muted-foreground shrink-0">
                         <span>
                           {currentFileIndex + 1} / {validFiles.length}
                         </span>

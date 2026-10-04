@@ -7,11 +7,7 @@ export interface AdminResetPasswordInput {
 }
 
 export type AdminResetPasswordError =
-  | 'invalid_input'
-  | 'forbidden'
-  | 'user_not_found'
-  | 'weak_password'
-  | 'unexpected_error'
+  'invalid_input' | 'forbidden' | 'user_not_found' | 'weak_password' | 'unexpected_error'
 
 export interface AdminResetPasswordResult {
   success: boolean

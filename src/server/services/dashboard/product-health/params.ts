@@ -38,8 +38,7 @@ export interface ParsedProductHealthParams {
 }
 
 export type ProductHealthParamsResult =
-  | { ok: true; params: ParsedProductHealthParams }
-  | { ok: false; error: string }
+  { ok: true; params: ParsedProductHealthParams } | { ok: false; error: string }
 
 export function parseProductHealthParams(search: URLSearchParams): ProductHealthParamsResult {
   const parsed = rawSchema.safeParse({

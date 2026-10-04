@@ -26,12 +26,7 @@ export async function teardownPreconditions(refs: Record<string, ActionRef>): Pr
 
   for (const [, doc] of sortedEntries) {
     const collection = doc._collection as
-      | 'users'
-      | 'courses'
-      | 'chapters'
-      | 'lessons'
-      | 'exercises'
-      | 'conversations'
+      'users' | 'courses' | 'chapters' | 'lessons' | 'exercises' | 'conversations'
 
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

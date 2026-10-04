@@ -4,6 +4,10 @@ import { cn } from '@/infra/utils/ui'
 import { RichTextRenderer } from '@/ui/web/exerciserenderer/blocks/RichTextRenderer'
 import { QuestionNotebook } from '@/ui/web/exerciserenderer/components/QuestionNotebook'
 import type { QuestionFreeResponseBlock } from '@/ui/web/exerciserenderer/types'
+import {
+  patchExerciseStateBlock,
+  readExerciseState,
+} from '@/ui/web/exerciserenderer/utils/exerciseStateStorage'
 import { FormulaComposer } from '@/ui/web/shared/MathInput/FormulaComposer'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -22,6 +26,13 @@ interface ChatFreeResponseBubbleProps {
    * dropped by useChatChannel's sendingRef early-return).
    */
   disabled?: boolean
+  /**
+   * Exercise id used to key the persisted answer bundle. When present, the
+   * bubble hydrates its typed text + submitted/locked state from
+   * localStorage on mount and writes back on submit. Shares the same key as
+   * ExerciseRenderer so Reset wipes everything together. Falsy = no persist.
+   */
+  exerciseId?: string
   onSubmit: (blockId: string, text: string, isCorrect: boolean) => void
 }
 
@@ -42,11 +53,30 @@ export function ChatFreeResponseBubble({
   placeholder,
   sendLabel,
   disabled,
+  exerciseId,
   onSubmit,
 }: ChatFreeResponseBubbleProps) {
   const t = useTranslations('courses')
-  const [value, setValue] = useState('')
-  const [submitted, setSubmitted] = useState(false)
+  // Hydrate typed text + submitted-locked state from the shared answer bundle
+  // on mount. `submitted` tracks whether grading already happened — if so, we
+  // lock the input and keep the saved text visible. patchExerciseStateBlock
+  // writes back on submit (same key as ExerciseRenderer's bundle, so Reset
+  // wipes everything together).
+  const [{ initialValue, initialSubmitted }] = useState<{
+    initialValue: string
+    initialSubmitted: boolean
+  }>(() => {
+    if (!exerciseId) return { initialValue: '', initialSubmitted: false }
+    const saved = readExerciseState(exerciseId)
+    const answer = saved?.answers[block.id]
+    const text = answer?.type === 'free_response' ? answer.value : ''
+    return {
+      initialValue: text,
+      initialSubmitted: Boolean(saved?.checkResults[block.id]),
+    }
+  })
+  const [value, setValue] = useState(initialValue)
+  const [submitted, setSubmitted] = useState(initialSubmitted)
   const [composerOpen, setComposerOpen] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -62,6 +92,12 @@ export function ChatFreeResponseBubble({
     setSubmitted(true)
     setComposerOpen(false)
     const isCorrect = matchesAny(trimmed, acceptedAnswers)
+    if (exerciseId) {
+      patchExerciseStateBlock(exerciseId, block.id, {
+        answer: { type: 'free_response', value: trimmed },
+        checkResult: { isCorrect },
+      })
+    }
     onSubmit(block.id, trimmed, isCorrect)
   }
 

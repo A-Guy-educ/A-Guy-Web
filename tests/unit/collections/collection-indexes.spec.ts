@@ -53,8 +53,7 @@ describe('Collection Indexes', () => {
     describe('Courses.status', () => {
       it('should have index: true', () => {
         const field = Courses.fields?.find((f) => 'name' in f && f.name === 'status') as
-          | { name: string; index?: boolean }
-          | undefined
+          { name: string; index?: boolean } | undefined
         expect(field).toBeDefined()
         expect(field?.index).toBe(true)
       })
@@ -63,8 +62,7 @@ describe('Collection Indexes', () => {
     describe('Chapters.status', () => {
       it('should have index: true', () => {
         const field = Chapters.fields?.find((f) => 'name' in f && f.name === 'status') as
-          | { name: string; index?: boolean }
-          | undefined
+          { name: string; index?: boolean } | undefined
         expect(field).toBeDefined()
         expect(field?.index).toBe(true)
       })
@@ -73,8 +71,7 @@ describe('Collection Indexes', () => {
     describe('Lessons.status', () => {
       it('should have index: true', () => {
         const field = Lessons.fields?.find((f) => 'name' in f && f.name === 'status') as
-          | { name: string; index?: boolean }
-          | undefined
+          { name: string; index?: boolean } | undefined
         expect(field).toBeDefined()
         expect(field?.index).toBe(true)
       })
@@ -83,8 +80,7 @@ describe('Collection Indexes', () => {
     describe('Tenants.status', () => {
       it('should have index: true', () => {
         const field = Tenants.fields?.find((f) => 'name' in f && f.name === 'status') as
-          | { name: string; index?: boolean }
-          | undefined
+          { name: string; index?: boolean } | undefined
         expect(field).toBeDefined()
         expect(field?.index).toBe(true)
       })
@@ -95,8 +91,7 @@ describe('Collection Indexes', () => {
     describe('Courses.categories', () => {
       it('should have index: true', () => {
         const field = Courses.fields?.find((f) => 'name' in f && f.name === 'categories') as
-          | { name: string; index?: boolean }
-          | undefined
+          { name: string; index?: boolean } | undefined
         expect(field).toBeDefined()
         expect(field?.index).toBe(true)
       })
@@ -105,8 +100,7 @@ describe('Collection Indexes', () => {
     describe('Posts.categories', () => {
       it('should have index: true', () => {
         const field = findFieldByName(Posts.fields as Field[], 'categories') as
-          | { name: string; index?: boolean }
-          | undefined
+          { name: string; index?: boolean } | undefined
         expect(field).toBeDefined()
         expect(field?.index).toBe(true)
       })
@@ -115,8 +109,7 @@ describe('Collection Indexes', () => {
     describe('Posts.authors', () => {
       it('should have index: true', () => {
         const field = findFieldByName(Posts.fields as Field[], 'authors') as
-          | { name: string; index?: boolean }
-          | undefined
+          { name: string; index?: boolean } | undefined
         expect(field).toBeDefined()
         expect(field?.index).toBe(true)
       })
@@ -125,8 +118,7 @@ describe('Collection Indexes', () => {
     describe('Exercises.sourceDoc', () => {
       it('should have index: true', () => {
         const field = findFieldByName(Exercises.fields as Field[], 'sourceDoc') as
-          | { name: string; index?: boolean }
-          | undefined
+          { name: string; index?: boolean } | undefined
         expect(field).toBeDefined()
         expect(field?.index).toBe(true)
       })
@@ -135,8 +127,7 @@ describe('Collection Indexes', () => {
     describe('ConfigAuditLogs.tenant', () => {
       it('should have index: true', () => {
         const field = ConfigAuditLogs.fields?.find((f) => 'name' in f && f.name === 'tenant') as
-          | { name: string; index?: boolean }
-          | undefined
+          { name: string; index?: boolean } | undefined
         expect(field).toBeDefined()
         expect(field?.index).toBe(true)
       })

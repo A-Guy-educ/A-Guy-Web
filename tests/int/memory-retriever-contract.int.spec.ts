@@ -119,13 +119,7 @@ async function insertMemoryItem(data: {
       conversationId: data.conversationId,
       importance: data.importance || 3,
       type: (data.type || 'fact') as
-        | 'preference'
-        | 'decision'
-        | 'fact'
-        | 'open_loop'
-        | 'profile'
-        | 'constraint'
-        | 'other',
+        'preference' | 'decision' | 'fact' | 'open_loop' | 'profile' | 'constraint' | 'other',
       source: {
         sourceMessageTimestamp: new Date().toISOString(),
         sourceMessageRole: ChatRole.User,
