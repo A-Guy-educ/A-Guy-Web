@@ -4806,6 +4806,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Persist exercise answer and solved state across visits ([#1254](https://github.com/A-Guy-educ/A-Guy-Web/pull/1254)) — @aguyshayb
 - chore(deps): Bump the prod-dependencies group across 1 directory with 10 updates ([#1234](https://github.com/A-Guy-educ/A-Guy-Web/pull/1234)) — @dependabot[bot]
 - fix: Admin HTML math readability + anon lesson-start login prompt ([#1253](https://github.com/A-Guy-educ/A-Guy-Web/pull/1253)) — @aguyshayb
 - fix: Readable inline fractions and public course content pages ([#1252](https://github.com/A-Guy-educ/A-Guy-Web/pull/1252)) — @aguyshayb
