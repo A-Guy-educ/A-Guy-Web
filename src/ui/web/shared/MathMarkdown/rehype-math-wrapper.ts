@@ -51,19 +51,6 @@ export function rehypeMathWrapper() {
       if (!isBlockMath && !isInlineMath) return
 
       const source = extractLatexSource(node)
-      const tallClass: string[] = []
-      if (hasCompoundVerticalStack(source)) {
-        // Compound stack: a fraction combined with a superscript or subscript
-        // anywhere in the expression (e.g. `\frac{10}{e^x}`, `e^{\frac{1}{x}}`,
-        // `\frac{e^x}{x^2 - x - 2}`). The two stacking constructs together
-        // tower far above the baseline — needs the biggest line-box bump.
-        tallClass.push('math-tall', 'math-xtall')
-      } else if (hasFraction(source)) {
-        // A plain fraction (no super/subscripts). Display-styled by the remark
-        // plugin so numerator and denominator render properly, but doesn't
-        // need the extra height a compound stack does.
-        tallClass.push('math-tall')
-      }
 
       if (isBlockMath) {
         parent.children[index] = {
@@ -71,15 +58,7 @@ export function rehypeMathWrapper() {
           tagName: 'div',
           properties: {
             dir: 'ltr',
-            className: [
-              'isolate',
-              'block',
-              'text-center',
-              'mt-3',
-              'mb-3',
-              'math-long',
-              ...tallClass,
-            ],
+            className: ['isolate', 'block', 'text-center', 'mt-3', 'mb-3', 'math-long'],
           },
           children: [node],
         }
@@ -95,42 +74,12 @@ export function rehypeMathWrapper() {
         tagName: 'span',
         properties: {
           dir: 'ltr',
-          className: ['isolate', 'inline-block', 'align-middle', lengthClass, ...tallClass],
+          className: ['isolate', 'inline-block', 'align-middle', lengthClass],
         },
         children: [node],
       }
     })
   }
-}
-
-/**
- * True when the TeX source contains a fraction-like macro. Display-styled by
- * remark-math-displaystyle so numerator/denominator get the full block-math
- * layout; the wrapper then needs a slightly taller line-box via `.math-tall`.
- */
-function hasFraction(source: string): boolean {
-  if (!source) return false
-  return /\\(?:d|t)?frac\b|\\(?:d|t)?binom\b/.test(source)
-}
-
-/**
- * True when the TeX source combines a fraction with a superscript or subscript
- * anywhere in the expression — any of:
- *   - `\frac{10}{e^x}` (power in the denominator)
- *   - `\frac{e^x}{x^2 - x - 2}` (powers in both)
- *   - `e^{\frac{1}{x}}` (fraction inside a superscript)
- * These compound stacks tower far above the baseline, so plain `.math-tall`
- * isn't enough — the ascender collides with the line above unless we grow
- * the line box more aggressively via `.math-xtall`.
- *
- * A simple fraction with no power (e.g. `\frac{1}{2}`) stays on `.math-tall`;
- * a lone superscript (`x^2`) needs no special treatment at all.
- */
-function hasCompoundVerticalStack(source: string): boolean {
-  if (!source) return false
-  const hasFracMacro = /\\(?:d|t)?frac\b|\\(?:d|t)?binom\b/.test(source)
-  const hasSuperOrSub = /\^|_/.test(source)
-  return hasFracMacro && hasSuperOrSub
 }
 
 function getClassName(node: Element): string {

@@ -34,14 +34,12 @@ type StackEntry = {
   skip: boolean
 }
 
-function wrapInline(rendered: string, extraClasses: string[] = []): string {
-  const classes = ['isolate', 'inline-block', 'align-middle', ...extraClasses].join(' ')
-  return `<span dir="ltr" class="${classes}">${rendered}</span>`
+function wrapInline(rendered: string): string {
+  return `<span dir="ltr" class="isolate inline-block align-middle">${rendered}</span>`
 }
 
-function wrapDisplay(rendered: string, extraClasses: string[] = []): string {
-  const classes = ['isolate', 'block', 'text-center', 'mt-3', 'mb-3', ...extraClasses].join(' ')
-  return `<div dir="ltr" class="${classes}">${rendered}</div>`
+function wrapDisplay(rendered: string): string {
+  return `<div dir="ltr" class="isolate block text-center mt-3 mb-3">${rendered}</div>`
 }
 
 function canRenderInlineMath(source: string): boolean {
@@ -51,73 +49,19 @@ function canRenderInlineMath(source: string): boolean {
   return /[\\^_{}=<>+\-*×÷/]|\d[A-Za-z]|[A-Za-z]\d/.test(value)
 }
 
-/** True when the TeX source contains \frac / \binom (any size variant). */
-function hasFractionMacro(source: string): boolean {
-  return /\\(?:d|t)?frac\b|\\(?:d|t)?binom\b/.test(source)
-}
-
-/**
- * True when the TeX source combines a fraction with a superscript or subscript
- * anywhere in the expression — any of:
- *   - `\frac{10}{e^x}` (power in the denominator)
- *   - `\frac{e^x}{x^2 - x - 2}` (powers in both)
- *   - `e^{\frac{1}{x}}` (fraction inside a superscript)
- * These compound stacks tower far above the baseline, so plain `.math-tall`
- * isn't enough — the ascender collides with the line above unless we grow
- * the line box more aggressively via `.math-xtall`.
- */
-function hasCompoundVerticalStack(source: string): boolean {
-  if (!source) return false
-  return hasFractionMacro(source) && /\^|_/.test(source)
-}
-
-/** Short atoms ("x", "AB", "\pi") read inline; everything else is "long". */
-function classifyShort(source: string): boolean {
-  if (source.length === 0) return false
-  const normalised = source.replace(/\\[a-zA-Z]+/g, 'x')
-  if (normalised.length > 3) return false
-  if (/[=+/^_<>]/.test(normalised)) return false
-  return true
-}
-
 function renderMath(source: string, displayMode: boolean): string | null {
   const value = source.trim()
   if (!value) return null
   if (!displayMode && !canRenderInlineMath(value)) return null
 
-  // Inject \displaystyle for inline math containing a fraction. KaTeX's default
-  // "textstyle" cramps numerator/denominator together; \displaystyle restores
-  // the fuller block-math layout while the expression stays inline.
-  const latex =
-    !displayMode && hasFractionMacro(value) && !value.includes('\\displaystyle')
-      ? `\\displaystyle ${value}`
-      : value
-
-  const rendered = katex.renderToString(latex, {
+  const rendered = katex.renderToString(value, {
     displayMode,
     throwOnError: false,
     strict: false,
     trust: false,
   })
 
-  // Tag the wrapper with the same math-short/math-long/math-tall/math-xtall
-  // classes rehype-math-wrapper uses on the MathMarkdown path, so the single
-  // set of CSS rules in globals.css handles both renderers uniformly.
-  const stackClasses: string[] = []
-  if (hasCompoundVerticalStack(value)) {
-    stackClasses.push('math-tall', 'math-xtall')
-  } else if (hasFractionMacro(value)) {
-    // Plain fraction (no powers): display-styled numerator/denominator fit
-    // in `.math-tall`'s line-box. Lone superscripts like `x^2` need no
-    // special treatment and are left unflagged.
-    stackClasses.push('math-tall')
-  }
-
-  if (displayMode) {
-    return wrapDisplay(rendered, ['math-long', ...stackClasses])
-  }
-  const lengthClass = classifyShort(value) ? 'math-short' : 'math-long'
-  return wrapInline(rendered, [lengthClass, ...stackClasses])
+  return displayMode ? wrapDisplay(rendered) : wrapInline(rendered)
 }
 
 function renderBareMathInText(text: string): string {
