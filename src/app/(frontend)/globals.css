@@ -461,7 +461,10 @@ html[data-theme='light'] {
   /* KaTeX math rendering */
   .katex {
     @apply text-foreground;
-    font-size: 1.1em;
+    /* 2x the previous 1.1em so superscripts (~70% of base) and nested scripts
+       (~50% of their parent) stay legible. KaTeX's internal sizing cascades
+       proportionally from this base. */
+    font-size: 2.2em;
   }
 
   .katex-display {
