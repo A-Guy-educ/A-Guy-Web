@@ -58,6 +58,7 @@ import {
   getInitialSvgAnswer,
   type AnswerErrorMessages,
 } from '../utils/answerChecking'
+import { readExerciseState, writeExerciseState } from '../utils/exerciseStateStorage'
 import { MediaMapProvider } from '../context/MediaMapContext'
 import { VideoPlayer } from '../components/VideoPlayer'
 import { getMediaUrl } from '@/infra/utils/getMediaUrl'
@@ -174,52 +175,42 @@ export function ExerciseRenderer({
       locale: locale ?? undefined,
     })
 
-  // localStorage key for persisting answers per exercise
-  const storageKey = exerciseId ? `a-guy:answers:${exerciseId}` : ''
+  // Hydrate the full working-state bundle (answers + outcome visuals + svg)
+  // once at mount so a return visit shows typed text, picked options AND the
+  // green/red/locked "solved" look. See exerciseStateStorage for schema and
+  // legacy fallback. Keyed by exerciseId; cross-view (interactive tab and
+  // chat tab share the same cache).
+  const hydratedState = useMemo(
+    () => (exerciseId ? readExerciseState(exerciseId) : null),
+    [exerciseId],
+  )
 
   const [answers, setAnswers] = useState<Record<string, UserAnswer>>(() => {
-    // Try to restore saved answers from localStorage
-    if (storageKey && typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem(storageKey)
-        if (saved) {
-          const parsed = JSON.parse(saved) as Record<string, UserAnswer>
-          // Merge saved answers with initial answers (in case new questions were added)
-          const initial: Record<string, UserAnswer> = {}
-          questionBlocks.forEach((q) => {
-            initial[q.id] = parsed[q.id] ?? getInitialAnswer(q)
-          })
-          return initial
-        }
-      } catch {
-        // Corrupted data — fall through to default
-      }
-    }
     const initial: Record<string, UserAnswer> = {}
     questionBlocks.forEach((q) => {
-      initial[q.id] = getInitialAnswer(q)
+      initial[q.id] = hydratedState?.answers[q.id] ?? getInitialAnswer(q)
     })
     return initial
   })
 
-  // Persist answers to localStorage on every change
-  const persistAnswers = useCallback(
-    (updated: Record<string, UserAnswer>) => {
-      if (!storageKey || typeof window === 'undefined') return
-      try {
-        localStorage.setItem(storageKey, JSON.stringify(updated))
-      } catch {
-        // Storage full or unavailable — silent
-      }
-    },
-    [storageKey],
+  const [checkResults, setCheckResults] = useState<Record<string, CheckResult>>(
+    () => hydratedState?.checkResults ?? {},
   )
-
-  const [checkResults, setCheckResults] = useState<Record<string, CheckResult>>({})
-  const [hasChecked, setHasChecked] = useState<Record<string, boolean>>({})
+  const [hasChecked, setHasChecked] = useState<Record<string, boolean>>(
+    () => hydratedState?.hasChecked ?? {},
+  )
   const [isChecking, setIsChecking] = useState<Record<string, boolean>>({})
   const [isBatchChecking, setIsBatchChecking] = useState(false)
-  const chatTriggeredRef = useRef<Set<string>>(new Set())
+  // Pre-seed the "AI explain" guard with the questions that already had a
+  // wrong-answer submit saved, so re-mounting doesn't fire the chat trigger
+  // again for an incorrect answer the student already got feedback on.
+  const chatTriggeredRef = useRef<Set<string>>(
+    new Set(
+      Object.entries(hydratedState?.checkResults ?? {})
+        .filter(([, r]) => !r.isCorrect)
+        .map(([id]) => id),
+    ),
+  )
 
   // Aggregate correctness tracking
   const totalQuestions = questionBlocks.length
@@ -243,9 +234,31 @@ export function ExerciseRenderer({
     }
   }, [allQuestionsCorrect])
 
-  // SVG hotspot state (interactive SVGs are separate from QuestionBlock flow)
-  const [svgAnswers, setSvgAnswers] = useState<Record<string, UserAnswer>>({})
-  const [svgCheckResults, setSvgCheckResults] = useState<Record<string, CheckResult>>({})
+  // SVG hotspot state (interactive SVGs are separate from QuestionBlock flow).
+  // Hydrated from the same bundle so a return visit keeps selected hotspots
+  // AND the correct/incorrect border styling.
+  const [svgAnswers, setSvgAnswers] = useState<Record<string, UserAnswer>>(
+    () => hydratedState?.svgAnswers ?? {},
+  )
+  const [svgCheckResults, setSvgCheckResults] = useState<Record<string, CheckResult>>(
+    () => hydratedState?.svgCheckResults ?? {},
+  )
+
+  // Persist the full working-state bundle on every change. Writes happen
+  // after render (post-effect) — fine because localStorage is sync and the
+  // bundle is small. One effect handles all five state slices so we don't
+  // tear the bundle (writing answers at version N but checkResults at N-1
+  // during a batch update).
+  useEffect(() => {
+    if (!exerciseId) return
+    writeExerciseState(exerciseId, {
+      answers,
+      checkResults,
+      hasChecked,
+      svgAnswers,
+      svgCheckResults,
+    })
+  }, [exerciseId, answers, checkResults, hasChecked, svgAnswers, svgCheckResults])
 
   const handleSvgHotspotToggle = (blockId: string, hotspotId: string) => {
     setSvgAnswers((prev) => {
@@ -266,11 +279,7 @@ export function ExerciseRenderer({
   }
 
   const handleAnswerChange = async (questionId: string, answer: UserAnswer) => {
-    setAnswers((prev) => {
-      const updated = { ...prev, [questionId]: answer }
-      persistAnswers(updated)
-      return updated
-    })
+    setAnswers((prev) => ({ ...prev, [questionId]: answer }))
 
     // In batch check mode nothing is graded until the student clicks
     // "Check all" — we just store the answer and let batchCheck handle it.
@@ -360,14 +369,10 @@ export function ExerciseRenderer({
    */
   const handleAutoCheckMcq = useCallback(
     async (questionId: string, ans: UserAnswer) => {
-      setAnswers((prev) => {
-        const updated = { ...prev, [questionId]: ans }
-        persistAnswers(updated)
-        return updated
-      })
+      setAnswers((prev) => ({ ...prev, [questionId]: ans }))
       await runCheckWithAnswer(questionId, ans)
     },
-    [runCheckWithAnswer, persistAnswers],
+    [runCheckWithAnswer],
   )
 
   const handleTableCheckResult = (questionId: string, isCorrect: boolean) => {

@@ -6,6 +6,7 @@ import { getExerciseBlockGroups } from '@/lib/exercises/getExerciseBlocks'
 import { formatExerciseContextMessage } from '@/infra/llm/exercise-context'
 import { uploadDataUrlAsMedia } from '@/infra/media/uploadDataUrl'
 import { ExerciseRenderer } from '@/ui/web/exerciserenderer'
+import { clearExerciseState } from '@/ui/web/exerciserenderer/utils/exerciseStateStorage'
 import { logger } from '@/infra/utils/logger'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -307,9 +308,13 @@ function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatPr
     // Wipe persistence BEFORE remount — the fresh ActiveChat reads
     // localStorage during its first render via useState lazy-init, so an
     // uncleared entry would resurrect the walker at the just-reset position.
+    // Also drop every exercise's answers + solved-outcome bundle for this
+    // lesson; otherwise the student lands on exercise 1 section 1 with the
+    // previous run's green checkmarks still painted on the question cards.
     clearProgress()
+    exercises.forEach((ex) => clearExerciseState(ex.id))
     onExit()
-  }, [cancelPendingAdvance, clearProgress, onExit, tts])
+  }, [cancelPendingAdvance, clearProgress, exercises, onExit, tts])
 
   const showContinueButton = !walker.isComplete && entries.length > 0
 
