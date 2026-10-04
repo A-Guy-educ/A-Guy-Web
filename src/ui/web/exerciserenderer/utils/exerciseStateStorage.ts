@@ -105,6 +105,32 @@ export function writeExerciseState(
 }
 
 /**
+ * Merge a single block's answer / check result into the bundle. The chat-
+ * native bubbles (ChatQuestionSelectBubble, ChatFreeResponseBubble) bypass
+ * ExerciseRenderer and only know about their own block id, so they use this
+ * helper instead of writing the whole bundle. Keeps every section writing to
+ * one key per exercise, so Reset + cross-tab stay consistent.
+ */
+export function patchExerciseStateBlock(
+  exerciseId: string,
+  blockId: string,
+  patch: { answer?: UserAnswer; checkResult?: CheckResult },
+): void {
+  if (!exerciseId || !blockId || typeof window === 'undefined') return
+  const current = readExerciseState(exerciseId) ?? emptyState()
+  const next: Omit<PersistedExerciseState, 'version'> = {
+    answers: patch.answer ? { ...current.answers, [blockId]: patch.answer } : current.answers,
+    checkResults: patch.checkResult
+      ? { ...current.checkResults, [blockId]: patch.checkResult }
+      : current.checkResults,
+    hasChecked: patch.checkResult ? { ...current.hasChecked, [blockId]: true } : current.hasChecked,
+    svgAnswers: current.svgAnswers,
+    svgCheckResults: current.svgCheckResults,
+  }
+  writeExerciseState(exerciseId, next)
+}
+
+/**
  * Drop the saved bundle AND the legacy answers-only key. Used by the chat
  * view's Reset button to wipe every exercise in the lesson at once.
  */

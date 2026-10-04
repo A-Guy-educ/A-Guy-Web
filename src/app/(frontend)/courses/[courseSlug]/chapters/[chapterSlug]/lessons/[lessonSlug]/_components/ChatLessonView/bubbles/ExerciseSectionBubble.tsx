@@ -11,6 +11,7 @@ import type {
 import { ExerciseRenderer } from '@/ui/web/exerciserenderer'
 import { RichTextRenderer } from '@/ui/web/exerciserenderer/blocks/RichTextRenderer'
 import { MediaMapProvider } from '@/ui/web/exerciserenderer/context/MediaMapContext'
+import { readExerciseState } from '@/ui/web/exerciserenderer/utils/exerciseStateStorage'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import type { SectionOutcome } from '../types'
 import { ChatFreeResponseBubble } from './ChatFreeResponseBubble'
@@ -122,20 +123,57 @@ export function ExerciseSectionBubble({
   isActive = true,
   sectionKey,
 }: ExerciseSectionBubbleProps) {
-  const outcomeReportedRef = useRef(false)
-  // Chips hide the moment the student starts answering — they're a discovery
-  // affordance for "what can I do before answering", not a mid-answer HUD.
-  const [hasAnyAnswer, setHasAnyAnswer] = useState(false)
-  // Block IDs the student answered incorrectly. Used to scope the "correct
-  // answer" bubble to ONLY the questions they missed, so a multi-question
-  // section doesn't leak answers to questions they got right.
-  const wrongBlockIdsRef = useRef<Set<string>>(new Set())
-
   const isChatNativePath = useMemo(() => isChatNativeSection(group), [group])
 
   // Correct-answer text for the FALLBACK path (no per-question outcome
   // signal there — we can only echo the whole section's correct answers).
   const allCorrectAnswerText = useMemo(() => deriveCorrectAnswerText(group), [group])
+
+  const chatNativeQuestionCount = useMemo(
+    () => (isChatNativePath ? group.blocks.filter(isChatNativeQuestion).length : 0),
+    [group.blocks, isChatNativePath],
+  )
+
+  // Hydrate chat-native outcome counters from the shared answer bundle so a
+  // partially-answered section resumes with the right counts. Without this,
+  // a student who answered 1 of 2 questions in the active section would be
+  // stuck: the restored pickedId locks that first question (handlePick early-
+  // returns), the counter stays at 0, and even after answering question 2 the
+  // outcome check `submittedCount >= total` never trips.
+  const seeded = useMemo(() => {
+    if (!isChatNativePath) return { submitted: 0, correct: 0, wrongIds: [] as string[] }
+    const saved = exercise.id ? readExerciseState(exercise.id) : null
+    if (!saved) return { submitted: 0, correct: 0, wrongIds: [] as string[] }
+    const chatQs = group.blocks.filter(isChatNativeQuestion)
+    const wrongIds: string[] = []
+    let submitted = 0
+    let correct = 0
+    for (const q of chatQs) {
+      const answer = saved.answers[q.id]
+      const result = saved.checkResults[q.id]
+      if (!answer) continue
+      submitted += 1
+      if (result?.isCorrect) correct += 1
+      else if (result && !result.isCorrect) wrongIds.push(q.id)
+    }
+    return { submitted, correct, wrongIds }
+    // Lazy-only; later saves to the bundle shouldn't reset the running refs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Mark the outcome as already-reported when the saved state shows every
+  // chat-native question was previously answered — prevents re-firing the
+  // celebration / correction when the student re-visits a finished section.
+  const outcomeReportedRef = useRef(
+    chatNativeQuestionCount > 0 && seeded.submitted >= chatNativeQuestionCount,
+  )
+  // Chips hide the moment the student starts answering — they're a discovery
+  // affordance for "what can I do before answering", not a mid-answer HUD.
+  const [hasAnyAnswer, setHasAnyAnswer] = useState(seeded.submitted > 0)
+  // Block IDs the student answered incorrectly. Used to scope the "correct
+  // answer" bubble to ONLY the questions they missed, so a multi-question
+  // section doesn't leak answers to questions they got right.
+  const wrongBlockIdsRef = useRef<Set<string>>(new Set(seeded.wrongIds))
 
   // ── FALLBACK path ────────────────────────────────────────────────────────
   // Existing aggregate onResultsChange from ExerciseRenderer; fires onOutcome
@@ -158,12 +196,8 @@ export function ExerciseSectionBubble({
   // ── CHAT-NATIVE path ─────────────────────────────────────────────────────
   // Per-question submits accumulate here; when every question in the section
   // has been picked we emit the section outcome exactly once.
-  const submittedCountRef = useRef(0)
-  const correctCountRef = useRef(0)
-  const chatNativeQuestionCount = useMemo(
-    () => (isChatNativePath ? group.blocks.filter(isChatNativeQuestion).length : 0),
-    [group.blocks, isChatNativePath],
-  )
+  const submittedCountRef = useRef(seeded.submitted)
+  const correctCountRef = useRef(seeded.correct)
 
   // Only label individual questions when the section has more than one — a
   // solo question doesn't need a leading badge. We look each block up in
@@ -240,6 +274,7 @@ export function ExerciseSectionBubble({
                   // dropped). Past-section bubbles stay answerable so a
                   // student can go back and finish anything they skipped.
                   disabled={quickActionsDisabled}
+                  exerciseId={exercise.id}
                   onSubmit={handleChatNativeSubmit}
                 />
               )
@@ -253,6 +288,7 @@ export function ExerciseSectionBubble({
                   placeholder={freeResponsePlaceholder ?? ''}
                   sendLabel={freeResponseSendLabel ?? ''}
                   disabled={quickActionsDisabled}
+                  exerciseId={exercise.id}
                   onSubmit={handleChatNativeSubmit}
                 />
               )
