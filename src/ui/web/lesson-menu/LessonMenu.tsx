@@ -6,8 +6,18 @@ import type { LessonMode } from '@/infra/types/lesson-view'
 import { cn } from '@/infra/utils/ui'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, BookOpen, Check, Menu, Volume2, VolumeX } from 'lucide-react'
+import {
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  Check,
+  Menu,
+  Share2,
+  Volume2,
+  VolumeX,
+} from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import type { LessonMenuMute } from './LessonMenuContext'
 
 /**
@@ -105,6 +115,26 @@ export function LessonMenu({
       router.push(backUrl)
     } else {
       router.push('/courses')
+    }
+  }
+
+  // Shares the current lesson URL (strips query params so the recipient lands on the
+  // lesson intro, not whichever tab/exercise the sharer happens to be viewing).
+  const handleShare = async () => {
+    setOpen(false)
+    if (typeof window === 'undefined') return
+    const shareUrl = `${window.location.origin}${window.location.pathname}`
+    if (typeof navigator.share === 'function') {
+      try {
+        await navigator.share({ title: lessonTitle, url: shareUrl })
+        return
+      } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') return
+      }
+    }
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(shareUrl)
+      toast.success(t('linkCopied'))
     }
   }
 
@@ -232,6 +262,23 @@ export function LessonMenu({
                   </span>
                 </button>
               )}
+
+              {/* Share lesson */}
+              <button
+                type="button"
+                role="menuitem"
+                onClick={handleShare}
+                className={cn(
+                  'flex items-center justify-between rounded-lg px-3 py-2',
+                  'text-body-sm font-medium bg-muted text-foreground hover:bg-muted/70',
+                  'transition-colors',
+                )}
+              >
+                <span className="flex items-center gap-content-gap-xs">
+                  <Share2 className="w-4 h-4 text-primary" />
+                  {t('shareLesson')}
+                </span>
+              </button>
 
               {/* Back navigation */}
               <button

@@ -654,6 +654,42 @@ math-field:focus-within {
   font-size: 1em;
 }
 
+/* Compound vertical stacks — fraction inside a superscript (`e^{\frac{1}{x}}`)
+   or nested superscripts — tower well above the baseline. `.math-tall` alone
+   bumps the font size but keeps the surrounding line-height, so the ascender
+   collides with the line above. `.math-xtall` grows the line box and adds
+   vertical padding so the stacked construct gets room to breathe. Added by
+   rehype-math-wrapper when it detects a stacking construct inside a `^{...}`
+   or `_{...}` group. */
+.math-short.math-xtall,
+.math-long.math-xtall,
+.chat-message-content .math-short.math-xtall,
+.chat-message-content .math-long.math-xtall {
+  line-height: 2.4;
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+}
+
+.math-short.math-xtall .katex,
+.math-long.math-xtall .katex,
+.chat-message-content .math-short.math-xtall .katex,
+.chat-message-content .math-long.math-xtall .katex {
+  font-size: 1.35em;
+}
+
+/* Chat tables stay pinned at 1em for row-height consistency — same rationale
+   as `.math-tall` above. */
+.chat-message-content .chat-table .math-short.math-xtall,
+.chat-message-content .chat-table .math-long.math-xtall {
+  line-height: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.chat-message-content .chat-table .math-short.math-xtall .katex,
+.chat-message-content .chat-table .math-long.math-xtall .katex {
+  font-size: 1em;
+}
+
 /* Chat callouts — paragraphs tagged by remarkChatCallouts and rendered via
    the ChatCallout component. Colors match boss's spec: note = yellow warning,
    example = sage green, mistake = red error, tip = purple accent, guiding =
