@@ -17,6 +17,7 @@ import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 import { rehypeMathWrapper } from './rehype-math-wrapper'
 import { remarkColorSyntax } from './remark-color-syntax'
+import { remarkMathDisplayStyle } from './remark-math-displaystyle'
 
 type RemarkPluginsProp = ComponentProps<typeof ReactMarkdown>['remarkPlugins']
 
@@ -97,6 +98,11 @@ export function MathMarkdown({
   // If we ever loosen this, pass `urlTransform={(url) => /^(https?:|\/)/.test(url) ? url : ''}`.
   const plugins = [
     remarkMath,
+    // Runs after remark-math (which parses $...$ into inlineMath nodes) and
+    // before rehype-katex (which renders them). Inlines `\displaystyle` into
+    // any inline math containing a fraction so KaTeX uses full display-style
+    // spacing — fixes squished `\frac{a}{b}` and `e^{\frac{1}{x}}` renders.
+    remarkMathDisplayStyle,
     remarkGfm,
     remarkColorSyntax,
     ...(remarkPlugins ?? []),

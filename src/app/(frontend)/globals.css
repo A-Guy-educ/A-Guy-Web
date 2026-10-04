@@ -633,57 +633,57 @@ math-field:focus-within {
   color: hsl(var(--text-wine-red));
 }
 
-/* Fractions and powers stack vertically and read best at a slightly larger
-   size. `.math-tall` is added by rehype-math-wrapper when the TeX source
-   contains \frac, \binom, or a `^` superscript. It's applied on the same
-   wrapper span as `.math-short` / `.math-long`, so we compound the selectors
-   to outrank the chat-scoped rules above that pin `.math-short` to 1em. */
+/* Tall math (contains `\frac`, `\binom`, or `^`): grow the surrounding line
+   box so a display-style fraction / superscript doesn't collide with the
+   previous line. `remarkMathDisplayStyle` handles the INTERNAL fraction
+   layout by injecting `\displaystyle`; this rule only adds the vertical room
+   the surrounding paragraph flow needs. */
+.math-short.math-tall,
+.math-long.math-tall,
+.chat-message-content .math-short.math-tall,
+.chat-message-content .math-long.math-tall {
+  line-height: 2.1;
+}
+
 .math-short.math-tall .katex,
 .math-long.math-tall .katex,
 .chat-message-content .math-short.math-tall .katex,
 .chat-message-content .math-long.math-tall .katex {
-  font-size: 1.2em;
+  font-size: 1.1em;
 }
 
-/* Cell layout in chat tables is deliberately pinned to 1em (see lines above);
-   the .math-tall bump would tie-break on specificity and win by cascade order,
-   producing uneven row heights when a table mixes plain text with \frac / ^
-   cells. Add an explicit reset for tall math inside chat tables. */
+/* Chat tables are pinned to inherited line-height / 1em so rows that mix plain
+   text with \frac / ^ cells still measure uniformly. */
+.chat-message-content .chat-table .math-short.math-tall,
+.chat-message-content .chat-table .math-long.math-tall {
+  line-height: inherit;
+}
 .chat-message-content .chat-table .math-short.math-tall .katex,
 .chat-message-content .chat-table .math-long.math-tall .katex {
   font-size: 1em;
 }
 
 /* Compound vertical stacks — fraction inside a superscript (`e^{\frac{1}{x}}`)
-   or nested superscripts — tower well above the baseline. `.math-tall` alone
-   bumps the font size but keeps the surrounding line-height, so the ascender
-   collides with the line above. `.math-xtall` grows the line box and adds
-   vertical padding so the stacked construct gets room to breathe. Added by
-   rehype-math-wrapper when it detects a stacking construct inside a `^{...}`
-   or `_{...}` group. */
+   or nested superscripts — tower further above the baseline. One step above
+   `.math-tall`. Added by rehype-math-wrapper when it detects a stacking
+   construct inside a `^{...}` or `_{...}` group. */
 .math-short.math-xtall,
 .math-long.math-xtall,
 .chat-message-content .math-short.math-xtall,
 .chat-message-content .math-long.math-xtall {
-  line-height: 2.4;
-  padding-top: 0.5em;
-  padding-bottom: 0.5em;
+  line-height: 2.8;
 }
 
 .math-short.math-xtall .katex,
 .math-long.math-xtall .katex,
 .chat-message-content .math-short.math-xtall .katex,
 .chat-message-content .math-long.math-xtall .katex {
-  font-size: 1.35em;
+  font-size: 1.2em;
 }
 
-/* Chat tables stay pinned at 1em for row-height consistency — same rationale
-   as `.math-tall` above. */
 .chat-message-content .chat-table .math-short.math-xtall,
 .chat-message-content .chat-table .math-long.math-xtall {
   line-height: inherit;
-  padding-top: 0;
-  padding-bottom: 0;
 }
 .chat-message-content .chat-table .math-short.math-xtall .katex,
 .chat-message-content .chat-table .math-long.math-xtall .katex {
