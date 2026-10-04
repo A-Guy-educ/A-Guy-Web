@@ -127,9 +127,7 @@ async function main() {
   const [owner, name] = repo.split('/')
   const title = required(args, 'title')
   const mode = (typeof args['mode'] === 'string' ? args['mode'] : 'upsert') as
-    | 'upsert'
-    | 'create-only'
-    | 'update-only'
+    'upsert' | 'create-only' | 'update-only'
 
   const labels = csv(typeof args['labels'] === 'string' ? args['labels'] : '')
   const dedupeLabel = typeof args['dedupe-label'] === 'string' ? args['dedupe-label'] : ''

@@ -278,9 +278,7 @@ function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatPr
       // `ask-action` is a bare CustomEvent on `window`; anything on the page
       // could dispatch a plain Event with no `.detail`. Guard before use.
       const detail = (e as CustomEvent).detail as
-        | { type?: string; title?: string; imageData?: string }
-        | null
-        | undefined
+        { type?: string; title?: string; imageData?: string } | null | undefined
       if (!detail || detail.type !== 'check' || !detail.imageData) return
 
       try {

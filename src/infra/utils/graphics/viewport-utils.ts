@@ -241,14 +241,12 @@ export function checkGraphVisibility(
     const minY = Math.min(line.a.y, line.b.y)
     const maxY = Math.max(line.a.y, line.b.y)
 
-    if (
-      !(
-        maxX < viewport.xMin ||
-        minX > viewport.xMax ||
-        maxY < viewport.yMin ||
-        minY > viewport.yMax
-      )
-    ) {
+    if (!(
+      maxX < viewport.xMin ||
+      minX > viewport.xMax ||
+      maxY < viewport.yMin ||
+      minY > viewport.yMax
+    )) {
       return { visible: true, warning: null }
     }
   }

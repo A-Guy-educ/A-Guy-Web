@@ -83,8 +83,7 @@ export interface SendPurchaseReceiptOptions {
 }
 
 export type SendPurchaseReceiptResult =
-  | { sent: true }
-  | { sent: false; reason: 'already_sent' | 'no_adapter' | 'missing_data' | 'error' }
+  { sent: true } | { sent: false; reason: 'already_sent' | 'no_adapter' | 'missing_data' | 'error' }
 
 let _resendClient: Resend | null = null
 function getResendClient(): Resend | null {
