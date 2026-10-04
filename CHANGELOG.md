@@ -4806,6 +4806,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore(deps): Ignore unpatched node-forge and braces advisories in pnpm audit ([#1251](https://github.com/A-Guy-educ/A-Guy-Web/pull/1251)) — @aguyshayb
 ## [v0.42.0] - 2026-10-01
 
 - promote: dev -> main (v0.42.0) ([#1248](https://github.com/A-Guy-educ/A-Guy-Web/pull/1248)) — @aguyshayb
