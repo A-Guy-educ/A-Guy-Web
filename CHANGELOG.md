@@ -4845,6 +4845,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- promote: dev -> main (v0.44.0) ([#1285](https://github.com/A-Guy-educ/A-Guy-Web/pull/1285)) — @aguyshayb
 - chore: Release v0.44.0 ([#1284](https://github.com/A-Guy-educ/A-Guy-Web/pull/1284)) — @aguyshayb
 - fix(deps): Pin katex back to 0.16 after a 0.19 bump re-broke sizing ([#1283](https://github.com/A-Guy-educ/A-Guy-Web/pull/1283)) — @aguyshayb
 - Revert PR #1280 + swap share order next to start button ([#1281](https://github.com/A-Guy-educ/A-Guy-Web/pull/1281)) — @aguyshayb
