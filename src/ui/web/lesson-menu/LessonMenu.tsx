@@ -12,13 +12,14 @@ import {
   BookOpen,
   Check,
   Menu,
+  RotateCcw,
   Share2,
   Volume2,
   VolumeX,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import type { LessonMenuMute } from './LessonMenuContext'
+import type { LessonMenuMute, LessonMenuRestart } from './LessonMenuContext'
 
 /**
  * Floating menu button + dropdown that replaces the old exercise chrome
@@ -56,6 +57,12 @@ interface LessonMenuProps {
   /** Optional TTS mute toggle rendered as a menu item. Chat view wires
    *  this from `useBrowserTTS`; other view modes omit it. */
   mute?: LessonMenuMute
+  /** Optional restart action rendered as a menu item. Chat view uses this
+   *  so its "start over" affordance can live in the menu instead of the
+   *  top-level floating slot. */
+  restart?: LessonMenuRestart
+  /** Hide the dropdown's back entry — see `LessonMenuConfig.hideBack`. */
+  hideBack?: boolean
   /**
    * Back-button semantics. `'lesson'` promises a course destination (label =
    * "back to home page", push straight to `backUrl`). `'standalone'` (the default
@@ -77,6 +84,8 @@ export function LessonMenu({
   onSelectMode,
   backUrl,
   mute,
+  restart,
+  hideBack = false,
   variant,
 }: LessonMenuProps) {
   const t = useTranslations('courses')
@@ -263,6 +272,30 @@ export function LessonMenu({
                 </button>
               )}
 
+              {/* Restart this view — chat view uses this slot so its
+                  reset action lives in the menu instead of the top-level
+                  floating button (freed up for back-to-course). */}
+              {restart && (
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    restart.onReset()
+                    setOpen(false)
+                  }}
+                  className={cn(
+                    'flex items-center justify-between rounded-lg px-3 py-2',
+                    'text-body-sm font-medium bg-muted text-foreground hover:bg-muted/70',
+                    'transition-colors',
+                  )}
+                >
+                  <span className="flex items-center gap-content-gap-xs">
+                    <RotateCcw className="w-4 h-4 text-primary" />
+                    {restart.label}
+                  </span>
+                </button>
+              )}
+
               {/* Share lesson */}
               <button
                 type="button"
@@ -280,22 +313,26 @@ export function LessonMenu({
                 </span>
               </button>
 
-              {/* Back navigation */}
-              <button
-                type="button"
-                role="menuitem"
-                onClick={handleBack}
-                className={cn(
-                  'flex items-center justify-between rounded-lg px-3 py-2',
-                  'text-body-sm font-medium bg-muted text-foreground hover:bg-muted/70',
-                  'transition-colors',
-                )}
-              >
-                <span className="flex items-center gap-content-gap-xs">
-                  <BackIcon className="w-4 h-4 text-primary" />
-                  {onLessonSurface ? t('backToCourse') : t('back')}
-                </span>
-              </button>
+              {/* Back navigation — hidden when the view (chat view) surfaces
+                  its own top-level back control, so there aren't two back
+                  affordances pointing at the same destination. */}
+              {!hideBack && (
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={handleBack}
+                  className={cn(
+                    'flex items-center justify-between rounded-lg px-3 py-2',
+                    'text-body-sm font-medium bg-muted text-foreground hover:bg-muted/70',
+                    'transition-colors',
+                  )}
+                >
+                  <span className="flex items-center gap-content-gap-xs">
+                    <BackIcon className="w-4 h-4 text-primary" />
+                    {onLessonSurface ? t('backToCourse') : t('back')}
+                  </span>
+                </button>
+              )}
             </motion.div>
           </>
         )}

@@ -29,6 +29,14 @@ interface AccessGateProviderProps {
   requiresEntitlement?: boolean
   /** Server-determined: whether user is logged in */
   isAuthenticated?: boolean
+  /**
+   * When true, anonymous visitors can see the children without a mandatory /
+   * gated modal blocking them (good for SEO-indexable preview pages like the
+   * lesson intro — the real sign-in prompt kicks in at the Start button).
+   * Paid-content gating is unaffected: paid courses still render whatever the
+   * server returned (usually an empty shell).
+   */
+  allowAnonymousPreview?: boolean
   children: React.ReactNode
 }
 
@@ -39,17 +47,26 @@ export function AccessGateProvider({
   gatedWarningMs,
   requiresEntitlement,
   isAuthenticated,
+  allowAnonymousPreview = false,
   children,
 }: AccessGateProviderProps) {
   const t = useTranslations('accessControl')
   const pathname = usePathname()
   const {
-    showMandatoryModal,
-    showGatedModal,
-    showWarningModal,
+    showMandatoryModal: showMandatoryModalRaw,
+    showGatedModal: showGatedModalRaw,
+    showWarningModal: showWarningModalRaw,
     warningSecondsLeft,
     dismissWarning,
   } = useAccessGate({ accessType, courseSlug, gatedDelayMs, gatedWarningMs })
+
+  // When the caller opts into anonymous preview (e.g. public lesson intro),
+  // suppress the mandatory / gated / warning modals so the page is actually
+  // viewable without logging in. Paid gating still fires because it reflects a
+  // server-side entitlement check, not an anonymous-visit heuristic.
+  const showMandatoryModal = allowAnonymousPreview ? false : showMandatoryModalRaw
+  const showGatedModal = allowAnonymousPreview ? false : showGatedModalRaw
+  const showWarningModal = allowAnonymousPreview ? false : showWarningModalRaw
 
   const showPaidModal = accessType === 'paid' && requiresEntitlement === true
   const isBlocked = showMandatoryModal || showGatedModal || showPaidModal

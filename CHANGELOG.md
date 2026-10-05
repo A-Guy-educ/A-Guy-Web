@@ -1,5 +1,28 @@
 # Changelog
 
+## v0.44.0 — 2026-10-05
+
+### Features
+- Add share button to each lesson row on the course page (#1263)
+- Always show chat on media tab and send PDF page context (#1265)
+
+### Fixes
+- Pin katex back to 0.16 after a 0.19 bump broke sizing (#1283)
+- Swap chat-view reset and back controls (#1282)
+- Flip lesson-row share to opposite end and render f(x) as math (#1281)
+- Stream ask-uploaded PDFs same-origin for the viewer iframe (#1269)
+- Keep ask tab on course page and route PDF preview via proxy (#1267)
+- Scope double-size math to long expressions only (#1266)
+- Let anonymous visitors see lesson intros on mandatory courses (#1262)
+
+### Chores
+- Bump prod-dependencies group with 7 updates (#1270)
+- Bump @testing-library/jest-dom to 7.0.1 (#1271)
+- Bump openai to 7.27.0 (#1274)
+- Bump framer-motion to 13.5.0 (#1276)
+- Fix broken internal doc links (#1268)
+- Refresh ai-docs indexes (#1264)
+
 ## v0.43.0 — 2026-10-04
 
 ### Features
@@ -4822,6 +4845,26 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.44.0 ([#1284](https://github.com/A-Guy-educ/A-Guy-Web/pull/1284)) — @aguyshayb
+- fix(deps): Pin katex back to 0.16 after a 0.19 bump re-broke sizing ([#1283](https://github.com/A-Guy-educ/A-Guy-Web/pull/1283)) — @aguyshayb
+- Revert PR #1280 + swap share order next to start button ([#1281](https://github.com/A-Guy-educ/A-Guy-Web/pull/1281)) — @aguyshayb
+- fix: Swap chat-view reset and back controls ([#1282](https://github.com/A-Guy-educ/A-Guy-Web/pull/1282)) — @aguyshayb
+- fix: Flip lesson-row share to opposite end + render f(x) as math ([#1280](https://github.com/A-Guy-educ/A-Guy-Web/pull/1280)) — @aguyshayb
+- chore(deps): Bump framer-motion from 12.38.0 to 13.5.0 ([#1276](https://github.com/A-Guy-educ/A-Guy-Web/pull/1276)) — @dependabot[bot]
+- chore(deps): Bump openai from 4.104.0 to 7.27.0 ([#1274](https://github.com/A-Guy-educ/A-Guy-Web/pull/1274)) — @dependabot[bot]
+- chore(deps-dev): Bump @testing-library/jest-dom from 6.9.1 to 7.0.1 ([#1271](https://github.com/A-Guy-educ/A-Guy-Web/pull/1271)) — @dependabot[bot]
+- chore(deps): Bump the prod-dependencies group with 7 updates ([#1270](https://github.com/A-Guy-educ/A-Guy-Web/pull/1270)) — @dependabot[bot]
+- fix: Stream ask-uploaded PDFs same-origin for the viewer iframe ([#1269](https://github.com/A-Guy-educ/A-Guy-Web/pull/1269)) — @aguyshayb
+- chore(docs): fix broken internal links ([#1268](https://github.com/A-Guy-educ/A-Guy-Web/pull/1268)) — @github-actions[bot]
+- fix: Keep ask tab on course page and show uploaded PDF preview ([#1267](https://github.com/A-Guy-educ/A-Guy-Web/pull/1267)) — @aguyshayb
+- fix: Scope double-size math to long expressions only ([#1266](https://github.com/A-Guy-educ/A-Guy-Web/pull/1266)) — @aguyshayb
+- feat: Always show chat on media tab, send PDF page context, allow PDF uploads on ask ([#1265](https://github.com/A-Guy-educ/A-Guy-Web/pull/1265)) — @aguyshayb
+- chore(ai-docs): Refresh indexes ([#1264](https://github.com/A-Guy-educ/A-Guy-Web/pull/1264)) — @github-actions[bot]
+- feat: Add share button to each lesson row on the course page ([#1263](https://github.com/A-Guy-educ/A-Guy-Web/pull/1263)) — @aguyshayb
+- fix: Let anonymous visitors see lesson intros on mandatory courses ([#1262](https://github.com/A-Guy-educ/A-Guy-Web/pull/1262)) — @aguyshayb
+## [v0.43.0] - 2026-10-04
+
+- promote: dev -> main (v0.43.0) ([#1261](https://github.com/A-Guy-educ/A-Guy-Web/pull/1261)) — @aguyshayb
 - chore: Release v0.43.0 ([#1260](https://github.com/A-Guy-educ/A-Guy-Web/pull/1260)) — @aguyshayb
 - fix: Double base math font-size for legible nested scripts ([#1259](https://github.com/A-Guy-educ/A-Guy-Web/pull/1259)) — @aguyshayb
 - fix: Align katex version so superscripts actually shrink ([#1258](https://github.com/A-Guy-educ/A-Guy-Web/pull/1258)) — @aguyshayb

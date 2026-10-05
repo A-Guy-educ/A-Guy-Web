@@ -89,6 +89,7 @@ export function AskPrimaryContent() {
       url: previewUrl,
       date: new Date().toLocaleDateString('he-IL'),
       isUploading: true,
+      mimeType: file.type,
     })
     setIsUploading(true)
 
@@ -104,9 +105,19 @@ export function AskPrimaryContent() {
       const doc = await response.json()
       const mediaId = doc.doc?.id || doc.id
       const filename = doc.doc?.filename || doc.filename || file.name
+      const uploadedUrl: string | undefined = doc.doc?.url || doc.url
+      // Swap the local blob: preview URL for the server-side URL. Chrome
+      // blocks blob-sourced PDFs inside iframes with "this content is
+      // blocked", so for PDFs the ExerciseCard needs the real Vercel Blob
+      // URL to route through our /api/pdfjs-viewer proxy. Image previews
+      // work either way; using the server URL avoids keeping the blob
+      // around after the ObjectURL is revoked below.
       setCurrentFile((prev) =>
-        prev && prev.id === fileId ? { ...prev, mediaId, isUploading: false } : prev,
+        prev && prev.id === fileId
+          ? { ...prev, mediaId, isUploading: false, url: uploadedUrl ?? prev.url, filename }
+          : prev,
       )
+      if (uploadedUrl) URL.revokeObjectURL(previewUrl)
       dispatchMediaAttach({ mediaId, filename })
     } catch {
       toast.error(t('uploadFailed'))
@@ -188,7 +199,7 @@ export function AskPrimaryContent() {
               type="file"
               ref={fileInputRef}
               onChange={handleFileUpload}
-              accept="image/*"
+              accept="image/*,application/pdf"
               className="hidden"
             />
           </div>

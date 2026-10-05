@@ -34,12 +34,12 @@ type StackEntry = {
   skip: boolean
 }
 
-function wrapInline(rendered: string): string {
-  return `<span dir="ltr" class="isolate inline-block align-middle">${rendered}</span>`
+function wrapInline(rendered: string, lengthClass: 'math-short' | 'math-long'): string {
+  return `<span dir="ltr" class="isolate inline-block align-middle ${lengthClass}">${rendered}</span>`
 }
 
 function wrapDisplay(rendered: string): string {
-  return `<div dir="ltr" class="isolate block text-center mt-3 mb-3">${rendered}</div>`
+  return `<div dir="ltr" class="isolate block text-center mt-3 mb-3 math-long">${rendered}</div>`
 }
 
 function canRenderInlineMath(source: string): boolean {
@@ -47,6 +47,28 @@ function canRenderInlineMath(source: string): boolean {
   if (!value) return false
   if (/^[A-Za-z]$/.test(value)) return true
   return /[\\^_{}=<>+\-*×÷/]|\d[A-Za-z]|[A-Za-z]\d/.test(value)
+}
+
+/**
+ * Short = reads as a label, not a full expression. Keeps atoms (`A`, `35`,
+ * `\pi`), bare pairs (`AB`), and function-call-style labels (`f(x)`, `g(x)`,
+ * `sin(x)`) at the base inline reading size. Anything with an operator
+ * (`=`, `+`, `^`, `_`, `<`, `>`) or more than ~3 non-call characters is long
+ * and opts into the bigger `.math-long` CSS treatment.
+ *
+ * Mirrors classifyShort in rehype-math-wrapper.ts — keep them in sync.
+ */
+function classifyShort(source: string): boolean {
+  const value = source.trim()
+  if (!value) return false
+  // Function-call labels like `f(x)`, `g(x,y)`, `sin(x)` — read as a function
+  // reference, not a definition. Reject when the parens contain operators or
+  // nested braces (`\frac` etc.), which would make the expression long.
+  if (/^[A-Za-z]+\([A-Za-z0-9, ]*\)$/.test(value)) return true
+  const normalised = value.replace(/\\[a-zA-Z]+/g, 'x')
+  if (normalised.length > 3) return false
+  if (/[=+/^_<>]/.test(normalised)) return false
+  return true
 }
 
 function renderMath(source: string, displayMode: boolean): string | null {
@@ -61,7 +83,9 @@ function renderMath(source: string, displayMode: boolean): string | null {
     trust: false,
   })
 
-  return displayMode ? wrapDisplay(rendered) : wrapInline(rendered)
+  if (displayMode) return wrapDisplay(rendered)
+  const lengthClass = classifyShort(value) ? 'math-short' : 'math-long'
+  return wrapInline(rendered, lengthClass)
 }
 
 function renderBareMathInText(text: string): string {

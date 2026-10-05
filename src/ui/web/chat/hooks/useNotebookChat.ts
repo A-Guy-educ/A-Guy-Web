@@ -17,6 +17,13 @@ import { ASK_STEP_CONTEXT_EVENT } from '@/app/(frontend)/ask/_components/ask-typ
 import { useDirectChatAssetUpload } from './useDirectChatAssetUpload'
 import { buildPromptWithStepContext, stripStepContext, type ChatStepContext } from './step-context'
 import { buildPromptWithExerciseContext, stripExerciseContext } from './exercise-context-prompt'
+import {
+  MEDIA_PDF_PAGE_EVENT,
+  buildPromptWithPdfPageContext,
+  stripPdfPageContext,
+  type PdfPageContext,
+  type PdfPageEventDetail,
+} from './pdf-context'
 
 export type { ChatStepContext } from './step-context'
 
@@ -137,6 +144,20 @@ export function useNotebookChat({
     }
     window.addEventListener(ASK_STEP_CONTEXT_EVENT, handler)
     return () => window.removeEventListener(ASK_STEP_CONTEXT_EVENT, handler)
+  }, [])
+
+  // Latest PDF page the student is viewing in the Media tab's PDF.js
+  // iframe. Attached invisibly to outgoing prompts so the tutor AI can
+  // scope its answer to that page. Cleared when the viewer unmounts.
+  const pdfPageContextRef = useRef<PdfPageContext | null>(null)
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as PdfPageEventDetail
+      pdfPageContextRef.current = detail ?? null
+    }
+    window.addEventListener(MEDIA_PDF_PAGE_EVENT, handler)
+    return () => window.removeEventListener(MEDIA_PDF_PAGE_EVENT, handler)
   }, [])
 
   // Error state
@@ -312,14 +333,16 @@ export function useNotebookChat({
                     msg.role === ChatRole.User || msg.role === 'user'
                       ? ChatRole.User
                       : ChatRole.Assistant,
-                  // Strip any persisted <step-context> / <exercise-context>
-                  // prefixes so the displayed bubble stays clean. The AI
-                  // still sees them on the server side (full content is
-                  // retrieved for LLM context). Order matters: the write
-                  // side wraps exercise-context *inside* step-context, so we
-                  // must peel the outer step-context first for the anchored
-                  // ^<exercise-context regex to match on the next pass.
-                  content: stripExerciseContext(stripStepContext(String(msg.content))),
+                  // Strip any persisted <pdf-page> / <step-context> /
+                  // <exercise-context> prefixes so the displayed bubble
+                  // stays clean. The AI still sees them on the server side
+                  // (full content is retrieved for LLM context). Order
+                  // matters: the write side wraps innermost-to-outermost as
+                  // exercise-context ⊂ step-context ⊂ pdf-page, so we peel
+                  // in reverse here.
+                  content: stripExerciseContext(
+                    stripStepContext(stripPdfPageContext(String(msg.content))),
+                  ),
                   media: raw.media,
                   chatAssets: raw.chatAssets,
                   createdAt: raw.createdAt,
@@ -452,9 +475,9 @@ export function useNotebookChat({
     // Consume any pending exercise context on the first outgoing message
     // since the student entered the exercise. It's prepended to the AI
     // prompt only — the visible bubble carries the raw message.
-    const promptForAI = buildPromptWithStepContext(
-      consumePendingExerciseContext(message),
-      stepContext,
+    const promptForAI = buildPromptWithPdfPageContext(
+      buildPromptWithStepContext(consumePendingExerciseContext(message), stepContext),
+      pdfPageContextRef.current,
     )
 
     const userMessage: ChatMessage = {

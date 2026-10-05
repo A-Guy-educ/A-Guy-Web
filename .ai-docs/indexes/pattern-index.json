@@ -4,6 +4,7 @@
       "pattern": "client-component",
       "description": "Client-side React component with interactivity",
       "files": [
+        "src/app/(frontend)/LayoutChromeGate.tsx",
         "src/app/(frontend)/LayoutClient.tsx",
         "src/app/(frontend)/[slug]/page.client.tsx",
         "src/app/(frontend)/_components/HomePage/index.tsx",
@@ -28,6 +29,8 @@
         "src/app/(frontend)/courses/[courseSlug]/_components/AskTab/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/ConversationCard/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/CourseAnalytics.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/index.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/useCourseComposerState.ts",
         "src/app/(frontend)/courses/[courseSlug]/_components/CoursePageContent/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/CourseTabs/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/ExamReminderBubble/index.tsx",
@@ -41,7 +44,7 @@
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatInputPanel.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonProgress.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonRunnerView.tsx",
-        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonStartCard.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/GivenDataFloating.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatFreeResponseBubble.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatQuestionSelectBubble.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ContinueButton.tsx",
@@ -54,12 +57,12 @@
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/useBrowserTTS.ts",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/useChatChannel.ts",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/useExerciseWalker.ts",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/useLessonChatProgress.ts",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ConsolidatedLatexLessonView/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ContentPageBodyRenderer/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ContentPageBodyRenderer/lexicalToReact.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ContentPagesPreamble/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ConvertButton.tsx",
-        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/DualModeLessonView/TabButton.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/DualModeLessonView/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/DualModeLessonView/useLessonViewMode.ts",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/EmptyLessonPlaceholder/index.tsx",
@@ -76,7 +79,6 @@
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/TestViewRenderer/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ViewToggle.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/complete/CompleteContent.tsx",
-        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseHeader/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExercisePageContent/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExercisePageHeader/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseWorkspace/index.tsx",
@@ -138,7 +140,6 @@
         "src/app/global-error.tsx",
         "src/client/hooks/useAccessGate.ts",
         "src/client/hooks/useActiveTimeTracker.ts",
-        "src/client/hooks/useCourseSearch.ts",
         "src/client/hooks/useCurrentUser.ts",
         "src/client/hooks/useDebounce.ts",
         "src/client/hooks/useExamCountdown.ts",
@@ -149,6 +150,7 @@
         "src/infra/analytics/adapters/ga4/scripts.tsx",
         "src/infra/analytics/adapters/mixpanel/adapter.ts",
         "src/infra/analytics/adapters/mixpanel/scripts.tsx",
+        "src/infra/analytics/components/SignupSourceCapture.tsx",
         "src/infra/analytics/components/UserIdentificationTracker.tsx",
         "src/infra/analytics/core/tracker.ts",
         "src/infra/analytics/hooks/usePageAbandonment.ts",
@@ -181,6 +183,7 @@
         "src/ui/web/bug-report/hooks/useBugReportForm.ts",
         "src/ui/web/chat/ChatErrorSurface/index.tsx",
         "src/ui/web/chat/ChatInterface/index.tsx",
+        "src/ui/web/chat/ChatMessageContent/ChatCallout.tsx",
         "src/ui/web/chat/ChatMessageContent/index.tsx",
         "src/ui/web/chat/ChatMessageView/ApprovalCardView/index.tsx",
         "src/ui/web/chat/ChatMessageView/MultiSelectListView/index.tsx",
@@ -193,6 +196,7 @@
         "src/ui/web/chat/hooks/useNotebookChat.ts",
         "src/ui/web/chat/hooks/useTTS.ts",
         "src/ui/web/chat/hooks/useTeacherProfileLabel.ts",
+        "src/ui/web/chat/index.ts",
         "src/ui/web/components/BackButton/index.tsx",
         "src/ui/web/components/HealthBadge.tsx",
         "src/ui/web/components/UnifiedCard/CourseCard.tsx",
@@ -230,16 +234,20 @@
         "src/ui/web/exerciserenderer/blocks/HtmlBlockRenderer/index.tsx",
         "src/ui/web/exerciserenderer/blocks/LatexBlockRenderer/index.tsx",
         "src/ui/web/exerciserenderer/blocks/MultiAxisRenderer/index.tsx",
+        "src/ui/web/exerciserenderer/blocks/QuestionWithAttachment/index.tsx",
         "src/ui/web/exerciserenderer/blocks/SvgRenderer/index.tsx",
+        "src/ui/web/exerciserenderer/blocks/renderQuestionAttachment.tsx",
         "src/ui/web/exerciserenderer/components/FeedbackDisplay/index.tsx",
         "src/ui/web/exerciserenderer/components/HelpSystem/HelpSystemButtons.tsx",
         "src/ui/web/exerciserenderer/components/HelpSystem/HelpSystemContent.tsx",
         "src/ui/web/exerciserenderer/components/HelpSystem/index.tsx",
         "src/ui/web/exerciserenderer/components/MediaAttachments/index.tsx",
         "src/ui/web/exerciserenderer/components/QuestionCard/index.tsx",
+        "src/ui/web/exerciserenderer/components/QuestionNotebook/index.tsx",
         "src/ui/web/exerciserenderer/components/VideoPlayer/index.tsx",
         "src/ui/web/exerciserenderer/context/MediaMapContext.tsx",
         "src/ui/web/exerciserenderer/graphics/JSXGraphBoard.tsx",
+        "src/ui/web/exerciserenderer/hooks/useEffectiveDisplaySize.ts",
         "src/ui/web/exerciserenderer/hooks/useHelpSystem.ts",
         "src/ui/web/exerciserenderer/questions/FreeResponseQuestion/index.tsx",
         "src/ui/web/exerciserenderer/questions/MatchingQuestion/MatchingColumn.tsx",
@@ -254,7 +262,6 @@
         "src/ui/web/footer/FooterLegalModal.tsx",
         "src/ui/web/guards/RequireCourseSelection.tsx",
         "src/ui/web/header/Component.client.tsx",
-        "src/ui/web/header/CourseSearch/index.tsx",
         "src/ui/web/header/MobileMenu/MobileMenuAuthSection.tsx",
         "src/ui/web/header/MobileMenu/index.tsx",
         "src/ui/web/header/Nav/index.tsx",
@@ -269,6 +276,8 @@
         "src/ui/web/learning-agent/AgentChatWindow/index.tsx",
         "src/ui/web/learning-agent/FloatingAgentButton/index.tsx",
         "src/ui/web/learning-agent/hooks/useLearningAgentChat.ts",
+        "src/ui/web/lesson-menu/LessonMenu.tsx",
+        "src/ui/web/lesson-menu/LessonMenuContext.tsx",
         "src/ui/web/media/AudioMedia/index.tsx",
         "src/ui/web/media/DocumentMedia/index.tsx",
         "src/ui/web/media/ExternalMedia/index.tsx",
@@ -294,6 +303,7 @@
         "src/ui/web/shared/MathInput/MathFieldToolbar.tsx",
         "src/ui/web/shared/MathMarkdown/index.tsx",
         "src/ui/web/shared/ProgressCircle/index.tsx",
+        "src/ui/web/shared/ShareButton/index.tsx",
         "src/ui/web/shared/TypingAnimation/index.tsx"
       ]
     },
@@ -320,6 +330,7 @@
         "src/app/(frontend)/courses/[courseSlug]/_components/AddExamDialog/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/AskTab/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/ConversationCard/index.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/CoursePageContent/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/CourseTabs/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/ExamReminderBubble/index.tsx",
@@ -330,7 +341,10 @@
         "src/app/(frontend)/courses/[courseSlug]/_components/LessonListTab/LessonRow.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/LessonListTab/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/BlocksDocumentLessonView/index.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatInputPanel.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonRunnerView.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatFreeResponseBubble.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ContentPagesPreamble/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/DualModeLessonView/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/EmptyLessonPlaceholder/index.tsx",
@@ -342,7 +356,6 @@
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/TestViewRenderer/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ViewToggle.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/complete/CompleteContent.tsx",
-        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseHeader/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExercisePageHeader/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseWorkspace/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/FormulaPanel/index.tsx",
@@ -408,8 +421,8 @@
         "src/ui/web/components/UnifiedCard/ExerciseCard.tsx",
         "src/ui/web/components/UnifiedCard/LessonCard.tsx",
         "src/ui/web/exerciserenderer/ExerciseRenderer/index.tsx",
+        "src/ui/web/exerciserenderer/components/QuestionNotebook/index.tsx",
         "src/ui/web/exerciserenderer/components/VideoPlayer/index.tsx",
-        "src/ui/web/header/CourseSearch/index.tsx",
         "src/ui/web/header/MobileMenu/MobileMenuAuthSection.tsx",
         "src/ui/web/header/MobileMenu/index.tsx",
         "src/ui/web/header/Nav/index.tsx",
@@ -418,11 +431,13 @@
         "src/ui/web/homepage/LandingPage/index.tsx",
         "src/ui/web/homepage/NavigationBar/index.tsx",
         "src/ui/web/learning-agent/AgentChatWindow/index.tsx",
+        "src/ui/web/lesson-menu/LessonMenu.tsx",
         "src/ui/web/providers/I18n/index.tsx",
         "src/ui/web/shared/ContentStatusBadge/index.tsx",
         "src/ui/web/shared/FormulaSheetViewer/FormulaSheetButton.tsx",
         "src/ui/web/shared/FormulaSheetViewer/FormulaSheetContent.tsx",
-        "src/ui/web/shared/LatexDocumentViewer/index.tsx"
+        "src/ui/web/shared/LatexDocumentViewer/index.tsx",
+        "src/ui/web/shared/ShareButton/index.tsx"
       ]
     },
     "tailwind-component": {
@@ -437,6 +452,7 @@
         "src/app/(frontend)/ask/_components/AskExerciseCard/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/AskTab/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/ConversationCard/index.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/CourseTabs/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/LessonListTab/ChapterAccordion.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/LessonListTab/CourseLessonsFilterBar.tsx",
@@ -444,7 +460,7 @@
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/BlocksDocumentLessonView/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatInputPanel.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonProgress.tsx",
-        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonStartCard.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/GivenDataFloating.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatFreeResponseBubble.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatQuestionSelectBubble.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ContinueButton.tsx",
@@ -453,13 +469,11 @@
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/TeacherBubble.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ContentPageBodyRenderer/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ContentPagesPreamble/index.tsx",
-        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/DualModeLessonView/TabButton.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ExercisesPager/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/LessonPager/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/MediaTabContent/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/PdfLessonPager/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ViewToggle.tsx",
-        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseHeader/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseWorkspace/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/MathPalette/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/NotebookWorkspace/index.tsx",
@@ -493,6 +507,7 @@
         "src/ui/web/auth/GoogleLoginButton.tsx",
         "src/ui/web/chat/ChatErrorSurface/index.tsx",
         "src/ui/web/chat/ChatInterface/index.tsx",
+        "src/ui/web/chat/ChatMessageContent/ChatCallout.tsx",
         "src/ui/web/chat/ChatMessageContent/index.tsx",
         "src/ui/web/chat/ChatMessageView/ApprovalCardView/index.tsx",
         "src/ui/web/chat/ChatMessageView/MultiSelectListView/index.tsx",
@@ -538,12 +553,14 @@
         "src/ui/web/exerciserenderer/answers/TrueFalseAnswerUI/index.tsx",
         "src/ui/web/exerciserenderer/blocks/GraphWithPrompt/index.tsx",
         "src/ui/web/exerciserenderer/blocks/MultiAxisRenderer/index.tsx",
+        "src/ui/web/exerciserenderer/blocks/QuestionWithAttachment/index.tsx",
         "src/ui/web/exerciserenderer/blocks/SvgRenderer/index.tsx",
         "src/ui/web/exerciserenderer/components/FeedbackDisplay/index.tsx",
         "src/ui/web/exerciserenderer/components/HelpSystem/HelpSystemButtons.tsx",
         "src/ui/web/exerciserenderer/components/HelpSystem/HelpSystemContent.tsx",
         "src/ui/web/exerciserenderer/components/MediaAttachments/index.tsx",
         "src/ui/web/exerciserenderer/components/QuestionCard/index.tsx",
+        "src/ui/web/exerciserenderer/components/QuestionNotebook/index.tsx",
         "src/ui/web/exerciserenderer/components/VideoPlayer/index.tsx",
         "src/ui/web/exerciserenderer/graphics/JSXGraphBoard.tsx",
         "src/ui/web/exerciserenderer/questions/MatchingQuestion/MatchingItem.tsx",
@@ -553,11 +570,11 @@
         "src/ui/web/exerciserenderer/questions/TrueFalseQuestion/index.tsx",
         "src/ui/web/footer/FooterClient.tsx",
         "src/ui/web/header/Component.client.tsx",
-        "src/ui/web/header/CourseSearch/index.tsx",
         "src/ui/web/header/MobileMenu/index.tsx",
         "src/ui/web/homepage/LandingPage/index.tsx",
         "src/ui/web/homepage/NavigationBar/index.tsx",
         "src/ui/web/layout-blocks/RenderLayout.tsx",
+        "src/ui/web/lesson-menu/LessonMenu.tsx",
         "src/ui/web/media/AudioMedia/index.tsx",
         "src/ui/web/media/DocumentMedia/index.tsx",
         "src/ui/web/media/ExternalMedia/index.tsx",
@@ -584,6 +601,7 @@
         "src/ui/web/shared/MathMarkdown/index.tsx",
         "src/ui/web/shared/MathMarkdown/svgAwareImage.tsx",
         "src/ui/web/shared/ProgressCircle/index.tsx",
+        "src/ui/web/shared/ShareButton/index.tsx",
         "src/ui/web/shared/TypingAnimation/index.tsx",
         "src/ui/web/shared/Typography/Heading.tsx",
         "src/ui/web/shared/Typography/Text.tsx"
@@ -695,6 +713,7 @@
         "src/app/api/agent/chat/route.ts",
         "src/app/api/agent/conversation/route.ts",
         "src/app/api/agent/generate-interactive-lesson/route.ts",
+        "src/app/api/agent/lesson-suggest/route.ts",
         "src/app/api/agent/message/persist/route.ts",
         "src/app/api/agent/reset-chat/route.ts",
         "src/app/api/auth/logout/route.ts",
@@ -703,7 +722,6 @@
         "src/app/api/chapters/by-grade/route.ts",
         "src/app/api/chat-assets/finalize/route.ts",
         "src/app/api/conversations/by-context/route.ts",
-        "src/app/api/course-search/route.ts",
         "src/app/api/course-syllabus/route.ts",
         "src/app/api/courses/route.ts",
         "src/app/api/dashboard-metrics/route.ts",
@@ -712,6 +730,7 @@
         "src/app/api/entitlements/redeem/route.ts",
         "src/app/api/example/route.ts",
         "src/app/api/exercises/import/route.ts",
+        "src/app/api/internal/guest-session/create/route.ts",
         "src/app/api/media/file/[filename]/route.ts",
         "src/app/api/media/route.ts",
         "src/app/api/oauth/google/callback/route.ts",
@@ -724,6 +743,7 @@
         "src/app/api/stats/streak/route.ts",
         "src/app/api/study-plan/route.ts",
         "src/app/api/teacher-profiles/route.ts",
+        "src/app/api/teacher/courses/route.ts",
         "src/app/api/tts/synthesize/route.ts",
         "src/app/api/users/me/course-state/route.ts",
         "src/app/api/users/me/route.ts",
@@ -745,17 +765,15 @@
       "pattern": "validated-endpoint",
       "description": "API endpoint with Zod validation",
       "files": [
-        "src/app/api/agent/chat/route.ts",
-        "src/app/api/agent/chat/stream/route.ts",
         "src/app/api/agent/conversation/route.ts",
         "src/app/api/agent/generate-interactive-lesson/route.ts",
         "src/app/api/agent/learning-chat/route.ts",
+        "src/app/api/agent/lesson-suggest/route.ts",
         "src/app/api/agent/message/persist/route.ts",
         "src/app/api/agent/reset-chat/route.ts",
         "src/app/api/blob/upload-token/route.ts",
         "src/app/api/bug-report/route.ts",
         "src/app/api/conversations/by-context/route.ts",
-        "src/app/api/course-search/route.ts",
         "src/app/api/course-syllabus/route.ts",
         "src/app/api/entitlements/redeem/route.ts",
         "src/app/api/exercises/validate-answer/route.ts",
@@ -768,6 +786,8 @@
         "src/app/api/study-plan/route.ts",
         "src/app/api/user-settings/route.ts",
         "src/infra/llm/schemas/lesson-duplication-output.ts",
+        "src/server/services/dashboard/product-health/params.ts",
+        "src/server/services/tts/google-cloud-tts.ts",
         "src/ui/web/chat/ChatMessageView/parseView.ts"
       ]
     },
@@ -836,11 +856,6 @@
       "pattern": "heartbeat",
       "description": "No description available",
       "files": ["src/client/hooks/useActiveTimeTracker.ts"]
-    },
-    "course-search": {
-      "pattern": "course-search",
-      "description": "No description available",
-      "files": ["src/client/hooks/useCourseSearch.ts"]
     },
     "user-context": {
       "pattern": "user-context",
@@ -1122,6 +1137,11 @@
         "src/infra/media/embed/youtube.ts"
       ]
     },
+    "client-upload": {
+      "pattern": "client-upload",
+      "description": "No description available",
+      "files": ["src/infra/media/uploadDataUrl.ts"]
+    },
     "youtube-detection": {
       "pattern": "youtube-detection",
       "description": "No description available",
@@ -1217,6 +1237,11 @@
       "description": "No description available",
       "files": ["src/infra/types/jsxgraph.d.ts"]
     },
+    "shared-enum": {
+      "pattern": "shared-enum",
+      "description": "No description available",
+      "files": ["src/infra/types/lesson-view.ts"]
+    },
     "markdown-types": {
       "pattern": "markdown-types",
       "description": "No description available",
@@ -1261,6 +1286,11 @@
       "pattern": "server-client-url-resolver",
       "description": "No description available",
       "files": ["src/infra/utils/getURL.ts"]
+    },
+    "board-sizing": {
+      "pattern": "board-sizing",
+      "description": "No description available",
+      "files": ["src/infra/utils/graphics/board-sizing.ts"]
     },
     "viewport-calculation": {
       "pattern": "viewport-calculation",
@@ -1372,6 +1402,11 @@
       "description": "No description available",
       "files": ["src/infra/utils/with-timeout.ts"]
     },
+    "section-label-resolver": {
+      "pattern": "section-label-resolver",
+      "description": "No description available",
+      "files": ["src/lib/exercises/computeSectionLabels.ts"]
+    },
     "section-blocks-resolver": {
       "pattern": "section-blocks-resolver",
       "description": "No description available",
@@ -1442,11 +1477,6 @@
       "pattern": "repository-wrappers",
       "description": "No description available",
       "files": ["src/server/services/course-list-service.ts"]
-    },
-    "search-aggregation": {
-      "pattern": "search-aggregation",
-      "description": "No description available",
-      "files": ["src/server/services/course-search-service.ts"]
     },
     "diff-classifier": {
       "pattern": "diff-classifier",
@@ -1526,6 +1556,11 @@
       "pattern": "transform",
       "description": "No description available",
       "files": ["src/server/services/exercise-conversion/v3/transform.ts"]
+    },
+    "anonymous-tracking": {
+      "pattern": "anonymous-tracking",
+      "description": "No description available",
+      "files": ["src/server/services/guest-sessions/guest-session-writer.ts"]
     },
     "lesson-export": {
       "pattern": "lesson-export",
@@ -1620,6 +1655,19 @@
       "description": "No description available",
       "files": ["src/ui/web/bug-report/hooks/useBugReportForm.ts"]
     },
+    "chat-callout": {
+      "pattern": "chat-callout",
+      "description": "No description available",
+      "files": ["src/ui/web/chat/ChatMessageContent/ChatCallout.tsx"]
+    },
+    "remark-plugin": {
+      "pattern": "remark-plugin",
+      "description": "No description available",
+      "files": [
+        "src/ui/web/chat/ChatMessageContent/remark-chat-callouts.ts",
+        "src/ui/web/shared/MathMarkdown/remark-color-syntax.ts"
+      ]
+    },
     "view-payload-parser": {
       "pattern": "view-payload-parser",
       "description": "No description available",
@@ -1671,7 +1719,10 @@
     "svg-normalization": {
       "pattern": "svg-normalization",
       "description": "No description available",
-      "files": ["src/ui/web/media/SVGMedia/ensureSvgViewBox.ts"]
+      "files": [
+        "src/ui/web/media/SVGMedia/ensureSvgViewBox.ts",
+        "src/ui/web/media/SVGMedia/expandViewBoxToContent.ts"
+      ]
     },
     "module-cache": {
       "pattern": "module-cache",
@@ -1718,11 +1769,6 @@
       "description": "No description available",
       "files": ["src/ui/web/shared/MathMarkdown/rehype-math-wrapper.ts"]
     },
-    "remark-plugin": {
-      "pattern": "remark-plugin",
-      "description": "No description available",
-      "files": ["src/ui/web/shared/MathMarkdown/remark-color-syntax.ts"]
-    },
     "markdown-image-override": {
       "pattern": "markdown-image-override",
       "description": "No description available",
@@ -1730,6 +1776,14 @@
     }
   },
   "fileMetadata": {
+    "src/app/(frontend)/LayoutChromeGate.tsx": {
+      "path": "src/app/(frontend)/LayoutChromeGate.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["client-component"],
+      "aiSummary": "",
+      "dependencies": ["next/navigation", "react"]
+    },
     "src/app/(frontend)/LayoutClient.tsx": {
       "path": "src/app/(frontend)/LayoutClient.tsx",
       "type": "unknown",
@@ -1922,6 +1976,22 @@
       "aiSummary": "",
       "dependencies": ["react"]
     },
+    "src/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/index.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/index.tsx",
+      "type": "component",
+      "domain": "frontend",
+      "patterns": ["tailwind-component", "i18n-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["lucide-react", "react"]
+    },
+    "src/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/useCourseComposerState.ts": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/useCourseComposerState.ts",
+      "type": "hook",
+      "domain": "frontend",
+      "patterns": ["client-component"],
+      "aiSummary": "",
+      "dependencies": ["react"]
+    },
     "src/app/(frontend)/courses/[courseSlug]/_components/CoursePageContent/index.tsx": {
       "path": "src/app/(frontend)/courses/[courseSlug]/_components/CoursePageContent/index.tsx",
       "type": "unknown",
@@ -2053,9 +2123,9 @@
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatInputPanel.tsx",
       "type": "unknown",
       "domain": "general",
-      "patterns": ["tailwind-component", "client-component"],
+      "patterns": ["tailwind-component", "i18n-component", "client-component"],
       "aiSummary": "",
-      "dependencies": ["lucide-react", "react"]
+      "dependencies": ["framer-motion", "lucide-react", "react"]
     },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonProgress.tsx": {
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonProgress.tsx",
@@ -2073,21 +2143,21 @@
       "aiSummary": "",
       "dependencies": ["react"]
     },
-    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonStartCard.tsx": {
-      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonStartCard.tsx",
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/GivenDataFloating.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/GivenDataFloating.tsx",
       "type": "unknown",
       "domain": "general",
       "patterns": ["tailwind-component", "client-component"],
       "aiSummary": "",
-      "dependencies": ["lucide-react"]
+      "dependencies": ["framer-motion", "lucide-react", "react"]
     },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatFreeResponseBubble.tsx": {
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatFreeResponseBubble.tsx",
       "type": "unknown",
       "domain": "general",
-      "patterns": ["tailwind-component", "client-component"],
+      "patterns": ["tailwind-component", "i18n-component", "client-component"],
       "aiSummary": "",
-      "dependencies": ["lucide-react", "react"]
+      "dependencies": ["framer-motion", "lucide-react", "react"]
     },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatQuestionSelectBubble.tsx": {
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatQuestionSelectBubble.tsx",
@@ -2119,7 +2189,7 @@
       "domain": "general",
       "patterns": ["client-component"],
       "aiSummary": "",
-      "dependencies": []
+      "dependencies": ["lucide-react"]
     },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/QuickActionChips.tsx": {
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/QuickActionChips.tsx",
@@ -2149,7 +2219,7 @@
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/index.tsx",
       "type": "component",
       "domain": "lessons",
-      "patterns": ["chat-view", "client-component"],
+      "patterns": ["chat-view", "i18n-component", "client-component"],
       "aiSummary": "Chat-view tab for a lesson. Renders the lesson's existing",
       "dependencies": ["react"]
     },
@@ -2158,7 +2228,7 @@
       "type": "hook",
       "domain": "lessons",
       "patterns": ["client-component"],
-      "aiSummary": "Hebrew TTS narration for chat lessons. Prefers our",
+      "aiSummary": "Hebrew TTS narration for chat lessons. Calls our",
       "dependencies": ["react"]
     },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/useChatChannel.ts": {
@@ -2175,6 +2245,14 @@
       "domain": "lessons",
       "patterns": ["client-component"],
       "aiSummary": "Walks the lesson's exercises section-by-section for the Chat",
+      "dependencies": ["react"]
+    },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/useLessonChatProgress.ts": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/useLessonChatProgress.ts",
+      "type": "hook",
+      "domain": "lessons",
+      "patterns": ["client-component"],
+      "aiSummary": "Persists the lesson chat view's walker position to localStorage",
       "dependencies": ["react"]
     },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ConsolidatedLatexLessonView/index.tsx": {
@@ -2216,14 +2294,6 @@
       "patterns": ["client-component"],
       "aiSummary": "",
       "dependencies": ["react", "next/navigation"]
-    },
-    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/DualModeLessonView/TabButton.tsx": {
-      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/DualModeLessonView/TabButton.tsx",
-      "type": "unknown",
-      "domain": "general",
-      "patterns": ["tailwind-component", "client-component"],
-      "aiSummary": "",
-      "dependencies": ["react"]
     },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/DualModeLessonView/index.tsx": {
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/DualModeLessonView/index.tsx",
@@ -2353,14 +2423,6 @@
       "aiSummary": "",
       "dependencies": ["react", "lucide-react", "framer-motion"]
     },
-    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseHeader/index.tsx": {
-      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseHeader/index.tsx",
-      "type": "unknown",
-      "domain": "general",
-      "patterns": ["tailwind-component", "i18n-component", "client-component"],
-      "aiSummary": "",
-      "dependencies": ["lucide-react"]
-    },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExercisePageContent/index.tsx": {
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExercisePageContent/index.tsx",
       "type": "unknown",
@@ -2383,7 +2445,7 @@
       "domain": "general",
       "patterns": ["tailwind-component", "i18n-component", "client-component"],
       "aiSummary": "",
-      "dependencies": ["next/navigation", "react", "framer-motion"]
+      "dependencies": ["lucide-react", "react"]
     },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/FormulaPanel/index.tsx": {
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/FormulaPanel/index.tsx",
@@ -2575,14 +2637,7 @@
       "domain": "general",
       "patterns": ["tailwind-component"],
       "aiSummary": "",
-      "dependencies": [
-        "next",
-        "next/headers",
-        "geist/font/mono",
-        "geist/font/sans",
-        "next/font/google",
-        "react"
-      ]
+      "dependencies": ["next", "geist/font/mono", "geist/font/sans", "next/font/google", "react"]
     },
     "src/app/(frontend)/login/LoginForm.tsx": {
       "path": "src/app/(frontend)/login/LoginForm.tsx",
@@ -2590,7 +2645,7 @@
       "domain": "general",
       "patterns": ["i18n-component", "client-component"],
       "aiSummary": "",
-      "dependencies": ["react", "next/image"]
+      "dependencies": ["react"]
     },
     "src/app/(frontend)/login/LoginPageContent.tsx": {
       "path": "src/app/(frontend)/login/LoginPageContent.tsx",
@@ -2876,17 +2931,9 @@
       "path": "src/app/api/agent/chat/route.ts",
       "type": "unknown",
       "domain": "general",
-      "patterns": ["api-endpoint", "validated-endpoint"],
+      "patterns": ["api-endpoint"],
       "aiSummary": "",
-      "dependencies": ["next/server", "zod"]
-    },
-    "src/app/api/agent/chat/stream/route.ts": {
-      "path": "src/app/api/agent/chat/stream/route.ts",
-      "type": "unknown",
-      "domain": "general",
-      "patterns": ["validated-endpoint"],
-      "aiSummary": "",
-      "dependencies": ["next/server", "zod"]
+      "dependencies": ["crypto", "next/server"]
     },
     "src/app/api/agent/chat-quota/route.ts": {
       "path": "src/app/api/agent/chat-quota/route.ts",
@@ -2918,7 +2965,15 @@
       "domain": "general",
       "patterns": ["validated-endpoint"],
       "aiSummary": "",
-      "dependencies": ["next/server", "zod"]
+      "dependencies": ["crypto", "next/server", "zod"]
+    },
+    "src/app/api/agent/lesson-suggest/route.ts": {
+      "path": "src/app/api/agent/lesson-suggest/route.ts",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["api-endpoint", "validated-endpoint"],
+      "aiSummary": "",
+      "dependencies": ["crypto", "next/server", "zod"]
     },
     "src/app/api/agent/message/persist/route.ts": {
       "path": "src/app/api/agent/message/persist/route.ts",
@@ -2950,7 +3005,7 @@
       "domain": "general",
       "patterns": ["api-endpoint", "validated-endpoint"],
       "aiSummary": "",
-      "dependencies": ["@vercel/blob/client", "next/server", "zod"]
+      "dependencies": ["@vercel/blob/client", "mongodb", "next/server", "zod"]
     },
     "src/app/api/bug-report/route.ts": {
       "path": "src/app/api/bug-report/route.ts",
@@ -2991,14 +3046,6 @@
       "patterns": ["copilotkit-runtime"],
       "aiSummary": "Simple AI chat endpoint for Cody dashboard (authenticated)",
       "dependencies": ["@google/generative-ai", "next/server", "zod"]
-    },
-    "src/app/api/course-search/route.ts": {
-      "path": "src/app/api/course-search/route.ts",
-      "type": "unknown",
-      "domain": "general",
-      "patterns": ["api-endpoint", "validated-endpoint"],
-      "aiSummary": "",
-      "dependencies": ["next/server", "zod"]
     },
     "src/app/api/course-syllabus/route.ts": {
       "path": "src/app/api/course-syllabus/route.ts",
@@ -3087,6 +3134,14 @@
       "patterns": ["validated-endpoint"],
       "aiSummary": "",
       "dependencies": ["next/server", "zod"]
+    },
+    "src/app/api/internal/guest-session/create/route.ts": {
+      "path": "src/app/api/internal/guest-session/create/route.ts",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["api-endpoint"],
+      "aiSummary": "",
+      "dependencies": ["next/server"]
     },
     "src/app/api/media/file/[filename]/route.ts": {
       "path": "src/app/api/media/file/[filename]/route.ts",
@@ -3192,6 +3247,14 @@
       "aiSummary": "",
       "dependencies": ["nanoid", "next/server", "zod"]
     },
+    "src/app/api/teacher/courses/route.ts": {
+      "path": "src/app/api/teacher/courses/route.ts",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["api-endpoint"],
+      "aiSummary": "",
+      "dependencies": ["next/server"]
+    },
     "src/app/api/teacher-profiles/route.ts": {
       "path": "src/app/api/teacher-profiles/route.ts",
       "type": "unknown",
@@ -3270,14 +3333,6 @@
       "domain": "analytics",
       "patterns": ["heartbeat", "client-component"],
       "aiSummary": "Sends a heartbeat every 30 seconds while the tab is visible. Time spent in hidden tabs does NOT count — the streak can only advance when the user is actively looking at the page.",
-      "dependencies": ["react"]
-    },
-    "src/client/hooks/useCourseSearch.ts": {
-      "path": "src/client/hooks/useCourseSearch.ts",
-      "type": "hook",
-      "domain": "search",
-      "patterns": ["course-search", "client-component"],
-      "aiSummary": "Debounced course-scoped search via `/api/course-search` — cancels in-flight requests via `AbortController` when a new query arrives; requires `courseSlug` for scoped results, or returns global results if null.",
       "dependencies": ["react"]
     },
     "src/client/hooks/useCurrentUser.ts": {
@@ -3359,6 +3414,14 @@
       "patterns": ["client-component"],
       "aiSummary": "",
       "dependencies": ["next/script"]
+    },
+    "src/infra/analytics/components/SignupSourceCapture.tsx": {
+      "path": "src/infra/analytics/components/SignupSourceCapture.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["client-component"],
+      "aiSummary": "",
+      "dependencies": ["react"]
     },
     "src/infra/analytics/components/UserIdentificationTracker.tsx": {
       "path": "src/infra/analytics/components/UserIdentificationTracker.tsx",
@@ -3856,6 +3919,14 @@
       "aiSummary": "YouTube URL detection, video ID extraction, and oEmbed metadata fetching",
       "dependencies": []
     },
+    "src/infra/media/uploadDataUrl.ts": {
+      "path": "src/infra/media/uploadDataUrl.ts",
+      "type": "utility",
+      "domain": "media",
+      "patterns": ["client-upload"],
+      "aiSummary": "Convert a PNG/data-URL blob into a Payload media doc via `/api/media` and return the new media id.",
+      "dependencies": []
+    },
     "src/infra/media/youtube.ts": {
       "path": "src/infra/media/youtube.ts",
       "type": "utility",
@@ -4016,6 +4087,14 @@
       "aiSummary": "Minimal JSXGraph type declarations for TypeScript support. Covers boards, elements, and attributes but intentionally omits most JSXGraph plugins. If a JSXGraph method is missing, extend this file rather than adding `as any` casts in consumer code.",
       "dependencies": []
     },
+    "src/infra/types/lesson-view.ts": {
+      "path": "src/infra/types/lesson-view.ts",
+      "type": "types",
+      "domain": "lessons",
+      "patterns": ["shared-enum"],
+      "aiSummary": "Cross-cutting lesson view-mode enum. Hoisted here so shared UI",
+      "dependencies": []
+    },
     "src/infra/types/markdown.d.ts": {
       "path": "src/infra/types/markdown.d.ts",
       "type": "utility",
@@ -4086,6 +4165,14 @@
       "domain": "shared",
       "patterns": ["server-client-url-resolver"],
       "aiSummary": "Resolves server URL from env with Vercel/specific fallback order; getClientSideURL reads window.location which is only available in the browser.",
+      "dependencies": []
+    },
+    "src/infra/utils/graphics/board-sizing.ts": {
+      "path": "src/infra/utils/graphics/board-sizing.ts",
+      "type": "utility",
+      "domain": "graphics",
+      "patterns": ["board-sizing"],
+      "aiSummary": "Compute JSXGraph board pixel dimensions that match a",
       "dependencies": []
     },
     "src/infra/utils/graphics/viewport-utils.ts": {
@@ -4262,6 +4349,14 @@
       "domain": "shared",
       "patterns": ["promise-race-timeout"],
       "aiSummary": "Races a promise against a timer; throws a TimeoutError when the timer wins.",
+      "dependencies": []
+    },
+    "src/lib/exercises/computeSectionLabels.ts": {
+      "path": "src/lib/exercises/computeSectionLabels.ts",
+      "type": "utility",
+      "domain": "exercises",
+      "patterns": ["section-label-resolver"],
+      "aiSummary": "Derives labels for exercise question cards and section headers. A section whose Payload `title` matches `סעיף X` gives all its questions the base X (single question → `X`; multiple → `X1`, `X2`, …), which is how the incoming \"subsection\" schema surfaces labels like `ד3` on the corresponding card. Untitled sections keep the pre-change per-question running counter across the whole exercise (so a legacy exercise with all questions in one preamble still shows `א/ב/ג`, not `א1/א2/א3`). An explicit label also bumps the counter past its base letter so the next auto label doesn't collide with the parent letter.",
       "dependencies": []
     },
     "src/lib/exercises/getExerciseBlocks.ts": {
@@ -4456,14 +4551,6 @@
       "aiSummary": "Thin wrapper around queryPublishedCourses repo — no business logic",
       "dependencies": []
     },
-    "src/server/services/course-search-service.ts": {
-      "path": "src/server/services/course-search-service.ts",
-      "type": "service",
-      "domain": "courses",
-      "patterns": ["search-aggregation"],
-      "aiSummary": "Aggregates search results across courses, lessons, and exercises with enrollment filtering",
-      "dependencies": []
-    },
     "src/server/services/course-tree-isolation.ts": {
       "path": "src/server/services/course-tree-isolation.ts",
       "type": "service",
@@ -4471,6 +4558,14 @@
       "patterns": ["validation"],
       "aiSummary": "Validates referential integrity: every chapter's course field must point back to its parent",
       "dependencies": []
+    },
+    "src/server/services/dashboard/product-health/params.ts": {
+      "path": "src/server/services/dashboard/product-health/params.ts",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["validated-endpoint"],
+      "aiSummary": "",
+      "dependencies": ["zod"]
     },
     "src/server/services/dashboard-stats.ts": {
       "path": "src/server/services/dashboard-stats.ts",
@@ -4583,6 +4678,14 @@
       "patterns": ["repository"],
       "aiSummary": "Lookups behind the exercise-import compatibility probe. The web-only build performs no conversion, so this only reports what already exists.",
       "dependencies": ["mongodb"]
+    },
+    "src/server/services/guest-sessions/guest-session-writer.ts": {
+      "path": "src/server/services/guest-sessions/guest-session-writer.ts",
+      "type": "service",
+      "domain": "analytics",
+      "patterns": ["anonymous-tracking"],
+      "aiSummary": "Insert/claim helpers for the `guest-sessions` collection. Writes",
+      "dependencies": ["crypto", "mongodb"]
     },
     "src/server/services/lesson-context-conversion/validate-latex.ts": {
       "path": "src/server/services/lesson-context-conversion/validate-latex.ts",
@@ -4719,6 +4822,14 @@
       "patterns": ["repository"],
       "aiSummary": "Reads payment transaction records. Ownership is checked by the caller, which decides how to answer when it does not match.",
       "dependencies": ["mongodb"]
+    },
+    "src/server/services/tts/google-cloud-tts.ts": {
+      "path": "src/server/services/tts/google-cloud-tts.ts",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["validated-endpoint"],
+      "aiSummary": "",
+      "dependencies": ["zod"]
     },
     "src/server/services/upload-sessions.ts": {
       "path": "src/server/services/upload-sessions.ts",
@@ -4934,7 +5045,7 @@
       "domain": "general",
       "patterns": ["i18n-component", "client-component"],
       "aiSummary": "",
-      "dependencies": []
+      "dependencies": ["lucide-react"]
     },
     "src/ui/web/bug-report/BugReportForm/index.tsx": {
       "path": "src/ui/web/bug-report/BugReportForm/index.tsx",
@@ -4976,6 +5087,14 @@
       "aiSummary": "",
       "dependencies": ["react", "lucide-react"]
     },
+    "src/ui/web/chat/ChatMessageContent/ChatCallout.tsx": {
+      "path": "src/ui/web/chat/ChatMessageContent/ChatCallout.tsx",
+      "type": "component",
+      "domain": "ui",
+      "patterns": ["chat-callout", "tailwind-component", "client-component"],
+      "aiSummary": "Renders a color+icon callout for a chat paragraph (note / example / mistake / tip / guiding question). Wired up via remarkChatCallouts + custom `p` override in ChatMessageContent.",
+      "dependencies": ["lucide-react", "react"]
+    },
     "src/ui/web/chat/ChatMessageContent/index.tsx": {
       "path": "src/ui/web/chat/ChatMessageContent/index.tsx",
       "type": "unknown",
@@ -4983,6 +5102,14 @@
       "patterns": ["tailwind-component", "client-component"],
       "aiSummary": "",
       "dependencies": ["react-markdown"]
+    },
+    "src/ui/web/chat/ChatMessageContent/remark-chat-callouts.ts": {
+      "path": "src/ui/web/chat/ChatMessageContent/remark-chat-callouts.ts",
+      "type": "utility",
+      "domain": "ui",
+      "patterns": ["remark-plugin"],
+      "aiSummary": "Remark plugin that tags chat paragraphs starting with known Hebrew labels (הערה חשובה / דוגמה / טעות / טיפ / שאלה מנחה) as callouts so ChatMessageContent can render them with color + icon.",
+      "dependencies": ["unist-util-visit"]
     },
     "src/ui/web/chat/ChatMessageView/ApprovalCardView/index.tsx": {
       "path": "src/ui/web/chat/ChatMessageView/ApprovalCardView/index.tsx",
@@ -5079,6 +5206,14 @@
       "patterns": ["client-component"],
       "aiSummary": "",
       "dependencies": ["react"]
+    },
+    "src/ui/web/chat/index.ts": {
+      "path": "src/ui/web/chat/index.ts",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["client-component"],
+      "aiSummary": "",
+      "dependencies": ["next/dynamic"]
     },
     "src/ui/web/components/BackButton/index.tsx": {
       "path": "src/ui/web/components/BackButton/index.tsx",
@@ -5517,11 +5652,27 @@
       "aiSummary": "",
       "dependencies": ["react"]
     },
+    "src/ui/web/exerciserenderer/blocks/QuestionWithAttachment/index.tsx": {
+      "path": "src/ui/web/exerciserenderer/blocks/QuestionWithAttachment/index.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["tailwind-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["react"]
+    },
     "src/ui/web/exerciserenderer/blocks/SvgRenderer/index.tsx": {
       "path": "src/ui/web/exerciserenderer/blocks/SvgRenderer/index.tsx",
       "type": "unknown",
       "domain": "general",
       "patterns": ["tailwind-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["react"]
+    },
+    "src/ui/web/exerciserenderer/blocks/renderQuestionAttachment.tsx": {
+      "path": "src/ui/web/exerciserenderer/blocks/renderQuestionAttachment.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["client-component"],
       "aiSummary": "",
       "dependencies": ["react"]
     },
@@ -5573,6 +5724,14 @@
       "aiSummary": "",
       "dependencies": ["react", "framer-motion", "lucide-react"]
     },
+    "src/ui/web/exerciserenderer/components/QuestionNotebook/index.tsx": {
+      "path": "src/ui/web/exerciserenderer/components/QuestionNotebook/index.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["tailwind-component", "i18n-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["framer-motion", "lucide-react", "react"]
+    },
     "src/ui/web/exerciserenderer/components/VideoPlayer/index.tsx": {
       "path": "src/ui/web/exerciserenderer/components/VideoPlayer/index.tsx",
       "type": "unknown",
@@ -5596,6 +5755,14 @@
       "patterns": ["tailwind-component", "client-component"],
       "aiSummary": "",
       "dependencies": ["react"]
+    },
+    "src/ui/web/exerciserenderer/hooks/useEffectiveDisplaySize.ts": {
+      "path": "src/ui/web/exerciserenderer/hooks/useEffectiveDisplaySize.ts",
+      "type": "hook",
+      "domain": "exercise-renderer",
+      "patterns": ["client-component"],
+      "aiSummary": "Collapses the authored `displaySize` to `'full'` on mobile",
+      "dependencies": []
     },
     "src/ui/web/exerciserenderer/hooks/useHelpSystem.ts": {
       "path": "src/ui/web/exerciserenderer/hooks/useHelpSystem.ts",
@@ -5725,14 +5892,6 @@
       "aiSummary": "",
       "dependencies": ["next/navigation", "react"]
     },
-    "src/ui/web/header/CourseSearch/index.tsx": {
-      "path": "src/ui/web/header/CourseSearch/index.tsx",
-      "type": "unknown",
-      "domain": "general",
-      "patterns": ["tailwind-component", "i18n-component", "client-component"],
-      "aiSummary": "",
-      "dependencies": ["react", "next/navigation", "framer-motion"]
-    },
     "src/ui/web/header/MobileMenu/MobileMenuAuthSection.tsx": {
       "path": "src/ui/web/header/MobileMenu/MobileMenuAuthSection.tsx",
       "type": "unknown",
@@ -5845,6 +6004,22 @@
       "aiSummary": "",
       "dependencies": ["react", "sonner"]
     },
+    "src/ui/web/lesson-menu/LessonMenu.tsx": {
+      "path": "src/ui/web/lesson-menu/LessonMenu.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["tailwind-component", "i18n-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["framer-motion", "react", "sonner"]
+    },
+    "src/ui/web/lesson-menu/LessonMenuContext.tsx": {
+      "path": "src/ui/web/lesson-menu/LessonMenuContext.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["client-component"],
+      "aiSummary": "",
+      "dependencies": ["react"]
+    },
     "src/ui/web/media/AudioMedia/index.tsx": {
       "path": "src/ui/web/media/AudioMedia/index.tsx",
       "type": "unknown",
@@ -5907,6 +6082,14 @@
       "domain": "ui",
       "patterns": ["svg-normalization"],
       "aiSummary": "Adds a viewBox to an SVG when the author omitted one, so the SVG scales predictably inside responsive containers.",
+      "dependencies": []
+    },
+    "src/ui/web/media/SVGMedia/expandViewBoxToContent.ts": {
+      "path": "src/ui/web/media/SVGMedia/expandViewBoxToContent.ts",
+      "type": "utility",
+      "domain": "ui",
+      "patterns": ["svg-normalization"],
+      "aiSummary": "Expands a mounted SVG's viewBox so its rendered content fits, keeping author-declared padding intact.",
       "dependencies": []
     },
     "src/ui/web/media/SVGMedia/fetchInlineSvg.ts": {
@@ -6139,7 +6322,7 @@
       "domain": "ui",
       "patterns": ["shared-markdown", "tailwind-component", "client-component"],
       "aiSummary": "Shared markdown renderer with KaTeX math support and RTL isolation",
-      "dependencies": ["react-markdown", "rehype-katex", "remark-gfm", "remark-math"]
+      "dependencies": ["react", "react-markdown", "rehype-katex", "remark-gfm", "remark-math"]
     },
     "src/ui/web/shared/MathMarkdown/isSvgMedia.ts": {
       "path": "src/ui/web/shared/MathMarkdown/isSvgMedia.ts",
@@ -6154,7 +6337,7 @@
       "type": "utility",
       "domain": "ui",
       "patterns": ["rtl-isolation"],
-      "aiSummary": "Rehype plugin that wraps KaTeX math output with dir=\"ltr\" for RTL language support",
+      "aiSummary": "Rehype plugin that wraps KaTeX output with dir=\"ltr\" and classifies expressions as short (inline highlight) or long (visual block).",
       "dependencies": ["hast", "unist-util-visit"]
     },
     "src/ui/web/shared/MathMarkdown/remark-color-syntax.ts": {
@@ -6180,6 +6363,14 @@
       "patterns": ["tailwind-component", "client-component"],
       "aiSummary": "",
       "dependencies": ["react"]
+    },
+    "src/ui/web/shared/ShareButton/index.tsx": {
+      "path": "src/ui/web/shared/ShareButton/index.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["tailwind-component", "i18n-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["lucide-react", "react", "sonner"]
     },
     "src/ui/web/shared/TypingAnimation/index.tsx": {
       "path": "src/ui/web/shared/TypingAnimation/index.tsx",
@@ -6215,8 +6406,8 @@
     }
   },
   "metadata": {
-    "generatedAt": "2026-08-20T14:53:48.337Z",
-    "totalFiles": 557,
-    "totalPatterns": 189
+    "generatedAt": "2026-10-05T06:59:33.975Z",
+    "totalFiles": 576,
+    "totalPatterns": 193
   }
 }

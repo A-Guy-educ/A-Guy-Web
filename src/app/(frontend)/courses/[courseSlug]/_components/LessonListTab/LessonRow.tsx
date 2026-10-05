@@ -15,6 +15,7 @@ import { storeLessonOpenTimestamp } from '@/infra/analytics/utils/lesson-load-ti
 import { SYSTEM_EVENTS, systemEventBus } from '@/infra/system-events'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { ContentStatusBadge } from '@/ui/web/shared/ContentStatusBadge'
+import { ShareButton } from '@/ui/web/shared/ShareButton'
 import { formatMessage } from './formatMessage'
 import type { LessonRoadmapNode } from './lessonRoadmapTypes'
 
@@ -145,6 +146,19 @@ export function LessonRow({ node, courseSlug, purchaseHref }: LessonRowProps) {
           </div>
         </div>
         <div className="flex items-center gap-content-gap-xs self-stretch sm:self-auto justify-end shrink-0">
+          {/* Share comes before the status chip in DOM so flex visual
+              ordering lands it on the opposite side of the start/continue
+              button — Hebrew (RTL): start on left, share to the right of it;
+              English (LTR): mirror. Same action-group placement as before,
+              just the two children swapped. */}
+          {isInteractive && chapterSlug && lesson.slug && (
+            <ShareButton
+              title={lesson.title}
+              url={`/courses/${courseSlug}/chapters/${chapterSlug}/lessons/${lesson.slug}`}
+              ariaLabel={tc('shareLesson')}
+              className="h-7 w-7 shadow-none"
+            />
+          )}
           {renderStatusControl({ node, t })}
         </div>
       </SystemLink>

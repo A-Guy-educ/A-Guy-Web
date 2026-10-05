@@ -2,7 +2,7 @@ import fs from 'fs/promises'
 
 import { NextRequest, NextResponse } from 'next/server'
 
-import { VercelBlobAdapter } from '@/infra/blob/vercel-blob-adapter'
+import { isVercelBlobUrl, VercelBlobAdapter } from '@/infra/blob/vercel-blob-adapter'
 import { resolveMediaFilePath } from '@/infra/config/storage'
 import { resolveMediaSourceUrl } from '@/infra/media/resolveMediaSourceUrl'
 import { findMediaByFilename } from '@/server/services/media'
@@ -65,6 +65,30 @@ function getBlobLookupPrefixes(filename: string, media: MediaFileRecord | null):
   })
 }
 
+async function streamUpstream(
+  url: string,
+  fallbackMimeType: unknown,
+): Promise<NextResponse | null> {
+  try {
+    const upstream = await fetch(url, {
+      redirect: 'follow',
+      signal: AbortSignal.timeout(30_000),
+    })
+    if (!upstream.ok) return null
+    return new NextResponse(upstream.body, {
+      status: 200,
+      headers: {
+        'Content-Type':
+          upstream.headers.get('content-type') ||
+          String(fallbackMimeType || 'application/octet-stream'),
+        'Cache-Control': 'public, max-age=86400',
+      },
+    })
+  } catch {
+    return null
+  }
+}
+
 async function findBlobUrl(
   filename: string,
   media: MediaFileRecord | null,
@@ -112,13 +136,29 @@ export async function GET(
 
   const media = (await findMediaByFilename(filename)) as MediaFileRecord | null
 
+  // Opt-in streaming mode. Callers that embed the file in an iframe + XHR
+  // (PDF.js in /api/pdfjs-viewer, specifically) can't tolerate the default
+  // 302 to a Vercel Blob URL: the follow-up fetch becomes cross-origin and
+  // CORS silently fails inside the iframe, leaving an empty viewer. When
+  // `inline=1` is set we proxy the bytes through this origin instead, so
+  // PDF.js sees a plain same-origin response.
+  const inline = request.nextUrl.searchParams.get('inline') === '1'
+
   const redirectUrl = resolveRedirectUrl(media?.url, request)
   if (redirectUrl) {
+    if (inline && isVercelBlobUrl(redirectUrl)) {
+      const streamed = await streamUpstream(redirectUrl, media?.mimeType)
+      if (streamed) return streamed
+    }
     return NextResponse.redirect(redirectUrl)
   }
 
   const blobUrl = await findBlobUrl(filename, media)
   if (blobUrl) {
+    if (inline) {
+      const streamed = await streamUpstream(blobUrl, media?.mimeType)
+      if (streamed) return streamed
+    }
     return NextResponse.redirect(blobUrl)
   }
 

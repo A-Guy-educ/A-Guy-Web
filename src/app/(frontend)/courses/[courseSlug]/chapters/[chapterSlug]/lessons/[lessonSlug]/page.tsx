@@ -269,6 +269,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
       courseSlug={courseSlug}
       gatedDelayMs={gatedDelayMs}
       gatedWarningMs={gatedWarningMs}
+      allowAnonymousPreview={true}
     >
       <LessonAnalytics
         lessonId={lesson.id}
