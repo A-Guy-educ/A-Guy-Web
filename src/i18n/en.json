@@ -360,6 +360,8 @@
     "chatViewGivenDataEmpty": "No additional data for this exercise",
     "chatViewMute": "Mute",
     "chatViewUnmute": "Unmute",
+    "chatViewReset": "Start over",
+    "chatViewBack": "Back",
     "chatViewSendLabel": "Send",
     "chatViewAcknowledgment": "One moment...",
     "chatViewChatError": "Chat error — please try again",

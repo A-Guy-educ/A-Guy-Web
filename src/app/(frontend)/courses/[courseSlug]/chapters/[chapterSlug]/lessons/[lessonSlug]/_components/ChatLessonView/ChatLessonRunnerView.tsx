@@ -27,6 +27,15 @@ import { pickWellDone } from './wellDoneMessages'
 
 const CELEBRATION_ADVANCE_MS = 1500
 
+/**
+ * Window event name used by ChatLessonView's menu-dropdown "restart"
+ * action to trigger ActiveChat's reset handler. The reset logic has to
+ * stay inside ActiveChat (where `clearProgress`, walker state, and the
+ * remount key all live), so the menu-side publisher just fires this
+ * event instead of threading a callback through multiple layers.
+ */
+export const CHAT_LESSON_RESET_EVENT = 'chat-lesson-reset' as const
+
 /** Stable empty map — avoids feeding a fresh `{}` into MediaMapProvider on
  *  every render, which would re-fire every `useMediaMap` descendant. */
 const EMPTY_MEDIA_MAP: Record<string, Media> = {}
@@ -38,12 +47,16 @@ interface ChatLessonRunnerViewProps {
   /** TTS instance hoisted from the parent (ChatLessonView) so its mute
    *  state can also drive the LessonMenu's mute item. */
   tts: ReturnType<typeof useBrowserTTS>
+  /** Course URL used by the top-level back arrow in ChatLessonProgress. */
+  backUrl: string
+  backLabel: string
 }
 
 export function ChatLessonRunnerView(props: ChatLessonRunnerViewProps) {
-  // Reset button remounts ActiveChat so all internal state (entries, walker,
-  // chat channel) starts fresh — the same guarantee the previous
-  // hasStarted-toggling flow gave us, minus the extra start card.
+  // Reset action (now in the LessonMenu dropdown) remounts ActiveChat so
+  // all internal state (entries, walker, chat channel) starts fresh —
+  // the same guarantee the previous hasStarted-toggling flow gave us,
+  // minus the extra start card.
   const [resetKey, setResetKey] = useState(0)
   return <ActiveChat key={resetKey} {...props} onExit={() => setResetKey((k) => k + 1)} />
 }
@@ -52,7 +65,15 @@ interface ActiveChatProps extends ChatLessonRunnerViewProps {
   onExit: () => void
 }
 
-function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatProps) {
+function ActiveChat({
+  lessonId,
+  exercises,
+  mediaMap,
+  tts,
+  onExit,
+  backUrl,
+  backLabel,
+}: ActiveChatProps) {
   const t = useTranslations('courses')
   const locale = useLocale()
   const isHebrew = locale?.toLowerCase().startsWith('he') ?? false
@@ -314,6 +335,19 @@ function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatPr
     onExit()
   }, [cancelPendingAdvance, clearProgress, exercises, onExit, tts])
 
+  // The LessonMenu dropdown's restart entry (published from
+  // ChatLessonView) fires `CHAT_LESSON_RESET_EVENT` instead of calling a
+  // prop callback, so the reset logic can stay here where every hook it
+  // needs is already in scope. Keep the handler in a ref so the listener
+  // identity stays stable across renders.
+  const resetRef = useRef(handleReset)
+  resetRef.current = handleReset
+  useEffect(() => {
+    const handler = () => resetRef.current()
+    window.addEventListener(CHAT_LESSON_RESET_EVENT, handler)
+    return () => window.removeEventListener(CHAT_LESSON_RESET_EVENT, handler)
+  }, [])
+
   const showContinueButton = !walker.isComplete && entries.length > 0
 
   // Given-data blocks for the current EXERCISE — top-level only (pre-section
@@ -376,7 +410,8 @@ function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatPr
         currentExerciseSections={walker.currentExerciseSections}
         exerciseLabel={t('chatViewProgressExercise')}
         sectionLabel={t('chatViewProgressSection')}
-        onReset={handleReset}
+        backUrl={backUrl}
+        backLabel={backLabel}
       />
 
       <GivenDataFloating

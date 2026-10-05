@@ -5,4 +5,5 @@ export {
   useLessonMenuConfig,
   type LessonMenuConfig,
   type LessonMenuMute,
+  type LessonMenuRestart,
 } from './LessonMenuContext'

@@ -127,6 +127,8 @@ export function ExerciseWorkspace({
         onSelectMode={menuConfig?.onSelectMode}
         backUrl={backUrl}
         mute={menuConfig?.mute}
+        restart={menuConfig?.restart}
+        hideBack={menuConfig?.hideBack}
         variant={menuVariant}
       />
 

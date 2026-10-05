@@ -4822,6 +4822,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Swap chat-view reset and back controls ([#1282](https://github.com/A-Guy-educ/A-Guy-Web/pull/1282)) — @aguyshayb
 - fix: Flip lesson-row share to opposite end + render f(x) as math ([#1280](https://github.com/A-Guy-educ/A-Guy-Web/pull/1280)) — @aguyshayb
 - chore(deps): Bump framer-motion from 12.38.0 to 13.5.0 ([#1276](https://github.com/A-Guy-educ/A-Guy-Web/pull/1276)) — @dependabot[bot]
 - chore(deps): Bump openai from 4.104.0 to 7.27.0 ([#1274](https://github.com/A-Guy-educ/A-Guy-Web/pull/1274)) — @dependabot[bot]
