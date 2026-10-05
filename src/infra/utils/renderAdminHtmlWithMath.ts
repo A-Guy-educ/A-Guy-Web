@@ -46,11 +46,6 @@ function canRenderInlineMath(source: string): boolean {
   const value = source.trim()
   if (!value) return false
   if (/^[A-Za-z]$/.test(value)) return true
-  // Function-call shaped labels (`f(x)`, `g(x,y)`, `sin(x)`). Without this
-  // branch they'd fall through to the operator-presence check below, fail
-  // (no `\`, no `^`, no digit-letter adjacency), and be left as literal
-  // `$f(x)$` text in the admin HTML output.
-  if (/^[A-Za-z]+\([A-Za-z0-9, ]*\)$/.test(value)) return true
   return /[\\^_{}=<>+\-*×÷/]|\d[A-Za-z]|[A-Za-z]\d/.test(value)
 }
 
