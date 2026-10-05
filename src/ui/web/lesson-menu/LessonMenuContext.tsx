@@ -28,12 +28,31 @@ export interface LessonMenuMute {
   unmuteLabel: string
 }
 
+/**
+ * Optional "restart this view" action rendered inside the LessonMenu
+ * dropdown. The chat view uses this to let the student wipe the current
+ * chat run from the menu (freeing the top-level floating slot for a
+ * back-to-course arrow).
+ */
+export interface LessonMenuRestart {
+  onReset: () => void
+  label: string
+}
+
 export interface LessonMenuConfig {
   tabs: LessonMenuTab[]
   activeMode: LessonMode
   onSelectMode: (mode: LessonMode) => void
   /** Optional mute toggle surfaced inside the dropdown. */
   mute?: LessonMenuMute
+  /** Optional restart action surfaced inside the dropdown. */
+  restart?: LessonMenuRestart
+  /**
+   * Hide the dropdown's back entry. Set when the view surfaces its own
+   * top-level back control (chat view) so the student doesn't see two
+   * back affordances for the same destination.
+   */
+  hideBack?: boolean
 }
 
 const LessonMenuContext = createContext<LessonMenuConfig | null>(null)
