@@ -12,7 +12,13 @@ interface ShareButtonProps {
   title: string
   /** Optional short description for the share sheet; omitted on clipboard fallback. */
   text?: string
-  /** Absolute URL to share. When omitted, resolves to window.location.href at click time. */
+  /**
+   * URL to share. Accepts absolute (`https://…`) or site-relative (`/courses/…`)
+   * paths — relative paths are resolved against `window.location.origin` at
+   * click time so callers on a different page (e.g. a lesson row on the course
+   * page) can hand us the lesson URL without touching `window` themselves.
+   * When omitted, resolves to the current `window.location.href`.
+   */
   url?: string
   className?: string
   ariaLabel?: string
@@ -23,11 +29,16 @@ export function ShareButton({ title, text, url, className, ariaLabel }: ShareBut
   // Guard against rapid double-taps on mobile that would open the share sheet twice.
   const busyRef = useRef(false)
 
-  const handleClick = async () => {
+  const handleClick = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    // When this button is rendered inside a parent <a> / Link (e.g. a lesson
+    // row card that navigates to the lesson URL), stop the click so the share
+    // sheet opens instead of the parent navigating away.
+    event.preventDefault()
+    event.stopPropagation()
     if (busyRef.current) return
     busyRef.current = true
     try {
-      const shareUrl = url ?? (typeof window !== 'undefined' ? window.location.href : '')
+      const shareUrl = resolveShareUrl(url)
       if (!shareUrl) return
 
       if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
@@ -66,4 +77,11 @@ export function ShareButton({ title, text, url, className, ariaLabel }: ShareBut
       <Share2 className="h-4 w-4" />
     </button>
   )
+}
+
+function resolveShareUrl(url: string | undefined): string {
+  if (typeof window === 'undefined') return url ?? ''
+  if (!url) return window.location.href
+  if (url.startsWith('/')) return `${window.location.origin}${url}`
+  return url
 }

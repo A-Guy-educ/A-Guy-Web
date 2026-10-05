@@ -15,6 +15,7 @@ import { storeLessonOpenTimestamp } from '@/infra/analytics/utils/lesson-load-ti
 import { SYSTEM_EVENTS, systemEventBus } from '@/infra/system-events'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { ContentStatusBadge } from '@/ui/web/shared/ContentStatusBadge'
+import { ShareButton } from '@/ui/web/shared/ShareButton'
 import { formatMessage } from './formatMessage'
 import type { LessonRoadmapNode } from './lessonRoadmapTypes'
 
@@ -146,6 +147,14 @@ export function LessonRow({ node, courseSlug, purchaseHref }: LessonRowProps) {
         </div>
         <div className="flex items-center gap-content-gap-xs self-stretch sm:self-auto justify-end shrink-0">
           {renderStatusControl({ node, t })}
+          {isInteractive && chapterSlug && lesson.slug && (
+            <ShareButton
+              title={lesson.title}
+              url={`/courses/${courseSlug}/chapters/${chapterSlug}/lessons/${lesson.slug}`}
+              ariaLabel={tc('shareLesson')}
+              className="h-7 w-7 shadow-none"
+            />
+          )}
         </div>
       </SystemLink>
     </div>
