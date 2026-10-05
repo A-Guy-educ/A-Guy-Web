@@ -168,7 +168,6 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
           lessonId={lessonId}
           validFiles={validFiles}
           courseSlug={courseSlug}
-          showChat={showChat}
           chatLessonId={chatLessonId}
           formulaSheet={formulaSheet}
         />

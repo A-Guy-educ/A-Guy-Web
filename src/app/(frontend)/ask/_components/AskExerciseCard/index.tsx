@@ -48,16 +48,31 @@ export function AskExerciseCard({
     dispatchAskAction({ type: 'check', title: file.title, imageData, mediaId: file.mediaId })
   }
 
+  const isPdf =
+    file.mimeType === 'application/pdf' ||
+    /\.pdf(\?|#|$)/i.test(file.url) ||
+    /\.pdf$/i.test(file.title)
+
   return (
     <div className="rounded-2xl bg-card border border-border/40 shadow-elevation-1 transition-all duration-normal overflow-hidden border-s-4 border-s-accent mb-6">
-      <div className="aspect-video relative overflow-hidden bg-muted">
-        <Image
-          src={file.url}
-          alt={file.title}
-          fill
-          className="object-contain"
-          sizes="(max-width: 768px) 100vw, 50vw"
-        />
+      <div
+        className={cn('relative overflow-hidden bg-muted', isPdf ? 'aspect-[3/4]' : 'aspect-video')}
+      >
+        {isPdf ? (
+          <iframe
+            src={file.url}
+            title={file.title}
+            className="absolute inset-0 w-full h-full border-0"
+          />
+        ) : (
+          <Image
+            src={file.url}
+            alt={file.title}
+            fill
+            className="object-contain"
+            sizes="(max-width: 768px) 100vw, 50vw"
+          />
+        )}
       </div>
 
       <div className="p-5">
