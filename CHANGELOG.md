@@ -4822,6 +4822,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Add share button to each lesson row on the course page ([#1263](https://github.com/A-Guy-educ/A-Guy-Web/pull/1263)) — @aguyshayb
 - fix: Let anonymous visitors see lesson intros on mandatory courses ([#1262](https://github.com/A-Guy-educ/A-Guy-Web/pull/1262)) — @aguyshayb
 ## [v0.43.0] - 2026-10-04
 
