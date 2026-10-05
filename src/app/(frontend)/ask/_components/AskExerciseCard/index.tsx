@@ -53,17 +53,33 @@ export function AskExerciseCard({
     /\.pdf(\?|#|$)/i.test(file.url) ||
     /\.pdf$/i.test(file.title)
 
+  // Chrome blocks blob:-sourced PDFs rendered via its native viewer
+  // ("this content is blocked"). Route uploaded PDFs through our own
+  // /api/pdfjs-viewer proxy — same code path the lesson media tab uses.
+  // The proxy only accepts same-origin or Vercel Blob URLs, so we hold
+  // off on rendering until the upload has returned the real URL.
+  const canPreviewPdf = isPdf && !file.url.startsWith('blob:')
+  const pdfPreviewUrl = canPreviewPdf
+    ? `/api/pdfjs-viewer?file=${encodeURIComponent(file.url)}&v=4.4.168`
+    : null
+
   return (
     <div className="rounded-2xl bg-card border border-border/40 shadow-elevation-1 transition-all duration-normal overflow-hidden border-s-4 border-s-accent mb-6">
       <div
         className={cn('relative overflow-hidden bg-muted', isPdf ? 'aspect-[3/4]' : 'aspect-video')}
       >
         {isPdf ? (
-          <iframe
-            src={file.url}
-            title={file.title}
-            className="absolute inset-0 w-full h-full border-0"
-          />
+          pdfPreviewUrl ? (
+            <iframe
+              src={pdfPreviewUrl}
+              title={file.title}
+              className="absolute inset-0 w-full h-full border-0"
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+              <Loader2 className="w-6 h-6 animate-spin" />
+            </div>
+          )
         ) : (
           <Image
             src={file.url}
