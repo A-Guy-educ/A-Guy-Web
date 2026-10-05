@@ -4822,6 +4822,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Let anonymous visitors see lesson intros on mandatory courses ([#1262](https://github.com/A-Guy-educ/A-Guy-Web/pull/1262)) — @aguyshayb
 ## [v0.43.0] - 2026-10-04
 
 - promote: dev -> main (v0.43.0) ([#1261](https://github.com/A-Guy-educ/A-Guy-Web/pull/1261)) — @aguyshayb
