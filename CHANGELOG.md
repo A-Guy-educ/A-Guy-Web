@@ -4822,6 +4822,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix(deps): Pin katex back to 0.16 after a 0.19 bump re-broke sizing ([#1283](https://github.com/A-Guy-educ/A-Guy-Web/pull/1283)) — @aguyshayb
 - Revert PR #1280 + swap share order next to start button ([#1281](https://github.com/A-Guy-educ/A-Guy-Web/pull/1281)) — @aguyshayb
 - fix: Swap chat-view reset and back controls ([#1282](https://github.com/A-Guy-educ/A-Guy-Web/pull/1282)) — @aguyshayb
 - fix: Flip lesson-row share to opposite end + render f(x) as math ([#1280](https://github.com/A-Guy-educ/A-Guy-Web/pull/1280)) — @aguyshayb
