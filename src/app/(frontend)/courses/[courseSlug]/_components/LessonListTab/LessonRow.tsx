@@ -116,18 +116,6 @@ export function LessonRow({ node, courseSlug, purchaseHref }: LessonRowProps) {
           isInteractive && 'hover:-translate-x-[1px]',
         )}
       >
-        {/* Share — sm+ only. Rendered first in DOM so flex `justify-between`
-            parks it at the opposite end of the row from the status control.
-            Automatically flips with RTL direction (Hebrew: start button on
-            the left, share on the right; English: reversed). */}
-        {isInteractive && chapterSlug && lesson.slug && (
-          <ShareButton
-            title={lesson.title}
-            url={`/courses/${courseSlug}/chapters/${chapterSlug}/lessons/${lesson.slug}`}
-            ariaLabel={tc('shareLesson')}
-            className="hidden sm:inline-flex h-7 w-7 shadow-none shrink-0"
-          />
-        )}
         <div className="flex items-center gap-content-gap-sm text-start w-full sm:w-auto">
           <div
             className={cn(
@@ -158,17 +146,20 @@ export function LessonRow({ node, courseSlug, purchaseHref }: LessonRowProps) {
           </div>
         </div>
         <div className="flex items-center gap-content-gap-xs self-stretch sm:self-auto justify-end shrink-0">
-          {renderStatusControl({ node, t })}
-          {/* Share — mobile only. Keeps the same next-to-status placement the
-              stacked flex-col layout had before. */}
+          {/* Share comes before the status chip in DOM so flex visual
+              ordering lands it on the opposite side of the start/continue
+              button — Hebrew (RTL): start on left, share to the right of it;
+              English (LTR): mirror. Same action-group placement as before,
+              just the two children swapped. */}
           {isInteractive && chapterSlug && lesson.slug && (
             <ShareButton
               title={lesson.title}
               url={`/courses/${courseSlug}/chapters/${chapterSlug}/lessons/${lesson.slug}`}
               ariaLabel={tc('shareLesson')}
-              className="sm:hidden h-7 w-7 shadow-none"
+              className="h-7 w-7 shadow-none"
             />
           )}
+          {renderStatusControl({ node, t })}
         </div>
       </SystemLink>
     </div>
