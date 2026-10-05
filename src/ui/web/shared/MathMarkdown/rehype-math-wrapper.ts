@@ -113,12 +113,20 @@ function extractLatexSource(root: Element): string {
 }
 
 /**
- * Short = a bare letter / pair / single macro like "x", "AB", "\pi", "\alpha".
- * We collapse each `\command` sequence to a single placeholder character before
- * measuring length so `\alpha` counts as 1, not 6.
+ * Short = reads as a label, not a full expression. Keeps atoms (`x`, `AB`,
+ * `\pi`, `\alpha`, `35`) and function-call-style labels (`f(x)`, `g(x)`,
+ * `sin(x)`) at the base inline reading size. We collapse each `\command`
+ * sequence to a single placeholder character before measuring length so
+ * `\alpha` counts as 1, not 6.
+ *
+ * Mirrors classifyShort in renderAdminHtmlWithMath.ts — keep them in sync.
  */
 function classifyShort(source: string): boolean {
   if (source.length === 0) return false
+  // Function-call labels like `f(x)`, `g(x,y)`, `sin(x)` — read as a function
+  // reference, not a definition. Reject when the parens contain operators,
+  // which would push the expression into definition territory (e.g. `f(x+1)`).
+  if (/^[A-Za-z]+\([A-Za-z0-9, ]*\)$/.test(source)) return true
   const normalised = source.replace(/\\[a-zA-Z]+/g, 'x')
   if (normalised.length > 3) return false
   if (/[=+/^_<>]/.test(normalised)) return false
