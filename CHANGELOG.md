@@ -4822,6 +4822,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore(deps): Bump framer-motion from 12.38.0 to 13.5.0 ([#1276](https://github.com/A-Guy-educ/A-Guy-Web/pull/1276)) — @dependabot[bot]
 - chore(deps): Bump openai from 4.104.0 to 7.27.0 ([#1274](https://github.com/A-Guy-educ/A-Guy-Web/pull/1274)) — @dependabot[bot]
 - chore(deps-dev): Bump @testing-library/jest-dom from 6.9.1 to 7.0.1 ([#1271](https://github.com/A-Guy-educ/A-Guy-Web/pull/1271)) — @dependabot[bot]
 - chore(deps): Bump the prod-dependencies group with 7 updates ([#1270](https://github.com/A-Guy-educ/A-Guy-Web/pull/1270)) — @dependabot[bot]
