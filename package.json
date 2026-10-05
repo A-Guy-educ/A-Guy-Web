@@ -187,7 +187,7 @@
     "@types/react-dom": "^19.3.0",
     "@typescript-eslint/eslint-plugin": "^8.71.0",
     "@typescript-eslint/parser": "^8.71.0",
-    "@vitejs/plugin-react": "4.5.2",
+    "@vitejs/plugin-react": "6.1.1",
     "@vitest/coverage-v8": "4.1.10",
     "eslint": "^9.16.0",
     "eslint-config-next": "15.5.9",
