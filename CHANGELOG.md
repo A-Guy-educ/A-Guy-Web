@@ -1,5 +1,28 @@
 # Changelog
 
+## v0.44.0 — 2026-10-05
+
+### Features
+- Add share button to each lesson row on the course page (#1263)
+- Always show chat on media tab and send PDF page context (#1265)
+
+### Fixes
+- Pin katex back to 0.16 after a 0.19 bump broke sizing (#1283)
+- Swap chat-view reset and back controls (#1282)
+- Flip lesson-row share to opposite end and render f(x) as math (#1281)
+- Stream ask-uploaded PDFs same-origin for the viewer iframe (#1269)
+- Keep ask tab on course page and route PDF preview via proxy (#1267)
+- Scope double-size math to long expressions only (#1266)
+- Let anonymous visitors see lesson intros on mandatory courses (#1262)
+
+### Chores
+- Bump prod-dependencies group with 7 updates (#1270)
+- Bump @testing-library/jest-dom to 7.0.1 (#1271)
+- Bump openai to 7.27.0 (#1274)
+- Bump framer-motion to 13.5.0 (#1276)
+- Fix broken internal doc links (#1268)
+- Refresh ai-docs indexes (#1264)
+
 ## v0.43.0 — 2026-10-04
 
 ### Features
