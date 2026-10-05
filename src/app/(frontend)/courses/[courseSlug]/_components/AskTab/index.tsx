@@ -1,16 +1,18 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Sparkles } from 'lucide-react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { Loader2, Sparkles } from 'lucide-react'
 import { cn } from '@/infra/utils/ui'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { Button } from '@/ui/web/components/button'
 import { StaggerGrid, StaggerItem } from '@/ui/web/components/motion'
+import { AskContent } from '@/app/(frontend)/ask/_components/AskContent'
 import { ConversationCard } from '../ConversationCard'
 
 interface ConversationSummary {
   id: string
+  contextKey?: string
   title: string
   lastMessageAt: string
   messageCount: number
@@ -23,13 +25,21 @@ interface AskTabProps {
 
 const PAGE_SIZE = 10
 
+/** Query param that opens the inline Ask overlay with a specific contextKey. */
+const ASK_CTX_PARAM = 'askCtx'
+
 export function AskTab({ courseId, accentColor }: AskTabProps) {
   const t = useTranslations('coursePage')
   const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const [conversations, setConversations] = useState<ConversationSummary[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const [isCreating, setIsCreating] = useState(false)
+
+  const activeContextKey = searchParams.get(ASK_CTX_PARAM) || null
 
   const loadConversations = useCallback(async () => {
     try {
@@ -63,6 +73,52 @@ export function AskTab({ courseId, accentColor }: AskTabProps) {
     }
   }
 
+  // The ExerciseWorkspace back button pushes to `pathname`, dropping the
+  // askCtx param and returning to the grid. Keep the destination query-free
+  // so the overlay actually dismisses.
+  const backUrl = pathname
+
+  const openConversation = useCallback(
+    (contextKey: string) => {
+      const params = new URLSearchParams(searchParams.toString())
+      params.set(ASK_CTX_PARAM, contextKey)
+      router.push(`${pathname}?${params.toString()}`)
+    },
+    [pathname, router, searchParams],
+  )
+
+  const handleNewQuestion = async () => {
+    if (isCreating) return
+    setIsCreating(true)
+    try {
+      const res = await fetch('/api/conversations/by-context', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ courseId }),
+      })
+      if (res.ok) {
+        const { contextKey } = (await res.json()) as { id: string; contextKey: string }
+        if (contextKey) openConversation(contextKey)
+      }
+    } catch {
+      // Silent fail — user can retry
+    } finally {
+      setIsCreating(false)
+    }
+  }
+
+  if (activeContextKey) {
+    return (
+      <AskContent
+        conversationContextKey={activeContextKey}
+        initialCourseId={courseId}
+        backUrl={backUrl}
+        menuVariant="lesson"
+      />
+    )
+  }
+
   const visible = conversations.slice(0, visibleCount)
 
   return (
@@ -70,12 +126,13 @@ export function AskTab({ courseId, accentColor }: AskTabProps) {
       {/* New Question card */}
       <StaggerItem>
         <button
-          onClick={() => router.push('/ask')}
+          onClick={handleNewQuestion}
+          disabled={isCreating}
           className={cn(
-            'bg-primary text-primary-foreground rounded-3xl p-6 shadow-card',
+            'bg-primary text-primary-foreground rounded-3xl p-card-padding shadow-card',
             'flex items-center justify-between',
             'transition-all duration-normal cursor-pointer border border-transparent hover:opacity-95',
-            'text-start',
+            'text-start disabled:opacity-70 disabled:cursor-wait',
           )}
         >
           <div className="flex flex-col">
@@ -86,7 +143,11 @@ export function AskTab({ courseId, accentColor }: AskTabProps) {
             <p className="text-body-xs text-primary-foreground/70 mt-1">{t('newQuestionSub')}</p>
           </div>
           <div className="w-14 h-14 bg-primary-foreground/20 rounded-full flex items-center justify-center shrink-0 ms-3">
-            <Sparkles className="w-6 h-6 text-primary-foreground fill-current" />
+            {isCreating ? (
+              <Loader2 className="w-6 h-6 text-primary-foreground animate-spin" />
+            ) : (
+              <Sparkles className="w-6 h-6 text-primary-foreground fill-current" />
+            )}
           </div>
         </button>
       </StaggerItem>
@@ -104,7 +165,7 @@ export function AskTab({ courseId, accentColor }: AskTabProps) {
             index={total - idx}
             title={conv.title || `${t('question')} ${total - idx}`}
             subtitle={`${conv.messageCount} messages`}
-            onClick={() => router.push(`/ask?conversationId=${conv.id}`)}
+            onClick={() => conv.contextKey && openConversation(conv.contextKey)}
             onDelete={() => handleDelete(conv.id)}
             accentColor={accentColor}
           />

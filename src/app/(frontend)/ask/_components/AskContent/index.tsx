@@ -14,15 +14,39 @@ import { AskPrimaryContent } from '../AskPrimaryContent'
 interface AskContentProps {
   /** The conversation's contextKey — conversation must already exist in DB */
   conversationContextKey?: string
+  /**
+   * When provided, skips the user-profile-based course lookup. Used when
+   * AskContent is embedded inside a course page where the courseId is
+   * already known.
+   */
+  initialCourseId?: string
+  /**
+   * Override the LessonMenu back destination. Defaults to `/ask` for the
+   * standalone page; embedders (e.g. the course page) pass their own URL
+   * so the back button returns to the enclosing surface instead.
+   */
+  backUrl?: string
+  /**
+   * Back-button semantics for the floating LessonMenu. `'lesson'` pushes
+   * straight to `backUrl` with a "back to home page" label; `'standalone'`
+   * (default for the /ask page) uses browser history and a generic label.
+   */
+  menuVariant?: 'lesson' | 'standalone'
 }
 
-export function AskContent({ conversationContextKey }: AskContentProps) {
+export function AskContent({
+  conversationContextKey,
+  initialCourseId,
+  backUrl = '/ask',
+  menuVariant,
+}: AskContentProps) {
   const t = useTranslations('homepage.ask')
   const locale = useLocale()
-  const [courseId, setCourseId] = useState<string>('')
-  const [isLoading, setIsLoading] = useState(true)
+  const [courseId, setCourseId] = useState<string>(initialCourseId ?? '')
+  const [isLoading, setIsLoading] = useState(!initialCourseId)
 
   useEffect(() => {
+    if (initialCourseId) return
     async function loadCourse() {
       const profile = getUserProfile()
       if (!profile?.gradeLevel) {
@@ -57,7 +81,7 @@ export function AskContent({ conversationContextKey }: AskContentProps) {
     }
 
     loadCourse()
-  }, [locale])
+  }, [locale, initialCourseId])
 
   if (isLoading) {
     return (
@@ -101,7 +125,8 @@ export function AskContent({ conversationContextKey }: AskContentProps) {
   return (
     <ExerciseWorkspace
       exerciseTitle={t('pageTitle')}
-      backUrl="/ask"
+      backUrl={backUrl}
+      menuVariant={menuVariant}
       primaryContent={<AskPrimaryContent />}
       chatContent={
         <ChatInterface
