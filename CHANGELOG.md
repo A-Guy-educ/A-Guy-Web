@@ -4822,6 +4822,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Stream ask-uploaded PDFs same-origin for the viewer iframe ([#1269](https://github.com/A-Guy-educ/A-Guy-Web/pull/1269)) — @aguyshayb
 - chore(docs): fix broken internal links ([#1268](https://github.com/A-Guy-educ/A-Guy-Web/pull/1268)) — @github-actions[bot]
 - fix: Keep ask tab on course page and show uploaded PDF preview ([#1267](https://github.com/A-Guy-educ/A-Guy-Web/pull/1267)) — @aguyshayb
 - fix: Scope double-size math to long expressions only ([#1266](https://github.com/A-Guy-educ/A-Guy-Web/pull/1266)) — @aguyshayb
