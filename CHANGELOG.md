@@ -4822,6 +4822,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore(deps-dev): Bump @testing-library/jest-dom from 6.9.1 to 7.0.1 ([#1271](https://github.com/A-Guy-educ/A-Guy-Web/pull/1271)) — @dependabot[bot]
 - chore(deps): Bump the prod-dependencies group with 7 updates ([#1270](https://github.com/A-Guy-educ/A-Guy-Web/pull/1270)) — @dependabot[bot]
 - fix: Stream ask-uploaded PDFs same-origin for the viewer iframe ([#1269](https://github.com/A-Guy-educ/A-Guy-Web/pull/1269)) — @aguyshayb
 - chore(docs): fix broken internal links ([#1268](https://github.com/A-Guy-educ/A-Guy-Web/pull/1268)) — @github-actions[bot]
