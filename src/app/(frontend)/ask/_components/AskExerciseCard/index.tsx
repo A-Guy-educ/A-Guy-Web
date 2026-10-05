@@ -53,14 +53,18 @@ export function AskExerciseCard({
     /\.pdf(\?|#|$)/i.test(file.url) ||
     /\.pdf$/i.test(file.title)
 
-  // Chrome blocks blob:-sourced PDFs rendered via its native viewer
-  // ("this content is blocked"). Route uploaded PDFs through our own
-  // /api/pdfjs-viewer proxy — same code path the lesson media tab uses.
-  // The proxy only accepts same-origin or Vercel Blob URLs, so we hold
-  // off on rendering until the upload has returned the real URL.
-  const canPreviewPdf = isPdf && !file.url.startsWith('blob:')
+  // PDF.js's XHR inside the viewer iframe can't read a raw Vercel Blob
+  // URL — the cross-origin response falls outside the viewer's CORS
+  // envelope and the viewer renders empty. Route the preview through
+  // `/api/media/file/<filename>?inline=1` so PDF.js only ever sees
+  // same-origin bytes (that endpoint streams the Blob through our
+  // origin when `inline=1` is set, matching the admin-media path that
+  // the lesson media tab already relies on).
+  const canPreviewPdf = isPdf && !!file.filename
   const pdfPreviewUrl = canPreviewPdf
-    ? `/api/pdfjs-viewer?file=${encodeURIComponent(file.url)}&v=4.4.168`
+    ? `/api/pdfjs-viewer?file=${encodeURIComponent(
+        `/api/media/file/${encodeURIComponent(file.filename!)}?inline=1`,
+      )}&v=4.4.168`
     : null
 
   return (

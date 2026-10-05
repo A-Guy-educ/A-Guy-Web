@@ -114,7 +114,7 @@ export function AskPrimaryContent() {
       // around after the ObjectURL is revoked below.
       setCurrentFile((prev) =>
         prev && prev.id === fileId
-          ? { ...prev, mediaId, isUploading: false, url: uploadedUrl ?? prev.url }
+          ? { ...prev, mediaId, isUploading: false, url: uploadedUrl ?? prev.url, filename }
           : prev,
       )
       if (uploadedUrl) URL.revokeObjectURL(previewUrl)

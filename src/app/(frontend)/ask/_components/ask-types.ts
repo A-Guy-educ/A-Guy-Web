@@ -9,6 +9,12 @@ export interface ExerciseFile {
   isUploading?: boolean
   /** MIME type of the uploaded file (e.g. 'image/jpeg', 'application/pdf') */
   mimeType?: string
+  /**
+   * Server-side filename returned by the upload (used to build a same-origin
+   * `/api/media/file/<filename>` URL for the PDF preview — direct Vercel Blob
+   * URLs fail PDF.js's cross-origin fetch inside the viewer iframe).
+   */
+  filename?: string
 }
 
 export interface AskActionEvent {
