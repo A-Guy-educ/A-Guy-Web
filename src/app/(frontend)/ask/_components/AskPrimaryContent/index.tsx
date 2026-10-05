@@ -89,6 +89,7 @@ export function AskPrimaryContent() {
       url: previewUrl,
       date: new Date().toLocaleDateString('he-IL'),
       isUploading: true,
+      mimeType: file.type,
     })
     setIsUploading(true)
 
@@ -188,7 +189,7 @@ export function AskPrimaryContent() {
               type="file"
               ref={fileInputRef}
               onChange={handleFileUpload}
-              accept="image/*"
+              accept="image/*,application/pdf"
               className="hidden"
             />
           </div>

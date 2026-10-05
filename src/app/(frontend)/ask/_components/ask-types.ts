@@ -7,6 +7,8 @@ export interface ExerciseFile {
   mediaId?: string
   /** True while the image is being uploaded to /api/media */
   isUploading?: boolean
+  /** MIME type of the uploaded file (e.g. 'image/jpeg', 'application/pdf') */
+  mimeType?: string
 }
 
 export interface AskActionEvent {

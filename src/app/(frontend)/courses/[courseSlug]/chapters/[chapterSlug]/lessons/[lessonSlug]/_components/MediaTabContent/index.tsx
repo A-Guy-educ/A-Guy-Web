@@ -27,7 +27,6 @@ interface MediaTabContentProps {
   validFiles: Media[]
   courseSlug: string
   headerSlot?: React.ReactNode
-  showChat?: boolean
   chatLessonId?: string
   formulaSheet?: FormulaSheet | null
 }
@@ -39,7 +38,6 @@ export function MediaTabContent({
   validFiles,
   courseSlug,
   headerSlot,
-  showChat,
   chatLessonId,
   formulaSheet,
 }: MediaTabContentProps) {
@@ -190,14 +188,12 @@ export function MediaTabContent({
         </div>
       }
       chatContent={
-        showChat ? (
-          <ChatInterface
-            lessonId={chatLessonId ?? lessonId}
-            translationNamespace="courses"
-            showMathTools={true}
-            formulaSheet={formulaSheet}
-          />
-        ) : null
+        <ChatInterface
+          lessonId={chatLessonId ?? lessonId}
+          translationNamespace="courses"
+          showMathTools={true}
+          formulaSheet={formulaSheet}
+        />
       }
     />
   )
