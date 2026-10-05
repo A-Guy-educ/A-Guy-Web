@@ -116,6 +116,18 @@ export function LessonRow({ node, courseSlug, purchaseHref }: LessonRowProps) {
           isInteractive && 'hover:-translate-x-[1px]',
         )}
       >
+        {/* Share — sm+ only. Rendered first in DOM so flex `justify-between`
+            parks it at the opposite end of the row from the status control.
+            Automatically flips with RTL direction (Hebrew: start button on
+            the left, share on the right; English: reversed). */}
+        {isInteractive && chapterSlug && lesson.slug && (
+          <ShareButton
+            title={lesson.title}
+            url={`/courses/${courseSlug}/chapters/${chapterSlug}/lessons/${lesson.slug}`}
+            ariaLabel={tc('shareLesson')}
+            className="hidden sm:inline-flex h-7 w-7 shadow-none shrink-0"
+          />
+        )}
         <div className="flex items-center gap-content-gap-sm text-start w-full sm:w-auto">
           <div
             className={cn(
@@ -147,12 +159,14 @@ export function LessonRow({ node, courseSlug, purchaseHref }: LessonRowProps) {
         </div>
         <div className="flex items-center gap-content-gap-xs self-stretch sm:self-auto justify-end shrink-0">
           {renderStatusControl({ node, t })}
+          {/* Share — mobile only. Keeps the same next-to-status placement the
+              stacked flex-col layout had before. */}
           {isInteractive && chapterSlug && lesson.slug && (
             <ShareButton
               title={lesson.title}
               url={`/courses/${courseSlug}/chapters/${chapterSlug}/lessons/${lesson.slug}`}
               ariaLabel={tc('shareLesson')}
-              className="h-7 w-7 shadow-none"
+              className="sm:hidden h-7 w-7 shadow-none"
             />
           )}
         </div>
