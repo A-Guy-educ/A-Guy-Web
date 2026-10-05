@@ -4822,6 +4822,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- Revert PR #1280 + swap share order next to start button ([#1281](https://github.com/A-Guy-educ/A-Guy-Web/pull/1281)) — @aguyshayb
 - fix: Swap chat-view reset and back controls ([#1282](https://github.com/A-Guy-educ/A-Guy-Web/pull/1282)) — @aguyshayb
 - fix: Flip lesson-row share to opposite end + render f(x) as math ([#1280](https://github.com/A-Guy-educ/A-Guy-Web/pull/1280)) — @aguyshayb
 - chore(deps): Bump framer-motion from 12.38.0 to 13.5.0 ([#1276](https://github.com/A-Guy-educ/A-Guy-Web/pull/1276)) — @dependabot[bot]
