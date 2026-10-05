@@ -133,7 +133,7 @@
     "cross-env": "^7.0.3",
     "dompurify": "3.4.16",
     "dotenv": "17.4.2",
-    "framer-motion": "^12.38.0",
+    "framer-motion": "^13.5.0",
     "geist": "^1.7.2",
     "genkit": "^1.42.0",
     "genkitx-openai": "^0.30.0",
