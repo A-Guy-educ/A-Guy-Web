@@ -1,5 +1,6 @@
 'use client'
 
+import { cn } from '@/infra/utils/ui'
 import { interactiveLessonToGuidedExplanation } from '@/infra/llm/services/interactive-lesson/lesson-to-guided-explanation'
 import { GuidedExplanationRunner } from '@/ui/web/GuidedExplanationRunner'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
@@ -155,6 +156,15 @@ export function AskPrimaryContent() {
 
   const guidedPayload = lesson ? interactiveLessonToGuidedExplanation(lesson) : null
 
+  // PDF uploads need the full primary-content pane (width + height) so the
+  // PDF.js viewer matches the lesson media tab. Images stay in the centered
+  // max-w-2xl card layout.
+  const isPdfFile = currentFile
+    ? currentFile.mimeType === 'application/pdf' ||
+      /\.pdf(\?|#|$)/i.test(currentFile.url) ||
+      /\.pdf$/i.test(currentFile.title)
+    : false
+
   // Full-screen player takeover (only when explicitly showing it)
   if (status === 'done' && guidedPayload && showPlayer) {
     return (
@@ -174,8 +184,13 @@ export function AskPrimaryContent() {
   }
 
   return (
-    <div className="h-full overflow-y-auto p-card-padding md:p-10">
-      <div className="max-w-2xl mx-auto">
+    <div
+      className={cn(
+        'p-card-padding md:p-10',
+        isPdfFile ? 'h-full flex flex-col overflow-hidden' : 'h-full overflow-y-auto',
+      )}
+    >
+      <div className={cn('max-w-2xl mx-auto w-full', isPdfFile && 'flex-shrink-0')}>
         <header className="mb-10 text-center md:text-right">
           <h1 className="text-display-md font-black mb-2">{t('pageTitle')}</h1>
           <p className="text-muted-foreground">{t('pageSubtitle')}</p>
@@ -242,8 +257,10 @@ export function AskPrimaryContent() {
             </div>
           </div>
         )}
+      </div>
 
-        {currentFile && (
+      {currentFile && (
+        <div className={cn(isPdfFile ? 'flex-1 min-h-0 w-full' : 'max-w-2xl mx-auto w-full')}>
           <AskExerciseCard
             file={currentFile}
             onGenerate={handleGenerate}
@@ -252,8 +269,8 @@ export function AskPrimaryContent() {
             onResumeLesson={handleResumePlayer}
             onStartOver={handleStartOver}
           />
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }
