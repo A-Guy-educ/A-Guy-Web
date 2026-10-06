@@ -68,9 +68,17 @@ export function AskExerciseCard({
     : null
 
   return (
-    <div className="rounded-2xl bg-card border border-border/40 shadow-elevation-1 transition-all duration-normal overflow-hidden border-s-4 border-s-accent mb-6">
+    <div
+      className={cn(
+        'rounded-2xl bg-card border border-border/40 shadow-elevation-1 transition-all duration-normal overflow-hidden border-s-4 border-s-accent',
+        isPdf ? 'h-full flex flex-col' : 'mb-6',
+      )}
+    >
       <div
-        className={cn('relative overflow-hidden bg-muted', isPdf ? 'aspect-[3/4]' : 'aspect-video')}
+        className={cn(
+          'relative overflow-hidden bg-muted',
+          isPdf ? 'flex-1 min-h-0' : 'aspect-video',
+        )}
       >
         {isPdf ? (
           pdfPreviewUrl ? (
@@ -95,7 +103,7 @@ export function AskExerciseCard({
         )}
       </div>
 
-      <div className="p-5">
+      <div className={cn('p-5', isPdf && 'flex-shrink-0 overflow-y-auto')}>
         <div className="flex flex-col md:flex-row justify-between items-center gap-content-gap">
           <div>
             <h3 className="text-heading-md font-bold text-card-foreground">{file.title}</h3>

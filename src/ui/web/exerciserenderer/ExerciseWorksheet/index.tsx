@@ -38,6 +38,7 @@ import { RichTextRenderer } from '../blocks/RichTextRenderer'
 import { HtmlBlockRenderer } from '../blocks/HtmlBlockRenderer'
 import { SvgRenderer } from '../blocks/SvgRenderer'
 import { GeometryRenderer } from '../blocks/GeometryRenderer'
+import { isMathOnlyRichText } from '../utils/isMathOnlyRichText'
 import { AxisRenderer } from '../blocks/AxisRenderer'
 import { GraphWithPrompt } from '../blocks/GraphWithPrompt'
 import { MultiAxisRenderer } from '../blocks/MultiAxisRenderer'
@@ -462,12 +463,26 @@ function WorksheetTrueFalse({ block }: { block: QuestionSelectTrueFalseBlock }) 
 
 function WorksheetMcq({ block }: { block: QuestionSelectMcqBlock }) {
   const isMulti = block.selectionMode === 'multiple'
+  // When every option is a bare math expression, each option gets its own
+  // vertical padding (`py-section-xs`) so the KaTeX glyph has breathing room above
+  // and below. The ul-level `gap` turned out NOT to be the right lever on
+  // the scroll view — once each item's content jumps past the gap height,
+  // a bigger gap value didn't visually register. Per-item padding does.
+  const allOptionsAreMathOnly = block.answer.options.every((opt) =>
+    isMathOnlyRichText(opt.content.value),
+  )
   return (
     <div className="flex flex-col gap-content-gap-xs">
       <PromptText prompt={block.prompt} />
       <ul className="flex flex-col gap-1.5 ps-6 list-none">
         {block.answer.options.map((opt) => (
-          <li key={opt.id} className="flex items-start gap-content-gap-xs">
+          <li
+            key={opt.id}
+            className={cn(
+              'flex items-start gap-content-gap-xs',
+              allOptionsAreMathOnly && 'py-section-xs',
+            )}
+          >
             <span
               aria-hidden
               className={cn(

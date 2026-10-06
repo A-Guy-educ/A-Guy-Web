@@ -151,30 +151,62 @@ export function LessonMenu({
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-label={t('lessonViewMode')}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        // Only advertise the panel when it's actually in the DOM
-        // (`AnimatePresence` unmounts it on close). A dangling
-        // `aria-controls` reference confuses some AT vendors.
-        aria-controls={open ? PANEL_ID : undefined}
+      {/* Floating chrome: lesson-name plaque sits above the menu + back
+          button pair, all anchored at logical `start` (top-left LTR,
+          top-right RTL) so they don't collide with MobileChatPanel's
+          close-X on the opposite edge. */}
+      <div
         style={{ top: 'calc(0.5rem + env(safe-area-inset-top))' }}
-        className={cn(
-          // Sits at logical `start` (top-left LTR, top-right RTL) so it
-          // doesn't collide with MobileChatPanel's close-X, which is at
-          // `end` for both directions. Hamburger-only per spec — the
-          // lesson title lives inside the dropdown instead.
-          'fixed start-3 z-[400] flex items-center justify-center',
-          'h-9 w-9 rounded-full',
-          'bg-card/95 backdrop-blur border border-border shadow-elevation-2',
-          'text-foreground hover:bg-muted transition-colors',
-        )}
+        className="fixed start-3 z-[400] flex flex-col items-start gap-1.5 pointer-events-none"
       >
-        <Menu className="w-4 h-4 text-primary" />
-      </button>
+        {lessonTitle && (
+          <div
+            className={cn(
+              'pointer-events-auto max-w-[70vw] sm:max-w-xs truncate',
+              'rounded-full px-3 py-1',
+              'bg-card/95 backdrop-blur border border-border shadow-elevation-1',
+              'text-body-xs font-semibold text-foreground',
+            )}
+            title={lessonTitle}
+          >
+            {lessonTitle}
+          </div>
+        )}
+        <div className="pointer-events-auto flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            aria-label={t('lessonViewMode')}
+            aria-haspopup="menu"
+            aria-expanded={open}
+            // Only advertise the panel when it's actually in the DOM
+            // (`AnimatePresence` unmounts it on close). A dangling
+            // `aria-controls` reference confuses some AT vendors.
+            aria-controls={open ? PANEL_ID : undefined}
+            className={cn(
+              'flex h-9 w-9 items-center justify-center rounded-full',
+              'bg-card/95 backdrop-blur border border-border shadow-elevation-2',
+              'text-foreground hover:bg-muted transition-colors',
+            )}
+          >
+            <Menu className="w-4 h-4 text-primary" />
+          </button>
+          {!hideBack && (
+            <button
+              type="button"
+              onClick={handleBack}
+              aria-label={onLessonSurface ? t('backToCourse') : t('back')}
+              className={cn(
+                'flex h-9 w-9 items-center justify-center rounded-full',
+                'bg-card/95 backdrop-blur border border-border shadow-elevation-2',
+                'text-foreground hover:bg-muted transition-colors',
+              )}
+            >
+              <BackIcon className="w-4 h-4 text-primary" />
+            </button>
+          )}
+        </div>
+      </div>
 
       <AnimatePresence>
         {open && (
@@ -193,7 +225,7 @@ export function LessonMenu({
               transition={{ duration: 0.15 }}
               role="menu"
               id={PANEL_ID}
-              style={{ top: 'calc(3rem + env(safe-area-inset-top))' }}
+              style={{ top: 'calc(5rem + env(safe-area-inset-top))' }}
               className={cn(
                 // Anchored to the same edge as the trigger pill above so
                 // the dropdown lines up cleanly with the button that
@@ -203,15 +235,12 @@ export function LessonMenu({
                 'flex flex-col gap-3',
               )}
             >
-              {/* Lesson name section */}
-              <div className="pb-2 border-b border-border">
-                <div className="flex items-center gap-content-gap-xs text-body-2xs font-bold text-muted-foreground uppercase tracking-wider mb-1">
-                  <BookOpen className="w-3.5 h-3.5 text-primary" />
-                  {t('lessonViewMode')}
-                </div>
-                <div className="text-body-sm font-bold text-foreground leading-snug">
-                  {lessonTitle}
-                </div>
+              {/* Compact "view mode" header — the lesson title itself lives
+                  in the fixed plaque above the trigger, so the dropdown just
+                  needs a small cue for what the following options switch. */}
+              <div className="flex items-center gap-content-gap-xs text-body-2xs font-bold text-muted-foreground uppercase tracking-wider pb-2 border-b border-border">
+                <BookOpen className="w-3.5 h-3.5 text-primary" />
+                {t('lessonViewMode')}
               </div>
 
               {/* View-mode switcher — hidden when the lesson has 0 or 1
@@ -313,26 +342,9 @@ export function LessonMenu({
                 </span>
               </button>
 
-              {/* Back navigation — hidden when the view (chat view) surfaces
-                  its own top-level back control, so there aren't two back
-                  affordances pointing at the same destination. */}
-              {!hideBack && (
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={handleBack}
-                  className={cn(
-                    'flex items-center justify-between rounded-lg px-3 py-2',
-                    'text-body-sm font-medium bg-muted text-foreground hover:bg-muted/70',
-                    'transition-colors',
-                  )}
-                >
-                  <span className="flex items-center gap-content-gap-xs">
-                    <BackIcon className="w-4 h-4 text-primary" />
-                    {onLessonSurface ? t('backToCourse') : t('back')}
-                  </span>
-                </button>
-              )}
+              {/* Back navigation lives in the floating pill alongside the
+                  menu button — see the fixed chrome above — so the dropdown
+                  itself no longer duplicates a back entry. */}
             </motion.div>
           </>
         )}

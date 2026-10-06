@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.45.0 — 2026-10-06
+
+### Features
+- Lesson view chrome, labels, search, and MCQ polish (#1287)
+- Realign short math to text size and widen worksheet MCQ math-only gap (#1290)
+- Bump math 1.5x and widen math-only MCQ gap to a visible step (#1293)
+
+### Fixes
+- Resolve raw-ObjectId media refs in lesson chat context (#1289)
+- Only function definitions get the bigger inline math size (#1291)
+- Give ask page PDFs full-height reading area (#1292)
+- Expand ask page PDFs to fill the full primary pane (#1294)
+- Use per-item padding instead of gap for math-only MCQ spacing (#1295)
+
+### Chores
+- Pin source-map-js >=1.2.2 to clear GHSA-68fv-2mgg-jv7q
+
 ## v0.44.0 — 2026-10-05
 
 ### Features
@@ -4845,6 +4862,16 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.45.0 ([#1296](https://github.com/A-Guy-educ/A-Guy-Web/pull/1296)) — @aguyshayb
+- Use per-item padding instead of gap for math-only MCQ spacing ([#1295](https://github.com/A-Guy-educ/A-Guy-Web/pull/1295)) — @aguyshayb
+- fix: Expand ask page PDFs to fill the full primary pane ([#1294](https://github.com/A-Guy-educ/A-Guy-Web/pull/1294)) — @aguyshayb
+- Bump math 1.5x and widen math-only MCQ gap to a visible step ([#1293](https://github.com/A-Guy-educ/A-Guy-Web/pull/1293)) — @aguyshayb
+- fix: Give ask page PDFs a full-height reading area ([#1292](https://github.com/A-Guy-educ/A-Guy-Web/pull/1292)) — @aguyshayb
+- Only function definitions get the bigger inline math size ([#1291](https://github.com/A-Guy-educ/A-Guy-Web/pull/1291)) — @aguyshayb
+- Realign short math to text size and widen worksheet MCQ math-only gap ([#1290](https://github.com/A-Guy-educ/A-Guy-Web/pull/1290)) — @aguyshayb
+- Lesson view chrome, labels, search and MCQ polish ([#1287](https://github.com/A-Guy-educ/A-Guy-Web/pull/1287)) — @aguyshayb
+- fix: Resolve raw-ObjectId media refs in lesson chat context ([#1289](https://github.com/A-Guy-educ/A-Guy-Web/pull/1289)) — @aguyshayb
+- promote: dev -> main (v0.44.0) ([#1285](https://github.com/A-Guy-educ/A-Guy-Web/pull/1285)) — @aguyshayb
 - chore: Release v0.44.0 ([#1284](https://github.com/A-Guy-educ/A-Guy-Web/pull/1284)) — @aguyshayb
 - fix(deps): Pin katex back to 0.16 after a 0.19 bump re-broke sizing ([#1283](https://github.com/A-Guy-educ/A-Guy-Web/pull/1283)) — @aguyshayb
 - Revert PR #1280 + swap share order next to start button ([#1281](https://github.com/A-Guy-educ/A-Guy-Web/pull/1281)) — @aguyshayb

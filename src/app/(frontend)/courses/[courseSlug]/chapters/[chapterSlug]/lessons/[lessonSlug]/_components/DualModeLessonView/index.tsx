@@ -63,16 +63,22 @@ interface DualModeLessonViewProps {
 
 /**
  * Returns which tabs should be rendered, combining the admin toggle with the
- * data-presence guard for the Media tab.
+ * data-presence guards for Media (needs attached files) and the exercise-
+ * dependent tabs (pdf/interactive/test/chat all render exercise blocks, so
+ * they're hidden when the lesson has no exercises — otherwise the student
+ * sees an empty worksheet / chat with nothing to answer).
  *
  * - Media: shown only when `hasMedia` AND 'media' is in `visibleRenderers`.
- * - PDF / Interactive / Test: shown when their respective value is in `visibleRenderers`.
- * - When `visibleRenderers` is undefined, all four tabs are shown (backward
- *   compatible for lessons created before this feature existed).
+ * - PDF / Interactive / Test / Chat: shown when their respective value is in
+ *   `visibleRenderers` AND the lesson actually has exercises.
+ * - When `visibleRenderers` is undefined, all four exercise tabs are allowed
+ *   by default (backward compatible for lessons created before this feature
+ *   existed); the exercise-presence guard still applies.
  */
 export function getVisibleTabs(
   visibleRenderers: LessonMode[] | undefined,
   hasMedia: boolean,
+  hasExercises: boolean,
 ): { media: boolean; pdf: boolean; interactive: boolean; test: boolean; chat: boolean } {
   // 'chat' is intentionally NOT in the default allowlist: v0 renders a
   // hardcoded demo script that has nothing to do with any real lesson topic,
@@ -82,10 +88,10 @@ export function getVisibleTabs(
   const allowed = visibleRenderers ?? defaultAllowed
   return {
     media: hasMedia && allowed.includes('media'),
-    pdf: allowed.includes('pdf'),
-    interactive: allowed.includes('interactive'),
-    test: allowed.includes('test'),
-    chat: allowed.includes('chat'),
+    pdf: hasExercises && allowed.includes('pdf'),
+    interactive: hasExercises && allowed.includes('interactive'),
+    test: hasExercises && allowed.includes('test'),
+    chat: hasExercises && allowed.includes('chat'),
   }
 }
 
@@ -113,9 +119,10 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
 
   const t = useTranslations('courses')
   const hasMedia = validFiles.length > 0
+  const hasExercises = exercises.length > 0
   const visibleTabs = useMemo(
-    () => getVisibleTabs(visibleRenderers, hasMedia),
-    [visibleRenderers, hasMedia],
+    () => getVisibleTabs(visibleRenderers, hasMedia, hasExercises),
+    [visibleRenderers, hasMedia, hasExercises],
   )
   const [mode, select] = useLessonViewMode(lessonId, visibleRenderers)
 

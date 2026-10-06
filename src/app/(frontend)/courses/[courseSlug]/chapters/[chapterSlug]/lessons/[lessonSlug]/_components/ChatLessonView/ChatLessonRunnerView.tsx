@@ -47,9 +47,6 @@ interface ChatLessonRunnerViewProps {
   /** TTS instance hoisted from the parent (ChatLessonView) so its mute
    *  state can also drive the LessonMenu's mute item. */
   tts: ReturnType<typeof useBrowserTTS>
-  /** Course URL used by the top-level back arrow in ChatLessonProgress. */
-  backUrl: string
-  backLabel: string
 }
 
 export function ChatLessonRunnerView(props: ChatLessonRunnerViewProps) {
@@ -65,15 +62,7 @@ interface ActiveChatProps extends ChatLessonRunnerViewProps {
   onExit: () => void
 }
 
-function ActiveChat({
-  lessonId,
-  exercises,
-  mediaMap,
-  tts,
-  onExit,
-  backUrl,
-  backLabel,
-}: ActiveChatProps) {
+function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatProps) {
   const t = useTranslations('courses')
   const locale = useLocale()
   const isHebrew = locale?.toLowerCase().startsWith('he') ?? false
@@ -410,8 +399,6 @@ function ActiveChat({
         currentExerciseSections={walker.currentExerciseSections}
         exerciseLabel={t('chatViewProgressExercise')}
         sectionLabel={t('chatViewProgressSection')}
-        backUrl={backUrl}
-        backLabel={backLabel}
       />
 
       <GivenDataFloating

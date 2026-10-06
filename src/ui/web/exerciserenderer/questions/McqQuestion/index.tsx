@@ -17,6 +17,7 @@ import { Checkbox } from '@/ui/web/components/checkbox'
 import { AlertCircle } from 'lucide-react'
 import type { QuestionSelectMcqBlock, UserAnswer, CheckResult, RichTextBlock } from '../../types'
 import { RichTextRenderer } from '../../blocks/RichTextRenderer'
+import { isMathOnlyRichText } from '../../utils/isMathOnlyRichText'
 
 interface McqQuestionProps {
   question: QuestionSelectMcqBlock
@@ -58,6 +59,16 @@ export function McqQuestion({
 
   const isTwoOptionSingleSelect =
     !question.answer.multiSelect && question.answer.options.length === 2
+
+  // Noticeably roomier card list when every option is a pure math expression —
+  // KaTeX glyphs don't share a baseline with plain text, so each card gets
+  // a larger per-item padding (p-card-padding instead of p-card-padding-sm).
+  // The ul-level `gap` turned out NOT to be the right lever: once KaTeX
+  // glyphs blow the item height past 50px, 32px of gap reads as a tight
+  // seam. Padding INSIDE each card is what the eye registers as breathing room.
+  const allOptionsAreMathOnly = question.answer.options.every((option) =>
+    isMathOnlyRichText(option.content.value),
+  )
 
   const handleOptionClick = (optionId: string) => {
     if (disabled) return
@@ -184,7 +195,8 @@ export function McqQuestion({
                 transition={{ duration: 0.3, delay: index * 0.06 }}
                 whileHover={!disabled ? { y: -2 } : undefined}
                 className={cn(
-                  'relative flex items-start gap-3 p-card-padding-sm rounded-xl border-2 transition-all duration-normal cursor-pointer overflow-hidden',
+                  'relative flex items-start gap-3 rounded-xl border-2 transition-all duration-normal cursor-pointer overflow-hidden',
+                  allOptionsAreMathOnly ? 'p-card-padding' : 'p-card-padding-sm',
                   'bg-background/50 dark:bg-card',
                   'focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2',
                   !disabled &&

@@ -461,20 +461,21 @@ html[data-theme='light'] {
   /* KaTeX math rendering */
   .katex {
     @apply text-foreground;
-    /* Default inline-math size — short atoms like `$A$`, `$35$`, `$\pi$`, and
-       function-call labels like `$f(x)$` sit at reading size. Long expressions
-       (equations, functions with operators, fractions) opt into the bigger
-       `.math-long` size below. */
-    font-size: 1.1em;
+    /* Inline math is intentionally bigger than surrounding prose — KaTeX
+       glyphs otherwise render visually smaller than their CSS size would
+       suggest (baseline shift, thinner stroke). Every inline expression
+       except function definitions uses this base. Function definitions
+       opt into `.math-long` below. Block math (`$$...$$`) is always
+       `.math-long`. */
+    font-size: 1.5em;
   }
 
-  /* Long math expressions — anything with operators, fractions, or more than
-     a bare label — render at 2x the base so superscripts (~70%) and nested
-     scripts (~50%) stay legible inside dense formulas. Classification lives
-     in rehype-math-wrapper (markdown) and renderAdminHtmlWithMath (admin
-     HTML), both of which tag the wrapper with `.math-long`. */
+  /* Bigger size reserved for inline function definitions and all block
+     math. Classification for inline lives in rehype-math-wrapper (markdown)
+     and renderAdminHtmlWithMath (admin HTML), both of which tag the wrapper
+     with `.math-long` only for `name(args)=...` sources. */
   .math-long .katex {
-    font-size: 2.2em;
+    font-size: 2.475em;
   }
 
   .katex-display {
