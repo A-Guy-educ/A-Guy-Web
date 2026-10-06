@@ -12,7 +12,9 @@
  * letter label, parentheses — that would otherwise disqualify a visually
  * math-only option from the roomier gap.
  */
-const TRIVIAL_SURROUND = /[\s.,;:!?()\-–—‎‏'"]+/gu
+const TRIVIAL_SURROUND = /[\s.,;:!?()[\]\-–—‎‏'"*_`]+/gu
+// Letter-prefix labels like "a)", "ה.", "ג)" — English and Hebrew letters
+// followed by a period or closing paren. Hebrew range U+0590–U+05FF.
 const LETTER_PREFIX = /^[A-Za-z֐-׿][.)]\s*/
 
 export function isMathOnlyRichText(value: string | null | undefined): boolean {

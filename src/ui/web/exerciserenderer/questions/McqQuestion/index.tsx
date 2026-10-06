@@ -61,8 +61,11 @@ export function McqQuestion({
     !question.answer.multiSelect && question.answer.options.length === 2
 
   // Noticeably roomier card list when every option is a pure math expression —
-  // KaTeX glyphs don't share a baseline with plain text, so cards packed at
-  // the normal `gap-3.5` density visually touch each other.
+  // KaTeX glyphs don't share a baseline with plain text, so each card gets
+  // a larger per-item padding (p-card-padding instead of p-card-padding-sm).
+  // The ul-level `gap` turned out NOT to be the right lever: once KaTeX
+  // glyphs blow the item height past 50px, 32px of gap reads as a tight
+  // seam. Padding INSIDE each card is what the eye registers as breathing room.
   const allOptionsAreMathOnly = question.answer.options.every((option) =>
     isMathOnlyRichText(option.content.value),
   )
@@ -173,7 +176,7 @@ export function McqQuestion({
           })}
         </div>
       ) : (
-        <div className={cn('flex flex-col', allOptionsAreMathOnly ? 'gap-[2rem]' : 'gap-3.5')}>
+        <div className="flex flex-col gap-3.5">
           {question.answer.options.map((option, index) => {
             const isSelected = selectedIds.includes(option.id)
             // Transform fractions to display style for better readability in MCQ options
@@ -192,7 +195,8 @@ export function McqQuestion({
                 transition={{ duration: 0.3, delay: index * 0.06 }}
                 whileHover={!disabled ? { y: -2 } : undefined}
                 className={cn(
-                  'relative flex items-start gap-3 p-card-padding-sm rounded-xl border-2 transition-all duration-normal cursor-pointer overflow-hidden',
+                  'relative flex items-start gap-3 rounded-xl border-2 transition-all duration-normal cursor-pointer overflow-hidden',
+                  allOptionsAreMathOnly ? 'p-card-padding' : 'p-card-padding-sm',
                   'bg-background/50 dark:bg-card',
                   'focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2',
                   !disabled &&
