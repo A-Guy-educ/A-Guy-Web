@@ -14,7 +14,7 @@ import { resolveEffectiveMode } from '@/app/(frontend)/courses/[courseSlug]/chap
 
 describe('getVisibleTabs', () => {
   it('shows all five when all allowed and hasMedia=true', () => {
-    const result = getVisibleTabs(['media', 'pdf', 'interactive', 'test', 'chat'], true)
+    const result = getVisibleTabs(['media', 'pdf', 'interactive', 'test', 'chat'], true, true)
     expect(result).toEqual({
       media: true,
       pdf: true,
@@ -25,7 +25,7 @@ describe('getVisibleTabs', () => {
   })
 
   it('hides media tab when hasMedia=false even if media is in visibleRenderers', () => {
-    const result = getVisibleTabs(['media', 'pdf', 'interactive', 'test'], false)
+    const result = getVisibleTabs(['media', 'pdf', 'interactive', 'test'], false, true)
     expect(result).toEqual({
       media: false,
       pdf: true,
@@ -38,7 +38,7 @@ describe('getVisibleTabs', () => {
   it('defaults to the four legacy tabs when visibleRenderers is undefined (chat opt-in)', () => {
     // 'chat' is intentionally excluded from the default allowlist so legacy
     // lessons don't surface the demo chat renderer.
-    const result = getVisibleTabs(undefined, true)
+    const result = getVisibleTabs(undefined, true, true)
     expect(result).toEqual({
       media: true,
       pdf: true,
@@ -49,7 +49,7 @@ describe('getVisibleTabs', () => {
   })
 
   it('returns all false when visibleRenderers is empty array', () => {
-    const result = getVisibleTabs([], true)
+    const result = getVisibleTabs([], true, true)
     expect(result).toEqual({
       media: false,
       pdf: false,
@@ -60,7 +60,7 @@ describe('getVisibleTabs', () => {
   })
 
   it('respects partial selection: pdf only', () => {
-    const result = getVisibleTabs(['pdf'], true)
+    const result = getVisibleTabs(['pdf'], true, true)
     expect(result).toEqual({
       media: false,
       pdf: true,
@@ -71,7 +71,7 @@ describe('getVisibleTabs', () => {
   })
 
   it('respects partial selection: media + interactive (no pdf)', () => {
-    const result = getVisibleTabs(['media', 'interactive'], true)
+    const result = getVisibleTabs(['media', 'interactive'], true, true)
     expect(result).toEqual({
       media: true,
       pdf: false,
@@ -82,7 +82,7 @@ describe('getVisibleTabs', () => {
   })
 
   it('respects partial selection: chat only', () => {
-    const result = getVisibleTabs(['chat'], true)
+    const result = getVisibleTabs(['chat'], true, true)
     expect(result).toEqual({
       media: false,
       pdf: false,
@@ -93,7 +93,7 @@ describe('getVisibleTabs', () => {
   })
 
   it('media + pdf (no interactive) with hasMedia=true', () => {
-    const result = getVisibleTabs(['media', 'pdf'], true)
+    const result = getVisibleTabs(['media', 'pdf'], true, true)
     expect(result).toEqual({
       media: true,
       pdf: true,
@@ -104,7 +104,7 @@ describe('getVisibleTabs', () => {
   })
 
   it('shows test tab when test is in visibleRenderers alongside other tabs', () => {
-    const result = getVisibleTabs(['pdf', 'interactive', 'test'], false)
+    const result = getVisibleTabs(['pdf', 'interactive', 'test'], false, true)
     expect(result).toEqual({
       media: false,
       pdf: true,
@@ -115,13 +115,26 @@ describe('getVisibleTabs', () => {
   })
 
   it('shows chat tab when admin opts in', () => {
-    const result = getVisibleTabs(['pdf', 'chat'], false)
+    const result = getVisibleTabs(['pdf', 'chat'], false, true)
     expect(result).toEqual({
       media: false,
       pdf: true,
       interactive: false,
       test: false,
       chat: true,
+    })
+  })
+
+  it('hides every exercise-dependent tab when the lesson has no exercises', () => {
+    // Media-only lessons: chat/pdf/interactive/test all render exercise blocks,
+    // so none of them should surface in the view-mode switcher.
+    const result = getVisibleTabs(['media', 'pdf', 'interactive', 'test', 'chat'], true, false)
+    expect(result).toEqual({
+      media: true,
+      pdf: false,
+      interactive: false,
+      test: false,
+      chat: false,
     })
   })
 })

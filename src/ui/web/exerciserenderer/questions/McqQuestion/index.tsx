@@ -45,6 +45,24 @@ function transformFractionsToDisplayStyle(content: string): string {
   return content.replace(/\\frac\b/g, '\\dfrac')
 }
 
+/**
+ * Returns true when the option's markdown value is nothing but math atoms —
+ * strip `$...$`, `$$...$$`, `\(...\)` and `\[...\]`, and if the remainder is
+ * whitespace-only the option is "math-only". When every option in a question
+ * is math-only, we loosen the vertical gap between option cards so the
+ * baseline-shifted KaTeX glyphs don't visually crowd each other.
+ */
+function isMathOnlyRichText(value: string | null | undefined): boolean {
+  if (!value?.trim()) return false
+  const stripped = value
+    .replace(/\$\$[\s\S]+?\$\$/g, '')
+    .replace(/\$[^$\n]+\$/g, '')
+    .replace(/\\\([\s\S]+?\\\)/g, '')
+    .replace(/\\\[[\s\S]+?\\\]/g, '')
+    .trim()
+  return stripped === ''
+}
+
 export function McqQuestion({
   question,
   answer,
@@ -58,6 +76,13 @@ export function McqQuestion({
 
   const isTwoOptionSingleSelect =
     !question.answer.multiSelect && question.answer.options.length === 2
+
+  // 50% roomier card list when every option is a pure math expression —
+  // KaTeX glyphs don't share a baseline with plain text, so cards packed at
+  // the normal `gap-3.5` density visually touch each other.
+  const allOptionsAreMathOnly = question.answer.options.every((option) =>
+    isMathOnlyRichText(option.content.value),
+  )
 
   const handleOptionClick = (optionId: string) => {
     if (disabled) return
@@ -165,7 +190,7 @@ export function McqQuestion({
           })}
         </div>
       ) : (
-        <div className="flex flex-col gap-3.5">
+        <div className={cn('flex flex-col', allOptionsAreMathOnly ? 'gap-[1.3125rem]' : 'gap-3.5')}>
           {question.answer.options.map((option, index) => {
             const isSelected = selectedIds.includes(option.id)
             // Transform fractions to display style for better readability in MCQ options
