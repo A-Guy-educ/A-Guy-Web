@@ -4845,6 +4845,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Expand ask page PDFs to fill the full primary pane ([#1294](https://github.com/A-Guy-educ/A-Guy-Web/pull/1294)) — @aguyshayb
 - Bump math 1.5x and widen math-only MCQ gap to a visible step ([#1293](https://github.com/A-Guy-educ/A-Guy-Web/pull/1293)) — @aguyshayb
 - fix: Give ask page PDFs a full-height reading area ([#1292](https://github.com/A-Guy-educ/A-Guy-Web/pull/1292)) — @aguyshayb
 - Only function definitions get the bigger inline math size ([#1291](https://github.com/A-Guy-educ/A-Guy-Web/pull/1291)) — @aguyshayb
