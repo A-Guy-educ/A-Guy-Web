@@ -463,8 +463,11 @@ function WorksheetTrueFalse({ block }: { block: QuestionSelectTrueFalseBlock }) 
 
 function WorksheetMcq({ block }: { block: QuestionSelectMcqBlock }) {
   const isMulti = block.selectionMode === 'multiple'
-  // Mirror McqQuestion: when every option is a bare math expression, loosen the
-  // vertical gap by 50% so stacked KaTeX glyphs don't visually crowd each other.
+  // When every option is a bare math expression we match the interactive
+  // MCQ's math-only gap (gap-[1.3125rem]) so stacked KaTeX glyphs have the
+  // same breathing room in the worksheet as they do in the pager — the
+  // worksheet's own `gap-1.5` baseline is too tight for formulas to not
+  // visually collide.
   const allOptionsAreMathOnly = block.answer.options.every((opt) =>
     isMathOnlyRichText(opt.content.value),
   )
@@ -474,7 +477,7 @@ function WorksheetMcq({ block }: { block: QuestionSelectMcqBlock }) {
       <ul
         className={cn(
           'flex flex-col ps-6 list-none',
-          allOptionsAreMathOnly ? 'gap-[0.5625rem]' : 'gap-1.5',
+          allOptionsAreMathOnly ? 'gap-[1.3125rem]' : 'gap-1.5',
         )}
       >
         {block.answer.options.map((opt) => (

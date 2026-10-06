@@ -50,25 +50,19 @@ function canRenderInlineMath(source: string): boolean {
 }
 
 /**
- * Short = reads as a label, not a full expression. Keeps atoms (`A`, `35`,
- * `\pi`), bare pairs (`AB`), and function-call-style labels (`f(x)`, `g(x)`,
- * `sin(x)`) at the base inline reading size. Anything with an operator
- * (`=`, `+`, `^`, `_`, `<`, `>`) or more than ~3 non-call characters is long
- * and opts into the bigger `.math-long` CSS treatment.
+ * Function definition = `name(args) = <anything>`. These are the only inline
+ * expressions that get promoted to the bigger `.math-long` CSS treatment —
+ * everything else inline (atoms, labels, equations like `2x+3=5`, fractions)
+ * stays at reading size. Function definitions are the one case where the
+ * extra visual weight meaningfully helps the student parse the right-hand
+ * side as a distinct piece of structure.
  *
- * Mirrors classifyShort in rehype-math-wrapper.ts — keep them in sync.
+ * Mirrors isFunctionDefinition in rehype-math-wrapper.ts — keep them in sync.
  */
-function classifyShort(source: string): boolean {
+function isFunctionDefinition(source: string): boolean {
   const value = source.trim()
   if (!value) return false
-  // Function-call labels like `f(x)`, `g(x,y)`, `sin(x)` — read as a function
-  // reference, not a definition. Reject when the parens contain operators or
-  // nested braces (`\frac` etc.), which would make the expression long.
-  if (/^[A-Za-z]+\([A-Za-z0-9, ]*\)$/.test(value)) return true
-  const normalised = value.replace(/\\[a-zA-Z]+/g, 'x')
-  if (normalised.length > 3) return false
-  if (/[=+/^_<>]/.test(normalised)) return false
-  return true
+  return /^[A-Za-z]+\s*\([A-Za-z0-9, ]*\)\s*=/.test(value)
 }
 
 function renderMath(source: string, displayMode: boolean): string | null {
@@ -84,7 +78,7 @@ function renderMath(source: string, displayMode: boolean): string | null {
   })
 
   if (displayMode) return wrapDisplay(rendered)
-  const lengthClass = classifyShort(value) ? 'math-short' : 'math-long'
+  const lengthClass = isFunctionDefinition(value) ? 'math-long' : 'math-short'
   return wrapInline(rendered, lengthClass)
 }
 

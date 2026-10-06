@@ -66,8 +66,11 @@ export function rehypeMathWrapper() {
       }
 
       // Inline math: always a <span> so we stay valid inside a <p>.
-      // The math-short / math-long class drives the visual treatment in CSS.
-      const lengthClass = classifyShort(source) ? 'math-short' : 'math-long'
+      // Function definitions (`f(x)=...`, `g(x)=2x+3`) are the only inline
+      // expressions that opt into the bigger `math-long` size — everything
+      // else sits at reading size via `math-short`, so an inline equation
+      // like `$2x+3=5$` doesn't visually dwarf the surrounding prose.
+      const lengthClass = isFunctionDefinition(source) ? 'math-long' : 'math-short'
 
       parent.children[index] = {
         type: 'element',
@@ -113,22 +116,17 @@ function extractLatexSource(root: Element): string {
 }
 
 /**
- * Short = reads as a label, not a full expression. Keeps atoms (`x`, `AB`,
- * `\pi`, `\alpha`, `35`) and function-call-style labels (`f(x)`, `g(x)`,
- * `sin(x)`) at the base inline reading size. We collapse each `\command`
- * sequence to a single placeholder character before measuring length so
- * `\alpha` counts as 1, not 6.
+ * Function definition = `name(args) = <anything>`. These are the only inline
+ * expressions that get promoted to the bigger `math-long` CSS treatment —
+ * everything else inline (atoms, labels, equations like `2x+3=5`, fractions)
+ * stays at reading size. Function definitions are the one case where the
+ * extra visual weight meaningfully helps the student parse the right-hand
+ * side as a distinct piece of structure.
  *
- * Mirrors classifyShort in renderAdminHtmlWithMath.ts — keep them in sync.
+ * Mirrors isFunctionDefinition in renderAdminHtmlWithMath.ts — keep them in sync.
  */
-function classifyShort(source: string): boolean {
-  if (source.length === 0) return false
-  // Function-call labels like `f(x)`, `g(x,y)`, `sin(x)` — read as a function
-  // reference, not a definition. Reject when the parens contain operators,
-  // which would push the expression into definition territory (e.g. `f(x+1)`).
-  if (/^[A-Za-z]+\([A-Za-z0-9, ]*\)$/.test(source)) return true
-  const normalised = source.replace(/\\[a-zA-Z]+/g, 'x')
-  if (normalised.length > 3) return false
-  if (/[=+/^_<>]/.test(normalised)) return false
-  return true
+function isFunctionDefinition(source: string): boolean {
+  const value = source.trim()
+  if (value.length === 0) return false
+  return /^[A-Za-z]+\s*\([A-Za-z0-9, ]*\)\s*=/.test(value)
 }
