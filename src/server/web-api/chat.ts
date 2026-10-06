@@ -233,13 +233,15 @@ async function loadLessonContext(ownerId: string, lessonId?: string): Promise<Le
     return { text, attachmentText: '', parts: [] }
   }
 
+  // Payload stores a single-relation value as a bare ObjectId in Mongo
+  // (not a `{_id}`-wrapped doc), so the previous inline shape check
+  // handled only `string` and `{id|_id}` objects and silently dropped
+  // bare ObjectIds — meaning the lesson's attached PDF never reached
+  // Gemini, and the chat answered from training data + the filename
+  // label alone. `relationId` already handles every shape we encounter
+  // here (ObjectId, plain string, populated `{id | _id}` object).
   const mediaIds = files
-    .map((file: unknown) => {
-      if (typeof file === 'string') return file
-      if (!file || typeof file !== 'object') return null
-      const record = file as { _id?: unknown; id?: unknown }
-      return String(record._id ?? record.id ?? '')
-    })
+    .map((file: unknown) => relationId(file))
     .filter((id: string | null): id is string => Boolean(id && ObjectId.isValid(id)))
 
   if (mediaIds.length === 0) return { text, attachmentText: '', parts: [] }
