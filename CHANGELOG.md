@@ -4845,6 +4845,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- Use per-item padding instead of gap for math-only MCQ spacing ([#1295](https://github.com/A-Guy-educ/A-Guy-Web/pull/1295)) — @aguyshayb
 - fix: Expand ask page PDFs to fill the full primary pane ([#1294](https://github.com/A-Guy-educ/A-Guy-Web/pull/1294)) — @aguyshayb
 - Bump math 1.5x and widen math-only MCQ gap to a visible step ([#1293](https://github.com/A-Guy-educ/A-Guy-Web/pull/1293)) — @aguyshayb
 - fix: Give ask page PDFs a full-height reading area ([#1292](https://github.com/A-Guy-educ/A-Guy-Web/pull/1292)) — @aguyshayb
