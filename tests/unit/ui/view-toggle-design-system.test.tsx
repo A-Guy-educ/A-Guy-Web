@@ -25,23 +25,23 @@ describe('ViewToggle', () => {
   it('uses the elevation shadow token for the active view button', () => {
     const { onViewChange } = renderViewToggle()
 
-    const scrollButton = screen.getByRole('button', { name: /scroll view/i })
+    const scrollButton = screen.getByRole('button', { name: /document view/i })
     const interactiveButton = screen.getByRole('button', { name: /interactive exercises/i })
 
     expect(scrollButton).toHaveClass('shadow-elevation-1')
-    expect(scrollButton).not.toHaveClass('shadow-sm')
+    expect(scrollButton).not.toHaveClass('shadow-elevation-1')
 
     fireEvent.click(interactiveButton)
 
     expect(onViewChange).toHaveBeenCalledWith('interactive')
     expect(interactiveButton).toHaveClass('shadow-elevation-1')
-    expect(interactiveButton).not.toHaveClass('shadow-sm')
+    expect(interactiveButton).not.toHaveClass('shadow-elevation-1')
   })
 
   it('does not render when only one view mode is available', () => {
     renderViewToggle({ hasExercises: false })
 
-    expect(screen.queryByRole('button', { name: /scroll view/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /document view/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /interactive exercises/i })).not.toBeInTheDocument()
   })
 })
