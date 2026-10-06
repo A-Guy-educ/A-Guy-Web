@@ -462,12 +462,12 @@ html[data-theme='light'] {
   .katex {
     @apply text-foreground;
     /* Default inline-math size — short atoms like `$A$`, `$35$`, `$\pi$`, and
-       function-call labels like `$f(x)$` sit at reading size. Long expressions
-       (equations, functions with operators, fractions) opt into the bigger
-       `.math-long` size below. Values are 25% smaller than the earlier
-       1.1em / 2.2em baseline per boss feedback — large formulas were
-       crowding the surrounding text. */
-    font-size: 0.825em;
+       function-call labels like `$f(x)$` sit AT reading size so an inline
+       variable visually weighs the same as the surrounding prose. Long
+       expressions (equations, function definitions like `f(x)=...`,
+       fractions) opt into the bigger `.math-long` size below so the
+       structure stays legible. */
+    font-size: 1em;
   }
 
   /* Long math expressions — anything with operators, fractions, or more than

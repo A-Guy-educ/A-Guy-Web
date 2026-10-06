@@ -38,6 +38,7 @@ import { RichTextRenderer } from '../blocks/RichTextRenderer'
 import { HtmlBlockRenderer } from '../blocks/HtmlBlockRenderer'
 import { SvgRenderer } from '../blocks/SvgRenderer'
 import { GeometryRenderer } from '../blocks/GeometryRenderer'
+import { isMathOnlyRichText } from '../utils/isMathOnlyRichText'
 import { AxisRenderer } from '../blocks/AxisRenderer'
 import { GraphWithPrompt } from '../blocks/GraphWithPrompt'
 import { MultiAxisRenderer } from '../blocks/MultiAxisRenderer'
@@ -462,10 +463,20 @@ function WorksheetTrueFalse({ block }: { block: QuestionSelectTrueFalseBlock }) 
 
 function WorksheetMcq({ block }: { block: QuestionSelectMcqBlock }) {
   const isMulti = block.selectionMode === 'multiple'
+  // Mirror McqQuestion: when every option is a bare math expression, loosen the
+  // vertical gap by 50% so stacked KaTeX glyphs don't visually crowd each other.
+  const allOptionsAreMathOnly = block.answer.options.every((opt) =>
+    isMathOnlyRichText(opt.content.value),
+  )
   return (
     <div className="flex flex-col gap-content-gap-xs">
       <PromptText prompt={block.prompt} />
-      <ul className="flex flex-col gap-1.5 ps-6 list-none">
+      <ul
+        className={cn(
+          'flex flex-col ps-6 list-none',
+          allOptionsAreMathOnly ? 'gap-[0.5625rem]' : 'gap-1.5',
+        )}
+      >
         {block.answer.options.map((opt) => (
           <li key={opt.id} className="flex items-start gap-content-gap-xs">
             <span

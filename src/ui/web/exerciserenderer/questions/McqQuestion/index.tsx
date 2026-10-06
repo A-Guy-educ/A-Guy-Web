@@ -17,6 +17,7 @@ import { Checkbox } from '@/ui/web/components/checkbox'
 import { AlertCircle } from 'lucide-react'
 import type { QuestionSelectMcqBlock, UserAnswer, CheckResult, RichTextBlock } from '../../types'
 import { RichTextRenderer } from '../../blocks/RichTextRenderer'
+import { isMathOnlyRichText } from '../../utils/isMathOnlyRichText'
 
 interface McqQuestionProps {
   question: QuestionSelectMcqBlock
@@ -43,24 +44,6 @@ interface McqQuestionProps {
 function transformFractionsToDisplayStyle(content: string): string {
   if (!content) return content
   return content.replace(/\\frac\b/g, '\\dfrac')
-}
-
-/**
- * Returns true when the option's markdown value is nothing but math atoms —
- * strip `$...$`, `$$...$$`, `\(...\)` and `\[...\]`, and if the remainder is
- * whitespace-only the option is "math-only". When every option in a question
- * is math-only, we loosen the vertical gap between option cards so the
- * baseline-shifted KaTeX glyphs don't visually crowd each other.
- */
-function isMathOnlyRichText(value: string | null | undefined): boolean {
-  if (!value?.trim()) return false
-  const stripped = value
-    .replace(/\$\$[\s\S]+?\$\$/g, '')
-    .replace(/\$[^$\n]+\$/g, '')
-    .replace(/\\\([\s\S]+?\\\)/g, '')
-    .replace(/\\\[[\s\S]+?\\\]/g, '')
-    .trim()
-  return stripped === ''
 }
 
 export function McqQuestion({
