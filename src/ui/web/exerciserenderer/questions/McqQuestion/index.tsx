@@ -60,7 +60,7 @@ export function McqQuestion({
   const isTwoOptionSingleSelect =
     !question.answer.multiSelect && question.answer.options.length === 2
 
-  // 50% roomier card list when every option is a pure math expression —
+  // Noticeably roomier card list when every option is a pure math expression —
   // KaTeX glyphs don't share a baseline with plain text, so cards packed at
   // the normal `gap-3.5` density visually touch each other.
   const allOptionsAreMathOnly = question.answer.options.every((option) =>
@@ -173,7 +173,7 @@ export function McqQuestion({
           })}
         </div>
       ) : (
-        <div className={cn('flex flex-col', allOptionsAreMathOnly ? 'gap-[1.3125rem]' : 'gap-3.5')}>
+        <div className={cn('flex flex-col', allOptionsAreMathOnly ? 'gap-[2rem]' : 'gap-3.5')}>
           {question.answer.options.map((option, index) => {
             const isSelected = selectedIds.includes(option.id)
             // Transform fractions to display style for better readability in MCQ options
