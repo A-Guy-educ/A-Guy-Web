@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.45.0 — 2026-10-06
+
+### Features
+- Lesson view chrome, labels, search, and MCQ polish (#1287)
+- Realign short math to text size and widen worksheet MCQ math-only gap (#1290)
+- Bump math 1.5x and widen math-only MCQ gap to a visible step (#1293)
+
+### Fixes
+- Resolve raw-ObjectId media refs in lesson chat context (#1289)
+- Only function definitions get the bigger inline math size (#1291)
+- Give ask page PDFs full-height reading area (#1292)
+- Expand ask page PDFs to fill the full primary pane (#1294)
+- Use per-item padding instead of gap for math-only MCQ spacing (#1295)
+
+### Chores
+- Pin source-map-js >=1.2.2 to clear GHSA-68fv-2mgg-jv7q
+
 ## v0.44.0 — 2026-10-05
 
 ### Features
