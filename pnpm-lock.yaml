@@ -144,6 +144,7 @@ overrides:
   undici@>=7.0.0 <7.29.1: 7.29.1
   brace-expansion@>=4.0.0 <5.0.11: '>=5.0.11'
   '@grpc/grpc-js@>=1.14.0 <1.14.5': '>=1.14.5'
+  source-map-js@>=1.0.0 <1.2.2: '>=1.2.2'
 
 importers:
 
@@ -442,7 +443,7 @@ importers:
 packages:
 
   '@a-guy/ui@https://github.com/A-Guy-educ/A-Guy-Shared/releases/download/v0.1.1/a-guy-ui-0.1.1.tgz':
-    resolution: {tarball: https://github.com/A-Guy-educ/A-Guy-Shared/releases/download/v0.1.1/a-guy-ui-0.1.1.tgz}
+    resolution: {integrity: sha512-HvXSHQrNsYNuEm/5RMp1AgrH9yLYGr+NdLvvq+gMUsXqxHJc02k+WVU8VX3w4JwS6rqmdLg/+he1ICHD+IZIRQ==, tarball: https://github.com/A-Guy-educ/A-Guy-Shared/releases/download/v0.1.1/a-guy-ui-0.1.1.tgz}
     version: 0.1.1
     peerDependencies:
       react: ^19.0.0
@@ -6928,10 +6929,6 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
-
-  source-map-js@1.2.1:
-    resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
-    engines: {node: '>=0.10.0'}
 
   source-map-js@1.2.2:
     resolution: {integrity: sha512-KGj/8Y43x35aZVDtt+J4mK1hoLGHULMYfSkODJNQjNDC3oW1PqPoxMwo0pLUsWM/UEGzON/NxeHywEfNXNP3Vw==}
@@ -13914,7 +13911,7 @@ snapshots:
     dependencies:
       '@babel/parser': 7.29.9
       '@babel/types': 7.29.0
-      source-map-js: 1.2.1
+      source-map-js: 1.2.2
 
   make-dir@4.0.0:
     dependencies:
@@ -15437,8 +15434,6 @@ snapshots:
       react-dom: 19.3.0(react@19.3.0)
     optionalDependencies:
       '@types/react': 19.3.0
-
-  source-map-js@1.2.1: {}
 
   source-map-js@1.2.2: {}
 
