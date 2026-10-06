@@ -69,9 +69,7 @@ export function AskExerciseCard({
 
   return (
     <div className="rounded-2xl bg-card border border-border/40 shadow-elevation-1 transition-all duration-normal overflow-hidden border-s-4 border-s-accent mb-6">
-      <div
-        className={cn('relative overflow-hidden bg-muted', isPdf ? 'aspect-[3/4]' : 'aspect-video')}
-      >
+      <div className={cn('relative overflow-hidden bg-muted', isPdf ? 'h-[85vh]' : 'aspect-video')}>
         {isPdf ? (
           pdfPreviewUrl ? (
             <iframe
