@@ -233,13 +233,13 @@ async function loadLessonContext(ownerId: string, lessonId?: string): Promise<Le
     return { text, attachmentText: '', parts: [] }
   }
 
+  // Payload stores a single-relation value as a bare ObjectId in Mongo
+  // (not a `{_id}`-wrapped doc), so the inline-shape check used to miss
+  // this case and the AI silently never saw the attached PDF.
+  // `relationId` already handles every shape we encounter here: raw
+  // ObjectId, plain string, and populated `{id | _id}` object.
   const mediaIds = files
-    .map((file: unknown) => {
-      if (typeof file === 'string') return file
-      if (!file || typeof file !== 'object') return null
-      const record = file as { _id?: unknown; id?: unknown }
-      return String(record._id ?? record.id ?? '')
-    })
+    .map((file: unknown) => relationId(file))
     .filter((id: string | null): id is string => Boolean(id && ObjectId.isValid(id)))
 
   if (mediaIds.length === 0) return { text, attachmentText: '', parts: [] }

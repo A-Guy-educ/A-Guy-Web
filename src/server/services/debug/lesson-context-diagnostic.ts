@@ -95,13 +95,11 @@ export async function diagnoseLessonContext(lessonId: string): Promise<LessonCon
   const rawText = typeof lesson.lessonContextText === 'string' ? lesson.lessonContextText : ''
   const files = Array.isArray(lesson.contentFiles) ? lesson.contentFiles : []
 
+  // Mirror the fix in loadLessonContext — use `relationId` so a raw
+  // ObjectId (Payload's single-relation shape in Mongo) resolves instead
+  // of silently dropping out.
   const mediaIds = files
-    .map((file: unknown) => {
-      if (typeof file === 'string') return file
-      if (!file || typeof file !== 'object') return null
-      const record = file as { _id?: unknown; id?: unknown }
-      return String(record._id ?? record.id ?? '')
-    })
+    .map((file: unknown) => relationId(file))
     .filter((id: string | null): id is string => Boolean(id && ObjectId.isValid(id)))
 
   const mediaDocs =
