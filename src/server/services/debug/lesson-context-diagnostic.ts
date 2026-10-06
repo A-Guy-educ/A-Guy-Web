@@ -49,6 +49,13 @@ export type LessonContextDiagnostic =
       chapterId: string | null
       lessonContextText: { length: number; preview: string; truncated: boolean }
       contentFilesCount: number
+      /** Raw contentFiles entries straight from the lesson doc, so we can see
+       *  the exact shape when the extractor misses them. */
+      rawContentFiles: unknown[]
+      /** IDs the extractor pulled out (and would then look up in media). */
+      extractedMediaIds: string[]
+      /** Of those, which ones actually resolved to a media doc. */
+      resolvedMediaIds: string[]
       attachments: Array<{
         mediaId: string
         filename: unknown
@@ -180,10 +187,33 @@ export async function diagnoseLessonContext(lessonId: string): Promise<LessonCon
       truncated: rawText.length > preview.length,
     },
     contentFilesCount: files.length,
+    rawContentFiles: files.map(serializeForDebug),
+    extractedMediaIds: mediaIds,
+    resolvedMediaIds: mediaDocs.map((doc) => String(doc._id)),
     attachments,
     constants: {
       allowedMimeTypes: Array.from(SUPPORTED_INLINE_MIME_TYPES),
       maxBytes: CHAT_ASSET_MAX_BYTES,
     },
   }
+}
+
+/**
+ * Collapse a lesson's raw contentFiles entry into a JSON-safe shape so we
+ * can read it in a browser response. We DON'T want to just JSON.stringify
+ * the Mongo value — ObjectId / Date / BSON types serialize to objects
+ * ({"$oid":"..."}) that are easy to misread.
+ */
+function serializeForDebug(value: unknown, depth = 0): unknown {
+  if (value === null || value === undefined) return value
+  if (value instanceof ObjectId) return { __type: 'ObjectId', value: value.toString() }
+  if (value instanceof Date) return { __type: 'Date', value: value.toISOString() }
+  if (typeof value !== 'object') return value
+  if (depth > 4) return '[truncated at depth 4]'
+  if (Array.isArray(value)) return value.map((item) => serializeForDebug(item, depth + 1))
+  const out: Record<string, unknown> = {}
+  for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+    out[k] = serializeForDebug(v, depth + 1)
+  }
+  return out
 }
