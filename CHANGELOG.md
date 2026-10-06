@@ -4845,6 +4845,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Give ask page PDFs a full-height reading area ([#1292](https://github.com/A-Guy-educ/A-Guy-Web/pull/1292)) — @aguyshayb
 - Only function definitions get the bigger inline math size ([#1291](https://github.com/A-Guy-educ/A-Guy-Web/pull/1291)) — @aguyshayb
 - Realign short math to text size and widen worksheet MCQ math-only gap ([#1290](https://github.com/A-Guy-educ/A-Guy-Web/pull/1290)) — @aguyshayb
 - Lesson view chrome, labels, search and MCQ polish ([#1287](https://github.com/A-Guy-educ/A-Guy-Web/pull/1287)) — @aguyshayb
