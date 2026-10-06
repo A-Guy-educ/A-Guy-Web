@@ -73,7 +73,6 @@ export function ChatLessonProgress({
           </span>
         )}
       </div>
-
     </div>
   )
 }

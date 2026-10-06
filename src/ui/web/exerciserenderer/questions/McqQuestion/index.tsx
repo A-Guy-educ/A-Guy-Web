@@ -190,12 +190,7 @@ export function McqQuestion({
           })}
         </div>
       ) : (
-        <div
-          className={cn(
-            'flex flex-col',
-            allOptionsAreMathOnly ? 'gap-[1.3125rem]' : 'gap-3.5',
-          )}
-        >
+        <div className={cn('flex flex-col', allOptionsAreMathOnly ? 'gap-[1.3125rem]' : 'gap-3.5')}>
           {question.answer.options.map((option, index) => {
             const isSelected = selectedIds.includes(option.id)
             // Transform fractions to display style for better readability in MCQ options
