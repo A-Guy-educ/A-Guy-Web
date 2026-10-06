@@ -463,25 +463,26 @@ function WorksheetTrueFalse({ block }: { block: QuestionSelectTrueFalseBlock }) 
 
 function WorksheetMcq({ block }: { block: QuestionSelectMcqBlock }) {
   const isMulti = block.selectionMode === 'multiple'
-  // When every option is a bare math expression we match the interactive
-  // MCQ's math-only gap (gap-[2rem]) so stacked KaTeX glyphs have the
-  // same breathing room in the worksheet as they do in the pager — the
-  // worksheet's own `gap-1.5` baseline is too tight for formulas not to
-  // visually collide.
+  // When every option is a bare math expression, each option gets its own
+  // vertical padding (`py-section-xs`) so the KaTeX glyph has breathing room above
+  // and below. The ul-level `gap` turned out NOT to be the right lever on
+  // the scroll view — once each item's content jumps past the gap height,
+  // a bigger gap value didn't visually register. Per-item padding does.
   const allOptionsAreMathOnly = block.answer.options.every((opt) =>
     isMathOnlyRichText(opt.content.value),
   )
   return (
     <div className="flex flex-col gap-content-gap-xs">
       <PromptText prompt={block.prompt} />
-      <ul
-        className={cn(
-          'flex flex-col ps-6 list-none',
-          allOptionsAreMathOnly ? 'gap-[2rem]' : 'gap-1.5',
-        )}
-      >
+      <ul className="flex flex-col gap-1.5 ps-6 list-none">
         {block.answer.options.map((opt) => (
-          <li key={opt.id} className="flex items-start gap-content-gap-xs">
+          <li
+            key={opt.id}
+            className={cn(
+              'flex items-start gap-content-gap-xs',
+              allOptionsAreMathOnly && 'py-section-xs',
+            )}
+          >
             <span
               aria-hidden
               className={cn(
