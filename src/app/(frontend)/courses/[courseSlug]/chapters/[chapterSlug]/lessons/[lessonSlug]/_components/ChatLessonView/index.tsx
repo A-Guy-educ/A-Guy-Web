@@ -67,17 +67,15 @@ export function ChatLessonView({
             unmuteLabel: t('chatViewUnmute'),
           }
         : undefined,
-      // Chat view publishes a restart action into the menu and hides the
-      // menu's back entry — the back arrow lives at the top-level floating
-      // slot (ChatLessonProgress) so students have a single, obvious exit.
-      // The restart handler is a window-event dispatch so the actual reset
-      // logic can stay inside ActiveChat where the hooks (clearProgress,
-      // walker state) are already wired.
+      // Chat view publishes a restart action into the menu. The back arrow
+      // lives in the shared LessonMenu floating pill next to the hamburger,
+      // so chat view doesn't own its own back control anymore. Reset is
+      // dispatched as a window event so the actual logic can stay inside
+      // ActiveChat where the hooks (clearProgress, walker state) are wired.
       restart: {
         onReset: () => window.dispatchEvent(new Event(CHAT_LESSON_RESET_EVENT)),
         label: t('chatViewReset'),
       },
-      hideBack: true,
     }
   }, [outerMenuConfig, tts.supported, tts.muted, tts.toggleMuted, t])
 
@@ -99,8 +97,6 @@ export function ChatLessonView({
             exercises={exercises}
             mediaMap={mediaMap}
             tts={tts}
-            backUrl={backUrl}
-            backLabel={t('chatViewBack')}
           />
         </div>
       }

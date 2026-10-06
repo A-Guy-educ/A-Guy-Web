@@ -12,12 +12,14 @@ describe('scrollView translations', () => {
   describe('English translations (en.json)', () => {
     it('contains courses.scrollView key with correct value', () => {
       expect(enMessages.courses).toBeDefined()
-      expect((enMessages.courses as Record<string, unknown>).scrollView).toBe('Scroll View')
+      expect((enMessages.courses as Record<string, unknown>).scrollView).toBe('Document view')
     })
 
-    it('contains courses.lessonViewModePdf key renamed to Scroll view', () => {
+    it('contains courses.lessonViewModePdf key with Document view label', () => {
       expect(enMessages.courses).toBeDefined()
-      expect((enMessages.courses as Record<string, unknown>).lessonViewModePdf).toBe('Scroll view')
+      expect((enMessages.courses as Record<string, unknown>).lessonViewModePdf).toBe(
+        'Document view',
+      )
     })
 
     it('does NOT contain courses.pdfView key (renamed to scrollView)', () => {
@@ -29,12 +31,12 @@ describe('scrollView translations', () => {
   describe('Hebrew translations (he.json)', () => {
     it('contains courses.scrollView key with correct Hebrew value', () => {
       expect(heMessages.courses).toBeDefined()
-      expect((heMessages.courses as Record<string, unknown>).scrollView).toBe('תצוגת גלילה')
+      expect((heMessages.courses as Record<string, unknown>).scrollView).toBe('תצוגת מסמך')
     })
 
-    it('contains courses.lessonViewModePdf key renamed to Hebrew scroll view label', () => {
+    it('contains courses.lessonViewModePdf key with Hebrew document view label', () => {
       expect(heMessages.courses).toBeDefined()
-      expect((heMessages.courses as Record<string, unknown>).lessonViewModePdf).toBe('תצוגת גלילה')
+      expect((heMessages.courses as Record<string, unknown>).lessonViewModePdf).toBe('תצוגת מסמך')
     })
 
     it('does NOT contain courses.pdfView key (renamed to scrollView)', () => {
