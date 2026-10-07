@@ -212,6 +212,7 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
           exercises={exercises}
           mediaMap={mediaMap}
           formulaSheet={formulaSheet}
+          lessonLearningIndex={lessonLearningIndex}
         />
       )
     }

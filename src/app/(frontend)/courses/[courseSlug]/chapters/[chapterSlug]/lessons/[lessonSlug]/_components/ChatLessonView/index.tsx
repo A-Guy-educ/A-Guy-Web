@@ -37,6 +37,13 @@ interface ChatLessonViewProps {
   mediaMap?: Record<string, Media>
   formulaSheet?: FormulaSheet | null
   headerSlot?: ReactNode
+  /**
+   * 1-based learning-lesson index within the course. Forwarded to the walker so
+   * free-tier students on lessons past #3 see at most 3 exercises before the
+   * tier-lock terminator bubble. `null` disables the gate (same contract as
+   * ExercisesPager — practice/exam lessons bypass the gate entirely).
+   */
+  lessonLearningIndex?: number | null
 }
 
 export function ChatLessonView({
@@ -47,6 +54,7 @@ export function ChatLessonView({
   mediaMap,
   formulaSheet,
   headerSlot,
+  lessonLearningIndex = null,
 }: ChatLessonViewProps) {
   const t = useTranslations('courses')
   // TTS lives here so its mute state can be piped to the workspace's
@@ -98,6 +106,7 @@ export function ChatLessonView({
             exercises={exercises}
             mediaMap={mediaMap}
             tts={tts}
+            lessonLearningIndex={lessonLearningIndex}
           />
         </div>
       }

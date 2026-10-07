@@ -21,6 +21,7 @@ export type StreamEntry =
   | ChatPendingEntry
   | ChatErrorEntry
   | LessonCompleteEntry
+  | TierLockEntry
 
 interface EntryBase {
   /** Stable React key + identity for dedupe / replacement. */
@@ -112,6 +113,17 @@ export interface ChatErrorEntry extends EntryBase {
 /** Terminal bubble shown once the last section is done. */
 export interface LessonCompleteEntry extends EntryBase {
   kind: 'lesson-complete'
+}
+
+/**
+ * Terminal bubble shown when the lesson had more exercises than the student's
+ * tier allows — stream stops at the capped exercise count and the lock card
+ * announces how many more exercises are gated behind an upgrade.
+ */
+export interface TierLockEntry extends EntryBase {
+  kind: 'tier-lock'
+  /** How many exercises are still locked past the student's current access. */
+  lockedCount: number
 }
 
 /**
