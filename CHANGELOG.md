@@ -4862,6 +4862,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- Cap chat-view exercises for free tier with upgrade bubble ([#1303](https://github.com/A-Guy-educ/A-Guy-Web/pull/1303)) — @aguyshayb
 - feat: Finish Phase 2 tier gating (exercise lock, per-tier chat quota, UX) ([#1302](https://github.com/A-Guy-educ/A-Guy-Web/pull/1302)) — @aguyshayb
 - feat: Wire tier content gates into lesson/practice/exam row lists ([#1301](https://github.com/A-Guy-educ/A-Guy-Web/pull/1301)) — @aguyshayb
 - fix: Fix tier LLM token cap and make reconciler seed-only ([#1300](https://github.com/A-Guy-educ/A-Guy-Web/pull/1300)) — @aguyshayb
