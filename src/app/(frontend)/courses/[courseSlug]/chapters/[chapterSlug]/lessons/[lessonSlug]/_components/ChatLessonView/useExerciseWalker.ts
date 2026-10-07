@@ -195,6 +195,14 @@ interface UseExerciseWalkerArgs {
    * saved cursor no longer points at a real step.
    */
   initialStepCursor?: number | null
+  /**
+   * When `exercises` has already been clamped by a tier gate, pass the
+   * original un-clamped count so the terminal bubble can announce how many
+   * exercises are gated behind an upgrade. Null / undefined / equal-to-length
+   * means "no clamping" and the walker emits the normal `lesson-complete`
+   * terminator instead of `tier-lock`.
+   */
+  totalExercisesBeforeTierCap?: number | null
 }
 
 export function useExerciseWalker({
@@ -202,6 +210,7 @@ export function useExerciseWalker({
   append,
   isHebrew,
   initialStepCursor,
+  totalExercisesBeforeTierCap,
 }: UseExerciseWalkerArgs) {
   const steps = useMemo(() => flattenSteps(exercises, isHebrew), [exercises, isHebrew])
   const resumeCursor =
@@ -213,6 +222,20 @@ export function useExerciseWalker({
   const [stepCursor, setStepCursor] = useState(resumeCursor)
   const [isComplete, setIsComplete] = useState(false)
   const seededRef = useRef(false)
+
+  // How many exercises were trimmed off the end by the caller's tier gate.
+  // Positive → terminal entry is `tier-lock`; otherwise `lesson-complete`.
+  const lockedExerciseCount =
+    typeof totalExercisesBeforeTierCap === 'number'
+      ? Math.max(0, totalExercisesBeforeTierCap - exercises.length)
+      : 0
+  const makeTerminalEntry = useCallback(
+    (): StreamEntry =>
+      lockedExerciseCount > 0
+        ? { key: 'tier-lock', kind: 'tier-lock', lockedCount: lockedExerciseCount }
+        : { key: 'lesson-complete', kind: 'lesson-complete' },
+    [lockedExerciseCount],
+  )
 
   const emitStep = useCallback(
     (idx: number) => {
@@ -254,23 +277,23 @@ export function useExerciseWalker({
     seededRef.current = true
     if (steps.length === 0) {
       setIsComplete(true)
-      append({ key: 'lesson-complete', kind: 'lesson-complete' })
+      append(makeTerminalEntry())
       return
     }
     for (let i = 0; i <= resumeCursor; i++) emitStep(i)
-  }, [append, emitStep, resumeCursor, steps.length])
+  }, [append, emitStep, resumeCursor, steps.length, makeTerminalEntry])
 
   const advance = useCallback(() => {
     if (isComplete) return
     const next = stepCursor + 1
     if (next >= steps.length) {
       setIsComplete(true)
-      append({ key: 'lesson-complete', kind: 'lesson-complete' })
+      append(makeTerminalEntry())
       return
     }
     setStepCursor(next)
     emitStep(next)
-  }, [append, emitStep, isComplete, stepCursor, steps.length])
+  }, [append, emitStep, isComplete, stepCursor, steps.length, makeTerminalEntry])
 
   const currentStep = steps[stepCursor] ?? null
 

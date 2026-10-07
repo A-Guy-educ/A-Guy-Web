@@ -1,5 +1,7 @@
 'use client'
 
+import { useCurrentUser } from '@/client/hooks/useCurrentUser'
+import { canAccessLearningExercise, getUserTierSlug } from '@/lib/tiers'
 import type { Exercise, Media } from '@/infra/types/content'
 import type { ContentBlock } from '@/infra/types/exercise'
 import { getExerciseBlockGroups } from '@/lib/exercises/getExerciseBlocks'
@@ -18,6 +20,7 @@ import { ExerciseSectionBubble } from './bubbles/ExerciseSectionBubble'
 import { PendingBubble } from './bubbles/PendingBubble'
 import { StudentBubble } from './bubbles/StudentBubble'
 import { TeacherBubble } from './bubbles/TeacherBubble'
+import { TierLockBubble } from './bubbles/TierLockBubble'
 import type { SectionOutcome, StreamEntry } from './types'
 import { useBrowserTTS } from './useBrowserTTS'
 import { useChatChannel } from './useChatChannel'
@@ -48,6 +51,13 @@ interface ChatLessonRunnerViewProps {
   /** TTS instance hoisted from the parent (ChatLessonView) so its mute
    *  state can also drive the LessonMenu's mute item. */
   tts: ReturnType<typeof useBrowserTTS>
+  /**
+   * 1-based learning-lesson index within the course. Drives the free-tier
+   * exercise clamp — `canAccessLearningExercise` unlocks the first 3
+   * exercises in lessons past #3, and the walker emits a `tier-lock`
+   * terminator at that cutoff. `null` disables the cap.
+   */
+  lessonLearningIndex?: number | null
 }
 
 export function ChatLessonRunnerView(props: ChatLessonRunnerViewProps) {
@@ -63,11 +73,38 @@ interface ActiveChatProps extends ChatLessonRunnerViewProps {
   onExit: () => void
 }
 
-function ActiveChat({ lessonId, lessonTitle, exercises, mediaMap, tts, onExit }: ActiveChatProps) {
+function ActiveChat({
+  lessonId,
+  lessonTitle,
+  exercises,
+  mediaMap,
+  tts,
+  onExit,
+  lessonLearningIndex = null,
+}: ActiveChatProps) {
   const t = useTranslations('courses')
   const locale = useLocale()
   const isHebrew = locale?.toLowerCase().startsWith('he') ?? false
   const scrollRef = useRef<HTMLDivElement | null>(null)
+
+  // Clamp the walker's exercise list to the student's tier gate. The gate is
+  // `canAccessLearningExercise(user, lessonLearningIndex, exerciseOrdinal)`;
+  // we take the longest prefix that passes. When the clamp cuts something off
+  // the walker's terminator becomes a `tier-lock` entry (see useExerciseWalker).
+  const { user } = useCurrentUser()
+  const tierUser = useMemo(
+    () => ({ currentTier: getUserTierSlug(user as { currentTier?: string | null } | null) }),
+    [user],
+  )
+  const cappedExercises = useMemo(() => {
+    if (lessonLearningIndex === null) return exercises
+    const out: Exercise[] = []
+    for (let i = 0; i < exercises.length; i++) {
+      if (!canAccessLearningExercise(tierUser, lessonLearningIndex, i + 1)) break
+      out.push(exercises[i])
+    }
+    return out
+  }, [exercises, lessonLearningIndex, tierUser])
 
   const [entries, setEntries] = useState<StreamEntry[]>([])
   // Separate tick for "stream grew at the end" — the scroll-to-bottom effect
@@ -96,7 +133,13 @@ function ActiveChat({ lessonId, lessonTitle, exercises, mediaMap, tts, onExit }:
   // useLessonChatProgress for the rationale.
   const { initialStepCursor, saveStepCursor, clearProgress } = useLessonChatProgress(lessonId)
 
-  const walker = useExerciseWalker({ exercises, append, isHebrew, initialStepCursor })
+  const walker = useExerciseWalker({
+    exercises: cappedExercises,
+    append,
+    isHebrew,
+    initialStepCursor,
+    totalExercisesBeforeTierCap: exercises.length,
+  })
   const currentStep = walker.currentStep
   const currentExercise = currentStep?.exercise ?? null
 
@@ -522,5 +565,7 @@ function StreamEntryView({
       return <TeacherBubble text={entry.text} variant="correction" />
     case 'lesson-complete':
       return <TeacherBubble text={completeText} />
+    case 'tier-lock':
+      return <TierLockBubble lockedCount={entry.lockedCount} />
   }
 }
