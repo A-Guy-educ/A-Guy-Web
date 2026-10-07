@@ -4862,6 +4862,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- Cycle chat-view pill between lesson name and exercise progress ([#1298](https://github.com/A-Guy-educ/A-Guy-Web/pull/1298)) — @aguyshayb
 ## [v0.45.0] - 2026-10-06
 
 - promote: dev -> main (v0.45.0) ([#1297](https://github.com/A-Guy-educ/A-Guy-Web/pull/1297)) — @aguyshayb
