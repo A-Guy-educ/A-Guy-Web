@@ -450,6 +450,7 @@
         "src/app/(frontend)/ask/_components/AskConversationGrid/index.tsx",
         "src/app/(frontend)/ask/_components/AskDrawingCanvas/index.tsx",
         "src/app/(frontend)/ask/_components/AskExerciseCard/index.tsx",
+        "src/app/(frontend)/ask/_components/AskPrimaryContent/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/AskTab/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/ConversationCard/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/index.tsx",
@@ -1916,7 +1917,7 @@
       "path": "src/app/(frontend)/ask/_components/AskPrimaryContent/index.tsx",
       "type": "unknown",
       "domain": "general",
-      "patterns": ["i18n-component", "client-component"],
+      "patterns": ["tailwind-component", "i18n-component", "client-component"],
       "aiSummary": "",
       "dependencies": ["react", "sonner"]
     },
@@ -2133,7 +2134,7 @@
       "domain": "general",
       "patterns": ["tailwind-component", "client-component"],
       "aiSummary": "",
-      "dependencies": ["lucide-react"]
+      "dependencies": []
     },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonRunnerView.tsx": {
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonRunnerView.tsx",
@@ -6406,7 +6407,7 @@
     }
   },
   "metadata": {
-    "generatedAt": "2026-10-05T06:59:33.975Z",
+    "generatedAt": "2026-10-07T07:12:00.516Z",
     "totalFiles": 576,
     "totalPatterns": 193
   }
