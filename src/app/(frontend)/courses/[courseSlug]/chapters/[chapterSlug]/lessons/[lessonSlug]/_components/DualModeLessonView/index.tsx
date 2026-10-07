@@ -59,6 +59,8 @@ interface DualModeLessonViewProps {
   initialExerciseIndex?: number
   initialMode?: LessonMode
   nextLesson?: { title?: string | null; slug?: string | null } | null
+  /** 1-based learning-lesson position within the course (see page.tsx comment). */
+  lessonLearningIndex?: number | null
 }
 
 /**
@@ -115,6 +117,7 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
     initialExerciseIndex,
     initialMode,
     nextLesson,
+    lessonLearningIndex,
   } = props
 
   const t = useTranslations('courses')
@@ -231,6 +234,7 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
           hideLatexBlocks
           initialExerciseIndex={initialExerciseIndex}
           nextLesson={nextLesson}
+          lessonLearningIndex={lessonLearningIndex}
         />
       )
     }
@@ -268,6 +272,7 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
         hideLatexBlocks
         initialExerciseIndex={initialExerciseIndex}
         nextLesson={nextLesson}
+        lessonLearningIndex={lessonLearningIndex}
       />
     )
   })()
