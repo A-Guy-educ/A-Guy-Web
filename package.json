@@ -220,7 +220,7 @@
       "unrs-resolver"
     ],
     "overrides": {
-      "@modelcontextprotocol/sdk": ">=1.25.2",
+      "@modelcontextprotocol/sdk": ">=1.31.0",
       "next@>=10.0.0 <15.5.10": ">=15.5.10",
       "next@>=15.5.1-canary.0 <15.5.10": ">=15.5.10",
       "qs@>=6.7.0 <=6.14.1": ">=6.14.2",
