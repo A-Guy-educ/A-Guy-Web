@@ -32,7 +32,7 @@ interface CourseLessonCardProps {
   /**
    * Tier-based lock (free users past practice/exam #3, basic users past exam #3).
    * When true, the card renders as locked regardless of `hasPaidAccess`. The
-   * caller computes this against `TIER_ENFORCEMENT_ENABLED` so when the kill
+   * caller computes this against `NEXT_PUBLIC_TIER_ENFORCEMENT_ENABLED` so when the kill
    * switch is off this stays false and behavior is identical to before.
    */
   tierLocked?: boolean
