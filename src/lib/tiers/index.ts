@@ -1,5 +1,10 @@
 /**
- * Public barrel for tier helpers.
+ * Public barrel for tier helpers — client-safe only.
+ *
+ * `llm-cost-cap.ts` is intentionally **not** re-exported here because it
+ * imports `mongodb`, which breaks any client component that transitively
+ * reaches the barrel. Server code wanting `reconcileUserLlmLimit` or
+ * `tierLlmLimit` must import directly from `@/lib/tiers/llm-cost-cap`.
  *
  * @fileType barrel
  * @domain billing
@@ -26,5 +31,4 @@ export {
   canAccessExam,
 } from './content-gates'
 export { TIER_DAILY_AI_QUESTIONS, getUserDailyAiQuota } from './ai-quota'
-export { tierLlmLimit, reconcileUserLlmLimit } from './llm-cost-cap'
 export { selectGeminiModel } from './model-selection'
