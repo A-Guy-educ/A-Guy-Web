@@ -29,6 +29,13 @@ interface CourseLessonCardProps {
    * single render only fires the reverse-lookup once.
    */
   purchaseHref?: string
+  /**
+   * Tier-based lock (free users past practice/exam #3, basic users past exam #3).
+   * When true, the card renders as locked regardless of `hasPaidAccess`. The
+   * caller computes this against `TIER_ENFORCEMENT_ENABLED` so when the kill
+   * switch is off this stays false and behavior is identical to before.
+   */
+  tierLocked?: boolean
 }
 
 export function CourseLessonCard({
@@ -42,6 +49,7 @@ export function CourseLessonCard({
   courseAccessType,
   hasPaidAccess = true,
   purchaseHref,
+  tierLocked = false,
 }: CourseLessonCardProps) {
   const tc = useTranslations('courses')
   const t = useTranslations('coursePage')
@@ -57,7 +65,7 @@ export function CourseLessonCard({
   const accentColor = isSoon ? 'hsl(var(--border))' : (tabColor?.stroke ?? 'hsl(var(--primary))')
 
   const effectiveAccessType = resolveAccessType(lesson.accessType, courseAccessType)
-  const isLocked = effectiveAccessType === 'paid' && !hasPaidAccess
+  const isLocked = tierLocked || (effectiveAccessType === 'paid' && !hasPaidAccess)
 
   const subtitle =
     progress >= 100 ? t('lessonCompleted') : progress > 0 ? t('statusInProgress') : t('notStarted')

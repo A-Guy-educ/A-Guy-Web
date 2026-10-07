@@ -14,6 +14,8 @@ import type { Chapter, Lesson } from '@/infra/types/content'
 import { getEffectiveLessonType, type LessonType } from '@/server/constants/lesson-types'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { useProgressMap } from '@/client/hooks/useProgressMap'
+import { useCurrentUser } from '@/client/hooks/useCurrentUser'
+import { getUserTierSlug } from '@/lib/tiers'
 import { ChapterAccordion } from './ChapterAccordion'
 import { CourseLessonsFilterBar } from './CourseLessonsFilterBar'
 import { CourseLessonsHero } from './CourseLessonsHero'
@@ -94,6 +96,9 @@ export function LessonListTab({
   // downgrade, not a hard block; the page-level gate already gates paid content.
   const hasPaidAccess = hasPaidAccessProp ?? hasPaidAccessClient ?? true
 
+  const { user } = useCurrentUser()
+  const tierSlug = getUserTierSlug(user as { currentTier?: string | null } | null)
+
   const progressByLessonId = useMemo(() => {
     const map: Record<string, number> = {}
     for (const l of filteredLessons) {
@@ -108,6 +113,7 @@ export function LessonListTab({
     progressByLessonId,
     courseAccessType,
     hasPaidAccess,
+    tierSlug,
   })
 
   const featured = findFeaturedNode(groups)

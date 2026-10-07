@@ -28,6 +28,8 @@ import { motion } from 'framer-motion'
 // toast import removed - not currently used
 import { useEffect, useMemo, useState } from 'react'
 import { useProgressMap } from '@/client/hooks/useProgressMap'
+import { useCurrentUser } from '@/client/hooks/useCurrentUser'
+import { canAccessExam, canAccessPracticeLesson, getUserTierSlug } from '@/lib/tiers'
 import { CourseLessonCard } from '@/app/(frontend)/courses/[courseSlug]/_components/CourseLessonCard'
 
 interface ChapterWithLessons extends Chapter {
@@ -110,6 +112,12 @@ export function StudyContent({
   const [isLoading, setIsLoading] = useState(!prefetchedData)
   const [requiresEntitlement, setRequiresEntitlement] = useState<boolean | undefined>(undefined)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | undefined>(undefined)
+
+  const { user } = useCurrentUser()
+  const tierUser = useMemo(
+    () => ({ currentTier: getUserTierSlug(user as { currentTier?: string | null } | null) }),
+    [user],
+  )
 
   const tabForLessonType: CourseTab =
     lessonType === 'practice' ? 'practice' : lessonType === 'exam' ? 'exams' : 'learn'
@@ -392,33 +400,45 @@ export function StudyContent({
                     )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-content-gap">
-                      {group.lessons.map((lesson, idx) => (
-                        <motion.div
-                          key={lesson.id}
-                          initial={{ opacity: 0, y: 16 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{
-                            duration: 0.3,
-                            delay: (startIndex + idx) * 0.04,
-                            ease: 'easeOut',
-                          }}
-                        >
-                          <CourseLessonCard
-                            lesson={lesson}
-                            index={startIndex + idx + 1}
-                            courseSlug={courseInfo?.courseSlug ?? ''}
-                            chapterSlug={lesson._chapterSlug}
-                            tabColor={tabColor}
-                            progress={progressMap[lesson.id] ?? 0}
-                            lessonType={lessonType}
-                            courseAccessType={courseInfo?.courseAccessType}
-                            hasPaidAccess={
-                              requiresEntitlement === undefined ? true : !requiresEntitlement
-                            }
-                            purchaseHref={purchaseHref}
-                          />
-                        </motion.div>
-                      ))}
+                      {group.lessons.map((lesson, idx) => {
+                        // 1-based display position within the lesson type the user
+                        // is viewing — "1st exam", "2nd exam", ... — not `lesson.order`.
+                        const displayIndex = startIndex + idx + 1
+                        const tierLocked =
+                          lessonType === 'practice'
+                            ? !canAccessPracticeLesson(tierUser, displayIndex)
+                            : lessonType === 'exam'
+                              ? !canAccessExam(tierUser, displayIndex)
+                              : false
+                        return (
+                          <motion.div
+                            key={lesson.id}
+                            initial={{ opacity: 0, y: 16 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{
+                              duration: 0.3,
+                              delay: (startIndex + idx) * 0.04,
+                              ease: 'easeOut',
+                            }}
+                          >
+                            <CourseLessonCard
+                              lesson={lesson}
+                              index={startIndex + idx + 1}
+                              courseSlug={courseInfo?.courseSlug ?? ''}
+                              chapterSlug={lesson._chapterSlug}
+                              tabColor={tabColor}
+                              progress={progressMap[lesson.id] ?? 0}
+                              lessonType={lessonType}
+                              courseAccessType={courseInfo?.courseAccessType}
+                              hasPaidAccess={
+                                requiresEntitlement === undefined ? true : !requiresEntitlement
+                              }
+                              purchaseHref={purchaseHref}
+                              tierLocked={tierLocked}
+                            />
+                          </motion.div>
+                        )
+                      })}
                     </div>
                   </section>
                 )
