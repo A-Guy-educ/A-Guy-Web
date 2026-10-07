@@ -94,6 +94,7 @@ export function ChatLessonView({
           {headerSlot}
           <ChatLessonRunnerView
             lessonId={lessonId}
+            lessonTitle={lessonTitle}
             exercises={exercises}
             mediaMap={mediaMap}
             tts={tts}

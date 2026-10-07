@@ -42,6 +42,7 @@ const EMPTY_MEDIA_MAP: Record<string, Media> = {}
 
 interface ChatLessonRunnerViewProps {
   lessonId: string
+  lessonTitle: string
   exercises: Exercise[]
   mediaMap?: Record<string, Media>
   /** TTS instance hoisted from the parent (ChatLessonView) so its mute
@@ -62,7 +63,7 @@ interface ActiveChatProps extends ChatLessonRunnerViewProps {
   onExit: () => void
 }
 
-function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatProps) {
+function ActiveChat({ lessonId, lessonTitle, exercises, mediaMap, tts, onExit }: ActiveChatProps) {
   const t = useTranslations('courses')
   const locale = useLocale()
   const isHebrew = locale?.toLowerCase().startsWith('he') ?? false
@@ -392,13 +393,10 @@ function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatPr
 
       <ChatLessonProgress
         stepIndex={walker.stepCursor}
-        totalSteps={walker.totalSteps}
         currentExerciseOrdinal={walker.currentExerciseOrdinal}
         totalExercises={walker.totalExercises}
-        currentSectionOrdinal={walker.currentSectionOrdinal}
-        currentExerciseSections={walker.currentExerciseSections}
+        lessonTitle={lessonTitle}
         exerciseLabel={t('chatViewProgressExercise')}
-        sectionLabel={t('chatViewProgressSection')}
       />
 
       <GivenDataFloating
