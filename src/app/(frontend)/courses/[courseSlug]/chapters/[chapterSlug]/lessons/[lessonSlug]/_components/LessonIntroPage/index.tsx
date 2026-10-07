@@ -63,6 +63,13 @@ interface LessonIntroPageProps {
   /** Populated prerequisite lessons with URL info */
   prerequisites?: LessonPrerequisite[]
   isLocaleFallback?: boolean
+  /**
+   * 1-based position of this lesson among the course's learning lessons.
+   * `null` when the lesson isn't type=learning (practice/exam gating lives
+   * on the lesson row, not inside the exercise player). Used by the free-tier
+   * per-exercise lock in ExercisesPager.
+   */
+  lessonLearningIndex?: number | null
 }
 
 function plainText(value?: string | null) {
@@ -93,6 +100,7 @@ export function LessonIntroPage({
   nextLesson,
   prerequisites = [],
   isLocaleFallback = false,
+  lessonLearningIndex = null,
 }: LessonIntroPageProps) {
   const t = useTranslations('courses')
   const tCommon = useTranslations('common.languageSwitcher')
@@ -256,6 +264,7 @@ export function LessonIntroPage({
               : undefined
         }
         nextLesson={nextLesson}
+        lessonLearningIndex={lessonLearningIndex}
       />
     )
   }

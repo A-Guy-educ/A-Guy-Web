@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '@/infra/utils/ui'
+import { SystemLink } from '@/infra/loading/components/SystemLink'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { useEffect, useState } from 'react'
 
@@ -34,6 +35,8 @@ export function ChatQuotaBar({ questionsUsed, maxQuestions, resetAt }: ChatQuota
 
   const isExhausted = questionsUsed >= maxQuestions
   const percentage = Math.min((questionsUsed / maxQuestions) * 100, 100)
+  // Approaching the daily cap — plan calls for a user-visible nudge at 80%.
+  const isApproaching = !isExhausted && percentage >= 80
 
   return (
     <div className="flex items-center gap-content-gap-xs text-body-xs text-muted-foreground">
@@ -42,21 +45,35 @@ export function ChatQuotaBar({ questionsUsed, maxQuestions, resetAt }: ChatQuota
           <div
             className={cn(
               'h-full rounded-full transition-all duration-normal',
-              isExhausted ? 'bg-warning' : 'bg-primary',
+              isExhausted ? 'bg-warning' : isApproaching ? 'bg-warning/70' : 'bg-primary',
             )}
             style={{ width: `${percentage}%` }}
           />
         </div>
-        <span className={isExhausted ? 'text-warning font-medium' : ''}>
+        <span
+          className={cn(
+            isExhausted && 'text-warning font-medium',
+            isApproaching && 'text-warning/80 font-medium',
+          )}
+        >
           {t('chatQuotaCounter')
             .replace('{used}', String(questionsUsed))
             .replace('{max}', String(maxQuestions))}
         </span>
       </div>
+      {isApproaching && <span className="text-warning/70">{t('chatQuotaApproaching')}</span>}
       {resetAt && timeLeft && (
         <span className="text-muted-foreground/70">
           {t('chatQuotaResetIn').replace('{time}', timeLeft)}
         </span>
+      )}
+      {isExhausted && (
+        <SystemLink
+          href="/products"
+          className="text-warning font-medium underline underline-offset-2"
+        >
+          {t('chatQuotaUpgradeCta')}
+        </SystemLink>
       )}
     </div>
   )

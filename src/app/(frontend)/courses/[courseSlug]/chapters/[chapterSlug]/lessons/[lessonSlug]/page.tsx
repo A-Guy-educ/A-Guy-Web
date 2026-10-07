@@ -9,6 +9,7 @@ import { queryCourseBySlugWithFallback } from '@/server/repos/queries/courses'
 import { queryExercisesByLesson } from '@/server/repos/queries/exercises'
 import { resolveFormulaSheet } from '@/server/repos/queries/formula-sheets'
 import { queryLessonBySlug, queryLessonsByCourse } from '@/server/repos/queries/lessons'
+import { getEffectiveLessonType } from '@/server/constants/lesson-types'
 import { queryMediaByIds } from '@/server/repos/queries/media'
 import { relationId } from '@/server/repos/mongo'
 import { getAuthenticatedUserServer } from '@/server/utils/access-gate-server'
@@ -257,6 +258,16 @@ export default async function LessonPage({ params }: LessonPageProps) {
   ])
   const lessonIndex = courseLessons.findIndex((courseLesson) => courseLesson.id === lesson.id)
   const nextLesson = lessonIndex >= 0 ? courseLessons[lessonIndex + 1] : null
+  // Learning-type position of this lesson within its course (1-based) so the
+  // exercise-level tier gate can know whether this is "lesson 1/2/3" (free
+  // users get all exercises) vs. "lesson 4+" (free users capped at exercise 3).
+  // null when this lesson isn't a learning lesson (practice/exam are gated at
+  // the row level, not here).
+  const learningLessons = courseLessons
+    .filter((l) => getEffectiveLessonType(l.type) === 'learning')
+    .sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
+  const learningIdx = learningLessons.findIndex((l) => l.id === lesson.id)
+  const lessonLearningIndex = learningIdx >= 0 ? learningIdx + 1 : null
   const backUrl = `/courses/${courseSlug}`
   const formulaSheet = formulaSheetResult?.sheet ?? null
   const showChat = exercises.length > 0 || Boolean(lesson.lessonContextText?.trim())
@@ -298,6 +309,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
           (lesson as Lesson & { prerequisites?: LessonPrerequisite[] }).prerequisites ?? []
         }
         isLocaleFallback={isLocaleFallback}
+        lessonLearningIndex={lessonLearningIndex}
       />
     </AccessGateProvider>
   )
