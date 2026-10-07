@@ -13,6 +13,7 @@ export {
   TIER_LABEL_EN,
   TIER_PRICE_ILS,
   TIER_AI_COST_CAP_ILS,
+  TIER_LLM_TOKEN_CAP_MONTHLY,
   isTierSlug,
   type TierSlug,
 } from './constants'
