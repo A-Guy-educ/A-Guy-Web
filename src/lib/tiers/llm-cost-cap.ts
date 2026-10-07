@@ -1,20 +1,16 @@
 /**
- * LLM cost cap reconciler — writes `users.llmTokensLimit` from tier.
+ * LLM token cap seed — writes `users.llmTokensLimit` from tier when (and
+ * only when) the user has never had one set.
  *
- * Admin disabled all automatic tier-recompute hooks; an admin sets
- * `currentTier` manually. Web gets no notification, so we reconcile
- * lazily: call this on login or in `/api/users/me` and it will no-op
- * when the limit already matches the tier's cap.
+ * Admin owns `llmTokensLimit`: the User admin page exposes an editable
+ * "LLM tokens limit" field, so a hand-tuned value for a specific user
+ * must be respected. This helper therefore seeds-only — it writes iff
+ * `llmTokensLimit` is null/missing. Admin values are never overwritten,
+ * even if the user's tier changes later. (A tier change that should
+ * also adjust the limit is an admin action, not an automatic one.)
  *
- * `TIER_AI_COST_CAP_ILS` is in ILS and `llmTokensLimit` is in tokens —
- * the two aren't the same unit. The Admin schema stores the token cap
- * directly today; until the Admin side wires a cost→token conversion,
- * we treat the ILS value as the raw cap integer the User doc already
- * expects (both apps agree on the integer; Admin owns the semantics).
- * premium → null (no hard cap, fair use only).
- *
- * When the kill switch is off this helper writes `null` so no limit
- * is enforced regardless of tier.
+ * Short-circuits when the kill switch is off so admin-set values aren't
+ * touched during the subscriptions-not-live phase either.
  *
  * Writes go through the raw Mongo driver because Payload's
  * `access.update` is `() => false` on the token fields (see
@@ -27,7 +23,7 @@
 import { ObjectId } from 'mongodb'
 import { getContentDb } from '@/infra/db/content-db'
 import { logger } from '@/infra/utils/logger/logger'
-import { TIER_AI_COST_CAP_ILS } from './constants'
+import { TIER_LLM_TOKEN_CAP_MONTHLY } from './constants'
 import { isTierEnforcementEnabled } from './enforcement'
 import { getUserTierSlug, type UserWithTier } from './user-tier'
 
@@ -37,18 +33,16 @@ interface ReconcileArgs {
 }
 
 export function tierLlmLimit(user: UserWithTier | null | undefined): number | null {
-  return TIER_AI_COST_CAP_ILS[getUserTierSlug(user)]
+  return TIER_LLM_TOKEN_CAP_MONTHLY[getUserTierSlug(user)]
 }
 
 export async function reconcileUserLlmLimit({ userId, user }: ReconcileArgs): Promise<void> {
-  // Kill switch — leave any existing admin-set `llmTokensLimit` alone when
-  // enforcement is off. `checkTokenLimit` ignores it anyway, and we don't
-  // want to clobber data an admin may have hand-tuned during the off period.
   if (!isTierEnforcementEnabled()) return
   if (!ObjectId.isValid(userId)) return
+  // Seed only — never overwrite an existing (admin-set) value.
+  if (typeof user.llmTokensLimit === 'number') return
   const target = tierLlmLimit(user)
-  const current = typeof user.llmTokensLimit === 'number' ? user.llmTokensLimit : null
-  if (current === target) return
+  if (target === null) return // premium → nothing to seed.
 
   try {
     const db = await getContentDb()
