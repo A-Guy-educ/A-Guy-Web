@@ -15,6 +15,7 @@ import type { Document, ObjectId } from 'mongodb'
 
 import { getContentDb, objectIdFromString, relationId, serializeDoc } from '@/infra/db/content-db'
 import type { User } from '@/infra/types/content'
+import { reconcileUserLlmLimit } from '@/lib/tiers/llm-cost-cap'
 import { encrypt, generateSecret } from './oauth_crypto'
 import {
   AUTH_COOKIE_MAX_AGE_SECONDS,
@@ -148,7 +149,19 @@ export async function getSessionFromToken(token?: string | null) {
         },
       },
     } as Document)
-    return user ? { token, user: cleanUser(user) } : null
+    if (!user) return null
+    // Fire-and-forget: keep `users.llmTokensLimit` in sync with the user's
+    // current tier. No-ops when the kill switch is off or the stored limit
+    // already matches the tier's cap; costs a single Mongo updateOne only
+    // after a manual tier change. See TIERS.md "Web implementation".
+    void reconcileUserLlmLimit({
+      userId: payload.id,
+      user: {
+        currentTier: typeof user.currentTier === 'string' ? user.currentTier : null,
+        llmTokensLimit: typeof user.llmTokensLimit === 'number' ? user.llmTokensLimit : null,
+      },
+    })
+    return { token, user: cleanUser(user) }
   } catch {
     return null
   }
