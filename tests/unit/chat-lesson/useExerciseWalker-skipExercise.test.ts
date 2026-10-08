@@ -84,6 +84,13 @@ describe('useExerciseWalker.advanceToNextExercise', () => {
       result.current.advanceToNextExercise()
     })
     expect(sectionKeys()).toEqual(['sec-ex1-0', 'sec-ex1-1', 'sec-ex2-0'])
+    // A `skipped-marker` is emitted between the departing section and the
+    // next exercise's intro so the walker's jump isn't silent (Task 8 follow-
+    // up — spec asks skipped sections to be "marked as skipped").
+    const skipMarkerIdx = entries.findIndex((e) => e.kind === 'skipped-marker')
+    const nextIntroIdx = entries.findIndex((e) => e.key === 'intro-ex2')
+    expect(skipMarkerIdx).toBeGreaterThan(-1)
+    expect(skipMarkerIdx).toBeLessThan(nextIntroIdx)
     // No terminator yet.
     const hasTerminator = entries.some(
       (e) => e.kind === 'lesson-complete' || e.kind === 'tier-lock',
