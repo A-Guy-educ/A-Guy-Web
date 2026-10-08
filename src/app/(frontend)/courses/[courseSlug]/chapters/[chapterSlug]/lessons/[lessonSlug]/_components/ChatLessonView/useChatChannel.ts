@@ -178,7 +178,20 @@ export function useChatChannel({
                 })
               }
             } else if (parsed.event === 'error') {
-              const text = typeof parsed.data.error === 'string' ? parsed.data.error : errorMessage
+              // Mid-stream errors from enforceTutorTurnPolicy (checked inside
+              // `beforeGenerate` after the SSE stream opens) land here.
+              // Payload shape is ChatErrorBody: { error: 'token_limit_exceeded'
+              // | 'quota_exceeded' | ..., message, ... }. Both quota codes
+              // promote to the quota-exhausted card; everything else surfaces
+              // the server's `message` field, not the error CODE (which is
+              // what the pre-fix UI was unhelpfully displaying verbatim).
+              const errCode = typeof parsed.data.error === 'string' ? parsed.data.error : null
+              if (errCode === 'quota_exceeded' || errCode === 'token_limit_exceeded') {
+                finalizeQuotaExhausted()
+                return
+              }
+              const text =
+                typeof parsed.data.message === 'string' ? parsed.data.message : errorMessage
               finalizeError(text)
               return
             }
@@ -305,6 +318,12 @@ function parseSseFrame(raw: string): SseFrame | null {
  * generic error message if the body isn't JSON or the status isn't specifically
  * handled. The caller uses `quotaExceeded` to switch from an error bubble to
  * the quota-exhausted card so the student sees upgrade + continue CTAs.
+ *
+ * The chat API returns ChatErrorBody (`{ error: 'token_limit_exceeded' |
+ * 'quota_exceeded' | 'rate_limited' | …, message, … }`), NOT a boolean
+ * `quotaExceeded` flag — matching on the code is what actually triggers the
+ * card. Both tier-level token exhaustion and the daily chat question quota
+ * route through this helper.
  */
 async function resolveErrorText(
   response: Response,
@@ -313,14 +332,17 @@ async function resolveErrorText(
   if (response.status === 401) {
     return { text: labels.authRequiredMessage, quotaExceeded: false }
   }
-  let body: { error?: string; quotaExceeded?: boolean } = {}
+  let body: { error?: string; message?: string } = {}
   try {
     body = (await response.json()) as typeof body
   } catch {
     // fall through to generic
   }
-  if (response.status === 429 && body.quotaExceeded) {
+  if (
+    response.status === 429 &&
+    (body.error === 'quota_exceeded' || body.error === 'token_limit_exceeded')
+  ) {
     return { text: labels.quotaExceededMessage, quotaExceeded: true }
   }
-  return { text: body.error ?? labels.errorMessage, quotaExceeded: false }
+  return { text: body.message ?? labels.errorMessage, quotaExceeded: false }
 }

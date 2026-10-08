@@ -437,6 +437,16 @@ export function useExerciseWalker({
     const markerKey = `skip-${current.exercise.id}-${current.groupIndex}-${Date.now()}`
     append({ key: markerKey, kind: 'skipped-marker' })
     if (target === -1) {
+      // Last exercise — same end-of-lesson handling as normal `advance`: if
+      // ANY earlier section qualifies for review (Task 5), defer the
+      // terminator and emit the offer card instead. Previously this path
+      // bypassed the check, so a student who skipped the last exercise
+      // never got the review prompt even after missing stuff earlier.
+      const eligible = steps.filter((s) => isSectionEligibleForReview(s.exercise, s.group))
+      if (eligible.length > 0) {
+        append({ key: 'review-offer', kind: 'review-offer' })
+        return
+      }
       setIsComplete(true)
       append(makeTerminalEntry())
       return

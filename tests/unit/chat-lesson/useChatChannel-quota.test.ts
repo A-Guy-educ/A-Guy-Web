@@ -3,10 +3,36 @@ import { useChatChannel } from '@/app/(frontend)/courses/[courseSlug]/chapters/[
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-function makeQuota429(): Response {
-  return new Response(JSON.stringify({ error: 'quota', quotaExceeded: true }), {
+function makeQuota429(
+  code: 'quota_exceeded' | 'token_limit_exceeded' = 'quota_exceeded',
+): Response {
+  return new Response(JSON.stringify({ error: code, message: `${code} msg` }), {
     status: 429,
     headers: { 'Content-Type': 'application/json' },
+  })
+}
+
+/**
+ * Build a 200 SSE response whose stream emits a single `error` frame carrying
+ * a ChatErrorBody. Mirrors how the stream route surfaces token/quota caps
+ * that are checked INSIDE the stream (post-handshake), which is where
+ * `token_limit_exceeded` actually lands.
+ */
+function makeSseErrorResponse(code: string, message = 'bad') {
+  const encoder = new TextEncoder()
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(
+        encoder.encode(
+          `event: error\ndata: ${JSON.stringify({ success: false, error: code, message })}\n\n`,
+        ),
+      )
+      controller.close()
+    },
+  })
+  return new Response(stream, {
+    status: 200,
+    headers: { 'Content-Type': 'text/event-stream' },
   })
 }
 
@@ -93,9 +119,9 @@ describe('useChatChannel — Task 7 quota-exhausted flow', () => {
     expect(args.replace).not.toHaveBeenCalled()
   })
 
-  it('a plain 429 without quotaExceeded still falls through to a chat-error', async () => {
+  it('a plain 429 (rate_limited, no quota code) still falls through to a chat-error', async () => {
     vi.mocked(globalThis.fetch).mockResolvedValueOnce(
-      new Response(JSON.stringify({ error: 'rate-limited' }), {
+      new Response(JSON.stringify({ error: 'rate_limited', message: 'try later' }), {
         status: 429,
         headers: { 'Content-Type': 'application/json' },
       }),
@@ -111,6 +137,63 @@ describe('useChatChannel — Task 7 quota-exhausted flow', () => {
     const replacedKinds = args.replace.mock.calls.map((call) => (call[1] as { kind: string }).kind)
     expect(replacedKinds).toContain('chat-error')
     expect(replacedKinds).not.toContain('quota-exhausted')
+    expect(result.current.isQuotaExhausted).toBe(false)
+  })
+
+  it('pre-stream 429 with token_limit_exceeded promotes to the quota-exhausted card', async () => {
+    vi.mocked(globalThis.fetch).mockResolvedValueOnce(makeQuota429('token_limit_exceeded'))
+    const args = baseArgs()
+    const { result } = renderHook(() => useChatChannel(args))
+
+    await act(async () => {
+      result.current.requestCorrection('go')
+      await new Promise((r) => setTimeout(r, 20))
+    })
+
+    const replacedKinds = args.replace.mock.calls.map((call) => (call[1] as { kind: string }).kind)
+    expect(replacedKinds).toContain('quota-exhausted')
+    expect(result.current.isQuotaExhausted).toBe(true)
+  })
+
+  it('mid-stream SSE error with token_limit_exceeded promotes to the quota card too', async () => {
+    // This is the real-world path for the tier LLM token cap: the stream
+    // handshake succeeds, then `enforceTutorTurnPolicy` throws inside the
+    // SSE body and the server emits an `event: error` frame. Before the
+    // fix the client would surface the raw code string as an error bubble.
+    vi.mocked(globalThis.fetch).mockResolvedValueOnce(makeSseErrorResponse('token_limit_exceeded'))
+    const args = baseArgs()
+    const { result } = renderHook(() => useChatChannel(args))
+
+    await act(async () => {
+      result.current.requestCorrection('go')
+      await new Promise((r) => setTimeout(r, 20))
+    })
+
+    const replacedKinds = args.replace.mock.calls.map((call) => (call[1] as { kind: string }).kind)
+    expect(replacedKinds).toContain('quota-exhausted')
+    expect(replacedKinds).not.toContain('chat-error')
+    expect(result.current.isQuotaExhausted).toBe(true)
+  })
+
+  it('mid-stream SSE error with a non-quota code surfaces the server message, not the code', async () => {
+    vi.mocked(globalThis.fetch).mockResolvedValueOnce(
+      makeSseErrorResponse('provider_error', 'the tutor is temporarily unavailable'),
+    )
+    const args = baseArgs()
+    const { result } = renderHook(() => useChatChannel(args))
+
+    await act(async () => {
+      result.current.requestCorrection('go')
+      await new Promise((r) => setTimeout(r, 20))
+    })
+
+    const errorEntries = args.replace.mock.calls.filter(
+      (call) => (call[1] as { kind: string }).kind === 'chat-error',
+    )
+    expect(errorEntries).toHaveLength(1)
+    expect((errorEntries[0]![1] as { text: string }).text).toBe(
+      'the tutor is temporarily unavailable',
+    )
     expect(result.current.isQuotaExhausted).toBe(false)
   })
 

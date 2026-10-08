@@ -15,13 +15,13 @@ export function SkippedMarker() {
   return (
     <div
       aria-hidden="true"
-      className="flex items-center justify-center gap-3 self-stretch py-1 text-muted-foreground/60"
+      className="flex items-center justify-center gap-3 self-stretch py-3 text-muted-foreground/70"
     >
       <span className="h-px flex-1 border-t border-dashed border-border/60" />
-      <span className="flex flex-col items-center gap-0.5">
-        <span className="h-1 w-1 rounded-full bg-current" />
-        <span className="h-1 w-1 rounded-full bg-current" />
-        <span className="h-1 w-1 rounded-full bg-current" />
+      <span className="flex flex-col items-center gap-1">
+        <span className="h-3 w-3 rounded-full border-2 border-current bg-transparent" />
+        <span className="h-3 w-3 rounded-full border-2 border-current bg-transparent" />
+        <span className="h-3 w-3 rounded-full border-2 border-current bg-transparent" />
       </span>
       <span className="h-px flex-1 border-t border-dashed border-border/60" />
     </div>
