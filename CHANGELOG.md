@@ -4862,6 +4862,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Resize tier token caps using Gemini 2.5 Flash pricing ([#1315](https://github.com/A-Guy-educ/A-Guy-Web/pull/1315)) — @aguyshayb
 - fix: Chatview quota detection, review-bypass on skip-last-exercise, skipped-marker visual ([#1314](https://github.com/A-Guy-educ/A-Guy-Web/pull/1314)) — @aguyshayb
 - fix: Use chapter-aware learning-lesson index for free-tier exercise gate ([#1313](https://github.com/A-Guy-educ/A-Guy-Web/pull/1313)) — @aguyshayb
 - feat: Chatview focused end-of-lesson review ([#1312](https://github.com/A-Guy-educ/A-Guy-Web/pull/1312)) — @aguyshayb
