@@ -4862,6 +4862,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Chatview 3-option MCQ retry with teacher hint ([#1307](https://github.com/A-Guy-educ/A-Guy-Web/pull/1307)) — @aguyshayb
 - feat: Chatview teacher AI correction with the student's wrong choice ([#1306](https://github.com/A-Guy-educ/A-Guy-Web/pull/1306)) — @aguyshayb
 - feat: Chatview canned correct-answer responses and skip-exercise chip ([#1305](https://github.com/A-Guy-educ/A-Guy-Web/pull/1305)) — @aguyshayb
 - fix: Make tier kill switch readable from client bundle ([#1304](https://github.com/A-Guy-educ/A-Guy-Web/pull/1304)) — @aguyshayb
