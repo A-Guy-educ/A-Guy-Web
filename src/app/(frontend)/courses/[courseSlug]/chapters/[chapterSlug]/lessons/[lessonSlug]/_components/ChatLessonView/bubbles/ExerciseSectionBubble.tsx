@@ -174,6 +174,12 @@ export function ExerciseSectionBubble({
   // answer" bubble to ONLY the questions they missed, so a multi-question
   // section doesn't leak answers to questions they got right.
   const wrongBlockIdsRef = useRef<Set<string>>(new Set(seeded.wrongIds))
+  // Human-readable text of the specific wrong choices the student picked —
+  // forwarded on the wrong outcome so the teacher-AI correction prompt can
+  // reference *why that choice* is wrong rather than lecturing in the
+  // abstract. Only populated by the chat-native path (handleChatNativeSubmit
+  // sees the answer text); the aggregate path leaves it unset.
+  const wrongAnswerTextsRef = useRef<string[]>([])
 
   // ── FALLBACK path ────────────────────────────────────────────────────────
   // Existing aggregate onResultsChange from ExerciseRenderer; fires onOutcome
@@ -211,8 +217,13 @@ export function ExerciseSectionBubble({
   const handleChatNativeSubmit = useCallback(
     (blockId: string, text: string, isCorrect: boolean) => {
       submittedCountRef.current += 1
-      if (isCorrect) correctCountRef.current += 1
-      else wrongBlockIdsRef.current.add(blockId)
+      if (isCorrect) {
+        correctCountRef.current += 1
+      } else {
+        wrongBlockIdsRef.current.add(blockId)
+        const trimmed = text.trim()
+        if (trimmed) wrongAnswerTextsRef.current.push(trimmed)
+      }
       setHasAnyAnswer(true)
       onQuestionSubmit?.(sectionKey, text, isCorrect)
 
@@ -230,6 +241,12 @@ export function ExerciseSectionBubble({
             // Scope the echoed "correct answer" to only the questions the
             // student got wrong — don't leak answers to ones they nailed.
             correctAnswerText: deriveCorrectAnswerText(group, wrongBlockIdsRef.current),
+            // Comma-join the specific wrong choices so a 2-question section
+            // where both were missed still gives the teacher-AI the choices.
+            studentAnswerText:
+              wrongAnswerTextsRef.current.length > 0
+                ? wrongAnswerTextsRef.current.join(', ')
+                : undefined,
           })
         }
       }

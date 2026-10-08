@@ -232,7 +232,6 @@ function ActiveChat({
     : null
 
   const correctionPrompt = t('chatViewCorrectionPrompt')
-  const correctAnswerLabel = t('chatViewCorrectAnswerLabel')
   const totalCappedExercises = cappedExercises.length
   const handleOutcome = useCallback(
     (sectionKey: string, outcome: SectionOutcome) => {
@@ -287,21 +286,31 @@ function ActiveChat({
           insertAfter(sectionKey, celebrateEntry)
         }
       } else {
-        if (outcome.correctAnswerText) {
-          const ansEntry: StreamEntry = {
-            key: `ans-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-            kind: 'chat-assistant',
-            text: `${correctAnswerLabel}: ${outcome.correctAnswerText}`,
-          }
-          if (isCurrent) append(ansEntry)
-          else insertAfter(sectionKey, ansEntry)
-        }
+        // Task 2: no inline "correct answer: X" reveal bubble. The question
+        // card already marks the chosen option as wrong, and leaving the
+        // correct answer unspoken keeps Task 3's 3-option retry flow viable
+        // on the same pipeline (revealing it before a retry would spoil the
+        // second attempt). The AI correction below still carries both texts
+        // so the teacher can reference them.
+        //
         // The AI correction request pulls context from the walker's CURRENT
         // step; firing it for a past section would mis-attribute the
         // explanation. Only kick off the AI explain pass for the active
-        // section — past sections rely on the inline "correct answer: X"
-        // bubble inserted above.
-        if (isCurrent) chat.requestCorrection(correctionPrompt)
+        // section.
+        if (isCurrent) {
+          // The i18n provider does literal key lookup only — placeholder
+          // substitution is done at the call site with `.replace()`, same
+          // pattern as `couponApplied` elsewhere in the app. Fall back to
+          // the generic correction prompt when either text is missing
+          // (aggregate path, matching questions, etc.).
+          const prompt =
+            outcome.studentAnswerText && outcome.correctAnswerText
+              ? t('chatViewCorrectionPromptWithChoice')
+                  .replace('{choice}', outcome.studentAnswerText)
+                  .replace('{correct}', outcome.correctAnswerText)
+              : correctionPrompt
+          chat.requestCorrection(prompt)
+        }
       }
     },
     [
@@ -309,36 +318,28 @@ function ActiveChat({
       append,
       cancelPendingAdvance,
       chat,
-      correctAnswerLabel,
       correctionPrompt,
       getCorrectResponseState,
       insertAfter,
       recordCorrectReaction,
+      t,
       totalCappedExercises,
       walker,
     ],
   )
 
-  const handleQuestionSubmit = useCallback(
-    (sectionKey: string, text: string, isCorrect: boolean) => {
-      // On a correct answer the question card already paints the chosen
-      // option green with a ✓ — echoing the same text in a right-side bubble
-      // would just duplicate it. Skip the bubble for correct answers; the
-      // teacher reaction (appended by handleOutcome) is the only follow-up
-      // the student sees. Wrong-answer echoes are preserved for now; Task 2
-      // will remove those too once the AI correction path is wired up.
-      if (isCorrect) return
-      const entry: StreamEntry = {
-        key: `q-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        kind: 'chat-user',
-        text,
-        isCorrect,
-      }
-      if (sectionKey === activeStepKey) append(entry)
-      else insertAfter(sectionKey, entry)
-    },
-    [activeStepKey, append, insertAfter],
-  )
+  // Right-side student bubbles are suppressed entirely for chat-native
+  // question picks — the question card already marks the chosen option as
+  // correct (green ✓) or wrong, so an echo bubble is pure duplication. The
+  // spec is explicit on both sides:
+  //   Task 1 — "no student bubble that duplicates the answer" (correct)
+  //   Task 2 — "mark the wrong choice, without a bubble duplicating it"
+  // The answer, result, and prior assistance are still saved — the
+  // ExerciseRenderer writes them into the shared answer bundle, and the
+  // outcome callback carries whatever the AI correction prompt needs.
+  // The `onQuestionSubmit` plumbing on ExerciseSectionBubble stays optional
+  // so a future task can re-attach a per-question hook without rewiring
+  // every call site.
 
   // Quick-action chip dispatcher. Hint + explain go through the invisible
   // requestCorrection channel so only the AI reply lands in the stream
@@ -477,7 +478,6 @@ function ActiveChat({
               mediaMap={mediaMap}
               tts={tts}
               onOutcome={handleOutcome}
-              onQuestionSubmit={handleQuestionSubmit}
               onQuickAction={handleQuickAction}
               quickActionLabels={quickActionLabels}
               quickActionsDisabled={chat.isSending}
@@ -534,7 +534,6 @@ interface StreamEntryViewProps {
   mediaMap?: Record<string, Media>
   tts: ReturnType<typeof useBrowserTTS>
   onOutcome: (sectionKey: string, outcome: SectionOutcome) => void
-  onQuestionSubmit: (sectionKey: string, text: string, isCorrect: boolean) => void
   onQuickAction: (action: 'hint' | 'explain' | 'skip' | 'skipExercise') => void
   quickActionLabels: { hint: string; explain: string; skip: string; skipExercise: string }
   quickActionsDisabled: boolean
@@ -551,7 +550,6 @@ function StreamEntryView({
   mediaMap,
   tts,
   onOutcome,
-  onQuestionSubmit,
   onQuickAction,
   quickActionLabels,
   quickActionsDisabled,
@@ -606,7 +604,6 @@ function StreamEntryView({
           isActive={isActive}
           sectionKey={entry.key}
           onOutcome={onOutcome}
-          onQuestionSubmit={onQuestionSubmit}
           onQuickAction={onQuickAction}
           quickActionLabels={quickActionLabels}
           quickActionsDisabled={quickActionsDisabled}
