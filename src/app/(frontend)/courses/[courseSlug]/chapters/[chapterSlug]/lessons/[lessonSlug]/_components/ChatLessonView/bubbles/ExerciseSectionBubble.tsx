@@ -69,7 +69,7 @@ interface ExerciseSectionBubbleProps {
    */
   onQuickAction?: (action: QuickAction) => void
   /** Labels for the chips. Provided by the runner from i18n. */
-  quickActionLabels?: { hint: string; explain: string; skip: string }
+  quickActionLabels?: { hint: string; explain: string; skip: string; skipExercise: string }
   /** Disable chips while a chat request is already in flight. */
   quickActionsDisabled?: boolean
   /** i18n placeholders used by the chat-native free-response input. */
@@ -238,13 +238,13 @@ export function ExerciseSectionBubble({
   )
 
   // Wrap chip clicks so a scroll-back click can't dispatch through the runner
-  // — and skip in particular counts as "engaged with this section" and hides
-  // chips on the currently active bubble too (otherwise chips would linger
-  // after skip since no answer was submitted).
+  // — and both skip chips count as "engaged with this section" so they hide
+  // the chips on the departing bubble (otherwise they'd linger after skip
+  // since no answer was submitted).
   const handleChipAction = useCallback(
     (action: QuickAction) => {
       if (!isActive) return
-      if (action === 'skip') setHasAnyAnswer(true)
+      if (action === 'skip' || action === 'skipExercise') setHasAnyAnswer(true)
       onQuickAction?.(action)
     },
     [isActive, onQuickAction],
@@ -321,6 +321,7 @@ export function ExerciseSectionBubble({
                 hintLabel={quickActionLabels.hint}
                 explainLabel={quickActionLabels.explain}
                 skipLabel={quickActionLabels.skip}
+                skipExerciseLabel={quickActionLabels.skipExercise}
                 onAction={handleChipAction}
               />
             )}

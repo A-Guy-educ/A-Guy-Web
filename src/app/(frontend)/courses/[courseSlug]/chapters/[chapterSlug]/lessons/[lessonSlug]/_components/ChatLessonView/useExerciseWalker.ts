@@ -295,6 +295,31 @@ export function useExerciseWalker({
     emitStep(next)
   }, [append, emitStep, isComplete, stepCursor, steps.length, makeTerminalEntry])
 
+  /**
+   * Skip every remaining step of the current exercise and land on the first
+   * step of the next exercise. If there is no next exercise, terminate the
+   * lesson (same terminator as a natural `advance` past the end). No chat
+   * roundtrip — this is a pure walker jump; skipped sections stay in the
+   * stream above the student exactly as the "skip section" button leaves
+   * previously-visited sections. Prior answers are preserved by virtue of
+   * the walker never removing or rewriting past stream entries.
+   */
+  const advanceToNextExercise = useCallback(() => {
+    if (isComplete) return
+    const current = steps[stepCursor]
+    if (!current) return
+    const target = steps.findIndex(
+      (s, i) => i > stepCursor && s.exerciseIndex > current.exerciseIndex,
+    )
+    if (target === -1) {
+      setIsComplete(true)
+      append(makeTerminalEntry())
+      return
+    }
+    setStepCursor(target)
+    emitStep(target)
+  }, [append, emitStep, isComplete, steps, stepCursor, makeTerminalEntry])
+
   const currentStep = steps[stepCursor] ?? null
 
   // Total distinct exercises drives the "Exercise X/Y" label in the progress
@@ -317,5 +342,6 @@ export function useExerciseWalker({
     currentExerciseSections: currentStep?.groupsInExercise ?? 0,
     isComplete,
     advance,
+    advanceToNextExercise,
   }
 }
