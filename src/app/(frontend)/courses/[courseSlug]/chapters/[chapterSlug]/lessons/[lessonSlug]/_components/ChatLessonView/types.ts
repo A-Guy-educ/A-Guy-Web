@@ -24,6 +24,7 @@ export type StreamEntry =
   | TierLockEntry
   | SkippedMarkerEntry
   | QuotaExhaustedEntry
+  | ReviewOfferEntry
 
 interface EntryBase {
   /** Stable React key + identity for dedupe / replacement. */
@@ -69,6 +70,16 @@ export interface ExerciseSectionEntry extends EntryBase {
    * restarting at `א` per rendered group.
    */
   questionLabels: Map<string, string>
+  /**
+   * Task-5 review-mode storage namespace. When set, every child bubble
+   * reads from / writes to localStorage keyed by this value instead of
+   * `exercise.id`. The walker fills it with `review-${exercise.id}` for
+   * review-mode re-emissions so the student's second attempt doesn't
+   * overwrite the original answer, retry state, or submission history.
+   * Undefined on normal (first-pass) sections — bubbles fall back to
+   * `exercise.id` and the pre-Task-5 behavior.
+   */
+  storageIdOverride?: string
 }
 
 /**
@@ -151,6 +162,19 @@ export interface SkippedMarkerEntry extends EntryBase {
  */
 export interface QuotaExhaustedEntry extends EntryBase {
   kind: 'quota-exhausted'
+}
+
+/**
+ * Task-5 end-of-lesson review offer. Emitted in place of the lesson-complete
+ * terminator when the lesson has at least one section the student answered
+ * wrong, used a hint on, or had the AI skip (notChecked). The student picks:
+ *   - "כן, ננסה שוב" → walker enters review mode and re-emits the eligible
+ *     sections one by one, with a storageIdOverride so new answers don't
+ *     stomp on the original attempt.
+ *   - "סיום" → walker fires lesson-complete immediately.
+ */
+export interface ReviewOfferEntry extends EntryBase {
+  kind: 'review-offer'
 }
 
 /**

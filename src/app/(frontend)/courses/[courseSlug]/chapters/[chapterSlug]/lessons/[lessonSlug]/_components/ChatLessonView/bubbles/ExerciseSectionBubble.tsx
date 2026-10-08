@@ -85,6 +85,15 @@ interface ExerciseSectionBubbleProps {
    *  the server AI and show self-compare instead of waiting on a doomed 429. */
   isQuotaExhausted?: boolean
   /**
+   * Task-5 review-mode storage namespace. When set, every child bubble uses
+   * this value as its `exerciseId` instead of the real `exercise.id`, so a
+   * second attempt during focused review writes to a separate localStorage
+   * key and doesn't overwrite the original pass's answers, retry state, or
+   * submission history. Threaded here, not derived, so the walker owns the
+   * naming convention (one place to change if we ever namespace differently).
+   */
+  storageIdOverride?: string
+  /**
    * Task-3 retry hint. Fires when the student taps "תן לי רמז" after a first
    * wrong attempt on a 3+ option MCQ. The runner wires it to a
    * chat.requestCorrection with the hint-flavored prompt. Only forwarded for
@@ -143,6 +152,7 @@ export function ExerciseSectionBubble({
   freeResponseNotCheckedLabel,
   freeResponseValidationErrors,
   isQuotaExhausted,
+  storageIdOverride,
   onHintRequest,
   retryHintLabel,
   isActive = true,
@@ -167,7 +177,12 @@ export function ExerciseSectionBubble({
   // outcome check `submittedCount >= total` never trips.
   const seeded = useMemo(() => {
     if (!isChatNativePath) return { submitted: 0, correct: 0, wrongIds: [] as string[] }
-    const saved = exercise.id ? readExerciseState(exercise.id) : null
+    // Hydrate counters from the SAME storage namespace the child bubbles
+    // write to — in review mode that's the override key, which starts empty
+    // so the student answers afresh. Mirrors the exerciseId prop forwarded
+    // below.
+    const storageId = storageIdOverride ?? exercise.id
+    const saved = storageId ? readExerciseState(storageId) : null
     if (!saved) return { submitted: 0, correct: 0, wrongIds: [] as string[] }
     const chatQs = group.blocks.filter(isChatNativeQuestion)
     const wrongIds: string[] = []
@@ -316,7 +331,7 @@ export function ExerciseSectionBubble({
                   // dropped). Past-section bubbles stay answerable so a
                   // student can go back and finish anything they skipped.
                   disabled={quickActionsDisabled}
-                  exerciseId={exercise.id}
+                  exerciseId={storageIdOverride ?? exercise.id}
                   onSubmit={handleChatNativeSubmit}
                   onHintRequest={isActive ? onHintRequest : undefined}
                   retryHintLabel={retryHintLabel}
@@ -332,7 +347,7 @@ export function ExerciseSectionBubble({
                   placeholder={freeResponsePlaceholder ?? ''}
                   sendLabel={freeResponseSendLabel ?? ''}
                   disabled={quickActionsDisabled}
-                  exerciseId={exercise.id}
+                  exerciseId={storageIdOverride ?? exercise.id}
                   onSubmit={handleChatNativeSubmit}
                   isQuotaExhausted={isQuotaExhausted}
                   pendingLabel={freeResponsePendingLabel}
@@ -382,7 +397,7 @@ export function ExerciseSectionBubble({
           exerciseNumber={ordinal}
           showExerciseNumber={false}
           lessonId={lessonId}
-          exerciseId={exercise.id}
+          exerciseId={storageIdOverride ?? exercise.id}
           hideLatexBlocks
           questionCardVariant="flat"
           // Only enable on the walker's current step — scroll-back
