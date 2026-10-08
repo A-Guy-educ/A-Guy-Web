@@ -42,17 +42,15 @@ function matchesQuery(node: LessonSearchNode, q: string): boolean {
   // Slugs often preserve the English/latinised phrasing even when the display
   // title is translated (e.g. title in Hebrew, slug `summer-2025-a`). Treat
   // hyphens as spaces so a query like "summer 2025" still matches
-  // `summer-2025-a`. Descriptions catch cases where staff put extra terms in
-  // the longform field but not the headline.
+  // `summer-2025-a`.
   const slug = (node.lesson.slug ?? '').toLowerCase().replace(/[-_]+/g, ' ')
-  const description = (node.lesson.description ?? '').toLowerCase()
-  const haystacks = [title, slug, description]
+  const haystacks = [title, slug]
   if (String(node.displayIndex) === q) return true
   if (haystacks.some((h) => h.includes(q))) return true
   // Hebrew inflection tolerance: "חפיפה" should match "חפיפת משולשים".
-  // Retry with the last character stripped when the query is 3+ chars so
-  // typing a base form still hits construct-state / gender-inflected titles.
-  if (q.length >= 3) {
+  // Retry with the last character stripped, but only when the stem is still
+  // 3+ chars — a 2-char Hebrew stem (e.g. "קיץ" → "קי") matches far too much.
+  if (q.length >= 4) {
     const stem = q.slice(0, -1)
     if (haystacks.some((h) => h.includes(stem))) return true
   }
