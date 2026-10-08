@@ -11,10 +11,18 @@ import type {
 } from '@/ui/web/exerciserenderer/types'
 import {
   patchExerciseStateBlock,
+  patchExerciseStateBlockMeta,
   readExerciseState,
 } from '@/ui/web/exerciserenderer/utils/exerciseStateStorage'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Lightbulb } from 'lucide-react'
 import { useMemo, useState } from 'react'
+
+/**
+ * Minimum option count for Task-3 retry mode. Spec is specifically about
+ * three-option MCQs (ג); for a 2-option MCQ "retrying" would just pick the
+ * one remaining option, which isn't a retry — just a reveal.
+ */
+const RETRY_MIN_OPTIONS = 3
 
 interface ChatQuestionSelectBubbleProps {
   block: QuestionSelectBlock
@@ -35,6 +43,17 @@ interface ChatQuestionSelectBubbleProps {
    */
   exerciseId?: string
   onSubmit: (blockId: string, optionText: string, isCorrect: boolean) => void
+  /**
+   * Task-3 retry hint CTA (3+ option MCQ only). Fires once per block when the
+   * student taps "תן לי רמז" after a first wrong attempt. The runner wires it
+   * to a chat.requestCorrection call with the hint-flavored prompt. Omit the
+   * prop to disable the retry hint entirely (unit tests, previews). The
+   * `wrongChoiceText` is the first wrong option label; `correctChoiceText`
+   * is the correct option label — both go into the prompt template.
+   */
+  onHintRequest?: (blockId: string, wrongChoiceText: string, correctChoiceText: string) => void
+  /** Label shown on the retry hint CTA. Provided by the parent from i18n. */
+  retryHintLabel?: string
 }
 
 interface Choice {
@@ -62,10 +81,24 @@ export function ChatQuestionSelectBubble({
   disabled,
   exerciseId,
   onSubmit,
+  onHintRequest,
+  retryHintLabel,
 }: ChatQuestionSelectBubbleProps) {
-  // Hydrate pickedId from the saved bundle so a return visit shows the same
-  // locked option (and the green/red styling derived from correctIds) that
-  // the student left. Writes back on every pick via patchExerciseStateBlock,
+  const choices = useMemo(() => getChoices(block), [block])
+  const correctIds = useMemo(() => getCorrectIds(block), [block])
+
+  // 3-option MCQ (ג) → Task 3 retry mode: first wrong pick is marked, locked,
+  // and NOT reported as the section outcome — student picks again from the
+  // remaining options. Second pick (correct or wrong) is the final answer.
+  // 2-option true/false and 2-option MCQ keep the single-pick flow because
+  // "retry" with one remaining option isn't a retry — it's a reveal.
+  const isRetryEligible = block.variant === 'mcq' && choices.length >= RETRY_MIN_OPTIONS
+
+  // Hydrate from the saved bundle so a return visit shows:
+  //   - the FINAL pick with its green/red styling (pickedId)
+  //   - any prior wrong attempts still locked + red (wrongOptionIds)
+  //   - the hint-already-shown flag so a mid-attempt refresh can't re-fire it
+  // Writes back on every state transition via patchExerciseState* helpers,
   // sharing the same `a-guy:exercise-state:v1:<exerciseId>` key the fallback
   // ExerciseRenderer path uses — Reset wipes both at once.
   const [pickedId, setPickedId] = useState<string | null>(() => {
@@ -75,22 +108,88 @@ export function ChatQuestionSelectBubble({
     if (!answer || answer.type !== 'mcq' || answer.selectedIds.length === 0) return null
     return answer.selectedIds[0]
   })
-
-  const choices = useMemo(() => getChoices(block), [block])
-  const correctIds = useMemo(() => getCorrectIds(block), [block])
+  const [wrongOptionIds, setWrongOptionIds] = useState<Set<string>>(() => {
+    if (!exerciseId) return new Set()
+    const saved = readExerciseState(exerciseId)
+    const stored = saved?.blockMeta?.[block.id]?.wrongOptionIds
+    return new Set(stored ?? [])
+  })
+  const [hintShown, setHintShown] = useState<boolean>(() => {
+    if (!exerciseId) return false
+    const saved = readExerciseState(exerciseId)
+    return saved?.blockMeta?.[block.id]?.hintShown === true
+  })
 
   const handlePick = (choice: Choice) => {
-    if (pickedId || disabled) return
-    setPickedId(choice.id)
+    if (pickedId || disabled || wrongOptionIds.has(choice.id)) return
     const isCorrect = correctIds.has(choice.id)
+
+    // Task 3 first-miss branch: mark the wrong choice, keep the question open,
+    // DON'T emit the section outcome yet. The remaining options stay clickable
+    // and the hint CTA becomes available. Hint and retry are only offered on
+    // the first miss — a second miss drops through to the normal onSubmit path
+    // below so Task 2's teacher-AI correction fires.
+    if (isRetryEligible && !isCorrect && wrongOptionIds.size === 0) {
+      const nextWrong = new Set(wrongOptionIds)
+      nextWrong.add(choice.id)
+      setWrongOptionIds(nextWrong)
+      if (exerciseId) {
+        patchExerciseStateBlockMeta(exerciseId, block.id, {
+          wrongOptionIds: Array.from(nextWrong),
+        })
+      }
+      return
+    }
+
+    // Final pick — single-attempt blocks (true/false, 2-option mcq, retry-
+    // ineligible), the first correct try, or the second attempt in retry mode.
+    setPickedId(choice.id)
     if (exerciseId) {
       patchExerciseStateBlock(exerciseId, block.id, {
         answer: { type: 'mcq', selectedIds: [choice.id] },
         checkResult: { isCorrect },
       })
+      // On a second-attempt miss, record it in wrongOptionIds too so the
+      // persisted view matches what the student saw on screen (both wrong
+      // picks painted red).
+      if (!isCorrect && wrongOptionIds.size > 0) {
+        const nextWrong = new Set(wrongOptionIds)
+        nextWrong.add(choice.id)
+        setWrongOptionIds(nextWrong)
+        patchExerciseStateBlockMeta(exerciseId, block.id, {
+          wrongOptionIds: Array.from(nextWrong),
+        })
+      }
     }
     onSubmit(block.id, choice.labelValue, isCorrect)
   }
+
+  const handleHintRequest = () => {
+    if (!onHintRequest || hintShown || disabled) return
+    const firstWrongId = Array.from(wrongOptionIds)[0]
+    const wrongChoice = choices.find((c) => c.id === firstWrongId)
+    const correctId = Array.from(correctIds)[0]
+    const correctChoice = choices.find((c) => c.id === correctId)
+    if (!wrongChoice || !correctChoice) return
+    setHintShown(true)
+    if (exerciseId) {
+      patchExerciseStateBlockMeta(exerciseId, block.id, { hintShown: true })
+    }
+    onHintRequest(block.id, wrongChoice.labelValue, correctChoice.labelValue)
+  }
+
+  // Retry hint CTA is visible only during the "post-first-miss, pre-second-
+  // attempt" window: at least one wrong attempt recorded, no final pick yet,
+  // hint hasn't fired yet, and the parent wired an onHintRequest + label.
+  const showRetryHintCta =
+    isRetryEligible &&
+    pickedId === null &&
+    wrongOptionIds.size > 0 &&
+    !hintShown &&
+    !disabled &&
+    typeof onHintRequest === 'function' &&
+    typeof retryHintLabel === 'string' &&
+    retryHintLabel.length > 0
 
   return (
     <div className="flex flex-col gap-content-gap">
@@ -107,8 +206,15 @@ export function ChatQuestionSelectBubble({
       <div className="grid grid-cols-1 gap-content-gap-xs mt-2">
         {choices.map((choice) => {
           const isPicked = pickedId === choice.id
-          const isDisabled = pickedId !== null || Boolean(disabled)
+          const isWronglyAttempted = wrongOptionIds.has(choice.id)
+          // Disabled when: a final pick has been made, this option was
+          // already tried wrong, OR the parent has frozen the bubble.
+          const isDisabled = pickedId !== null || isWronglyAttempted || Boolean(disabled)
           const isThisCorrect = correctIds.has(choice.id)
+          // Red styling covers both the final-pick-wrong case AND any locked
+          // wrong attempts from Task 3 retry mode.
+          const showAsWrong = (isPicked && !isThisCorrect) || isWronglyAttempted
+          const showAsCorrect = isPicked && isThisCorrect
           return (
             <button
               key={choice.id}
@@ -122,10 +228,11 @@ export function ChatQuestionSelectBubble({
                 !isDisabled &&
                   'border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 text-foreground',
                 isDisabled &&
-                  !isPicked &&
+                  !showAsWrong &&
+                  !showAsCorrect &&
                   'border-border/40 bg-muted/40 text-muted-foreground opacity-70',
-                isPicked && isThisCorrect && 'border-success/60 bg-success/10 text-foreground',
-                isPicked && !isThisCorrect && 'border-error/60 bg-error/10 text-foreground',
+                showAsCorrect && 'border-success/60 bg-success/10 text-foreground',
+                showAsWrong && 'border-error/60 bg-error/10 text-foreground',
               )}
             >
               <span className="flex-1 text-right">
@@ -134,15 +241,30 @@ export function ChatQuestionSelectBubble({
               <ArrowLeft
                 className={cn(
                   'w-4 h-4 shrink-0',
-                  isPicked && isThisCorrect && 'text-success',
-                  isPicked && !isThisCorrect && 'text-error',
-                  !isPicked && 'text-primary',
+                  showAsCorrect && 'text-success',
+                  showAsWrong && 'text-error',
+                  !showAsCorrect && !showAsWrong && 'text-primary',
                 )}
               />
             </button>
           )
         })}
       </div>
+
+      {showRetryHintCta && (
+        <button
+          type="button"
+          onClick={handleHintRequest}
+          className={cn(
+            'self-start inline-flex items-center gap-1.5 rounded-full px-3 py-1',
+            'text-body-xs font-semibold border mt-1 transition-colors',
+            'border-warning/30 bg-warning/5 text-warning hover:bg-warning/10 hover:border-warning/50',
+          )}
+        >
+          <Lightbulb className="w-3.5 h-3.5" aria-hidden="true" />
+          <span>{retryHintLabel}</span>
+        </button>
+      )}
 
       {/* Per-block notebook — chat-native questions bypass QuestionCard,
           so we attach the toggle here directly. Same ask-action bridge
