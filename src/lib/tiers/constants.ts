@@ -63,13 +63,19 @@ export const TIER_AI_COST_CAP_ILS: Record<TierSlug, number | null> = {
  * fair-use; downgrade logic handles abuse). Web-only — Admin owns the
  * ILS display semantic above, Web owns token enforcement.
  *
- * Sizing (2026-10): free's daily chat quota is 10 req/day * 30 days *
- * ~3k tokens/turn ≈ 1M just for chat. 2M gives ~2x headroom for the
- * heavier ops (image-to-exercise, PDF, answer validation).
+ * Derived from `TIER_AI_COST_CAP_ILS` × tokens-per-shekel at Gemini 2.5
+ * Flash pricing (the model carrying the chat workload):
+ *   Input:  $0.075 / 1M tokens
+ *   Output: $0.30  / 1M tokens
+ *   Blended ~$0.165/M at a ~60/40 input/output split
+ *   $1 ≈ 3.7 NIS → 1 NIS ≈ 1.6M tokens (rounded to 1.5M for a safety margin)
+ *
+ * If we start routing more traffic to 2.5-pro or 3.1-pro the real $/token
+ * climbs ~8× and these caps become too generous — revisit then.
  */
 export const TIER_LLM_TOKEN_CAP_MONTHLY: Record<TierSlug, number | null> = {
-  free: 2_000_000,
-  basic: 10_000_000,
+  free: 1_500_000,
+  basic: 15_000_000,
   advanced: 30_000_000,
   premium: null,
 }
