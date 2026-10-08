@@ -128,10 +128,19 @@ export interface TierLockEntry extends EntryBase {
 
 /**
  * Reported by ExerciseSectionBubble when the student finishes the section.
- * `correctAnswerText` is populated on wrong outcomes when the section's
- * blocks let us extract the expected answer (currently: question_select
- * options with `isCorrect` / `correctOptionId`). The runner uses it to
- * post a "correct answer: X" bubble before the AI correction, so the
- * student sees the actual answer immediately without waiting on the model.
+ * On a wrong outcome:
+ *   - `correctAnswerText` is the expected answer text, when the section's
+ *     blocks let us extract it (question_select options with
+ *     `isCorrect` / `correctOptionId`). The runner no longer shows this
+ *     inline — Task 2 removed the "correct answer: X" reveal bubble so a
+ *     3-option retry (Task 3) can also follow the same path without
+ *     leaking the solution before the second attempt. The text still
+ *     flows through so the teacher-AI prompt can reference it.
+ *   - `studentAnswerText` is the specific wrong option label the student
+ *     picked, forwarded into the AI correction prompt so the teacher can
+ *     explain *why that choice* is wrong instead of lecturing in the
+ *     abstract. Comma-joined when the section had multiple questions
+ *     and more than one was missed.
  */
-export type SectionOutcome = { kind: 'correct' } | { kind: 'wrong'; correctAnswerText?: string }
+export type SectionOutcome =
+  { kind: 'correct' } | { kind: 'wrong'; correctAnswerText?: string; studentAnswerText?: string }
