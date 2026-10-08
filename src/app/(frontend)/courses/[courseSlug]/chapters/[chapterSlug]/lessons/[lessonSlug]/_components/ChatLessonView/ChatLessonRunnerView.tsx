@@ -24,6 +24,7 @@ import { TeacherBubble } from './bubbles/TeacherBubble'
 import { TierLockBubble } from './bubbles/TierLockBubble'
 import { SkippedMarker } from './bubbles/SkippedMarker'
 import { QuotaExhaustedCard } from './bubbles/QuotaExhaustedCard'
+import { ReviewOfferCard } from './bubbles/ReviewOfferCard'
 import type { SectionOutcome, StreamEntry } from './types'
 import { useBrowserTTS } from './useBrowserTTS'
 import { useChatChannel } from './useChatChannel'
@@ -230,9 +231,10 @@ function ActiveChat({
   // came from the ACTIVE section (append feedback at the end + advance the
   // walker) or a PAST one (insert feedback right under that section's
   // bubble, leave the walker where it is).
-  const activeStepKey = walker.currentStep
-    ? `sec-${walker.currentStep.exercise.id}-${walker.currentStep.groupIndex}`
-    : null
+  // Key of the currently-active bubble. The walker now owns the naming
+  // (normal `sec-…` or Task-5 `review-sec-…`) so the runner just reads it;
+  // this keeps the scroll-back lock + outcome routing correct in both modes.
+  const activeStepKey = walker.currentStepKey
 
   const correctionPrompt = t('chatViewCorrectionPrompt')
   const totalCappedExercises = cappedExercises.length
@@ -367,6 +369,15 @@ function ActiveChat({
     [advanceNow, cancelPendingAdvance, chat, explainPrompt, hintPrompt, walker],
   )
 
+  // Task-5 review-offer buttons. Both go through the walker so the mode
+  // transition + emission stays in one place.
+  const handleReviewYes = useCallback(() => {
+    walker.startReview()
+  }, [walker])
+  const handleReviewEnd = useCallback(() => {
+    walker.completeLesson()
+  }, [walker])
+
   const quickActionLabels = useMemo(
     () => ({
       hint: t('chatViewChipHint'),
@@ -471,7 +482,12 @@ function ActiveChat({
     // lesson; otherwise the student lands on exercise 1 section 1 with the
     // previous run's green checkmarks still painted on the question cards.
     clearProgress()
-    exercises.forEach((ex) => clearExerciseState(ex.id))
+    exercises.forEach((ex) => {
+      clearExerciseState(ex.id)
+      // Task-5 review-mode state lives in a sibling localStorage namespace.
+      // Reset wipes both so the next pass starts truly empty.
+      clearExerciseState(`review-${ex.id}`)
+    })
     onExit()
   }, [cancelPendingAdvance, clearProgress, exercises, onExit, tts])
 
@@ -533,6 +549,11 @@ function ActiveChat({
               quotaExhaustedBody={t('chatViewQuotaExhaustedBody')}
               quotaUpgradeLabel={t('chatViewQuotaUpgradeCta')}
               quotaContinueLabel={t('chatViewQuotaContinueCta')}
+              reviewOfferBody={t('chatViewReviewOfferBody')}
+              reviewYesLabel={t('chatViewReviewYesCta')}
+              reviewEndLabel={t('chatViewReviewEndCta')}
+              onReviewYes={handleReviewYes}
+              onReviewEnd={handleReviewEnd}
             />
           ))}
           {showContinueButton && (
@@ -601,6 +622,12 @@ interface StreamEntryViewProps {
   quotaExhaustedBody: string
   quotaUpgradeLabel: string
   quotaContinueLabel: string
+  /** Task-5 review-offer card copy + handlers. */
+  reviewOfferBody: string
+  reviewYesLabel: string
+  reviewEndLabel: string
+  onReviewYes: () => void
+  onReviewEnd: () => void
   /** Task-4 free-response i18n + quota flag — forwarded to ExerciseSectionBubble. */
   freeResponsePendingLabel: string
   freeResponseNotCheckedLabel: string
@@ -629,6 +656,11 @@ function StreamEntryView({
   quotaExhaustedBody,
   quotaUpgradeLabel,
   quotaContinueLabel,
+  reviewOfferBody,
+  reviewYesLabel,
+  reviewEndLabel,
+  onReviewYes,
+  onReviewEnd,
   freeResponsePendingLabel,
   freeResponseNotCheckedLabel,
   freeResponseValidationErrors,
@@ -679,6 +711,7 @@ function StreamEntryView({
           ttsSupported={tts.supported}
           isActive={isActive}
           sectionKey={entry.key}
+          storageIdOverride={entry.storageIdOverride}
           onOutcome={onOutcome}
           onQuickAction={onQuickAction}
           onHintRequest={onHintRequest}
@@ -722,6 +755,16 @@ function StreamEntryView({
           upgradeLabel={quotaUpgradeLabel}
           continueLabel={quotaContinueLabel}
           upgradeHref="/products"
+        />
+      )
+    case 'review-offer':
+      return (
+        <ReviewOfferCard
+          bodyText={reviewOfferBody}
+          yesLabel={reviewYesLabel}
+          endLabel={reviewEndLabel}
+          onYes={onReviewYes}
+          onEnd={onReviewEnd}
         />
       )
   }
