@@ -22,6 +22,8 @@ export type StreamEntry =
   | ChatErrorEntry
   | LessonCompleteEntry
   | TierLockEntry
+  | SkippedMarkerEntry
+  | QuotaExhaustedEntry
 
 interface EntryBase {
   /** Stable React key + identity for dedupe / replacement. */
@@ -124,6 +126,31 @@ export interface TierLockEntry extends EntryBase {
   kind: 'tier-lock'
   /** How many exercises are still locked past the student's current access. */
   lockedCount: number
+}
+
+/**
+ * Marker inserted between the student's last-answered section and the next
+ * exercise's intro when they tap "דלג על תרגיל" (Task 8). The spec is
+ * explicit that skipped sections should be *marked as skipped* without
+ * reopening them — this entry gives the student a visual breadcrumb so the
+ * walker's jump isn't silent, without re-rendering the sections they chose
+ * to skip. Pure presentation, no state.
+ */
+export interface SkippedMarkerEntry extends EntryBase {
+  kind: 'skipped-marker'
+}
+
+/**
+ * Terminal explanatory bubble emitted the first time the student's chat
+ * quota is exhausted (server returns 429 + `quotaExceeded: true`). Carries
+ * the two CTAs — upgrade + continue — in a dedicated card so the student
+ * can pick a path forward instead of staring at a generic error. Emitted
+ * exactly once per `useChatChannel` instance (subsequent AI requests silently
+ * no-op) and is the signal that enables no-AI mode downstream (Task 3's
+ * retry hint CTA hides, Task 2's correction stays suppressed).
+ */
+export interface QuotaExhaustedEntry extends EntryBase {
+  kind: 'quota-exhausted'
 }
 
 /**

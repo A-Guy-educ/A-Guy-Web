@@ -21,6 +21,8 @@ import { PendingBubble } from './bubbles/PendingBubble'
 import { StudentBubble } from './bubbles/StudentBubble'
 import { TeacherBubble } from './bubbles/TeacherBubble'
 import { TierLockBubble } from './bubbles/TierLockBubble'
+import { SkippedMarker } from './bubbles/SkippedMarker'
+import { QuotaExhaustedCard } from './bubbles/QuotaExhaustedCard'
 import type { SectionOutcome, StreamEntry } from './types'
 import { useBrowserTTS } from './useBrowserTTS'
 import { useChatChannel } from './useChatChannel'
@@ -496,7 +498,7 @@ function ActiveChat({
               tts={tts}
               onOutcome={handleOutcome}
               onQuickAction={handleQuickAction}
-              onHintRequest={handleHintRequest}
+              onHintRequest={chat.isQuotaExhausted ? undefined : handleHintRequest}
               retryHintLabel={retryHintLabel}
               quickActionLabels={quickActionLabels}
               quickActionsDisabled={chat.isSending}
@@ -504,6 +506,9 @@ function ActiveChat({
               freeResponseSendLabel={t('chatViewSendLabel')}
               introPrefix={t('chatViewIntroPrefix')}
               completeText={t('chatViewFinishTitle')}
+              quotaExhaustedBody={t('chatViewQuotaExhaustedBody')}
+              quotaUpgradeLabel={t('chatViewQuotaUpgradeCta')}
+              quotaContinueLabel={t('chatViewQuotaContinueCta')}
             />
           ))}
           {showContinueButton && (
@@ -554,7 +559,13 @@ interface StreamEntryViewProps {
   tts: ReturnType<typeof useBrowserTTS>
   onOutcome: (sectionKey: string, outcome: SectionOutcome) => void
   onQuickAction: (action: 'hint' | 'explain' | 'skip' | 'skipExercise') => void
-  onHintRequest: (blockId: string, wrongChoiceText: string, correctChoiceText: string) => void
+  /**
+   * Task-3 retry hint callback. Undefined when the student's chat quota is
+   * exhausted (Task 7) — the question-level hint CTA relies on this prop's
+   * presence to decide whether to render, so dropping it there auto-hides
+   * the hint on retry sections.
+   */
+  onHintRequest?: (blockId: string, wrongChoiceText: string, correctChoiceText: string) => void
   retryHintLabel: string
   quickActionLabels: { hint: string; explain: string; skip: string; skipExercise: string }
   quickActionsDisabled: boolean
@@ -562,6 +573,10 @@ interface StreamEntryViewProps {
   freeResponseSendLabel: string
   introPrefix: string
   completeText: string
+  /** Copy + CTAs for the one-time Task-7 quota-exhausted card. */
+  quotaExhaustedBody: string
+  quotaUpgradeLabel: string
+  quotaContinueLabel: string
 }
 
 function StreamEntryView({
@@ -580,6 +595,9 @@ function StreamEntryView({
   freeResponseSendLabel,
   introPrefix,
   completeText,
+  quotaExhaustedBody,
+  quotaUpgradeLabel,
+  quotaContinueLabel,
 }: StreamEntryViewProps) {
   switch (entry.kind) {
     case 'exercise-intro': {
@@ -656,5 +674,16 @@ function StreamEntryView({
       return <TeacherBubble text={completeText} />
     case 'tier-lock':
       return <TierLockBubble lockedCount={entry.lockedCount} />
+    case 'skipped-marker':
+      return <SkippedMarker />
+    case 'quota-exhausted':
+      return (
+        <QuotaExhaustedCard
+          bodyText={quotaExhaustedBody}
+          upgradeLabel={quotaUpgradeLabel}
+          continueLabel={quotaContinueLabel}
+          upgradeHref="/products"
+        />
+      )
   }
 }

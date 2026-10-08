@@ -303,6 +303,11 @@ export function useExerciseWalker({
    * stream above the student exactly as the "skip section" button leaves
    * previously-visited sections. Prior answers are preserved by virtue of
    * the walker never removing or rewriting past stream entries.
+   *
+   * Also emits a `skipped-marker` entry between the current (last answered)
+   * section and the next exercise's intro so the walker's jump isn't silent —
+   * the spec explicitly asks skipped sections to be "marked as skipped"
+   * without reopening them.
    */
   const advanceToNextExercise = useCallback(() => {
     if (isComplete) return
@@ -311,6 +316,11 @@ export function useExerciseWalker({
     const target = steps.findIndex(
       (s, i) => i > stepCursor && s.exerciseIndex > current.exerciseIndex,
     )
+    // Marker key is unique per invocation so a second skip later in the
+    // lesson doesn't collide with the first one. Fires before the terminator
+    // / next step so it visually sits between the two.
+    const markerKey = `skip-${current.exercise.id}-${current.groupIndex}-${Date.now()}`
+    append({ key: markerKey, kind: 'skipped-marker' })
     if (target === -1) {
       setIsComplete(true)
       append(makeTerminalEntry())

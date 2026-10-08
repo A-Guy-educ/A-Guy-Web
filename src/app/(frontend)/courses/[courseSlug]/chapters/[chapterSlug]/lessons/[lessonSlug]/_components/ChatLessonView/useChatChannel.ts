@@ -58,6 +58,7 @@ export function useChatChannel({
   quotaExceededMessage,
 }: UseChatChannelArgs) {
   const [isSending, setIsSending] = useState(false)
+  const [isQuotaExhausted, setIsQuotaExhausted] = useState(false)
   const idCounter = useRef(0)
   const nextKey = (prefix: string) => `${prefix}-${Date.now()}-${++idCounter.current}`
 
@@ -67,10 +68,21 @@ export function useChatChannel({
   // guard because the closure captures the stale render-time value. Guard
   // synchronously via a ref, then mirror to state for the UI.
   const sendingRef = useRef(false)
+  // Mirror of `isQuotaExhausted` as a ref so `runRequest` closures captured
+  // before the first 429 still see the flag flip. State drives the UI gate
+  // (hide Task 3 retry hint CTA); ref drives the sync early-return guard.
+  const quotaExhaustedRef = useRef(false)
 
   const runRequest = useCallback(
     async (message: string, showUserBubble: boolean, mediaIds?: string[]) => {
       if (sendingRef.current) return
+      // Once the user hits their chat quota, every subsequent AI request
+      // from Tasks 2/3 (correction, retry hint) silently no-ops — the one-
+      // time QuotaExhaustedEntry already explained what happened, and
+      // another error bubble per attempt would just add noise. Canned
+      // reactions, skip chips, and the retry mechanic still run because
+      // they're client-side and don't go through this hook.
+      if (quotaExhaustedRef.current) return
       sendingRef.current = true
       setIsSending(true)
 
@@ -93,6 +105,17 @@ export function useChatChannel({
         replace(targetKey, { key: nextKey('e'), kind: 'chat-error', text })
       }
 
+      const finalizeQuotaExhausted = () => {
+        // Promote the pending bubble into the one-time quota card so the
+        // student sees upgrade + continue CTAs instead of a plain error.
+        // Flip the ref synchronously so parallel in-flight requests (none
+        // today, but belt-and-braces) also short-circuit on their next tick.
+        quotaExhaustedRef.current = true
+        setIsQuotaExhausted(true)
+        const targetKey = assistantKey ?? pendingKey
+        replace(targetKey, { key: nextKey('qx'), kind: 'quota-exhausted' })
+      }
+
       try {
         const response = await fetch(STREAM_ENDPOINT, {
           method: 'POST',
@@ -108,13 +131,13 @@ export function useChatChannel({
         })
 
         if (!response.ok || !response.body) {
-          finalizeError(
-            await resolveErrorText(response, {
-              authRequiredMessage,
-              quotaExceededMessage,
-              errorMessage,
-            }),
-          )
+          const { text, quotaExceeded } = await resolveErrorText(response, {
+            authRequiredMessage,
+            quotaExceededMessage,
+            errorMessage,
+          })
+          if (quotaExceeded) finalizeQuotaExhausted()
+          else finalizeError(text)
           return
         }
 
@@ -246,7 +269,7 @@ export function useChatChannel({
     [runRequest],
   )
 
-  return { send, requestCorrection, requestWithMedia, isSending }
+  return { send, requestCorrection, requestWithMedia, isSending, isQuotaExhausted }
 }
 
 interface SseFrame {
@@ -278,21 +301,26 @@ function parseSseFrame(raw: string): SseFrame | null {
 
 /**
  * Translate a non-2xx response from the stream endpoint into a locale-aware
- * error string. Consumes the JSON body once; falls back to the generic
- * error message if the body isn't JSON or the status isn't specifically
- * handled.
+ * error string + a quota flag. Consumes the JSON body once; falls back to the
+ * generic error message if the body isn't JSON or the status isn't specifically
+ * handled. The caller uses `quotaExceeded` to switch from an error bubble to
+ * the quota-exhausted card so the student sees upgrade + continue CTAs.
  */
 async function resolveErrorText(
   response: Response,
   labels: { authRequiredMessage: string; quotaExceededMessage: string; errorMessage: string },
-): Promise<string> {
-  if (response.status === 401) return labels.authRequiredMessage
+): Promise<{ text: string; quotaExceeded: boolean }> {
+  if (response.status === 401) {
+    return { text: labels.authRequiredMessage, quotaExceeded: false }
+  }
   let body: { error?: string; quotaExceeded?: boolean } = {}
   try {
     body = (await response.json()) as typeof body
   } catch {
     // fall through to generic
   }
-  if (response.status === 429 && body.quotaExceeded) return labels.quotaExceededMessage
-  return body.error ?? labels.errorMessage
+  if (response.status === 429 && body.quotaExceeded) {
+    return { text: labels.quotaExceededMessage, quotaExceeded: true }
+  }
+  return { text: body.error ?? labels.errorMessage, quotaExceeded: false }
 }
