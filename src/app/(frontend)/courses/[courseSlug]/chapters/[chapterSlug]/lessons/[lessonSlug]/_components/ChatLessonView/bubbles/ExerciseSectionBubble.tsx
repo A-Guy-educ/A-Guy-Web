@@ -76,6 +76,16 @@ interface ExerciseSectionBubbleProps {
   freeResponsePlaceholder?: string
   freeResponseSendLabel?: string
   /**
+   * Task-3 retry hint. Fires when the student taps "תן לי רמז" after a first
+   * wrong attempt on a 3+ option MCQ. The runner wires it to a
+   * chat.requestCorrection with the hint-flavored prompt. Only forwarded for
+   * ACTIVE bubbles — a scroll-back section shouldn't be able to post into
+   * the current chat context.
+   */
+  onHintRequest?: (blockId: string, wrongChoiceText: string, correctChoiceText: string) => void
+  /** Label for the retry hint CTA — provided by the runner from i18n. */
+  retryHintLabel?: string
+  /**
    * True only for the walker's current step. Historical (scroll-back)
    * bubbles pass false — the student CAN still answer them (feedback is
    * routed to the right place via `sectionKey`), but quick-action chips
@@ -120,6 +130,8 @@ export function ExerciseSectionBubble({
   quickActionsDisabled,
   freeResponsePlaceholder,
   freeResponseSendLabel,
+  onHintRequest,
+  retryHintLabel,
   isActive = true,
   sectionKey,
 }: ExerciseSectionBubbleProps) {
@@ -293,6 +305,8 @@ export function ExerciseSectionBubble({
                   disabled={quickActionsDisabled}
                   exerciseId={exercise.id}
                   onSubmit={handleChatNativeSubmit}
+                  onHintRequest={isActive ? onHintRequest : undefined}
+                  retryHintLabel={retryHintLabel}
                 />
               )
             }

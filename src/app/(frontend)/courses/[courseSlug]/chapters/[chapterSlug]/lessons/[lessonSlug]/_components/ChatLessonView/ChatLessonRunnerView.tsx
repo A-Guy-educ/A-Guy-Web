@@ -374,6 +374,23 @@ function ActiveChat({
     [t],
   )
 
+  // Task-3 retry hint. The CTA lives inside ChatQuestionSelectBubble (shown
+  // only after the first wrong attempt on a 3+ option MCQ); when the student
+  // taps it, this handler composes a hint-flavored prompt that references the
+  // specific wrong choice + correct answer and fires an invisible-user chat
+  // request. The teacher-AI reply lands as the next assistant bubble. The CTA
+  // auto-hides after one tap — see hintShown persistence in the bubble.
+  const retryHintLabel = t('chatViewRetryHintCta')
+  const handleHintRequest = useCallback(
+    (_blockId: string, wrongChoiceText: string, correctChoiceText: string) => {
+      const prompt = t('chatViewHintPromptWithChoice')
+        .replace('{choice}', wrongChoiceText)
+        .replace('{correct}', correctChoiceText)
+      chat.requestCorrection(prompt)
+    },
+    [chat, t],
+  )
+
   // Narration is click-only. Each TeacherBubble exposes an `onSpeak` button
   // (wired below to `tts.speak(...)`) so the student decides when to hear a
   // line. Auto-playing on entry arrival was removed per product request —
@@ -479,6 +496,8 @@ function ActiveChat({
               tts={tts}
               onOutcome={handleOutcome}
               onQuickAction={handleQuickAction}
+              onHintRequest={handleHintRequest}
+              retryHintLabel={retryHintLabel}
               quickActionLabels={quickActionLabels}
               quickActionsDisabled={chat.isSending}
               freeResponsePlaceholder={t('chatViewAnswerPlaceholder')}
@@ -535,6 +554,8 @@ interface StreamEntryViewProps {
   tts: ReturnType<typeof useBrowserTTS>
   onOutcome: (sectionKey: string, outcome: SectionOutcome) => void
   onQuickAction: (action: 'hint' | 'explain' | 'skip' | 'skipExercise') => void
+  onHintRequest: (blockId: string, wrongChoiceText: string, correctChoiceText: string) => void
+  retryHintLabel: string
   quickActionLabels: { hint: string; explain: string; skip: string; skipExercise: string }
   quickActionsDisabled: boolean
   freeResponsePlaceholder: string
@@ -551,6 +572,8 @@ function StreamEntryView({
   tts,
   onOutcome,
   onQuickAction,
+  onHintRequest,
+  retryHintLabel,
   quickActionLabels,
   quickActionsDisabled,
   freeResponsePlaceholder,
@@ -605,6 +628,8 @@ function StreamEntryView({
           sectionKey={entry.key}
           onOutcome={onOutcome}
           onQuickAction={onQuickAction}
+          onHintRequest={onHintRequest}
+          retryHintLabel={retryHintLabel}
           quickActionLabels={quickActionLabels}
           quickActionsDisabled={quickActionsDisabled}
           freeResponsePlaceholder={freeResponsePlaceholder}

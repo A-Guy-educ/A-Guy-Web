@@ -23,6 +23,23 @@ const STORAGE_PREFIX = 'a-guy:exercise-state:v1:'
 const LEGACY_ANSWERS_PREFIX = 'a-guy:answers:'
 const STATE_VERSION = 1
 
+export interface BlockMeta {
+  /**
+   * Option IDs the student picked wrong on prior attempts, before landing on
+   * a final answer. Drives the 3-option retry UI in ChatQuestionSelectBubble:
+   * each entry stays locked + marked wrong, remaining options are selectable
+   * for a second attempt. Survives refresh so students don't get a reset
+   * window to retry the same wrong answer twice.
+   */
+  wrongOptionIds?: string[]
+  /**
+   * True once the student requested the retry hint for this block. Persisted
+   * so a mid-attempt refresh doesn't let the hint re-fire — the spec allows a
+   * single hint per block.
+   */
+  hintShown?: boolean
+}
+
 export interface PersistedExerciseState {
   version: number
   answers: Record<string, UserAnswer>
@@ -30,6 +47,8 @@ export interface PersistedExerciseState {
   hasChecked: Record<string, boolean>
   svgAnswers: Record<string, UserAnswer>
   svgCheckResults: Record<string, CheckResult>
+  /** Per-block Task-3 retry/hint state. Optional for backward compat. */
+  blockMeta?: Record<string, BlockMeta>
 }
 
 function storageKey(exerciseId: string): string {
@@ -47,6 +66,7 @@ function emptyState(): Omit<PersistedExerciseState, 'version'> {
     hasChecked: {},
     svgAnswers: {},
     svgCheckResults: {},
+    blockMeta: {},
   }
 }
 
@@ -70,6 +90,7 @@ export function readExerciseState(
           hasChecked: parsed.hasChecked ?? {},
           svgAnswers: parsed.svgAnswers ?? {},
           svgCheckResults: parsed.svgCheckResults ?? {},
+          blockMeta: parsed.blockMeta ?? {},
         }
       }
     }
@@ -126,6 +147,28 @@ export function patchExerciseStateBlock(
     hasChecked: patch.checkResult ? { ...current.hasChecked, [blockId]: true } : current.hasChecked,
     svgAnswers: current.svgAnswers,
     svgCheckResults: current.svgCheckResults,
+    blockMeta: current.blockMeta,
+  }
+  writeExerciseState(exerciseId, next)
+}
+
+/**
+ * Merge a block's Task-3 retry metadata (prior wrong picks + hint-shown flag).
+ * Separate from `patchExerciseStateBlock` so a `patch` that only writes meta
+ * can't accidentally stomp on `answers` / `checkResults` (and vice versa).
+ */
+export function patchExerciseStateBlockMeta(
+  exerciseId: string,
+  blockId: string,
+  patch: Partial<BlockMeta>,
+): void {
+  if (!exerciseId || !blockId || typeof window === 'undefined') return
+  const current = readExerciseState(exerciseId) ?? emptyState()
+  const currentMeta = current.blockMeta?.[blockId] ?? {}
+  const nextMeta: BlockMeta = { ...currentMeta, ...patch }
+  const next: Omit<PersistedExerciseState, 'version'> = {
+    ...current,
+    blockMeta: { ...(current.blockMeta ?? {}), [blockId]: nextMeta },
   }
   writeExerciseState(exerciseId, next)
 }
