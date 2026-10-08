@@ -17,6 +17,7 @@ import { ChatLessonProgress } from './ChatLessonProgress'
 import { GivenDataFloating } from './GivenDataFloating'
 import { ContinueButton } from './bubbles/ContinueButton'
 import { ExerciseSectionBubble } from './bubbles/ExerciseSectionBubble'
+import type { ValidationErrorMessages } from './bubbles/ChatFreeResponseBubble'
 import { PendingBubble } from './bubbles/PendingBubble'
 import { StudentBubble } from './bubbles/StudentBubble'
 import { TeacherBubble } from './bubbles/TeacherBubble'
@@ -383,6 +384,25 @@ function ActiveChat({
   // request. The teacher-AI reply lands as the next assistant bubble. The CTA
   // auto-hides after one tap — see hintShown persistence in the bubble.
   const retryHintLabel = t('chatViewRetryHintCta')
+
+  // Bundle i18n'd error strings for validateFreeResponseOnServer in one memo
+  // so the identity stays stable across renders — ChatFreeResponseBubble
+  // puts this in a useCallback dep list, so a fresh object every render
+  // would thrash its submit handler.
+  const freeResponseValidationErrors = useMemo<ValidationErrorMessages>(
+    () => ({
+      invalidAnswerType: t('chatViewValidationInvalidAnswerType'),
+      selectTrueFalse: t('chatViewValidationSelectTrueFalse'),
+      noCorrectAnswer: t('chatViewValidationNoCorrectAnswer'),
+      selectAnAnswer: t('chatViewValidationSelectAnswer'),
+      enterAnAnswer: t('chatViewValidationEnterAnswer'),
+      unknownVariant: t('chatViewValidationUnknownVariant'),
+      validationFailed: t('chatViewValidationFailed'),
+      validationError: t('chatViewValidationError'),
+      connectionError: t('chatViewValidationConnectionError'),
+    }),
+    [t],
+  )
   const handleHintRequest = useCallback(
     (_blockId: string, wrongChoiceText: string, correctChoiceText: string) => {
       const prompt = t('chatViewHintPromptWithChoice')
@@ -504,6 +524,10 @@ function ActiveChat({
               quickActionsDisabled={chat.isSending}
               freeResponsePlaceholder={t('chatViewAnswerPlaceholder')}
               freeResponseSendLabel={t('chatViewSendLabel')}
+              freeResponsePendingLabel={t('chatViewFreeResponsePending')}
+              freeResponseNotCheckedLabel={t('chatViewFreeResponseNotChecked')}
+              freeResponseValidationErrors={freeResponseValidationErrors}
+              isQuotaExhausted={chat.isQuotaExhausted}
               introPrefix={t('chatViewIntroPrefix')}
               completeText={t('chatViewFinishTitle')}
               quotaExhaustedBody={t('chatViewQuotaExhaustedBody')}
@@ -577,7 +601,14 @@ interface StreamEntryViewProps {
   quotaExhaustedBody: string
   quotaUpgradeLabel: string
   quotaContinueLabel: string
+  /** Task-4 free-response i18n + quota flag — forwarded to ExerciseSectionBubble. */
+  freeResponsePendingLabel: string
+  freeResponseNotCheckedLabel: string
+  freeResponseValidationErrors: FreeResponseValidationErrors
+  isQuotaExhausted: boolean
 }
+
+type FreeResponseValidationErrors = ValidationErrorMessages
 
 function StreamEntryView({
   entry,
@@ -598,6 +629,10 @@ function StreamEntryView({
   quotaExhaustedBody,
   quotaUpgradeLabel,
   quotaContinueLabel,
+  freeResponsePendingLabel,
+  freeResponseNotCheckedLabel,
+  freeResponseValidationErrors,
+  isQuotaExhausted,
 }: StreamEntryViewProps) {
   switch (entry.kind) {
     case 'exercise-intro': {
@@ -652,6 +687,10 @@ function StreamEntryView({
           quickActionsDisabled={quickActionsDisabled}
           freeResponsePlaceholder={freeResponsePlaceholder}
           freeResponseSendLabel={freeResponseSendLabel}
+          freeResponsePendingLabel={freeResponsePendingLabel}
+          freeResponseNotCheckedLabel={freeResponseNotCheckedLabel}
+          freeResponseValidationErrors={freeResponseValidationErrors}
+          isQuotaExhausted={isQuotaExhausted}
         />
       )
     case 'chat-user':

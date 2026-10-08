@@ -126,9 +126,16 @@ function validateMatchingAnswer(
 }
 
 /**
- * Validate free-response answer via server endpoint (DB normalization + LLM fallback)
+ * Validate free-response answer via server endpoint (DB normalization + LLM fallback).
+ *
+ * Exported so the Chat view's native path (ChatFreeResponseBubble) can share
+ * the same validation pipeline instead of duplicating a fetch + body shape.
+ * Both callers hit `/api/exercises/validate-answer`, which enforces the chat
+ * quota before the LLM call — a quota-exhausted student triggers a 429 and
+ * the caller is expected to fall back to self-compare (Task 4) rather than
+ * surface a raw error.
  */
-async function validateFreeResponseOnServer(
+export async function validateFreeResponseOnServer(
   question: QuestionFreeResponseBlock,
   studentAnswer: string,
   messages: AnswerErrorMessages,

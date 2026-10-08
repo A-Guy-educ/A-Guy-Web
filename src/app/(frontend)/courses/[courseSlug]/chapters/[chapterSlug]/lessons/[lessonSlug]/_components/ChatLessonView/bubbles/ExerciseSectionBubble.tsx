@@ -14,7 +14,7 @@ import { MediaMapProvider } from '@/ui/web/exerciserenderer/context/MediaMapCont
 import { readExerciseState } from '@/ui/web/exerciserenderer/utils/exerciseStateStorage'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import type { SectionOutcome } from '../types'
-import { ChatFreeResponseBubble } from './ChatFreeResponseBubble'
+import { ChatFreeResponseBubble, type ValidationErrorMessages } from './ChatFreeResponseBubble'
 import { ChatQuestionSelectBubble } from './ChatQuestionSelectBubble'
 import { QuickActionChips, type QuickAction } from './QuickActionChips'
 
@@ -75,6 +75,15 @@ interface ExerciseSectionBubbleProps {
   /** i18n placeholders used by the chat-native free-response input. */
   freeResponsePlaceholder?: string
   freeResponseSendLabel?: string
+  /** "Checking…" indicator shown while the server AI validates the answer. */
+  freeResponsePendingLabel?: string
+  /** Badge on the self-compare card when AI validation was skipped (quota out). */
+  freeResponseNotCheckedLabel?: string
+  /** Error-message bundle forwarded to validateFreeResponseOnServer. */
+  freeResponseValidationErrors?: ValidationErrorMessages
+  /** Task-7 quota flag — forwarded to the free-response bubble so it can skip
+   *  the server AI and show self-compare instead of waiting on a doomed 429. */
+  isQuotaExhausted?: boolean
   /**
    * Task-3 retry hint. Fires when the student taps "תן לי רמז" after a first
    * wrong attempt on a 3+ option MCQ. The runner wires it to a
@@ -130,6 +139,10 @@ export function ExerciseSectionBubble({
   quickActionsDisabled,
   freeResponsePlaceholder,
   freeResponseSendLabel,
+  freeResponsePendingLabel,
+  freeResponseNotCheckedLabel,
+  freeResponseValidationErrors,
+  isQuotaExhausted,
   onHintRequest,
   retryHintLabel,
   isActive = true,
@@ -321,6 +334,10 @@ export function ExerciseSectionBubble({
                   disabled={quickActionsDisabled}
                   exerciseId={exercise.id}
                   onSubmit={handleChatNativeSubmit}
+                  isQuotaExhausted={isQuotaExhausted}
+                  pendingLabel={freeResponsePendingLabel}
+                  notCheckedLabel={freeResponseNotCheckedLabel}
+                  validationErrorMessages={freeResponseValidationErrors}
                 />
               )
             }

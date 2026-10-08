@@ -38,6 +38,29 @@ export interface BlockMeta {
    * single hint per block.
    */
   hintShown?: boolean
+  /**
+   * Task-4 free-response submission history. Each entry is one attempt (text
+   * the student typed + whether the pipeline accepted it). Preserved so a
+   * future "end of lesson review" can surface what was tried without losing
+   * prior typing when the student corrects or clarifies.
+   */
+  submissions?: BlockSubmission[]
+  /**
+   * Task-4 self-compare marker. Set when the student's open answer couldn't
+   * be checked (AI quota exhausted → fallback to showing the solution for
+   * self-comparison). Lets analytics / future review mode distinguish
+   * "answered wrong" from "wasn't checked at all".
+   */
+  notChecked?: boolean
+}
+
+export interface BlockSubmission {
+  text: string
+  isCorrect: boolean
+  /** Epoch ms. Lets a later review surface the order in a mixed-section lesson. */
+  at: number
+  /** Whether the pipeline fell back to self-compare without AI. */
+  notChecked?: boolean
 }
 
 export interface PersistedExerciseState {
