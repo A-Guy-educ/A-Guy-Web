@@ -4862,6 +4862,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Use chapter-aware learning-lesson index for free-tier exercise gate ([#1313](https://github.com/A-Guy-educ/A-Guy-Web/pull/1313)) — @aguyshayb
 - feat: Chatview focused end-of-lesson review ([#1312](https://github.com/A-Guy-educ/A-Guy-Web/pull/1312)) — @aguyshayb
 - feat: Chatview open-answer AI validation with self-compare fallback ([#1311](https://github.com/A-Guy-educ/A-Guy-Web/pull/1311)) — @aguyshayb
 - feat: Chatview skipped-section marker and quota-exhausted card ([#1310](https://github.com/A-Guy-educ/A-Guy-Web/pull/1310)) — @aguyshayb
