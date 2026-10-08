@@ -169,6 +169,32 @@ describe('useExerciseWalker — Task 5 review mode', () => {
     expect(result.current.isComplete).toBe(true)
   })
 
+  it('advanceToNextExercise on the LAST exercise also checks review eligibility', () => {
+    // Earlier the "skip exercise" chip on the final exercise bypassed the
+    // review check and fired lesson-complete immediately, so a student who
+    // missed stuff earlier never saw the offer. Fix: the terminal branch
+    // of advanceToNextExercise mirrors advance()'s eligibility check.
+    const exercises = [makeExercise('ex1', 'תרגיל 1', 2)]
+    markBlockWrong('ex1', 'ex1-s0-q')
+
+    const track = trackEmissions()
+    const { result } = renderHook(() =>
+      useExerciseWalker({ exercises, append: track.append, isHebrew: true }),
+    )
+
+    // Student is on the first (and only) exercise. Skipping it jumps to the
+    // terminal case — but the earlier wrong answer must still trip the
+    // review offer.
+    act(() => {
+      result.current.advanceToNextExercise()
+    })
+
+    expect(track.kinds()).toContain('review-offer')
+    expect(track.kinds()).toContain('skipped-marker')
+    expect(track.kinds()).not.toContain('lesson-complete')
+    expect(result.current.isComplete).toBe(false)
+  })
+
   it('completeLesson from the review offer fires the terminator and skips review', () => {
     const exercises = [makeExercise('ex1', 'תרגיל 1', 1)]
     markBlockWrong('ex1', 'ex1-s0-q')
