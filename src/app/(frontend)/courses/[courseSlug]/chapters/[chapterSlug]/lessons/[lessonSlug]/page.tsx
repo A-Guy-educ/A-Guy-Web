@@ -263,9 +263,14 @@ export default async function LessonPage({ params }: LessonPageProps) {
   // users get all exercises) vs. "lesson 4+" (free users capped at exercise 3).
   // null when this lesson isn't a learning lesson (practice/exam are gated at
   // the row level, not here).
-  const learningLessons = courseLessons
-    .filter((l) => getEffectiveLessonType(l.type) === 'learning')
-    .sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
+  //
+  // `queryLessonsByCourse` already sorts by (chapterIndex, lesson.order), which
+  // matches what students see on the course page (useLessonGrouping groups by
+  // chapter order, then lesson order within chapter). We MUST NOT re-sort by
+  // `lesson.order` alone — that key resets per chapter, so a flat sort
+  // interleaves lessons from different chapters and shifts the index by
+  // (chapter count - 1) per lesson past chapter 1.
+  const learningLessons = courseLessons.filter((l) => getEffectiveLessonType(l.type) === 'learning')
   const learningIdx = learningLessons.findIndex((l) => l.id === lesson.id)
   const lessonLearningIndex = learningIdx >= 0 ? learningIdx + 1 : null
   const backUrl = `/courses/${courseSlug}`
