@@ -4862,6 +4862,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Chatview canned correct-answer responses and skip-exercise chip ([#1305](https://github.com/A-Guy-educ/A-Guy-Web/pull/1305)) — @aguyshayb
 - fix: Make tier kill switch readable from client bundle ([#1304](https://github.com/A-Guy-educ/A-Guy-Web/pull/1304)) — @aguyshayb
 - Cap chat-view exercises for free tier with upgrade bubble ([#1303](https://github.com/A-Guy-educ/A-Guy-Web/pull/1303)) — @aguyshayb
 - feat: Finish Phase 2 tier gating (exercise lock, per-tier chat quota, UX) ([#1302](https://github.com/A-Guy-educ/A-Guy-Web/pull/1302)) — @aguyshayb
