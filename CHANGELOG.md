@@ -4862,6 +4862,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Chatview open-answer AI validation with self-compare fallback ([#1311](https://github.com/A-Guy-educ/A-Guy-Web/pull/1311)) — @aguyshayb
 - feat: Chatview skipped-section marker and quota-exhausted card ([#1310](https://github.com/A-Guy-educ/A-Guy-Web/pull/1310)) — @aguyshayb
 - feat: Chatview 3-option MCQ retry with teacher hint ([#1307](https://github.com/A-Guy-educ/A-Guy-Web/pull/1307)) — @aguyshayb
 - feat: Chatview teacher AI correction with the student's wrong choice ([#1306](https://github.com/A-Guy-educ/A-Guy-Web/pull/1306)) — @aguyshayb
