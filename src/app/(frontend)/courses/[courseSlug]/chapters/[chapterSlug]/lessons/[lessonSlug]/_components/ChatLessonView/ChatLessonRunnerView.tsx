@@ -26,7 +26,7 @@ import { useBrowserTTS } from './useBrowserTTS'
 import { useChatChannel } from './useChatChannel'
 import { isAnswerRequired, useExerciseWalker } from './useExerciseWalker'
 import { useLessonChatProgress } from './useLessonChatProgress'
-import { pickWellDone } from './wellDoneMessages'
+import { pickCorrectReaction } from './correctResponses'
 
 const CELEBRATION_ADVANCE_MS = 1500
 
@@ -42,6 +42,23 @@ export const CHAT_LESSON_RESET_EVENT = 'chat-lesson-reset' as const
 /** Stable empty map — avoids feeding a fresh `{}` into MediaMapProvider on
  *  every render, which would re-fire every `useMediaMap` descendant. */
 const EMPTY_MEDIA_MAP: Record<string, Media> = {}
+
+/**
+ * Section stream keys are built as `sec-${exercise.id}-${groupIndex}`.
+ * Split on the LAST dash so an id that ever acquires dashes still parses
+ * cleanly; today Mongo ObjectIds are pure hex, but the walker key format
+ * is the public contract between the walker + the outcome handler.
+ */
+function parseSectionKey(key: string): { exerciseId: string; groupIndex: number } | null {
+  if (!key.startsWith('sec-')) return null
+  const rest = key.slice(4)
+  const lastDash = rest.lastIndexOf('-')
+  if (lastDash === -1) return null
+  const exerciseId = rest.slice(0, lastDash)
+  const groupIndex = Number(rest.slice(lastDash + 1))
+  if (!Number.isFinite(groupIndex)) return null
+  return { exerciseId, groupIndex }
+}
 
 interface ChatLessonRunnerViewProps {
   lessonId: string
@@ -130,8 +147,16 @@ function ActiveChat({
   // Persist walker position across visits so re-entering the lesson resumes
   // on the student's current section instead of restarting from exercise 1.
   // Chat Q&A is NOT restored here — only walker progress — see
-  // useLessonChatProgress for the rationale.
-  const { initialStepCursor, saveStepCursor, clearProgress } = useLessonChatProgress(lessonId)
+  // useLessonChatProgress for the rationale. The same hook also tracks the
+  // canned-reaction state (per-exercise "long shown" + lesson-wide last pair)
+  // so refreshing mid-lesson doesn't reset the long/short selection rules.
+  const {
+    initialStepCursor,
+    saveStepCursor,
+    getCorrectResponseState,
+    recordCorrectReaction,
+    clearProgress,
+  } = useLessonChatProgress(lessonId)
 
   const walker = useExerciseWalker({
     exercises: cappedExercises,
@@ -208,14 +233,45 @@ function ActiveChat({
 
   const correctionPrompt = t('chatViewCorrectionPrompt')
   const correctAnswerLabel = t('chatViewCorrectAnswerLabel')
+  const totalCappedExercises = cappedExercises.length
   const handleOutcome = useCallback(
     (sectionKey: string, outcome: SectionOutcome) => {
       const isCurrent = sectionKey === activeStepKey
       if (outcome.kind === 'correct') {
+        // The section key is `sec-${exercise.id}-${groupIndex}`. Exercise IDs
+        // are Mongo ObjectIds (hex, no dashes); the last `-` splits the group
+        // index safely regardless of future id format changes.
+        const parsed = parseSectionKey(sectionKey)
+        const state = getCorrectResponseState()
+        // First correct section WITHIN THIS EXERCISE → long variant.
+        // Subsequent correct sections in the same exercise → short.
+        const wantLong = parsed ? !state.longShownByExerciseId[parsed.exerciseId] : true
+        const { text: baseText, pairKey } = pickCorrectReaction({
+          wantLong,
+          lastPairKey: state.lastPairKey,
+        })
+
+        // Transition suffix only fires for the ACTIVE step on the last section
+        // of its exercise — a past-section correction shouldn't claim we're
+        // moving forward when the walker is already on a later step.
+        let text = baseText
+        if (isCurrent && walker.currentStep) {
+          const step = walker.currentStep
+          const isLastSection = step.groupIndex === step.groupsInExercise - 1
+          if (isLastSection) {
+            const isLastExercise = step.exerciseIndex === totalCappedExercises - 1
+            text = isLastExercise
+              ? `${baseText} סיימנו את השיעור.`
+              : `${baseText} נעבור לתרגיל ${step.ordinal + 1}.`
+          }
+        }
+
+        if (parsed) recordCorrectReaction(parsed.exerciseId, pairKey)
+
         const celebrateEntry: StreamEntry = {
           key: `celebrate-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
           kind: 'chat-assistant',
-          text: pickWellDone(),
+          text,
         }
         if (isCurrent) {
           append(celebrateEntry)
@@ -226,7 +282,7 @@ function ActiveChat({
           }, CELEBRATION_ADVANCE_MS)
         } else {
           // Past section finished correctly on scroll-back — route the
-          // well-done bubble under THAT section and leave the walker on
+          // reaction under THAT section and leave the walker on
           // the current step.
           insertAfter(sectionKey, celebrateEntry)
         }
@@ -255,19 +311,23 @@ function ActiveChat({
       chat,
       correctAnswerLabel,
       correctionPrompt,
+      getCorrectResponseState,
       insertAfter,
+      recordCorrectReaction,
+      totalCappedExercises,
       walker,
     ],
   )
 
   const handleQuestionSubmit = useCallback(
     (sectionKey: string, text: string, isCorrect: boolean) => {
-      // Echo the student's answer as a right-side bubble; color is derived
-      // from isCorrect so the "chose the correct option" and "chose wrong"
-      // states are immediately visible even before the section outcome
-      // fires the celebration or correction below. Past-section answers
-      // insert their echo immediately under that section instead of
-      // appending at the end of the stream.
+      // On a correct answer the question card already paints the chosen
+      // option green with a ✓ — echoing the same text in a right-side bubble
+      // would just duplicate it. Skip the bubble for correct answers; the
+      // teacher reaction (appended by handleOutcome) is the only follow-up
+      // the student sees. Wrong-answer echoes are preserved for now; Task 2
+      // will remove those too once the AI correction path is wired up.
+      if (isCorrect) return
       const entry: StreamEntry = {
         key: `q-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         kind: 'chat-user',
@@ -283,18 +343,24 @@ function ActiveChat({
   // Quick-action chip dispatcher. Hint + explain go through the invisible
   // requestCorrection channel so only the AI reply lands in the stream
   // (no fake user bubble echoing our canned prompt). Skip just advances
-  // the walker without any chat roundtrip.
+  // the walker without any chat roundtrip; skipExercise jumps the walker
+  // past every remaining section of the current exercise.
   const hintPrompt = t('chatViewChipHintPrompt')
   const explainPrompt = t('chatViewChipExplainPrompt')
   const handleQuickAction = useCallback(
-    (action: 'hint' | 'explain' | 'skip') => {
+    (action: 'hint' | 'explain' | 'skip' | 'skipExercise') => {
       if (action === 'skip') {
         advanceNow()
         return
       }
+      if (action === 'skipExercise') {
+        cancelPendingAdvance()
+        walker.advanceToNextExercise()
+        return
+      }
       chat.requestCorrection(action === 'hint' ? hintPrompt : explainPrompt)
     },
-    [advanceNow, chat, explainPrompt, hintPrompt],
+    [advanceNow, cancelPendingAdvance, chat, explainPrompt, hintPrompt, walker],
   )
 
   const quickActionLabels = useMemo(
@@ -302,6 +368,7 @@ function ActiveChat({
       hint: t('chatViewChipHint'),
       explain: t('chatViewChipExplain'),
       skip: t('chatViewChipSkip'),
+      skipExercise: t('chatViewChipSkipExercise'),
     }),
     [t],
   )
@@ -468,8 +535,8 @@ interface StreamEntryViewProps {
   tts: ReturnType<typeof useBrowserTTS>
   onOutcome: (sectionKey: string, outcome: SectionOutcome) => void
   onQuestionSubmit: (sectionKey: string, text: string, isCorrect: boolean) => void
-  onQuickAction: (action: 'hint' | 'explain' | 'skip') => void
-  quickActionLabels: { hint: string; explain: string; skip: string }
+  onQuickAction: (action: 'hint' | 'explain' | 'skip' | 'skipExercise') => void
+  quickActionLabels: { hint: string; explain: string; skip: string; skipExercise: string }
   quickActionsDisabled: boolean
   freeResponsePlaceholder: string
   freeResponseSendLabel: string
