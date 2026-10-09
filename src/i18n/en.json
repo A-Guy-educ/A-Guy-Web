@@ -347,12 +347,13 @@
     "expandChat": "Open chat",
     "doodleNotebook": {
       "title": "Scratch & calculations",
-      "collapse": "Collapse notebook",
-      "expand": "Open notebook",
+      "penMode": "Pen",
+      "textMode": "Text",
       "clear": "Clear",
       "eraser": "Eraser",
       "color": "Color",
-      "resize": "Resize notebook"
+      "resize": "Resize notebook",
+      "textPlaceholder": "You can write here.\nSwitch to pen mode with the top button.\nEnlarge from the corner.\nDrag the header to the top to hide."
     },
     "visibleRenderersLabel": "Visible Renderers",
     "visibleRenderersDescription": "Choose which tabs (Media, PDF, Interactive) are visible to students for this lesson. Media tab only appears when the lesson has attached files.",

@@ -15,9 +15,12 @@
 
 import { cn } from '@/infra/utils/ui'
 import { useTranslations } from '@/ui/web/providers/I18n'
-import { ChevronDown, GripVertical, NotebookPen } from 'lucide-react'
+import { NotebookPen, Pencil, Type } from 'lucide-react'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { DoodleCanvas } from './DoodleCanvas'
+import { DoodleTextArea } from './DoodleTextArea'
+
+type NotebookMode = 'pen' | 'text'
 
 const FOLD_THRESHOLD_PX = 24
 const UNFOLD_DRAG_PX = 60
@@ -47,6 +50,7 @@ export function MediaDoodleNotebook({ containerRef }: MediaDoodleNotebookProps) 
   const [pos, setPos] = useState<Position>({ x: MIN_MARGIN, y: 180 })
   const [size, setSize] = useState<Size>(DEFAULT_SIZE)
   const [isRTL, setIsRTL] = useState(false)
+  const [mode, setMode] = useState<NotebookMode>('pen')
   const panelRef = useRef<HTMLDivElement>(null)
   const dragStateRef = useRef<{
     pointerId: number
@@ -160,15 +164,6 @@ export function MediaDoodleNotebook({ containerRef }: MediaDoodleNotebookProps) 
     }
   }
 
-  const toggleFold = () => {
-    setIsFolded((prev) => {
-      const next = !prev
-      if (next) setPos((p) => ({ ...p, y: 0 }))
-      else setPos((p) => ({ ...p, y: Math.max(80, p.y) }))
-      return next
-    })
-  }
-
   // Resize corner. The handle lives at the bottom-right in LTR and the
   // bottom-left in RTL (whichever is the "outer" bottom corner relative to
   // the start-anchored panel), so RTL resize grows westward and must also
@@ -261,23 +256,54 @@ export function MediaDoodleNotebook({ containerRef }: MediaDoodleNotebookProps) 
         )}
       >
         <div className="flex items-center gap-content-gap-xs text-body-sm font-medium text-foreground min-w-0">
-          <GripVertical className="w-4 h-4 text-muted-foreground shrink-0" />
           <NotebookPen className="w-4 h-4 text-muted-foreground shrink-0" />
           <span className="truncate">{t('title')}</span>
         </div>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation()
-            toggleFold()
-          }}
-          aria-label={isFolded ? t('expand') : t('collapse')}
-          className="flex items-center justify-center w-6 h-6 rounded hover:bg-background/60 transition-colors text-muted-foreground"
-        >
-          <ChevronDown className={cn('w-4 h-4 transition-transform', isFolded && 'rotate-180')} />
-        </button>
+        {!isFolded && (
+          <div
+            className="flex items-center rounded-md border border-border/60 bg-background/60 p-0.5"
+            // The segmented toggle lives inside the drag header. Stop the
+            // pointer events here from reaching the drag handler so clicking
+            // a mode doesn't start a drag + swallow the click.
+            onPointerDown={(e) => e.stopPropagation()}
+            onPointerMove={(e) => e.stopPropagation()}
+            onPointerUp={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setMode('pen')}
+              aria-label={t('penMode')}
+              aria-pressed={mode === 'pen'}
+              title={t('penMode')}
+              className={cn(
+                'flex items-center justify-center w-6 h-6 rounded transition-colors duration-normal',
+                mode === 'pen'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('text')}
+              aria-label={t('textMode')}
+              aria-pressed={mode === 'text'}
+              title={t('textMode')}
+              className={cn(
+                'flex items-center justify-center w-6 h-6 rounded transition-colors duration-normal',
+                mode === 'text'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
+            >
+              <Type className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
       </div>
-      {!isFolded && <DoodleCanvas className="flex-1" />}
+      {!isFolded && mode === 'pen' && <DoodleCanvas className="flex-1" />}
+      {!isFolded && mode === 'text' && <DoodleTextArea className="flex-1" />}
       {!isFolded && (
         <div
           onPointerDown={onResizePointerDown}
