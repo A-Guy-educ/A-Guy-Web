@@ -30,9 +30,9 @@ import { useNotebookChat } from '../hooks/useNotebookChat'
 import { useTeacherProfileLabel } from '../hooks/useTeacherProfileLabel'
 import { useTTS } from '../hooks/useTTS'
 import { formatMessageTime } from '../utils/formatMessageTime'
-import { MathFieldToolbar } from '@/ui/web/shared/MathInput/MathFieldToolbar'
+import { MathPicker } from '@/ui/web/shared/MathInput/MathPicker'
 import { MixedMathInput, type MixedMathInputRef } from '@/ui/web/shared/MathInput/MixedMathInput'
-import { FunctionSquare } from 'lucide-react'
+import { Sigma } from 'lucide-react'
 import { FormulaSheetButton } from '@/ui/web/shared/FormulaSheetViewer/FormulaSheetButton'
 import { FormulaSheetContent } from '@/ui/web/shared/FormulaSheetViewer/FormulaSheetContent'
 
@@ -623,7 +623,7 @@ export function ChatInterface({
         {/* Math quick-insert toolbar */}
         {showMathTools && toolbarOpen && (
           <div className="mb-2.5 max-w-chat mx-auto rounded-lg border border-border bg-card shadow-card p-2">
-            <MathFieldToolbar onInsert={handleInsertMath} />
+            <MathPicker onInsert={handleInsertMath} onClose={() => setToolbarOpen(false)} />
           </div>
         )}
 
@@ -748,7 +748,7 @@ export function ChatInterface({
                 )}
                 title={tCourses('insertFormula')}
               >
-                <FunctionSquare className="w-5 h-5" />
+                <Sigma className="w-5 h-5" />
               </button>
             )}
 

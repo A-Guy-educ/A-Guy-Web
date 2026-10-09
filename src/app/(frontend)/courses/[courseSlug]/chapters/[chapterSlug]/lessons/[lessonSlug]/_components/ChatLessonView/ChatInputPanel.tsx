@@ -4,10 +4,10 @@ import { uploadFileAsMedia } from '@/infra/media/uploadDataUrl'
 import { logger } from '@/infra/utils/logger'
 import { cn } from '@/infra/utils/ui'
 import { useTranslations } from '@/ui/web/providers/I18n'
-import { MathFieldToolbar } from '@/ui/web/shared/MathInput/MathFieldToolbar'
+import { MathPicker } from '@/ui/web/shared/MathInput/MathPicker'
 import { MixedMathInput, type MixedMathInputRef } from '@/ui/web/shared/MathInput/MixedMathInput'
 import { AnimatePresence, motion } from 'framer-motion'
-import { FileUp, FunctionSquare, Image as ImageIcon, Loader2, Plus, Send, X } from 'lucide-react'
+import { FileUp, Image as ImageIcon, Loader2, Plus, Send, Sigma, X } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 
 interface ChatInputPanelProps {
@@ -214,7 +214,7 @@ export function ChatInputPanel({
                   : 'bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20',
               )}
             >
-              <FunctionSquare className="w-4 h-4" />
+              <Sigma className="w-4 h-4" />
             </button>
           )}
 
@@ -276,7 +276,7 @@ export function ChatInputPanel({
               className="absolute bottom-full inset-x-0 mb-2 rounded-lg border border-border bg-card/95 backdrop-blur-md shadow-card p-2"
               data-math-controls
             >
-              <MathFieldToolbar onInsert={handleInsertMath} />
+              <MathPicker onInsert={handleInsertMath} onClose={() => setToolbarOpen(false)} />
             </motion.div>
           )}
         </AnimatePresence>

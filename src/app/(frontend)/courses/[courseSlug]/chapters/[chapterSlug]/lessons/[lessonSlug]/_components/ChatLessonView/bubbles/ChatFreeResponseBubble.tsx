@@ -10,11 +10,11 @@ import {
   patchExerciseStateBlockMeta,
   readExerciseState,
 } from '@/ui/web/exerciserenderer/utils/exerciseStateStorage'
-import { MathFieldToolbar } from '@/ui/web/shared/MathInput/MathFieldToolbar'
+import { MathPicker } from '@/ui/web/shared/MathInput/MathPicker'
 import { MixedMathInput, type MixedMathInputRef } from '@/ui/web/shared/MathInput/MixedMathInput'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { AnimatePresence, motion } from 'framer-motion'
-import { FunctionSquare, Send } from 'lucide-react'
+import { Send, Sigma } from 'lucide-react'
 import { useCallback, useMemo, useRef, useState } from 'react'
 
 interface ChatFreeResponseBubbleProps {
@@ -274,7 +274,7 @@ export function ChatFreeResponseBubble({
                   : 'bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20',
               )}
             >
-              <FunctionSquare className="w-5 h-5" />
+              <Sigma className="w-5 h-5" />
             </button>
           )}
 
@@ -302,7 +302,7 @@ export function ChatFreeResponseBubble({
               transition={{ duration: 0.18 }}
               className="absolute top-full inset-x-0 mt-2 z-20 rounded-lg border border-border bg-card shadow-card p-2"
             >
-              <MathFieldToolbar onInsert={handleInsertMath} />
+              <MathPicker onInsert={handleInsertMath} onClose={() => setToolbarOpen(false)} />
             </motion.div>
           )}
         </AnimatePresence>

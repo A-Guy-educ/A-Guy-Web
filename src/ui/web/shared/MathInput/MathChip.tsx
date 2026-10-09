@@ -110,6 +110,10 @@ export function MathChip({ node, updateAttributes, deleteNode, selected }: React
       <span
         role="button"
         tabIndex={0}
+        // Math is always LTR regardless of the surrounding text direction —
+        // otherwise `5^6` renders with the exponent flipped to the left in a
+        // Hebrew-RTL chat input.
+        dir="ltr"
         onClick={() => setEditing(true)}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
