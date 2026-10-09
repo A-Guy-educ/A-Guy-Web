@@ -91,6 +91,17 @@ interface ChatLessonRunnerViewProps {
    * terminator at that cutoff. `null` disables the cap.
    */
   lessonLearningIndex?: number | null
+  /**
+   * Next lesson of the same type (learning / practice / exam) in the
+   * course. Drives the summary card's "next lesson" CTA. Null when this
+   * is the last lesson of its type — the finish button then falls back
+   * to routing to the course index.
+   */
+  nextSameTypeLesson?: {
+    slug: string | null
+    title: string | null
+    chapterSlug: string | null
+  } | null
 }
 
 export function ChatLessonRunnerView(props: ChatLessonRunnerViewProps) {
@@ -114,6 +125,7 @@ function ActiveChat({
   tts,
   onExit,
   lessonLearningIndex = null,
+  nextSameTypeLesson = null,
 }: ActiveChatProps) {
   const t = useTranslations('courses')
   const locale = useLocale()
@@ -426,6 +438,19 @@ function ActiveChat({
         return acc
       }, 0)
 
+  // Next-lesson URL + title are computed here so the summary card can show
+  // "Next lesson: {title}" on its primary CTA when the course has another
+  // lesson of the same type queued up. See the handleSummaryFinish block
+  // below for the routing side.
+  const params = useParams<{ courseSlug?: string }>()
+  const router = useRouterWithLoading()
+  const courseSlug = typeof params?.courseSlug === 'string' ? params.courseSlug : null
+  const nextLessonHref =
+    nextSameTypeLesson?.slug && nextSameTypeLesson.chapterSlug && courseSlug
+      ? `/courses/${courseSlug}/chapters/${nextSameTypeLesson.chapterSlug}/lessons/${nextSameTypeLesson.slug}`
+      : null
+  const nextLessonTitle = nextSameTypeLesson?.title ?? null
+
   const summaryCopy = useMemo<LessonSummaryCopy>(() => {
     const title = t(`chatViewSummaryOutcomeTitle.${summaryOutcome}`)
     const assessment = t(`chatViewSummaryAssessmentBody.${summaryOutcome}`)
@@ -454,21 +479,27 @@ function ActiveChat({
       assessmentBody: assessment,
       reviewCta: (count) => t('chatViewSummaryReviewCta').replace('{count}', String(count)),
       finishCta: t('chatViewSummaryFinishCta'),
+      // When there's a next lesson of the same type, show its title under
+      // the "next lesson" caption. Falls back to a plain finish label when
+      // the student is at the end of the track.
+      nextLessonLabel: nextLessonTitle
+        ? t('chatViewSummaryNextLessonCta').replace('{title}', nextLessonTitle)
+        : null,
+      nextLessonCaption: t('chatViewSummaryNextLessonCaption'),
       footerNote: t('chatViewSummaryFooterNote'),
     }
-  }, [summaryOutcome, t])
+  }, [nextLessonTitle, summaryOutcome, t])
 
-  // Finish button on the summary card routes back to the course home. The
-  // runner isn't given the courseSlug as a prop (the lesson page scoped
-  // this component to its own tree), so we read it off the dynamic route
-  // via `useParams`. Falls back to `/study` when the slug is somehow
-  // missing (routing invariants shouldn't let this happen; defensive).
-  const params = useParams<{ courseSlug?: string }>()
-  const router = useRouterWithLoading()
   const handleSummaryFinish = useCallback(() => {
-    const slug = typeof params?.courseSlug === 'string' ? params.courseSlug : null
-    router.push(slug ? `/courses/${slug}` : '/study')
-  }, [params, router])
+    // Prefer the next-lesson route when available so finishing a learning
+    // lesson slides straight into the next learning lesson. Falls back to
+    // the course index when there is no next lesson of this type.
+    if (nextLessonHref) {
+      router.push(nextLessonHref)
+      return
+    }
+    router.push(courseSlug ? `/courses/${courseSlug}` : '/study')
+  }, [courseSlug, nextLessonHref, router])
 
   const quickActionLabels = useMemo(
     () => ({

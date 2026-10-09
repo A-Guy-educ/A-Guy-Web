@@ -163,6 +163,32 @@ describe('computeLessonStats', () => {
     })
   })
 
+  it('whole untouched exercise contributes all its sections to the skipped bucket', () => {
+    // Simulates "דלג על תרגיל" on a multi-section exercise: no localStorage
+    // write ever happens, every section's blocks have no checkResult.
+    const touched = exerciseWithSections('ex1', ['s0', 's1'])
+    const skipped = exerciseWithSections('ex2', ['s0', 's1', 's2'])
+    savePerBlock('ex1', { 's0-q': { isCorrect: true }, 's1-q': { isCorrect: true } })
+    // ex2 is intentionally never written → readExerciseState returns null.
+    const stats = computeLessonStats([touched, skipped])
+    expect(stats.totalSections).toBe(5)
+    expect(stats.alone).toBe(2)
+    expect(stats.skipped).toBe(3)
+    expect(stats.wrong).toBe(0)
+  })
+
+  it('mixed exercise (some sections answered, others never touched) still counts the untouched ones as skipped', () => {
+    // The student answered section s0 and then skipped-exercise'd out, leaving
+    // s1 and s2 unanswered inside the SAME exercise's localStorage namespace.
+    const ex = exerciseWithSections('ex1', ['s0', 's1', 's2'])
+    savePerBlock('ex1', { 's0-q': { isCorrect: true } })
+    const stats = computeLessonStats([ex])
+    expect(stats.totalSections).toBe(3)
+    expect(stats.alone).toBe(1)
+    expect(stats.skipped).toBe(2)
+    expect(stats.wrong).toBe(0)
+  })
+
   it('counts a section with any wrong block as wrong', () => {
     const ex = exerciseWithSections('ex1', ['s0'])
     savePerBlock('ex1', { 's0-q': { isCorrect: false } })
