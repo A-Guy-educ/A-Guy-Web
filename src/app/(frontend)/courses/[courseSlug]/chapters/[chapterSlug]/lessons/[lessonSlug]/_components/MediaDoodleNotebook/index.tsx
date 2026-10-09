@@ -22,11 +22,18 @@ import { DoodleCanvas } from './DoodleCanvas'
 const FOLD_THRESHOLD_PX = 24
 const UNFOLD_DRAG_PX = 60
 const DEFAULT_SIZE = { w: 320, h: 260 }
+const MIN_SIZE = { w: 220, h: 180 }
+const FOLDED_HEIGHT = 36
 const MIN_MARGIN = 8
 
 interface Position {
   x: number
   y: number
+}
+
+interface Size {
+  w: number
+  h: number
 }
 
 interface MediaDoodleNotebookProps {
@@ -38,6 +45,8 @@ export function MediaDoodleNotebook({ containerRef }: MediaDoodleNotebookProps) 
   const t = useTranslations('courses.doodleNotebook')
   const [isFolded, setIsFolded] = useState(false)
   const [pos, setPos] = useState<Position>({ x: MIN_MARGIN, y: 180 })
+  const [size, setSize] = useState<Size>(DEFAULT_SIZE)
+  const [isRTL, setIsRTL] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
   const dragStateRef = useRef<{
     pointerId: number
@@ -46,10 +55,19 @@ export function MediaDoodleNotebook({ containerRef }: MediaDoodleNotebookProps) 
     startY: number
     moved: boolean
   } | null>(null)
+  const resizeStateRef = useRef<{
+    pointerId: number
+    startClientX: number
+    startClientY: number
+    startW: number
+    startH: number
+    startPosX: number
+  } | null>(null)
 
   // Seed initial position once we know the container size — bottom-start,
   // RTL-aware (reads `dir` from the container's chain so we don't need to
-  // thread the locale through).
+  // thread the locale through). Also captures the RTL flag for the resize
+  // handle, which lives on opposite corners between LTR and RTL.
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
@@ -57,10 +75,11 @@ export function MediaDoodleNotebook({ containerRef }: MediaDoodleNotebookProps) 
     if (rect.width === 0 || rect.height === 0) return
     const panelW = panelRef.current?.offsetWidth ?? DEFAULT_SIZE.w
     const panelH = panelRef.current?.offsetHeight ?? DEFAULT_SIZE.h
-    const isRTL =
+    const rtl =
       getComputedStyle(container).direction === 'rtl' || document.documentElement.dir === 'rtl'
+    setIsRTL(rtl)
     setPos({
-      x: isRTL ? rect.width - panelW - MIN_MARGIN : MIN_MARGIN,
+      x: rtl ? rect.width - panelW - MIN_MARGIN : MIN_MARGIN,
       y: Math.max(MIN_MARGIN, rect.height - panelH - MIN_MARGIN),
     })
     // Container size is read from a ref; parent lifecycle handles its own
@@ -150,8 +169,74 @@ export function MediaDoodleNotebook({ containerRef }: MediaDoodleNotebookProps) 
     })
   }
 
-  const width = DEFAULT_SIZE.w
-  const height = isFolded ? 36 : DEFAULT_SIZE.h
+  // Resize corner. The handle lives at the bottom-right in LTR and the
+  // bottom-left in RTL (whichever is the "outer" bottom corner relative to
+  // the start-anchored panel), so RTL resize grows westward and must also
+  // move `pos.x` to keep the opposite edge pinned.
+  const onResizePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== undefined && e.button !== 0) return
+    e.stopPropagation()
+    resizeStateRef.current = {
+      pointerId: e.pointerId,
+      startClientX: e.clientX,
+      startClientY: e.clientY,
+      startW: size.w,
+      startH: size.h,
+      startPosX: pos.x,
+    }
+    try {
+      ;(e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId)
+    } catch {
+      // See drag handler — some pointer types reject capture; drag still works.
+    }
+  }
+
+  const onResizePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const state = resizeStateRef.current
+    if (!state || state.pointerId !== e.pointerId) return
+    const container = containerRef.current
+    if (!container) return
+    e.stopPropagation()
+    const cRect = container.getBoundingClientRect()
+    const dx = e.clientX - state.startClientX
+    const dy = e.clientY - state.startClientY
+
+    if (isRTL) {
+      // Handle at bottom-left: width grows as pointer moves left (negative dx).
+      const nextW = Math.max(MIN_SIZE.w, state.startW - dx)
+      const nextX = state.startPosX + dx
+      const maxW = state.startW + (state.startPosX - MIN_MARGIN)
+      const clampedW = Math.min(nextW, maxW)
+      const clampedX = Math.max(MIN_MARGIN, nextX - (clampedW - (state.startW - dx)))
+      const nextH = Math.max(
+        MIN_SIZE.h,
+        Math.min(state.startH + dy, cRect.height - pos.y - MIN_MARGIN),
+      )
+      setSize({ w: clampedW, h: nextH })
+      setPos((p) => ({ ...p, x: clampedX }))
+    } else {
+      // Handle at bottom-right: both dimensions grow with pointer movement.
+      const maxW = cRect.width - pos.x - MIN_MARGIN
+      const maxH = cRect.height - pos.y - MIN_MARGIN
+      const nextW = Math.max(MIN_SIZE.w, Math.min(state.startW + dx, maxW))
+      const nextH = Math.max(MIN_SIZE.h, Math.min(state.startH + dy, maxH))
+      setSize({ w: nextW, h: nextH })
+    }
+  }
+
+  const onResizePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    const state = resizeStateRef.current
+    if (!state || state.pointerId !== e.pointerId) return
+    resizeStateRef.current = null
+    try {
+      ;(e.currentTarget as HTMLDivElement).releasePointerCapture(e.pointerId)
+    } catch {
+      // ignore
+    }
+  }
+
+  const width = size.w
+  const height = isFolded ? FOLDED_HEIGHT : size.h
 
   return (
     <div
@@ -193,6 +278,26 @@ export function MediaDoodleNotebook({ containerRef }: MediaDoodleNotebookProps) 
         </button>
       </div>
       {!isFolded && <DoodleCanvas className="flex-1" />}
+      {!isFolded && (
+        <div
+          onPointerDown={onResizePointerDown}
+          onPointerMove={onResizePointerMove}
+          onPointerUp={onResizePointerUp}
+          onPointerCancel={onResizePointerUp}
+          role="separator"
+          aria-label={t('resize')}
+          aria-orientation="vertical"
+          className={cn(
+            'absolute bottom-0 w-5 h-5 flex items-end justify-end touch-none z-10',
+            isRTL ? 'left-0 cursor-nesw-resize' : 'right-0 cursor-nwse-resize',
+          )}
+          style={{
+            background: isRTL
+              ? 'linear-gradient(45deg, transparent 50%, hsl(var(--muted-foreground) / 0.4) 50%, hsl(var(--muted-foreground) / 0.4) 60%, transparent 60%)'
+              : 'linear-gradient(-45deg, transparent 50%, hsl(var(--muted-foreground) / 0.4) 50%, hsl(var(--muted-foreground) / 0.4) 60%, transparent 60%)',
+          }}
+        />
+      )}
     </div>
   )
 }

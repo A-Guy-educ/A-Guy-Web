@@ -20,7 +20,13 @@ import { ExerciseWorkspace } from '@/app/(frontend)/courses/[courseSlug]/chapter
 import { useMediaQuery } from '@/client/hooks/useMediaQuery'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import { isRTL } from '@/i18n/config'
-import { ChevronLeft, ChevronRight, MessageCircle, X } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  MessageCircle,
+  PanelLeftClose,
+  PanelRightClose,
+} from 'lucide-react'
 import { cn } from '@/infra/utils/ui'
 import { MediaDoodleNotebook } from '../MediaDoodleNotebook'
 
@@ -57,6 +63,11 @@ function ChatPaneWithCollapse({
   children,
   ...forwarded
 }: ChatPaneWithCollapseProps & Record<string, unknown>) {
+  // Pane close icon: in LTR the chat sits on the right, so the "fold it
+  // out of the way" icon is `PanelRightClose` (right-side panel with an
+  // inward arrow). RTL mirrors to `PanelLeftClose`. An X here was reading
+  // as "close conversation", which it isn't — chat state is preserved.
+  const FoldIcon = rtl ? PanelLeftClose : PanelRightClose
   return (
     <div className="relative h-full">
       {showCollapse && (
@@ -64,12 +75,13 @@ function ChatPaneWithCollapse({
           type="button"
           onClick={onCollapse}
           aria-label={collapseLabel}
+          title={collapseLabel}
           className={cn(
             'absolute top-3 z-30 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card/90 text-muted-foreground shadow-elevation-2 backdrop-blur hover:text-foreground hover:bg-muted transition-colors duration-normal',
             rtl ? 'right-3' : 'left-3',
           )}
         >
-          <X className="h-4 w-4" />
+          <FoldIcon className="h-4 w-4" />
         </button>
       )}
       {React.cloneElement(children, forwarded)}
