@@ -30,8 +30,8 @@ import { useNotebookChat } from '../hooks/useNotebookChat'
 import { useTeacherProfileLabel } from '../hooks/useTeacherProfileLabel'
 import { useTTS } from '../hooks/useTTS'
 import { formatMessageTime } from '../utils/formatMessageTime'
-import { FormulaComposer } from '@/ui/web/shared/MathInput/FormulaComposer'
-import { MathMarkdown } from '@/ui/web/shared/MathMarkdown'
+import { MathFieldToolbar } from '@/ui/web/shared/MathInput/MathFieldToolbar'
+import { MixedMathInput, type MixedMathInputRef } from '@/ui/web/shared/MathInput/MixedMathInput'
 import { FunctionSquare } from 'lucide-react'
 import { FormulaSheetButton } from '@/ui/web/shared/FormulaSheetViewer/FormulaSheetButton'
 import { FormulaSheetContent } from '@/ui/web/shared/FormulaSheetViewer/FormulaSheetContent'
@@ -341,65 +341,24 @@ export function ChatInterface({
     }
   }, [currentExercise, injectExerciseContext, clearPendingExerciseContext, mediaMap])
 
-  const [formulaComposerOpen, setFormulaComposerOpen] = useState(false)
+  const [toolbarOpen, setToolbarOpen] = useState(false)
   const [formulaSheetOpen, setFormulaSheetOpen] = useState(false)
-  const [isChatInputFocused, setIsChatInputFocused] = useState(false)
-
-  const handleFormulaInsert = useCallback(
-    (latex: string) => {
-      const el = inputRef.current
-      const start = el?.selectionStart ?? inputValue.length
-      const end = el?.selectionEnd ?? inputValue.length
-      const before = inputValue.substring(0, start)
-      const after = inputValue.substring(end)
-      setInputValue(before + `$${latex}$` + after)
-      setFormulaComposerOpen(false)
-      setIsChatInputFocused(false)
-    },
-    [inputValue, setInputValue, inputRef],
-  )
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value)
-  }
-
-  const switchChatToEditMode = useCallback(() => {
-    setIsChatInputFocused(true)
-    const el = inputRef.current
-    if (el) {
-      el.focus()
-      el.setSelectionRange(el.value.length, el.value.length)
-    }
-  }, [inputRef])
-
-  const handleChatInputBlur = useCallback((e: React.FocusEvent) => {
-    const related = e.relatedTarget as HTMLElement | null
-    if (related?.closest('[data-math-controls]')) return
-    setIsChatInputFocused(false)
-  }, [])
+  const mathInputRef = useRef<MixedMathInputRef>(null)
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (showMathTools) {
-      setFormulaComposerOpen(false)
-    }
-
-    setIsChatInputFocused(false)
-
-    if (onChatInteraction) {
-      onChatInteraction()
-    }
-
+    setToolbarOpen(false)
+    if (onChatInteraction) onChatInteraction()
     handleSubmit(e)
-
-    // Refresh quota after a short delay to allow backend to process
     if (currentUser && !isAdmin) {
       setTimeout(() => quota.refreshQuota(), 2000)
     }
   }
 
-  const showChatViewOverlay = showMathTools && !isChatInputFocused && inputValue.includes('$')
+  const triggerSubmit = useCallback(() => {
+    const form = mathInputRef.current?.element?.closest('form')
+    form?.requestSubmit()
+  }, [])
 
   /**
    * Post a renderer choice (selection, multi-select, approval action) as the
@@ -412,7 +371,6 @@ export function ChatInterface({
     (text: string) => {
       if (!text.trim()) return
       setInputValue(text)
-      setIsChatInputFocused(false)
       onChatInteraction?.()
       sendMessage(text)
     },
@@ -658,13 +616,10 @@ export function ChatInterface({
         )}
         data-math-controls
       >
-        {/* Formula Composer Popup */}
-        {showMathTools && formulaComposerOpen && (
-          <div className="mb-2.5 max-w-chat mx-auto">
-            <FormulaComposer
-              onInsert={handleFormulaInsert}
-              onClose={() => setFormulaComposerOpen(false)}
-            />
+        {/* Math quick-insert toolbar */}
+        {showMathTools && toolbarOpen && (
+          <div className="mb-2.5 max-w-chat mx-auto rounded-lg border border-border bg-card shadow-card p-2">
+            <MathFieldToolbar mathfield={mathInputRef.current?.element ?? null} />
           </div>
         )}
 
@@ -762,44 +717,31 @@ export function ChatInterface({
         {/* Input Wrapper */}
         <form onSubmit={handleFormSubmit}>
           <div className="max-w-chat mx-auto bg-muted rounded-chat-2xl flex items-center px-4 py-1.5 border border-input gap-3 relative">
-            {/* Input — always mounted */}
-            <input
-              ref={inputRef}
-              type="text"
-              className="flex-1 bg-transparent border-none outline-none py-2.5 text-chat-input text-foreground placeholder:text-muted-foreground"
-              placeholder={t('chatInputPlaceholder')}
+            {/* Mixed-mode math input — WYSIWYG, math atoms render inline */}
+            <MixedMathInput
+              ref={mathInputRef}
               value={inputValue}
-              onChange={handleInputChange}
-              onFocus={() => setIsChatInputFocused(true)}
-              onBlur={handleChatInputBlur}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault()
-                  handleFormSubmit(e as unknown as React.FormEvent)
-                }
+              onChange={setInputValue}
+              onEnterKey={triggerSubmit}
+              onReady={(el) => {
+                inputRef.current = el
               }}
               disabled={isLoading}
+              placeholder={t('chatInputPlaceholder')}
+              className="flex-1 py-2.5"
             />
 
-            {/* View overlay: rendered math on top of input when blurred */}
-            {showChatViewOverlay && (
-              <div
-                onClick={switchChatToEditMode}
-                className="absolute inset-y-0 start-4 end-[120px] flex items-center bg-muted cursor-text overflow-hidden"
-              >
-                <MathMarkdown
-                  content={inputValue}
-                  className="text-chat-input leading-relaxed truncate"
-                />
-              </div>
-            )}
-
-            {/* Formula button — inside the pill */}
+            {/* Formula button — toggles quick-insert toolbar */}
             {showMathTools && (
               <button
                 type="button"
-                onClick={() => setFormulaComposerOpen(!formulaComposerOpen)}
-                className="p-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors"
+                onClick={() => setToolbarOpen((v) => !v)}
+                className={cn(
+                  'p-1.5 rounded-lg border transition-colors',
+                  toolbarOpen
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20',
+                )}
                 title={tCourses('insertFormula')}
               >
                 <FunctionSquare className="w-5 h-5" />

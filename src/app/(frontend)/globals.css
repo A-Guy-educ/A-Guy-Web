@@ -524,6 +524,29 @@ math-field:focus-within {
   outline-offset: 2px;
 }
 
+/* Mixed-mode math input: when the <math-field> IS the chat/answer typing
+   surface (not a stand-alone composer popup), strip the framed look so it
+   blends into the parent pill / textbox container. */
+.mixed-math-input math-field {
+  border: none;
+  background: transparent;
+  padding: 0;
+  min-height: 0;
+  font-size: 1em;
+  width: 100%;
+}
+
+.mixed-math-input math-field:focus-within {
+  outline: none;
+}
+
+.mixed-math-input {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
 /* Exercise View Animations */
 @keyframes slideUp {
   from {

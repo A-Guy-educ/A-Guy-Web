@@ -10,7 +10,8 @@ import {
   patchExerciseStateBlockMeta,
   readExerciseState,
 } from '@/ui/web/exerciserenderer/utils/exerciseStateStorage'
-import { FormulaComposer } from '@/ui/web/shared/MathInput/FormulaComposer'
+import { MathFieldToolbar } from '@/ui/web/shared/MathInput/MathFieldToolbar'
+import { MixedMathInput, type MixedMathInputRef } from '@/ui/web/shared/MathInput/MixedMathInput'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { AnimatePresence, motion } from 'framer-motion'
 import { FunctionSquare, Send } from 'lucide-react'
@@ -117,8 +118,8 @@ export function ChatFreeResponseBubble({
   })
   const [value, setValue] = useState(initialValue)
   const [status, setStatus] = useState<SubmitStatus>(initialStatus)
-  const [composerOpen, setComposerOpen] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const [toolbarOpen, setToolbarOpen] = useState(false)
+  const mathInputRef = useRef<MixedMathInputRef>(null)
 
   const acceptedAnswers = useMemo(() => block.answer.acceptedAnswers ?? [], [block.answer])
   const canSubmit = acceptedAnswers.length > 0
@@ -143,7 +144,7 @@ export function ChatFreeResponseBubble({
     e.preventDefault()
     const trimmed = value.trim()
     if (!trimmed || isDisabled) return
-    setComposerOpen(false)
+    setToolbarOpen(false)
 
     // Local match path — Task 4 says an approved answer passes instantly,
     // no AI, no quota cost. Mirrors the pre-Task-4 behavior for anything
@@ -215,22 +216,10 @@ export function ChatFreeResponseBubble({
     }
   }
 
-  const handleFormulaInsert = useCallback(
-    (latex: string) => {
-      const el = inputRef.current
-      const start = el?.selectionStart ?? value.length
-      const end = el?.selectionEnd ?? value.length
-      const wrapped = `$${latex}$`
-      setValue(value.substring(0, start) + wrapped + value.substring(end))
-      setComposerOpen(false)
-      requestAnimationFrame(() => {
-        const caret = start + wrapped.length
-        el?.focus()
-        el?.setSelectionRange(caret, caret)
-      })
-    },
-    [value],
-  )
+  const triggerSubmit = useCallback(() => {
+    const form = mathInputRef.current?.element?.closest('form')
+    form?.requestSubmit()
+  }, [])
 
   return (
     <div className="flex flex-col gap-content-gap">
@@ -246,35 +235,34 @@ export function ChatFreeResponseBubble({
 
       <div className="relative mt-2" data-math-controls>
         <form onSubmit={handleSubmit} className="flex items-center gap-content-gap-xs" dir="rtl">
-          <input
-            ref={inputRef}
-            type="text"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            placeholder={placeholder}
-            disabled={isDisabled}
-            // Pure-math inputs like `(2,3)` or `(2,-3)` are all bidi-neutral/weak
-            // chars; an RTL base direction reorders them visually to `(3,2)` /
-            // `(3-,2)`. `dir="auto"` falls back to LTR when no strong char is
-            // present, and flips to RTL once a Hebrew letter is typed.
-            dir="auto"
+          <div
             className={cn(
               'flex-1 rounded-xl border border-input bg-background px-4 py-2.5',
-              'text-body-md text-foreground placeholder:text-muted-foreground',
-              'focus:outline-none focus:border-primary transition-colors',
-              'disabled:opacity-60 disabled:cursor-not-allowed',
+              'focus-within:border-primary transition-colors',
+              isDisabled && 'opacity-60 cursor-not-allowed',
             )}
-          />
+          >
+            <MixedMathInput
+              ref={mathInputRef}
+              value={value}
+              onChange={setValue}
+              onEnterKey={triggerSubmit}
+              disabled={isDisabled}
+              placeholder={placeholder}
+            />
+          </div>
 
           {!isDisabled && (
             <button
               type="button"
-              onClick={() => setComposerOpen((v) => !v)}
+              onClick={() => setToolbarOpen((v) => !v)}
               aria-label={t('insertFormula')}
               title={t('insertFormula')}
               className={cn(
                 'w-10 h-10 rounded-xl shrink-0 flex items-center justify-center transition-all active:scale-95',
-                'bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20',
+                toolbarOpen
+                  ? 'bg-primary text-primary-foreground border border-primary'
+                  : 'bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20',
               )}
             >
               <FunctionSquare className="w-5 h-5" />
@@ -297,18 +285,15 @@ export function ChatFreeResponseBubble({
         </form>
 
         <AnimatePresence>
-          {composerOpen && !isDisabled && (
+          {toolbarOpen && !isDisabled && (
             <motion.div
               initial={{ opacity: 0, y: -4, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -4, scale: 0.97 }}
               transition={{ duration: 0.18 }}
-              className="absolute top-full inset-x-0 mt-2 z-20"
+              className="absolute top-full inset-x-0 mt-2 z-20 rounded-lg border border-border bg-card shadow-card p-2"
             >
-              <FormulaComposer
-                onInsert={handleFormulaInsert}
-                onClose={() => setComposerOpen(false)}
-              />
+              <MathFieldToolbar mathfield={mathInputRef.current?.element ?? null} />
             </motion.div>
           )}
         </AnimatePresence>

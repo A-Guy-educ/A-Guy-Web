@@ -41,10 +41,11 @@ export { AdminHtmlWithMath } from './AdminHtmlWithMath'
 export type { AdminHtmlWithMathProps } from './AdminHtmlWithMath'
 
 // Math Input
-export { MathField, MathFieldToolbar, FormulaComposer } from './MathInput'
+export { MathField, MathFieldToolbar, MixedMathInput } from './MathInput'
 export type {
   MathFieldProps,
   MathFieldRef,
   MathFieldToolbarProps,
-  FormulaComposerProps,
+  MixedMathInputProps,
+  MixedMathInputRef,
 } from './MathInput'

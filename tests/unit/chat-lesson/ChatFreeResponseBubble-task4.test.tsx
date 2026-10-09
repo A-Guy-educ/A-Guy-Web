@@ -1,10 +1,45 @@
 // @vitest-environment jsdom
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+// MixedMathInput wraps a MathLive `<math-field>` web component (dynamically
+// imported). jsdom can't drive it with native change/submit events, and these
+// tests are about the submit pipeline (local match / server AI / quota), not
+// the input UI itself — so swap in a plain-input test double that still
+// honours the `value` / `onChange` / `onEnterKey` / `placeholder` contract.
+vi.mock('@/ui/web/shared/MathInput/MixedMathInput', async () => {
+  const React = await import('react')
+  type Props = {
+    value: string
+    onChange: (v: string) => void
+    onEnterKey?: () => void
+    disabled?: boolean
+    placeholder?: string
+  }
+  const MixedMathInput = React.forwardRef<unknown, Props>(function MixedMathInputMock(
+    { value, onChange, onEnterKey, disabled, placeholder },
+    _ref,
+  ) {
+    return React.createElement('input', {
+      placeholder,
+      value,
+      disabled,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value),
+      onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter' && onEnterKey) {
+          e.preventDefault()
+          onEnterKey()
+        }
+      },
+    })
+  })
+  return { MixedMathInput }
+})
+
 import { ChatFreeResponseBubble } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatFreeResponseBubble'
 import { I18nProvider } from '@/ui/web/providers/I18n'
 import type { QuestionFreeResponseBlock } from '@/ui/web/exerciserenderer/types'
 import { readExerciseState } from '@/ui/web/exerciserenderer/utils/exerciseStateStorage'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 function richText(value: string) {
   return { type: 'rich_text' as const, format: 'md-math-v1' as const, value, mediaIds: [] }
