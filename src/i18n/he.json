@@ -406,6 +406,8 @@
     "chatViewSummaryAssessmentHeading": "ההערכה שלך",
     "chatViewSummaryReviewCta": "לנסות שוב את {count} הסעיפים",
     "chatViewSummaryFinishCta": "סיום השיעור",
+    "chatViewSummaryNextLessonCaption": "השיעור הבא",
+    "chatViewSummaryNextLessonCta": "{title}",
     "chatViewSummaryFooterNote": "הנתונים מתייחסים לשיעור הזה בלבד.",
     "chatViewSummaryOutcomeTitle": {
       "high-independent": "מצוין! כמעט הכול בעצמך",

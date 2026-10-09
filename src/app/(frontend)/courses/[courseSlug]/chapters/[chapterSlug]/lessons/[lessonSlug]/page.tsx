@@ -258,6 +258,33 @@ export default async function LessonPage({ params }: LessonPageProps) {
   ])
   const lessonIndex = courseLessons.findIndex((courseLesson) => courseLesson.id === lesson.id)
   const nextLesson = lessonIndex >= 0 ? courseLessons[lessonIndex + 1] : null
+  // Next-lesson-of-same-type for the chatview summary card. The default
+  // `nextLesson` above is "any type", used by the exercise-pager fallback;
+  // the chatview wants a type-matched target so finishing a learning lesson
+  // routes to the next learning lesson, not whatever practice/exam might
+  // sit between them in course order. May be in a different chapter — we
+  // include the chapter slug so the URL builds correctly across chapter
+  // boundaries (the existing exercise-pager link reuses the current
+  // chapter slug and is a known limitation outside this PR's scope).
+  const currentLessonType = getEffectiveLessonType(lesson.type)
+  const nextSameTypeLessonRaw =
+    lessonIndex >= 0
+      ? courseLessons
+          .slice(lessonIndex + 1)
+          .find((l) => getEffectiveLessonType(l.type) === currentLessonType)
+      : undefined
+  const nextSameTypeLesson = nextSameTypeLessonRaw
+    ? {
+        slug: nextSameTypeLessonRaw.slug ?? null,
+        title: nextSameTypeLessonRaw.title ?? null,
+        chapterSlug:
+          typeof nextSameTypeLessonRaw.chapter === 'object' &&
+          nextSameTypeLessonRaw.chapter !== null &&
+          'slug' in nextSameTypeLessonRaw.chapter
+            ? ((nextSameTypeLessonRaw.chapter.slug as string | null | undefined) ?? null)
+            : null,
+      }
+    : null
   // Learning-type position of this lesson within its course (1-based) so the
   // exercise-level tier gate can know whether this is "lesson 1/2/3" (free
   // users get all exercises) vs. "lesson 4+" (free users capped at exercise 3).
@@ -310,6 +337,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
         gradeLevel={course.courseLabel || ''}
         progress={progress}
         nextLesson={nextLesson}
+        nextSameTypeLesson={nextSameTypeLesson}
         prerequisites={
           (lesson as Lesson & { prerequisites?: LessonPrerequisite[] }).prerequisites ?? []
         }

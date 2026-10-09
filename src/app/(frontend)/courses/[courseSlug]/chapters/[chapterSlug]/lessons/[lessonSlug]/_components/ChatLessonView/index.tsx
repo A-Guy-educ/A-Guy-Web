@@ -44,6 +44,16 @@ interface ChatLessonViewProps {
    * ExercisesPager — practice/exam lessons bypass the gate entirely).
    */
   lessonLearningIndex?: number | null
+  /**
+   * Next lesson of the same type (learning/practice/exam) for the summary
+   * card's "next lesson" button. Null when this is the last lesson of its
+   * type in the course.
+   */
+  nextSameTypeLesson?: {
+    slug: string | null
+    title: string | null
+    chapterSlug: string | null
+  } | null
 }
 
 export function ChatLessonView({
@@ -55,6 +65,7 @@ export function ChatLessonView({
   formulaSheet,
   headerSlot,
   lessonLearningIndex = null,
+  nextSameTypeLesson = null,
 }: ChatLessonViewProps) {
   const t = useTranslations('courses')
   // TTS lives here so its mute state can be piped to the workspace's
@@ -107,6 +118,7 @@ export function ChatLessonView({
             mediaMap={mediaMap}
             tts={tts}
             lessonLearningIndex={lessonLearningIndex}
+            nextSameTypeLesson={nextSameTypeLesson}
           />
         </div>
       }

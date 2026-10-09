@@ -60,6 +60,17 @@ interface LessonIntroPageProps {
   gradeLevel?: string
   progress?: LessonProgressSummary
   nextLesson?: Pick<Lesson, 'title' | 'slug'> | null
+  /**
+   * Next lesson of the SAME type (learning / practice / exam). Used by the
+   * chatview end-of-lesson summary card so the student can jump to the next
+   * learning lesson after finishing a learning lesson, instead of landing on
+   * whatever practice/exam row sits between the two.
+   */
+  nextSameTypeLesson?: {
+    slug: string | null
+    title: string | null
+    chapterSlug: string | null
+  } | null
   /** Populated prerequisite lessons with URL info */
   prerequisites?: LessonPrerequisite[]
   isLocaleFallback?: boolean
@@ -98,6 +109,7 @@ export function LessonIntroPage({
   gradeLevel = '',
   progress,
   nextLesson,
+  nextSameTypeLesson,
   prerequisites = [],
   isLocaleFallback = false,
   lessonLearningIndex = null,
@@ -264,6 +276,7 @@ export function LessonIntroPage({
               : undefined
         }
         nextLesson={nextLesson}
+        nextSameTypeLesson={nextSameTypeLesson}
         lessonLearningIndex={lessonLearningIndex}
       />
     )

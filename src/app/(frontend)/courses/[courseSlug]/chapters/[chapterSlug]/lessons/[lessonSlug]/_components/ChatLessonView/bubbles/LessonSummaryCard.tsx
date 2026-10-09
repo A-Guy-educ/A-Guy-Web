@@ -54,6 +54,18 @@ export interface LessonSummaryCopy {
   assessmentBody: string
   reviewCta: (count: number) => string
   finishCta: string
+  /**
+   * Caption rendered above the primary CTA when a next-lesson link exists
+   * (e.g. "השיעור הבא"). Hidden when `nextLessonLabel` is null.
+   */
+  nextLessonCaption: string
+  /**
+   * Primary CTA label when there IS a next lesson of the same type. Shows
+   * the next lesson's title so the student knows exactly where they're
+   * going. Null when this is the last lesson of its type — the card then
+   * uses the plain `finishCta` label.
+   */
+  nextLessonLabel: string | null
   footerNote: string
 }
 
@@ -178,13 +190,24 @@ export function LessonSummaryCard({
           type="button"
           onClick={handleFinish}
           className={cn(
-            'w-full rounded-xl border px-4 py-3 text-body-md font-semibold transition-colors',
+            'w-full rounded-xl border px-4 py-3 text-end transition-colors',
+            // When review is also offered, the finish button is the
+            // secondary CTA. Otherwise, the primary.
             reviewableCount > 0
               ? 'border-border/60 bg-background text-foreground hover:bg-muted'
               : 'border-primary/40 bg-primary/5 text-primary hover:bg-primary/10',
           )}
         >
-          {copy.finishCta}
+          {copy.nextLessonLabel ? (
+            <>
+              <span className="block text-caption text-muted-foreground">
+                {copy.nextLessonCaption}
+              </span>
+              <span className="block text-body-md font-semibold">{copy.nextLessonLabel} ←</span>
+            </>
+          ) : (
+            <span className="text-body-md font-semibold">{copy.finishCta}</span>
+          )}
         </button>
       </div>
 

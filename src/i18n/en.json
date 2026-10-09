@@ -406,6 +406,8 @@
     "chatViewSummaryAssessmentHeading": "Your assessment",
     "chatViewSummaryReviewCta": "Try {count} sections again",
     "chatViewSummaryFinishCta": "Finish lesson",
+    "chatViewSummaryNextLessonCaption": "Next lesson",
+    "chatViewSummaryNextLessonCta": "{title}",
     "chatViewSummaryFooterNote": "These numbers reflect this lesson only.",
     "chatViewSummaryOutcomeTitle": {
       "high-independent": "Excellent! Nearly all of it on your own",
