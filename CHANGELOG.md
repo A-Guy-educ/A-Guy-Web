@@ -4862,6 +4862,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Polish media doodle notebook (resize, color feedback, chat fold icon) ([#1320](https://github.com/A-Guy-educ/A-Guy-Web/pull/1320)) — @aguyshayb
 - fix: Math input toolbar binding, default mode, keyboard layout ([#1319](https://github.com/A-Guy-educ/A-Guy-Web/pull/1319)) — @aguyshayb
 - feat: Doodle notebook and collapsible chat in media tab ([#1318](https://github.com/A-Guy-educ/A-Guy-Web/pull/1318)) — @aguyshayb
 - feat: Inline WYSIWYG math input across chat + answer surfaces ([#1317](https://github.com/A-Guy-educ/A-Guy-Web/pull/1317)) — @aguyshayb
