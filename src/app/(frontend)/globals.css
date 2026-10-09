@@ -524,27 +524,51 @@ math-field:focus-within {
   outline-offset: 2px;
 }
 
-/* Mixed-mode math input: when the <math-field> IS the chat/answer typing
-   surface (not a stand-alone composer popup), strip the framed look so it
-   blends into the parent pill / textbox container. */
-.mixed-math-input math-field {
-  border: none;
-  background: transparent;
-  padding: 0;
-  min-height: 0;
-  font-size: 1em;
-  width: 100%;
-}
-
-.mixed-math-input math-field:focus-within {
-  outline: none;
-}
-
+/* Mixed-mode math input (TipTap-based): the ProseMirror contenteditable is
+   the typing surface. Strip default styling so it blends into existing pill
+   / textbox containers at each call site. */
 .mixed-math-input {
   display: flex;
   align-items: center;
   width: 100%;
   min-width: 0;
+}
+
+.mixed-math-input .ProseMirror {
+  flex: 1;
+  min-width: 0;
+  min-height: 1.5em;
+  outline: none;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.mixed-math-input .ProseMirror p {
+  margin: 0;
+}
+
+/* Placeholder: TipTap's placeholder extension emits data-placeholder on
+   empty paragraphs. */
+.mixed-math-input .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: hsl(var(--muted-foreground));
+  float: inline-start;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Inline math chip visuals. The KaTeX inside uses katex.css loaded globally. */
+.math-chip .katex {
+  font-size: 1em;
+}
+
+.math-chip-editor math-field {
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 0.25rem 0.5rem;
+  background: hsl(var(--background));
+  min-height: 2rem;
+  min-width: 160px;
 }
 
 /* Exercise View Animations */

@@ -15,7 +15,6 @@ import { MixedMathInput, type MixedMathInputRef } from '@/ui/web/shared/MathInpu
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { AnimatePresence, motion } from 'framer-motion'
 import { FunctionSquare, Send } from 'lucide-react'
-import type { MathfieldElement } from 'mathlive'
 import { useCallback, useMemo, useRef, useState } from 'react'
 
 interface ChatFreeResponseBubbleProps {
@@ -120,8 +119,12 @@ export function ChatFreeResponseBubble({
   const [value, setValue] = useState(initialValue)
   const [status, setStatus] = useState<SubmitStatus>(initialStatus)
   const [toolbarOpen, setToolbarOpen] = useState(false)
-  const [mathfield, setMathfield] = useState<MathfieldElement | null>(null)
   const mathInputRef = useRef<MixedMathInputRef>(null)
+  const formRef = useRef<HTMLFormElement>(null)
+
+  const handleInsertMath = useCallback((latex: string) => {
+    mathInputRef.current?.insert(latex)
+  }, [])
 
   const acceptedAnswers = useMemo(() => block.answer.acceptedAnswers ?? [], [block.answer])
   const canSubmit = acceptedAnswers.length > 0
@@ -219,8 +222,7 @@ export function ChatFreeResponseBubble({
   }
 
   const triggerSubmit = useCallback(() => {
-    const form = mathInputRef.current?.element?.closest('form')
-    form?.requestSubmit()
+    formRef.current?.requestSubmit()
   }, [])
 
   return (
@@ -236,7 +238,12 @@ export function ChatFreeResponseBubble({
       </div>
 
       <div className="relative mt-2" data-math-controls>
-        <form onSubmit={handleSubmit} className="flex items-center gap-content-gap-xs" dir="rtl">
+        <form
+          ref={formRef}
+          onSubmit={handleSubmit}
+          className="flex items-center gap-content-gap-xs"
+          dir="rtl"
+        >
           <div
             className={cn(
               'flex-1 rounded-xl border border-input bg-background px-4 py-2.5',
@@ -249,7 +256,6 @@ export function ChatFreeResponseBubble({
               value={value}
               onChange={setValue}
               onEnterKey={triggerSubmit}
-              onReady={setMathfield}
               disabled={isDisabled}
               placeholder={placeholder}
             />
@@ -296,7 +302,7 @@ export function ChatFreeResponseBubble({
               transition={{ duration: 0.18 }}
               className="absolute top-full inset-x-0 mt-2 z-20 rounded-lg border border-border bg-card shadow-card p-2"
             >
-              <MathFieldToolbar mathfield={mathfield} />
+              <MathFieldToolbar onInsert={handleInsertMath} />
             </motion.div>
           )}
         </AnimatePresence>

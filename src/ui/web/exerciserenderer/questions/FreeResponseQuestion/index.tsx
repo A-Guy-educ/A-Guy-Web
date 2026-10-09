@@ -2,18 +2,17 @@
  * Free Response Question Component — WYSIWYG answer input.
  *
  * Students type a sentence or two with math atoms (fractions, powers, roots)
- * rendered inline as they're inserted. Formula button toggles a quick-insert
- * toolbar that calls `.insert()` on the field; no separate composer popup.
+ * rendered inline as atomic chips. Formula button toggles a quick-insert
+ * toolbar that creates a chip via `mathInputRef.current.insert(latex)`.
  */
 
 'use client'
 
-import React, { useRef, useState } from 'react'
+import React, { useCallback, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MathFieldToolbar } from '@/ui/web/shared/MathInput/MathFieldToolbar'
 import { MixedMathInput, type MixedMathInputRef } from '@/ui/web/shared/MathInput/MixedMathInput'
 import { FunctionSquare } from 'lucide-react'
-import type { MathfieldElement } from 'mathlive'
 import type { QuestionFreeResponseBlock, UserAnswer, CheckResult, RichTextBlock } from '../../types'
 import { RichTextRenderer } from '../../blocks/RichTextRenderer'
 
@@ -39,7 +38,6 @@ export function FreeResponseQuestion({
   const value = answer?.type === 'free_response' ? answer.value : ''
   const mathInputRef = useRef<MixedMathInputRef>(null)
   const [toolbarOpen, setToolbarOpen] = useState(false)
-  const [mathfield, setMathfield] = useState<MathfieldElement | null>(null)
 
   const promptBlock: RichTextBlock = {
     ...question.prompt,
@@ -50,6 +48,10 @@ export function FreeResponseQuestion({
   const handleChange = (markdown: string) => {
     onChange({ type: 'free_response', value: markdown })
   }
+
+  const handleInsertMath = useCallback((latex: string) => {
+    mathInputRef.current?.insert(latex)
+  }, [])
 
   return (
     <div className="flex flex-col gap-3">
@@ -69,7 +71,6 @@ export function FreeResponseQuestion({
             ref={mathInputRef}
             value={value}
             onChange={handleChange}
-            onReady={setMathfield}
             disabled={disabled}
             placeholder={t('enterAnswer')}
           />
@@ -95,7 +96,7 @@ export function FreeResponseQuestion({
               transition={{ duration: 0.2 }}
               className="absolute top-full mt-2 start-0 end-0 z-20 rounded-lg border border-border bg-card shadow-card p-2"
             >
-              <MathFieldToolbar mathfield={mathfield} />
+              <MathFieldToolbar onInsert={handleInsertMath} />
             </motion.div>
           )}
         </AnimatePresence>
