@@ -66,7 +66,7 @@ export function GivenDataFloating({
         className={cn(
           'pointer-events-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full',
           'bg-warning text-warning-foreground border border-warning shadow-elevation-1',
-          'text-body-xs font-bold scale-75 origin-top active:scale-[0.7125] transition-all',
+          'text-body-xs font-bold active:scale-95 transition-all',
         )}
       >
         <Shapes className="w-3.5 h-3.5" />
@@ -81,7 +81,7 @@ export function GivenDataFloating({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.18 }}
-            className="absolute top-11 inset-x-3 max-w-2xl mx-auto pointer-events-auto"
+            className="absolute top-11 inset-x-3 max-w-2xl mx-auto pointer-events-auto scale-75 origin-top"
             role="dialog"
             aria-label={title}
           >
