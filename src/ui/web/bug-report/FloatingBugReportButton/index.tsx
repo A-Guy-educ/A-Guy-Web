@@ -15,7 +15,7 @@
 
 'use client'
 
-import { Bug, Send } from 'lucide-react'
+import { Bug, Mail } from 'lucide-react'
 
 import { useTranslations } from '@/ui/web/providers/I18n'
 
@@ -37,7 +37,7 @@ export function FloatingBugReportButton({ onClick }: FloatingBugReportButtonProp
       title={tooltip}
       data-testid="floating-bug-report-button"
     >
-      <Send className="w-4 h-4 -scale-x-100" />
+      <Mail className="w-4 h-4" />
       <span className="text-destructive-foreground/60 text-body-sm">/</span>
       <Bug className="w-4 h-4" />
     </button>
