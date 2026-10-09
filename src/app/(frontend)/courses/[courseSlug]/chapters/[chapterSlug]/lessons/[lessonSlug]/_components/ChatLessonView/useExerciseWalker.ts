@@ -239,6 +239,11 @@ export function useExerciseWalker({
   const [mode, setMode] = useState<'normal' | 'review'>('normal')
   const [reviewSteps, setReviewSteps] = useState<WalkerStep[]>([])
   const [reviewCursor, setReviewCursor] = useState(0)
+  // Latches true the first time startReview fires. The lesson-summary card
+  // (Task 9) uses this to decide whether to offer another review pass —
+  // after the student has already been through review mode once, offering
+  // it a second time from the summary card would just loop.
+  const [hasReviewed, setHasReviewed] = useState(false)
 
   // How many exercises were trimmed off the end by the caller's tier gate.
   // Positive → terminal entry is `tier-lock`; otherwise `lesson-complete`.
@@ -393,6 +398,7 @@ export function useExerciseWalker({
     if (isComplete) return
     const eligible = steps.filter((s) => isSectionEligibleForReview(s.exercise, s.group))
     if (eligible.length === 0) return
+    setHasReviewed(true)
     setMode('review')
     setReviewSteps(eligible)
     setReviewCursor(0)
@@ -489,6 +495,8 @@ export function useExerciseWalker({
     isComplete,
     /** True while the walker is iterating the Task-5 review slice. */
     isReviewing: mode === 'review',
+    /** Latches true once startReview has been called at least once. */
+    hasReviewed,
     advance,
     advanceToNextExercise,
     startReview,
