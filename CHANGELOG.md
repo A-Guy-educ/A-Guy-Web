@@ -4862,6 +4862,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Doodle notebook and collapsible chat in media tab ([#1318](https://github.com/A-Guy-educ/A-Guy-Web/pull/1318)) — @aguyshayb
 - feat: Inline WYSIWYG math input across chat + answer surfaces ([#1317](https://github.com/A-Guy-educ/A-Guy-Web/pull/1317)) — @aguyshayb
 - fix: Narrow course-composer search haystack ([#1316](https://github.com/A-Guy-educ/A-Guy-Web/pull/1316)) — @aguyshayb
 - chore: Resize tier token caps using Gemini 2.5 Flash pricing ([#1315](https://github.com/A-Guy-educ/A-Guy-Web/pull/1315)) — @aguyshayb
