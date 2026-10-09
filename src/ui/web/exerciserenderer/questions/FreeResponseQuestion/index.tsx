@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { MathFieldToolbar } from '@/ui/web/shared/MathInput/MathFieldToolbar'
 import { MixedMathInput, type MixedMathInputRef } from '@/ui/web/shared/MathInput/MixedMathInput'
 import { FunctionSquare } from 'lucide-react'
+import type { MathfieldElement } from 'mathlive'
 import type { QuestionFreeResponseBlock, UserAnswer, CheckResult, RichTextBlock } from '../../types'
 import { RichTextRenderer } from '../../blocks/RichTextRenderer'
 
@@ -38,6 +39,7 @@ export function FreeResponseQuestion({
   const value = answer?.type === 'free_response' ? answer.value : ''
   const mathInputRef = useRef<MixedMathInputRef>(null)
   const [toolbarOpen, setToolbarOpen] = useState(false)
+  const [mathfield, setMathfield] = useState<MathfieldElement | null>(null)
 
   const promptBlock: RichTextBlock = {
     ...question.prompt,
@@ -67,6 +69,7 @@ export function FreeResponseQuestion({
             ref={mathInputRef}
             value={value}
             onChange={handleChange}
+            onReady={setMathfield}
             disabled={disabled}
             placeholder={t('enterAnswer')}
           />
@@ -92,7 +95,7 @@ export function FreeResponseQuestion({
               transition={{ duration: 0.2 }}
               className="absolute top-full mt-2 start-0 end-0 z-20 rounded-lg border border-border bg-card shadow-card p-2"
             >
-              <MathFieldToolbar mathfield={mathInputRef.current?.element ?? null} />
+              <MathFieldToolbar mathfield={mathfield} />
             </motion.div>
           )}
         </AnimatePresence>

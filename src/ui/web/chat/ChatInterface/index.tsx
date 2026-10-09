@@ -33,6 +33,7 @@ import { formatMessageTime } from '../utils/formatMessageTime'
 import { MathFieldToolbar } from '@/ui/web/shared/MathInput/MathFieldToolbar'
 import { MixedMathInput, type MixedMathInputRef } from '@/ui/web/shared/MathInput/MixedMathInput'
 import { FunctionSquare } from 'lucide-react'
+import type { MathfieldElement } from 'mathlive'
 import { FormulaSheetButton } from '@/ui/web/shared/FormulaSheetViewer/FormulaSheetButton'
 import { FormulaSheetContent } from '@/ui/web/shared/FormulaSheetViewer/FormulaSheetContent'
 
@@ -343,6 +344,7 @@ export function ChatInterface({
 
   const [toolbarOpen, setToolbarOpen] = useState(false)
   const [formulaSheetOpen, setFormulaSheetOpen] = useState(false)
+  const [mathfield, setMathfield] = useState<MathfieldElement | null>(null)
   const mathInputRef = useRef<MixedMathInputRef>(null)
 
   const handleFormSubmit = (e: React.FormEvent) => {
@@ -619,7 +621,7 @@ export function ChatInterface({
         {/* Math quick-insert toolbar */}
         {showMathTools && toolbarOpen && (
           <div className="mb-2.5 max-w-chat mx-auto rounded-lg border border-border bg-card shadow-card p-2">
-            <MathFieldToolbar mathfield={mathInputRef.current?.element ?? null} />
+            <MathFieldToolbar mathfield={mathfield} />
           </div>
         )}
 
@@ -725,6 +727,7 @@ export function ChatInterface({
               onEnterKey={triggerSubmit}
               onReady={(el) => {
                 inputRef.current = el
+                setMathfield(el)
               }}
               disabled={isLoading}
               placeholder={t('chatInputPlaceholder')}

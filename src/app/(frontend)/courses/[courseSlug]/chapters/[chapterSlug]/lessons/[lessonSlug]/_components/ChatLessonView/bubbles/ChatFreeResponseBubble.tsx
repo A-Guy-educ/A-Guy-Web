@@ -15,6 +15,7 @@ import { MixedMathInput, type MixedMathInputRef } from '@/ui/web/shared/MathInpu
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { AnimatePresence, motion } from 'framer-motion'
 import { FunctionSquare, Send } from 'lucide-react'
+import type { MathfieldElement } from 'mathlive'
 import { useCallback, useMemo, useRef, useState } from 'react'
 
 interface ChatFreeResponseBubbleProps {
@@ -119,6 +120,7 @@ export function ChatFreeResponseBubble({
   const [value, setValue] = useState(initialValue)
   const [status, setStatus] = useState<SubmitStatus>(initialStatus)
   const [toolbarOpen, setToolbarOpen] = useState(false)
+  const [mathfield, setMathfield] = useState<MathfieldElement | null>(null)
   const mathInputRef = useRef<MixedMathInputRef>(null)
 
   const acceptedAnswers = useMemo(() => block.answer.acceptedAnswers ?? [], [block.answer])
@@ -247,6 +249,7 @@ export function ChatFreeResponseBubble({
               value={value}
               onChange={setValue}
               onEnterKey={triggerSubmit}
+              onReady={setMathfield}
               disabled={isDisabled}
               placeholder={placeholder}
             />
@@ -293,7 +296,7 @@ export function ChatFreeResponseBubble({
               transition={{ duration: 0.18 }}
               className="absolute top-full inset-x-0 mt-2 z-20 rounded-lg border border-border bg-card shadow-card p-2"
             >
-              <MathFieldToolbar mathfield={mathInputRef.current?.element ?? null} />
+              <MathFieldToolbar mathfield={mathfield} />
             </motion.div>
           )}
         </AnimatePresence>

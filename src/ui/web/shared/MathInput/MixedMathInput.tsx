@@ -11,7 +11,7 @@
 
 'use client'
 
-import React, { useEffect, useRef, forwardRef, useImperativeHandle } from 'react'
+import React, { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react'
 import { cn } from '@/infra/utils/ui'
 import type { MathfieldElement } from 'mathlive'
 import { markdownToLatex, latexToMarkdown } from './mathMarkdown'
@@ -33,6 +33,21 @@ export interface MixedMathInputRef {
   element: MathfieldElement | null
   focus: () => void
   insert: (latex: string) => void
+}
+
+// Narrow the full MathLive layout set down to what students actually need in
+// chat/answer surfaces. The default layout includes matrices, sums, products,
+// and calculus operators — overwhelming for the audience here. We only pin
+// this once per browser session; subsequent mathfields inherit the setting.
+let virtualKeyboardConfigured = false
+function configureVirtualKeyboardOnce() {
+  if (virtualKeyboardConfigured) return
+  if (typeof window === 'undefined') return
+  const vk = (window as unknown as { mathVirtualKeyboard?: { layouts: unknown } })
+    .mathVirtualKeyboard
+  if (!vk) return
+  vk.layouts = ['numeric', 'alphabetic', 'greek']
+  virtualKeyboardConfigured = true
 }
 
 export const MixedMathInput = forwardRef<MixedMathInputRef, MixedMathInputProps>(
@@ -57,15 +72,20 @@ export const MixedMathInput = forwardRef<MixedMathInputRef, MixedMathInputProps>
     const handlers = useRef({ onChange, onEnterKey, onReady, onFocus, onBlur })
     handlers.current = { onChange, onEnterKey, onReady, onFocus, onBlur }
 
+    // Also expose the live mathfield via state so the imperative handle
+    // (and anyone consuming `.element`) sees the real element once the
+    // dynamic MathLive import resolves — not the `null` captured at mount.
+    const [mathfield, setMathfield] = useState<MathfieldElement | null>(null)
+
     useImperativeHandle(
       ref,
       () => ({
-        element: mfeRef.current,
-        focus: () => mfeRef.current?.focus(),
+        element: mathfield,
+        focus: () => mathfield?.focus(),
         insert: (latex: string) =>
-          mfeRef.current?.insert(latex, { selectionMode: 'placeholder', focus: true }),
+          mathfield?.insert(latex, { selectionMode: 'placeholder', focus: true }),
       }),
-      [],
+      [mathfield],
     )
 
     useEffect(() => {
@@ -108,6 +128,21 @@ export const MixedMathInput = forwardRef<MixedMathInputRef, MixedMathInputProps>
 
         container.appendChild(mfe)
         mfeRef.current = mfe
+
+        // Start empty fields in text mode so the first Hebrew/English word
+        // isn't swallowed into math mode (default) and rendered as italic
+        // variables. Smart-mode will still flip to math when the student
+        // types digits or math-ish patterns.
+        if (!value) {
+          try {
+            mfe.mode = 'text'
+          } catch {
+            /* field not fully ready; smart-mode will catch up on first keystroke */
+          }
+        }
+
+        configureVirtualKeyboardOnce()
+        setMathfield(mfe)
         handlers.current.onReady?.(mfe)
       }
 
