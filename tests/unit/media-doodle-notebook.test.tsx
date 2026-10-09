@@ -58,28 +58,28 @@ function renderNotebook() {
 }
 
 describe('MediaDoodleNotebook', () => {
-  it('defaults to pen mode (renders the drawing canvas)', () => {
+  it('defaults to text mode (renders the textarea)', () => {
     const { container } = renderNotebook()
     expect(screen.getByRole('dialog', { name: 'Scratch' })).toBeTruthy()
-    expect(container.querySelector('canvas')).not.toBeNull()
-    expect(container.querySelector('textarea')).toBeNull()
-  })
-
-  it('swaps the canvas for a textarea when switching to text mode', () => {
-    const { container } = renderNotebook()
-    fireEvent.click(screen.getByRole('button', { name: 'Text' }))
-    expect(container.querySelector('canvas')).toBeNull()
     const textarea = container.querySelector('textarea')
     expect(textarea).not.toBeNull()
     expect(textarea?.placeholder).toContain('write here')
+    expect(container.querySelector('canvas')).toBeNull()
   })
 
-  it('swaps back to the canvas when returning to pen mode', () => {
+  it('swaps the textarea for the canvas when switching to pen mode', () => {
     const { container } = renderNotebook()
-    fireEvent.click(screen.getByRole('button', { name: 'Text' }))
-    expect(container.querySelector('canvas')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Pen' }))
+    expect(container.querySelector('textarea')).toBeNull()
+    expect(container.querySelector('canvas')).not.toBeNull()
+  })
+
+  it('swaps back to the textarea when returning to text mode', () => {
+    const { container } = renderNotebook()
     fireEvent.click(screen.getByRole('button', { name: 'Pen' }))
     expect(container.querySelector('canvas')).not.toBeNull()
-    expect(container.querySelector('textarea')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Text' }))
+    expect(container.querySelector('textarea')).not.toBeNull()
+    expect(container.querySelector('canvas')).toBeNull()
   })
 })

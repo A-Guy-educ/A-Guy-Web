@@ -50,7 +50,7 @@ export function MediaDoodleNotebook({ containerRef }: MediaDoodleNotebookProps) 
   const [pos, setPos] = useState<Position>({ x: MIN_MARGIN, y: 180 })
   const [size, setSize] = useState<Size>(DEFAULT_SIZE)
   const [isRTL, setIsRTL] = useState(false)
-  const [mode, setMode] = useState<NotebookMode>('pen')
+  const [mode, setMode] = useState<NotebookMode>('text')
   const panelRef = useRef<HTMLDivElement>(null)
   const dragStateRef = useRef<{
     pointerId: number
