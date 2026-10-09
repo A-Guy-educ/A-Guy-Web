@@ -343,6 +343,16 @@
     "noLessons": "אין שיעורים זמינים לפרק זה.",
     "noExercises": "אין תרגילים זמינים לשיעור זה.",
     "noPDF": "תוכן PDF אינו זמין לשיעור זה.",
+    "collapseChat": "סגור צ'אט",
+    "expandChat": "פתח צ'אט",
+    "doodleNotebook": {
+      "title": "טיוטה וחישובים",
+      "collapse": "סגור מחברת",
+      "expand": "פתח מחברת",
+      "clear": "נקה",
+      "eraser": "מחק",
+      "color": "צבע"
+    },
     "visibleRenderersLabel": "רנדררים גלויים",
     "visibleRenderersDescription": "בחר אילו כרטיסיות (מדיה, PDF, אינטראקטיבי) יוצגו לתלמידים בשיעור זה. כרטיסיית מדיה מופיעה רק כאשר לשיעור יש קבצים מצורפים.",
     "lessonViewMode": "מצב תצוגת שיעור",

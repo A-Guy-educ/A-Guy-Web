@@ -12,13 +12,17 @@
  * Supports URL deep-linking via ?file=N query parameter (1-indexed).
  */
 
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useState, useCallback, useEffect, useRef } from 'react'
 import type { FormulaSheet, Media } from '@/infra/types/content'
 import { ChatInterface } from '@/ui/web/chat'
 import { Media as MediaComponent } from '@/ui/web/media'
 import { ExerciseWorkspace } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseWorkspace'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useMediaQuery } from '@/client/hooks/useMediaQuery'
+import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
+import { isRTL } from '@/i18n/config'
+import { ChevronLeft, ChevronRight, MessageCircle, X } from 'lucide-react'
 import { cn } from '@/infra/utils/ui'
+import { MediaDoodleNotebook } from '../MediaDoodleNotebook'
 
 interface MediaTabContentProps {
   lessonTitle: string
@@ -31,6 +35,48 @@ interface MediaTabContentProps {
   formulaSheet?: FormulaSheet | null
 }
 
+// Chat content shim: ExerciseWorkspace / SplitPaneLayout inject mobile
+// props (`displayMode`, `isMobile`, `viewMode`, `onModeToggle`,
+// `onChatInteraction`) via `React.cloneElement` on whatever we pass as
+// `chatContent`. Wrapping ChatInterface in a plain <div> would swallow
+// those props and break mobile chat behavior, so this shim re-forwards
+// anything that isn't a UI concern of this wrapper to ChatInterface.
+interface ChatPaneWithCollapseProps {
+  showCollapse: boolean
+  onCollapse: () => void
+  rtl: boolean
+  collapseLabel: string
+  children: React.ReactElement
+}
+
+function ChatPaneWithCollapse({
+  showCollapse,
+  onCollapse,
+  rtl,
+  collapseLabel,
+  children,
+  ...forwarded
+}: ChatPaneWithCollapseProps & Record<string, unknown>) {
+  return (
+    <div className="relative h-full">
+      {showCollapse && (
+        <button
+          type="button"
+          onClick={onCollapse}
+          aria-label={collapseLabel}
+          className={cn(
+            'absolute top-3 z-30 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card/90 text-muted-foreground shadow-elevation-2 backdrop-blur hover:text-foreground hover:bg-muted transition-colors duration-normal',
+            rtl ? 'right-3' : 'left-3',
+          )}
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
+      {React.cloneElement(children, forwarded)}
+    </div>
+  )
+}
+
 export function MediaTabContent({
   lessonTitle,
   backUrl,
@@ -41,9 +87,18 @@ export function MediaTabContent({
   chatLessonId,
   formulaSheet,
 }: MediaTabContentProps) {
+  const t = useTranslations('courses')
+  const locale = useLocale()
+  const rtl = isRTL(locale as 'en' | 'he')
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
   const [currentFileIndex, setCurrentFileIndex] = useState(0)
   const [touchStart, setTouchStart] = useState<number | null>(null)
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
+  // Chat collapse is desktop-only — on mobile the SplitPaneLayout already
+  // owns the exercise/chat view-mode toggle, and collapsing on top of that
+  // would double-up affordances.
+  const [isChatCollapsed, setIsChatCollapsed] = useState(false)
+  const primaryAreaRef = useRef<HTMLDivElement>(null)
 
   // Deep-link detection: read ?file=N from URL on mount
   useEffect(() => {
@@ -116,7 +171,7 @@ export function MediaTabContent({
       exerciseTitle={lessonTitle}
       backUrl={backUrl}
       primaryContent={
-        <div className="flex h-full flex-col min-h-0">
+        <div ref={primaryAreaRef} className="relative flex h-full flex-col min-h-0">
           {headerSlot}
           <div className="flex-1 overflow-y-auto min-h-0">
             <div
@@ -185,15 +240,39 @@ export function MediaTabContent({
               </div>
             </div>
           )}
+          <MediaDoodleNotebook containerRef={primaryAreaRef} />
+          {isDesktop && isChatCollapsed && (
+            <button
+              type="button"
+              onClick={() => setIsChatCollapsed(false)}
+              aria-label={t('expandChat')}
+              className={cn(
+                'absolute top-4 z-30 flex items-center gap-1.5 px-3 py-2 rounded-full bg-primary text-primary-foreground shadow-elevation-3 hover:scale-105 transition-transform duration-normal',
+                rtl ? 'left-4' : 'right-4',
+              )}
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span className="text-body-xs font-medium">{t('expandChat')}</span>
+            </button>
+          )}
         </div>
       }
       chatContent={
-        <ChatInterface
-          lessonId={chatLessonId ?? lessonId}
-          translationNamespace="courses"
-          showMathTools={true}
-          formulaSheet={formulaSheet}
-        />
+        isDesktop && isChatCollapsed ? undefined : (
+          <ChatPaneWithCollapse
+            showCollapse={isDesktop}
+            onCollapse={() => setIsChatCollapsed(true)}
+            rtl={rtl}
+            collapseLabel={t('collapseChat')}
+          >
+            <ChatInterface
+              lessonId={chatLessonId ?? lessonId}
+              translationNamespace="courses"
+              showMathTools={true}
+              formulaSheet={formulaSheet}
+            />
+          </ChatPaneWithCollapse>
+        )
       }
     />
   )
