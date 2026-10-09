@@ -169,6 +169,47 @@ describe('useExerciseWalker — Task 5 review mode', () => {
     expect(result.current.isComplete).toBe(true)
   })
 
+  it('startReview works AFTER lesson-complete (summary card redo path)', () => {
+    // The summary card is rendered AFTER the walker fires lesson-complete,
+    // so by the time its "לחזור ל-N" button is tapped `isComplete` is true.
+    // Earlier startReview guarded on `isComplete` and silently returned,
+    // leaving the student clicking a dead button. Fix: startReview now
+    // flips isComplete back to false and emits the first review step.
+    const exercises = [makeExercise('ex1', 'תרגיל 1', 2)]
+    markBlockWrong('ex1', 'ex1-s0-q')
+
+    const track = trackEmissions()
+    const { result } = renderHook(() =>
+      useExerciseWalker({ exercises, append: track.append, isHebrew: true }),
+    )
+
+    // Walk to lesson-complete via the review-offer + completeLesson path.
+    act(() => {
+      result.current.advance()
+    })
+    act(() => {
+      result.current.advance()
+    })
+    act(() => {
+      result.current.completeLesson()
+    })
+    expect(result.current.isComplete).toBe(true)
+    expect(track.kinds()).toContain('lesson-complete')
+
+    // Student taps the summary card's redo button → walker should re-enter
+    // review mode and emit the eligible section's review bubble.
+    act(() => {
+      result.current.startReview()
+    })
+    expect(result.current.isReviewing).toBe(true)
+    expect(result.current.isComplete).toBe(false)
+    const reviewSectionEntries = track.entries.filter(
+      (e) => e.kind === 'exercise-section' && e.key.startsWith('review-sec-'),
+    )
+    expect(reviewSectionEntries).toHaveLength(1)
+    expect(reviewSectionEntries[0]!.key).toBe('review-sec-ex1-0')
+  })
+
   it('advanceToNextExercise on the LAST exercise also checks review eligibility', () => {
     // Earlier the "skip exercise" chip on the final exercise bypassed the
     // review check and fired lesson-complete immediately, so a student who

@@ -1,6 +1,8 @@
 'use client'
 
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
+import { useRouterWithLoading } from '@/infra/loading/hooks/useRouterWithLoading'
+import { useParams } from 'next/navigation'
 import { canAccessLearningExercise, getUserTierSlug } from '@/lib/tiers'
 import type { Exercise, Media } from '@/infra/types/content'
 import type { ContentBlock } from '@/infra/types/exercise'
@@ -396,14 +398,15 @@ function ActiveChat({
     () => getUserTierSlug(user as { currentTier?: string | null } | null),
     [user],
   )
-  const summaryStats = useMemo<LessonStats>(
-    () => computeLessonStats(cappedExercises),
-    [cappedExercises],
-  )
-  const summaryOutcome = useMemo<LessonOutcome>(
-    () => classifyLessonOutcome(summaryStats),
-    [summaryStats],
-  )
+  // Stats + reviewable-count read directly from localStorage per render.
+  // Previously these were useMemo'd on `[cappedExercises]` — a stable dep,
+  // so the memos ran ONCE at mount (when nothing was answered yet) and
+  // never again, bottom-lining every summary card at `0/N alone`. Dropping
+  // the memo trades ~N trivial localStorage reads per render for correct
+  // counts; the component only renders at lesson-end + a few review-mode
+  // boundaries, so the cost is negligible.
+  const summaryStats: LessonStats = computeLessonStats(cappedExercises)
+  const summaryOutcome: LessonOutcome = classifyLessonOutcome(summaryStats)
   const summaryElapsedMinutes = useMemo(() => {
     const started = getLessonStartedAt()
     const diffMs = Math.max(0, Date.now() - started)
@@ -413,16 +416,15 @@ function ActiveChat({
   // Suppress the review CTA on the summary card after the student has
   // already been through review mode once — otherwise the button would
   // loop them straight back into the same slice.
-  const summaryReviewableCount = useMemo(() => {
-    if (walker.hasReviewed) return 0
-    return cappedExercises.reduce((acc, exercise) => {
-      const groups = getExerciseBlockGroups(exercise)
-      for (const group of groups) {
-        if (isSectionEligibleForReview(exercise, group)) acc += 1
-      }
-      return acc
-    }, 0)
-  }, [cappedExercises, walker.hasReviewed])
+  const summaryReviewableCount = walker.hasReviewed
+    ? 0
+    : cappedExercises.reduce((acc, exercise) => {
+        const groups = getExerciseBlockGroups(exercise)
+        for (const group of groups) {
+          if (isSectionEligibleForReview(exercise, group)) acc += 1
+        }
+        return acc
+      }, 0)
 
   const summaryCopy = useMemo<LessonSummaryCopy>(() => {
     const title = t(`chatViewSummaryOutcomeTitle.${summaryOutcome}`)
@@ -456,14 +458,17 @@ function ActiveChat({
     }
   }, [summaryOutcome, t])
 
-  // Finish button on the summary card. There's no "next lesson" route in
-  // the runner's scope, so for now this just acts as an acknowledgment —
-  // the lesson stays complete and the student uses the top nav to leave.
-  // A follow-up could wire this to the course's `nextLessonHref` once that
-  // metadata reaches the runner.
+  // Finish button on the summary card routes back to the course home. The
+  // runner isn't given the courseSlug as a prop (the lesson page scoped
+  // this component to its own tree), so we read it off the dynamic route
+  // via `useParams`. Falls back to `/study` when the slug is somehow
+  // missing (routing invariants shouldn't let this happen; defensive).
+  const params = useParams<{ courseSlug?: string }>()
+  const router = useRouterWithLoading()
   const handleSummaryFinish = useCallback(() => {
-    // no-op placeholder — the card dismisses itself on tap.
-  }, [])
+    const slug = typeof params?.courseSlug === 'string' ? params.courseSlug : null
+    router.push(slug ? `/courses/${slug}` : '/study')
+  }, [params, router])
 
   const quickActionLabels = useMemo(
     () => ({
