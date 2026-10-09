@@ -395,15 +395,23 @@ export function useExerciseWalker({
    * a stray tap safe.
    */
   const startReview = useCallback(() => {
-    if (isComplete) return
     const eligible = steps.filter((s) => isSectionEligibleForReview(s.exercise, s.group))
     if (eligible.length === 0) return
+    // Allowed from BOTH mid-stream (review-offer card after the final section)
+    // AND post-complete (summary card after the lesson wrapped). The latter
+    // was broken when this guarded on `isComplete` — the summary card is
+    // emitted AFTER the lesson-complete terminator, so by the time the
+    // student taps "לחזור ל-N סעיפים" we're already complete and the
+    // early-return killed the handoff. Flipping isComplete back here is
+    // deliberate: the walker re-enters the lesson for a review pass and
+    // will fire its terminator again on the review slice's end.
+    setIsComplete(false)
     setHasReviewed(true)
     setMode('review')
     setReviewSteps(eligible)
     setReviewCursor(0)
     emitReviewStep(0, eligible)
-  }, [emitReviewStep, isComplete, steps])
+  }, [emitReviewStep, steps])
 
   /**
    * "סיום" path from the review offer card — skip the review and fire the
