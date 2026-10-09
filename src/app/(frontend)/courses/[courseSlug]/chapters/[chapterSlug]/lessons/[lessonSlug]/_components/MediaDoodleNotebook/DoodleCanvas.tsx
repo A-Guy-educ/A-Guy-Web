@@ -146,27 +146,38 @@ export function DoodleCanvas({ className }: DoodleCanvasProps) {
   return (
     <div className={cn('flex flex-col min-h-0 h-full', className)}>
       <div className="flex items-center justify-between gap-content-gap-xs px-3 py-2 border-b border-border/60 bg-muted/40 shrink-0">
-        <div className="flex gap-content-gap-xs" dir="ltr">
-          {penColors.map((c) => (
-            <button
-              key={c}
-              type="button"
-              onClick={() => pickColor(c)}
-              className={cn(
-                'w-5 h-5 rounded-full border transition-transform hover:scale-110',
-                selectedColor === c && !isErasing ? 'border-foreground border-2' : 'border-border',
-              )}
-              style={{ backgroundColor: c }}
-              aria-label={`${t('color')} ${c}`}
-            />
-          ))}
+        <div className="flex items-center gap-content-gap-xs" dir="ltr">
+          {penColors.map((c) => {
+            const isActive = selectedColor === c && !isErasing
+            return (
+              <button
+                key={c}
+                type="button"
+                onClick={() => pickColor(c)}
+                title={`${t('color')} ${c}`}
+                aria-label={`${t('color')} ${c}`}
+                aria-pressed={isActive}
+                className={cn(
+                  'relative w-6 h-6 rounded-full border transition-all hover:scale-110',
+                  isActive
+                    ? 'ring-2 ring-offset-2 ring-offset-background ring-foreground border-transparent scale-110'
+                    : 'border-border/60',
+                )}
+                style={{ backgroundColor: c }}
+              />
+            )
+          })}
           <button
             type="button"
             onClick={() => setIsErasing(true)}
+            title={t('eraser')}
             aria-label={t('eraser')}
+            aria-pressed={isErasing}
             className={cn(
-              'w-5 h-5 rounded-full border flex items-center justify-center transition-transform hover:scale-110 bg-background',
-              isErasing ? 'border-foreground border-2' : 'border-border',
+              'w-6 h-6 rounded-full border flex items-center justify-center transition-all hover:scale-110 bg-background',
+              isErasing
+                ? 'ring-2 ring-offset-2 ring-offset-background ring-foreground border-transparent scale-110'
+                : 'border-border/60',
             )}
           >
             <Eraser className="w-3 h-3" />
