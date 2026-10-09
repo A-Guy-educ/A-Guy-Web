@@ -4862,6 +4862,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Chatview chat styles, contact-us tab, smaller facts pill ([#1327](https://github.com/A-Guy-educ/A-Guy-Web/pull/1327)) — @aguyshayb
 - fix: Chatview summary card — stale stats, dead review button, finish route ([#1326](https://github.com/A-Guy-educ/A-Guy-Web/pull/1326)) — @aguyshayb
 - fix: Default media doodle notebook to text mode ([#1325](https://github.com/A-Guy-educ/A-Guy-Web/pull/1325)) — @aguyshayb
 - feat: Hierarchical math picker, RTL fix for math chips ([#1324](https://github.com/A-Guy-educ/A-Guy-Web/pull/1324)) — @aguyshayb
