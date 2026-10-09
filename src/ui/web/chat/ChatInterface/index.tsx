@@ -33,7 +33,6 @@ import { formatMessageTime } from '../utils/formatMessageTime'
 import { MathFieldToolbar } from '@/ui/web/shared/MathInput/MathFieldToolbar'
 import { MixedMathInput, type MixedMathInputRef } from '@/ui/web/shared/MathInput/MixedMathInput'
 import { FunctionSquare } from 'lucide-react'
-import type { MathfieldElement } from 'mathlive'
 import { FormulaSheetButton } from '@/ui/web/shared/FormulaSheetViewer/FormulaSheetButton'
 import { FormulaSheetContent } from '@/ui/web/shared/FormulaSheetViewer/FormulaSheetContent'
 
@@ -344,8 +343,8 @@ export function ChatInterface({
 
   const [toolbarOpen, setToolbarOpen] = useState(false)
   const [formulaSheetOpen, setFormulaSheetOpen] = useState(false)
-  const [mathfield, setMathfield] = useState<MathfieldElement | null>(null)
   const mathInputRef = useRef<MixedMathInputRef>(null)
+  const formRef = useRef<HTMLFormElement>(null)
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -358,8 +357,11 @@ export function ChatInterface({
   }
 
   const triggerSubmit = useCallback(() => {
-    const form = mathInputRef.current?.element?.closest('form')
-    form?.requestSubmit()
+    formRef.current?.requestSubmit()
+  }, [])
+
+  const handleInsertMath = useCallback((latex: string) => {
+    mathInputRef.current?.insert(latex)
   }, [])
 
   /**
@@ -621,7 +623,7 @@ export function ChatInterface({
         {/* Math quick-insert toolbar */}
         {showMathTools && toolbarOpen && (
           <div className="mb-2.5 max-w-chat mx-auto rounded-lg border border-border bg-card shadow-card p-2">
-            <MathFieldToolbar mathfield={mathfield} />
+            <MathFieldToolbar onInsert={handleInsertMath} />
           </div>
         )}
 
@@ -717,7 +719,7 @@ export function ChatInterface({
         )}
 
         {/* Input Wrapper */}
-        <form onSubmit={handleFormSubmit}>
+        <form ref={formRef} onSubmit={handleFormSubmit}>
           <div className="max-w-chat mx-auto bg-muted rounded-chat-2xl flex items-center px-4 py-1.5 border border-input gap-3 relative">
             {/* Mixed-mode math input — WYSIWYG, math atoms render inline */}
             <MixedMathInput
@@ -727,7 +729,6 @@ export function ChatInterface({
               onEnterKey={triggerSubmit}
               onReady={(el) => {
                 inputRef.current = el
-                setMathfield(el)
               }}
               disabled={isLoading}
               placeholder={t('chatInputPlaceholder')}

@@ -1,13 +1,14 @@
 /**
  * MathFieldToolbar — Quick-insert buttons for common math structures.
- * Works with MathLive's MathfieldElement.insert() API.
+ * Fires `onInsert(latex)` with templates that use `\placeholder{}` for
+ * empty argument slots so the MathLive chip editor can position the cursor
+ * in the first empty box (Word-style equation editor behavior).
  */
 
 'use client'
 
-import React, { useCallback } from 'react'
+import React from 'react'
 import { cn } from '@/infra/utils/ui'
-import type { MathfieldElement } from 'mathlive'
 
 interface ToolbarButton {
   label: string
@@ -16,11 +17,11 @@ interface ToolbarButton {
 }
 
 const BUTTONS: ToolbarButton[] = [
-  { label: 'a/b', latex: '\\frac{#0}{#1}', ariaLabel: 'Fraction' },
-  { label: 'xⁿ', latex: '^{#0}', ariaLabel: 'Exponent' },
-  { label: '√', latex: '\\sqrt{#0}', ariaLabel: 'Square root' },
-  { label: 'x₂', latex: '_{#0}', ariaLabel: 'Subscript' },
-  { label: '( )', latex: '\\left(#0\\right)', ariaLabel: 'Parentheses' },
+  { label: 'a/b', latex: '\\frac{\\placeholder{}}{\\placeholder{}}', ariaLabel: 'Fraction' },
+  { label: 'xⁿ', latex: '\\placeholder{}^{\\placeholder{}}', ariaLabel: 'Exponent' },
+  { label: '√', latex: '\\sqrt{\\placeholder{}}', ariaLabel: 'Square root' },
+  { label: 'x₂', latex: '\\placeholder{}_{\\placeholder{}}', ariaLabel: 'Subscript' },
+  { label: '( )', latex: '\\left(\\placeholder{}\\right)', ariaLabel: 'Parentheses' },
   { label: 'π', latex: '\\pi', ariaLabel: 'Pi' },
   { label: '≤', latex: '\\leq', ariaLabel: 'Less than or equal' },
   { label: '≥', latex: '\\geq', ariaLabel: 'Greater than or equal' },
@@ -29,19 +30,11 @@ const BUTTONS: ToolbarButton[] = [
 ]
 
 export interface MathFieldToolbarProps {
-  mathfield: MathfieldElement | null
+  onInsert: (latex: string) => void
   className?: string
 }
 
-export function MathFieldToolbar({ mathfield, className }: MathFieldToolbarProps) {
-  const handleInsert = useCallback(
-    (latex: string) => {
-      if (!mathfield) return
-      mathfield.insert(latex, { mode: 'math', selectionMode: 'placeholder', focus: true })
-    },
-    [mathfield],
-  )
-
+export function MathFieldToolbar({ onInsert, className }: MathFieldToolbarProps) {
   return (
     <div
       className={cn('flex gap-1 overflow-x-auto scrollbar-none py-1', className)}
@@ -58,7 +51,7 @@ export function MathFieldToolbar({ mathfield, className }: MathFieldToolbarProps
             'hover:bg-accent hover:text-accent-foreground',
             'transition-colors text-body-md',
           )}
-          onClick={() => handleInsert(btn.latex)}
+          onClick={() => onInsert(btn.latex)}
           aria-label={btn.ariaLabel}
         >
           {btn.label}

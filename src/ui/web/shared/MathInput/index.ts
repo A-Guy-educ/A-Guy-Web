@@ -7,4 +7,4 @@ export type { MathFieldToolbarProps } from './MathFieldToolbar'
 export { MixedMathInput } from './MixedMathInput'
 export type { MixedMathInputProps, MixedMathInputRef } from './MixedMathInput'
 
-export { markdownToLatex, latexToMarkdown } from './mathMarkdown'
+export { markdownToTipTap, tipTapToMarkdown, MATH_INLINE_NODE } from './tiptapMarkdown'

@@ -8,7 +8,6 @@ import { MathFieldToolbar } from '@/ui/web/shared/MathInput/MathFieldToolbar'
 import { MixedMathInput, type MixedMathInputRef } from '@/ui/web/shared/MathInput/MixedMathInput'
 import { AnimatePresence, motion } from 'framer-motion'
 import { FileUp, FunctionSquare, Image as ImageIcon, Loader2, Plus, Send, X } from 'lucide-react'
-import type { MathfieldElement } from 'mathlive'
 import { useCallback, useRef, useState } from 'react'
 
 interface ChatInputPanelProps {
@@ -47,9 +46,12 @@ export function ChatInputPanel({
   const [value, setValue] = useState('')
   const [toolbarOpen, setToolbarOpen] = useState(false)
   const [uploads, setUploads] = useState<UploadItem[]>([])
-  const [mathfield, setMathfield] = useState<MathfieldElement | null>(null)
   const mathInputRef = useRef<MixedMathInputRef>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleInsertMath = useCallback((latex: string) => {
+    mathInputRef.current?.insert(latex)
+  }, [])
 
   const isUploading = uploads.some((u) => u.status === 'uploading')
   const hasFailedUpload = uploads.some((u) => u.status === 'failed')
@@ -194,7 +196,6 @@ export function ChatInputPanel({
             value={value}
             onChange={setValue}
             onEnterKey={submit}
-            onReady={setMathfield}
             disabled={disabled || isSending}
             placeholder={placeholder}
             className="flex-1 min-w-0 py-2 px-1"
@@ -275,7 +276,7 @@ export function ChatInputPanel({
               className="absolute bottom-full inset-x-0 mb-2 rounded-lg border border-border bg-card/95 backdrop-blur-md shadow-card p-2"
               data-math-controls
             >
-              <MathFieldToolbar mathfield={mathfield} />
+              <MathFieldToolbar onInsert={handleInsertMath} />
             </motion.div>
           )}
         </AnimatePresence>
