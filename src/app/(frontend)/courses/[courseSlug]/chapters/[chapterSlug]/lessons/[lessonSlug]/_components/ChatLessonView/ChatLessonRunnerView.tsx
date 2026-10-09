@@ -25,6 +25,16 @@ import { TierLockBubble } from './bubbles/TierLockBubble'
 import { SkippedMarker } from './bubbles/SkippedMarker'
 import { QuotaExhaustedCard } from './bubbles/QuotaExhaustedCard'
 import { ReviewOfferCard } from './bubbles/ReviewOfferCard'
+import { LessonSummaryCard, type LessonSummaryCopy } from './bubbles/LessonSummaryCard'
+import {
+  classifyLessonOutcome,
+  computeLessonStats,
+  computeMoneySaved,
+  type LessonOutcome,
+  type LessonStats,
+} from './lessonSummary'
+import { isSectionEligibleForReview } from './reviewEligibility'
+import { TIER_PRICE_ILS, type TierSlug } from '@/lib/tiers'
 import type { SectionOutcome, StreamEntry } from './types'
 import { useBrowserTTS } from './useBrowserTTS'
 import { useChatChannel } from './useChatChannel'
@@ -159,6 +169,7 @@ function ActiveChat({
     saveStepCursor,
     getCorrectResponseState,
     recordCorrectReaction,
+    getLessonStartedAt,
     clearProgress,
   } = useLessonChatProgress(lessonId)
 
@@ -378,6 +389,82 @@ function ActiveChat({
     walker.completeLesson()
   }, [walker])
 
+  // Task-9 summary card. Everything the lesson-complete bubble needs is
+  // computed here on the terminator render — localStorage reads are cheap
+  // and happen at most once per lesson-complete emission.
+  const tierSlug = useMemo<TierSlug>(
+    () => getUserTierSlug(user as { currentTier?: string | null } | null),
+    [user],
+  )
+  const summaryStats = useMemo<LessonStats>(
+    () => computeLessonStats(cappedExercises),
+    [cappedExercises],
+  )
+  const summaryOutcome = useMemo<LessonOutcome>(
+    () => classifyLessonOutcome(summaryStats),
+    [summaryStats],
+  )
+  const summaryElapsedMinutes = useMemo(() => {
+    const started = getLessonStartedAt()
+    const diffMs = Math.max(0, Date.now() - started)
+    return Math.max(1, Math.floor(diffMs / 60_000))
+  }, [getLessonStartedAt])
+  const summaryMoneySaved = useMemo(() => computeMoneySaved(TIER_PRICE_ILS[tierSlug]), [tierSlug])
+  // Suppress the review CTA on the summary card after the student has
+  // already been through review mode once — otherwise the button would
+  // loop them straight back into the same slice.
+  const summaryReviewableCount = useMemo(() => {
+    if (walker.hasReviewed) return 0
+    return cappedExercises.reduce((acc, exercise) => {
+      const groups = getExerciseBlockGroups(exercise)
+      for (const group of groups) {
+        if (isSectionEligibleForReview(exercise, group)) acc += 1
+      }
+      return acc
+    }, 0)
+  }, [cappedExercises, walker.hasReviewed])
+
+  const summaryCopy = useMemo<LessonSummaryCopy>(() => {
+    const title = t(`chatViewSummaryOutcomeTitle.${summaryOutcome}`)
+    const assessment = t(`chatViewSummaryAssessmentBody.${summaryOutcome}`)
+    return {
+      eyebrow: t('chatViewSummaryEyebrow'),
+      outcomeTitle: title,
+      sectionsLabel: (count) => t('chatViewSummarySectionsLabel').replace('{count}', String(count)),
+      elapsedLabel: (minutes) =>
+        t('chatViewSummaryElapsedLabel').replace('{minutes}', String(minutes)),
+      moneyLabel: t('chatViewSummaryMoneyLabel'),
+      moneyAmount: (ils) => t('chatViewSummaryMoneyAmount').replace('{ils}', String(ils)),
+      moneyNote: t('chatViewSummaryMoneyNote'),
+      moneyAllIncluded: t('chatViewSummaryMoneyAllIncluded'),
+      independenceLabel: t('chatViewSummaryIndependenceLabel'),
+      independencePercent: (percent) =>
+        t('chatViewSummaryIndependencePercent').replace('{percent}', String(percent)),
+      independenceNote: (count, total) =>
+        t('chatViewSummaryIndependenceNote')
+          .replace('{count}', String(count))
+          .replace('{total}', String(total)),
+      breakdownAlone: t('chatViewSummaryBreakdownAlone'),
+      breakdownWithHelp: t('chatViewSummaryBreakdownWithHelp'),
+      breakdownSkipped: t('chatViewSummaryBreakdownSkipped'),
+      breakdownWrong: t('chatViewSummaryBreakdownWrong'),
+      assessmentHeading: t('chatViewSummaryAssessmentHeading'),
+      assessmentBody: assessment,
+      reviewCta: (count) => t('chatViewSummaryReviewCta').replace('{count}', String(count)),
+      finishCta: t('chatViewSummaryFinishCta'),
+      footerNote: t('chatViewSummaryFooterNote'),
+    }
+  }, [summaryOutcome, t])
+
+  // Finish button on the summary card. There's no "next lesson" route in
+  // the runner's scope, so for now this just acts as an acknowledgment —
+  // the lesson stays complete and the student uses the top nav to leave.
+  // A follow-up could wire this to the course's `nextLessonHref` once that
+  // metadata reaches the runner.
+  const handleSummaryFinish = useCallback(() => {
+    // no-op placeholder — the card dismisses itself on tap.
+  }, [])
+
   const quickActionLabels = useMemo(
     () => ({
       hint: t('chatViewChipHint'),
@@ -545,7 +632,6 @@ function ActiveChat({
               freeResponseValidationErrors={freeResponseValidationErrors}
               isQuotaExhausted={chat.isQuotaExhausted}
               introPrefix={t('chatViewIntroPrefix')}
-              completeText={t('chatViewFinishTitle')}
               quotaExhaustedBody={t('chatViewQuotaExhaustedBody')}
               quotaUpgradeLabel={t('chatViewQuotaUpgradeCta')}
               quotaContinueLabel={t('chatViewQuotaContinueCta')}
@@ -554,6 +640,17 @@ function ActiveChat({
               reviewEndLabel={t('chatViewReviewEndCta')}
               onReviewYes={handleReviewYes}
               onReviewEnd={handleReviewEnd}
+              summaryProps={{
+                lessonTitle,
+                outcome: summaryOutcome,
+                stats: summaryStats,
+                elapsedMinutes: summaryElapsedMinutes,
+                moneySavedIls: summaryMoneySaved,
+                reviewableCount: summaryReviewableCount,
+                copy: summaryCopy,
+                onReview: handleReviewYes,
+                onFinish: handleSummaryFinish,
+              }}
             />
           ))}
           {showContinueButton && (
@@ -617,7 +714,6 @@ interface StreamEntryViewProps {
   freeResponsePlaceholder: string
   freeResponseSendLabel: string
   introPrefix: string
-  completeText: string
   /** Copy + CTAs for the one-time Task-7 quota-exhausted card. */
   quotaExhaustedBody: string
   quotaUpgradeLabel: string
@@ -633,6 +729,20 @@ interface StreamEntryViewProps {
   freeResponseNotCheckedLabel: string
   freeResponseValidationErrors: FreeResponseValidationErrors
   isQuotaExhausted: boolean
+  /** Task-9 lesson-summary card data + handlers. Computed by the runner on
+   *  each render — localStorage reads cheap, happens at most once per
+   *  lesson-complete emission. */
+  summaryProps: {
+    lessonTitle: string
+    outcome: LessonOutcome
+    stats: LessonStats
+    elapsedMinutes: number
+    moneySavedIls: number
+    reviewableCount: number
+    copy: LessonSummaryCopy
+    onReview: () => void
+    onFinish: () => void
+  }
 }
 
 type FreeResponseValidationErrors = ValidationErrorMessages
@@ -652,7 +762,6 @@ function StreamEntryView({
   freeResponsePlaceholder,
   freeResponseSendLabel,
   introPrefix,
-  completeText,
   quotaExhaustedBody,
   quotaUpgradeLabel,
   quotaContinueLabel,
@@ -665,6 +774,7 @@ function StreamEntryView({
   freeResponseNotCheckedLabel,
   freeResponseValidationErrors,
   isQuotaExhausted,
+  summaryProps,
 }: StreamEntryViewProps) {
   switch (entry.kind) {
     case 'exercise-intro': {
@@ -743,7 +853,19 @@ function StreamEntryView({
     case 'chat-error':
       return <TeacherBubble text={entry.text} variant="correction" />
     case 'lesson-complete':
-      return <TeacherBubble text={completeText} />
+      return (
+        <LessonSummaryCard
+          lessonTitle={summaryProps.lessonTitle}
+          outcome={summaryProps.outcome}
+          stats={summaryProps.stats}
+          elapsedMinutes={summaryProps.elapsedMinutes}
+          moneySavedIls={summaryProps.moneySavedIls}
+          reviewableCount={summaryProps.reviewableCount}
+          copy={summaryProps.copy}
+          onReview={summaryProps.onReview}
+          onFinish={summaryProps.onFinish}
+        />
+      )
     case 'tier-lock':
       return <TierLockBubble lockedCount={entry.lockedCount} />
     case 'skipped-marker':

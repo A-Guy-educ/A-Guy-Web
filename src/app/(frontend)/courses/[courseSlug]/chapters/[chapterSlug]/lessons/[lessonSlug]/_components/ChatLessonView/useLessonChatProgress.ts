@@ -18,12 +18,19 @@ import { useCallback, useRef, useState } from 'react'
 
 const STORAGE_KEY_PREFIX = 'aguy:lessonChatProgress:'
 const CORRECT_STATE_KEY_PREFIX = 'aguy:lessonChatCorrect:'
+const STARTED_AT_KEY_PREFIX = 'aguy:lessonChatStartedAt:'
 const STORAGE_VERSION = 1
 const CORRECT_STATE_VERSION = 1
+const STARTED_AT_VERSION = 1
 
 interface SavedProgress {
   version: number
   stepCursor: number
+}
+
+interface SavedStartedAt {
+  version: number
+  startedAt: number
 }
 
 /**
@@ -54,6 +61,13 @@ export interface LessonChatProgress {
   recordCorrectReaction: (exerciseId: string, pairKey: string) => void
   /** Current (live) correct-response state — reads reflect writes without re-render. */
   getCorrectResponseState: () => CorrectResponseState
+  /**
+   * Epoch ms when this lesson's chat view was first mounted. Written exactly
+   * once per lesson entry (next mount preserves the original value) so the
+   * Task-9 summary card can show "X דקות למידה פעילה" without the number
+   * resetting across refreshes.
+   */
+  getLessonStartedAt: () => number
   /** Remove this lesson's saved progress. Called by Reset. */
   clearProgress: () => void
 }
@@ -64,6 +78,43 @@ function storageKey(lessonId: string): string {
 
 function correctStateKey(lessonId: string): string {
   return `${CORRECT_STATE_KEY_PREFIX}${lessonId}`
+}
+
+function startedAtKey(lessonId: string): string {
+  return `${STARTED_AT_KEY_PREFIX}${lessonId}`
+}
+
+/**
+ * Read the lesson's startedAt, or write + return `now` on the first visit.
+ * Called inside a lazy useState so it fires once per mount; SSR falls back
+ * to `Date.now()` in-memory only (hydration will re-run on the client and
+ * either read the persisted value or persist its own).
+ */
+function readOrInitStartedAt(lessonId: string): number {
+  if (typeof window === 'undefined') return Date.now()
+  const key = startedAtKey(lessonId)
+  try {
+    const raw = window.localStorage.getItem(key)
+    if (raw) {
+      const parsed = JSON.parse(raw) as SavedStartedAt
+      if (
+        parsed.version === STARTED_AT_VERSION &&
+        typeof parsed.startedAt === 'number' &&
+        parsed.startedAt > 0
+      ) {
+        return parsed.startedAt
+      }
+    }
+    const now = Date.now()
+    const payload: SavedStartedAt = { version: STARTED_AT_VERSION, startedAt: now }
+    window.localStorage.setItem(key, JSON.stringify(payload))
+    return now
+  } catch {
+    // Private browsing / quota — return a session-only timestamp. The
+    // summary card will show an elapsed-time computed from THIS mount
+    // (not refresh-stable), which is still better than hiding it.
+    return Date.now()
+  }
 }
 
 function readStorage(lessonId: string): number | null {
@@ -114,6 +165,13 @@ export function useLessonChatProgress(lessonId: string): LessonChatProgress {
   const [initialCorrectResponseState] = useState<CorrectResponseState>(() =>
     readCorrectState(lessonId),
   )
+  // `startedAt` is lazily initialized on first mount of the lesson (first
+  // call persists `Date.now()`; subsequent mounts read the stored value).
+  // Lives in a ref so later re-renders don't fork the timestamp.
+  const startedAtRef = useRef<number>(0)
+  if (startedAtRef.current === 0) {
+    startedAtRef.current = readOrInitStartedAt(lessonId)
+  }
 
   // Live state lives in a ref so callers can update + read in the same tick
   // (picker needs lastPairKey → pick → persist). Nothing re-renders when it
@@ -155,13 +213,16 @@ export function useLessonChatProgress(lessonId: string): LessonChatProgress {
   )
 
   const getCorrectResponseState = useCallback(() => correctStateRef.current, [])
+  const getLessonStartedAt = useCallback(() => startedAtRef.current, [])
 
   const clearProgress = useCallback(() => {
     correctStateRef.current = emptyCorrectState()
+    startedAtRef.current = 0
     if (typeof window === 'undefined') return
     try {
       window.localStorage.removeItem(storageKey(lessonId))
       window.localStorage.removeItem(correctStateKey(lessonId))
+      window.localStorage.removeItem(startedAtKey(lessonId))
     } catch {
       // See saveStepCursor.
     }
@@ -173,6 +234,7 @@ export function useLessonChatProgress(lessonId: string): LessonChatProgress {
     initialCorrectResponseState,
     recordCorrectReaction,
     getCorrectResponseState,
+    getLessonStartedAt,
     clearProgress,
   }
 }
