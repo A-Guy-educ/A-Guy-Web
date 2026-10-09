@@ -33,6 +33,7 @@ const BUG_REPORT_RATE_LIMIT_MAX = 3
 const BUG_REPORT_RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000 // 5 minutes
 
 const BodySchema = z.object({
+  kind: z.enum(['bug', 'contact']).default('bug'),
   description: z
     .string()
     .trim()
@@ -103,7 +104,7 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const { description, contactEmail, url, userAgent } = parsed.data
+  const { kind, description, contactEmail, url, userAgent } = parsed.data
 
   // Best-effort: capture the authenticated user if there is one. The route
   // intentionally does NOT require auth so anonymous users can also report bugs.
@@ -118,6 +119,7 @@ export async function POST(request: NextRequest) {
   }
 
   const result = await sendBugReport({
+    kind,
     description,
     contactEmail: contactEmail ?? null,
     pageUrl: url,

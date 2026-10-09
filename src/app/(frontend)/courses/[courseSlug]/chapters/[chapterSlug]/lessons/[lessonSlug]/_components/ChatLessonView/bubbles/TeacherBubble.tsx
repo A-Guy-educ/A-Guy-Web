@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@/infra/utils/ui'
-import { MathMarkdown } from '@/ui/web/shared/MathMarkdown'
+import { ChatMessageContent } from '@/ui/web/chat'
 import { Sparkles, Volume2, VolumeX } from 'lucide-react'
 import type { ReactNode } from 'react'
 
@@ -61,8 +61,8 @@ export function TeacherBubble({
         )}
 
         {hasText && (
-          <div className="text-body-md font-medium text-foreground leading-relaxed">
-            <MathMarkdown content={text!} normalizeLatex />
+          <div className="text-body-md font-medium text-foreground">
+            <ChatMessageContent content={text!} />
           </div>
         )}
 
