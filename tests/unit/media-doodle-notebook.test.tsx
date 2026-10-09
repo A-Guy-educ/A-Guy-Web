@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
 
 /**
- * MediaDoodleNotebook — fold/unfold toggle test.
+ * MediaDoodleNotebook — mode-switch test.
  *
  * The drawing surface itself (pen strokes, erase composite) is not covered
  * here because jsdom has no 2D canvas context; the existing AskDrawingCanvas
  * ships with the same gap for the same reason. What IS covered: the state
- * transition between expanded (DoodleCanvas present) and folded (hidden).
+ * transition between pen mode (DoodleCanvas with a <canvas>) and text mode
+ * (DoodleTextArea with a <textarea>).
  */
 
 import { fireEvent, render, screen } from '@testing-library/react'
@@ -20,11 +21,13 @@ const messages = {
   courses: {
     doodleNotebook: {
       title: 'Scratch',
-      collapse: 'Collapse',
-      expand: 'Expand',
+      penMode: 'Pen',
+      textMode: 'Text',
       clear: 'Clear',
       eraser: 'Eraser',
       color: 'Color',
+      resize: 'Resize',
+      textPlaceholder: 'You can write here.',
     },
   },
 }
@@ -55,26 +58,28 @@ function renderNotebook() {
 }
 
 describe('MediaDoodleNotebook', () => {
-  it('renders the drawing canvas when expanded', () => {
+  it('defaults to pen mode (renders the drawing canvas)', () => {
     const { container } = renderNotebook()
     expect(screen.getByRole('dialog', { name: 'Scratch' })).toBeTruthy()
     expect(container.querySelector('canvas')).not.toBeNull()
+    expect(container.querySelector('textarea')).toBeNull()
   })
 
-  it('folds to a tab (hides the canvas) when the chevron is clicked', () => {
+  it('swaps the canvas for a textarea when switching to text mode', () => {
     const { container } = renderNotebook()
-    const toggle = screen.getByRole('button', { name: 'Collapse' })
-    fireEvent.click(toggle)
+    fireEvent.click(screen.getByRole('button', { name: 'Text' }))
     expect(container.querySelector('canvas')).toBeNull()
-    // The toggle re-labels itself to the "expand" affordance once folded.
-    expect(screen.getByRole('button', { name: 'Expand' })).toBeTruthy()
+    const textarea = container.querySelector('textarea')
+    expect(textarea).not.toBeNull()
+    expect(textarea?.placeholder).toContain('write here')
   })
 
-  it('restores the canvas when the folded tab is re-expanded', () => {
+  it('swaps back to the canvas when returning to pen mode', () => {
     const { container } = renderNotebook()
-    fireEvent.click(screen.getByRole('button', { name: 'Collapse' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Text' }))
     expect(container.querySelector('canvas')).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: 'Expand' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Pen' }))
     expect(container.querySelector('canvas')).not.toBeNull()
+    expect(container.querySelector('textarea')).toBeNull()
   })
 })
