@@ -1,14 +1,12 @@
 /**
  * FloatingBugReportButton
  *
- * Mirrors the slot/positioning/styling of the (now-parked) FloatingAgentButton
- * so swapping the two doesn't disturb the layout or mobile chat-panel stacking.
- * Gated to authenticated users only — LayoutClient hides it on the landing /
- * login / onboarding funnel where the widget would just be noise.
+ * Pill-shaped floating action button that opens the combined bug-report /
+ * contact-us popover. Shows a paper-plane icon alongside a bug icon so the
+ * affordance reads as "send us something — a bug or a note".
  *
- * Localization: the tooltip/aria-label is sourced from the `bugReport` i18n
- * namespace. Hebrew ("דווח תקלה") falls back to the key name when the
- * `bugReport` namespace is missing in the active messages file.
+ * Lifts above the mobile chat panel via the --mobile-chat-panel-h custom
+ * property, same as the previous circular variant.
  *
  * @fileType component
  * @domain bug-report
@@ -17,7 +15,7 @@
 
 'use client'
 
-import { Bug } from 'lucide-react'
+import { Bug, Send } from 'lucide-react'
 
 import { useTranslations } from '@/ui/web/providers/I18n'
 
@@ -33,17 +31,15 @@ export function FloatingBugReportButton({ onClick }: FloatingBugReportButtonProp
   return (
     <button
       onClick={onClick}
-      // Lift above the mobile chat panel when it's open. The
-      // --mobile-chat-panel-h custom property is set by MobileChatFAB
-      // (0px when closed, 60dvh when open) so this button always sits
-      // 1.5rem above whichever bottom edge is current.
       style={{ bottom: 'calc(var(--mobile-chat-panel-h, 0px) + 1.5rem)' }}
-      className="fixed right-6 z-[60] w-14 h-14 rounded-full bg-destructive text-destructive-foreground shadow-elevation-3 hover:scale-110 hover:bg-destructive/90 transition-all duration-normal flex items-center justify-center"
+      className="fixed right-6 z-[60] h-11 px-4 rounded-full bg-destructive text-destructive-foreground shadow-elevation-3 hover:scale-105 hover:bg-destructive/90 transition-all duration-normal flex items-center gap-content-gap-xs"
       aria-label={label}
       title={tooltip}
       data-testid="floating-bug-report-button"
     >
-      <Bug className="w-6 h-6" />
+      <Send className="w-4 h-4 -scale-x-100" />
+      <span className="text-destructive-foreground/60 text-body-sm">/</span>
+      <Bug className="w-4 h-4" />
     </button>
   )
 }
