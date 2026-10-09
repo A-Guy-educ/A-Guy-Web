@@ -37,24 +37,26 @@ interface CourseComposerState {
   clear: () => void
 }
 
-function matchesQuery(node: LessonSearchNode, q: string): boolean {
+// Higher score = better match. 0 means no match.
+// Title is scored above slug so a lesson whose title literally contains the
+// query (e.g. "test 1" for "tes") never gets buried under a lesson that only
+// matches via its English slug (e.g. "coefficient-comparison-sys-tem"). Slug
+// stays in the haystack because Hebrew-titled lessons often rely on their
+// English slug for cross-language search ("summ" → slug "2025-summer").
+// Stem fallback requires q.length >= 4 so stems are always >= 3 chars — a
+// 2-char stem (e.g. "קיץ" → "קי", "tes" → "te") matched far too much.
+function scoreMatch(node: LessonSearchNode, q: string): number {
+  if (String(node.displayIndex) === q) return 100
   const title = (node.lesson.title ?? '').toLowerCase()
-  // Slugs often preserve the English/latinised phrasing even when the display
-  // title is translated (e.g. title in Hebrew, slug `summer-2025-a`). Treat
-  // hyphens as spaces so a query like "summer 2025" still matches
-  // `summer-2025-a`.
   const slug = (node.lesson.slug ?? '').toLowerCase().replace(/[-_]+/g, ' ')
-  const haystacks = [title, slug]
-  if (String(node.displayIndex) === q) return true
-  if (haystacks.some((h) => h.includes(q))) return true
-  // Hebrew inflection tolerance: "חפיפה" should match "חפיפת משולשים".
-  // Retry with the last character stripped, but only when the stem is still
-  // 3+ chars — a 2-char Hebrew stem (e.g. "קיץ" → "קי") matches far too much.
+  if (title.includes(q)) return 90
+  if (slug.includes(q)) return 50
   if (q.length >= 4) {
     const stem = q.slice(0, -1)
-    if (haystacks.some((h) => h.includes(stem))) return true
+    if (title.includes(stem)) return 40
+    if (slug.includes(stem)) return 20
   }
-  return false
+  return 0
 }
 
 export function useCourseComposerState({
@@ -74,7 +76,13 @@ export function useCourseComposerState({
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     if (!q) return []
-    return nodes.filter((n) => matchesQuery(n, q)).slice(0, MAX_RESULTS)
+    // Score, keep hits, sort by score desc, stable on original insertion order
+    // (which is already chapter/order within each lesson type).
+    const scored = nodes
+      .map((node, index) => ({ node, index, score: scoreMatch(node, q) }))
+      .filter((entry) => entry.score > 0)
+    scored.sort((a, b) => b.score - a.score || a.index - b.index)
+    return scored.slice(0, MAX_RESULTS).map((entry) => entry.node)
   }, [nodes, query])
 
   useEffect(() => {
