@@ -4862,6 +4862,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Add text mode to media doodle notebook ([#1323](https://github.com/A-Guy-educ/A-Guy-Web/pull/1323)) — @aguyshayb
 - feat: Chatview end-of-lesson summary card with outcome classification ([#1322](https://github.com/A-Guy-educ/A-Guy-Web/pull/1322)) — @aguyshayb
 - feat: Math input on TipTap with math-as-atomic-chip model ([#1321](https://github.com/A-Guy-educ/A-Guy-Web/pull/1321)) — @aguyshayb
 - feat: Polish media doodle notebook (resize, color feedback, chat fold icon) ([#1320](https://github.com/A-Guy-educ/A-Guy-Web/pull/1320)) — @aguyshayb
