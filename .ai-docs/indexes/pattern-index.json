@@ -49,10 +49,15 @@
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatQuestionSelectBubble.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ContinueButton.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ExerciseSectionBubble.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/LessonSummaryCard.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/PendingBubble.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/QuickActionChips.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/QuotaExhaustedCard.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ReviewOfferCard.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/SkippedMarker.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/StudentBubble.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/TeacherBubble.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/TierLockBubble.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/useBrowserTTS.ts",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/useChatChannel.ts",
@@ -73,6 +78,9 @@
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/LessonIntroPage/useLessonIntroPage.ts",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/LessonPager/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/LessonPager/useLessonPager.ts",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/MediaDoodleNotebook/DoodleCanvas.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/MediaDoodleNotebook/DoodleTextArea.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/MediaDoodleNotebook/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/MediaTabContent/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/PdfLessonPager/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/PdfLessonPager/usePdfLessonPager.ts",
@@ -164,6 +172,7 @@
         "src/infra/loading/hooks/useLoadingState.ts",
         "src/infra/loading/hooks/useRouterWithLoading.ts",
         "src/infra/utils/useClickableCard.ts",
+        "src/lib/tiers/enforcement.ts",
         "src/ui/web/BrandLogo.tsx",
         "src/ui/web/Card/index.tsx",
         "src/ui/web/CommandPalette.tsx",
@@ -298,9 +307,10 @@
         "src/ui/web/shared/FormulaSheetViewer/FormulaSheetButton.tsx",
         "src/ui/web/shared/FormulaSheetViewer/FormulaSheetContent.tsx",
         "src/ui/web/shared/LatexDocumentViewer/index.tsx",
-        "src/ui/web/shared/MathInput/FormulaComposer.tsx",
+        "src/ui/web/shared/MathInput/MathChip.tsx",
         "src/ui/web/shared/MathInput/MathField.tsx",
-        "src/ui/web/shared/MathInput/MathFieldToolbar.tsx",
+        "src/ui/web/shared/MathInput/MathPicker.tsx",
+        "src/ui/web/shared/MathInput/MixedMathInput.tsx",
         "src/ui/web/shared/MathMarkdown/index.tsx",
         "src/ui/web/shared/ProgressCircle/index.tsx",
         "src/ui/web/shared/ShareButton/index.tsx",
@@ -344,6 +354,7 @@
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatInputPanel.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonRunnerView.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatFreeResponseBubble.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/TierLockBubble.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ContentPagesPreamble/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/DualModeLessonView/index.tsx",
@@ -352,6 +363,10 @@
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/LessonContent.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/LessonIntroPage/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/LessonPager/index.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/MediaDoodleNotebook/DoodleCanvas.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/MediaDoodleNotebook/DoodleTextArea.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/MediaDoodleNotebook/index.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/MediaTabContent/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/PdfLessonPager/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/TestViewRenderer/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ViewToggle.tsx",
@@ -450,6 +465,7 @@
         "src/app/(frontend)/ask/_components/AskConversationGrid/index.tsx",
         "src/app/(frontend)/ask/_components/AskDrawingCanvas/index.tsx",
         "src/app/(frontend)/ask/_components/AskExerciseCard/index.tsx",
+        "src/app/(frontend)/ask/_components/AskPrimaryContent/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/AskTab/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/ConversationCard/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/index.tsx",
@@ -464,6 +480,7 @@
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatFreeResponseBubble.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatQuestionSelectBubble.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ContinueButton.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/LessonSummaryCard.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/QuickActionChips.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/StudentBubble.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/TeacherBubble.tsx",
@@ -471,6 +488,9 @@
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ContentPagesPreamble/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ExercisesPager/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/LessonPager/index.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/MediaDoodleNotebook/DoodleCanvas.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/MediaDoodleNotebook/DoodleTextArea.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/MediaDoodleNotebook/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/MediaTabContent/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/PdfLessonPager/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ViewToggle.tsx",
@@ -505,6 +525,7 @@
         "src/ui/web/RichText/index.tsx",
         "src/ui/web/SafeHtml/index.tsx",
         "src/ui/web/auth/GoogleLoginButton.tsx",
+        "src/ui/web/bug-report/BugReportForm/index.tsx",
         "src/ui/web/chat/ChatErrorSurface/index.tsx",
         "src/ui/web/chat/ChatInterface/index.tsx",
         "src/ui/web/chat/ChatMessageContent/ChatCallout.tsx",
@@ -595,9 +616,10 @@
         "src/ui/web/shared/Layout/Stack.tsx",
         "src/ui/web/shared/Loading/Skeleton.tsx",
         "src/ui/web/shared/Loading/Spinner.tsx",
-        "src/ui/web/shared/MathInput/FormulaComposer.tsx",
+        "src/ui/web/shared/MathInput/MathChip.tsx",
         "src/ui/web/shared/MathInput/MathField.tsx",
-        "src/ui/web/shared/MathInput/MathFieldToolbar.tsx",
+        "src/ui/web/shared/MathInput/MathPicker.tsx",
+        "src/ui/web/shared/MathInput/MixedMathInput.tsx",
         "src/ui/web/shared/MathMarkdown/index.tsx",
         "src/ui/web/shared/MathMarkdown/svgAwareImage.tsx",
         "src/ui/web/shared/ProgressCircle/index.tsx",
@@ -1916,7 +1938,7 @@
       "path": "src/app/(frontend)/ask/_components/AskPrimaryContent/index.tsx",
       "type": "unknown",
       "domain": "general",
-      "patterns": ["i18n-component", "client-component"],
+      "patterns": ["tailwind-component", "i18n-component", "client-component"],
       "aiSummary": "",
       "dependencies": ["react", "sonner"]
     },
@@ -2133,7 +2155,7 @@
       "domain": "general",
       "patterns": ["tailwind-component", "client-component"],
       "aiSummary": "",
-      "dependencies": ["lucide-react"]
+      "dependencies": ["framer-motion", "react"]
     },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonRunnerView.tsx": {
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonRunnerView.tsx",
@@ -2141,7 +2163,7 @@
       "domain": "general",
       "patterns": ["i18n-component", "client-component"],
       "aiSummary": "",
-      "dependencies": ["react"]
+      "dependencies": ["next/navigation", "react"]
     },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/GivenDataFloating.tsx": {
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/GivenDataFloating.tsx",
@@ -2183,6 +2205,14 @@
       "aiSummary": "",
       "dependencies": ["react"]
     },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/LessonSummaryCard.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/LessonSummaryCard.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["tailwind-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["lucide-react", "react"]
+    },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/PendingBubble.tsx": {
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/PendingBubble.tsx",
       "type": "unknown",
@@ -2199,6 +2229,30 @@
       "aiSummary": "",
       "dependencies": ["lucide-react"]
     },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/QuotaExhaustedCard.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/QuotaExhaustedCard.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["client-component"],
+      "aiSummary": "",
+      "dependencies": ["next/link", "react"]
+    },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ReviewOfferCard.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ReviewOfferCard.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["client-component"],
+      "aiSummary": "",
+      "dependencies": ["react"]
+    },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/SkippedMarker.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/SkippedMarker.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["client-component"],
+      "aiSummary": "",
+      "dependencies": []
+    },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/StudentBubble.tsx": {
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/StudentBubble.tsx",
       "type": "unknown",
@@ -2214,6 +2268,14 @@
       "patterns": ["tailwind-component", "client-component"],
       "aiSummary": "",
       "dependencies": ["lucide-react", "react"]
+    },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/TierLockBubble.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/TierLockBubble.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["i18n-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["lucide-react"]
     },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/index.tsx": {
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/index.tsx",
@@ -2375,13 +2437,37 @@
       "aiSummary": "",
       "dependencies": ["react"]
     },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/MediaDoodleNotebook/DoodleCanvas.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/MediaDoodleNotebook/DoodleCanvas.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["tailwind-component", "i18n-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["lucide-react", "react"]
+    },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/MediaDoodleNotebook/DoodleTextArea.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/MediaDoodleNotebook/DoodleTextArea.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["tailwind-component", "i18n-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["lucide-react", "react"]
+    },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/MediaDoodleNotebook/index.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/MediaDoodleNotebook/index.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["tailwind-component", "i18n-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["lucide-react", "react"]
+    },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/MediaTabContent/index.tsx": {
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/MediaTabContent/index.tsx",
       "type": "unknown",
       "domain": "general",
-      "patterns": ["tailwind-component", "client-component"],
+      "patterns": ["tailwind-component", "i18n-component", "client-component"],
       "aiSummary": "",
-      "dependencies": ["react", "lucide-react"]
+      "dependencies": ["react"]
     },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/PdfLessonPager/index.tsx": {
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/PdfLessonPager/index.tsx",
@@ -4375,6 +4461,14 @@
       "aiSummary": "Validates and exposes payment provider environment variables.",
       "dependencies": []
     },
+    "src/lib/tiers/enforcement.ts": {
+      "path": "src/lib/tiers/enforcement.ts",
+      "type": "helper",
+      "domain": "billing",
+      "patterns": ["client-component"],
+      "aiSummary": "",
+      "dependencies": []
+    },
     "src/middleware.ts": {
       "path": "src/middleware.ts",
       "type": "unknown",
@@ -5051,7 +5145,7 @@
       "path": "src/ui/web/bug-report/BugReportForm/index.tsx",
       "type": "component",
       "domain": "bug-report",
-      "patterns": ["floating-form", "i18n-component", "client-component"],
+      "patterns": ["floating-form", "tailwind-component", "i18n-component", "client-component"],
       "aiSummary": "",
       "dependencies": ["framer-motion", "lucide-react", "react", "sonner"]
     },
@@ -6292,13 +6386,13 @@
       "aiSummary": "",
       "dependencies": ["react", "class-variance-authority"]
     },
-    "src/ui/web/shared/MathInput/FormulaComposer.tsx": {
-      "path": "src/ui/web/shared/MathInput/FormulaComposer.tsx",
+    "src/ui/web/shared/MathInput/MathChip.tsx": {
+      "path": "src/ui/web/shared/MathInput/MathChip.tsx",
       "type": "unknown",
       "domain": "general",
       "patterns": ["tailwind-component", "client-component"],
       "aiSummary": "",
-      "dependencies": ["react", "lucide-react", "mathlive"]
+      "dependencies": ["react", "@tiptap/react", "katex", "mathlive"]
     },
     "src/ui/web/shared/MathInput/MathField.tsx": {
       "path": "src/ui/web/shared/MathInput/MathField.tsx",
@@ -6308,13 +6402,21 @@
       "aiSummary": "",
       "dependencies": ["react", "mathlive"]
     },
-    "src/ui/web/shared/MathInput/MathFieldToolbar.tsx": {
-      "path": "src/ui/web/shared/MathInput/MathFieldToolbar.tsx",
+    "src/ui/web/shared/MathInput/MathPicker.tsx": {
+      "path": "src/ui/web/shared/MathInput/MathPicker.tsx",
       "type": "unknown",
       "domain": "general",
       "patterns": ["tailwind-component", "client-component"],
       "aiSummary": "",
-      "dependencies": ["react", "mathlive"]
+      "dependencies": ["react", "katex", "lucide-react"]
+    },
+    "src/ui/web/shared/MathInput/MixedMathInput.tsx": {
+      "path": "src/ui/web/shared/MathInput/MixedMathInput.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["tailwind-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["@tiptap/extension-placeholder", "@tiptap/react", "@tiptap/starter-kit"]
     },
     "src/ui/web/shared/MathMarkdown/index.tsx": {
       "path": "src/ui/web/shared/MathMarkdown/index.tsx",
@@ -6406,8 +6508,8 @@
     }
   },
   "metadata": {
-    "generatedAt": "2026-10-05T06:59:33.975Z",
-    "totalFiles": 576,
+    "generatedAt": "2026-10-10T07:02:25.819Z",
+    "totalFiles": 586,
     "totalPatterns": 193
   }
 }
