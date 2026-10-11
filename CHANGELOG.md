@@ -4862,6 +4862,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Seed llmTokensLimit on Web signup to match Admin schema default ([#1331](https://github.com/A-Guy-educ/A-Guy-Web/pull/1331)) — @aguyshayb
 - feat: Unify + menu, add Point tool, swap Send icon per demo ([#1330](https://github.com/A-Guy-educ/A-Guy-Web/pull/1330)) — @aguyshayb
 - fix: Scale facts dropdown contents and swap pill icon to envelope ([#1329](https://github.com/A-Guy-educ/A-Guy-Web/pull/1329)) — @aguyshayb
 - feat: Chatview summary card next-lesson CTA + skip-count regression coverage ([#1328](https://github.com/A-Guy-educ/A-Guy-Web/pull/1328)) — @aguyshayb
