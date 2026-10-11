@@ -12,7 +12,7 @@ import React, { useCallback, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MathPicker } from '@/ui/web/shared/MathInput/MathPicker'
 import { MixedMathInput, type MixedMathInputRef } from '@/ui/web/shared/MathInput/MixedMathInput'
-import { Sigma } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import type { QuestionFreeResponseBlock, UserAnswer, CheckResult, RichTextBlock } from '../../types'
 import { RichTextRenderer } from '../../blocks/RichTextRenderer'
 
@@ -82,7 +82,7 @@ export function FreeResponseQuestion({
               className="absolute end-1.5 top-2 flex items-center gap-1 px-3 py-1.5 rounded-full bg-[hsl(var(--tab-ask))] text-white shadow-card hover:shadow-card-hover transition-all duration-normal z-10 text-body-xs font-semibold"
               title={t('insertFormula')}
             >
-              <Sigma className="w-3.5 h-3.5" />
+              <Plus className="w-3.5 h-3.5" />
             </button>
           )}
         </div>

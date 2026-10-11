@@ -7,7 +7,7 @@ import { useTranslations } from '@/ui/web/providers/I18n'
 import { MathPicker } from '@/ui/web/shared/MathInput/MathPicker'
 import { MixedMathInput, type MixedMathInputRef } from '@/ui/web/shared/MathInput/MixedMathInput'
 import { AnimatePresence, motion } from 'framer-motion'
-import { FileUp, Image as ImageIcon, Loader2, Plus, Send, Sigma, X } from 'lucide-react'
+import { ArrowUp, FileUp, Image as ImageIcon, Loader2, Plus, X } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 
 interface ChatInputPanelProps {
@@ -191,16 +191,8 @@ export function ChatInputPanel({
             'bg-card/95 backdrop-blur-md border border-border shadow-card',
           )}
         >
-          <MixedMathInput
-            ref={mathInputRef}
-            value={value}
-            onChange={setValue}
-            onEnterKey={submit}
-            disabled={disabled || isSending}
-            placeholder={placeholder}
-            className="flex-1 min-w-0 py-2 px-1"
-          />
-
+          {/* Unified + menu: math atoms + image upload. Lives at the pill's
+              right edge (dir=rtl, first flex child) opposite the Send button. */}
           {!disabled && (
             <button
               type="button"
@@ -214,39 +206,32 @@ export function ChatInputPanel({
                   : 'bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20',
               )}
             >
-              <Sigma className="w-4 h-4" />
+              <Plus className="w-4 h-4" />
             </button>
           )}
 
-          {!disabled && (
-            <>
-              <button
-                type="button"
-                onClick={openFilePicker}
-                disabled={uploads.length >= MAX_ATTACHMENTS}
-                aria-label={t('chatAttachFile')}
-                title={t('chatAttachFile')}
-                className={cn(
-                  'w-8 h-8 rounded-full shrink-0 flex items-center justify-center transition-all active:scale-90',
-                  'bg-muted hover:bg-muted/70 text-muted-foreground hover:text-foreground border border-border',
-                  'disabled:opacity-50 disabled:cursor-not-allowed',
-                )}
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept={ACCEPT}
-                multiple
-                className="hidden"
-                onChange={(e) => {
-                  addFiles(e.target.files)
-                  e.target.value = ''
-                }}
-              />
-            </>
-          )}
+          <MixedMathInput
+            ref={mathInputRef}
+            value={value}
+            onChange={setValue}
+            onEnterKey={submit}
+            disabled={disabled || isSending}
+            placeholder={placeholder}
+            className="flex-1 min-w-0 py-2 px-1"
+          />
+
+          {/* Hidden file input the picker's Image action triggers. */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={ACCEPT}
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              addFiles(e.target.files)
+              e.target.value = ''
+            }}
+          />
 
           <button
             type="submit"
@@ -261,7 +246,7 @@ export function ChatInputPanel({
             {isSending ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <Send className="w-4 h-4" />
+              <ArrowUp className="w-4 h-4" />
             )}
           </button>
         </div>
@@ -276,7 +261,11 @@ export function ChatInputPanel({
               className="absolute bottom-full inset-x-0 mb-2 rounded-lg border border-border bg-card/95 backdrop-blur-md shadow-card p-2"
               data-math-controls
             >
-              <MathPicker onInsert={handleInsertMath} onClose={() => setToolbarOpen(false)} />
+              <MathPicker
+                onInsert={handleInsertMath}
+                onClose={() => setToolbarOpen(false)}
+                onImageUpload={uploads.length < MAX_ATTACHMENTS ? openFilePicker : undefined}
+              />
             </motion.div>
           )}
         </AnimatePresence>
