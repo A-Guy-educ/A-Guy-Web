@@ -14,7 +14,7 @@ import { MathPicker } from '@/ui/web/shared/MathInput/MathPicker'
 import { MixedMathInput, type MixedMathInputRef } from '@/ui/web/shared/MathInput/MixedMathInput'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Send, Sigma } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useCallback, useMemo, useRef, useState } from 'react'
 
 interface ChatFreeResponseBubbleProps {
@@ -119,6 +119,9 @@ export function ChatFreeResponseBubble({
   const [value, setValue] = useState(initialValue)
   const [status, setStatus] = useState<SubmitStatus>(initialStatus)
   const [toolbarOpen, setToolbarOpen] = useState(false)
+  // Notebook is now revealed on-demand from the + menu rather than always
+  // mounted. Still gated on the admin `block.showNotebook` opt-in flag.
+  const [notebookOpen, setNotebookOpen] = useState(false)
   const mathInputRef = useRef<MixedMathInputRef>(null)
   const formRef = useRef<HTMLFormElement>(null)
 
@@ -244,6 +247,23 @@ export function ChatFreeResponseBubble({
           className="flex items-center gap-content-gap-xs"
           dir="rtl"
         >
+          {!isDisabled && (
+            <button
+              type="button"
+              onClick={() => setToolbarOpen((v) => !v)}
+              aria-label={t('insertFormula')}
+              title={t('insertFormula')}
+              className={cn(
+                'w-10 h-10 rounded-xl shrink-0 flex items-center justify-center transition-all active:scale-95',
+                toolbarOpen
+                  ? 'bg-primary text-primary-foreground border border-primary'
+                  : 'bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20',
+              )}
+            >
+              <Plus className="w-5 h-5" />
+            </button>
+          )}
+
           <div
             className={cn(
               'flex-1 rounded-xl border border-input bg-background px-4 py-2.5',
@@ -261,35 +281,17 @@ export function ChatFreeResponseBubble({
             />
           </div>
 
-          {!isDisabled && (
-            <button
-              type="button"
-              onClick={() => setToolbarOpen((v) => !v)}
-              aria-label={t('insertFormula')}
-              title={t('insertFormula')}
-              className={cn(
-                'w-10 h-10 rounded-xl shrink-0 flex items-center justify-center transition-all active:scale-95',
-                toolbarOpen
-                  ? 'bg-primary text-primary-foreground border border-primary'
-                  : 'bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20',
-              )}
-            >
-              <Sigma className="w-5 h-5" />
-            </button>
-          )}
-
           <button
             type="submit"
             disabled={isDisabled || !value.trim()}
             aria-label={sendLabel}
             className={cn(
-              'px-3.5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold',
-              'flex items-center gap-content-gap-xs hover:bg-primary/90 transition-colors',
+              'px-4 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold',
+              'hover:bg-primary/90 transition-colors',
               'disabled:opacity-50 disabled:cursor-not-allowed',
             )}
           >
-            <Send className="w-4 h-4" aria-hidden="true" />
-            <span className="hidden sm:inline">{sendLabel}</span>
+            {sendLabel}
           </button>
         </form>
 
@@ -302,7 +304,11 @@ export function ChatFreeResponseBubble({
               transition={{ duration: 0.18 }}
               className="absolute top-full inset-x-0 mt-2 z-20 rounded-lg border border-border bg-card shadow-card p-2"
             >
-              <MathPicker onInsert={handleInsertMath} onClose={() => setToolbarOpen(false)} />
+              <MathPicker
+                onInsert={handleInsertMath}
+                onClose={() => setToolbarOpen(false)}
+                onNotebook={block.showNotebook === true ? () => setNotebookOpen(true) : undefined}
+              />
             </motion.div>
           )}
         </AnimatePresence>
@@ -337,10 +343,11 @@ export function ChatFreeResponseBubble({
 
       {/* Per-block notebook — chat-native path bypasses QuestionCard so
           we mount here. Admin opt-in required (`block.showNotebook ===
-          true`, from admin PR #409); `disabled` follows the input lock
-          so scroll-back bubbles can't dispatch Check-solution against
-          the walker's current step (which would cite the wrong section). */}
-      {block.showNotebook === true && (
+          true`, from admin PR #409); revealed on-demand via the "+" menu's
+          Notebook action so it doesn't eat vertical space by default.
+          `disabled` follows the input lock so scroll-back bubbles can't
+          dispatch Check-solution against the walker's current step. */}
+      {block.showNotebook === true && notebookOpen && (
         <QuestionNotebook contextTitle={questionLabel ?? block.id} disabled={isDisabled} />
       )}
     </div>

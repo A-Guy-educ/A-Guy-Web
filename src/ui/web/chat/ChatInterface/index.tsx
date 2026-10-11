@@ -5,6 +5,7 @@ import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { cn } from '@/infra/utils/ui'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import {
+  ArrowUp,
   BookOpen,
   CheckCircle,
   FileText,
@@ -17,7 +18,6 @@ import {
   Plus,
   RefreshCw,
   RotateCcw,
-  Send,
   X,
 } from 'lucide-react'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
@@ -32,7 +32,6 @@ import { useTTS } from '../hooks/useTTS'
 import { formatMessageTime } from '../utils/formatMessageTime'
 import { MathPicker } from '@/ui/web/shared/MathInput/MathPicker'
 import { MixedMathInput, type MixedMathInputRef } from '@/ui/web/shared/MathInput/MixedMathInput'
-import { Sigma } from 'lucide-react'
 import { FormulaSheetButton } from '@/ui/web/shared/FormulaSheetViewer/FormulaSheetButton'
 import { FormulaSheetContent } from '@/ui/web/shared/FormulaSheetViewer/FormulaSheetContent'
 
@@ -623,7 +622,11 @@ export function ChatInterface({
         {/* Math quick-insert toolbar */}
         {showMathTools && toolbarOpen && (
           <div className="mb-2.5 max-w-chat mx-auto rounded-lg border border-border bg-card shadow-card p-2">
-            <MathPicker onInsert={handleInsertMath} onClose={() => setToolbarOpen(false)} />
+            <MathPicker
+              onInsert={handleInsertMath}
+              onClose={() => setToolbarOpen(false)}
+              onImageUpload={openFilePicker}
+            />
           </div>
         )}
 
@@ -720,7 +723,28 @@ export function ChatInterface({
 
         {/* Input Wrapper */}
         <form ref={formRef} onSubmit={handleFormSubmit}>
-          <div className="max-w-chat mx-auto bg-muted rounded-chat-2xl flex items-center px-4 py-1.5 border border-input gap-3 relative">
+          <div
+            dir="rtl"
+            className="max-w-chat mx-auto bg-muted rounded-chat-2xl flex items-center px-4 py-1.5 border border-input gap-3 relative"
+          >
+            {/* Unified + menu: math atoms + image upload. Lives at the pill's
+                right edge (dir=rtl, first flex child) opposite the Send button. */}
+            {showMathTools && (
+              <button
+                type="button"
+                onClick={() => setToolbarOpen((v) => !v)}
+                className={cn(
+                  'p-1.5 rounded-lg border transition-colors',
+                  toolbarOpen
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20',
+                )}
+                title={tCourses('insertFormula')}
+              >
+                <Plus className="w-5 h-5" />
+              </button>
+            )}
+
             {/* Mixed-mode math input — WYSIWYG, math atoms render inline */}
             <MixedMathInput
               ref={mathInputRef}
@@ -735,44 +759,7 @@ export function ChatInterface({
               className="flex-1 py-2.5"
             />
 
-            {/* Formula button — toggles quick-insert toolbar */}
-            {showMathTools && (
-              <button
-                type="button"
-                onClick={() => setToolbarOpen((v) => !v)}
-                className={cn(
-                  'p-1.5 rounded-lg border transition-colors',
-                  toolbarOpen
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20',
-                )}
-                title={tCourses('insertFormula')}
-              >
-                <Sigma className="w-5 h-5" />
-              </button>
-            )}
-
-            {/* File Upload */}
-            <button
-              type="button"
-              className={cn(
-                'p-1.5 text-muted-foreground hover:text-primary transition-colors',
-                isDirectUploading && 'opacity-disabled cursor-not-allowed',
-              )}
-              onClick={openFilePicker}
-              disabled={
-                isDirectUploading ||
-                directUploads.filter((f) => f.status !== 'cancelled' && f.status !== 'failed')
-                  .length >= 5
-              }
-              aria-label={tCourses('chatAttachFile')}
-            >
-              {isDirectUploading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Plus className="w-5 h-5" />
-              )}
-            </button>
+            {/* Hidden file input the picker's Image action triggers. */}
             <input
               ref={fileInputRef}
               type="file"
@@ -797,7 +784,11 @@ export function ChatInterface({
               }
               aria-label={tCourses('sendMessage')}
             >
-              <Send className="w-5 h-5" />
+              {isDirectUploading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <ArrowUp className="w-5 h-5" />
+              )}
             </button>
           </div>
         </form>
