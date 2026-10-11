@@ -15,6 +15,7 @@ import type { Document, ObjectId } from 'mongodb'
 
 import { getContentDb, objectIdFromString, relationId, serializeDoc } from '@/infra/db/content-db'
 import type { User } from '@/infra/types/content'
+import { TIER_LLM_TOKEN_CAP_MONTHLY } from '@/lib/tiers'
 import { reconcileUserLlmLimit } from '@/lib/tiers/llm-cost-cap'
 import { encrypt, generateSecret } from './oauth_crypto'
 import {
@@ -242,6 +243,12 @@ export async function createPasswordUser(input: { name: string; email: string; p
       hash: password.hash,
       salt: password.salt,
       sessions: [],
+      // Explicit free-tier LLM token cap on signup. Admin's Payload
+      // `defaultValue` doesn't fire here because this path uses raw Mongo
+      // `insertOne` (not the Payload REST layer), so without this line new
+      // signups would land with `llmTokensLimit: undefined` and only get
+      // seeded on their first authed call (via reconcileUserLlmLimit).
+      llmTokensLimit: TIER_LLM_TOKEN_CAP_MONTHLY.free,
       createdAt: now,
       updatedAt: now,
     })
@@ -307,6 +314,9 @@ export async function createGoogleUser(
     googleProfile: { name: google.name, picture: google.picture },
     registrationMethod: 'google',
     registeredAt: now,
+    // See createPasswordUser for the rationale — raw Mongo insert bypasses
+    // Payload's `defaultValue`, so seed the free-tier cap explicitly.
+    llmTokensLimit: TIER_LLM_TOKEN_CAP_MONTHLY.free,
     ...(attribution
       ? {
           signupSource: attribution.signupSource,
