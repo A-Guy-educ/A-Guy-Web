@@ -298,11 +298,11 @@ export function ChatFreeResponseBubble({
         <AnimatePresence>
           {toolbarOpen && !isDisabled && (
             <motion.div
-              initial={{ opacity: 0, y: -4, scale: 0.97 }}
+              initial={{ opacity: 0, y: 6, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -4, scale: 0.97 }}
+              exit={{ opacity: 0, y: 6, scale: 0.97 }}
               transition={{ duration: 0.18 }}
-              className="absolute top-full inset-x-0 mt-2 z-20 rounded-lg border border-border bg-card shadow-card p-2"
+              className="absolute bottom-full inset-x-0 mb-2 z-20 rounded-lg border border-border bg-card shadow-card p-2"
             >
               <MathPicker
                 onInsert={handleInsertMath}
