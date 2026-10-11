@@ -19,6 +19,7 @@ import { ChatLessonProgress } from './ChatLessonProgress'
 import { GivenDataFloating } from './GivenDataFloating'
 import { ContinueButton } from './bubbles/ContinueButton'
 import { ExerciseSectionBubble } from './bubbles/ExerciseSectionBubble'
+import { QuestionHeaderBadges } from './bubbles/QuestionHeaderBadges'
 import type { ValidationErrorMessages } from './bubbles/ChatFreeResponseBubble'
 import { PendingBubble } from './bubbles/PendingBubble'
 import { StudentBubble } from './bubbles/StudentBubble'
@@ -829,14 +830,16 @@ function StreamEntryView({
           />
           {givenDataBlocks.length > 0 && (
             <div className="rounded-2xl border border-warning/30 bg-warning/8 p-card-padding-sm shadow-elevation-1">
-              <ExerciseRenderer
-                groups={[{ blocks: givenDataBlocks, sectionIndex: null }]}
-                mediaMap={mediaMap ?? EMPTY_MEDIA_MAP}
-                lessonId={lessonId}
-                showCheckAnswer={false}
-                showExerciseNumber={false}
-                questionCardVariant="flat"
-              />
+              <QuestionHeaderBadges exerciseOrdinal={entry.ordinal}>
+                <ExerciseRenderer
+                  groups={[{ blocks: givenDataBlocks, sectionIndex: null }]}
+                  mediaMap={mediaMap ?? EMPTY_MEDIA_MAP}
+                  lessonId={lessonId}
+                  showCheckAnswer={false}
+                  showExerciseNumber={false}
+                  questionCardVariant="flat"
+                />
+              </QuestionHeaderBadges>
             </div>
           )}
         </div>

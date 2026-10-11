@@ -322,20 +322,19 @@ export function ExerciseSectionBubble({
         // provider itself; the chat-native path has to do it here.
         <MediaMapProvider value={mediaMap ?? EMPTY_MEDIA_MAP}>
           {group.blocks.map((block) => {
-            // The exercise ordinal rides alongside the section letter — only
-            // on the first gradable question of the section (the only id in
-            // `questionLabelById`). Subsequent questions in the same section
-            // render without either badge so the pair reads as a section
-            // header, not a repeating noise band.
+            // Section letter badges render only on the first gradable question
+            // of each section (the only id in `questionLabelById`), so a multi-
+            // question section's leading card is clearly labelled while
+            // subsequent cards stay unlabelled. The exercise ordinal lives
+            // separately on the exercise-intro's given-data card, not here —
+            // repeating it on every section would just add noise.
             const sectionLabel = questionLabelById?.get(block.id)
-            const exerciseOrdinal = sectionLabel ? ordinal : undefined
             if (block.type === 'question_select') {
               return (
                 <ChatQuestionSelectBubble
                   key={block.id}
                   block={block as QuestionSelectBlock}
                   questionLabel={sectionLabel}
-                  exerciseOrdinal={exerciseOrdinal}
                   // Freeze only while a chat request is in flight (otherwise
                   // the resulting requestCorrection would be silently
                   // dropped). Past-section bubbles stay answerable so a
@@ -354,7 +353,6 @@ export function ExerciseSectionBubble({
                   key={block.id}
                   block={block as QuestionFreeResponseBlock}
                   questionLabel={sectionLabel}
-                  exerciseOrdinal={exerciseOrdinal}
                   placeholder={freeResponsePlaceholder ?? ''}
                   sendLabel={freeResponseSendLabel ?? ''}
                   disabled={quickActionsDisabled}

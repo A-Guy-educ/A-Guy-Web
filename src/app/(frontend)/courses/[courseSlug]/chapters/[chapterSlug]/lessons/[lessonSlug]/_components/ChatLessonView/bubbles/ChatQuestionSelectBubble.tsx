@@ -29,14 +29,6 @@ interface ChatQuestionSelectBubbleProps {
   block: QuestionSelectBlock
   questionLabel?: string
   /**
-   * 1-based ordinal of the containing exercise, rendered as a bold number
-   * badge inline with the first row of the prompt. Pairs with
-   * `questionLabel` so the student sees both "which exercise" and "which
-   * section" at a glance, mirroring how the scroll-view worksheet labels
-   * sections.
-   */
-  exerciseOrdinal?: number
-  /**
    * When true, the option buttons are locked regardless of local pick state.
    * Used to freeze historical (scroll-back) bubbles + to prevent answering
    * while a hint/explain/auto-correction request is in flight (otherwise the
@@ -87,7 +79,6 @@ interface Choice {
 export function ChatQuestionSelectBubble({
   block,
   questionLabel,
-  exerciseOrdinal,
   disabled,
   exerciseId,
   onSubmit,
@@ -203,7 +194,7 @@ export function ChatQuestionSelectBubble({
 
   return (
     <div className="flex flex-col gap-content-gap">
-      <QuestionHeaderBadges exerciseOrdinal={exerciseOrdinal} sectionLabel={questionLabel}>
+      <QuestionHeaderBadges sectionLabel={questionLabel}>
         <div className="text-body-md font-medium text-foreground leading-relaxed">
           <RichTextRenderer block={block.prompt} />
         </div>

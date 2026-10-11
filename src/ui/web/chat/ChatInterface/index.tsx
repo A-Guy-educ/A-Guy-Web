@@ -511,25 +511,35 @@ export function ChatInterface({
                     </div>
                   </div>
                 )}
-                <ChatMessageView
-                  content={msg.content}
-                  onChoice={handleViewChoice}
-                  disabled={isLoading}
-                />
-                {isAssistant && (
-                  <TTSButton
-                    isPlaying={isCurrentlyPlaying}
-                    isPaused={isPaused && isCurrentlyPlaying}
-                    currentRate={currentRate}
-                    onToggle={() => speak(messageId, msg.content)}
-                    onPause={pause}
-                    onResume={resume}
-                    onSetRate={setRate}
-                    labelPlay={tCourses('chatReadAloud')}
-                    labelStop={tCourses('chatStopReading')}
-                    labelPause={tCourses('chatPause')}
-                    labelResume={tCourses('chatResume')}
-                    labelSpeed={tCourses('chatSpeed')}
+                {isAssistant ? (
+                  <div className="flex items-end gap-content-gap-xs">
+                    <div className="flex-1 min-w-0">
+                      <ChatMessageView
+                        content={msg.content}
+                        onChoice={handleViewChoice}
+                        disabled={isLoading}
+                      />
+                    </div>
+                    <TTSButton
+                      isPlaying={isCurrentlyPlaying}
+                      isPaused={isPaused && isCurrentlyPlaying}
+                      currentRate={currentRate}
+                      onToggle={() => speak(messageId, msg.content)}
+                      onPause={pause}
+                      onResume={resume}
+                      onSetRate={setRate}
+                      labelPlay={tCourses('chatReadAloud')}
+                      labelStop={tCourses('chatStopReading')}
+                      labelPause={tCourses('chatPause')}
+                      labelResume={tCourses('chatResume')}
+                      labelSpeed={tCourses('chatSpeed')}
+                    />
+                  </div>
+                ) : (
+                  <ChatMessageView
+                    content={msg.content}
+                    onChoice={handleViewChoice}
+                    disabled={isLoading}
                   />
                 )}
                 {adminMode && msg.createdAt && (
