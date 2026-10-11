@@ -16,10 +16,17 @@ import { useTranslations } from '@/ui/web/providers/I18n'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import { useCallback, useMemo, useRef, useState } from 'react'
+import { QuestionHeaderBadges } from './QuestionHeaderBadges'
 
 interface ChatFreeResponseBubbleProps {
   block: QuestionFreeResponseBlock
   questionLabel?: string
+  /**
+   * 1-based ordinal of the containing exercise, rendered as a bold number
+   * badge inline with the first row of the prompt, next to the section
+   * letter — mirrors how the scroll-view worksheet labels sections.
+   */
+  exerciseOrdinal?: number
   placeholder: string
   sendLabel: string
   /**
@@ -84,6 +91,7 @@ type SubmitStatus = 'idle' | 'pending' | 'submitted' | 'not_checked'
 export function ChatFreeResponseBubble({
   block,
   questionLabel,
+  exerciseOrdinal,
   placeholder,
   sendLabel,
   disabled,
@@ -230,15 +238,11 @@ export function ChatFreeResponseBubble({
 
   return (
     <div className="flex flex-col gap-content-gap">
-      {questionLabel && (
-        <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 text-primary font-extrabold text-body-sm self-start">
-          {questionLabel}
-        </span>
-      )}
-
-      <div className="text-body-md font-medium text-foreground leading-relaxed">
-        <RichTextRenderer block={block.prompt} />
-      </div>
+      <QuestionHeaderBadges exerciseOrdinal={exerciseOrdinal} sectionLabel={questionLabel}>
+        <div className="text-body-md font-medium text-foreground leading-relaxed">
+          <RichTextRenderer block={block.prompt} />
+        </div>
+      </QuestionHeaderBadges>
 
       <div className="relative mt-2" data-math-controls>
         <form

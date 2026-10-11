@@ -16,6 +16,7 @@ import {
 } from '@/ui/web/exerciserenderer/utils/exerciseStateStorage'
 import { ArrowLeft, Lightbulb } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { QuestionHeaderBadges } from './QuestionHeaderBadges'
 
 /**
  * Minimum option count for Task-3 retry mode. Spec is specifically about
@@ -27,6 +28,14 @@ const RETRY_MIN_OPTIONS = 3
 interface ChatQuestionSelectBubbleProps {
   block: QuestionSelectBlock
   questionLabel?: string
+  /**
+   * 1-based ordinal of the containing exercise, rendered as a bold number
+   * badge inline with the first row of the prompt. Pairs with
+   * `questionLabel` so the student sees both "which exercise" and "which
+   * section" at a glance, mirroring how the scroll-view worksheet labels
+   * sections.
+   */
+  exerciseOrdinal?: number
   /**
    * When true, the option buttons are locked regardless of local pick state.
    * Used to freeze historical (scroll-back) bubbles + to prevent answering
@@ -78,6 +87,7 @@ interface Choice {
 export function ChatQuestionSelectBubble({
   block,
   questionLabel,
+  exerciseOrdinal,
   disabled,
   exerciseId,
   onSubmit,
@@ -193,15 +203,11 @@ export function ChatQuestionSelectBubble({
 
   return (
     <div className="flex flex-col gap-content-gap">
-      {questionLabel && (
-        <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 text-primary font-extrabold text-body-sm self-start">
-          {questionLabel}
-        </span>
-      )}
-
-      <div className="text-body-md font-medium text-foreground leading-relaxed">
-        <RichTextRenderer block={block.prompt} />
-      </div>
+      <QuestionHeaderBadges exerciseOrdinal={exerciseOrdinal} sectionLabel={questionLabel}>
+        <div className="text-body-md font-medium text-foreground leading-relaxed">
+          <RichTextRenderer block={block.prompt} />
+        </div>
+      </QuestionHeaderBadges>
 
       <div className="grid grid-cols-1 gap-content-gap-xs mt-2">
         {choices.map((choice) => {
