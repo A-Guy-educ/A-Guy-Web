@@ -90,11 +90,11 @@ export function FreeResponseQuestion({
         <AnimatePresence>
           {toolbarOpen && !disabled && (
             <motion.div
-              initial={{ opacity: 0, y: -4, scale: 0.97 }}
+              initial={{ opacity: 0, y: 6, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -4, scale: 0.97 }}
+              exit={{ opacity: 0, y: 6, scale: 0.97 }}
               transition={{ duration: 0.2 }}
-              className="absolute top-full mt-2 start-0 end-0 z-20 rounded-lg border border-border bg-card shadow-card p-2"
+              className="absolute bottom-full mb-2 start-0 end-0 z-20 rounded-lg border border-border bg-card shadow-card p-2"
             >
               <MathPicker onInsert={handleInsertMath} onClose={() => setToolbarOpen(false)} />
             </motion.div>
