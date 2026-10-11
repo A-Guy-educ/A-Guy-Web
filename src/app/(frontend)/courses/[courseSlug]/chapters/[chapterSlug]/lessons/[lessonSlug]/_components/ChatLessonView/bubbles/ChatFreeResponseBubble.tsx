@@ -21,12 +21,6 @@ import { QuestionHeaderBadges } from './QuestionHeaderBadges'
 interface ChatFreeResponseBubbleProps {
   block: QuestionFreeResponseBlock
   questionLabel?: string
-  /**
-   * 1-based ordinal of the containing exercise, rendered as a bold number
-   * badge inline with the first row of the prompt, next to the section
-   * letter — mirrors how the scroll-view worksheet labels sections.
-   */
-  exerciseOrdinal?: number
   placeholder: string
   sendLabel: string
   /**
@@ -91,7 +85,6 @@ type SubmitStatus = 'idle' | 'pending' | 'submitted' | 'not_checked'
 export function ChatFreeResponseBubble({
   block,
   questionLabel,
-  exerciseOrdinal,
   placeholder,
   sendLabel,
   disabled,
@@ -238,7 +231,7 @@ export function ChatFreeResponseBubble({
 
   return (
     <div className="flex flex-col gap-content-gap">
-      <QuestionHeaderBadges exerciseOrdinal={exerciseOrdinal} sectionLabel={questionLabel}>
+      <QuestionHeaderBadges sectionLabel={questionLabel}>
         <div className="text-body-md font-medium text-foreground leading-relaxed">
           <RichTextRenderer block={block.prompt} />
         </div>
