@@ -662,7 +662,7 @@ function ActiveChat({
               quickActionLabels={quickActionLabels}
               quickActionsDisabled={chat.isSending}
               freeResponsePlaceholder={t('chatViewAnswerPlaceholder')}
-              freeResponseSendLabel={t('chatViewSendLabel')}
+              freeResponseSendLabel={t('chatViewCheckLabel')}
               freeResponsePendingLabel={t('chatViewFreeResponsePending')}
               freeResponseNotCheckedLabel={t('chatViewFreeResponseNotChecked')}
               freeResponseValidationErrors={freeResponseValidationErrors}

@@ -375,6 +375,7 @@
     "chatViewReset": "Start over",
     "chatViewBack": "Back",
     "chatViewSendLabel": "Send",
+    "chatViewCheckLabel": "Check",
     "chatViewAcknowledgment": "One moment...",
     "chatViewChatError": "Chat error — please try again",
     "chatViewAuthRequired": "Please log in to chat",
