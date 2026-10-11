@@ -4862,6 +4862,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Rename chatview free-response submit button to Check ([#1333](https://github.com/A-Guy-educ/A-Guy-Web/pull/1333)) — @aguyshayb
 - fix: Open answer-box picker upwards ([#1332](https://github.com/A-Guy-educ/A-Guy-Web/pull/1332)) — @aguyshayb
 - chore: Seed llmTokensLimit on Web signup to match Admin schema default ([#1331](https://github.com/A-Guy-educ/A-Guy-Web/pull/1331)) — @aguyshayb
 - feat: Unify + menu, add Point tool, swap Send icon per demo ([#1330](https://github.com/A-Guy-educ/A-Guy-Web/pull/1330)) — @aguyshayb
