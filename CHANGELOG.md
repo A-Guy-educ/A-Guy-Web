@@ -4862,6 +4862,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Unify + menu, add Point tool, swap Send icon per demo ([#1330](https://github.com/A-Guy-educ/A-Guy-Web/pull/1330)) — @aguyshayb
 - fix: Scale facts dropdown contents and swap pill icon to envelope ([#1329](https://github.com/A-Guy-educ/A-Guy-Web/pull/1329)) — @aguyshayb
 - feat: Chatview summary card next-lesson CTA + skip-count regression coverage ([#1328](https://github.com/A-Guy-educ/A-Guy-Web/pull/1328)) — @aguyshayb
 - feat: Chatview chat styles, contact-us tab, smaller facts pill ([#1327](https://github.com/A-Guy-educ/A-Guy-Web/pull/1327)) — @aguyshayb
