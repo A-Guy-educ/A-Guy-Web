@@ -4862,6 +4862,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Inline chat TTS in all views, move exercise badge to given-data ([#1335](https://github.com/A-Guy-educ/A-Guy-Web/pull/1335)) — @aguyshayb
 - fix: Chatview polish — TTS alignment, section/exercise badges, MCQ math spacing ([#1334](https://github.com/A-Guy-educ/A-Guy-Web/pull/1334)) — @aguyshayb
 - fix: Rename chatview free-response submit button to Check ([#1333](https://github.com/A-Guy-educ/A-Guy-Web/pull/1333)) — @aguyshayb
 - fix: Open answer-box picker upwards ([#1332](https://github.com/A-Guy-educ/A-Guy-Web/pull/1332)) — @aguyshayb
