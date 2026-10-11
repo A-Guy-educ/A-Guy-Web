@@ -61,14 +61,19 @@ export function TeacherBubble({
         )}
 
         {hasText && (
-          <div className="text-body-md font-medium text-foreground">
-            <ChatMessageContent content={text!} />
+          <div className="flex items-end gap-content-gap-xs">
+            <div className="flex-1 min-w-0 text-body-md font-medium text-foreground">
+              <ChatMessageContent content={text!} />
+            </div>
+            {!isCorrection && ttsSupported && onSpeak && !children && (
+              <TtsToggle onSpeak={onSpeak} speaking={speaking} muted={muted} tone="primary" />
+            )}
           </div>
         )}
 
         {children ? <div className={hasText ? 'mt-3' : undefined}>{children}</div> : null}
 
-        {!isCorrection && ttsSupported && onSpeak && (hasText || children) && (
+        {!isCorrection && ttsSupported && onSpeak && children && (
           <div className="mt-2 flex justify-end">
             <TtsToggle onSpeak={onSpeak} speaking={speaking} muted={muted} tone="primary" />
           </div>

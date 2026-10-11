@@ -245,14 +245,16 @@ export function ExerciseSectionBubble({
   const submittedCountRef = useRef(seeded.submitted)
   const correctCountRef = useRef(seeded.correct)
 
-  // Only label individual questions when the section has more than one — a
-  // solo question doesn't need a leading badge. We look each block up in
-  // the exercise-wide `questionLabels` map so both schemes (titled `X1/X2`
-  // and untitled per-question `א/ב/ג` running counter) surface correctly.
+  // Label every section's first gradable question (even single-question
+  // sections) so the student always sees which section they're on — matches
+  // the scroll-view worksheet's per-section badge. `questionLabels` already
+  // stamps only one entry per section (the first gradable question's id),
+  // so subsequent questions in a multi-question section still render
+  // unlabeled; only the leading one carries the section + exercise badges.
   const questionLabelById = useMemo(() => {
-    if (!isChatNativePath || chatNativeQuestionCount < 2) return null
+    if (!isChatNativePath) return null
     return questionLabels
-  }, [chatNativeQuestionCount, questionLabels, isChatNativePath])
+  }, [questionLabels, isChatNativePath])
 
   const handleChatNativeSubmit = useCallback(
     (blockId: string, text: string, isCorrect: boolean) => {
@@ -320,12 +322,20 @@ export function ExerciseSectionBubble({
         // provider itself; the chat-native path has to do it here.
         <MediaMapProvider value={mediaMap ?? EMPTY_MEDIA_MAP}>
           {group.blocks.map((block) => {
+            // The exercise ordinal rides alongside the section letter — only
+            // on the first gradable question of the section (the only id in
+            // `questionLabelById`). Subsequent questions in the same section
+            // render without either badge so the pair reads as a section
+            // header, not a repeating noise band.
+            const sectionLabel = questionLabelById?.get(block.id)
+            const exerciseOrdinal = sectionLabel ? ordinal : undefined
             if (block.type === 'question_select') {
               return (
                 <ChatQuestionSelectBubble
                   key={block.id}
                   block={block as QuestionSelectBlock}
-                  questionLabel={questionLabelById?.get(block.id)}
+                  questionLabel={sectionLabel}
+                  exerciseOrdinal={exerciseOrdinal}
                   // Freeze only while a chat request is in flight (otherwise
                   // the resulting requestCorrection would be silently
                   // dropped). Past-section bubbles stay answerable so a
@@ -343,7 +353,8 @@ export function ExerciseSectionBubble({
                 <ChatFreeResponseBubble
                   key={block.id}
                   block={block as QuestionFreeResponseBlock}
-                  questionLabel={questionLabelById?.get(block.id)}
+                  questionLabel={sectionLabel}
+                  exerciseOrdinal={exerciseOrdinal}
                   placeholder={freeResponsePlaceholder ?? ''}
                   sendLabel={freeResponseSendLabel ?? ''}
                   disabled={quickActionsDisabled}
