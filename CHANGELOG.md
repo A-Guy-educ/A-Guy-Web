@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.47.1 — 2026-10-12
+
+### Bug Fixes
+- Debounced floating-notebook resize and align grid with chat-view notebook (#1354)
+- Snapshot and restore doodle canvas across fold to stop unfold truncation (#1353)
+- Grid uses `--foreground`, revert pen default, add check button to media tab (#1352)
+
 ## v0.47.0 — 2026-10-12
 
 ### Features
