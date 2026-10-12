@@ -4917,6 +4917,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.47.0 ([#1350](https://github.com/A-Guy-educ/A-Guy-Web/pull/1350)) — @aguyshayb
 - fix(notebook): Fold-persistence + bolder grid + align media defaults ([#1349](https://github.com/A-Guy-educ/A-Guy-Web/pull/1349)) — @aguyshayb
 - fix: Route course-page tier-locked rows to /subscriptions too ([#1348](https://github.com/A-Guy-educ/A-Guy-Web/pull/1348)) — @aguyshayb
 - feat(ask): PDF uploads use floating notebook with check button ([#1347](https://github.com/A-Guy-educ/A-Guy-Web/pull/1347)) — @aguyshayb
