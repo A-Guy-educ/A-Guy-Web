@@ -4898,6 +4898,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Drop forced name label from Point tool ([#1340](https://github.com/A-Guy-educ/A-Guy-Web/pull/1340)) — @aguyshayb
 - feat(subscriptions): Add tier subscription page with PayPal ([#1339](https://github.com/A-Guy-educ/A-Guy-Web/pull/1339)) — @aguyshayb
 - fix(renderer): Bump geometry point-label default font to 15 (mirror Admin #572) ([#1338](https://github.com/A-Guy-educ/A-Guy-Web/pull/1338)) — @aguyshayb
 ## [v0.46.0] - 2026-10-12
