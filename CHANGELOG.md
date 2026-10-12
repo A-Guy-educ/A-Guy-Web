@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.47.0 — 2026-10-12
+
+### Features
+- Floating notebook for PDF uploads with check button on ask page (#1347)
+- Check PDF notebook work against current page via Gemini (#1343)
+- Math-notebook major grid in doodle pen mode (#1343)
+- Tier subscription page with PayPal (#1339)
+
+### Fixes
+- Persist floating notebook canvas across fold, bolder grid, align media defaults (#1349)
+- Route course-page tier-locked rows to /subscriptions (#1348)
+- Promote inline math with stacked structure to display row (#1346)
+- Point quota-exhausted upgrade CTA to /subscriptions (#1345)
+- Route tier-locked CTAs to /subscriptions instead of /products (#1344)
+- Hand subscription tier capture to admin webhook, store tierSlug top-level (#1342)
+- Hide free CTA for paid users on subscriptions page (#1341)
+- Drop forced name label from Point tool (#1340)
+- Bump geometry point-label default font to 15 (#1338)
+
 ## v0.46.0 — 2026-10-12
 
 ### Features
