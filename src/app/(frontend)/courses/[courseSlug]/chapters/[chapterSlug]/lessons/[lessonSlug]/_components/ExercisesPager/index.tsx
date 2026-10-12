@@ -346,7 +346,7 @@ export function ExercisesPager({
                           </p>
                         </div>
                         <Button asChild size="lg" className="min-h-[48px]">
-                          <SystemLink href="/products">{t('tierLockedUpgradeCta')}</SystemLink>
+                          <SystemLink href="/subscriptions">{t('tierLockedUpgradeCta')}</SystemLink>
                         </Button>
                       </div>
                     ) : (

@@ -32,7 +32,7 @@ export function TierLockBubble({ lockedCount }: TierLockBubbleProps) {
         </p>
       </div>
       <Button asChild size="lg" className="min-h-[44px]">
-        <SystemLink href="/products">{t('chatViewTierLockCta')}</SystemLink>
+        <SystemLink href="/subscriptions">{t('chatViewTierLockCta')}</SystemLink>
       </Button>
     </div>
   )

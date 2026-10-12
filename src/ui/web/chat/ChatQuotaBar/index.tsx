@@ -69,7 +69,7 @@ export function ChatQuotaBar({ questionsUsed, maxQuestions, resetAt }: ChatQuota
       )}
       {isExhausted && (
         <SystemLink
-          href="/products"
+          href="/subscriptions"
           className="text-warning font-medium underline underline-offset-2"
         >
           {t('chatQuotaUpgradeCta')}
