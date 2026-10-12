@@ -4924,6 +4924,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.47.1 ([#1355](https://github.com/A-Guy-educ/A-Guy-Web/pull/1355)) — @aguyshayb
 - fix(notebook): Fold just hides (debounced resize) + grid matches chat-view ([#1354](https://github.com/A-Guy-educ/A-Guy-Web/pull/1354)) — @aguyshayb
 - fix(notebook): Snapshot + restore pen canvas across fold ([#1353](https://github.com/A-Guy-educ/A-Guy-Web/pull/1353)) — @aguyshayb
 - fix(notebook): Grid uses --foreground + check button on media tab + revert pen default ([#1352](https://github.com/A-Guy-educ/A-Guy-Web/pull/1352)) — @aguyshayb
