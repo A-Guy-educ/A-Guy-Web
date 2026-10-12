@@ -3,8 +3,13 @@
 import Image from 'next/image'
 import { cn } from '@/infra/utils/ui'
 import { useTranslations } from '@/ui/web/providers/I18n'
+import {
+  capturePdfPageImage,
+  readPdfCurrentPage,
+  trackPdfPage,
+} from '@/ui/web/media/PDFMedia/pdfViewerBridge'
 import { Award, Edit3, Lightbulb, Loader2, Play, RotateCcw } from 'lucide-react'
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { AskActionEvent, ExerciseFile } from '../ask-types'
 import { ASK_ACTION_EVENT } from '../ask-types'
 import { AskDrawingCanvas } from '../AskDrawingCanvas'
@@ -35,6 +40,7 @@ export function AskExerciseCard({
 }: AskExerciseCardProps) {
   const t = useTranslations('homepage.ask')
   const [isOpen, setIsOpen] = useState(false)
+  const pdfIframeRef = useRef<HTMLIFrameElement>(null)
 
   const handleHint = () => {
     dispatchAskAction({ type: 'hint', title: file.title, mediaId: file.mediaId })
@@ -44,14 +50,51 @@ export function AskExerciseCard({
     dispatchAskAction({ type: 'solution', title: file.title, mediaId: file.mediaId })
   }
 
-  const handleCheckSolution = (imageData: string) => {
-    dispatchAskAction({ type: 'check', title: file.title, imageData, mediaId: file.mediaId })
-  }
-
   const isPdf =
     file.mimeType === 'application/pdf' ||
     /\.pdf(\?|#|$)/i.test(file.url) ||
     /\.pdf$/i.test(file.title)
+
+  const handleCheckSolution = useCallback(
+    (imageData: string) => {
+      const iframe = pdfIframeRef.current
+      if (isPdf && iframe) {
+        const pageNumber = readPdfCurrentPage(iframe) ?? 1
+        const pdfPageImage = capturePdfPageImage(iframe, pageNumber) ?? undefined
+        dispatchAskAction({
+          type: 'check',
+          title: file.title,
+          imageData,
+          mediaId: file.mediaId,
+          pdfPageImage,
+          pdfPageNumber: pageNumber,
+        })
+        return
+      }
+      dispatchAskAction({ type: 'check', title: file.title, imageData, mediaId: file.mediaId })
+    },
+    [isPdf, file.title, file.mediaId],
+  )
+
+  // Wire the PDF.js viewer's page-change bus into the chat context so the
+  // tutor AI knows which page the student is looking at (same mechanism
+  // PDFMedia uses in the lesson media panel). Also keeps the iframe ref
+  // tied to the current PDF so `handleCheckSolution` can capture the page.
+  useEffect(() => {
+    if (!isPdf) return
+    const iframe = pdfIframeRef.current
+    if (!iframe) return
+    let detach: (() => void) | null = null
+    const handleLoad = () => {
+      detach?.()
+      detach = trackPdfPage(iframe, file.filename)
+    }
+    iframe.addEventListener('load', handleLoad)
+    return () => {
+      iframe.removeEventListener('load', handleLoad)
+      detach?.()
+    }
+  }, [isPdf, file.filename])
 
   // PDF.js's XHR inside the viewer iframe can't read a raw Vercel Blob
   // URL — the cross-origin response falls outside the viewer's CORS
@@ -83,6 +126,7 @@ export function AskExerciseCard({
         {isPdf ? (
           pdfPreviewUrl ? (
             <iframe
+              ref={pdfIframeRef}
               src={pdfPreviewUrl}
               title={file.title}
               className="absolute inset-0 w-full h-full border-0"
