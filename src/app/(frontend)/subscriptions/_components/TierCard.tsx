@@ -145,8 +145,8 @@ export function TierCard({ tier }: TierCardProps) {
         </ul>
       </div>
 
-      <div className="mt-auto border-t border-border/40 p-card-padding-sm">
-        {renderCta({
+      {(() => {
+        const cta = renderCta({
           isFree,
           isCurrent,
           isAuthLoading,
@@ -159,8 +159,12 @@ export function TierCard({ tier }: TierCardProps) {
             login: t('loginToSubscribe'),
             redirecting: t('redirecting'),
           },
-        })}
-      </div>
+        })
+        // No CTA for the free-tier baseline when the user is on a paid plan —
+        // skip the footer entirely so there's no empty bordered strip.
+        if (cta === null) return null
+        return <div className="mt-auto border-t border-border/40 p-card-padding-sm">{cta}</div>
+      })()}
     </article>
   )
 }
@@ -198,13 +202,10 @@ function renderCta({
   }
 
   if (isFree) {
-    // Free tier when the user is on a paid plan — show as the baseline, not
-    // actionable from here.
-    return (
-      <Button disabled variant="outline" className="w-full h-12 font-bold">
-        {labels.currentPlan}
-      </Button>
-    )
+    // Free tier when the user is on a paid plan — not actionable from here,
+    // and showing another "Your current plan" button would duplicate the
+    // label already on the user's real tier card.
+    return null
   }
 
   if (isAuthLoading) {
