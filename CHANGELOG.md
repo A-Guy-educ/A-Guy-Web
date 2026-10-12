@@ -4898,6 +4898,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Point chatview quota upgrade CTA to /subscriptions ([#1345](https://github.com/A-Guy-educ/A-Guy-Web/pull/1345)) — @aguyshayb
 - fix: Route tier-locked CTAs to /subscriptions instead of /products ([#1344](https://github.com/A-Guy-educ/A-Guy-Web/pull/1344)) — @aguyshayb
 - feat(ask): PDF notebook check + math-grid in doodle pen mode ([#1343](https://github.com/A-Guy-educ/A-Guy-Web/pull/1343)) — @aguyshayb
 - fix(subscriptions): Hand tier capture to admin webhook, store tierSlug top-level ([#1342](https://github.com/A-Guy-educ/A-Guy-Web/pull/1342)) — @aguyshayb
