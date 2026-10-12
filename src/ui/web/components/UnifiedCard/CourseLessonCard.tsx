@@ -107,7 +107,10 @@ export function CourseLessonCard({
       locked={isLocked}
       lockedPurchaseLabel={tc('lockedPurchaseCta')}
       lockedHint={tc('lockedPurchaseHint')}
-      lockedPurchaseHref={purchaseHref}
+      // Tier-locked rows route to the subscription store; per-course paid
+      // paywalls stay on the resolved per-course purchase URL (/products/<slug>
+      // or the generic /products index).
+      lockedPurchaseHref={tierLocked ? '/subscriptions' : purchaseHref}
     />
   )
 }
