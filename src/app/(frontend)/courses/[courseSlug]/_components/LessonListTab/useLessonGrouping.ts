@@ -48,17 +48,17 @@ function isSoonActive(lesson: Lesson): boolean {
   return true
 }
 
-function statusFor(
+function resolveLessonLock(
   lesson: Lesson,
   percent: number,
   courseAccessType: string | null | undefined,
   hasPaidAccess: boolean,
   tierSlug: TierSlug | null | undefined,
   displayIndex: number,
-): LessonRoadmapStatus {
-  if (isSoonActive(lesson)) return 'soon'
+): { status: LessonRoadmapStatus; isTierLocked: boolean } {
+  if (isSoonActive(lesson)) return { status: 'soon', isTierLocked: false }
   const access = resolveAccessType(lesson.accessType, courseAccessType)
-  if (access === 'paid' && !hasPaidAccess) return 'locked'
+  if (access === 'paid' && !hasPaidAccess) return { status: 'locked', isTierLocked: false }
 
   // Tier-based gates — the helpers themselves short-circuit when the
   // `NEXT_PUBLIC_TIER_ENFORCEMENT_ENABLED` env flag is off, so this is a no-op until
@@ -70,12 +70,13 @@ function statusFor(
   const effectiveType = getEffectiveLessonType(lesson.type)
   const userShape = { currentTier: tierSlug ?? null }
   if (effectiveType === 'practice' && !canAccessPracticeLesson(userShape, displayIndex))
-    return 'locked'
-  if (effectiveType === 'exam' && !canAccessExam(userShape, displayIndex)) return 'locked'
+    return { status: 'locked', isTierLocked: true }
+  if (effectiveType === 'exam' && !canAccessExam(userShape, displayIndex))
+    return { status: 'locked', isTierLocked: true }
 
-  if (percent >= 100) return 'completed'
-  if (percent > 0) return 'active'
-  return 'available'
+  if (percent >= 100) return { status: 'completed', isTierLocked: false }
+  if (percent > 0) return { status: 'active', isTierLocked: false }
+  return { status: 'available', isTierLocked: false }
 }
 
 /**
@@ -120,7 +121,7 @@ export function computeLessonGroups({
     for (const lesson of orderedLessons) {
       displayIndex += 1
       const percent = progressByLessonId[lesson.id] ?? 0
-      const status = statusFor(
+      const { status, isTierLocked } = resolveLessonLock(
         lesson,
         percent,
         courseAccessType,
@@ -145,6 +146,7 @@ export function computeLessonGroups({
         progressPercent: percent,
         status,
         isFeatured: canFeature,
+        isTierLocked,
       })
     }
 
