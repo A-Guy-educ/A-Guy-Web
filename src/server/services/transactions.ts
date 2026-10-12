@@ -92,26 +92,3 @@ export async function markEntitlementsGranted(
     $set: { entitlementsGrantedAt: grantedAt, updatedAt: grantedAt },
   })
 }
-
-/**
- * Atomically claim the entitlements-granted stamp on a transaction, returning
- * `true` for the first caller and `false` for every replay / concurrent racer.
- * Lets side-effects that would otherwise double-fire (tier apply resetting
- * `llmTokensUsed` to 0, for instance) run exactly once per transaction.
- */
-export async function claimEntitlementsGranted(
-  transactionId: string,
-  grantedAt: Date,
-): Promise<boolean> {
-  const db = await getContentDb()
-
-  const result = await db.collection('transactions').updateOne(
-    {
-      _id: new ObjectId(transactionId),
-      $or: [{ entitlementsGrantedAt: null }, { entitlementsGrantedAt: { $exists: false } }],
-    } as Document,
-    { $set: { entitlementsGrantedAt: grantedAt, updatedAt: grantedAt } },
-  )
-
-  return result.modifiedCount > 0
-}

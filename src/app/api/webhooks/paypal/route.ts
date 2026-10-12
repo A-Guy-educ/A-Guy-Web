@@ -33,7 +33,6 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { relationId } from '@/infra/db/content-db'
 import {
-  claimEntitlementsGranted,
   claimTransactionSucceeded,
   findTransactionByCaptureId,
   findTransactionByProviderId,
@@ -43,9 +42,7 @@ import {
 import { logger } from '@/infra/utils/logger/logger'
 import { grantProductEntitlements } from '@/lib/payment/grant-entitlements'
 import { capturePayPalOrder, verifyPayPalWebhook } from '@/lib/payment/paypal'
-import { isTierSlug } from '@/lib/tiers/constants'
 import { sendPurchaseReceipt } from '@/server/email/services/purchase-receipt-service'
-import { applyUserTier } from '@/server/services/tier-update'
 
 interface PayPalWebhookResource {
   id: string
@@ -247,43 +244,6 @@ async function maybeSendReceipt(
   // already_sent and no_adapter are routine no-ops — acknowledge.
 }
 
-/**
- * Apply a tier upgrade to the buyer when the transaction carries
- * `metadata.tierSlug` (set by /api/subscriptions/checkout). Uses an atomic
- * claim on `entitlementsGrantedAt` so parallel webhook replays can't
- * double-apply (and reset `llmTokensUsed` more than once per purchase).
- * Stamping entitlementsGrantedAt also flips the success page's `isConfirmed`
- * gate — tier purchases skip `maybeGrantEntitlements` entirely, so without
- * this stamp they'd otherwise stay on the pending screen.
- */
-async function maybeApplyTier(transaction: {
-  _id: unknown
-  user?: unknown
-  metadata?: { tierSlug?: unknown; purchaseType?: unknown } | null
-}): Promise<void> {
-  const tierSlug = transaction.metadata?.tierSlug
-  if (!isTierSlug(tierSlug)) return
-
-  const userId = relationId(transaction.user)
-  if (!userId) {
-    logger.warn(
-      { transactionId: String(transaction._id), tierSlug },
-      'PayPal webhook: cannot apply tier — transaction missing user',
-    )
-    return
-  }
-
-  const grantedAt = new Date()
-  const won = await claimEntitlementsGranted(String(transaction._id), grantedAt)
-  if (!won) return
-
-  await applyUserTier(userId, tierSlug)
-  logger.info(
-    { transactionId: String(transaction._id), userId, tierSlug },
-    'PayPal webhook: tier applied to user',
-  )
-}
-
 async function handleEvent(event: PayPalWebhookEvent): Promise<void> {
   switch (event.event_type) {
     case 'CHECKOUT.ORDER.APPROVED':
@@ -359,7 +319,6 @@ async function handleOrderApproved(event: PayPalWebhookEvent): Promise<void> {
 
   await maybeGrantEntitlements(transaction)
   await maybeSendReceipt(transaction, capturedAt)
-  await maybeApplyTier(transaction)
 }
 
 async function handleCaptureCompleted(event: PayPalWebhookEvent): Promise<void> {
@@ -423,7 +382,6 @@ async function handleCaptureCompleted(event: PayPalWebhookEvent): Promise<void> 
 
   await maybeGrantEntitlements(transaction)
   await maybeSendReceipt(transaction, capturedAt)
-  await maybeApplyTier(transaction)
 }
 
 async function handleCaptureRefunded(event: PayPalWebhookEvent): Promise<void> {

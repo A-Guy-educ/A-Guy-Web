@@ -2,15 +2,14 @@
  * Subscription Checkout — POST /api/subscriptions/checkout
  *
  * Starts a one-time PayPal order against a hardcoded tier (basic / advanced /
- * premium). On capture, the shared `/api/webhooks/paypal` route flips the
- * transaction to succeeded and — because `metadata.tierSlug` is set — applies
- * the tier to the buyer via `applyUserTier` (updates currentTier and
- * llmTokensLimit).
+ * premium) and inserts a pending `transactions` row carrying the top-level
+ * `tierSlug` field. On capture, the Admin PayPal webhook (sole webhook
+ * consumer) flips the row to succeeded and raw-Mongo-writes
+ * `user.currentTier` + `user.llmTokensLimit` based on that tierSlug — see
+ * `A-Guy-Admin/src/lib/payment/apply-tier-purchase.ts`.
  *
- * One-time orders (not PayPal subscriptions) for the POC — the recurring-
- * subscription path requires the Admin webhook receiver (A-Guy-Admin#266),
- * which isn't live yet. The buyer re-visits /subscriptions next month to
- * renew — fine for a soft launch.
+ * One-time orders (not PayPal subscriptions) for the POC — buyer re-visits
+ * /subscriptions next month to renew.
  *
  * @fileType route
  * @domain billing
@@ -31,7 +30,7 @@ import {
   type TierSlug,
 } from '@/lib/tiers/constants'
 import { createTransaction } from '@/server/services/checkout'
-import { countSucceededTierPurchases } from '@/server/services/tier-update'
+import { countSucceededTierPurchases } from '@/server/services/tier-pricing'
 
 const BodySchema = z.object({
   tier: z.enum(['basic', 'advanced', 'premium']),
@@ -117,20 +116,18 @@ export async function POST(request: NextRequest) {
     transaction = await createTransaction({
       tenant: null,
       user: ObjectId.isValid(user.id) ? new ObjectId(user.id) : user.id,
-      // No product row — tiers are a hardcoded enum per TIERS.md. The webhook
-      // treats a null product as "skip entitlements/receipt" (both helpers
-      // early-return on missing productId) and only applies the tier.
+      // No product row — tiers are a hardcoded enum per TIERS.md. Admin's
+      // webhook sees `tierSlug` at the top level and uses that to apply the
+      // tier to the user doc on capture; a null product tells the existing
+      // entitlements/receipt helpers to no-op.
       product: null,
+      tierSlug: tier,
       provider: 'paypal',
       providerTransactionId: providerSessionId,
       status: 'pending',
       amount,
       currency,
-      metadata: {
-        tierSlug: tier,
-        purchaseType: 'tier_subscription',
-        ...(isIntro ? { introApplied: true, regularPriceIls } : {}),
-      },
+      ...(isIntro ? { metadata: { introApplied: true, regularPriceIls } } : {}),
       successUrl,
       cancelUrl,
     })
