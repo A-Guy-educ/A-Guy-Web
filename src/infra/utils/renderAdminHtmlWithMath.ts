@@ -50,19 +50,27 @@ function canRenderInlineMath(source: string): boolean {
 }
 
 /**
- * Function definition = `name(args) = <anything>`. These are the only inline
- * expressions that get promoted to the bigger `.math-long` CSS treatment —
- * everything else inline (atoms, labels, equations like `2x+3=5`, fractions)
- * stays at reading size. Function definitions are the one case where the
- * extra visual weight meaningfully helps the student parse the right-hand
- * side as a distinct piece of structure.
+ * Decide whether inline math (`$...$`) should render in the bigger
+ * `.math-long` CSS treatment (own row + highlighted background) rather than
+ * inline reading-size `.math-short`.
  *
- * Mirrors isFunctionDefinition in rehype-math-wrapper.ts — keep them in sync.
+ * We promote in two cases:
+ *   1. Function definitions `name(args) = ...` — the right-hand side is a
+ *      distinct piece of structure students benefit from seeing clearly.
+ *   2. Expressions containing vertically-stacked LaTeX constructs
+ *      (`\frac`, `\dfrac`, `\tfrac`, `\binom`, `\begin{...}`) — these always
+ *      take more than one baseline of height and feel cramped inline.
+ *
+ * Simple inline equations like `$2x+3=5$` or atoms like `$x$` deliberately
+ * stay inline so they don't dwarf the surrounding prose.
+ *
+ * Mirrors shouldPromoteInlineMath in rehype-math-wrapper.ts — keep them in sync.
  */
-function isFunctionDefinition(source: string): boolean {
+function shouldPromoteInlineMath(source: string): boolean {
   const value = source.trim()
   if (!value) return false
-  return /^[A-Za-z]+\s*\([A-Za-z0-9, ]*\)\s*=/.test(value)
+  if (/^[A-Za-z]+\s*\([A-Za-z0-9, ]*\)\s*=/.test(value)) return true
+  return /\\(?:d|t)?frac\b|\\binom\b|\\begin\{/.test(value)
 }
 
 function renderMath(source: string, displayMode: boolean): string | null {
@@ -78,7 +86,7 @@ function renderMath(source: string, displayMode: boolean): string | null {
   })
 
   if (displayMode) return wrapDisplay(rendered)
-  const lengthClass = isFunctionDefinition(value) ? 'math-long' : 'math-short'
+  const lengthClass = shouldPromoteInlineMath(value) ? 'math-long' : 'math-short'
   return wrapInline(rendered, lengthClass)
 }
 
