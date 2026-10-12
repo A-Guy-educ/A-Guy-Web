@@ -28,7 +28,7 @@ import {
   PanelRightClose,
 } from 'lucide-react'
 import { cn } from '@/infra/utils/ui'
-import { MediaDoodleNotebook } from '../MediaDoodleNotebook'
+import { FloatingNotebook } from '@/ui/web/notebook/FloatingNotebook'
 
 interface MediaTabContentProps {
   lessonTitle: string
@@ -252,7 +252,7 @@ export function MediaTabContent({
               </div>
             </div>
           )}
-          <MediaDoodleNotebook containerRef={primaryAreaRef} />
+          <FloatingNotebook containerRef={primaryAreaRef} />
           {isDesktop && isChatCollapsed && (
             <button
               type="button"

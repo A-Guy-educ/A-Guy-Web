@@ -1,20 +1,21 @@
 // @vitest-environment jsdom
 
 /**
- * MediaDoodleNotebook — mode-switch test.
+ * FloatingNotebook — mode-switch + check-button test.
  *
  * The drawing surface itself (pen strokes, erase composite) is not covered
  * here because jsdom has no 2D canvas context; the existing AskDrawingCanvas
  * ships with the same gap for the same reason. What IS covered: the state
  * transition between pen mode (DoodleCanvas with a <canvas>) and text mode
- * (DoodleTextArea with a <textarea>).
+ * (DoodleTextArea with a <textarea>), plus the fact that the ✓ button only
+ * renders when `onCheck` is provided.
  */
 
 import { fireEvent, render, screen } from '@testing-library/react'
 import { createRef } from 'react'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 
-import { MediaDoodleNotebook } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/MediaDoodleNotebook'
+import { FloatingNotebook } from '@/ui/web/notebook/FloatingNotebook'
 import { I18nProvider } from '@/ui/web/providers/I18n'
 
 const messages = {
@@ -24,6 +25,7 @@ const messages = {
       penMode: 'Pen',
       textMode: 'Text',
       clear: 'Clear',
+      check: 'Check',
       eraser: 'Eraser',
       color: 'Color',
       resize: 'Resize',
@@ -46,18 +48,18 @@ beforeAll(() => {
   }
 })
 
-function renderNotebook() {
+function renderNotebook(props: Partial<Parameters<typeof FloatingNotebook>[0]> = {}) {
   const containerRef = createRef<HTMLDivElement>()
   return render(
     <I18nProvider locale="en" messages={messages}>
       <div ref={containerRef} style={{ position: 'relative', width: 800, height: 600 }}>
-        <MediaDoodleNotebook containerRef={containerRef} />
+        <FloatingNotebook containerRef={containerRef} {...props} />
       </div>
     </I18nProvider>,
   )
 }
 
-describe('MediaDoodleNotebook', () => {
+describe('FloatingNotebook', () => {
   it('defaults to text mode (renders the textarea)', () => {
     const { container } = renderNotebook()
     expect(screen.getByRole('dialog', { name: 'Scratch' })).toBeTruthy()
@@ -81,5 +83,22 @@ describe('MediaDoodleNotebook', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Text' }))
     expect(container.querySelector('textarea')).not.toBeNull()
     expect(container.querySelector('canvas')).toBeNull()
+  })
+
+  it('does NOT render the ✓ check button when onCheck is omitted', () => {
+    renderNotebook({ initialMode: 'pen' })
+    expect(screen.queryByRole('button', { name: 'Check' })).toBeNull()
+  })
+
+  it('renders the ✓ check button in pen mode when onCheck is provided', () => {
+    const onCheck = vi.fn()
+    renderNotebook({ initialMode: 'pen', onCheck })
+    expect(screen.getByRole('button', { name: 'Check' })).toBeTruthy()
+  })
+
+  it('hides the ✓ check button in text mode even when onCheck is provided', () => {
+    const onCheck = vi.fn()
+    renderNotebook({ initialMode: 'text', onCheck })
+    expect(screen.queryByRole('button', { name: 'Check' })).toBeNull()
   })
 })
