@@ -7,7 +7,7 @@
  *              optional Image + optional Notebook entries)
  *   category — palette of basic tools, with a secondary "+" for advanced
  *   tool     — Hebrew-labelled fields, live KaTeX preview, Insert button
- *   point    — multi-row coordinate editor (name / x / y per row)
+ *   point    — multi-row coordinate editor (x / y per row)
  *
  * Image + Notebook entries are gated on the `onImageUpload` / `onNotebook`
  * props so chat (image only) and open-answer (notebook only) each get the
@@ -336,22 +336,18 @@ function ToolEditor({ tool, onInsert }: { tool: MathTool; onInsert: (latex: stri
 }
 
 interface PointRow {
-  name: string
   x: string
   y: string
 }
 
 function PointEditor({ onInsert }: { onInsert: (latex: string) => void }) {
-  const [rows, setRows] = useState<PointRow[]>([{ name: 'A', x: '', y: '' }])
+  const [rows, setRows] = useState<PointRow[]>([{ x: '', y: '' }])
 
   const previewLatex = useMemo(() => buildPointsLatex(rows), [rows])
   const previewHtml = useMemo(() => renderKatex(previewLatex), [previewLatex])
-  const canInsert = rows.every((r) => r.name.trim() && r.x.trim() && r.y.trim())
+  const canInsert = rows.every((r) => r.x.trim() && r.y.trim())
 
-  const addRow = () => {
-    const nextLetter = String.fromCharCode(65 + rows.length) // A, B, C, ...
-    setRows((prev) => [...prev, { name: nextLetter, x: '', y: '' }])
-  }
+  const addRow = () => setRows((prev) => [...prev, { x: '', y: '' }])
 
   const updateRow = (i: number, field: keyof PointRow, value: string) => {
     setRows((prev) => {
@@ -370,12 +366,12 @@ function PointEditor({ onInsert }: { onInsert: (latex: string) => void }) {
       <div className="flex flex-col gap-1.5">
         {rows.map((row, i) => (
           <div key={i} className="flex items-end gap-1">
-            {(['name', 'x', 'y'] as const).map((field) => (
+            {(['x', 'y'] as const).map((field) => (
               <label
                 key={field}
                 className="flex-1 flex flex-col gap-0.5 text-body-xs text-muted-foreground"
               >
-                <span>{field === 'name' ? 'שם' : field}</span>
+                <span>{field}</span>
                 <input
                   type="text"
                   dir="ltr"
@@ -417,10 +413,9 @@ function buildPointsLatex(rows: PointRow[]): string {
   if (rows.length === 0) return ''
   return rows
     .map((r) => {
-      const name = r.name.trim() || '\\placeholder{}'
       const x = r.x.trim() || '\\placeholder{}'
       const y = r.y.trim() || '\\placeholder{}'
-      return `${name}\\left(${x}, ${y}\\right)`
+      return `\\left(${x}, ${y}\\right)`
     })
     .join('\\quad ')
 }
