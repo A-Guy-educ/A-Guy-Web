@@ -263,17 +263,19 @@ export const DoodleCanvas = forwardRef<DoodleCanvasHandle, DoodleCanvasProps>(fu
         )}
         style={{
           // Math-notebook grid ("מחברת משבצות"): 1px minor lines every 20px
-          // and bold 2px major lines every 5 cells (100px). The thickness
-          // delta — not just color — is what makes the major grid read as
-          // notebook paper instead of a decorative CSS border. Minor stays
-          // on --border so it's unobtrusive; major jumps to
-          // --muted-foreground at high opacity for actual contrast against
-          // --background in both themes.
+          // and bolder 1.5px major lines every 5 cells (100px).
+          //
+          // Uses `--foreground` (not `--border` / `--muted-foreground`) so the
+          // grid is guaranteed to contrast against `--background` in both
+          // light and dark modes — the earlier `--border`-based styles were
+          // nearly identical to the canvas background and visibly disappeared.
+          // Opacity is kept low so handwriting still reads as the dominant
+          // mark on the page.
           backgroundImage: [
-            'linear-gradient(hsl(var(--border) / 0.6) 1px, transparent 1px)',
-            'linear-gradient(90deg, hsl(var(--border) / 0.6) 1px, transparent 1px)',
-            'linear-gradient(hsl(var(--muted-foreground) / 0.7) 2px, transparent 2px)',
-            'linear-gradient(90deg, hsl(var(--muted-foreground) / 0.7) 2px, transparent 2px)',
+            'linear-gradient(hsl(var(--foreground) / 0.12) 1px, transparent 1px)',
+            'linear-gradient(90deg, hsl(var(--foreground) / 0.12) 1px, transparent 1px)',
+            'linear-gradient(hsl(var(--foreground) / 0.3) 1.5px, transparent 1.5px)',
+            'linear-gradient(90deg, hsl(var(--foreground) / 0.3) 1.5px, transparent 1.5px)',
           ].join(', '),
           backgroundSize: '20px 20px, 20px 20px, 100px 100px, 100px 100px',
         }}
