@@ -7,15 +7,16 @@ interface QuotaExhaustedCardProps {
   bodyText: string
   upgradeLabel: string
   continueLabel: string
-  /** Where the upgrade button navigates. The /products page handles the
-   *  actual plan selection + checkout. */
+  /** Where the upgrade button navigates. The /subscriptions page handles
+   *  the actual plan selection + checkout; aligns with the TierLockBubble
+   *  CTA and the earlier tier-locked-CTA fix in #1304. */
   upgradeHref: string
 }
 
 /**
  * One-time card rendered when the student's chat quota runs out (Task 7).
  * Shows the explanatory message + two CTAs:
- *   - Upgrade — navigates to /products so the student can pick a plan.
+ *   - Upgrade — navigates to /subscriptions so the student can pick a plan.
  *   - Continue in lesson — dismisses the CTAs (the message stays visible as
  *     a stream breadcrumb). After this, Tasks 2/3 AI calls are already
  *     suppressed by useChatChannel's quota flag, so the student just
