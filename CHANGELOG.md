@@ -4917,6 +4917,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix(notebook): Grid uses --foreground + check button on media tab + revert pen default ([#1352](https://github.com/A-Guy-educ/A-Guy-Web/pull/1352)) — @aguyshayb
 ## [v0.47.0] - 2026-10-12
 
 - promote: dev -> main (v0.47.0) ([#1351](https://github.com/A-Guy-educ/A-Guy-Web/pull/1351)) — @aguyshayb
