@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.47.0 — 2026-10-12
+
+### Features
+- Floating notebook for PDF uploads with check button on ask page (#1347)
+- Check PDF notebook work against current page via Gemini (#1343)
+- Math-notebook major grid in doodle pen mode (#1343)
+- Tier subscription page with PayPal (#1339)
+
+### Fixes
+- Persist floating notebook canvas across fold, bolder grid, align media defaults (#1349)
+- Route course-page tier-locked rows to /subscriptions (#1348)
+- Promote inline math with stacked structure to display row (#1346)
+- Point quota-exhausted upgrade CTA to /subscriptions (#1345)
+- Route tier-locked CTAs to /subscriptions instead of /products (#1344)
+- Hand subscription tier capture to admin webhook, store tierSlug top-level (#1342)
+- Hide free CTA for paid users on subscriptions page (#1341)
+- Drop forced name label from Point tool (#1340)
+- Bump geometry point-label default font to 15 (#1338)
+
 ## v0.46.0 — 2026-10-12
 
 ### Features
@@ -4898,6 +4917,22 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.47.0 ([#1350](https://github.com/A-Guy-educ/A-Guy-Web/pull/1350)) — @aguyshayb
+- fix(notebook): Fold-persistence + bolder grid + align media defaults ([#1349](https://github.com/A-Guy-educ/A-Guy-Web/pull/1349)) — @aguyshayb
+- fix: Route course-page tier-locked rows to /subscriptions too ([#1348](https://github.com/A-Guy-educ/A-Guy-Web/pull/1348)) — @aguyshayb
+- feat(ask): PDF uploads use floating notebook with check button ([#1347](https://github.com/A-Guy-educ/A-Guy-Web/pull/1347)) — @aguyshayb
+- fix: Promote inline math with fractions or stacked structure to own row ([#1346](https://github.com/A-Guy-educ/A-Guy-Web/pull/1346)) — @aguyshayb
+- fix: Point chatview quota upgrade CTA to /subscriptions ([#1345](https://github.com/A-Guy-educ/A-Guy-Web/pull/1345)) — @aguyshayb
+- fix: Route tier-locked CTAs to /subscriptions instead of /products ([#1344](https://github.com/A-Guy-educ/A-Guy-Web/pull/1344)) — @aguyshayb
+- feat(ask): PDF notebook check + math-grid in doodle pen mode ([#1343](https://github.com/A-Guy-educ/A-Guy-Web/pull/1343)) — @aguyshayb
+- fix(subscriptions): Hand tier capture to admin webhook, store tierSlug top-level ([#1342](https://github.com/A-Guy-educ/A-Guy-Web/pull/1342)) — @aguyshayb
+- fix(subscriptions): Hide free CTA for paid users, drop fair-use copy ([#1341](https://github.com/A-Guy-educ/A-Guy-Web/pull/1341)) — @aguyshayb
+- fix: Drop forced name label from Point tool ([#1340](https://github.com/A-Guy-educ/A-Guy-Web/pull/1340)) — @aguyshayb
+- feat(subscriptions): Add tier subscription page with PayPal ([#1339](https://github.com/A-Guy-educ/A-Guy-Web/pull/1339)) — @aguyshayb
+- fix(renderer): Bump geometry point-label default font to 15 (mirror Admin #572) ([#1338](https://github.com/A-Guy-educ/A-Guy-Web/pull/1338)) — @aguyshayb
+## [v0.46.0] - 2026-10-12
+
+- promote: dev -> main (v0.46.0) ([#1337](https://github.com/A-Guy-educ/A-Guy-Web/pull/1337)) — @aguyshayb
 - chore: Release v0.46.0 ([#1336](https://github.com/A-Guy-educ/A-Guy-Web/pull/1336)) — @aguyshayb
 - fix: Inline chat TTS in all views, move exercise badge to given-data ([#1335](https://github.com/A-Guy-educ/A-Guy-Web/pull/1335)) — @aguyshayb
 - fix: Chatview polish — TTS alignment, section/exercise badges, MCQ math spacing ([#1334](https://github.com/A-Guy-educ/A-Guy-Web/pull/1334)) — @aguyshayb

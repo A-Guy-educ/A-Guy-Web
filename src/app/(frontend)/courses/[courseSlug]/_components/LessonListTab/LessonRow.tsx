@@ -37,7 +37,9 @@ export function LessonRow({ node, courseSlug, purchaseHref }: LessonRowProps) {
   const href = chapterSlug
     ? `/courses/${courseSlug}/chapters/${chapterSlug}/lessons/${lesson.slug}`
     : '#'
-  const buyHref = purchaseHref ?? '/products'
+  // Tier-locked rows route to the subscription store (plan upgrade); legacy
+  // per-course paywalls stay on the resolved per-course purchase URL.
+  const buyHref = node.isTierLocked ? '/subscriptions' : (purchaseHref ?? '/products')
 
   const isInteractive = status !== 'soon' && status !== 'locked'
   const targetHref = status === 'soon' ? '#' : status === 'locked' ? buyHref : href

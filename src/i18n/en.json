@@ -350,6 +350,7 @@
       "penMode": "Pen",
       "textMode": "Text",
       "clear": "Clear",
+      "check": "Check",
       "eraser": "Eraser",
       "color": "Color",
       "resize": "Resize notebook",
@@ -1109,6 +1110,61 @@
     },
     "payWithCard": "Pay with Credit Card",
     "payWithPaypal": "Pay with PayPal"
+  },
+  "subscriptions": {
+    "title": "Choose your plan",
+    "description": "Full access to lessons, practice, exams, and an AI tutor — pick what fits.",
+    "perMonth": "per month",
+    "freePriceLabel": "Free",
+    "currentPlan": "Your current plan",
+    "subscribeButton": "Subscribe with PayPal",
+    "loginToSubscribe": "Log in to subscribe",
+    "redirecting": "Redirecting to checkout...",
+    "mostPopular": "Most popular",
+    "introPrefix": "First {months} months, then {regular}/mo",
+    "tiers": {
+      "free": {
+        "name": "Free",
+        "tagline": "Taste the material",
+        "features": [
+          "First 3 learning lessons fully open",
+          "Later lessons locked at exercise 3",
+          "First 3 practice lessons",
+          "First 3 exams",
+          "Limited AI tutor"
+        ]
+      },
+      "basic": {
+        "name": "Basic",
+        "tagline": "Learn without limits",
+        "features": [
+          "All learning lessons unlocked",
+          "All practice lessons unlocked",
+          "First 3 exams",
+          "AI tutor with daily quota"
+        ]
+      },
+      "advanced": {
+        "name": "Advanced",
+        "tagline": "Everything, including exams",
+        "features": ["Everything in Basic", "All exams unlocked", "Higher AI tutor quota"]
+      },
+      "premium": {
+        "name": "Premium",
+        "tagline": "Unlimited learning",
+        "features": [
+          "Everything in Advanced",
+          "No limit on AI tutor",
+          "Top AI model for every question"
+        ]
+      }
+    },
+    "errors": {
+      "authRequired": "Please log in to subscribe.",
+      "invalidTier": "That plan is not available.",
+      "checkoutFailed": "Unable to start checkout. Please try again.",
+      "providerNotConfigured": "PayPal is not configured. Please contact support."
+    }
   },
   "checkout": {
     "success": {

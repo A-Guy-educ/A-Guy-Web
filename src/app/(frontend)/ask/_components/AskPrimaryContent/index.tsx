@@ -21,6 +21,7 @@ import {
   ASK_MEDIA_RESTORE_EVENT,
 } from '../ask-types'
 import { AskExerciseCard } from '../AskExerciseCard'
+import { AskPdfWorkspace } from '../AskPdfWorkspace'
 import { useGenerateLesson } from '../InteractivePlayer/useGenerateLesson'
 
 function dispatchMediaAttach(detail: AskMediaAttachEvent) {
@@ -259,8 +260,14 @@ export function AskPrimaryContent() {
         )}
       </div>
 
-      {currentFile && (
-        <div className={cn(isPdfFile ? 'flex-1 min-h-0 w-full' : 'max-w-2xl mx-auto w-full')}>
+      {currentFile && isPdfFile && (
+        <div className="flex-1 min-h-0 w-full">
+          <AskPdfWorkspace file={currentFile} />
+        </div>
+      )}
+
+      {currentFile && !isPdfFile && (
+        <div className="max-w-2xl mx-auto w-full">
           <AskExerciseCard
             file={currentFile}
             onGenerate={handleGenerate}

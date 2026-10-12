@@ -915,7 +915,7 @@ function StreamEntryView({
           bodyText={quotaExhaustedBody}
           upgradeLabel={quotaUpgradeLabel}
           continueLabel={quotaContinueLabel}
-          upgradeHref="/products"
+          upgradeHref="/subscriptions"
         />
       )
     case 'review-offer':

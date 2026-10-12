@@ -43,7 +43,7 @@ function renderPoints(board: JXG.Board, points: PointSpec[]): Map<string, any> {
       withLabel: labelVisible,
       label: {
         offset: mapLabelOffset(p.position),
-        fontSize: p.fontSize ?? 12,
+        fontSize: p.fontSize ?? 15,
         visible: labelVisible,
         // JSXGraph silently drops `fontFamily` on label attrs — the only
         // knob it honors is `cssStyle` (which becomes inline `style=` on

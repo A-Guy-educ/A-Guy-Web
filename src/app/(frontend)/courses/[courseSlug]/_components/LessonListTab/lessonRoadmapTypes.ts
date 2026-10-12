@@ -17,6 +17,12 @@ export interface LessonRoadmapNode {
   progressPercent: number
   status: LessonRoadmapStatus
   isFeatured: boolean
+  /**
+   * True when `status === 'locked'` was set by the tier gate (practice/exam
+   * past #3 for sub-rank users), not by the per-course paid-access gate.
+   * Drives the lock-row CTA: tier → `/subscriptions`, paid → `purchaseHref`.
+   */
+  isTierLocked: boolean
 }
 
 // Search-only projection: covers all lesson types simultaneously (Learn /
