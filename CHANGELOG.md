@@ -4898,6 +4898,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- promote: dev -> main (v0.46.0) ([#1337](https://github.com/A-Guy-educ/A-Guy-Web/pull/1337)) — @aguyshayb
 - chore: Release v0.46.0 ([#1336](https://github.com/A-Guy-educ/A-Guy-Web/pull/1336)) — @aguyshayb
 - fix: Inline chat TTS in all views, move exercise badge to given-data ([#1335](https://github.com/A-Guy-educ/A-Guy-Web/pull/1335)) — @aguyshayb
 - fix: Chatview polish — TTS alignment, section/exercise badges, MCQ math spacing ([#1334](https://github.com/A-Guy-educ/A-Guy-Web/pull/1334)) — @aguyshayb
