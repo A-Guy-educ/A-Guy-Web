@@ -4898,6 +4898,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat(ask): PDF notebook check + math-grid in doodle pen mode ([#1343](https://github.com/A-Guy-educ/A-Guy-Web/pull/1343)) — @aguyshayb
 - fix(subscriptions): Hand tier capture to admin webhook, store tierSlug top-level ([#1342](https://github.com/A-Guy-educ/A-Guy-Web/pull/1342)) — @aguyshayb
 - fix(subscriptions): Hide free CTA for paid users, drop fair-use copy ([#1341](https://github.com/A-Guy-educ/A-Guy-Web/pull/1341)) — @aguyshayb
 - fix: Drop forced name label from Point tool ([#1340](https://github.com/A-Guy-educ/A-Guy-Web/pull/1340)) — @aguyshayb
