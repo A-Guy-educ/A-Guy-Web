@@ -4898,6 +4898,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix(renderer): Bump geometry point-label default font to 15 (mirror Admin #572) ([#1338](https://github.com/A-Guy-educ/A-Guy-Web/pull/1338)) — @aguyshayb
 ## [v0.46.0] - 2026-10-12
 
 - promote: dev -> main (v0.46.0) ([#1337](https://github.com/A-Guy-educ/A-Guy-Web/pull/1337)) — @aguyshayb
