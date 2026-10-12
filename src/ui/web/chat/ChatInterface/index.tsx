@@ -34,6 +34,8 @@ import { MathPicker } from '@/ui/web/shared/MathInput/MathPicker'
 import { MixedMathInput, type MixedMathInputRef } from '@/ui/web/shared/MathInput/MixedMathInput'
 import { FormulaSheetButton } from '@/ui/web/shared/FormulaSheetViewer/FormulaSheetButton'
 import { FormulaSheetContent } from '@/ui/web/shared/FormulaSheetViewer/FormulaSheetContent'
+import { uploadDataUrlAsMedia } from '@/infra/media/uploadDataUrl'
+import { logger } from '@/infra/utils/logger'
 
 export type ViewMode = 'PDF' | 'Chat'
 
@@ -248,11 +250,14 @@ export function ChatInterface({
   // Ask page actions (hint, solution, check solution from canvas)
   const askActionRef = useRef<(e: Event) => void>(() => {})
   askActionRef.current = (e: Event) => {
-    const { type, title, imageData, mediaId } = (e as CustomEvent).detail as {
+    const { type, title, imageData, mediaId, pdfPageImage, pdfPageNumber } = (e as CustomEvent)
+      .detail as {
       type: 'hint' | 'solution' | 'check'
       title: string
       imageData?: string
       mediaId?: string
+      pdfPageImage?: string
+      pdfPageNumber?: number
     }
     onChatInteraction?.()
     if (type === 'hint') {
@@ -278,11 +283,58 @@ export function ChatInterface({
         )
       }
     } else if (type === 'check' && imageData) {
-      sendContextualHelpWithMedia(
-        `The student drew a solution for "${title}" on the canvas. You are receiving two images: the first is the student's handwritten work from the canvas, and the second is the original exercise/question. Compare the student's work against the original question and tell them if their approach and answer look correct. Be encouraging and supportive.`,
-        imageData,
-        mediaId ? [mediaId] : undefined,
-      )
+      if (pdfPageImage) {
+        // PDF path: student is working against a multi-exercise PDF.
+        // Gemini receives the notebook work + an image of the current PDF
+        // page and must either match the work to an exercise on that page
+        // or explicitly say it can't — never guess an exercise that isn't
+        // visible on the page.
+        void (async () => {
+          try {
+            const pageMediaId = await uploadDataUrlAsMedia(
+              pdfPageImage,
+              `pdf-page-${pdfPageNumber ?? 1}.png`,
+            )
+            const pageInfo = pdfPageNumber ? ` (page ${pdfPageNumber})` : ''
+            const prompt =
+              `The student is working through a PDF of homework exercises${pageInfo}. ` +
+              `You are receiving two images:\n` +
+              `1. The student's handwritten work from the notebook canvas.\n` +
+              `2. The PDF page the student is currently viewing, which contains one or more exercises.\n\n` +
+              `Your task:\n` +
+              `- Identify which exercise on the PDF page the notebook work corresponds to. ` +
+              `Only make a match if it is clearly supported by what's visible — do NOT guess ` +
+              `and do NOT reference exercises that are not visible on this page.\n` +
+              `- If you can match the notebook work to an exercise on this page, check the ` +
+              `student's solution (approach and final answer). If they got it right, give a ` +
+              `short encouraging confirmation. If they made a mistake, point to the step ` +
+              `where it went wrong and ask a guiding question instead of revealing the full ` +
+              `solution.\n` +
+              `- If nothing on this page clearly matches the notebook work, respond with ` +
+              `exactly this message and nothing else: ` +
+              `"אני לא רואה התאמה בין מה שכתבת לבין התרגילים בעמוד הזה — אתה בטוח ` +
+              `שאנחנו מסתכלים על העמוד הנכון? אם לא, אפשר להגיד לי את מספר התרגיל."`
+            await sendContextualHelpWithMedia(prompt, imageData, [
+              pageMediaId,
+              ...(mediaId ? [mediaId] : []),
+            ])
+          } catch (err) {
+            logger.error({ err }, '[ChatInterface] Failed to upload PDF page snapshot for check')
+            // Fall back to the generic path so the student still gets a response.
+            await sendContextualHelpWithMedia(
+              `The student drew a solution for "${title}" on the canvas. You are receiving two images: the first is the student's handwritten work from the canvas, and the second is the original exercise/question. Compare the student's work against the original question and tell them if their approach and answer look correct. Be encouraging and supportive.`,
+              imageData,
+              mediaId ? [mediaId] : undefined,
+            )
+          }
+        })()
+      } else {
+        sendContextualHelpWithMedia(
+          `The student drew a solution for "${title}" on the canvas. You are receiving two images: the first is the student's handwritten work from the canvas, and the second is the original exercise/question. Compare the student's work against the original question and tell them if their approach and answer look correct. Be encouraging and supportive.`,
+          imageData,
+          mediaId ? [mediaId] : undefined,
+        )
+      }
     }
   }
 

@@ -23,6 +23,14 @@ export interface AskActionEvent {
   imageData?: string
   /** Media ID of the exercise image so the AI can see it */
   mediaId?: string
+  /**
+   * For PDF-backed exercises on `check`: the currently rendered PDF page
+   * captured as a PNG data URL, plus the 1-based page number the student
+   * was viewing. When present, the chat routes the check through a
+   * PDF-aware prompt that scopes exercise matching to this single page.
+   */
+  pdfPageImage?: string
+  pdfPageNumber?: number
 }
 
 export interface AskMediaAttachEvent {
