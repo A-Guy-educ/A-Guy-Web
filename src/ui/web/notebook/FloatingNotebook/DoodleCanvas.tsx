@@ -18,13 +18,6 @@ export interface DoodleCanvasHandle {
    * canvas hasn't been laid out yet (parent still measuring, folded, etc.).
    */
   getImageData: () => string | null
-  /**
-   * Paints a previously captured PNG data URL back onto the canvas at (0,0).
-   * Used by `FloatingNotebook` to restore pixels after the fold/unfold
-   * height animation triggers a resize-smaller-then-larger sequence that
-   * would otherwise truncate the drawing.
-   */
-  restore: (dataUrl: string) => void
 }
 
 interface DoodleCanvasProps {
@@ -89,9 +82,16 @@ export const DoodleCanvas = forwardRef<DoodleCanvasHandle, DoodleCanvasProps>(fu
     }
   }, [])
 
-  // Snapshot-preserving resize — the panel is draggable + foldable so the
-  // canvas container frequently reflows. Without this the student's work
-  // vanishes every time the parent size changes.
+  // Snapshot-preserving resize, DEBOUNCED. The panel is draggable +
+  // foldable and uses a CSS `transition-[height]` on unfold, so the
+  // ResizeObserver fires at many intermediate heights during the ~150ms
+  // animation. Resizing the backing store at each intermediate size
+  // truncates pixels permanently. Debouncing holds off until the size
+  // stabilises; because fold doesn't change the user's intended panel
+  // size, the stabilised post-unfold size matches the pre-fold size and
+  // the resize bails. For intentional drag-resize the user pauses after
+  // release and the preserving resize catches up ~200ms later.
+  const resizeTimerRef = useRef<number | null>(null)
   const initOrResize = useCallback(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -100,21 +100,30 @@ export const DoodleCanvas = forwardRef<DoodleCanvasHandle, DoodleCanvasProps>(fu
     if (nextW === 0 || nextH === 0) return
     if (canvas.width === nextW && canvas.height === nextH) return
 
-    const oldCtx = canvas.getContext('2d')
-    const oldData =
-      oldCtx && canvas.width > 0 && canvas.height > 0
-        ? oldCtx.getImageData(0, 0, canvas.width, canvas.height)
-        : null
+    if (resizeTimerRef.current) window.clearTimeout(resizeTimerRef.current)
+    resizeTimerRef.current = window.setTimeout(() => {
+      resizeTimerRef.current = null
+      const latestW = canvas.offsetWidth
+      const latestH = canvas.offsetHeight
+      if (latestW === 0 || latestH === 0) return
+      if (canvas.width === latestW && canvas.height === latestH) return
 
-    canvas.width = nextW
-    canvas.height = nextH
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-    ctx.lineCap = 'round'
-    ctx.lineJoin = 'round'
-    ctxRef.current = ctx
-    applyStroke()
-    if (oldData) ctx.putImageData(oldData, 0, 0)
+      const oldCtx = canvas.getContext('2d')
+      const oldData =
+        oldCtx && canvas.width > 0 && canvas.height > 0
+          ? oldCtx.getImageData(0, 0, canvas.width, canvas.height)
+          : null
+
+      canvas.width = latestW
+      canvas.height = latestH
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+      ctx.lineCap = 'round'
+      ctx.lineJoin = 'round'
+      ctxRef.current = ctx
+      applyStroke()
+      if (oldData) ctx.putImageData(oldData, 0, 0)
+    }, 200)
   }, [applyStroke])
 
   useEffect(() => {
@@ -126,6 +135,10 @@ export const DoodleCanvas = forwardRef<DoodleCanvasHandle, DoodleCanvasProps>(fu
     return () => {
       clearTimeout(timer)
       observer.disconnect()
+      if (resizeTimerRef.current) {
+        window.clearTimeout(resizeTimerRef.current)
+        resizeTimerRef.current = null
+      }
     }
   }, [initOrResize])
 
@@ -180,27 +193,8 @@ export const DoodleCanvas = forwardRef<DoodleCanvasHandle, DoodleCanvasProps>(fu
         if (!canvas || canvas.width === 0 || canvas.height === 0) return null
         return canvas.toDataURL('image/png')
       },
-      restore: (dataUrl: string) => {
-        const canvas = canvasRef.current
-        const ctx = ctxRef.current
-        if (!canvas || !ctx) return
-        const img = new Image()
-        img.onload = () => {
-          ctx.save()
-          ctx.setTransform(1, 0, 0, 1, 0, 0)
-          // destination-over so a mid-animation residue underneath doesn't
-          // paint over the restored pixels; the eraser mode's composite
-          // op is irrelevant here because we're not drawing a stroke.
-          ctx.globalCompositeOperation = 'source-over'
-          ctx.clearRect(0, 0, canvas.width, canvas.height)
-          ctx.drawImage(img, 0, 0)
-          ctx.restore()
-          applyStroke()
-        }
-        img.src = dataUrl
-      },
     }),
-    [applyStroke],
+    [],
   )
 
   const handleCheck = () => {
@@ -288,22 +282,14 @@ export const DoodleCanvas = forwardRef<DoodleCanvasHandle, DoodleCanvasProps>(fu
           isErasing ? 'cursor-cell' : 'cursor-crosshair',
         )}
         style={{
-          // Math-notebook grid ("מחברת משבצות"): 1px minor lines every 20px
-          // and bolder 1.5px major lines every 5 cells (100px).
-          //
-          // Uses `--foreground` (not `--border` / `--muted-foreground`) so the
-          // grid is guaranteed to contrast against `--background` in both
-          // light and dark modes — the earlier `--border`-based styles were
-          // nearly identical to the canvas background and visibly disappeared.
-          // Opacity is kept low so handwriting still reads as the dominant
-          // mark on the page.
-          backgroundImage: [
-            'linear-gradient(hsl(var(--foreground) / 0.12) 1px, transparent 1px)',
-            'linear-gradient(90deg, hsl(var(--foreground) / 0.12) 1px, transparent 1px)',
-            'linear-gradient(hsl(var(--foreground) / 0.3) 1.5px, transparent 1.5px)',
-            'linear-gradient(90deg, hsl(var(--foreground) / 0.3) 1.5px, transparent 1.5px)',
-          ].join(', '),
-          backgroundSize: '20px 20px, 20px 20px, 100px 100px, 100px 100px',
+          // Grid matches `AskDrawingCanvas` (the chat-view per-question
+          // notebook): single-layer 1px `--border` lines every 20px. Simple
+          // reads better than the layered minor/major experiment —
+          // `--border` paints at full opacity so the squared pattern shows
+          // without needing a bolder major grid on top.
+          backgroundImage:
+            'linear-gradient(hsl(var(--border)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--border)) 1px, transparent 1px)',
+          backgroundSize: '20px 20px',
         }}
       />
     </div>
