@@ -4917,6 +4917,8 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+## [v0.47.0] - 2026-10-12
+
 - promote: dev -> main (v0.47.0) ([#1351](https://github.com/A-Guy-educ/A-Guy-Web/pull/1351)) — @aguyshayb
 - chore: Release v0.47.0 ([#1350](https://github.com/A-Guy-educ/A-Guy-Web/pull/1350)) — @aguyshayb
 - fix(notebook): Fold-persistence + bolder grid + align media defaults ([#1349](https://github.com/A-Guy-educ/A-Guy-Web/pull/1349)) — @aguyshayb
