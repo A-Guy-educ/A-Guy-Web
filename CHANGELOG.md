@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.47.1 — 2026-10-12
+
+### Bug Fixes
+- Debounced floating-notebook resize and align grid with chat-view notebook (#1354)
+- Snapshot and restore doodle canvas across fold to stop unfold truncation (#1353)
+- Grid uses `--foreground`, revert pen default, add check button to media tab (#1352)
+
 ## v0.47.0 — 2026-10-12
 
 ### Features
@@ -4917,6 +4924,13 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.47.1 ([#1355](https://github.com/A-Guy-educ/A-Guy-Web/pull/1355)) — @aguyshayb
+- fix(notebook): Fold just hides (debounced resize) + grid matches chat-view ([#1354](https://github.com/A-Guy-educ/A-Guy-Web/pull/1354)) — @aguyshayb
+- fix(notebook): Snapshot + restore pen canvas across fold ([#1353](https://github.com/A-Guy-educ/A-Guy-Web/pull/1353)) — @aguyshayb
+- fix(notebook): Grid uses --foreground + check button on media tab + revert pen default ([#1352](https://github.com/A-Guy-educ/A-Guy-Web/pull/1352)) — @aguyshayb
+## [v0.47.0] - 2026-10-12
+
+- promote: dev -> main (v0.47.0) ([#1351](https://github.com/A-Guy-educ/A-Guy-Web/pull/1351)) — @aguyshayb
 - chore: Release v0.47.0 ([#1350](https://github.com/A-Guy-educ/A-Guy-Web/pull/1350)) — @aguyshayb
 - fix(notebook): Fold-persistence + bolder grid + align media defaults ([#1349](https://github.com/A-Guy-educ/A-Guy-Web/pull/1349)) — @aguyshayb
 - fix: Route course-page tier-locked rows to /subscriptions too ([#1348](https://github.com/A-Guy-educ/A-Guy-Web/pull/1348)) — @aguyshayb

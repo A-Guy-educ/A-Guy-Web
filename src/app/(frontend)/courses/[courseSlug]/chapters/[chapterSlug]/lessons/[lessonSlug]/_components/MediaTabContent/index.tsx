@@ -29,6 +29,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/infra/utils/ui'
 import { FloatingNotebook } from '@/ui/web/notebook/FloatingNotebook'
+import { capturePdfPageImage, readPdfCurrentPage } from '@/ui/web/media/PDFMedia/pdfViewerBridge'
 
 interface MediaTabContentProps {
   lessonTitle: string
@@ -178,6 +179,49 @@ export function MediaTabContent({
 
   const currentFile = validFiles[currentFileIndex]
 
+  // Floating notebook ✓ check: dispatch the same `ask-action` event the
+  // Ask page uses, so ChatInterface's existing listener routes it through
+  // the tutor via `sendContextualHelpWithMedia`. For PDFs we peek at the
+  // nested PDF.js iframe inside the Media renderer to grab the current
+  // page as an image — matches the Ask PDF workspace flow. For images
+  // (and other media types) we just pass the mediaId and let the generic
+  // check prompt handle it.
+  const handleNotebookCheck = useCallback(
+    (imageData: string) => {
+      if (!currentFile) return
+      const title = currentFile.filename ?? ''
+      const mediaId = currentFile.id
+      const isPdf =
+        currentFile.mediaType === 'pdf' ||
+        currentFile.mimeType === 'application/pdf' ||
+        /\.pdf$/i.test(currentFile.filename ?? '')
+
+      let pdfPageImage: string | undefined
+      let pdfPageNumber: number | undefined
+      if (isPdf) {
+        const iframe = primaryAreaRef.current?.querySelector('iframe') ?? null
+        if (iframe) {
+          pdfPageNumber = readPdfCurrentPage(iframe) ?? 1
+          pdfPageImage = capturePdfPageImage(iframe, pdfPageNumber) ?? undefined
+        }
+      }
+
+      window.dispatchEvent(
+        new CustomEvent('ask-action', {
+          detail: {
+            type: 'check',
+            title,
+            imageData,
+            mediaId,
+            pdfPageImage,
+            pdfPageNumber,
+          },
+        }),
+      )
+    },
+    [currentFile],
+  )
+
   return (
     <ExerciseWorkspace
       exerciseTitle={lessonTitle}
@@ -252,11 +296,7 @@ export function MediaTabContent({
               </div>
             </div>
           )}
-          <FloatingNotebook
-            containerRef={primaryAreaRef}
-            initialMode="pen"
-            initialSize={{ w: 360, h: 320 }}
-          />
+          <FloatingNotebook containerRef={primaryAreaRef} onCheck={handleNotebookCheck} />
           {isDesktop && isChatCollapsed && (
             <button
               type="button"

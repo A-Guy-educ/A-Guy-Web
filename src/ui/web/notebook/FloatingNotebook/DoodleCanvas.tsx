@@ -82,9 +82,16 @@ export const DoodleCanvas = forwardRef<DoodleCanvasHandle, DoodleCanvasProps>(fu
     }
   }, [])
 
-  // Snapshot-preserving resize — the panel is draggable + foldable so the
-  // canvas container frequently reflows. Without this the student's work
-  // vanishes every time the parent size changes.
+  // Snapshot-preserving resize, DEBOUNCED. The panel is draggable +
+  // foldable and uses a CSS `transition-[height]` on unfold, so the
+  // ResizeObserver fires at many intermediate heights during the ~150ms
+  // animation. Resizing the backing store at each intermediate size
+  // truncates pixels permanently. Debouncing holds off until the size
+  // stabilises; because fold doesn't change the user's intended panel
+  // size, the stabilised post-unfold size matches the pre-fold size and
+  // the resize bails. For intentional drag-resize the user pauses after
+  // release and the preserving resize catches up ~200ms later.
+  const resizeTimerRef = useRef<number | null>(null)
   const initOrResize = useCallback(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -93,21 +100,30 @@ export const DoodleCanvas = forwardRef<DoodleCanvasHandle, DoodleCanvasProps>(fu
     if (nextW === 0 || nextH === 0) return
     if (canvas.width === nextW && canvas.height === nextH) return
 
-    const oldCtx = canvas.getContext('2d')
-    const oldData =
-      oldCtx && canvas.width > 0 && canvas.height > 0
-        ? oldCtx.getImageData(0, 0, canvas.width, canvas.height)
-        : null
+    if (resizeTimerRef.current) window.clearTimeout(resizeTimerRef.current)
+    resizeTimerRef.current = window.setTimeout(() => {
+      resizeTimerRef.current = null
+      const latestW = canvas.offsetWidth
+      const latestH = canvas.offsetHeight
+      if (latestW === 0 || latestH === 0) return
+      if (canvas.width === latestW && canvas.height === latestH) return
 
-    canvas.width = nextW
-    canvas.height = nextH
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-    ctx.lineCap = 'round'
-    ctx.lineJoin = 'round'
-    ctxRef.current = ctx
-    applyStroke()
-    if (oldData) ctx.putImageData(oldData, 0, 0)
+      const oldCtx = canvas.getContext('2d')
+      const oldData =
+        oldCtx && canvas.width > 0 && canvas.height > 0
+          ? oldCtx.getImageData(0, 0, canvas.width, canvas.height)
+          : null
+
+      canvas.width = latestW
+      canvas.height = latestH
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+      ctx.lineCap = 'round'
+      ctx.lineJoin = 'round'
+      ctxRef.current = ctx
+      applyStroke()
+      if (oldData) ctx.putImageData(oldData, 0, 0)
+    }, 200)
   }, [applyStroke])
 
   useEffect(() => {
@@ -119,6 +135,10 @@ export const DoodleCanvas = forwardRef<DoodleCanvasHandle, DoodleCanvasProps>(fu
     return () => {
       clearTimeout(timer)
       observer.disconnect()
+      if (resizeTimerRef.current) {
+        window.clearTimeout(resizeTimerRef.current)
+        resizeTimerRef.current = null
+      }
     }
   }, [initOrResize])
 
@@ -262,20 +282,14 @@ export const DoodleCanvas = forwardRef<DoodleCanvasHandle, DoodleCanvasProps>(fu
           isErasing ? 'cursor-cell' : 'cursor-crosshair',
         )}
         style={{
-          // Math-notebook grid ("מחברת משבצות"): 1px minor lines every 20px
-          // and bold 2px major lines every 5 cells (100px). The thickness
-          // delta — not just color — is what makes the major grid read as
-          // notebook paper instead of a decorative CSS border. Minor stays
-          // on --border so it's unobtrusive; major jumps to
-          // --muted-foreground at high opacity for actual contrast against
-          // --background in both themes.
-          backgroundImage: [
-            'linear-gradient(hsl(var(--border) / 0.6) 1px, transparent 1px)',
-            'linear-gradient(90deg, hsl(var(--border) / 0.6) 1px, transparent 1px)',
-            'linear-gradient(hsl(var(--muted-foreground) / 0.7) 2px, transparent 2px)',
-            'linear-gradient(90deg, hsl(var(--muted-foreground) / 0.7) 2px, transparent 2px)',
-          ].join(', '),
-          backgroundSize: '20px 20px, 20px 20px, 100px 100px, 100px 100px',
+          // Grid matches `AskDrawingCanvas` (the chat-view per-question
+          // notebook): single-layer 1px `--border` lines every 20px. Simple
+          // reads better than the layered minor/major experiment —
+          // `--border` paints at full opacity so the squared pattern shows
+          // without needing a bolder major grid on top.
+          backgroundImage:
+            'linear-gradient(hsl(var(--border)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--border)) 1px, transparent 1px)',
+          backgroundSize: '20px 20px',
         }}
       />
     </div>
