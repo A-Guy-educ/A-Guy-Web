@@ -18,6 +18,13 @@ export interface DoodleCanvasHandle {
    * canvas hasn't been laid out yet (parent still measuring, folded, etc.).
    */
   getImageData: () => string | null
+  /**
+   * Paints a previously captured PNG data URL back onto the canvas at (0,0).
+   * Used by `FloatingNotebook` to restore pixels after the fold/unfold
+   * height animation triggers a resize-smaller-then-larger sequence that
+   * would otherwise truncate the drawing.
+   */
+  restore: (dataUrl: string) => void
 }
 
 interface DoodleCanvasProps {
@@ -173,8 +180,27 @@ export const DoodleCanvas = forwardRef<DoodleCanvasHandle, DoodleCanvasProps>(fu
         if (!canvas || canvas.width === 0 || canvas.height === 0) return null
         return canvas.toDataURL('image/png')
       },
+      restore: (dataUrl: string) => {
+        const canvas = canvasRef.current
+        const ctx = ctxRef.current
+        if (!canvas || !ctx) return
+        const img = new Image()
+        img.onload = () => {
+          ctx.save()
+          ctx.setTransform(1, 0, 0, 1, 0, 0)
+          // destination-over so a mid-animation residue underneath doesn't
+          // paint over the restored pixels; the eraser mode's composite
+          // op is irrelevant here because we're not drawing a stroke.
+          ctx.globalCompositeOperation = 'source-over'
+          ctx.clearRect(0, 0, canvas.width, canvas.height)
+          ctx.drawImage(img, 0, 0)
+          ctx.restore()
+          applyStroke()
+        }
+        img.src = dataUrl
+      },
     }),
-    [],
+    [applyStroke],
   )
 
   const handleCheck = () => {
