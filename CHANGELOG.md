@@ -4898,6 +4898,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix(subscriptions): Hide free CTA for paid users, drop fair-use copy ([#1341](https://github.com/A-Guy-educ/A-Guy-Web/pull/1341)) — @aguyshayb
 - fix: Drop forced name label from Point tool ([#1340](https://github.com/A-Guy-educ/A-Guy-Web/pull/1340)) — @aguyshayb
 - feat(subscriptions): Add tier subscription page with PayPal ([#1339](https://github.com/A-Guy-educ/A-Guy-Web/pull/1339)) — @aguyshayb
 - fix(renderer): Bump geometry point-label default font to 15 (mirror Admin #572) ([#1338](https://github.com/A-Guy-educ/A-Guy-Web/pull/1338)) — @aguyshayb
