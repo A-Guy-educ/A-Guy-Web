@@ -262,16 +262,18 @@ export const DoodleCanvas = forwardRef<DoodleCanvasHandle, DoodleCanvasProps>(fu
           isErasing ? 'cursor-cell' : 'cursor-crosshair',
         )}
         style={{
-          // Math-notebook grid: faint 20px minor cells with a stronger line
-          // every 5 cells (100px), matching the Hebrew "מחברת משבצות" look.
-          // Uses --muted-foreground for the major grid so it reads as a
-          // real squared-paper line against --background instead of
-          // disappearing into the surrounding --border tone.
+          // Math-notebook grid ("מחברת משבצות"): 1px minor lines every 20px
+          // and bold 2px major lines every 5 cells (100px). The thickness
+          // delta — not just color — is what makes the major grid read as
+          // notebook paper instead of a decorative CSS border. Minor stays
+          // on --border so it's unobtrusive; major jumps to
+          // --muted-foreground at high opacity for actual contrast against
+          // --background in both themes.
           backgroundImage: [
-            'linear-gradient(hsl(var(--border) / 0.5) 1px, transparent 1px)',
-            'linear-gradient(90deg, hsl(var(--border) / 0.5) 1px, transparent 1px)',
-            'linear-gradient(hsl(var(--muted-foreground) / 0.45) 1px, transparent 1px)',
-            'linear-gradient(90deg, hsl(var(--muted-foreground) / 0.45) 1px, transparent 1px)',
+            'linear-gradient(hsl(var(--border) / 0.6) 1px, transparent 1px)',
+            'linear-gradient(90deg, hsl(var(--border) / 0.6) 1px, transparent 1px)',
+            'linear-gradient(hsl(var(--muted-foreground) / 0.7) 2px, transparent 2px)',
+            'linear-gradient(90deg, hsl(var(--muted-foreground) / 0.7) 2px, transparent 2px)',
           ].join(', '),
           backgroundSize: '20px 20px, 20px 20px, 100px 100px, 100px 100px',
         }}

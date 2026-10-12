@@ -9,6 +9,12 @@
  * transition between pen mode (DoodleCanvas with a <canvas>) and text mode
  * (DoodleTextArea with a <textarea>), plus the fact that the ✓ button only
  * renders when `onCheck` is provided.
+ *
+ * Both surfaces stay MOUNTED across fold / mode-switch so canvas pixels and
+ * typed text persist; the inactive one is just hidden via the Tailwind
+ * `hidden` class on its wrapper. Visibility checks here walk up to that
+ * wrapper via `.closest('.hidden')` instead of asserting on element
+ * presence, which would always be true now.
  */
 
 import { fireEvent, render, screen } from '@testing-library/react'
@@ -59,30 +65,42 @@ function renderNotebook(props: Partial<Parameters<typeof FloatingNotebook>[0]> =
   )
 }
 
+/** True if the element OR any ancestor carries the Tailwind `hidden` class. */
+function isCssHidden(el: Element | null): boolean {
+  return !!el?.closest('.hidden')
+}
+
 describe('FloatingNotebook', () => {
-  it('defaults to text mode (renders the textarea)', () => {
+  it('defaults to text mode: textarea visible, canvas hidden', () => {
     const { container } = renderNotebook()
     expect(screen.getByRole('dialog', { name: 'Scratch' })).toBeTruthy()
     const textarea = container.querySelector('textarea')
+    const canvas = container.querySelector('canvas')
     expect(textarea).not.toBeNull()
+    expect(canvas).not.toBeNull() // mounted (persistence) but hidden
     expect(textarea?.placeholder).toContain('write here')
-    expect(container.querySelector('canvas')).toBeNull()
+    expect(isCssHidden(textarea)).toBe(false)
+    expect(isCssHidden(canvas)).toBe(true)
   })
 
-  it('swaps the textarea for the canvas when switching to pen mode', () => {
+  it('swaps visibility when switching to pen mode (both stay mounted)', () => {
     const { container } = renderNotebook()
     fireEvent.click(screen.getByRole('button', { name: 'Pen' }))
-    expect(container.querySelector('textarea')).toBeNull()
-    expect(container.querySelector('canvas')).not.toBeNull()
+    const textarea = container.querySelector('textarea')
+    const canvas = container.querySelector('canvas')
+    expect(textarea).not.toBeNull()
+    expect(canvas).not.toBeNull()
+    expect(isCssHidden(canvas)).toBe(false)
+    expect(isCssHidden(textarea)).toBe(true)
   })
 
-  it('swaps back to the textarea when returning to text mode', () => {
+  it('swaps back when returning to text mode (both stay mounted)', () => {
     const { container } = renderNotebook()
     fireEvent.click(screen.getByRole('button', { name: 'Pen' }))
-    expect(container.querySelector('canvas')).not.toBeNull()
+    expect(isCssHidden(container.querySelector('canvas'))).toBe(false)
     fireEvent.click(screen.getByRole('button', { name: 'Text' }))
-    expect(container.querySelector('textarea')).not.toBeNull()
-    expect(container.querySelector('canvas')).toBeNull()
+    expect(isCssHidden(container.querySelector('textarea'))).toBe(false)
+    expect(isCssHidden(container.querySelector('canvas'))).toBe(true)
   })
 
   it('does NOT render the ✓ check button when onCheck is omitted', () => {
@@ -90,15 +108,21 @@ describe('FloatingNotebook', () => {
     expect(screen.queryByRole('button', { name: 'Check' })).toBeNull()
   })
 
-  it('renders the ✓ check button in pen mode when onCheck is provided', () => {
+  it('renders the ✓ check button when onCheck is provided (pen mode)', () => {
     const onCheck = vi.fn()
     renderNotebook({ initialMode: 'pen', onCheck })
-    expect(screen.getByRole('button', { name: 'Check' })).toBeTruthy()
+    const btn = screen.getByRole('button', { name: 'Check' })
+    expect(btn).toBeTruthy()
+    expect(isCssHidden(btn)).toBe(false)
   })
 
   it('hides the ✓ check button in text mode even when onCheck is provided', () => {
     const onCheck = vi.fn()
     renderNotebook({ initialMode: 'text', onCheck })
-    expect(screen.queryByRole('button', { name: 'Check' })).toBeNull()
+    // Button still exists in the DOM (DoodleCanvas is mounted) but its
+    // wrapper is hidden, so the student can't click through.
+    const btn = screen.queryByRole('button', { name: 'Check' })
+    expect(btn).not.toBeNull()
+    expect(isCssHidden(btn)).toBe(true)
   })
 })
