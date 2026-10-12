@@ -19,7 +19,7 @@ import { cn } from '@/infra/utils/ui'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { NotebookPen, Pencil, Type } from 'lucide-react'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { DoodleCanvas } from './DoodleCanvas'
+import { DoodleCanvas, type DoodleCanvasHandle } from './DoodleCanvas'
 import { DoodleTextArea } from './DoodleTextArea'
 
 type NotebookMode = 'pen' | 'text'
@@ -96,6 +96,37 @@ export function FloatingNotebook({
     startH: number
     startPosX: number
   } | null>(null)
+
+  // Fold/unfold persistence. Hiding the pen canvas via CSS keeps React
+  // state intact, but the panel's `transition-[height]` animation on
+  // unfold replays through intermediate heights, each firing a
+  // ResizeObserver callback that truncates the canvas to the current
+  // (small) height. First truncation discards pixels permanently —
+  // user sees only the top strip survive. Snapshot the pixels while
+  // folded (hidden parent means they're still intact) and repaint them
+  // after the unfold animation settles.
+  const canvasHandleRef = useRef<DoodleCanvasHandle>(null)
+  const foldSnapshotRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (isFolded) {
+      // Don't overwrite a snapshot taken from a previous fold whose
+      // restore never ran — repeated fold-unfold-fold within the restore
+      // delay would otherwise capture a mid-animation truncated state.
+      if (foldSnapshotRef.current) return
+      foldSnapshotRef.current = canvasHandleRef.current?.getImageData() ?? null
+      return
+    }
+    const snap = foldSnapshotRef.current
+    if (!snap) return
+    // transition-fast is ~150ms in the design tokens; 300ms covers the
+    // transition + the final ResizeObserver settle.
+    const timer = window.setTimeout(() => {
+      canvasHandleRef.current?.restore(snap)
+      foldSnapshotRef.current = null
+    }, 300)
+    return () => window.clearTimeout(timer)
+  }, [isFolded])
 
   // Seed initial position once we know the container size — bottom-start,
   // RTL-aware (reads `dir` from the container's chain so we don't need to
@@ -341,6 +372,7 @@ export function FloatingNotebook({
        */}
       <div className={cn('flex-1 flex flex-col min-h-0', isFolded && 'hidden')}>
         <DoodleCanvas
+          ref={canvasHandleRef}
           className={cn('flex-1 min-h-0', mode !== 'pen' && 'hidden')}
           onCheck={onCheck}
           checkDisabled={checkDisabled}
