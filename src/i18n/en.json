@@ -350,6 +350,7 @@
       "penMode": "Pen",
       "textMode": "Text",
       "clear": "Clear",
+      "check": "Check",
       "eraser": "Eraser",
       "color": "Color",
       "resize": "Resize notebook",

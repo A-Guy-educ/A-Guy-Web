@@ -2,8 +2,8 @@
 
 import { cn } from '@/infra/utils/ui'
 import { useTranslations } from '@/ui/web/providers/I18n'
-import { Eraser, Trash2 } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { Check, Eraser, Trash2 } from 'lucide-react'
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 
 // Mirrors AskDrawingCanvas' palette resolution so the doodle pad stays
 // on-theme in dark mode / brand overrides. Blue / red / black.
@@ -12,11 +12,33 @@ const PEN_INK_VARS = ['--pen-ink-3', '--pen-ink-2', '--pen-ink-1'] as const
 const PEN_WIDTH = 2.5
 const ERASER_WIDTH = 18
 
-interface DoodleCanvasProps {
-  className?: string
+export interface DoodleCanvasHandle {
+  /**
+   * Returns the current canvas contents as a PNG data URL, or `null` if the
+   * canvas hasn't been laid out yet (parent still measuring, folded, etc.).
+   */
+  getImageData: () => string | null
 }
 
-export function DoodleCanvas({ className }: DoodleCanvasProps) {
+interface DoodleCanvasProps {
+  className?: string
+  /**
+   * If provided, renders a check (✓) button in the toolbar that, when
+   * clicked, calls back with the current canvas as a PNG data URL. Omit
+   * this prop to render the canvas as a plain scratchpad (lesson media
+   * tab behavior).
+   */
+  onCheck?: (imageData: string) => void
+  /**
+   * Disables the check button (e.g. while a check request is in flight).
+   */
+  checkDisabled?: boolean
+}
+
+export const DoodleCanvas = forwardRef<DoodleCanvasHandle, DoodleCanvasProps>(function DoodleCanvas(
+  { className, onCheck, checkDisabled },
+  ref,
+) {
   const t = useTranslations('courses.doodleNotebook')
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null)
@@ -143,6 +165,25 @@ export function DoodleCanvas({ className }: DoodleCanvasProps) {
     setSelectedColor(color)
   }
 
+  useImperativeHandle(
+    ref,
+    () => ({
+      getImageData: () => {
+        const canvas = canvasRef.current
+        if (!canvas || canvas.width === 0 || canvas.height === 0) return null
+        return canvas.toDataURL('image/png')
+      },
+    }),
+    [],
+  )
+
+  const handleCheck = () => {
+    if (!onCheck || checkDisabled) return
+    const canvas = canvasRef.current
+    if (!canvas || canvas.width === 0 || canvas.height === 0) return
+    onCheck(canvas.toDataURL('image/png'))
+  }
+
   return (
     <div className={cn('flex flex-col min-h-0 h-full', className)}>
       <div className="flex items-center justify-between gap-content-gap-xs px-3 py-2 border-b border-border/60 bg-muted/40 shrink-0">
@@ -183,14 +224,29 @@ export function DoodleCanvas({ className }: DoodleCanvasProps) {
             <Eraser className="w-3 h-3" />
           </button>
         </div>
-        <button
-          type="button"
-          onClick={clearAll}
-          className="flex items-center gap-1 px-2 py-1 rounded-md text-body-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors duration-normal"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-          <span>{t('clear')}</span>
-        </button>
+        <div className="flex items-center gap-content-gap-xs">
+          {onCheck && (
+            <button
+              type="button"
+              onClick={handleCheck}
+              disabled={checkDisabled}
+              title={t('check')}
+              aria-label={t('check')}
+              className="flex items-center gap-1 px-2 py-1 rounded-md text-body-xs bg-success/10 text-success hover:bg-success/20 transition-colors duration-normal disabled:opacity-40 disabled:hover:bg-success/10"
+            >
+              <Check className="w-3.5 h-3.5" />
+              <span>{t('check')}</span>
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={clearAll}
+            className="flex items-center gap-1 px-2 py-1 rounded-md text-body-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors duration-normal"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>{t('clear')}</span>
+          </button>
+        </div>
       </div>
       <canvas
         ref={canvasRef}
@@ -208,16 +264,18 @@ export function DoodleCanvas({ className }: DoodleCanvasProps) {
         style={{
           // Math-notebook grid: faint 20px minor cells with a stronger line
           // every 5 cells (100px), matching the Hebrew "מחברת משבצות" look.
-          // Minor gradients are listed first so the major lines paint on top.
+          // Uses --muted-foreground for the major grid so it reads as a
+          // real squared-paper line against --background instead of
+          // disappearing into the surrounding --border tone.
           backgroundImage: [
-            'linear-gradient(hsl(var(--border) / 0.4) 1px, transparent 1px)',
-            'linear-gradient(90deg, hsl(var(--border) / 0.4) 1px, transparent 1px)',
-            'linear-gradient(hsl(var(--border)) 1px, transparent 1px)',
-            'linear-gradient(90deg, hsl(var(--border)) 1px, transparent 1px)',
+            'linear-gradient(hsl(var(--border) / 0.5) 1px, transparent 1px)',
+            'linear-gradient(90deg, hsl(var(--border) / 0.5) 1px, transparent 1px)',
+            'linear-gradient(hsl(var(--muted-foreground) / 0.45) 1px, transparent 1px)',
+            'linear-gradient(90deg, hsl(var(--muted-foreground) / 0.45) 1px, transparent 1px)',
           ].join(', '),
           backgroundSize: '20px 20px, 20px 20px, 100px 100px, 100px 100px',
         }}
       />
     </div>
   )
-}
+})

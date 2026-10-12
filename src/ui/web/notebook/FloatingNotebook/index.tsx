@@ -1,16 +1,18 @@
 'use client'
 
 /**
- * MediaDoodleNotebook
+ * FloatingNotebook
  *
- * Floating scratch-paper panel for media-only lessons. Students can doodle
- * calculations while reading the lesson media (PDF/image). The panel is
- * draggable; dragging its header past the top of its container folds it
- * into a thin tab at the top edge. Dragging the tab back down (or clicking
- * it) restores the full panel at its last position.
+ * Draggable scratch-paper panel with pen + text modes. Originally built
+ * for the media-only lesson tab (used as `MediaDoodleNotebook` export)
+ * and now reused in the Ask page's PDF workspace, where it also carries
+ * an optional check (✓) button that sends the pen-mode canvas to the
+ * tutor for grading.
  *
- * No persistence / submission — this is a short-lived scratchpad per lesson
- * view, matching the request to "just doodle and erase, no checking yet."
+ * The panel is draggable; dragging its header past the top of its
+ * container folds it into a thin tab at the top edge. Dragging the tab
+ * back down (or clicking it) restores the full panel at its last
+ * position.
  */
 
 import { cn } from '@/infra/utils/ui'
@@ -39,18 +41,45 @@ interface Size {
   h: number
 }
 
-interface MediaDoodleNotebookProps {
+export interface FloatingNotebookProps {
   /** Positioning anchor — the component is `absolute` and sized against this parent. */
   containerRef: React.RefObject<HTMLDivElement | null>
+  /**
+   * When provided, the pen-mode toolbar shows a ✓ check button that
+   * invokes this callback with the current canvas as a PNG data URL.
+   * Omit for a plain scratchpad (lesson media-tab behavior).
+   */
+  onCheck?: (imageData: string) => void
+  /**
+   * Disables the ✓ button (e.g. while a check request is in flight).
+   */
+  checkDisabled?: boolean
+  /**
+   * Initial notebook mode. Defaults to `'text'` to preserve the existing
+   * lesson media-tab behavior; the Ask PDF workspace opts into `'pen'`.
+   */
+  initialMode?: NotebookMode
+  /**
+   * Initial size override (defaults to the DEFAULT_SIZE constant). The
+   * Ask PDF workspace uses a slightly larger default so a full equation
+   * fits comfortably without resizing on first open.
+   */
+  initialSize?: { w: number; h: number }
 }
 
-export function MediaDoodleNotebook({ containerRef }: MediaDoodleNotebookProps) {
+export function FloatingNotebook({
+  containerRef,
+  onCheck,
+  checkDisabled,
+  initialMode = 'text',
+  initialSize,
+}: FloatingNotebookProps) {
   const t = useTranslations('courses.doodleNotebook')
   const [isFolded, setIsFolded] = useState(false)
   const [pos, setPos] = useState<Position>({ x: MIN_MARGIN, y: 180 })
-  const [size, setSize] = useState<Size>(DEFAULT_SIZE)
+  const [size, setSize] = useState<Size>(initialSize ?? DEFAULT_SIZE)
   const [isRTL, setIsRTL] = useState(false)
-  const [mode, setMode] = useState<NotebookMode>('text')
+  const [mode, setMode] = useState<NotebookMode>(initialMode)
   const panelRef = useRef<HTMLDivElement>(null)
   const dragStateRef = useRef<{
     pointerId: number
@@ -302,7 +331,9 @@ export function MediaDoodleNotebook({ containerRef }: MediaDoodleNotebookProps) 
           </div>
         )}
       </div>
-      {!isFolded && mode === 'pen' && <DoodleCanvas className="flex-1" />}
+      {!isFolded && mode === 'pen' && (
+        <DoodleCanvas className="flex-1" onCheck={onCheck} checkDisabled={checkDisabled} />
+      )}
       {!isFolded && mode === 'text' && <DoodleTextArea className="flex-1" />}
       {!isFolded && (
         <div

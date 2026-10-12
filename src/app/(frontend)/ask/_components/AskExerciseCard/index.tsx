@@ -3,13 +3,8 @@
 import Image from 'next/image'
 import { cn } from '@/infra/utils/ui'
 import { useTranslations } from '@/ui/web/providers/I18n'
-import {
-  capturePdfPageImage,
-  readPdfCurrentPage,
-  trackPdfPage,
-} from '@/ui/web/media/PDFMedia/pdfViewerBridge'
 import { Award, Edit3, Lightbulb, Loader2, Play, RotateCcw } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import type { AskActionEvent, ExerciseFile } from '../ask-types'
 import { ASK_ACTION_EVENT } from '../ask-types'
 import { AskDrawingCanvas } from '../AskDrawingCanvas'
@@ -40,7 +35,6 @@ export function AskExerciseCard({
 }: AskExerciseCardProps) {
   const t = useTranslations('homepage.ask')
   const [isOpen, setIsOpen] = useState(false)
-  const pdfIframeRef = useRef<HTMLIFrameElement>(null)
 
   const handleHint = () => {
     dispatchAskAction({ type: 'hint', title: file.title, mediaId: file.mediaId })
@@ -50,104 +44,23 @@ export function AskExerciseCard({
     dispatchAskAction({ type: 'solution', title: file.title, mediaId: file.mediaId })
   }
 
-  const isPdf =
-    file.mimeType === 'application/pdf' ||
-    /\.pdf(\?|#|$)/i.test(file.url) ||
-    /\.pdf$/i.test(file.title)
-
-  const handleCheckSolution = useCallback(
-    (imageData: string) => {
-      const iframe = pdfIframeRef.current
-      if (isPdf && iframe) {
-        const pageNumber = readPdfCurrentPage(iframe) ?? 1
-        const pdfPageImage = capturePdfPageImage(iframe, pageNumber) ?? undefined
-        dispatchAskAction({
-          type: 'check',
-          title: file.title,
-          imageData,
-          mediaId: file.mediaId,
-          pdfPageImage,
-          pdfPageNumber: pageNumber,
-        })
-        return
-      }
-      dispatchAskAction({ type: 'check', title: file.title, imageData, mediaId: file.mediaId })
-    },
-    [isPdf, file.title, file.mediaId],
-  )
-
-  // Wire the PDF.js viewer's page-change bus into the chat context so the
-  // tutor AI knows which page the student is looking at (same mechanism
-  // PDFMedia uses in the lesson media panel). Also keeps the iframe ref
-  // tied to the current PDF so `handleCheckSolution` can capture the page.
-  useEffect(() => {
-    if (!isPdf) return
-    const iframe = pdfIframeRef.current
-    if (!iframe) return
-    let detach: (() => void) | null = null
-    const handleLoad = () => {
-      detach?.()
-      detach = trackPdfPage(iframe, file.filename)
-    }
-    iframe.addEventListener('load', handleLoad)
-    return () => {
-      iframe.removeEventListener('load', handleLoad)
-      detach?.()
-    }
-  }, [isPdf, file.filename])
-
-  // PDF.js's XHR inside the viewer iframe can't read a raw Vercel Blob
-  // URL — the cross-origin response falls outside the viewer's CORS
-  // envelope and the viewer renders empty. Route the preview through
-  // `/api/media/file/<filename>?inline=1` so PDF.js only ever sees
-  // same-origin bytes (that endpoint streams the Blob through our
-  // origin when `inline=1` is set, matching the admin-media path that
-  // the lesson media tab already relies on).
-  const canPreviewPdf = isPdf && !!file.filename
-  const pdfPreviewUrl = canPreviewPdf
-    ? `/api/pdfjs-viewer?file=${encodeURIComponent(
-        `/api/media/file/${encodeURIComponent(file.filename!)}?inline=1`,
-      )}&v=4.4.168`
-    : null
+  const handleCheckSolution = (imageData: string) => {
+    dispatchAskAction({ type: 'check', title: file.title, imageData, mediaId: file.mediaId })
+  }
 
   return (
-    <div
-      className={cn(
-        'rounded-2xl bg-card border border-border/40 shadow-elevation-1 transition-all duration-normal overflow-hidden border-s-4 border-s-accent',
-        isPdf ? 'h-full flex flex-col' : 'mb-6',
-      )}
-    >
-      <div
-        className={cn(
-          'relative overflow-hidden bg-muted',
-          isPdf ? 'flex-1 min-h-0' : 'aspect-video',
-        )}
-      >
-        {isPdf ? (
-          pdfPreviewUrl ? (
-            <iframe
-              ref={pdfIframeRef}
-              src={pdfPreviewUrl}
-              title={file.title}
-              className="absolute inset-0 w-full h-full border-0"
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-              <Loader2 className="w-6 h-6 animate-spin" />
-            </div>
-          )
-        ) : (
-          <Image
-            src={file.url}
-            alt={file.title}
-            fill
-            className="object-contain"
-            sizes="(max-width: 768px) 100vw, 50vw"
-          />
-        )}
+    <div className="rounded-2xl bg-card border border-border/40 shadow-elevation-1 transition-all duration-normal overflow-hidden border-s-4 border-s-accent mb-6">
+      <div className="relative overflow-hidden bg-muted aspect-video">
+        <Image
+          src={file.url}
+          alt={file.title}
+          fill
+          className="object-contain"
+          sizes="(max-width: 768px) 100vw, 50vw"
+        />
       </div>
 
-      <div className={cn('p-5', isPdf && 'flex-shrink-0 overflow-y-auto')}>
+      <div className="p-5">
         <div className="flex flex-col md:flex-row justify-between items-center gap-content-gap">
           <div>
             <h3 className="text-heading-md font-bold text-card-foreground">{file.title}</h3>
