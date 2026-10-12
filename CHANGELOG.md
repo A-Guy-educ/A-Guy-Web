@@ -1,5 +1,41 @@
 # Changelog
 
+## v0.46.0 — 2026-10-12
+
+### Features
+- Chatview teacher-AI corrections, canned responses, 3-option retry, skip chip (#1305, #1306, #1307)
+- Chatview end-of-lesson summary card with focused review and outcome classification (#1312, #1322)
+- Chatview open-answer AI validation with self-compare fallback (#1311)
+- Chatview skipped-section marker, quota-exhausted card, exercise cap for free tier (#1303, #1310)
+- Chatview chat-bubble polish, contact pill, and next-lesson CTA (#1327, #1328)
+- Cycle chat-view pill between lesson name and exercise progress (#1298)
+- Tier system mirror with enforcement kill switch and content gates (#1299, #1301, #1302)
+- WYSIWYG mixed math input and TipTap-based math-as-atomic-chip model (#1317, #1321)
+- Hierarchical math picker, unified + menu, RTL math chips (#1324, #1330)
+- Media doodle notebook with text mode, polish, and chat fold (#1318, #1320, #1323)
+
+### Fixes
+- Chatview quota detection, skip-last-exercise review bypass, skipped marker visual (#1314)
+- Chatview summary stale stats, dead review button, finish route (#1326)
+- Inline chat TTS in all views and move exercise badge to given-data (#1335)
+- Inline TTS, trim math MCQ padding, add chatview badges (#1334)
+- Rename free-response submit button in chatview to check (#1333)
+- Open answer-box picker upwards to match chat input (#1332)
+- Scale facts dropdown and swap send for mail icon (#1329)
+- Default media doodle notebook to text mode (#1325)
+- Wire math toolbar to live field, default text mode, trim keyboard (#1319)
+- Chapter-aware learning-lesson index for exercise gate (#1313)
+- Narrow course-composer search haystack and rank title hits over slug noise (#1315, #1316)
+- Make tier kill switch readable from client bundle (#1304)
+- Strip server-only exports from tiers barrel to unblock client bundling (#1301)
+- Fix tier LLM token cap and make reconciler seed-only (#1300)
+
+### Chores
+- Seed llmTokensLimit on Web signup to match Admin schema default (#1331)
+- Resize tier token caps using Gemini 2.5 Flash pricing (#1315)
+- Bump handlebars floor to 4.7.10 for CVE (#1316)
+- Tighten @modelcontextprotocol/sdk override to >=1.31.0 (#1299)
+
 ## v0.45.0 — 2026-10-06
 
 ### Features
