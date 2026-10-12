@@ -206,9 +206,16 @@ export function DoodleCanvas({ className }: DoodleCanvasProps) {
           isErasing ? 'cursor-cell' : 'cursor-crosshair',
         )}
         style={{
-          backgroundImage:
-            'linear-gradient(hsl(var(--border) / 0.6) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--border) / 0.6) 1px, transparent 1px)',
-          backgroundSize: '20px 20px',
+          // Math-notebook grid: faint 20px minor cells with a stronger line
+          // every 5 cells (100px), matching the Hebrew "מחברת משבצות" look.
+          // Minor gradients are listed first so the major lines paint on top.
+          backgroundImage: [
+            'linear-gradient(hsl(var(--border) / 0.4) 1px, transparent 1px)',
+            'linear-gradient(90deg, hsl(var(--border) / 0.4) 1px, transparent 1px)',
+            'linear-gradient(hsl(var(--border)) 1px, transparent 1px)',
+            'linear-gradient(90deg, hsl(var(--border)) 1px, transparent 1px)',
+          ].join(', '),
+          backgroundSize: '20px 20px, 20px 20px, 100px 100px, 100px 100px',
         }}
       />
     </div>
