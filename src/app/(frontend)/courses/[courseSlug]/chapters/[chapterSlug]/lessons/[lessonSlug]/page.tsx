@@ -9,6 +9,7 @@ import { queryCourseBySlugWithFallback } from '@/server/repos/queries/courses'
 import { queryExercisesByLesson } from '@/server/repos/queries/exercises'
 import { resolveFormulaSheet } from '@/server/repos/queries/formula-sheets'
 import { queryLessonBySlug, queryLessonsByCourse } from '@/server/repos/queries/lessons'
+import { getEffectiveLessonType } from '@/server/constants/lesson-types'
 import { queryMediaByIds } from '@/server/repos/queries/media'
 import { relationId } from '@/server/repos/mongo'
 import { getAuthenticatedUserServer } from '@/server/utils/access-gate-server'
@@ -257,6 +258,48 @@ export default async function LessonPage({ params }: LessonPageProps) {
   ])
   const lessonIndex = courseLessons.findIndex((courseLesson) => courseLesson.id === lesson.id)
   const nextLesson = lessonIndex >= 0 ? courseLessons[lessonIndex + 1] : null
+  // Next-lesson-of-same-type for the chatview summary card. The default
+  // `nextLesson` above is "any type", used by the exercise-pager fallback;
+  // the chatview wants a type-matched target so finishing a learning lesson
+  // routes to the next learning lesson, not whatever practice/exam might
+  // sit between them in course order. May be in a different chapter — we
+  // include the chapter slug so the URL builds correctly across chapter
+  // boundaries (the existing exercise-pager link reuses the current
+  // chapter slug and is a known limitation outside this PR's scope).
+  const currentLessonType = getEffectiveLessonType(lesson.type)
+  const nextSameTypeLessonRaw =
+    lessonIndex >= 0
+      ? courseLessons
+          .slice(lessonIndex + 1)
+          .find((l) => getEffectiveLessonType(l.type) === currentLessonType)
+      : undefined
+  const nextSameTypeLesson = nextSameTypeLessonRaw
+    ? {
+        slug: nextSameTypeLessonRaw.slug ?? null,
+        title: nextSameTypeLessonRaw.title ?? null,
+        chapterSlug:
+          typeof nextSameTypeLessonRaw.chapter === 'object' &&
+          nextSameTypeLessonRaw.chapter !== null &&
+          'slug' in nextSameTypeLessonRaw.chapter
+            ? ((nextSameTypeLessonRaw.chapter.slug as string | null | undefined) ?? null)
+            : null,
+      }
+    : null
+  // Learning-type position of this lesson within its course (1-based) so the
+  // exercise-level tier gate can know whether this is "lesson 1/2/3" (free
+  // users get all exercises) vs. "lesson 4+" (free users capped at exercise 3).
+  // null when this lesson isn't a learning lesson (practice/exam are gated at
+  // the row level, not here).
+  //
+  // `queryLessonsByCourse` already sorts by (chapterIndex, lesson.order), which
+  // matches what students see on the course page (useLessonGrouping groups by
+  // chapter order, then lesson order within chapter). We MUST NOT re-sort by
+  // `lesson.order` alone — that key resets per chapter, so a flat sort
+  // interleaves lessons from different chapters and shifts the index by
+  // (chapter count - 1) per lesson past chapter 1.
+  const learningLessons = courseLessons.filter((l) => getEffectiveLessonType(l.type) === 'learning')
+  const learningIdx = learningLessons.findIndex((l) => l.id === lesson.id)
+  const lessonLearningIndex = learningIdx >= 0 ? learningIdx + 1 : null
   const backUrl = `/courses/${courseSlug}`
   const formulaSheet = formulaSheetResult?.sheet ?? null
   const showChat = exercises.length > 0 || Boolean(lesson.lessonContextText?.trim())
@@ -294,10 +337,12 @@ export default async function LessonPage({ params }: LessonPageProps) {
         gradeLevel={course.courseLabel || ''}
         progress={progress}
         nextLesson={nextLesson}
+        nextSameTypeLesson={nextSameTypeLesson}
         prerequisites={
           (lesson as Lesson & { prerequisites?: LessonPrerequisite[] }).prerequisites ?? []
         }
         isLocaleFallback={isLocaleFallback}
+        lessonLearningIndex={lessonLearningIndex}
       />
     </AccessGateProvider>
   )

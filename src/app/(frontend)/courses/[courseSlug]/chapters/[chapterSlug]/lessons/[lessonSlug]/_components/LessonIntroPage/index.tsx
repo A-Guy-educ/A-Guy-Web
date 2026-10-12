@@ -60,9 +60,27 @@ interface LessonIntroPageProps {
   gradeLevel?: string
   progress?: LessonProgressSummary
   nextLesson?: Pick<Lesson, 'title' | 'slug'> | null
+  /**
+   * Next lesson of the SAME type (learning / practice / exam). Used by the
+   * chatview end-of-lesson summary card so the student can jump to the next
+   * learning lesson after finishing a learning lesson, instead of landing on
+   * whatever practice/exam row sits between the two.
+   */
+  nextSameTypeLesson?: {
+    slug: string | null
+    title: string | null
+    chapterSlug: string | null
+  } | null
   /** Populated prerequisite lessons with URL info */
   prerequisites?: LessonPrerequisite[]
   isLocaleFallback?: boolean
+  /**
+   * 1-based position of this lesson among the course's learning lessons.
+   * `null` when the lesson isn't type=learning (practice/exam gating lives
+   * on the lesson row, not inside the exercise player). Used by the free-tier
+   * per-exercise lock in ExercisesPager.
+   */
+  lessonLearningIndex?: number | null
 }
 
 function plainText(value?: string | null) {
@@ -91,8 +109,10 @@ export function LessonIntroPage({
   gradeLevel = '',
   progress,
   nextLesson,
+  nextSameTypeLesson,
   prerequisites = [],
   isLocaleFallback = false,
+  lessonLearningIndex = null,
 }: LessonIntroPageProps) {
   const t = useTranslations('courses')
   const tCommon = useTranslations('common.languageSwitcher')
@@ -256,6 +276,8 @@ export function LessonIntroPage({
               : undefined
         }
         nextLesson={nextLesson}
+        nextSameTypeLesson={nextSameTypeLesson}
+        lessonLearningIndex={lessonLearningIndex}
       />
     )
   }

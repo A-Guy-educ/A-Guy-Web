@@ -21,7 +21,7 @@ function normalize(input: string) {
 }
 
 /**
- * Convert LaTeX-flavored math the FormulaComposer inserts (`$\frac{1}{2}$`,
+ * Convert LaTeX-flavored math the chat/answer inputs produce (`$\frac{1}{2}$`,
  * `$x^{2}$`, `$\sqrt{9}$`) into a plain-text form comparable to a manually-
  * typed accepted answer like `1/2`, `x^2`, `sqrt(9)`.
  *

@@ -14,7 +14,7 @@ import { MediaMapProvider } from '@/ui/web/exerciserenderer/context/MediaMapCont
 import { readExerciseState } from '@/ui/web/exerciserenderer/utils/exerciseStateStorage'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import type { SectionOutcome } from '../types'
-import { ChatFreeResponseBubble } from './ChatFreeResponseBubble'
+import { ChatFreeResponseBubble, type ValidationErrorMessages } from './ChatFreeResponseBubble'
 import { ChatQuestionSelectBubble } from './ChatQuestionSelectBubble'
 import { QuickActionChips, type QuickAction } from './QuickActionChips'
 
@@ -69,12 +69,40 @@ interface ExerciseSectionBubbleProps {
    */
   onQuickAction?: (action: QuickAction) => void
   /** Labels for the chips. Provided by the runner from i18n. */
-  quickActionLabels?: { hint: string; explain: string; skip: string }
+  quickActionLabels?: { hint: string; explain: string; skip: string; skipExercise: string }
   /** Disable chips while a chat request is already in flight. */
   quickActionsDisabled?: boolean
   /** i18n placeholders used by the chat-native free-response input. */
   freeResponsePlaceholder?: string
   freeResponseSendLabel?: string
+  /** "Checking…" indicator shown while the server AI validates the answer. */
+  freeResponsePendingLabel?: string
+  /** Badge on the self-compare card when AI validation was skipped (quota out). */
+  freeResponseNotCheckedLabel?: string
+  /** Error-message bundle forwarded to validateFreeResponseOnServer. */
+  freeResponseValidationErrors?: ValidationErrorMessages
+  /** Task-7 quota flag — forwarded to the free-response bubble so it can skip
+   *  the server AI and show self-compare instead of waiting on a doomed 429. */
+  isQuotaExhausted?: boolean
+  /**
+   * Task-5 review-mode storage namespace. When set, every child bubble uses
+   * this value as its `exerciseId` instead of the real `exercise.id`, so a
+   * second attempt during focused review writes to a separate localStorage
+   * key and doesn't overwrite the original pass's answers, retry state, or
+   * submission history. Threaded here, not derived, so the walker owns the
+   * naming convention (one place to change if we ever namespace differently).
+   */
+  storageIdOverride?: string
+  /**
+   * Task-3 retry hint. Fires when the student taps "תן לי רמז" after a first
+   * wrong attempt on a 3+ option MCQ. The runner wires it to a
+   * chat.requestCorrection with the hint-flavored prompt. Only forwarded for
+   * ACTIVE bubbles — a scroll-back section shouldn't be able to post into
+   * the current chat context.
+   */
+  onHintRequest?: (blockId: string, wrongChoiceText: string, correctChoiceText: string) => void
+  /** Label for the retry hint CTA — provided by the runner from i18n. */
+  retryHintLabel?: string
   /**
    * True only for the walker's current step. Historical (scroll-back)
    * bubbles pass false — the student CAN still answer them (feedback is
@@ -120,6 +148,13 @@ export function ExerciseSectionBubble({
   quickActionsDisabled,
   freeResponsePlaceholder,
   freeResponseSendLabel,
+  freeResponsePendingLabel,
+  freeResponseNotCheckedLabel,
+  freeResponseValidationErrors,
+  isQuotaExhausted,
+  storageIdOverride,
+  onHintRequest,
+  retryHintLabel,
   isActive = true,
   sectionKey,
 }: ExerciseSectionBubbleProps) {
@@ -142,7 +177,12 @@ export function ExerciseSectionBubble({
   // outcome check `submittedCount >= total` never trips.
   const seeded = useMemo(() => {
     if (!isChatNativePath) return { submitted: 0, correct: 0, wrongIds: [] as string[] }
-    const saved = exercise.id ? readExerciseState(exercise.id) : null
+    // Hydrate counters from the SAME storage namespace the child bubbles
+    // write to — in review mode that's the override key, which starts empty
+    // so the student answers afresh. Mirrors the exerciseId prop forwarded
+    // below.
+    const storageId = storageIdOverride ?? exercise.id
+    const saved = storageId ? readExerciseState(storageId) : null
     if (!saved) return { submitted: 0, correct: 0, wrongIds: [] as string[] }
     const chatQs = group.blocks.filter(isChatNativeQuestion)
     const wrongIds: string[] = []
@@ -174,6 +214,12 @@ export function ExerciseSectionBubble({
   // answer" bubble to ONLY the questions they missed, so a multi-question
   // section doesn't leak answers to questions they got right.
   const wrongBlockIdsRef = useRef<Set<string>>(new Set(seeded.wrongIds))
+  // Human-readable text of the specific wrong choices the student picked —
+  // forwarded on the wrong outcome so the teacher-AI correction prompt can
+  // reference *why that choice* is wrong rather than lecturing in the
+  // abstract. Only populated by the chat-native path (handleChatNativeSubmit
+  // sees the answer text); the aggregate path leaves it unset.
+  const wrongAnswerTextsRef = useRef<string[]>([])
 
   // ── FALLBACK path ────────────────────────────────────────────────────────
   // Existing aggregate onResultsChange from ExerciseRenderer; fires onOutcome
@@ -199,20 +245,27 @@ export function ExerciseSectionBubble({
   const submittedCountRef = useRef(seeded.submitted)
   const correctCountRef = useRef(seeded.correct)
 
-  // Only label individual questions when the section has more than one — a
-  // solo question doesn't need a leading badge. We look each block up in
-  // the exercise-wide `questionLabels` map so both schemes (titled `X1/X2`
-  // and untitled per-question `א/ב/ג` running counter) surface correctly.
+  // Label every section's first gradable question (even single-question
+  // sections) so the student always sees which section they're on — matches
+  // the scroll-view worksheet's per-section badge. `questionLabels` already
+  // stamps only one entry per section (the first gradable question's id),
+  // so subsequent questions in a multi-question section still render
+  // unlabeled; only the leading one carries the section + exercise badges.
   const questionLabelById = useMemo(() => {
-    if (!isChatNativePath || chatNativeQuestionCount < 2) return null
+    if (!isChatNativePath) return null
     return questionLabels
-  }, [chatNativeQuestionCount, questionLabels, isChatNativePath])
+  }, [questionLabels, isChatNativePath])
 
   const handleChatNativeSubmit = useCallback(
     (blockId: string, text: string, isCorrect: boolean) => {
       submittedCountRef.current += 1
-      if (isCorrect) correctCountRef.current += 1
-      else wrongBlockIdsRef.current.add(blockId)
+      if (isCorrect) {
+        correctCountRef.current += 1
+      } else {
+        wrongBlockIdsRef.current.add(blockId)
+        const trimmed = text.trim()
+        if (trimmed) wrongAnswerTextsRef.current.push(trimmed)
+      }
       setHasAnyAnswer(true)
       onQuestionSubmit?.(sectionKey, text, isCorrect)
 
@@ -230,6 +283,12 @@ export function ExerciseSectionBubble({
             // Scope the echoed "correct answer" to only the questions the
             // student got wrong — don't leak answers to ones they nailed.
             correctAnswerText: deriveCorrectAnswerText(group, wrongBlockIdsRef.current),
+            // Comma-join the specific wrong choices so a 2-question section
+            // where both were missed still gives the teacher-AI the choices.
+            studentAnswerText:
+              wrongAnswerTextsRef.current.length > 0
+                ? wrongAnswerTextsRef.current.join(', ')
+                : undefined,
           })
         }
       }
@@ -238,13 +297,13 @@ export function ExerciseSectionBubble({
   )
 
   // Wrap chip clicks so a scroll-back click can't dispatch through the runner
-  // — and skip in particular counts as "engaged with this section" and hides
-  // chips on the currently active bubble too (otherwise chips would linger
-  // after skip since no answer was submitted).
+  // — and both skip chips count as "engaged with this section" so they hide
+  // the chips on the departing bubble (otherwise they'd linger after skip
+  // since no answer was submitted).
   const handleChipAction = useCallback(
     (action: QuickAction) => {
       if (!isActive) return
-      if (action === 'skip') setHasAnyAnswer(true)
+      if (action === 'skip' || action === 'skipExercise') setHasAnyAnswer(true)
       onQuickAction?.(action)
     },
     [isActive, onQuickAction],
@@ -263,19 +322,28 @@ export function ExerciseSectionBubble({
         // provider itself; the chat-native path has to do it here.
         <MediaMapProvider value={mediaMap ?? EMPTY_MEDIA_MAP}>
           {group.blocks.map((block) => {
+            // Section letter badges render only on the first gradable question
+            // of each section (the only id in `questionLabelById`), so a multi-
+            // question section's leading card is clearly labelled while
+            // subsequent cards stay unlabelled. The exercise ordinal lives
+            // separately on the exercise-intro's given-data card, not here —
+            // repeating it on every section would just add noise.
+            const sectionLabel = questionLabelById?.get(block.id)
             if (block.type === 'question_select') {
               return (
                 <ChatQuestionSelectBubble
                   key={block.id}
                   block={block as QuestionSelectBlock}
-                  questionLabel={questionLabelById?.get(block.id)}
+                  questionLabel={sectionLabel}
                   // Freeze only while a chat request is in flight (otherwise
                   // the resulting requestCorrection would be silently
                   // dropped). Past-section bubbles stay answerable so a
                   // student can go back and finish anything they skipped.
                   disabled={quickActionsDisabled}
-                  exerciseId={exercise.id}
+                  exerciseId={storageIdOverride ?? exercise.id}
                   onSubmit={handleChatNativeSubmit}
+                  onHintRequest={isActive ? onHintRequest : undefined}
+                  retryHintLabel={retryHintLabel}
                 />
               )
             }
@@ -284,12 +352,16 @@ export function ExerciseSectionBubble({
                 <ChatFreeResponseBubble
                   key={block.id}
                   block={block as QuestionFreeResponseBlock}
-                  questionLabel={questionLabelById?.get(block.id)}
+                  questionLabel={sectionLabel}
                   placeholder={freeResponsePlaceholder ?? ''}
                   sendLabel={freeResponseSendLabel ?? ''}
                   disabled={quickActionsDisabled}
-                  exerciseId={exercise.id}
+                  exerciseId={storageIdOverride ?? exercise.id}
                   onSubmit={handleChatNativeSubmit}
+                  isQuotaExhausted={isQuotaExhausted}
+                  pendingLabel={freeResponsePendingLabel}
+                  notCheckedLabel={freeResponseNotCheckedLabel}
+                  validationErrorMessages={freeResponseValidationErrors}
                 />
               )
             }
@@ -321,6 +393,7 @@ export function ExerciseSectionBubble({
                 hintLabel={quickActionLabels.hint}
                 explainLabel={quickActionLabels.explain}
                 skipLabel={quickActionLabels.skip}
+                skipExerciseLabel={quickActionLabels.skipExercise}
                 onAction={handleChipAction}
               />
             )}
@@ -333,7 +406,7 @@ export function ExerciseSectionBubble({
           exerciseNumber={ordinal}
           showExerciseNumber={false}
           lessonId={lessonId}
-          exerciseId={exercise.id}
+          exerciseId={storageIdOverride ?? exercise.id}
           hideLatexBlocks
           questionCardVariant="flat"
           // Only enable on the walker's current step — scroll-back

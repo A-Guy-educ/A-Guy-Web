@@ -1,17 +1,20 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Exercise, Media as MediaType } from '@/infra/types/content'
 import { Button } from '@/ui/web/components/button'
 import { Input } from '@/ui/web/components/input'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
 import { ExerciseRenderer } from '@/ui/web/exerciserenderer'
+import { useCurrentUser } from '@/client/hooks/useCurrentUser'
+import { canAccessLearningExercise, getUserTierSlug } from '@/lib/tiers'
 import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
   FileText,
   Layers,
+  Lock,
   RotateCcw,
   Target,
 } from 'lucide-react'
@@ -60,6 +63,14 @@ interface ExercisesPagerProps {
   hideLatexBlocks?: boolean
   initialExerciseIndex?: number
   nextLesson?: { title?: string | null; slug?: string | null } | null
+  /**
+   * 1-based learning-lesson index within the course. When set and the user's
+   * tier doesn't allow the current exercise (free users past lesson 3 are
+   * capped at exercise 3), the pager renders a tier-locked card instead of
+   * the exercise. `null` disables the gate entirely (practice/exam lessons —
+   * their row is already gated upstream).
+   */
+  lessonLearningIndex?: number | null
 }
 
 export function ExercisesPager({
@@ -80,8 +91,14 @@ export function ExercisesPager({
   hideLatexBlocks,
   initialExerciseIndex,
   nextLesson,
+  lessonLearningIndex = null,
 }: ExercisesPagerProps) {
   const t = useTranslations('courses')
+  const { user } = useCurrentUser()
+  const tierUser = useMemo(
+    () => ({ currentTier: getUserTierSlug(user as { currentTier?: string | null } | null) }),
+    [user],
+  )
   const {
     pageState,
     progressPercent,
@@ -264,6 +281,17 @@ export function ExercisesPager({
     [currentExercise],
   )
 
+  // Free-tier exercise lock: when the user doesn't meet the tier gate for
+  // this (lesson, exercise) pair the player renders a lock card in place of
+  // the exercise. `canAccessLearningExercise` short-circuits to `true` when
+  // the kill switch is off or `lessonLearningIndex` is null, so this never
+  // affects practice/exam flows or the pre-rollout environment.
+  const isExerciseLockedByTier =
+    pageState.type === 'exercise' &&
+    exerciseOrdinal !== null &&
+    lessonLearningIndex !== null &&
+    !canAccessLearningExercise(tierUser, lessonLearningIndex, exerciseOrdinal)
+
   if (pageState.type === 'exercise' && currentExercise) {
     return (
       <ExerciseWorkspace
@@ -304,40 +332,61 @@ export function ExercisesPager({
 
                 <AnimatePresence mode="wait">
                   <motion.div key={currentExercise.id} {...pageTransition} className="space-y-4">
-                    <div className="hidden md:block bg-card rounded-2xl border border-border/60 shadow-elevation-1 overflow-hidden">
-                      <div className="p-5 md:p-card-padding">
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                            <Layers className="w-4 h-4 text-primary" />
-                          </div>
-                          <div>
-                            <h2 className="text-body-lg font-medium text-foreground">
-                              {currentExercise.title}
-                            </h2>
+                    {isExerciseLockedByTier ? (
+                      <div className="md:bg-card md:rounded-2xl md:p-card-padding-lg md:border md:border-border/60 md:shadow-elevation-1 p-card-padding flex flex-col items-center text-center gap-content-gap">
+                        <div className="w-14 h-14 rounded-2xl bg-warning/15 flex items-center justify-center">
+                          <Lock className="w-7 h-7 text-warning" />
+                        </div>
+                        <div className="space-y-2 max-w-md">
+                          <h2 className="text-heading-md font-bold text-foreground">
+                            {t('tierLockedExerciseTitle')}
+                          </h2>
+                          <p className="text-body-md text-muted-foreground">
+                            {t('tierLockedExerciseBody')}
+                          </p>
+                        </div>
+                        <Button asChild size="lg" className="min-h-[48px]">
+                          <SystemLink href="/products">{t('tierLockedUpgradeCta')}</SystemLink>
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="hidden md:block bg-card rounded-2xl border border-border/60 shadow-elevation-1 overflow-hidden">
+                          <div className="p-5 md:p-card-padding">
+                            <div className="flex items-center gap-3 mb-2">
+                              <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                                <Layers className="w-4 h-4 text-primary" />
+                              </div>
+                              <div>
+                                <h2 className="text-body-lg font-medium text-foreground">
+                                  {currentExercise.title}
+                                </h2>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
 
-                    <div className="md:bg-card md:rounded-2xl md:p-card-padding md:border md:border-border/60 md:shadow-elevation-1">
-                      <ExerciseRenderer
-                        key={currentExercise.id}
-                        groups={getExerciseBlockGroups(currentExercise)}
-                        mode="student"
-                        showCheckAnswer={true}
-                        mediaMap={mediaMap}
-                        lessonId={lessonId}
-                        exerciseId={currentExercise.id}
-                        showExerciseNumber={currentExercise.showQuestionNumbering ?? false}
-                        // The workspace only mounts a chat surface when
-                        // `showChat` is true — mirror that so the per-
-                        // block notebook button doesn't appear without a
-                        // listener to hear its ask-action dispatches.
-                        showNotebook={showChat}
-                        onResultsChange={handleExerciseResultsChange}
-                        hideLatexBlocks={hideLatexBlocks}
-                      />
-                    </div>
+                        <div className="md:bg-card md:rounded-2xl md:p-card-padding md:border md:border-border/60 md:shadow-elevation-1">
+                          <ExerciseRenderer
+                            key={currentExercise.id}
+                            groups={getExerciseBlockGroups(currentExercise)}
+                            mode="student"
+                            showCheckAnswer={true}
+                            mediaMap={mediaMap}
+                            lessonId={lessonId}
+                            exerciseId={currentExercise.id}
+                            showExerciseNumber={currentExercise.showQuestionNumbering ?? false}
+                            // The workspace only mounts a chat surface when
+                            // `showChat` is true — mirror that so the per-
+                            // block notebook button doesn't appear without a
+                            // listener to hear its ask-action dispatches.
+                            showNotebook={showChat}
+                            onResultsChange={handleExerciseResultsChange}
+                            hideLatexBlocks={hideLatexBlocks}
+                          />
+                        </div>
+                      </>
+                    )}
                   </motion.div>
                 </AnimatePresence>
               </div>
@@ -461,7 +510,7 @@ export function ExercisesPager({
           </div>
         }
         chatContent={
-          showChat ? (
+          showChat && !isExerciseLockedByTier ? (
             <ChatInterface
               lessonId={lessonId}
               exerciseId={currentExercise.id}

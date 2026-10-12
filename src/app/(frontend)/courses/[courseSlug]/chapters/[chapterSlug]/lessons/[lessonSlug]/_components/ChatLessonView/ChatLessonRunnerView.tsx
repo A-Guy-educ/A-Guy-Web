@@ -1,5 +1,9 @@
 'use client'
 
+import { useCurrentUser } from '@/client/hooks/useCurrentUser'
+import { useRouterWithLoading } from '@/infra/loading/hooks/useRouterWithLoading'
+import { useParams } from 'next/navigation'
+import { canAccessLearningExercise, getUserTierSlug } from '@/lib/tiers'
 import type { Exercise, Media } from '@/infra/types/content'
 import type { ContentBlock } from '@/infra/types/exercise'
 import { getExerciseBlockGroups } from '@/lib/exercises/getExerciseBlocks'
@@ -15,15 +19,31 @@ import { ChatLessonProgress } from './ChatLessonProgress'
 import { GivenDataFloating } from './GivenDataFloating'
 import { ContinueButton } from './bubbles/ContinueButton'
 import { ExerciseSectionBubble } from './bubbles/ExerciseSectionBubble'
+import { QuestionHeaderBadges } from './bubbles/QuestionHeaderBadges'
+import type { ValidationErrorMessages } from './bubbles/ChatFreeResponseBubble'
 import { PendingBubble } from './bubbles/PendingBubble'
 import { StudentBubble } from './bubbles/StudentBubble'
 import { TeacherBubble } from './bubbles/TeacherBubble'
+import { TierLockBubble } from './bubbles/TierLockBubble'
+import { SkippedMarker } from './bubbles/SkippedMarker'
+import { QuotaExhaustedCard } from './bubbles/QuotaExhaustedCard'
+import { ReviewOfferCard } from './bubbles/ReviewOfferCard'
+import { LessonSummaryCard, type LessonSummaryCopy } from './bubbles/LessonSummaryCard'
+import {
+  classifyLessonOutcome,
+  computeLessonStats,
+  computeMoneySaved,
+  type LessonOutcome,
+  type LessonStats,
+} from './lessonSummary'
+import { isSectionEligibleForReview } from './reviewEligibility'
+import { TIER_PRICE_ILS, type TierSlug } from '@/lib/tiers'
 import type { SectionOutcome, StreamEntry } from './types'
 import { useBrowserTTS } from './useBrowserTTS'
 import { useChatChannel } from './useChatChannel'
 import { isAnswerRequired, useExerciseWalker } from './useExerciseWalker'
 import { useLessonChatProgress } from './useLessonChatProgress'
-import { pickWellDone } from './wellDoneMessages'
+import { pickCorrectReaction } from './correctResponses'
 
 const CELEBRATION_ADVANCE_MS = 1500
 
@@ -40,13 +60,49 @@ export const CHAT_LESSON_RESET_EVENT = 'chat-lesson-reset' as const
  *  every render, which would re-fire every `useMediaMap` descendant. */
 const EMPTY_MEDIA_MAP: Record<string, Media> = {}
 
+/**
+ * Section stream keys are built as `sec-${exercise.id}-${groupIndex}`.
+ * Split on the LAST dash so an id that ever acquires dashes still parses
+ * cleanly; today Mongo ObjectIds are pure hex, but the walker key format
+ * is the public contract between the walker + the outcome handler.
+ */
+function parseSectionKey(key: string): { exerciseId: string; groupIndex: number } | null {
+  if (!key.startsWith('sec-')) return null
+  const rest = key.slice(4)
+  const lastDash = rest.lastIndexOf('-')
+  if (lastDash === -1) return null
+  const exerciseId = rest.slice(0, lastDash)
+  const groupIndex = Number(rest.slice(lastDash + 1))
+  if (!Number.isFinite(groupIndex)) return null
+  return { exerciseId, groupIndex }
+}
+
 interface ChatLessonRunnerViewProps {
   lessonId: string
+  lessonTitle: string
   exercises: Exercise[]
   mediaMap?: Record<string, Media>
   /** TTS instance hoisted from the parent (ChatLessonView) so its mute
    *  state can also drive the LessonMenu's mute item. */
   tts: ReturnType<typeof useBrowserTTS>
+  /**
+   * 1-based learning-lesson index within the course. Drives the free-tier
+   * exercise clamp — `canAccessLearningExercise` unlocks the first 3
+   * exercises in lessons past #3, and the walker emits a `tier-lock`
+   * terminator at that cutoff. `null` disables the cap.
+   */
+  lessonLearningIndex?: number | null
+  /**
+   * Next lesson of the same type (learning / practice / exam) in the
+   * course. Drives the summary card's "next lesson" CTA. Null when this
+   * is the last lesson of its type — the finish button then falls back
+   * to routing to the course index.
+   */
+  nextSameTypeLesson?: {
+    slug: string | null
+    title: string | null
+    chapterSlug: string | null
+  } | null
 }
 
 export function ChatLessonRunnerView(props: ChatLessonRunnerViewProps) {
@@ -62,11 +118,39 @@ interface ActiveChatProps extends ChatLessonRunnerViewProps {
   onExit: () => void
 }
 
-function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatProps) {
+function ActiveChat({
+  lessonId,
+  lessonTitle,
+  exercises,
+  mediaMap,
+  tts,
+  onExit,
+  lessonLearningIndex = null,
+  nextSameTypeLesson = null,
+}: ActiveChatProps) {
   const t = useTranslations('courses')
   const locale = useLocale()
   const isHebrew = locale?.toLowerCase().startsWith('he') ?? false
   const scrollRef = useRef<HTMLDivElement | null>(null)
+
+  // Clamp the walker's exercise list to the student's tier gate. The gate is
+  // `canAccessLearningExercise(user, lessonLearningIndex, exerciseOrdinal)`;
+  // we take the longest prefix that passes. When the clamp cuts something off
+  // the walker's terminator becomes a `tier-lock` entry (see useExerciseWalker).
+  const { user } = useCurrentUser()
+  const tierUser = useMemo(
+    () => ({ currentTier: getUserTierSlug(user as { currentTier?: string | null } | null) }),
+    [user],
+  )
+  const cappedExercises = useMemo(() => {
+    if (lessonLearningIndex === null) return exercises
+    const out: Exercise[] = []
+    for (let i = 0; i < exercises.length; i++) {
+      if (!canAccessLearningExercise(tierUser, lessonLearningIndex, i + 1)) break
+      out.push(exercises[i])
+    }
+    return out
+  }, [exercises, lessonLearningIndex, tierUser])
 
   const [entries, setEntries] = useState<StreamEntry[]>([])
   // Separate tick for "stream grew at the end" — the scroll-to-bottom effect
@@ -92,10 +176,25 @@ function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatPr
   // Persist walker position across visits so re-entering the lesson resumes
   // on the student's current section instead of restarting from exercise 1.
   // Chat Q&A is NOT restored here — only walker progress — see
-  // useLessonChatProgress for the rationale.
-  const { initialStepCursor, saveStepCursor, clearProgress } = useLessonChatProgress(lessonId)
+  // useLessonChatProgress for the rationale. The same hook also tracks the
+  // canned-reaction state (per-exercise "long shown" + lesson-wide last pair)
+  // so refreshing mid-lesson doesn't reset the long/short selection rules.
+  const {
+    initialStepCursor,
+    saveStepCursor,
+    getCorrectResponseState,
+    recordCorrectReaction,
+    getLessonStartedAt,
+    clearProgress,
+  } = useLessonChatProgress(lessonId)
 
-  const walker = useExerciseWalker({ exercises, append, isHebrew, initialStepCursor })
+  const walker = useExerciseWalker({
+    exercises: cappedExercises,
+    append,
+    isHebrew,
+    initialStepCursor,
+    totalExercisesBeforeTierCap: exercises.length,
+  })
   const currentStep = walker.currentStep
   const currentExercise = currentStep?.exercise ?? null
 
@@ -158,20 +257,51 @@ function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatPr
   // came from the ACTIVE section (append feedback at the end + advance the
   // walker) or a PAST one (insert feedback right under that section's
   // bubble, leave the walker where it is).
-  const activeStepKey = walker.currentStep
-    ? `sec-${walker.currentStep.exercise.id}-${walker.currentStep.groupIndex}`
-    : null
+  // Key of the currently-active bubble. The walker now owns the naming
+  // (normal `sec-…` or Task-5 `review-sec-…`) so the runner just reads it;
+  // this keeps the scroll-back lock + outcome routing correct in both modes.
+  const activeStepKey = walker.currentStepKey
 
   const correctionPrompt = t('chatViewCorrectionPrompt')
-  const correctAnswerLabel = t('chatViewCorrectAnswerLabel')
+  const totalCappedExercises = cappedExercises.length
   const handleOutcome = useCallback(
     (sectionKey: string, outcome: SectionOutcome) => {
       const isCurrent = sectionKey === activeStepKey
       if (outcome.kind === 'correct') {
+        // The section key is `sec-${exercise.id}-${groupIndex}`. Exercise IDs
+        // are Mongo ObjectIds (hex, no dashes); the last `-` splits the group
+        // index safely regardless of future id format changes.
+        const parsed = parseSectionKey(sectionKey)
+        const state = getCorrectResponseState()
+        // First correct section WITHIN THIS EXERCISE → long variant.
+        // Subsequent correct sections in the same exercise → short.
+        const wantLong = parsed ? !state.longShownByExerciseId[parsed.exerciseId] : true
+        const { text: baseText, pairKey } = pickCorrectReaction({
+          wantLong,
+          lastPairKey: state.lastPairKey,
+        })
+
+        // Transition suffix only fires for the ACTIVE step on the last section
+        // of its exercise — a past-section correction shouldn't claim we're
+        // moving forward when the walker is already on a later step.
+        let text = baseText
+        if (isCurrent && walker.currentStep) {
+          const step = walker.currentStep
+          const isLastSection = step.groupIndex === step.groupsInExercise - 1
+          if (isLastSection) {
+            const isLastExercise = step.exerciseIndex === totalCappedExercises - 1
+            text = isLastExercise
+              ? `${baseText} סיימנו את השיעור.`
+              : `${baseText} נעבור לתרגיל ${step.ordinal + 1}.`
+          }
+        }
+
+        if (parsed) recordCorrectReaction(parsed.exerciseId, pairKey)
+
         const celebrateEntry: StreamEntry = {
           key: `celebrate-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
           kind: 'chat-assistant',
-          text: pickWellDone(),
+          text,
         }
         if (isCurrent) {
           append(celebrateEntry)
@@ -182,26 +312,36 @@ function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatPr
           }, CELEBRATION_ADVANCE_MS)
         } else {
           // Past section finished correctly on scroll-back — route the
-          // well-done bubble under THAT section and leave the walker on
+          // reaction under THAT section and leave the walker on
           // the current step.
           insertAfter(sectionKey, celebrateEntry)
         }
       } else {
-        if (outcome.correctAnswerText) {
-          const ansEntry: StreamEntry = {
-            key: `ans-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-            kind: 'chat-assistant',
-            text: `${correctAnswerLabel}: ${outcome.correctAnswerText}`,
-          }
-          if (isCurrent) append(ansEntry)
-          else insertAfter(sectionKey, ansEntry)
-        }
+        // Task 2: no inline "correct answer: X" reveal bubble. The question
+        // card already marks the chosen option as wrong, and leaving the
+        // correct answer unspoken keeps Task 3's 3-option retry flow viable
+        // on the same pipeline (revealing it before a retry would spoil the
+        // second attempt). The AI correction below still carries both texts
+        // so the teacher can reference them.
+        //
         // The AI correction request pulls context from the walker's CURRENT
         // step; firing it for a past section would mis-attribute the
         // explanation. Only kick off the AI explain pass for the active
-        // section — past sections rely on the inline "correct answer: X"
-        // bubble inserted above.
-        if (isCurrent) chat.requestCorrection(correctionPrompt)
+        // section.
+        if (isCurrent) {
+          // The i18n provider does literal key lookup only — placeholder
+          // substitution is done at the call site with `.replace()`, same
+          // pattern as `couponApplied` elsewhere in the app. Fall back to
+          // the generic correction prompt when either text is missing
+          // (aggregate path, matching questions, etc.).
+          const prompt =
+            outcome.studentAnswerText && outcome.correctAnswerText
+              ? t('chatViewCorrectionPromptWithChoice')
+                  .replace('{choice}', outcome.studentAnswerText)
+                  .replace('{correct}', outcome.correctAnswerText)
+              : correctionPrompt
+          chat.requestCorrection(prompt)
+        }
       }
     },
     [
@@ -209,57 +349,203 @@ function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatPr
       append,
       cancelPendingAdvance,
       chat,
-      correctAnswerLabel,
       correctionPrompt,
+      getCorrectResponseState,
       insertAfter,
+      recordCorrectReaction,
+      t,
+      totalCappedExercises,
       walker,
     ],
   )
 
-  const handleQuestionSubmit = useCallback(
-    (sectionKey: string, text: string, isCorrect: boolean) => {
-      // Echo the student's answer as a right-side bubble; color is derived
-      // from isCorrect so the "chose the correct option" and "chose wrong"
-      // states are immediately visible even before the section outcome
-      // fires the celebration or correction below. Past-section answers
-      // insert their echo immediately under that section instead of
-      // appending at the end of the stream.
-      const entry: StreamEntry = {
-        key: `q-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        kind: 'chat-user',
-        text,
-        isCorrect,
-      }
-      if (sectionKey === activeStepKey) append(entry)
-      else insertAfter(sectionKey, entry)
-    },
-    [activeStepKey, append, insertAfter],
-  )
+  // Right-side student bubbles are suppressed entirely for chat-native
+  // question picks — the question card already marks the chosen option as
+  // correct (green ✓) or wrong, so an echo bubble is pure duplication. The
+  // spec is explicit on both sides:
+  //   Task 1 — "no student bubble that duplicates the answer" (correct)
+  //   Task 2 — "mark the wrong choice, without a bubble duplicating it"
+  // The answer, result, and prior assistance are still saved — the
+  // ExerciseRenderer writes them into the shared answer bundle, and the
+  // outcome callback carries whatever the AI correction prompt needs.
+  // The `onQuestionSubmit` plumbing on ExerciseSectionBubble stays optional
+  // so a future task can re-attach a per-question hook without rewiring
+  // every call site.
 
   // Quick-action chip dispatcher. Hint + explain go through the invisible
   // requestCorrection channel so only the AI reply lands in the stream
   // (no fake user bubble echoing our canned prompt). Skip just advances
-  // the walker without any chat roundtrip.
+  // the walker without any chat roundtrip; skipExercise jumps the walker
+  // past every remaining section of the current exercise.
   const hintPrompt = t('chatViewChipHintPrompt')
   const explainPrompt = t('chatViewChipExplainPrompt')
   const handleQuickAction = useCallback(
-    (action: 'hint' | 'explain' | 'skip') => {
+    (action: 'hint' | 'explain' | 'skip' | 'skipExercise') => {
       if (action === 'skip') {
         advanceNow()
         return
       }
+      if (action === 'skipExercise') {
+        cancelPendingAdvance()
+        walker.advanceToNextExercise()
+        return
+      }
       chat.requestCorrection(action === 'hint' ? hintPrompt : explainPrompt)
     },
-    [advanceNow, chat, explainPrompt, hintPrompt],
+    [advanceNow, cancelPendingAdvance, chat, explainPrompt, hintPrompt, walker],
   )
+
+  // Task-5 review-offer buttons. Both go through the walker so the mode
+  // transition + emission stays in one place.
+  const handleReviewYes = useCallback(() => {
+    walker.startReview()
+  }, [walker])
+  const handleReviewEnd = useCallback(() => {
+    walker.completeLesson()
+  }, [walker])
+
+  // Task-9 summary card. Everything the lesson-complete bubble needs is
+  // computed here on the terminator render — localStorage reads are cheap
+  // and happen at most once per lesson-complete emission.
+  const tierSlug = useMemo<TierSlug>(
+    () => getUserTierSlug(user as { currentTier?: string | null } | null),
+    [user],
+  )
+  // Stats + reviewable-count read directly from localStorage per render.
+  // Previously these were useMemo'd on `[cappedExercises]` — a stable dep,
+  // so the memos ran ONCE at mount (when nothing was answered yet) and
+  // never again, bottom-lining every summary card at `0/N alone`. Dropping
+  // the memo trades ~N trivial localStorage reads per render for correct
+  // counts; the component only renders at lesson-end + a few review-mode
+  // boundaries, so the cost is negligible.
+  const summaryStats: LessonStats = computeLessonStats(cappedExercises)
+  const summaryOutcome: LessonOutcome = classifyLessonOutcome(summaryStats)
+  const summaryElapsedMinutes = useMemo(() => {
+    const started = getLessonStartedAt()
+    const diffMs = Math.max(0, Date.now() - started)
+    return Math.max(1, Math.floor(diffMs / 60_000))
+  }, [getLessonStartedAt])
+  const summaryMoneySaved = useMemo(() => computeMoneySaved(TIER_PRICE_ILS[tierSlug]), [tierSlug])
+  // Suppress the review CTA on the summary card after the student has
+  // already been through review mode once — otherwise the button would
+  // loop them straight back into the same slice.
+  const summaryReviewableCount = walker.hasReviewed
+    ? 0
+    : cappedExercises.reduce((acc, exercise) => {
+        const groups = getExerciseBlockGroups(exercise)
+        for (const group of groups) {
+          if (isSectionEligibleForReview(exercise, group)) acc += 1
+        }
+        return acc
+      }, 0)
+
+  // Next-lesson URL + title are computed here so the summary card can show
+  // "Next lesson: {title}" on its primary CTA when the course has another
+  // lesson of the same type queued up. See the handleSummaryFinish block
+  // below for the routing side.
+  const params = useParams<{ courseSlug?: string }>()
+  const router = useRouterWithLoading()
+  const courseSlug = typeof params?.courseSlug === 'string' ? params.courseSlug : null
+  const nextLessonHref =
+    nextSameTypeLesson?.slug && nextSameTypeLesson.chapterSlug && courseSlug
+      ? `/courses/${courseSlug}/chapters/${nextSameTypeLesson.chapterSlug}/lessons/${nextSameTypeLesson.slug}`
+      : null
+  const nextLessonTitle = nextSameTypeLesson?.title ?? null
+
+  const summaryCopy = useMemo<LessonSummaryCopy>(() => {
+    const title = t(`chatViewSummaryOutcomeTitle.${summaryOutcome}`)
+    const assessment = t(`chatViewSummaryAssessmentBody.${summaryOutcome}`)
+    return {
+      eyebrow: t('chatViewSummaryEyebrow'),
+      outcomeTitle: title,
+      sectionsLabel: (count) => t('chatViewSummarySectionsLabel').replace('{count}', String(count)),
+      elapsedLabel: (minutes) =>
+        t('chatViewSummaryElapsedLabel').replace('{minutes}', String(minutes)),
+      moneyLabel: t('chatViewSummaryMoneyLabel'),
+      moneyAmount: (ils) => t('chatViewSummaryMoneyAmount').replace('{ils}', String(ils)),
+      moneyNote: t('chatViewSummaryMoneyNote'),
+      moneyAllIncluded: t('chatViewSummaryMoneyAllIncluded'),
+      independenceLabel: t('chatViewSummaryIndependenceLabel'),
+      independencePercent: (percent) =>
+        t('chatViewSummaryIndependencePercent').replace('{percent}', String(percent)),
+      independenceNote: (count, total) =>
+        t('chatViewSummaryIndependenceNote')
+          .replace('{count}', String(count))
+          .replace('{total}', String(total)),
+      breakdownAlone: t('chatViewSummaryBreakdownAlone'),
+      breakdownWithHelp: t('chatViewSummaryBreakdownWithHelp'),
+      breakdownSkipped: t('chatViewSummaryBreakdownSkipped'),
+      breakdownWrong: t('chatViewSummaryBreakdownWrong'),
+      assessmentHeading: t('chatViewSummaryAssessmentHeading'),
+      assessmentBody: assessment,
+      reviewCta: (count) => t('chatViewSummaryReviewCta').replace('{count}', String(count)),
+      finishCta: t('chatViewSummaryFinishCta'),
+      // When there's a next lesson of the same type, show its title under
+      // the "next lesson" caption. Falls back to a plain finish label when
+      // the student is at the end of the track.
+      nextLessonLabel: nextLessonTitle
+        ? t('chatViewSummaryNextLessonCta').replace('{title}', nextLessonTitle)
+        : null,
+      nextLessonCaption: t('chatViewSummaryNextLessonCaption'),
+      footerNote: t('chatViewSummaryFooterNote'),
+    }
+  }, [nextLessonTitle, summaryOutcome, t])
+
+  const handleSummaryFinish = useCallback(() => {
+    // Prefer the next-lesson route when available so finishing a learning
+    // lesson slides straight into the next learning lesson. Falls back to
+    // the course index when there is no next lesson of this type.
+    if (nextLessonHref) {
+      router.push(nextLessonHref)
+      return
+    }
+    router.push(courseSlug ? `/courses/${courseSlug}` : '/study')
+  }, [courseSlug, nextLessonHref, router])
 
   const quickActionLabels = useMemo(
     () => ({
       hint: t('chatViewChipHint'),
       explain: t('chatViewChipExplain'),
       skip: t('chatViewChipSkip'),
+      skipExercise: t('chatViewChipSkipExercise'),
     }),
     [t],
+  )
+
+  // Task-3 retry hint. The CTA lives inside ChatQuestionSelectBubble (shown
+  // only after the first wrong attempt on a 3+ option MCQ); when the student
+  // taps it, this handler composes a hint-flavored prompt that references the
+  // specific wrong choice + correct answer and fires an invisible-user chat
+  // request. The teacher-AI reply lands as the next assistant bubble. The CTA
+  // auto-hides after one tap — see hintShown persistence in the bubble.
+  const retryHintLabel = t('chatViewRetryHintCta')
+
+  // Bundle i18n'd error strings for validateFreeResponseOnServer in one memo
+  // so the identity stays stable across renders — ChatFreeResponseBubble
+  // puts this in a useCallback dep list, so a fresh object every render
+  // would thrash its submit handler.
+  const freeResponseValidationErrors = useMemo<ValidationErrorMessages>(
+    () => ({
+      invalidAnswerType: t('chatViewValidationInvalidAnswerType'),
+      selectTrueFalse: t('chatViewValidationSelectTrueFalse'),
+      noCorrectAnswer: t('chatViewValidationNoCorrectAnswer'),
+      selectAnAnswer: t('chatViewValidationSelectAnswer'),
+      enterAnAnswer: t('chatViewValidationEnterAnswer'),
+      unknownVariant: t('chatViewValidationUnknownVariant'),
+      validationFailed: t('chatViewValidationFailed'),
+      validationError: t('chatViewValidationError'),
+      connectionError: t('chatViewValidationConnectionError'),
+    }),
+    [t],
+  )
+  const handleHintRequest = useCallback(
+    (_blockId: string, wrongChoiceText: string, correctChoiceText: string) => {
+      const prompt = t('chatViewHintPromptWithChoice')
+        .replace('{choice}', wrongChoiceText)
+        .replace('{correct}', correctChoiceText)
+      chat.requestCorrection(prompt)
+    },
+    [chat, t],
   )
 
   // Narration is click-only. Each TeacherBubble exposes an `onSpeak` button
@@ -320,7 +606,12 @@ function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatPr
     // lesson; otherwise the student lands on exercise 1 section 1 with the
     // previous run's green checkmarks still painted on the question cards.
     clearProgress()
-    exercises.forEach((ex) => clearExerciseState(ex.id))
+    exercises.forEach((ex) => {
+      clearExerciseState(ex.id)
+      // Task-5 review-mode state lives in a sibling localStorage namespace.
+      // Reset wipes both so the next pass starts truly empty.
+      clearExerciseState(`review-${ex.id}`)
+    })
     onExit()
   }, [cancelPendingAdvance, clearProgress, exercises, onExit, tts])
 
@@ -366,14 +657,37 @@ function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatPr
               mediaMap={mediaMap}
               tts={tts}
               onOutcome={handleOutcome}
-              onQuestionSubmit={handleQuestionSubmit}
               onQuickAction={handleQuickAction}
+              onHintRequest={chat.isQuotaExhausted ? undefined : handleHintRequest}
+              retryHintLabel={retryHintLabel}
               quickActionLabels={quickActionLabels}
               quickActionsDisabled={chat.isSending}
               freeResponsePlaceholder={t('chatViewAnswerPlaceholder')}
-              freeResponseSendLabel={t('chatViewSendLabel')}
+              freeResponseSendLabel={t('chatViewCheckLabel')}
+              freeResponsePendingLabel={t('chatViewFreeResponsePending')}
+              freeResponseNotCheckedLabel={t('chatViewFreeResponseNotChecked')}
+              freeResponseValidationErrors={freeResponseValidationErrors}
+              isQuotaExhausted={chat.isQuotaExhausted}
               introPrefix={t('chatViewIntroPrefix')}
-              completeText={t('chatViewFinishTitle')}
+              quotaExhaustedBody={t('chatViewQuotaExhaustedBody')}
+              quotaUpgradeLabel={t('chatViewQuotaUpgradeCta')}
+              quotaContinueLabel={t('chatViewQuotaContinueCta')}
+              reviewOfferBody={t('chatViewReviewOfferBody')}
+              reviewYesLabel={t('chatViewReviewYesCta')}
+              reviewEndLabel={t('chatViewReviewEndCta')}
+              onReviewYes={handleReviewYes}
+              onReviewEnd={handleReviewEnd}
+              summaryProps={{
+                lessonTitle,
+                outcome: summaryOutcome,
+                stats: summaryStats,
+                elapsedMinutes: summaryElapsedMinutes,
+                moneySavedIls: summaryMoneySaved,
+                reviewableCount: summaryReviewableCount,
+                copy: summaryCopy,
+                onReview: handleReviewYes,
+                onFinish: handleSummaryFinish,
+              }}
             />
           ))}
           {showContinueButton && (
@@ -392,13 +706,10 @@ function ActiveChat({ lessonId, exercises, mediaMap, tts, onExit }: ActiveChatPr
 
       <ChatLessonProgress
         stepIndex={walker.stepCursor}
-        totalSteps={walker.totalSteps}
         currentExerciseOrdinal={walker.currentExerciseOrdinal}
         totalExercises={walker.totalExercises}
-        currentSectionOrdinal={walker.currentSectionOrdinal}
-        currentExerciseSections={walker.currentExerciseSections}
+        lessonTitle={lessonTitle}
         exerciseLabel={t('chatViewProgressExercise')}
-        sectionLabel={t('chatViewProgressSection')}
       />
 
       <GivenDataFloating
@@ -426,15 +737,52 @@ interface StreamEntryViewProps {
   mediaMap?: Record<string, Media>
   tts: ReturnType<typeof useBrowserTTS>
   onOutcome: (sectionKey: string, outcome: SectionOutcome) => void
-  onQuestionSubmit: (sectionKey: string, text: string, isCorrect: boolean) => void
-  onQuickAction: (action: 'hint' | 'explain' | 'skip') => void
-  quickActionLabels: { hint: string; explain: string; skip: string }
+  onQuickAction: (action: 'hint' | 'explain' | 'skip' | 'skipExercise') => void
+  /**
+   * Task-3 retry hint callback. Undefined when the student's chat quota is
+   * exhausted (Task 7) — the question-level hint CTA relies on this prop's
+   * presence to decide whether to render, so dropping it there auto-hides
+   * the hint on retry sections.
+   */
+  onHintRequest?: (blockId: string, wrongChoiceText: string, correctChoiceText: string) => void
+  retryHintLabel: string
+  quickActionLabels: { hint: string; explain: string; skip: string; skipExercise: string }
   quickActionsDisabled: boolean
   freeResponsePlaceholder: string
   freeResponseSendLabel: string
   introPrefix: string
-  completeText: string
+  /** Copy + CTAs for the one-time Task-7 quota-exhausted card. */
+  quotaExhaustedBody: string
+  quotaUpgradeLabel: string
+  quotaContinueLabel: string
+  /** Task-5 review-offer card copy + handlers. */
+  reviewOfferBody: string
+  reviewYesLabel: string
+  reviewEndLabel: string
+  onReviewYes: () => void
+  onReviewEnd: () => void
+  /** Task-4 free-response i18n + quota flag — forwarded to ExerciseSectionBubble. */
+  freeResponsePendingLabel: string
+  freeResponseNotCheckedLabel: string
+  freeResponseValidationErrors: FreeResponseValidationErrors
+  isQuotaExhausted: boolean
+  /** Task-9 lesson-summary card data + handlers. Computed by the runner on
+   *  each render — localStorage reads cheap, happens at most once per
+   *  lesson-complete emission. */
+  summaryProps: {
+    lessonTitle: string
+    outcome: LessonOutcome
+    stats: LessonStats
+    elapsedMinutes: number
+    moneySavedIls: number
+    reviewableCount: number
+    copy: LessonSummaryCopy
+    onReview: () => void
+    onFinish: () => void
+  }
 }
+
+type FreeResponseValidationErrors = ValidationErrorMessages
 
 function StreamEntryView({
   entry,
@@ -443,14 +791,27 @@ function StreamEntryView({
   mediaMap,
   tts,
   onOutcome,
-  onQuestionSubmit,
   onQuickAction,
+  onHintRequest,
+  retryHintLabel,
   quickActionLabels,
   quickActionsDisabled,
   freeResponsePlaceholder,
   freeResponseSendLabel,
   introPrefix,
-  completeText,
+  quotaExhaustedBody,
+  quotaUpgradeLabel,
+  quotaContinueLabel,
+  reviewOfferBody,
+  reviewYesLabel,
+  reviewEndLabel,
+  onReviewYes,
+  onReviewEnd,
+  freeResponsePendingLabel,
+  freeResponseNotCheckedLabel,
+  freeResponseValidationErrors,
+  isQuotaExhausted,
+  summaryProps,
 }: StreamEntryViewProps) {
   switch (entry.kind) {
     case 'exercise-intro': {
@@ -469,14 +830,16 @@ function StreamEntryView({
           />
           {givenDataBlocks.length > 0 && (
             <div className="rounded-2xl border border-warning/30 bg-warning/8 p-card-padding-sm shadow-elevation-1">
-              <ExerciseRenderer
-                groups={[{ blocks: givenDataBlocks, sectionIndex: null }]}
-                mediaMap={mediaMap ?? EMPTY_MEDIA_MAP}
-                lessonId={lessonId}
-                showCheckAnswer={false}
-                showExerciseNumber={false}
-                questionCardVariant="flat"
-              />
+              <QuestionHeaderBadges exerciseOrdinal={entry.ordinal}>
+                <ExerciseRenderer
+                  groups={[{ blocks: givenDataBlocks, sectionIndex: null }]}
+                  mediaMap={mediaMap ?? EMPTY_MEDIA_MAP}
+                  lessonId={lessonId}
+                  showCheckAnswer={false}
+                  showExerciseNumber={false}
+                  questionCardVariant="flat"
+                />
+              </QuestionHeaderBadges>
             </div>
           )}
         </div>
@@ -497,13 +860,19 @@ function StreamEntryView({
           ttsSupported={tts.supported}
           isActive={isActive}
           sectionKey={entry.key}
+          storageIdOverride={entry.storageIdOverride}
           onOutcome={onOutcome}
-          onQuestionSubmit={onQuestionSubmit}
           onQuickAction={onQuickAction}
+          onHintRequest={onHintRequest}
+          retryHintLabel={retryHintLabel}
           quickActionLabels={quickActionLabels}
           quickActionsDisabled={quickActionsDisabled}
           freeResponsePlaceholder={freeResponsePlaceholder}
           freeResponseSendLabel={freeResponseSendLabel}
+          freeResponsePendingLabel={freeResponsePendingLabel}
+          freeResponseNotCheckedLabel={freeResponseNotCheckedLabel}
+          freeResponseValidationErrors={freeResponseValidationErrors}
+          isQuotaExhausted={isQuotaExhausted}
         />
       )
     case 'chat-user':
@@ -523,6 +892,41 @@ function StreamEntryView({
     case 'chat-error':
       return <TeacherBubble text={entry.text} variant="correction" />
     case 'lesson-complete':
-      return <TeacherBubble text={completeText} />
+      return (
+        <LessonSummaryCard
+          lessonTitle={summaryProps.lessonTitle}
+          outcome={summaryProps.outcome}
+          stats={summaryProps.stats}
+          elapsedMinutes={summaryProps.elapsedMinutes}
+          moneySavedIls={summaryProps.moneySavedIls}
+          reviewableCount={summaryProps.reviewableCount}
+          copy={summaryProps.copy}
+          onReview={summaryProps.onReview}
+          onFinish={summaryProps.onFinish}
+        />
+      )
+    case 'tier-lock':
+      return <TierLockBubble lockedCount={entry.lockedCount} />
+    case 'skipped-marker':
+      return <SkippedMarker />
+    case 'quota-exhausted':
+      return (
+        <QuotaExhaustedCard
+          bodyText={quotaExhaustedBody}
+          upgradeLabel={quotaUpgradeLabel}
+          continueLabel={quotaContinueLabel}
+          upgradeHref="/products"
+        />
+      )
+    case 'review-offer':
+      return (
+        <ReviewOfferCard
+          bodyText={reviewOfferBody}
+          yesLabel={reviewYesLabel}
+          endLabel={reviewEndLabel}
+          onYes={onReviewYes}
+          onEnd={onReviewEnd}
+        />
+      )
   }
 }

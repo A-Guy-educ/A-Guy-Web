@@ -4,9 +4,10 @@ import { uploadFileAsMedia } from '@/infra/media/uploadDataUrl'
 import { logger } from '@/infra/utils/logger'
 import { cn } from '@/infra/utils/ui'
 import { useTranslations } from '@/ui/web/providers/I18n'
-import { FormulaComposer } from '@/ui/web/shared/MathInput/FormulaComposer'
+import { MathPicker } from '@/ui/web/shared/MathInput/MathPicker'
+import { MixedMathInput, type MixedMathInputRef } from '@/ui/web/shared/MathInput/MixedMathInput'
 import { AnimatePresence, motion } from 'framer-motion'
-import { FileUp, FunctionSquare, Image as ImageIcon, Loader2, Plus, Send, X } from 'lucide-react'
+import { ArrowUp, FileUp, Image as ImageIcon, Loader2, Plus, X } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 
 interface ChatInputPanelProps {
@@ -43,10 +44,14 @@ export function ChatInputPanel({
 }: ChatInputPanelProps) {
   const t = useTranslations('courses')
   const [value, setValue] = useState('')
-  const [composerOpen, setComposerOpen] = useState(false)
+  const [toolbarOpen, setToolbarOpen] = useState(false)
   const [uploads, setUploads] = useState<UploadItem[]>([])
-  const inputRef = useRef<HTMLInputElement>(null)
+  const mathInputRef = useRef<MixedMathInputRef>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleInsertMath = useCallback((latex: string) => {
+    mathInputRef.current?.insert(latex)
+  }, [])
 
   const isUploading = uploads.some((u) => u.status === 'uploading')
   const hasFailedUpload = uploads.some((u) => u.status === 'failed')
@@ -54,32 +59,19 @@ export function ChatInputPanel({
     .filter((u): u is UploadItem & { mediaId: string } => u.status === 'complete' && !!u.mediaId)
     .map((u) => u.mediaId)
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const submit = useCallback(() => {
     const trimmed = value.trim()
     if (!trimmed || disabled || isSending || isUploading || hasFailedUpload) return
     onSubmit(trimmed, completedMediaIds)
     setValue('')
     setUploads([])
-    setComposerOpen(false)
-  }
+    setToolbarOpen(false)
+  }, [value, disabled, isSending, isUploading, hasFailedUpload, onSubmit, completedMediaIds])
 
-  const handleFormulaInsert = useCallback(
-    (latex: string) => {
-      const el = inputRef.current
-      const start = el?.selectionStart ?? value.length
-      const end = el?.selectionEnd ?? value.length
-      const wrapped = `$${latex}$`
-      setValue(value.substring(0, start) + wrapped + value.substring(end))
-      setComposerOpen(false)
-      requestAnimationFrame(() => {
-        const caret = start + wrapped.length
-        el?.focus()
-        el?.setSelectionRange(caret, caret)
-      })
-    },
-    [value],
-  )
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    submit()
+  }
 
   const addFiles = useCallback(
     (files: FileList | null) => {
@@ -199,69 +191,47 @@ export function ChatInputPanel({
             'bg-card/95 backdrop-blur-md border border-border shadow-card',
           )}
         >
-          <input
-            ref={inputRef}
-            type="text"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            placeholder={placeholder}
-            disabled={disabled || isSending}
-            // Pure-math input like `(-2,3)` is all bidi-neutral/weak chars;
-            // an RTL base direction reorders it visually (minus swaps with
-            // the leading digit). `dir="auto"` falls back to LTR when no
-            // strong char is present and flips to RTL on first Hebrew letter.
-            dir="auto"
-            className={cn(
-              'flex-1 min-w-0 bg-transparent border-none outline-none py-2 px-1',
-              'text-body-md text-foreground placeholder:text-muted-foreground',
-              'disabled:opacity-60 disabled:cursor-not-allowed',
-            )}
-          />
-
+          {/* Unified + menu: math atoms + image upload. Lives at the pill's
+              right edge (dir=rtl, first flex child) opposite the Send button. */}
           {!disabled && (
             <button
               type="button"
-              onClick={() => setComposerOpen((v) => !v)}
+              onClick={() => setToolbarOpen((v) => !v)}
               aria-label={t('insertFormula')}
               title={t('insertFormula')}
               className={cn(
                 'w-8 h-8 rounded-full shrink-0 flex items-center justify-center transition-all active:scale-90',
-                'bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20',
+                toolbarOpen
+                  ? 'bg-primary text-primary-foreground border border-primary'
+                  : 'bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20',
               )}
             >
-              <FunctionSquare className="w-4 h-4" />
+              <Plus className="w-4 h-4" />
             </button>
           )}
 
-          {!disabled && (
-            <>
-              <button
-                type="button"
-                onClick={openFilePicker}
-                disabled={uploads.length >= MAX_ATTACHMENTS}
-                aria-label={t('chatAttachFile')}
-                title={t('chatAttachFile')}
-                className={cn(
-                  'w-8 h-8 rounded-full shrink-0 flex items-center justify-center transition-all active:scale-90',
-                  'bg-muted hover:bg-muted/70 text-muted-foreground hover:text-foreground border border-border',
-                  'disabled:opacity-50 disabled:cursor-not-allowed',
-                )}
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept={ACCEPT}
-                multiple
-                className="hidden"
-                onChange={(e) => {
-                  addFiles(e.target.files)
-                  e.target.value = ''
-                }}
-              />
-            </>
-          )}
+          <MixedMathInput
+            ref={mathInputRef}
+            value={value}
+            onChange={setValue}
+            onEnterKey={submit}
+            disabled={disabled || isSending}
+            placeholder={placeholder}
+            className="flex-1 min-w-0 py-2 px-1"
+          />
+
+          {/* Hidden file input the picker's Image action triggers. */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={ACCEPT}
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              addFiles(e.target.files)
+              e.target.value = ''
+            }}
+          />
 
           <button
             type="submit"
@@ -276,24 +246,25 @@ export function ChatInputPanel({
             {isSending ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <Send className="w-4 h-4" />
+              <ArrowUp className="w-4 h-4" />
             )}
           </button>
         </div>
 
         <AnimatePresence>
-          {composerOpen && !disabled && (
+          {toolbarOpen && !disabled && (
             <motion.div
               initial={{ opacity: 0, y: 6, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 6, scale: 0.97 }}
               transition={{ duration: 0.18 }}
-              className="absolute bottom-full inset-x-0 mb-2"
+              className="absolute bottom-full inset-x-0 mb-2 rounded-lg border border-border bg-card/95 backdrop-blur-md shadow-card p-2"
               data-math-controls
             >
-              <FormulaComposer
-                onInsert={handleFormulaInsert}
-                onClose={() => setComposerOpen(false)}
+              <MathPicker
+                onInsert={handleInsertMath}
+                onClose={() => setToolbarOpen(false)}
+                onImageUpload={uploads.length < MAX_ATTACHMENTS ? openFilePicker : undefined}
               />
             </motion.div>
           )}

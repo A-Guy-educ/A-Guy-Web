@@ -69,7 +69,11 @@ function pickLocale(rawLocale: unknown): SupportedLocale {
   return rawLocale === 'en' ? 'en' : 'he'
 }
 
+export type BugReportKind = 'bug' | 'contact'
+
 export interface SendBugReportOptions {
+  /** 'bug' (default) or 'contact' — flips the subject line + template heading. */
+  kind?: BugReportKind
   description: string
   contactEmail?: string | null
   pageUrl: string
@@ -88,6 +92,7 @@ export interface SendBugReportOptions {
 
 export async function sendBugReport(options: SendBugReportOptions): Promise<SendBugReportResult> {
   const {
+    kind = 'bug',
     description,
     contactEmail,
     pageUrl,
@@ -130,7 +135,14 @@ export async function sendBugReport(options: SendBugReportOptions): Promise<Send
     locale === 'he'
       ? buildBugReportEmailHEPlainText(templateData)
       : buildBugReportEmailENPlainText(templateData)
-  const subject = locale === 'he' ? `דיווח על תקלה — ${SITE_NAME}` : `Bug report — ${SITE_NAME}`
+  const subject =
+    kind === 'contact'
+      ? locale === 'he'
+        ? `פנייה מהאתר — ${SITE_NAME}`
+        : `Contact message — ${SITE_NAME}`
+      : locale === 'he'
+        ? `דיווח על תקלה — ${SITE_NAME}`
+        : `Bug report — ${SITE_NAME}`
 
   try {
     const result = await resend.emails.send(

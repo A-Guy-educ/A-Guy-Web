@@ -15,6 +15,8 @@ import type { Document, ObjectId } from 'mongodb'
 
 import { getContentDb, objectIdFromString, relationId, serializeDoc } from '@/infra/db/content-db'
 import type { User } from '@/infra/types/content'
+import { TIER_LLM_TOKEN_CAP_MONTHLY } from '@/lib/tiers'
+import { reconcileUserLlmLimit } from '@/lib/tiers/llm-cost-cap'
 import { encrypt, generateSecret } from './oauth_crypto'
 import {
   AUTH_COOKIE_MAX_AGE_SECONDS,
@@ -148,7 +150,19 @@ export async function getSessionFromToken(token?: string | null) {
         },
       },
     } as Document)
-    return user ? { token, user: cleanUser(user) } : null
+    if (!user) return null
+    // Fire-and-forget: keep `users.llmTokensLimit` in sync with the user's
+    // current tier. No-ops when the kill switch is off or the stored limit
+    // already matches the tier's cap; costs a single Mongo updateOne only
+    // after a manual tier change. See TIERS.md "Web implementation".
+    void reconcileUserLlmLimit({
+      userId: payload.id,
+      user: {
+        currentTier: typeof user.currentTier === 'string' ? user.currentTier : null,
+        llmTokensLimit: typeof user.llmTokensLimit === 'number' ? user.llmTokensLimit : null,
+      },
+    })
+    return { token, user: cleanUser(user) }
   } catch {
     return null
   }
@@ -229,6 +243,12 @@ export async function createPasswordUser(input: { name: string; email: string; p
       hash: password.hash,
       salt: password.salt,
       sessions: [],
+      // Explicit free-tier LLM token cap on signup. Admin's Payload
+      // `defaultValue` doesn't fire here because this path uses raw Mongo
+      // `insertOne` (not the Payload REST layer), so without this line new
+      // signups would land with `llmTokensLimit: undefined` and only get
+      // seeded on their first authed call (via reconcileUserLlmLimit).
+      llmTokensLimit: TIER_LLM_TOKEN_CAP_MONTHLY.free,
       createdAt: now,
       updatedAt: now,
     })
@@ -294,6 +314,9 @@ export async function createGoogleUser(
     googleProfile: { name: google.name, picture: google.picture },
     registrationMethod: 'google',
     registeredAt: now,
+    // See createPasswordUser for the rationale — raw Mongo insert bypasses
+    // Payload's `defaultValue`, so seed the free-tier cap explicitly.
+    llmTokensLimit: TIER_LLM_TOKEN_CAP_MONTHLY.free,
     ...(attribution
       ? {
           signupSource: attribution.signupSource,

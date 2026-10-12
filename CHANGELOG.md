@@ -1,5 +1,41 @@
 # Changelog
 
+## v0.46.0 — 2026-10-12
+
+### Features
+- Chatview teacher-AI corrections, canned responses, 3-option retry, skip chip (#1305, #1306, #1307)
+- Chatview end-of-lesson summary card with focused review and outcome classification (#1312, #1322)
+- Chatview open-answer AI validation with self-compare fallback (#1311)
+- Chatview skipped-section marker, quota-exhausted card, exercise cap for free tier (#1303, #1310)
+- Chatview chat-bubble polish, contact pill, and next-lesson CTA (#1327, #1328)
+- Cycle chat-view pill between lesson name and exercise progress (#1298)
+- Tier system mirror with enforcement kill switch and content gates (#1299, #1301, #1302)
+- WYSIWYG mixed math input and TipTap-based math-as-atomic-chip model (#1317, #1321)
+- Hierarchical math picker, unified + menu, RTL math chips (#1324, #1330)
+- Media doodle notebook with text mode, polish, and chat fold (#1318, #1320, #1323)
+
+### Fixes
+- Chatview quota detection, skip-last-exercise review bypass, skipped marker visual (#1314)
+- Chatview summary stale stats, dead review button, finish route (#1326)
+- Inline chat TTS in all views and move exercise badge to given-data (#1335)
+- Inline TTS, trim math MCQ padding, add chatview badges (#1334)
+- Rename free-response submit button in chatview to check (#1333)
+- Open answer-box picker upwards to match chat input (#1332)
+- Scale facts dropdown and swap send for mail icon (#1329)
+- Default media doodle notebook to text mode (#1325)
+- Wire math toolbar to live field, default text mode, trim keyboard (#1319)
+- Chapter-aware learning-lesson index for exercise gate (#1313)
+- Narrow course-composer search haystack and rank title hits over slug noise (#1315, #1316)
+- Make tier kill switch readable from client bundle (#1304)
+- Strip server-only exports from tiers barrel to unblock client bundling (#1301)
+- Fix tier LLM token cap and make reconciler seed-only (#1300)
+
+### Chores
+- Seed llmTokensLimit on Web signup to match Admin schema default (#1331)
+- Resize tier token caps using Gemini 2.5 Flash pricing (#1315)
+- Bump handlebars floor to 4.7.10 for CVE (#1316)
+- Tighten @modelcontextprotocol/sdk override to >=1.31.0 (#1299)
+
 ## v0.45.0 — 2026-10-06
 
 ### Features
@@ -4862,6 +4898,46 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.46.0 ([#1336](https://github.com/A-Guy-educ/A-Guy-Web/pull/1336)) — @aguyshayb
+- fix: Inline chat TTS in all views, move exercise badge to given-data ([#1335](https://github.com/A-Guy-educ/A-Guy-Web/pull/1335)) — @aguyshayb
+- fix: Chatview polish — TTS alignment, section/exercise badges, MCQ math spacing ([#1334](https://github.com/A-Guy-educ/A-Guy-Web/pull/1334)) — @aguyshayb
+- fix: Rename chatview free-response submit button to Check ([#1333](https://github.com/A-Guy-educ/A-Guy-Web/pull/1333)) — @aguyshayb
+- fix: Open answer-box picker upwards ([#1332](https://github.com/A-Guy-educ/A-Guy-Web/pull/1332)) — @aguyshayb
+- chore: Seed llmTokensLimit on Web signup to match Admin schema default ([#1331](https://github.com/A-Guy-educ/A-Guy-Web/pull/1331)) — @aguyshayb
+- feat: Unify + menu, add Point tool, swap Send icon per demo ([#1330](https://github.com/A-Guy-educ/A-Guy-Web/pull/1330)) — @aguyshayb
+- fix: Scale facts dropdown contents and swap pill icon to envelope ([#1329](https://github.com/A-Guy-educ/A-Guy-Web/pull/1329)) — @aguyshayb
+- feat: Chatview summary card next-lesson CTA + skip-count regression coverage ([#1328](https://github.com/A-Guy-educ/A-Guy-Web/pull/1328)) — @aguyshayb
+- feat: Chatview chat styles, contact-us tab, smaller facts pill ([#1327](https://github.com/A-Guy-educ/A-Guy-Web/pull/1327)) — @aguyshayb
+- fix: Chatview summary card — stale stats, dead review button, finish route ([#1326](https://github.com/A-Guy-educ/A-Guy-Web/pull/1326)) — @aguyshayb
+- fix: Default media doodle notebook to text mode ([#1325](https://github.com/A-Guy-educ/A-Guy-Web/pull/1325)) — @aguyshayb
+- feat: Hierarchical math picker, RTL fix for math chips ([#1324](https://github.com/A-Guy-educ/A-Guy-Web/pull/1324)) — @aguyshayb
+- feat: Add text mode to media doodle notebook ([#1323](https://github.com/A-Guy-educ/A-Guy-Web/pull/1323)) — @aguyshayb
+- feat: Chatview end-of-lesson summary card with outcome classification ([#1322](https://github.com/A-Guy-educ/A-Guy-Web/pull/1322)) — @aguyshayb
+- feat: Math input on TipTap with math-as-atomic-chip model ([#1321](https://github.com/A-Guy-educ/A-Guy-Web/pull/1321)) — @aguyshayb
+- feat: Polish media doodle notebook (resize, color feedback, chat fold icon) ([#1320](https://github.com/A-Guy-educ/A-Guy-Web/pull/1320)) — @aguyshayb
+- fix: Math input toolbar binding, default mode, keyboard layout ([#1319](https://github.com/A-Guy-educ/A-Guy-Web/pull/1319)) — @aguyshayb
+- feat: Doodle notebook and collapsible chat in media tab ([#1318](https://github.com/A-Guy-educ/A-Guy-Web/pull/1318)) — @aguyshayb
+- feat: Inline WYSIWYG math input across chat + answer surfaces ([#1317](https://github.com/A-Guy-educ/A-Guy-Web/pull/1317)) — @aguyshayb
+- fix: Narrow course-composer search haystack ([#1316](https://github.com/A-Guy-educ/A-Guy-Web/pull/1316)) — @aguyshayb
+- chore: Resize tier token caps using Gemini 2.5 Flash pricing ([#1315](https://github.com/A-Guy-educ/A-Guy-Web/pull/1315)) — @aguyshayb
+- fix: Chatview quota detection, review-bypass on skip-last-exercise, skipped-marker visual ([#1314](https://github.com/A-Guy-educ/A-Guy-Web/pull/1314)) — @aguyshayb
+- fix: Use chapter-aware learning-lesson index for free-tier exercise gate ([#1313](https://github.com/A-Guy-educ/A-Guy-Web/pull/1313)) — @aguyshayb
+- feat: Chatview focused end-of-lesson review ([#1312](https://github.com/A-Guy-educ/A-Guy-Web/pull/1312)) — @aguyshayb
+- feat: Chatview open-answer AI validation with self-compare fallback ([#1311](https://github.com/A-Guy-educ/A-Guy-Web/pull/1311)) — @aguyshayb
+- feat: Chatview skipped-section marker and quota-exhausted card ([#1310](https://github.com/A-Guy-educ/A-Guy-Web/pull/1310)) — @aguyshayb
+- feat: Chatview 3-option MCQ retry with teacher hint ([#1307](https://github.com/A-Guy-educ/A-Guy-Web/pull/1307)) — @aguyshayb
+- feat: Chatview teacher AI correction with the student's wrong choice ([#1306](https://github.com/A-Guy-educ/A-Guy-Web/pull/1306)) — @aguyshayb
+- feat: Chatview canned correct-answer responses and skip-exercise chip ([#1305](https://github.com/A-Guy-educ/A-Guy-Web/pull/1305)) — @aguyshayb
+- fix: Make tier kill switch readable from client bundle ([#1304](https://github.com/A-Guy-educ/A-Guy-Web/pull/1304)) — @aguyshayb
+- Cap chat-view exercises for free tier with upgrade bubble ([#1303](https://github.com/A-Guy-educ/A-Guy-Web/pull/1303)) — @aguyshayb
+- feat: Finish Phase 2 tier gating (exercise lock, per-tier chat quota, UX) ([#1302](https://github.com/A-Guy-educ/A-Guy-Web/pull/1302)) — @aguyshayb
+- feat: Wire tier content gates into lesson/practice/exam row lists ([#1301](https://github.com/A-Guy-educ/A-Guy-Web/pull/1301)) — @aguyshayb
+- fix: Fix tier LLM token cap and make reconciler seed-only ([#1300](https://github.com/A-Guy-educ/A-Guy-Web/pull/1300)) — @aguyshayb
+- feat: Add tier system mirror with enforcement kill switch ([#1299](https://github.com/A-Guy-educ/A-Guy-Web/pull/1299)) — @aguyshayb
+- Cycle chat-view pill between lesson name and exercise progress ([#1298](https://github.com/A-Guy-educ/A-Guy-Web/pull/1298)) — @aguyshayb
+## [v0.45.0] - 2026-10-06
+
+- promote: dev -> main (v0.45.0) ([#1297](https://github.com/A-Guy-educ/A-Guy-Web/pull/1297)) — @aguyshayb
 - chore: Release v0.45.0 ([#1296](https://github.com/A-Guy-educ/A-Guy-Web/pull/1296)) — @aguyshayb
 - Use per-item padding instead of gap for math-only MCQ spacing ([#1295](https://github.com/A-Guy-educ/A-Guy-Web/pull/1295)) — @aguyshayb
 - fix: Expand ask page PDFs to fill the full primary pane ([#1294](https://github.com/A-Guy-educ/A-Guy-Web/pull/1294)) — @aguyshayb

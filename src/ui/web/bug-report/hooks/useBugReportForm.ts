@@ -29,7 +29,11 @@ export interface UseBugReportFormOptions {
   rateLimitedMessage: string
 }
 
+export type BugReportKind = 'bug' | 'contact'
+
 export interface UseBugReportFormReturn {
+  kind: BugReportKind
+  setKind: (value: BugReportKind) => void
   description: string
   setDescription: (value: string) => void
   contactEmail: string
@@ -48,6 +52,7 @@ const DESCRIPTION_MIN = 5
 export function useBugReportForm(options: UseBugReportFormOptions): UseBugReportFormReturn {
   const { user } = useCurrentUser()
 
+  const [kind, setKind] = useState<BugReportKind>('bug')
   const [description, setDescription] = useState('')
   const [contactEmail, setContactEmail] = useState<string>(() => {
     return user?.email ?? ''
@@ -80,6 +85,7 @@ export function useBugReportForm(options: UseBugReportFormOptions): UseBugReport
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          kind,
           description: description.trim(),
           contactEmail: contactEmail.trim() || undefined,
           url: typeof window !== 'undefined' ? window.location.href : '',
@@ -108,7 +114,7 @@ export function useBugReportForm(options: UseBugReportFormOptions): UseBugReport
     } finally {
       setIsSubmitting(false)
     }
-  }, [canSubmit, description, contactEmail, options.errorMessage, options.rateLimitedMessage])
+  }, [canSubmit, kind, description, contactEmail, options.errorMessage, options.rateLimitedMessage])
 
   const reset = useCallback(() => {
     setDescription('')
@@ -116,6 +122,8 @@ export function useBugReportForm(options: UseBugReportFormOptions): UseBugReport
   }, [])
 
   return {
+    kind,
+    setKind,
     description,
     setDescription,
     contactEmail,

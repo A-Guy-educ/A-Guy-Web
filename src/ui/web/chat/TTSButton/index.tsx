@@ -35,7 +35,11 @@ export function TTSButton({
   labelSpeed,
 }: TTSButtonProps) {
   return (
-    <div className="mt-2 ms-auto flex flex-col items-end gap-1">
+    // Lets the caller position this component inline with the message's last
+    // row via `flex items-end`; the inner column keeps the speed pill above
+    // the main button, so when playback is active the pill stacks over an
+    // already-aligned button.
+    <div className="flex flex-col items-end gap-1 shrink-0">
       {/* Speed selector pills */}
       {isPlaying && (
         <div className="flex items-center gap-1 animate-in fade-in slide-in-from-top-2 duration-normal">

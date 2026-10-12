@@ -151,61 +151,46 @@ export function LessonMenu({
 
   return (
     <>
-      {/* Floating chrome: lesson-name plaque sits above the menu + back
-          button pair, all anchored at logical `start` (top-left LTR,
-          top-right RTL) so they don't collide with MobileChatPanel's
-          close-X on the opposite edge. */}
+      {/* Floating chrome: menu + back buttons at logical `start` (top-left
+          LTR, top-right RTL) so they don't collide with MobileChatPanel's
+          close-X on the opposite edge. The lesson title lives inside the
+          dropdown header; chat view shows it in a dedicated cycling pill. */}
       <div
         style={{ top: 'calc(0.5rem + env(safe-area-inset-top))' }}
-        className="fixed start-3 z-[400] flex flex-col items-start gap-1.5 pointer-events-none"
+        className="fixed start-3 z-[400] flex items-center gap-1.5"
       >
-        {lessonTitle && (
-          <div
-            className={cn(
-              'pointer-events-auto max-w-[70vw] sm:max-w-xs truncate',
-              'rounded-full px-3 py-1',
-              'bg-card/95 backdrop-blur border border-border shadow-elevation-1',
-              'text-body-xs font-semibold text-foreground',
-            )}
-            title={lessonTitle}
-          >
-            {lessonTitle}
-          </div>
-        )}
-        <div className="pointer-events-auto flex items-center gap-1.5">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-label={t('lessonViewMode')}
+          aria-haspopup="menu"
+          aria-expanded={open}
+          // Only advertise the panel when it's actually in the DOM
+          // (`AnimatePresence` unmounts it on close). A dangling
+          // `aria-controls` reference confuses some AT vendors.
+          aria-controls={open ? PANEL_ID : undefined}
+          className={cn(
+            'flex h-9 w-9 items-center justify-center rounded-full',
+            'bg-card/95 backdrop-blur border border-border shadow-elevation-2',
+            'text-foreground hover:bg-muted transition-colors',
+          )}
+        >
+          <Menu className="w-4 h-4 text-primary" />
+        </button>
+        {!hideBack && (
           <button
             type="button"
-            onClick={() => setOpen((v) => !v)}
-            aria-label={t('lessonViewMode')}
-            aria-haspopup="menu"
-            aria-expanded={open}
-            // Only advertise the panel when it's actually in the DOM
-            // (`AnimatePresence` unmounts it on close). A dangling
-            // `aria-controls` reference confuses some AT vendors.
-            aria-controls={open ? PANEL_ID : undefined}
+            onClick={handleBack}
+            aria-label={onLessonSurface ? t('backToCourse') : t('back')}
             className={cn(
               'flex h-9 w-9 items-center justify-center rounded-full',
               'bg-card/95 backdrop-blur border border-border shadow-elevation-2',
               'text-foreground hover:bg-muted transition-colors',
             )}
           >
-            <Menu className="w-4 h-4 text-primary" />
+            <BackIcon className="w-4 h-4 text-primary" />
           </button>
-          {!hideBack && (
-            <button
-              type="button"
-              onClick={handleBack}
-              aria-label={onLessonSurface ? t('backToCourse') : t('back')}
-              className={cn(
-                'flex h-9 w-9 items-center justify-center rounded-full',
-                'bg-card/95 backdrop-blur border border-border shadow-elevation-2',
-                'text-foreground hover:bg-muted transition-colors',
-              )}
-            >
-              <BackIcon className="w-4 h-4 text-primary" />
-            </button>
-          )}
-        </div>
+        )}
       </div>
 
       <AnimatePresence>
@@ -225,7 +210,7 @@ export function LessonMenu({
               transition={{ duration: 0.15 }}
               role="menu"
               id={PANEL_ID}
-              style={{ top: 'calc(5rem + env(safe-area-inset-top))' }}
+              style={{ top: 'calc(3rem + env(safe-area-inset-top))' }}
               className={cn(
                 // Anchored to the same edge as the trigger pill above so
                 // the dropdown lines up cleanly with the button that
@@ -235,12 +220,17 @@ export function LessonMenu({
                 'flex flex-col gap-3',
               )}
             >
-              {/* Compact "view mode" header — the lesson title itself lives
-                  in the fixed plaque above the trigger, so the dropdown just
-                  needs a small cue for what the following options switch. */}
-              <div className="flex items-center gap-content-gap-xs text-body-2xs font-bold text-muted-foreground uppercase tracking-wider pb-2 border-b border-border">
-                <BookOpen className="w-3.5 h-3.5 text-primary" />
-                {t('lessonViewMode')}
+              {/* Lesson name section — the dropdown is the one place the
+                  title shows up for all view modes. (Chat view also surfaces
+                  it in a cycling pill, but the pill is chat-only.) */}
+              <div className="pb-2 border-b border-border">
+                <div className="flex items-center gap-content-gap-xs text-body-2xs font-bold text-muted-foreground uppercase tracking-wider mb-1">
+                  <BookOpen className="w-3.5 h-3.5 text-primary" />
+                  {t('lessonViewMode')}
+                </div>
+                <div className="text-body-sm font-bold text-foreground leading-snug">
+                  {lessonTitle}
+                </div>
               </div>
 
               {/* View-mode switcher — hidden when the lesson has 0 or 1

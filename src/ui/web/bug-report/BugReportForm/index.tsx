@@ -1,13 +1,9 @@
 /**
  * BugReportForm
  *
- * Floating popover that opens when the user clicks the bug-report FAB. Mirrors
- * the header/animation structure of the (now-parked) AgentChatWindow so the
- * slot, z-index, and motion feel consistent with what users previously had.
- *
- * The form contains: description textarea (required, min 5 chars), optional
- * contact email (prefilled from useCurrentUser when available), and a submit
- * button that shows a spinner while the request is in flight.
+ * Floating popover that opens when the user taps the floating pill. Houses two
+ * tabs — "Bug" (default) and "Contact" — that share the same description +
+ * contact-email form but route to different email subjects on the server.
  *
  * Localization: all visible strings come from the `bugReport` i18n namespace;
  * the popover respects the active locale's text direction via the I18n
@@ -21,13 +17,14 @@
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
-import { Bug, Loader2, Send, X } from 'lucide-react'
+import { Bug, Loader2, Mail, Send, X } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { toast } from 'sonner'
 
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
+import { cn } from '@/infra/utils/ui'
 
-import { useBugReportForm } from '../hooks/useBugReportForm'
+import { useBugReportForm, type BugReportKind } from '../hooks/useBugReportForm'
 
 interface BugReportFormProps {
   isOpen: boolean
@@ -40,6 +37,8 @@ export function BugReportForm({ isOpen, onClose }: BugReportFormProps) {
   const isRtl = locale === 'he'
 
   const {
+    kind,
+    setKind,
     description,
     setDescription,
     contactEmail,
@@ -56,10 +55,8 @@ export function BugReportForm({ isOpen, onClose }: BugReportFormProps) {
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  // Focus the textarea when the popover opens.
   useEffect(() => {
     if (isOpen) {
-      // rAF so the textarea is mounted before we try to focus.
       requestAnimationFrame(() => textareaRef.current?.focus())
     } else {
       reset()
@@ -81,13 +78,19 @@ export function BugReportForm({ isOpen, onClose }: BugReportFormProps) {
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // Enter alone submits, Shift+Enter inserts a newline. Same shortcut the
-    // (now-parked) AgentChatWindow used so muscle memory carries over.
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSubmit()
     }
   }
+
+  const isBug = kind === 'bug'
+  const title = isBug ? t('title') : t('contactTitle')
+  const subtitle = isBug ? t('subtitle') : t('contactSubtitle')
+  const descriptionLabel = isBug ? t('descriptionLabel') : t('contactMessageLabel')
+  const descriptionPlaceholder = isBug
+    ? t('descriptionPlaceholder')
+    : t('contactMessagePlaceholder')
 
   return (
     <AnimatePresence>
@@ -101,16 +104,23 @@ export function BugReportForm({ isOpen, onClose }: BugReportFormProps) {
           dir={isRtl ? 'rtl' : 'ltr'}
           data-testid="bug-report-form"
         >
-          {/* Header — mirrors AgentChatWindow header structure so the slot feels
-              identical to the user. */}
           <div className="flex items-center justify-between p-card-padding border-b border-border bg-card">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-destructive/10 flex items-center justify-center">
-                <Bug className="w-4 h-4 text-destructive" />
+            <div className="flex items-center gap-content-gap-xs">
+              <div
+                className={cn(
+                  'w-8 h-8 rounded-full flex items-center justify-center',
+                  isBug ? 'bg-destructive/10' : 'bg-primary/10',
+                )}
+              >
+                {isBug ? (
+                  <Bug className="w-4 h-4 text-destructive" />
+                ) : (
+                  <Mail className="w-4 h-4 text-primary" />
+                )}
               </div>
               <div>
-                <h3 className="font-semibold text-body-sm">{t('title')}</h3>
-                <p className="text-body-xs text-muted-foreground">{t('subtitle')}</p>
+                <h3 className="font-semibold text-body-sm">{title}</h3>
+                <p className="text-body-xs text-muted-foreground">{subtitle}</p>
               </div>
             </div>
             <button
@@ -123,14 +133,35 @@ export function BugReportForm({ isOpen, onClose }: BugReportFormProps) {
             </button>
           </div>
 
-          {/* Form body */}
+          <div className="px-card-padding pt-3">
+            <div
+              role="tablist"
+              className="inline-flex h-9 w-full items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground"
+            >
+              <TabButton
+                kind="bug"
+                active={isBug}
+                onSelect={setKind}
+                label={t('tabBug')}
+                icon={<Bug className="w-3.5 h-3.5" />}
+              />
+              <TabButton
+                kind="contact"
+                active={!isBug}
+                onSelect={setKind}
+                label={t('tabContact')}
+                icon={<Mail className="w-3.5 h-3.5" />}
+              />
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit} className="p-card-padding space-y-4" noValidate>
             <div className="space-y-1.5">
               <label
                 htmlFor="bug-report-description"
                 className="block text-body-sm font-medium text-foreground"
               >
-                {t('descriptionLabel')}
+                {descriptionLabel}
               </label>
               <textarea
                 id="bug-report-description"
@@ -138,12 +169,15 @@ export function BugReportForm({ isOpen, onClose }: BugReportFormProps) {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={t('descriptionPlaceholder')}
+                placeholder={descriptionPlaceholder}
                 rows={4}
                 required
                 minLength={5}
                 disabled={isSubmitting}
-                className="w-full bg-muted rounded-lg px-3 py-2 text-body-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-destructive/50 resize-none"
+                className={cn(
+                  'w-full bg-muted rounded-lg px-3 py-2 text-body-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 resize-none',
+                  isBug ? 'focus:ring-destructive/50' : 'focus:ring-primary/50',
+                )}
               />
             </div>
 
@@ -161,7 +195,10 @@ export function BugReportForm({ isOpen, onClose }: BugReportFormProps) {
                 onChange={(e) => setContactEmail(e.target.value)}
                 placeholder={t('emailPlaceholder')}
                 disabled={isSubmitting}
-                className="w-full bg-muted rounded-lg px-3 py-2 text-body-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-destructive/50"
+                className={cn(
+                  'w-full bg-muted rounded-lg px-3 py-2 text-body-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2',
+                  isBug ? 'focus:ring-destructive/50' : 'focus:ring-primary/50',
+                )}
                 autoComplete="email"
               />
             </div>
@@ -169,7 +206,12 @@ export function BugReportForm({ isOpen, onClose }: BugReportFormProps) {
             <button
               type="submit"
               disabled={!canSubmit}
-              className="w-full h-10 rounded-lg bg-destructive text-destructive-foreground flex items-center justify-center gap-2 hover:bg-destructive/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className={cn(
+                'w-full h-10 rounded-lg flex items-center justify-center gap-content-gap-xs disabled:opacity-50 disabled:cursor-not-allowed transition-colors',
+                isBug
+                  ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
+                  : 'bg-primary text-primary-foreground hover:bg-primary/90',
+              )}
             >
               {isSubmitting ? (
                 <>
@@ -187,5 +229,33 @@ export function BugReportForm({ isOpen, onClose }: BugReportFormProps) {
         </motion.div>
       )}
     </AnimatePresence>
+  )
+}
+
+interface TabButtonProps {
+  kind: BugReportKind
+  active: boolean
+  onSelect: (kind: BugReportKind) => void
+  label: string
+  icon: React.ReactNode
+}
+
+function TabButton({ kind, active, onSelect, label, icon }: TabButtonProps) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={() => onSelect(kind)}
+      className={cn(
+        'flex-1 inline-flex items-center justify-center gap-1.5 h-7 rounded-md text-body-xs font-medium transition-all duration-fast',
+        active
+          ? 'bg-background text-foreground shadow-elevation-1'
+          : 'text-muted-foreground hover:text-foreground',
+      )}
+    >
+      {icon}
+      <span>{label}</span>
+    </button>
   )
 }

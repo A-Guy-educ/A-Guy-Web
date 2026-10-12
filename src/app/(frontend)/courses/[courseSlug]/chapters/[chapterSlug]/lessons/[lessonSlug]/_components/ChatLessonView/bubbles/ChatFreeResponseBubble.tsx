@@ -4,15 +4,19 @@ import { cn } from '@/infra/utils/ui'
 import { RichTextRenderer } from '@/ui/web/exerciserenderer/blocks/RichTextRenderer'
 import { QuestionNotebook } from '@/ui/web/exerciserenderer/components/QuestionNotebook'
 import type { QuestionFreeResponseBlock } from '@/ui/web/exerciserenderer/types'
+import { validateFreeResponseOnServer } from '@/ui/web/exerciserenderer/utils/answerChecking'
 import {
   patchExerciseStateBlock,
+  patchExerciseStateBlockMeta,
   readExerciseState,
 } from '@/ui/web/exerciserenderer/utils/exerciseStateStorage'
-import { FormulaComposer } from '@/ui/web/shared/MathInput/FormulaComposer'
+import { MathPicker } from '@/ui/web/shared/MathInput/MathPicker'
+import { MixedMathInput, type MixedMathInputRef } from '@/ui/web/shared/MathInput/MixedMathInput'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { AnimatePresence, motion } from 'framer-motion'
-import { FunctionSquare, Send } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useCallback, useMemo, useRef, useState } from 'react'
+import { QuestionHeaderBadges } from './QuestionHeaderBadges'
 
 interface ChatFreeResponseBubbleProps {
   block: QuestionFreeResponseBlock
@@ -34,6 +38,35 @@ interface ChatFreeResponseBubbleProps {
    */
   exerciseId?: string
   onSubmit: (blockId: string, text: string, isCorrect: boolean) => void
+  /**
+   * Task-7 quota flag. When true, local-miss paths skip the server AI check
+   * (which would just 429) and fall back to Task-4's self-compare: the
+   * block's solution is shown, the submission is recorded as `notChecked`,
+   * and the student can continue the lesson.
+   */
+  isQuotaExhausted?: boolean
+  /**
+   * i18n labels for the Task-4 flow. Pulled from the runner so this component
+   * stays locale-agnostic.
+   *   - pendingLabel: shown while the server AI is running
+   *   - notCheckedLabel: badge over the solution when AI validation was skipped
+   *   - validationErrorMessages: forwarded to validateFreeResponseOnServer
+   */
+  pendingLabel?: string
+  notCheckedLabel?: string
+  validationErrorMessages?: ValidationErrorMessages
+}
+
+export interface ValidationErrorMessages {
+  invalidAnswerType: string
+  selectTrueFalse: string
+  noCorrectAnswer: string
+  selectAnAnswer: string
+  enterAnAnswer: string
+  unknownVariant: string
+  validationFailed: string
+  validationError: string
+  connectionError: string
 }
 
 /**
@@ -47,6 +80,8 @@ interface ChatFreeResponseBubbleProps {
  * submission accepted). That's a data bug on the block, not something this
  * component should paper over.
  */
+type SubmitStatus = 'idle' | 'pending' | 'submitted' | 'not_checked'
+
 export function ChatFreeResponseBubble({
   block,
   questionLabel,
@@ -55,157 +90,261 @@ export function ChatFreeResponseBubble({
   disabled,
   exerciseId,
   onSubmit,
+  isQuotaExhausted,
+  pendingLabel,
+  notCheckedLabel,
+  validationErrorMessages,
 }: ChatFreeResponseBubbleProps) {
   const t = useTranslations('courses')
-  // Hydrate typed text + submitted-locked state from the shared answer bundle
-  // on mount. `submitted` tracks whether grading already happened — if so, we
-  // lock the input and keep the saved text visible. patchExerciseStateBlock
-  // writes back on submit (same key as ExerciseRenderer's bundle, so Reset
-  // wipes everything together).
-  const [{ initialValue, initialSubmitted }] = useState<{
+  // Hydrate typed text + locked state from the shared answer bundle on mount.
+  // `submitted` means the pipeline (local match OR server AI OR not-checked
+  // fallback) produced a terminal result; the input locks and the saved text
+  // stays visible. patchExerciseStateBlock writes back on each step through
+  // the pipeline (same key as ExerciseRenderer's bundle, so Reset wipes
+  // everything together).
+  const [{ initialValue, initialStatus }] = useState<{
     initialValue: string
-    initialSubmitted: boolean
+    initialStatus: SubmitStatus
   }>(() => {
-    if (!exerciseId) return { initialValue: '', initialSubmitted: false }
+    if (!exerciseId) return { initialValue: '', initialStatus: 'idle' }
     const saved = readExerciseState(exerciseId)
     const answer = saved?.answers[block.id]
     const text = answer?.type === 'free_response' ? answer.value : ''
+    const hasCheckResult = Boolean(saved?.checkResults[block.id])
+    const wasNotChecked = saved?.blockMeta?.[block.id]?.notChecked === true
     return {
       initialValue: text,
-      initialSubmitted: Boolean(saved?.checkResults[block.id]),
+      initialStatus: wasNotChecked ? 'not_checked' : hasCheckResult ? 'submitted' : 'idle',
     }
   })
   const [value, setValue] = useState(initialValue)
-  const [submitted, setSubmitted] = useState(initialSubmitted)
-  const [composerOpen, setComposerOpen] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const [status, setStatus] = useState<SubmitStatus>(initialStatus)
+  const [toolbarOpen, setToolbarOpen] = useState(false)
+  // Notebook is now revealed on-demand from the + menu rather than always
+  // mounted. Still gated on the admin `block.showNotebook` opt-in flag.
+  const [notebookOpen, setNotebookOpen] = useState(false)
+  const mathInputRef = useRef<MixedMathInputRef>(null)
+  const formRef = useRef<HTMLFormElement>(null)
+
+  const handleInsertMath = useCallback((latex: string) => {
+    mathInputRef.current?.insert(latex)
+  }, [])
 
   const acceptedAnswers = useMemo(() => block.answer.acceptedAnswers ?? [], [block.answer])
   const canSubmit = acceptedAnswers.length > 0
+  // Once the submit pipeline runs to completion (match OR server verdict OR
+  // self-compare fallback) the input locks. Pending state also locks so the
+  // student can't fire a second request on top of the in-flight one.
+  const isLocked = status !== 'idle'
+  const isDisabled = disabled || isLocked || !canSubmit
 
-  const isDisabled = disabled || submitted || !canSubmit
+  const recordSubmission = useCallback(
+    (text: string, isCorrect: boolean, notChecked: boolean) => {
+      if (!exerciseId) return
+      const saved = readExerciseState(exerciseId)
+      const prior = saved?.blockMeta?.[block.id]?.submissions ?? []
+      const next = [...prior, { text, isCorrect, at: Date.now(), notChecked }]
+      patchExerciseStateBlockMeta(exerciseId, block.id, { submissions: next })
+    },
+    [exerciseId, block.id],
+  )
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const trimmed = value.trim()
     if (!trimmed || isDisabled) return
-    setSubmitted(true)
-    setComposerOpen(false)
-    const isCorrect = matchesAny(trimmed, acceptedAnswers)
-    if (exerciseId) {
-      patchExerciseStateBlock(exerciseId, block.id, {
-        answer: { type: 'free_response', value: trimmed },
-        checkResult: { isCorrect },
-      })
+    setToolbarOpen(false)
+
+    // Local match path — Task 4 says an approved answer passes instantly,
+    // no AI, no quota cost. Mirrors the pre-Task-4 behavior for anything
+    // in `acceptedAnswers` plus its normalized variants.
+    if (matchesAny(trimmed, acceptedAnswers)) {
+      setStatus('submitted')
+      if (exerciseId) {
+        patchExerciseStateBlock(exerciseId, block.id, {
+          answer: { type: 'free_response', value: trimmed },
+          checkResult: { isCorrect: true },
+        })
+      }
+      recordSubmission(trimmed, true, false)
+      onSubmit(block.id, trimmed, true)
+      return
     }
-    onSubmit(block.id, trimmed, isCorrect)
+
+    // Quota exhausted path — don't bother the server, fall back to self-
+    // compare: the block's solution is rendered below the (locked) input so
+    // the student can judge their own answer, and the submission is tagged
+    // notChecked for later review.
+    if (isQuotaExhausted) {
+      setStatus('not_checked')
+      if (exerciseId) {
+        patchExerciseStateBlock(exerciseId, block.id, {
+          answer: { type: 'free_response', value: trimmed },
+          checkResult: { isCorrect: false },
+        })
+        patchExerciseStateBlockMeta(exerciseId, block.id, { notChecked: true })
+      }
+      recordSubmission(trimmed, false, true)
+      // Report as `isCorrect: false` so the section outcome doesn't
+      // mis-advance; the self-compare bubble lives inside this component
+      // and the student taps the top-level Continue when they're ready.
+      onSubmit(block.id, trimmed, false)
+      return
+    }
+
+    // AI validation path — hit the shared server endpoint that first tries
+    // DB normalization (exact, LaTeX, numeric ±0.0001) and only calls Gemini
+    // if those miss. A 429 here is unlikely in practice (the Task-7 quota
+    // flag catches it upstream) but if it slips through we treat it the
+    // same as the no-quota branch: no verdict, self-compare mode.
+    setStatus('pending')
+    try {
+      const result = validationErrorMessages
+        ? await validateFreeResponseOnServer(block, trimmed, validationErrorMessages)
+        : { isCorrect: false }
+      setStatus('submitted')
+      if (exerciseId) {
+        patchExerciseStateBlock(exerciseId, block.id, {
+          answer: { type: 'free_response', value: trimmed },
+          checkResult: result,
+        })
+      }
+      recordSubmission(trimmed, result.isCorrect, false)
+      onSubmit(block.id, trimmed, result.isCorrect)
+    } catch {
+      setStatus('not_checked')
+      if (exerciseId) {
+        patchExerciseStateBlock(exerciseId, block.id, {
+          answer: { type: 'free_response', value: trimmed },
+          checkResult: { isCorrect: false },
+        })
+        patchExerciseStateBlockMeta(exerciseId, block.id, { notChecked: true })
+      }
+      recordSubmission(trimmed, false, true)
+      onSubmit(block.id, trimmed, false)
+    }
   }
 
-  const handleFormulaInsert = useCallback(
-    (latex: string) => {
-      const el = inputRef.current
-      const start = el?.selectionStart ?? value.length
-      const end = el?.selectionEnd ?? value.length
-      const wrapped = `$${latex}$`
-      setValue(value.substring(0, start) + wrapped + value.substring(end))
-      setComposerOpen(false)
-      requestAnimationFrame(() => {
-        const caret = start + wrapped.length
-        el?.focus()
-        el?.setSelectionRange(caret, caret)
-      })
-    },
-    [value],
-  )
+  const triggerSubmit = useCallback(() => {
+    formRef.current?.requestSubmit()
+  }, [])
 
   return (
     <div className="flex flex-col gap-content-gap">
-      {questionLabel && (
-        <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 text-primary font-extrabold text-body-sm self-start">
-          {questionLabel}
-        </span>
-      )}
-
-      <div className="text-body-md font-medium text-foreground leading-relaxed">
-        <RichTextRenderer block={block.prompt} />
-      </div>
+      <QuestionHeaderBadges sectionLabel={questionLabel}>
+        <div className="text-body-md font-medium text-foreground leading-relaxed">
+          <RichTextRenderer block={block.prompt} />
+        </div>
+      </QuestionHeaderBadges>
 
       <div className="relative mt-2" data-math-controls>
-        <form onSubmit={handleSubmit} className="flex items-center gap-content-gap-xs" dir="rtl">
-          <input
-            ref={inputRef}
-            type="text"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            placeholder={placeholder}
-            disabled={isDisabled}
-            // Pure-math inputs like `(2,3)` or `(2,-3)` are all bidi-neutral/weak
-            // chars; an RTL base direction reorders them visually to `(3,2)` /
-            // `(3-,2)`. `dir="auto"` falls back to LTR when no strong char is
-            // present, and flips to RTL once a Hebrew letter is typed.
-            dir="auto"
-            className={cn(
-              'flex-1 rounded-xl border border-input bg-background px-4 py-2.5',
-              'text-body-md text-foreground placeholder:text-muted-foreground',
-              'focus:outline-none focus:border-primary transition-colors',
-              'disabled:opacity-60 disabled:cursor-not-allowed',
-            )}
-          />
-
+        <form
+          ref={formRef}
+          onSubmit={handleSubmit}
+          className="flex items-center gap-content-gap-xs"
+          dir="rtl"
+        >
           {!isDisabled && (
             <button
               type="button"
-              onClick={() => setComposerOpen((v) => !v)}
+              onClick={() => setToolbarOpen((v) => !v)}
               aria-label={t('insertFormula')}
               title={t('insertFormula')}
               className={cn(
                 'w-10 h-10 rounded-xl shrink-0 flex items-center justify-center transition-all active:scale-95',
-                'bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20',
+                toolbarOpen
+                  ? 'bg-primary text-primary-foreground border border-primary'
+                  : 'bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20',
               )}
             >
-              <FunctionSquare className="w-5 h-5" />
+              <Plus className="w-5 h-5" />
             </button>
           )}
+
+          <div
+            className={cn(
+              'flex-1 rounded-xl border border-input bg-background px-4 py-2.5',
+              'focus-within:border-primary transition-colors',
+              isDisabled && 'opacity-60 cursor-not-allowed',
+            )}
+          >
+            <MixedMathInput
+              ref={mathInputRef}
+              value={value}
+              onChange={setValue}
+              onEnterKey={triggerSubmit}
+              disabled={isDisabled}
+              placeholder={placeholder}
+            />
+          </div>
 
           <button
             type="submit"
             disabled={isDisabled || !value.trim()}
             aria-label={sendLabel}
             className={cn(
-              'px-3.5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold',
-              'flex items-center gap-content-gap-xs hover:bg-primary/90 transition-colors',
+              'px-4 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold',
+              'hover:bg-primary/90 transition-colors',
               'disabled:opacity-50 disabled:cursor-not-allowed',
             )}
           >
-            <Send className="w-4 h-4" aria-hidden="true" />
-            <span className="hidden sm:inline">{sendLabel}</span>
+            {sendLabel}
           </button>
         </form>
 
         <AnimatePresence>
-          {composerOpen && !isDisabled && (
+          {toolbarOpen && !isDisabled && (
             <motion.div
-              initial={{ opacity: 0, y: -4, scale: 0.97 }}
+              initial={{ opacity: 0, y: 6, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -4, scale: 0.97 }}
+              exit={{ opacity: 0, y: 6, scale: 0.97 }}
               transition={{ duration: 0.18 }}
-              className="absolute top-full inset-x-0 mt-2 z-20"
+              className="absolute bottom-full inset-x-0 mb-2 z-20 rounded-lg border border-border bg-card shadow-card p-2"
             >
-              <FormulaComposer
-                onInsert={handleFormulaInsert}
-                onClose={() => setComposerOpen(false)}
+              <MathPicker
+                onInsert={handleInsertMath}
+                onClose={() => setToolbarOpen(false)}
+                onNotebook={block.showNotebook === true ? () => setNotebookOpen(true) : undefined}
               />
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
+      {status === 'pending' && pendingLabel && (
+        <div
+          className="self-start inline-flex items-center gap-1.5 text-caption text-muted-foreground mt-1"
+          aria-live="polite"
+        >
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-pulse" />
+          <span>{pendingLabel}</span>
+        </div>
+      )}
+
+      {status === 'not_checked' && (
+        <div className="mt-2 rounded-xl border border-warning/40 bg-warning/5 p-card-padding-sm">
+          {notCheckedLabel && (
+            <p className="text-caption font-semibold text-warning uppercase tracking-wide mb-1.5">
+              {notCheckedLabel}
+            </p>
+          )}
+          {block.solution ? (
+            <div className="text-body-sm text-foreground leading-relaxed">
+              <RichTextRenderer block={block.solution} />
+            </div>
+          ) : (
+            <p className="text-body-sm text-muted-foreground">—</p>
+          )}
+        </div>
+      )}
+
       {/* Per-block notebook — chat-native path bypasses QuestionCard so
           we mount here. Admin opt-in required (`block.showNotebook ===
-          true`, from admin PR #409); `disabled` follows the input lock
-          so scroll-back bubbles can't dispatch Check-solution against
-          the walker's current step (which would cite the wrong section). */}
-      {block.showNotebook === true && (
+          true`, from admin PR #409); revealed on-demand via the "+" menu's
+          Notebook action so it doesn't eat vertical space by default.
+          `disabled` follows the input lock so scroll-back bubbles can't
+          dispatch Check-solution against the walker's current step. */}
+      {block.showNotebook === true && notebookOpen && (
         <QuestionNotebook contextTitle={questionLabel ?? block.id} disabled={isDisabled} />
       )}
     </div>

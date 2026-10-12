@@ -99,7 +99,10 @@ export function useNotebookChat({
 }: UseNotebookChatProps) {
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  // `HTMLElement` (not `HTMLInputElement`) because the chat input is now a
+  // MathLive `<math-field>` web component. The hook only ever calls `.focus()`
+  // on it, which lives on HTMLElement.
+  const inputRef = useRef<HTMLElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [messages, setMessages] = useState<ChatMessage[]>([

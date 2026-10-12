@@ -21,6 +21,10 @@ export type StreamEntry =
   | ChatPendingEntry
   | ChatErrorEntry
   | LessonCompleteEntry
+  | TierLockEntry
+  | SkippedMarkerEntry
+  | QuotaExhaustedEntry
+  | ReviewOfferEntry
 
 interface EntryBase {
   /** Stable React key + identity for dedupe / replacement. */
@@ -66,6 +70,16 @@ export interface ExerciseSectionEntry extends EntryBase {
    * restarting at `א` per rendered group.
    */
   questionLabels: Map<string, string>
+  /**
+   * Task-5 review-mode storage namespace. When set, every child bubble
+   * reads from / writes to localStorage keyed by this value instead of
+   * `exercise.id`. The walker fills it with `review-${exercise.id}` for
+   * review-mode re-emissions so the student's second attempt doesn't
+   * overwrite the original answer, retry state, or submission history.
+   * Undefined on normal (first-pass) sections — bubbles fall back to
+   * `exercise.id` and the pre-Task-5 behavior.
+   */
+  storageIdOverride?: string
 }
 
 /**
@@ -115,11 +129,69 @@ export interface LessonCompleteEntry extends EntryBase {
 }
 
 /**
- * Reported by ExerciseSectionBubble when the student finishes the section.
- * `correctAnswerText` is populated on wrong outcomes when the section's
- * blocks let us extract the expected answer (currently: question_select
- * options with `isCorrect` / `correctOptionId`). The runner uses it to
- * post a "correct answer: X" bubble before the AI correction, so the
- * student sees the actual answer immediately without waiting on the model.
+ * Terminal bubble shown when the lesson had more exercises than the student's
+ * tier allows — stream stops at the capped exercise count and the lock card
+ * announces how many more exercises are gated behind an upgrade.
  */
-export type SectionOutcome = { kind: 'correct' } | { kind: 'wrong'; correctAnswerText?: string }
+export interface TierLockEntry extends EntryBase {
+  kind: 'tier-lock'
+  /** How many exercises are still locked past the student's current access. */
+  lockedCount: number
+}
+
+/**
+ * Marker inserted between the student's last-answered section and the next
+ * exercise's intro when they tap "דלג על תרגיל" (Task 8). The spec is
+ * explicit that skipped sections should be *marked as skipped* without
+ * reopening them — this entry gives the student a visual breadcrumb so the
+ * walker's jump isn't silent, without re-rendering the sections they chose
+ * to skip. Pure presentation, no state.
+ */
+export interface SkippedMarkerEntry extends EntryBase {
+  kind: 'skipped-marker'
+}
+
+/**
+ * Terminal explanatory bubble emitted the first time the student's chat
+ * quota is exhausted (server returns 429 + `quotaExceeded: true`). Carries
+ * the two CTAs — upgrade + continue — in a dedicated card so the student
+ * can pick a path forward instead of staring at a generic error. Emitted
+ * exactly once per `useChatChannel` instance (subsequent AI requests silently
+ * no-op) and is the signal that enables no-AI mode downstream (Task 3's
+ * retry hint CTA hides, Task 2's correction stays suppressed).
+ */
+export interface QuotaExhaustedEntry extends EntryBase {
+  kind: 'quota-exhausted'
+}
+
+/**
+ * Task-5 end-of-lesson review offer. Emitted in place of the lesson-complete
+ * terminator when the lesson has at least one section the student answered
+ * wrong, used a hint on, or had the AI skip (notChecked). The student picks:
+ *   - "כן, ננסה שוב" → walker enters review mode and re-emits the eligible
+ *     sections one by one, with a storageIdOverride so new answers don't
+ *     stomp on the original attempt.
+ *   - "סיום" → walker fires lesson-complete immediately.
+ */
+export interface ReviewOfferEntry extends EntryBase {
+  kind: 'review-offer'
+}
+
+/**
+ * Reported by ExerciseSectionBubble when the student finishes the section.
+ * On a wrong outcome:
+ *   - `correctAnswerText` is the expected answer text, when the section's
+ *     blocks let us extract it (question_select options with
+ *     `isCorrect` / `correctOptionId`). The runner no longer shows this
+ *     inline — Task 2 removed the "correct answer: X" reveal bubble so a
+ *     3-option retry (Task 3) can also follow the same path without
+ *     leaking the solution before the second attempt. The text still
+ *     flows through so the teacher-AI prompt can reference it.
+ *   - `studentAnswerText` is the specific wrong option label the student
+ *     picked, forwarded into the AI correction prompt so the teacher can
+ *     explain *why that choice* is wrong instead of lecturing in the
+ *     abstract. Comma-joined when the section had multiple questions
+ *     and more than one was missed.
+ */
+export type SectionOutcome =
+  { kind: 'correct' } | { kind: 'wrong'; correctAnswerText?: string; studentAnswerText?: string }

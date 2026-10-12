@@ -81,7 +81,7 @@ export function GivenDataFloating({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.18 }}
-            className="absolute top-11 inset-x-3 max-w-2xl mx-auto pointer-events-auto"
+            className="absolute top-11 inset-x-3 max-w-2xl mx-auto pointer-events-auto scale-75 origin-top"
             role="dialog"
             aria-label={title}
           >

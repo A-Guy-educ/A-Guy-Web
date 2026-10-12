@@ -21,7 +21,16 @@ import type { ContentBlock, ExerciseBlockGroup } from '@/infra/types/exercise'
 import { getExerciseBlockGroups } from '@/lib/exercises/getExerciseBlocks'
 import { computeQuestionLabels, computeSectionLabels } from '@/lib/exercises/computeSectionLabels'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { isSectionEligibleForReview } from './reviewEligibility'
 import type { StreamEntry } from './types'
+
+/**
+ * localStorage namespace used for Task-5 review-mode submissions. Child
+ * bubbles honor it as `exerciseId`, so a review re-attempt writes to
+ * `a-guy:exercise-state:v1:review-<original>` without touching the first
+ * pass's answers, retry state, or submission history.
+ */
+const REVIEW_STORAGE_PREFIX = 'review-'
 
 /**
  * Block types that always require the student to submit an answer. These
@@ -195,6 +204,14 @@ interface UseExerciseWalkerArgs {
    * saved cursor no longer points at a real step.
    */
   initialStepCursor?: number | null
+  /**
+   * When `exercises` has already been clamped by a tier gate, pass the
+   * original un-clamped count so the terminal bubble can announce how many
+   * exercises are gated behind an upgrade. Null / undefined / equal-to-length
+   * means "no clamping" and the walker emits the normal `lesson-complete`
+   * terminator instead of `tier-lock`.
+   */
+  totalExercisesBeforeTierCap?: number | null
 }
 
 export function useExerciseWalker({
@@ -202,6 +219,7 @@ export function useExerciseWalker({
   append,
   isHebrew,
   initialStepCursor,
+  totalExercisesBeforeTierCap,
 }: UseExerciseWalkerArgs) {
   const steps = useMemo(() => flattenSteps(exercises, isHebrew), [exercises, isHebrew])
   const resumeCursor =
@@ -213,6 +231,33 @@ export function useExerciseWalker({
   const [stepCursor, setStepCursor] = useState(resumeCursor)
   const [isComplete, setIsComplete] = useState(false)
   const seededRef = useRef(false)
+
+  // Task-5 review-mode state. `reviewSteps` is the eligibility-filtered
+  // slice of `steps` emitted after the student taps "yes" on the review
+  // offer; `reviewCursor` is 0-based into THAT slice (independent of
+  // `stepCursor`, which stays frozen at the normal-mode last position).
+  const [mode, setMode] = useState<'normal' | 'review'>('normal')
+  const [reviewSteps, setReviewSteps] = useState<WalkerStep[]>([])
+  const [reviewCursor, setReviewCursor] = useState(0)
+  // Latches true the first time startReview fires. The lesson-summary card
+  // (Task 9) uses this to decide whether to offer another review pass —
+  // after the student has already been through review mode once, offering
+  // it a second time from the summary card would just loop.
+  const [hasReviewed, setHasReviewed] = useState(false)
+
+  // How many exercises were trimmed off the end by the caller's tier gate.
+  // Positive → terminal entry is `tier-lock`; otherwise `lesson-complete`.
+  const lockedExerciseCount =
+    typeof totalExercisesBeforeTierCap === 'number'
+      ? Math.max(0, totalExercisesBeforeTierCap - exercises.length)
+      : 0
+  const makeTerminalEntry = useCallback(
+    (): StreamEntry =>
+      lockedExerciseCount > 0
+        ? { key: 'tier-lock', kind: 'tier-lock', lockedCount: lockedExerciseCount }
+        : { key: 'lesson-complete', kind: 'lesson-complete' },
+    [lockedExerciseCount],
+  )
 
   const emitStep = useCallback(
     (idx: number) => {
@@ -245,6 +290,46 @@ export function useExerciseWalker({
     [append, steps],
   )
 
+  /**
+   * Review-mode emitter. Mirrors `emitStep` but:
+   *   - Keys are prefixed `review-intro-` / `review-sec-` so the same section
+   *     can appear twice in the stream (once from the original pass, once in
+   *     review) without React key collisions.
+   *   - Sets `storageIdOverride` so child bubbles write to the review
+   *     localStorage namespace instead of overwriting the original attempt.
+   */
+  const emitReviewStep = useCallback(
+    (idx: number, slice: WalkerStep[]) => {
+      const step = slice[idx]
+      if (!step) return
+      const storageIdOverride = `${REVIEW_STORAGE_PREFIX}${step.exercise.id}`
+      if (step.groupIndex === 0) {
+        const givenDataBlocks = extractGivenDataBlocks(step.exercise)
+        append({
+          key: `review-intro-${step.exercise.id}`,
+          kind: 'exercise-intro',
+          exerciseIndex: step.exerciseIndex,
+          ordinal: step.ordinal,
+          title: step.exercise.title ?? undefined,
+          givenDataBlocks: givenDataBlocks.length > 0 ? givenDataBlocks : undefined,
+        })
+      }
+      append({
+        key: `review-sec-${step.exercise.id}-${step.groupIndex}`,
+        kind: 'exercise-section',
+        exerciseIndex: step.exerciseIndex,
+        ordinal: step.ordinal,
+        exercise: step.exercise,
+        group: step.group,
+        questionCount: step.questionCount,
+        sectionLabel: step.sectionLabel,
+        questionLabels: step.questionLabels,
+        storageIdOverride,
+      })
+    },
+    [append],
+  )
+
   // Seed the walker once, guarded so React 18 strict-mode double invocation
   // doesn't re-emit. When resuming from a saved cursor we replay every intro
   // and section from 0 up to (and including) that cursor so the stream mirrors
@@ -254,25 +339,146 @@ export function useExerciseWalker({
     seededRef.current = true
     if (steps.length === 0) {
       setIsComplete(true)
-      append({ key: 'lesson-complete', kind: 'lesson-complete' })
+      append(makeTerminalEntry())
       return
     }
     for (let i = 0; i <= resumeCursor; i++) emitStep(i)
-  }, [append, emitStep, resumeCursor, steps.length])
+  }, [append, emitStep, resumeCursor, steps.length, makeTerminalEntry])
 
   const advance = useCallback(() => {
     if (isComplete) return
+    if (mode === 'review') {
+      const next = reviewCursor + 1
+      if (next >= reviewSteps.length) {
+        setIsComplete(true)
+        append(makeTerminalEntry())
+        return
+      }
+      setReviewCursor(next)
+      emitReviewStep(next, reviewSteps)
+      return
+    }
     const next = stepCursor + 1
     if (next >= steps.length) {
+      // End of normal walk — if any section needs review, defer the terminator
+      // and let the student choose; otherwise fire the terminator as before.
+      const eligible = steps.filter((s) => isSectionEligibleForReview(s.exercise, s.group))
+      if (eligible.length > 0) {
+        append({ key: 'review-offer', kind: 'review-offer' })
+        return
+      }
       setIsComplete(true)
-      append({ key: 'lesson-complete', kind: 'lesson-complete' })
+      append(makeTerminalEntry())
       return
     }
     setStepCursor(next)
     emitStep(next)
-  }, [append, emitStep, isComplete, stepCursor, steps.length])
+  }, [
+    append,
+    emitStep,
+    emitReviewStep,
+    isComplete,
+    makeTerminalEntry,
+    mode,
+    reviewCursor,
+    reviewSteps,
+    stepCursor,
+    steps,
+  ])
 
-  const currentStep = steps[stepCursor] ?? null
+  /**
+   * Enter Task-5 review mode. Collects eligible-review sections from the full
+   * step list (sections where the student answered wrong, used a hint, or had
+   * AI validation skipped), flips the cursor into a dedicated review-cursor,
+   * and emits the first review step. No-op when nothing is eligible — the
+   * runner shouldn't offer the button in that case, but guarding here keeps
+   * a stray tap safe.
+   */
+  const startReview = useCallback(() => {
+    const eligible = steps.filter((s) => isSectionEligibleForReview(s.exercise, s.group))
+    if (eligible.length === 0) return
+    // Allowed from BOTH mid-stream (review-offer card after the final section)
+    // AND post-complete (summary card after the lesson wrapped). The latter
+    // was broken when this guarded on `isComplete` — the summary card is
+    // emitted AFTER the lesson-complete terminator, so by the time the
+    // student taps "לחזור ל-N סעיפים" we're already complete and the
+    // early-return killed the handoff. Flipping isComplete back here is
+    // deliberate: the walker re-enters the lesson for a review pass and
+    // will fire its terminator again on the review slice's end.
+    setIsComplete(false)
+    setHasReviewed(true)
+    setMode('review')
+    setReviewSteps(eligible)
+    setReviewCursor(0)
+    emitReviewStep(0, eligible)
+  }, [emitReviewStep, steps])
+
+  /**
+   * "סיום" path from the review offer card — skip the review and fire the
+   * terminator immediately. Also used by the runner to short-circuit a
+   * walker that's parked on `review-offer`.
+   */
+  const completeLesson = useCallback(() => {
+    if (isComplete) return
+    setIsComplete(true)
+    append(makeTerminalEntry())
+  }, [append, isComplete, makeTerminalEntry])
+
+  /**
+   * Skip every remaining step of the current exercise and land on the first
+   * step of the next exercise. If there is no next exercise, terminate the
+   * lesson (same terminator as a natural `advance` past the end). No chat
+   * roundtrip — this is a pure walker jump; skipped sections stay in the
+   * stream above the student exactly as the "skip section" button leaves
+   * previously-visited sections. Prior answers are preserved by virtue of
+   * the walker never removing or rewriting past stream entries.
+   *
+   * Also emits a `skipped-marker` entry between the current (last answered)
+   * section and the next exercise's intro so the walker's jump isn't silent —
+   * the spec explicitly asks skipped sections to be "marked as skipped"
+   * without reopening them.
+   */
+  const advanceToNextExercise = useCallback(() => {
+    if (isComplete) return
+    const current = steps[stepCursor]
+    if (!current) return
+    const target = steps.findIndex(
+      (s, i) => i > stepCursor && s.exerciseIndex > current.exerciseIndex,
+    )
+    // Marker key is unique per invocation so a second skip later in the
+    // lesson doesn't collide with the first one. Fires before the terminator
+    // / next step so it visually sits between the two.
+    const markerKey = `skip-${current.exercise.id}-${current.groupIndex}-${Date.now()}`
+    append({ key: markerKey, kind: 'skipped-marker' })
+    if (target === -1) {
+      // Last exercise — same end-of-lesson handling as normal `advance`: if
+      // ANY earlier section qualifies for review (Task 5), defer the
+      // terminator and emit the offer card instead. Previously this path
+      // bypassed the check, so a student who skipped the last exercise
+      // never got the review prompt even after missing stuff earlier.
+      const eligible = steps.filter((s) => isSectionEligibleForReview(s.exercise, s.group))
+      if (eligible.length > 0) {
+        append({ key: 'review-offer', kind: 'review-offer' })
+        return
+      }
+      setIsComplete(true)
+      append(makeTerminalEntry())
+      return
+    }
+    setStepCursor(target)
+    emitStep(target)
+  }, [append, emitStep, isComplete, steps, stepCursor, makeTerminalEntry])
+
+  // The visible "current step" depends on mode: normal mode reads the main
+  // cursor, review mode reads the filtered slice.
+  const currentStep =
+    mode === 'review' ? (reviewSteps[reviewCursor] ?? null) : (steps[stepCursor] ?? null)
+  // Stream key of the currently-active bubble. Review steps are keyed with
+  // the `review-sec-` prefix so the student's second attempt doesn't collide
+  // with the original section's bubble (which stays visible in scrollback).
+  const currentStepKey = currentStep
+    ? `${mode === 'review' ? 'review-sec-' : 'sec-'}${currentStep.exercise.id}-${currentStep.groupIndex}`
+    : null
 
   // Total distinct exercises drives the "Exercise X/Y" label in the progress
   // footer. Derived here so the progress component doesn't have to hold onto
@@ -281,6 +487,8 @@ export function useExerciseWalker({
 
   return {
     currentStep,
+    /** Stream key of the current step — matches the entry.key the walker emitted. */
+    currentStepKey,
     /** 0-based cursor into the flattened step list — drives the progress bar. */
     stepCursor,
     totalSteps: steps.length,
@@ -293,6 +501,13 @@ export function useExerciseWalker({
     /** Total sections in the current exercise. */
     currentExerciseSections: currentStep?.groupsInExercise ?? 0,
     isComplete,
+    /** True while the walker is iterating the Task-5 review slice. */
+    isReviewing: mode === 'review',
+    /** Latches true once startReview has been called at least once. */
+    hasReviewed,
     advance,
+    advanceToNextExercise,
+    startReview,
+    completeLesson,
   }
 }

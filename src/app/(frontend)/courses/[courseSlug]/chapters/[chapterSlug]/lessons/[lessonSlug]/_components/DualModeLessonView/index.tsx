@@ -59,6 +59,18 @@ interface DualModeLessonViewProps {
   initialExerciseIndex?: number
   initialMode?: LessonMode
   nextLesson?: { title?: string | null; slug?: string | null } | null
+  /**
+   * Chatview-only: next lesson of the SAME type (learning / practice / exam).
+   * The summary card uses it to wire a "next lesson" button that stays on the
+   * student's current track across chapter boundaries.
+   */
+  nextSameTypeLesson?: {
+    slug: string | null
+    title: string | null
+    chapterSlug: string | null
+  } | null
+  /** 1-based learning-lesson position within the course (see page.tsx comment). */
+  lessonLearningIndex?: number | null
 }
 
 /**
@@ -115,6 +127,8 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
     initialExerciseIndex,
     initialMode,
     nextLesson,
+    nextSameTypeLesson,
+    lessonLearningIndex,
   } = props
 
   const t = useTranslations('courses')
@@ -209,6 +223,8 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
           exercises={exercises}
           mediaMap={mediaMap}
           formulaSheet={formulaSheet}
+          lessonLearningIndex={lessonLearningIndex}
+          nextSameTypeLesson={nextSameTypeLesson}
         />
       )
     }
@@ -231,6 +247,7 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
           hideLatexBlocks
           initialExerciseIndex={initialExerciseIndex}
           nextLesson={nextLesson}
+          lessonLearningIndex={lessonLearningIndex}
         />
       )
     }
@@ -268,6 +285,7 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
         hideLatexBlocks
         initialExerciseIndex={initialExerciseIndex}
         nextLesson={nextLesson}
+        lessonLearningIndex={lessonLearningIndex}
       />
     )
   })()

@@ -37,6 +37,23 @@ interface ChatLessonViewProps {
   mediaMap?: Record<string, Media>
   formulaSheet?: FormulaSheet | null
   headerSlot?: ReactNode
+  /**
+   * 1-based learning-lesson index within the course. Forwarded to the walker so
+   * free-tier students on lessons past #3 see at most 3 exercises before the
+   * tier-lock terminator bubble. `null` disables the gate (same contract as
+   * ExercisesPager — practice/exam lessons bypass the gate entirely).
+   */
+  lessonLearningIndex?: number | null
+  /**
+   * Next lesson of the same type (learning/practice/exam) for the summary
+   * card's "next lesson" button. Null when this is the last lesson of its
+   * type in the course.
+   */
+  nextSameTypeLesson?: {
+    slug: string | null
+    title: string | null
+    chapterSlug: string | null
+  } | null
 }
 
 export function ChatLessonView({
@@ -47,6 +64,8 @@ export function ChatLessonView({
   mediaMap,
   formulaSheet,
   headerSlot,
+  lessonLearningIndex = null,
+  nextSameTypeLesson = null,
 }: ChatLessonViewProps) {
   const t = useTranslations('courses')
   // TTS lives here so its mute state can be piped to the workspace's
@@ -94,9 +113,12 @@ export function ChatLessonView({
           {headerSlot}
           <ChatLessonRunnerView
             lessonId={lessonId}
+            lessonTitle={lessonTitle}
             exercises={exercises}
             mediaMap={mediaMap}
             tts={tts}
+            lessonLearningIndex={lessonLearningIndex}
+            nextSameTypeLesson={nextSameTypeLesson}
           />
         </div>
       }

@@ -9,9 +9,13 @@
 import { ObjectId, type Collection, type Document } from 'mongodb'
 import { getContentDb } from '@/infra/db/content-db'
 import { getChatConfig } from '@/infra/llm/providers/shared/chat-config'
+import { TIER_DAILY_AI_QUESTIONS, getUserTierSlug, isTierEnforcementEnabled } from '@/lib/tiers'
 import { hoursToMs } from '@/infra/utils/time'
 
 const QUOTA_DEFAULTS = { maxQuestions: 15, windowHours: 12 }
+// Sentinel for "no cap" (premium tier). The quota check short-circuits on this
+// value and simply returns `allowed: true` with the current counter.
+const UNLIMITED = Number.MAX_SAFE_INTEGER
 
 export interface ChatQuotaResult {
   allowed: boolean
@@ -20,18 +24,40 @@ export interface ChatQuotaResult {
   resetAt: string | null
 }
 
-async function getQuotaConfig() {
-  try {
-    const config = await getChatConfig()
-    return { ...QUOTA_DEFAULTS, ...config.quota }
-  } catch {
-    return QUOTA_DEFAULTS
-  }
-}
-
 async function getUsersCollection(): Promise<Collection<Document>> {
   const db = await getContentDb()
   return db.collection('users')
+}
+
+/**
+ * Resolve the quota that applies to this user. When the tier kill switch is
+ * on, uses `TIER_DAILY_AI_QUESTIONS` with a 24h rolling window; otherwise
+ * falls back to the global ConfigValues chat quota (12h legacy window).
+ * Returns `maxQuestions = UNLIMITED` for premium users; callers must treat
+ * that as "no cap".
+ */
+async function resolveQuotaFor(
+  userId: string,
+): Promise<{ maxQuestions: number; windowHours: number }> {
+  if (!isTierEnforcementEnabled()) {
+    try {
+      const config = await getChatConfig()
+      return { ...QUOTA_DEFAULTS, ...config.quota }
+    } catch {
+      return QUOTA_DEFAULTS
+    }
+  }
+  if (!ObjectId.isValid(userId)) return QUOTA_DEFAULTS
+  const users = await getUsersCollection()
+  const user = await users.findOne(
+    { _id: new ObjectId(userId) },
+    { projection: { currentTier: 1 } },
+  )
+  const tier = getUserTierSlug({
+    currentTier: typeof user?.currentTier === 'string' ? user.currentTier : null,
+  })
+  const dailyMax = TIER_DAILY_AI_QUESTIONS[tier]
+  return { maxQuestions: dailyMax ?? UNLIMITED, windowHours: 24 }
 }
 
 /**
@@ -40,7 +66,7 @@ async function getUsersCollection(): Promise<Collection<Document>> {
  * Uses atomic findOneAndUpdate to prevent race conditions.
  */
 export async function checkAndIncrementChatQuota(userId: string): Promise<ChatQuotaResult> {
-  const { maxQuestions, windowHours } = await getQuotaConfig()
+  const { maxQuestions, windowHours } = await resolveQuotaFor(userId)
   const now = new Date()
   const windowMs = hoursToMs(windowHours)
   const cutoffDate = new Date(now.getTime() - windowMs) // time before which window is expired
@@ -104,7 +130,7 @@ export async function checkAndIncrementChatQuota(userId: string): Promise<ChatQu
  * Get current quota status without incrementing.
  */
 export async function getChatQuotaStatus(userId: string): Promise<ChatQuotaResult> {
-  const { maxQuestions, windowHours } = await getQuotaConfig()
+  const { maxQuestions, windowHours } = await resolveQuotaFor(userId)
   const now = new Date()
 
   if (!ObjectId.isValid(userId)) {

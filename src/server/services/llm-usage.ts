@@ -24,6 +24,7 @@
 import { ObjectId, type Collection, type Document } from 'mongodb'
 
 import { getContentDb } from '@/infra/db/content-db'
+import { isTierEnforcementEnabled } from '@/lib/tiers/enforcement'
 import { logger } from '@/infra/utils/logger/logger'
 
 const USAGE_COLLECTION = 'llm-usage'
@@ -174,6 +175,10 @@ export async function recordLlmUsage(input: RecordLlmUsageInput): Promise<void> 
  * new month. `bumpUserCounter` handles the actual reset write.
  */
 export async function checkTokenLimit(userId: string): Promise<TokenLimitStatus> {
+  // Kill switch — tier enforcement off means no cost cap for anyone.
+  if (!isTierEnforcementEnabled()) {
+    return { withinLimit: true, used: 0, limit: null, resetAt: null }
+  }
   if (!ObjectId.isValid(userId)) {
     return { withinLimit: false, used: 0, limit: null, resetAt: null }
   }
