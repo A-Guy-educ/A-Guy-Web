@@ -252,7 +252,11 @@ export function MediaTabContent({
               </div>
             </div>
           )}
-          <FloatingNotebook containerRef={primaryAreaRef} />
+          <FloatingNotebook
+            containerRef={primaryAreaRef}
+            initialMode="pen"
+            initialSize={{ w: 360, h: 320 }}
+          />
           {isDesktop && isChatCollapsed && (
             <button
               type="button"

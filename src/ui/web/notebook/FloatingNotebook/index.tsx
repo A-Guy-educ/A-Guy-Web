@@ -331,10 +331,22 @@ export function FloatingNotebook({
           </div>
         )}
       </div>
-      {!isFolded && mode === 'pen' && (
-        <DoodleCanvas className="flex-1" onCheck={onCheck} checkDisabled={checkDisabled} />
-      )}
-      {!isFolded && mode === 'text' && <DoodleTextArea className="flex-1" />}
+      {/*
+       * Both surfaces are always mounted and the inactive one is hidden
+       * via CSS. Unmounting the canvas on fold or on mode switch wipes
+       * its pixels (and the textarea's typed content), which the student
+       * reasonably expects to persist across both actions. Hiding keeps
+       * React state + canvas backing store intact; DoodleCanvas's resize
+       * observer no-ops while `offsetWidth` is 0, so nothing clears.
+       */}
+      <div className={cn('flex-1 flex flex-col min-h-0', isFolded && 'hidden')}>
+        <DoodleCanvas
+          className={cn('flex-1 min-h-0', mode !== 'pen' && 'hidden')}
+          onCheck={onCheck}
+          checkDisabled={checkDisabled}
+        />
+        <DoodleTextArea className={cn('flex-1 min-h-0', mode !== 'text' && 'hidden')} />
+      </div>
       {!isFolded && (
         <div
           onPointerDown={onResizePointerDown}
