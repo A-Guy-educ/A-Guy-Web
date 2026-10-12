@@ -4898,6 +4898,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix(notebook): Fold-persistence + bolder grid + align media defaults ([#1349](https://github.com/A-Guy-educ/A-Guy-Web/pull/1349)) — @aguyshayb
 - fix: Route course-page tier-locked rows to /subscriptions too ([#1348](https://github.com/A-Guy-educ/A-Guy-Web/pull/1348)) — @aguyshayb
 - feat(ask): PDF uploads use floating notebook with check button ([#1347](https://github.com/A-Guy-educ/A-Guy-Web/pull/1347)) — @aguyshayb
 - fix: Promote inline math with fractions or stacked structure to own row ([#1346](https://github.com/A-Guy-educ/A-Guy-Web/pull/1346)) — @aguyshayb
