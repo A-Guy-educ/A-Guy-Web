@@ -4924,6 +4924,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Revert scroll-view card width to 794px to stop SVG overflow ([#1373](https://github.com/A-Guy-educ/A-Guy-Web/pull/1373)) — @aguyshayb
 - fix: Show lesson topic on intro and refresh last-accessed on view ([#1372](https://github.com/A-Guy-educ/A-Guy-Web/pull/1372)) — @aguyshayb
 - chore(deps-dev): Bump the dev-dependencies group with 5 updates ([#1357](https://github.com/A-Guy-educ/A-Guy-Web/pull/1357)) — @dependabot[bot]
 - chore(deps): Bump peter-evans/create-pull-request from 7 to 8 ([#1367](https://github.com/A-Guy-educ/A-Guy-Web/pull/1367)) — @dependabot[bot]
