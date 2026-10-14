@@ -28,23 +28,38 @@
  * than DOM-based so it runs on the server and does not depend on `window`.
  */
 export function ensureSvgViewBox(svg: string): string {
-  // Match the <svg …> opening tag while stepping over quoted attribute values
-  // that may themselves contain `>`. A naive `[^>]*` would truncate on the
-  // first `>` inside e.g. `data-note="a>b"` and miss width / height.
-  const openTagMatch = svg.match(/<svg\b(?:[^>"']|"[^"]*"|'[^']*')*>/i)
-  if (!openTagMatch) return svg
+  // Match every <svg …> opening tag while stepping over quoted attribute
+  // values that may themselves contain `>`. A naive `[^>]*` would truncate on
+  // the first `>` inside e.g. `data-note="a>b"` and miss width / height.
+  //
+  // The `g` flag matters: Admin occasionally stores two sibling `<svg>` blocks
+  // in a single field (a known upstream duplicate-save bug). Patching only
+  // the first opener left the second SVG at its raw `width="480"` intrinsic
+  // size while the first scaled to 100% — producing the "top row normal,
+  // bottom row shrunken" artifact in the scroll view.
+  const openTagRegex = /<svg\b(?:[^>"']|"[^"]*"|'[^']*')*>/gi
+  const openTags = svg.match(openTagRegex)
+  if (!openTags) return svg
 
-  const openTag = openTagMatch[0]
-  if (/\bviewBox\s*=/i.test(openTag)) return svg
+  let result = svg
+  for (const openTag of openTags) {
+    if (/\bviewBox\s*=/i.test(openTag)) continue
 
-  // Anchor the digit run to the end of the attribute value so `width="100%"`,
-  // `width="1e3"`, and other unit-suffixed / scientific-notation values fall
-  // through to the unchanged-return branch rather than silently producing a
-  // truncated viewBox (e.g. `100` from `100%`).
-  const width = openTag.match(/\bwidth\s*=\s*["']?([\d.]+)(?=["'\s/>])/i)?.[1]
-  const height = openTag.match(/\bheight\s*=\s*["']?([\d.]+)(?=["'\s/>])/i)?.[1]
-  if (!width || !height) return svg
+    // Anchor the digit run to the end of the attribute value so `width="100%"`,
+    // `width="1e3"`, and other unit-suffixed / scientific-notation values fall
+    // through to the unchanged branch rather than silently producing a
+    // truncated viewBox (e.g. `100` from `100%`).
+    const width = openTag.match(/\bwidth\s*=\s*["']?([\d.]+)(?=["'\s/>])/i)?.[1]
+    const height = openTag.match(/\bheight\s*=\s*["']?([\d.]+)(?=["'\s/>])/i)?.[1]
+    if (!width || !height) continue
 
-  const patchedTag = openTag.replace(/<svg\b/i, `<svg viewBox="0 0 ${width} ${height}"`)
-  return svg.replace(openTag, patchedTag)
+    const patchedTag = openTag.replace(/<svg\b/i, `<svg viewBox="0 0 ${width} ${height}"`)
+    // Replace exactly the match we're on — `.replace(string, string)` only
+    // affects the first occurrence, which is correct here even for duplicate
+    // identical openers because we patch left-to-right and each replacement
+    // shrinks the remaining-to-match substring by one.
+    result = result.replace(openTag, patchedTag)
+  }
+
+  return result
 }

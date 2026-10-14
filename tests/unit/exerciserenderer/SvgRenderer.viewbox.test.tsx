@@ -64,4 +64,22 @@ describe('SvgRenderer — viewBox is present in the DOM on first paint', () => {
     const svg = container.querySelector('svg')
     expect(svg?.getAttribute('viewBox')).toBe('0 0 500 200')
   })
+
+  it('normalizes every sibling <svg> when admin stores duplicates in one block', () => {
+    const block: SvgBlock = {
+      id: 'svg-3',
+      type: 'svg',
+      value:
+        '<svg width="480" height="220" xmlns="http://www.w3.org/2000/svg"><rect/></svg>' +
+        '<svg width="480" height="220" xmlns="http://www.w3.org/2000/svg"><rect/></svg>',
+    }
+    const { container } = render(<SvgRenderer block={block} />)
+    const svgs = container.querySelectorAll('svg')
+    expect(svgs).toHaveLength(2)
+    for (const svg of Array.from(svgs)) {
+      // Both should get the viewBox backfill from the sanitizer, so both
+      // scale with their parent instead of pinning at 480px natural width.
+      expect(svg.getAttribute('viewBox')).toBe('0 0 480 220')
+    }
+  })
 })
