@@ -26,6 +26,8 @@ function formatIls(amount: number): string {
   }).format(amount)
 }
 
+type CheckoutProvider = 'paypal' | 'tranzilla'
+
 interface TierCardProps {
   tier: TierSlug
 }
@@ -35,7 +37,7 @@ export function TierCard({ tier }: TierCardProps) {
   const { messages } = useI18n()
   const router = useRouter()
   const { user, isLoading: isAuthLoading } = useCurrentUser()
-  const [isCheckingOut, setIsCheckingOut] = useState(false)
+  const [loadingProvider, setLoadingProvider] = useState<CheckoutProvider | null>(null)
 
   const price = TIER_PRICE_ILS[tier]
   const intro = TIER_INTRO_OFFER[tier]
@@ -53,19 +55,19 @@ export function TierCard({ tier }: TierCardProps) {
   const tagline = t(`tiers.${tier}.tagline`)
   const priceLabel = isFree ? t('freePriceLabel') : formatIls(price)
 
-  const handleSubscribe = async () => {
+  const handleSubscribe = async (provider: CheckoutProvider) => {
     if (!user) {
       const returnTo = encodeURIComponent('/subscriptions')
       router.push(`/login?returnTo=${returnTo}`)
       return
     }
-    setIsCheckingOut(true)
+    setLoadingProvider(provider)
     try {
       const res = await fetch('/api/subscriptions/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ tier }),
+        body: JSON.stringify({ tier, provider }),
       })
       const data = await res.json()
       if (!res.ok || !data.success) {
@@ -77,13 +79,13 @@ export function TierCard({ tier }: TierCardProps) {
           payment_provider_not_configured: t('errors.providerNotConfigured'),
         }
         toast.error(errorMap[errorKey] ?? t('errors.checkoutFailed'))
-        setIsCheckingOut(false)
+        setLoadingProvider(null)
         return
       }
       window.location.href = data.checkoutUrl
     } catch {
       toast.error(t('errors.checkoutFailed'))
-      setIsCheckingOut(false)
+      setLoadingProvider(null)
     }
   }
 
@@ -150,12 +152,13 @@ export function TierCard({ tier }: TierCardProps) {
           isFree,
           isCurrent,
           isAuthLoading,
-          isCheckingOut,
+          loadingProvider,
           hasUser: !!user,
           onSubscribe: handleSubscribe,
           labels: {
             currentPlan: t('currentPlan'),
             subscribe: t('subscribeButton'),
+            subscribeWithTranzilla: t('subscribeWithTranzilla'),
             login: t('loginToSubscribe'),
             redirecting: t('redirecting'),
           },
@@ -173,12 +176,13 @@ interface CtaProps {
   isFree: boolean
   isCurrent: boolean
   isAuthLoading: boolean
-  isCheckingOut: boolean
+  loadingProvider: CheckoutProvider | null
   hasUser: boolean
-  onSubscribe: () => void
+  onSubscribe: (provider: CheckoutProvider) => void
   labels: {
     currentPlan: string
     subscribe: string
+    subscribeWithTranzilla: string
     login: string
     redirecting: string
   }
@@ -188,7 +192,7 @@ function renderCta({
   isFree,
   isCurrent,
   isAuthLoading,
-  isCheckingOut,
+  loadingProvider,
   hasUser,
   onSubscribe,
   labels,
@@ -216,19 +220,47 @@ function renderCta({
     )
   }
 
+  if (!hasUser) {
+    return (
+      <Button onClick={() => onSubscribe('paypal')} className="w-full h-12 font-bold">
+        {labels.login}
+      </Button>
+    )
+  }
+
+  const isAnyLoading = loadingProvider !== null
   return (
-    <Button onClick={onSubscribe} disabled={isCheckingOut} className="w-full h-12 font-bold">
-      {isCheckingOut ? (
-        <>
-          <Loader2 className="me-2 h-4 w-4 animate-spin" />
-          {labels.redirecting}
-        </>
-      ) : hasUser ? (
-        labels.subscribe
-      ) : (
-        labels.login
-      )}
-    </Button>
+    <div className="flex flex-col gap-content-gap-xs">
+      <Button
+        onClick={() => onSubscribe('tranzilla')}
+        disabled={isAnyLoading}
+        className="w-full h-12 font-bold"
+      >
+        {loadingProvider === 'tranzilla' ? (
+          <>
+            <Loader2 className="me-2 h-4 w-4 animate-spin" />
+            {labels.redirecting}
+          </>
+        ) : (
+          labels.subscribeWithTranzilla
+        )}
+      </Button>
+      <Button
+        onClick={() => onSubscribe('paypal')}
+        disabled={isAnyLoading}
+        variant="outline"
+        className="w-full h-12 font-bold"
+      >
+        {loadingProvider === 'paypal' ? (
+          <>
+            <Loader2 className="me-2 h-4 w-4 animate-spin" />
+            {labels.redirecting}
+          </>
+        ) : (
+          labels.subscribe
+        )}
+      </Button>
+    </div>
   )
 }
 

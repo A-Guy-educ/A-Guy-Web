@@ -16,6 +16,7 @@ interface ProgressEntry {
   completionPercentage: number
   status: string
   score?: number
+  lastAccessedAt?: string
 }
 
 interface UseProgressMapResult {
@@ -23,12 +24,15 @@ interface UseProgressMapResult {
   progressMap: Record<string, number>
   /** recordId → status ('not_started' | 'in_progress' | 'completed') */
   statusMap: Record<string, string>
+  /** recordId → ISO timestamp of the user's most recent interaction with the record. */
+  lastAccessedMap: Record<string, string>
   isLoading: boolean
 }
 
 const EMPTY_RESULT: UseProgressMapResult = {
   progressMap: {},
   statusMap: {},
+  lastAccessedMap: {},
   isLoading: false,
 }
 
@@ -89,12 +93,14 @@ export function useProgressMap({
 
     const progressMap: Record<string, number> = {}
     const statusMap: Record<string, string> = {}
+    const lastAccessedMap: Record<string, string> = {}
 
     for (const [id, entry] of Object.entries(data)) {
       progressMap[id] = entry.completionPercentage
       statusMap[id] = entry.status
+      if (entry.lastAccessedAt) lastAccessedMap[id] = entry.lastAccessedAt
     }
 
-    return { progressMap, statusMap, isLoading }
+    return { progressMap, statusMap, lastAccessedMap, isLoading }
   }, [data, isLoading, idsKey])
 }

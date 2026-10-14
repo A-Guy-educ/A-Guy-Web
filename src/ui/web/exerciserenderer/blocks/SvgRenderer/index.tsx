@@ -57,37 +57,51 @@ export function SvgRenderer({
   // a viewBox from the intrinsic dimensions when it's missing, then swap
   // the size attributes for a 100%/auto pair so the browser scales
   // proportionally inside the card.
+  //
+  // IMPORTANT: iterate over EVERY direct <svg> child, not just the first.
+  // Admin occasionally stores two sibling <svg> blocks in a single field
+  // (duplicate save path — tracked separately on the Admin side). If we
+  // only normalize the first, the second renders at its raw `width="480"`
+  // intrinsic size while the first scales up — producing the "top row
+  // normal, bottom row shrunken" artifact students saw in the scroll view.
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
-    const svg = container.querySelector(':scope > svg') as SVGSVGElement | null
-    if (!svg) return
+    const svgs = Array.from(container.querySelectorAll(':scope > svg')) as SVGSVGElement[]
+    if (svgs.length === 0) return
 
-    if (!svg.getAttribute('viewBox')) {
-      const w = parseFloat(svg.getAttribute('width') || '')
-      const h = parseFloat(svg.getAttribute('height') || '')
-      if (Number.isFinite(w) && Number.isFinite(h) && w > 0 && h > 0) {
-        svg.setAttribute('viewBox', `0 0 ${w} ${h}`)
+    const cleanups: Array<() => void> = []
+    for (const svg of svgs) {
+      if (!svg.getAttribute('viewBox')) {
+        const w = parseFloat(svg.getAttribute('width') || '')
+        const h = parseFloat(svg.getAttribute('height') || '')
+        if (Number.isFinite(w) && Number.isFinite(h) && w > 0 && h > 0) {
+          svg.setAttribute('viewBox', `0 0 ${w} ${h}`)
+        }
       }
-    }
-    // If we still have no coordinate system, don't clobber width/height —
-    // forcing height=auto on a viewBox-less SVG collapses it to 0 (h-auto
-    // needs a viewBox to compute proportional height). Fall back to the
-    // browser's default sizing so at least SOMETHING renders.
-    if (!svg.getAttribute('viewBox')) return
+      // If we still have no coordinate system, don't clobber width/height —
+      // forcing height=auto on a viewBox-less SVG collapses it to 0 (h-auto
+      // needs a viewBox to compute proportional height). Fall back to the
+      // browser's default sizing so at least SOMETHING renders.
+      if (!svg.getAttribute('viewBox')) continue
 
-    if (!svg.getAttribute('preserveAspectRatio')) {
-      svg.setAttribute('preserveAspectRatio', 'xMidYMid meet')
-    }
-    svg.setAttribute('width', '100%')
-    svg.setAttribute('height', 'auto')
+      if (!svg.getAttribute('preserveAspectRatio')) {
+        svg.setAttribute('preserveAspectRatio', 'xMidYMid meet')
+      }
+      svg.setAttribute('width', '100%')
+      svg.setAttribute('height', 'auto')
 
-    // Authored width/height often under-estimates the real extent of the
-    // rendered content (emoji <text>, wider-than-expected labels). Grow the
-    // viewBox to cover the actual bbox so `width="100%"` scale-up doesn't
-    // preserve a clip on the right/bottom edges. Returns a cleanup that
-    // disconnects the ResizeObserver used to catch deferred visibility.
-    return expandViewBoxWhenReady(svg)
+      // Authored width/height often under-estimates the real extent of the
+      // rendered content (emoji <text>, wider-than-expected labels). Grow the
+      // viewBox to cover the actual bbox so `width="100%"` scale-up doesn't
+      // preserve a clip on the right/bottom edges.
+      const cleanup = expandViewBoxWhenReady(svg)
+      if (cleanup) cleanups.push(cleanup)
+    }
+
+    return () => {
+      for (const fn of cleanups) fn()
+    }
   }, [sanitizedSvg])
 
   const getHotspotState = useCallback(

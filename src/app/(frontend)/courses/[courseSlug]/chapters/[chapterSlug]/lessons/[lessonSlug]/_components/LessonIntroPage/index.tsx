@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { BookOpen, ChevronLeft, FileText, Globe, Layers, RotateCcw, Sparkles } from 'lucide-react'
 import { usePathname, useSearchParams } from 'next/navigation'
 
@@ -25,6 +25,7 @@ import {
 import { GoogleLoginButton } from '@/ui/web/auth/GoogleLoginButton'
 import { Progress } from '@/ui/web/components/progress'
 import { useTranslations } from '@/ui/web/providers/I18n'
+import { MathMarkdown } from '@/ui/web/shared/MathMarkdown'
 
 import { ContentPagesPreamble } from '../ContentPagesPreamble'
 import { DualModeLessonView } from '../DualModeLessonView'
@@ -42,6 +43,10 @@ interface LessonProgressSummary {
 
 interface LessonIntroPageProps {
   lesson: Lesson
+  /** Parent course title — rendered as the first breadcrumb segment above the lesson title. */
+  courseTitle?: string
+  /** Parent chapter title — rendered as the second breadcrumb segment above the lesson title. */
+  chapterTitle?: string
   blocks: ResolvedLessonBlock[]
   /** Pre-rendered content page bodies, keyed by content page ID (built server-side) */
   contentPageBodies?: Record<string, React.ReactNode>
@@ -92,8 +97,15 @@ function plainText(value?: string | null) {
   )
 }
 
+// We render the description as markdown + KaTeX so admin-authored `$...$` math
+// is rendered instead of leaking out as literal `$x+5=12$`. Admin descriptions
+// are stored as HTML, so tags are stripped first — formatting is lost but math
+// is preserved and renders correctly.
+
 export function LessonIntroPage({
   lesson,
+  courseTitle,
+  chapterTitle,
   blocks,
   contentPageBodies,
   backUrl,
@@ -157,6 +169,39 @@ export function LessonIntroPage({
   }
   const pdfCount = mediaFiles.length
   const description = plainText(lesson.description)
+
+  // Touch the lesson's progress record on view so `lastAccessedAt` reflects
+  // this visit, which is what the course page's hero card ("where I left off"
+  // featured lesson) sorts by. We re-POST the current status + percent so
+  // the merge in /api/progress doesn't downgrade a completed lesson back to
+  // in-progress — this is a timestamp refresh, not a status change.
+  const touchedRef = useRef(false)
+  const touchStatus: 'completed' | 'in_progress' =
+    progress?.status === 'completed' || (progress?.percent ?? 0) >= 100
+      ? 'completed'
+      : 'in_progress'
+  const touchPercent = Math.min(100, Math.max(0, progress?.percent ?? 0))
+  useEffect(() => {
+    if (touchedRef.current) return
+    if (isAnonymous || isAuthLoading) return
+    if (!gradeLevel) return
+    if (!lessonId) return
+    touchedRef.current = true
+    fetch('/api/progress', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        recordType: 'lesson',
+        recordId: lessonId,
+        completionPercentage: touchPercent,
+        status: touchStatus,
+        gradeLevel,
+      }),
+    }).catch(() => {
+      /* silent — this is a best-effort "last accessed" touch */
+    })
+  }, [isAnonymous, isAuthLoading, gradeLevel, lessonId, touchPercent, touchStatus])
 
   const hasExerciseContent = exercises.some((exercise) => {
     if (!exercise || typeof exercise !== 'object') return false
@@ -312,7 +357,9 @@ export function LessonIntroPage({
             </div>
 
             <div className="space-y-3 md:space-y-4">
-              <p className="text-body-sm text-muted-foreground md:text-body-md">{gradeLevel}</p>
+              <p className="text-body-sm text-muted-foreground md:text-body-md">
+                {[gradeLevel, courseTitle, chapterTitle, lesson.topic].filter(Boolean).join(' / ')}
+              </p>
               <h1 className="text-heading-xl font-medium leading-tight text-foreground md:text-display-lg">
                 {lesson.title}
               </h1>
@@ -321,9 +368,10 @@ export function LessonIntroPage({
                   <h2 className="text-heading-sm font-medium text-foreground md:text-heading-md">
                     {t('lessonLobbySummary')}
                   </h2>
-                  <p className="line-clamp-3 text-body-sm leading-relaxed text-muted-foreground md:text-body-md">
-                    {description}
-                  </p>
+                  <MathMarkdown
+                    content={description}
+                    className="text-body-sm leading-relaxed text-muted-foreground md:text-body-md"
+                  />
                 </div>
               ) : null}
             </div>

@@ -11,7 +11,7 @@
  * validation. Throws on first access for whichever provider is requested.
  */
 
-export type PaymentProviderName = 'Stripe' | 'PayPal'
+export type PaymentProviderName = 'Stripe' | 'PayPal' | 'Tranzilla'
 
 export class MissingPaymentEnvError extends Error {
   readonly provider: PaymentProviderName
@@ -39,8 +39,19 @@ export interface PayPalEnv {
   paypalSandbox: boolean
 }
 
+export interface TranzillaEnv {
+  tranzillaTerminal: string
+  /**
+   * Admin repo webhook URL that Tranzilla POSTs the capture notification to.
+   * Must point at the Admin app (admin.dev.aguy.co.il / admin.aguy.co.il),
+   * never at Web — webhook verification secrets live only in Admin.
+   */
+  tranzillaNotifyUrl: string
+}
+
 let stripeCache: StripeEnv | null = null
 let paypalCache: PayPalEnv | null = null
+let tranzillaCache: TranzillaEnv | null = null
 
 export function getStripeEnv(): StripeEnv {
   if (stripeCache) return stripeCache
@@ -83,7 +94,29 @@ export function getPayPalEnv(): PayPalEnv {
   return paypalCache
 }
 
+// Tranzilla webhook verification and secret keys live in the Admin repo, which
+// owns `/api/webhooks/tranzilla`. Web only builds the hosted-checkout URL, so
+// the only secret it needs is the terminal name.
+export function getTranzillaEnv(): TranzillaEnv {
+  if (tranzillaCache) return tranzillaCache
+
+  const missing: string[] = []
+  if (!process.env.TRANZILLA_TERMINAL) missing.push('TRANZILLA_TERMINAL')
+  if (!process.env.TRANZILLA_NOTIFY_URL) missing.push('TRANZILLA_NOTIFY_URL')
+
+  if (missing.length > 0) {
+    throw new MissingPaymentEnvError('Tranzilla', missing)
+  }
+
+  tranzillaCache = {
+    tranzillaTerminal: process.env.TRANZILLA_TERMINAL ?? '',
+    tranzillaNotifyUrl: process.env.TRANZILLA_NOTIFY_URL ?? '',
+  }
+  return tranzillaCache
+}
+
 export function resetPaymentEnvCache(): void {
   stripeCache = null
   paypalCache = null
+  tranzillaCache = null
 }

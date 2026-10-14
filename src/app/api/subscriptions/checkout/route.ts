@@ -23,17 +23,19 @@ import { getWebUser } from '@/infra/web-api/mongo-payload'
 import { logger } from '@/infra/utils/logger/logger'
 import { MissingPaymentEnvError } from '@/lib/payment/env'
 import { cancelPayPalOrder, createPayPalOrder } from '@/lib/payment/paypal'
+import { createTranzillaCheckout } from '@/lib/payment/tranzilla'
 import {
   TIER_INTRO_OFFER,
   TIER_LABEL_EN,
   TIER_PRICE_ILS,
   type TierSlug,
 } from '@/lib/tiers/constants'
-import { createTransaction } from '@/server/services/checkout'
+import { createTransaction, deleteTransactionRow } from '@/server/services/checkout'
 import { countSucceededTierPurchases } from '@/server/services/tier-pricing'
 
 const BodySchema = z.object({
   tier: z.enum(['basic', 'advanced', 'premium']),
+  provider: z.enum(['paypal', 'tranzilla']).default('paypal'),
 })
 
 export async function POST(request: NextRequest) {
@@ -72,6 +74,20 @@ export async function POST(request: NextRequest) {
     new URL(request.url).origin
   const successUrl = `${baseUrl}/checkout/success`
   const cancelUrl = `${baseUrl}/subscriptions`
+
+  if (parsed.data.provider === 'tranzilla') {
+    return createTranzillaTierCheckout({
+      tier,
+      amount,
+      currency,
+      productName,
+      user,
+      baseUrl,
+      cancelUrl,
+      isIntro,
+      regularPriceIls,
+    })
+  }
 
   let checkoutUrl: string
   let providerSessionId: string
@@ -166,6 +182,120 @@ export async function POST(request: NextRequest) {
     checkoutUrl,
     transactionId: transaction.insertedId.toString(),
   })
+}
+
+interface TranzillaTierCheckoutParams {
+  tier: TierSlug
+  amount: number
+  currency: string
+  productName: string
+  user: { id: string }
+  baseUrl: string
+  cancelUrl: string
+  isIntro: boolean
+  regularPriceIls: number
+}
+
+async function createTranzillaTierCheckout(
+  params: TranzillaTierCheckoutParams,
+): Promise<NextResponse> {
+  const {
+    tier,
+    amount,
+    currency,
+    productName,
+    user,
+    baseUrl,
+    cancelUrl,
+    isIntro,
+    regularPriceIls,
+  } = params
+
+  const transactionId = new ObjectId()
+  const tranzillaSuccessUrl = `${baseUrl}/checkout/success?tranzilla_tx=${transactionId.toString()}`
+  const placeholderProviderId = `tranzilla-pending-${transactionId.toString()}`
+
+  try {
+    await createTransaction({
+      _id: transactionId,
+      tenant: null,
+      user: ObjectId.isValid(user.id) ? new ObjectId(user.id) : user.id,
+      product: null,
+      tierSlug: tier,
+      provider: 'tranzilla',
+      providerTransactionId: placeholderProviderId,
+      status: 'pending',
+      amount,
+      currency,
+      ...(isIntro ? { metadata: { introApplied: true, regularPriceIls } } : {}),
+      successUrl: tranzillaSuccessUrl,
+      cancelUrl,
+    })
+  } catch (insertErr) {
+    logger.error(
+      {
+        err:
+          insertErr instanceof Error
+            ? { message: insertErr.message, stack: insertErr.stack }
+            : insertErr,
+        tier,
+        userId: user.id,
+      },
+      'Tranzilla tier checkout: transaction insert failed',
+    )
+    return NextResponse.json({ success: false, error: 'checkout_failed' }, { status: 500 })
+  }
+
+  try {
+    const { checkoutUrl } = createTranzillaCheckout({
+      productId: `tier-${tier}`,
+      productName,
+      amount,
+      currency,
+      userId: user.id,
+      successUrl: tranzillaSuccessUrl,
+      cancelUrl,
+      transactionRowId: transactionId.toString(),
+    })
+    return NextResponse.json({
+      success: true,
+      checkoutUrl,
+      transactionId: transactionId.toString(),
+    })
+  } catch (buildErr) {
+    try {
+      await deleteTransactionRow(transactionId)
+    } catch (cleanupErr) {
+      logger.error(
+        {
+          err:
+            cleanupErr instanceof Error
+              ? { message: cleanupErr.message, stack: cleanupErr.stack }
+              : cleanupErr,
+          transactionRowId: transactionId.toString(),
+        },
+        'Tranzilla tier checkout: cleanup of partial transaction row failed',
+      )
+    }
+    if (buildErr instanceof MissingPaymentEnvError) {
+      return NextResponse.json(
+        { success: false, error: 'payment_provider_not_configured' },
+        { status: 503 },
+      )
+    }
+    logger.error(
+      {
+        err:
+          buildErr instanceof Error
+            ? { message: buildErr.message, stack: buildErr.stack }
+            : buildErr,
+        tier,
+        userId: user.id,
+      },
+      'Tranzilla tier checkout: URL build failed',
+    )
+    return NextResponse.json({ success: false, error: 'checkout_failed' }, { status: 500 })
+  }
 }
 
 interface ResolveIntroArgs {

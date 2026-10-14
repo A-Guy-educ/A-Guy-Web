@@ -1102,6 +1102,7 @@
       "subscriptionCheckoutDisabled": "Subscriptions are coming soon. Please check back shortly.",
       "inFlightSubscriptionExists": "You already have a checkout in progress for this subscription. Please finish or cancel it before starting a new one.",
       "stripeSubscriptionsNotSupported": "Subscriptions can only be paid via PayPal.",
+      "tranzillaSubscriptionsNotSupported": "Recurring plans can only be paid via PayPal. Please choose PayPal to subscribe.",
       "couponsNotSupportedOnSubscriptions": "Coupon codes cannot be used on subscription plans.",
       "productMissingInterval": "This subscription is misconfigured. Please contact support.",
       "productInvalidInterval": "This subscription is misconfigured. Please contact support.",
@@ -1109,7 +1110,8 @@
       "invalidCurrency": "This product is misconfigured. Please contact support."
     },
     "payWithCard": "Pay with Credit Card",
-    "payWithPaypal": "Pay with PayPal"
+    "payWithPaypal": "Pay with PayPal",
+    "payWithTranzilla": "Credit Card"
   },
   "subscriptions": {
     "title": "Choose your plan",
@@ -1118,6 +1120,7 @@
     "freePriceLabel": "Free",
     "currentPlan": "Your current plan",
     "subscribeButton": "Subscribe with PayPal",
+    "subscribeWithTranzilla": "Subscribe with Credit Card",
     "loginToSubscribe": "Log in to subscribe",
     "redirecting": "Redirecting to checkout...",
     "mostPopular": "Most popular",

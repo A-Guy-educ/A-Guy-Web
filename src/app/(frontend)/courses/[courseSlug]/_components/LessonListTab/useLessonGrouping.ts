@@ -20,6 +20,14 @@ interface GroupingInput {
   chapters: Chapter[]
   lessons: Lesson[]
   progressByLessonId: Record<string, number>
+  /**
+   * Optional map of lesson id → ISO timestamp of the student's most recent
+   * interaction. When provided, the featured "next up" lesson becomes the
+   * most-recently-accessed non-completed, non-locked lesson instead of the
+   * first available one in course order. Falls back to the first-in-order
+   * logic when no accessible lesson has a timestamp.
+   */
+  lastAccessedByLessonId?: Record<string, string>
   courseAccessType: string | null | undefined
   hasPaidAccess: boolean
   /**
@@ -87,6 +95,7 @@ export function computeLessonGroups({
   chapters,
   lessons,
   progressByLessonId,
+  lastAccessedByLessonId,
   courseAccessType,
   hasPaidAccess,
   tierSlug,
@@ -104,10 +113,16 @@ export function computeLessonGroups({
     lessonsByChapter.set(chId, bucket)
   }
 
-  let displayIndex = 0
-  let featuredAssigned = false
-
+  // Two-pass: build all nodes first (so status/lock/displayIndex are known),
+  // then pick exactly one featured lesson across the whole roadmap. The
+  // picker prefers the most-recently-accessed accessible non-completed
+  // lesson (so students land on "where I left off" / "the one I just
+  // finished puts me on the next one"), and falls back to the first
+  // in-order active/available lesson when no timestamp is available (first
+  // visit, legacy progress rows without `lastAccessedAt`, etc.).
   const groups: ChapterRoadmapGroup[] = []
+  let displayIndex = 0
+
   for (let chapterIndex = 0; chapterIndex < orderedChapters.length; chapterIndex++) {
     const chapter = orderedChapters[chapterIndex]
     const raw = lessonsByChapter.get(chapter.id) ?? []
@@ -116,7 +131,6 @@ export function computeLessonGroups({
 
     const nodes: LessonRoadmapNode[] = []
     let completedCount = 0
-    let hasFeatured = false
 
     for (const lesson of orderedLessons) {
       displayIndex += 1
@@ -131,21 +145,13 @@ export function computeLessonGroups({
       )
       if (status === 'completed') completedCount += 1
 
-      // First non-completed, non-locked lesson becomes the featured "active"
-      // one — matches the mockup's auto-expand + hero focus behavior.
-      const canFeature = !featuredAssigned && (status === 'active' || status === 'available')
-      if (canFeature) {
-        featuredAssigned = true
-        hasFeatured = true
-      }
-
       nodes.push({
         lesson,
         chapterSlug: chapter.slug ?? '',
         displayIndex,
         progressPercent: percent,
         status,
-        isFeatured: canFeature,
+        isFeatured: false,
         isTierLocked,
       })
     }
@@ -156,8 +162,40 @@ export function computeLessonGroups({
       lessons: nodes,
       completedCount,
       totalCount: nodes.length,
-      hasFeatured,
+      hasFeatured: false,
     })
+  }
+
+  const candidates: LessonRoadmapNode[] = []
+  for (const g of groups) {
+    for (const n of g.lessons) {
+      if (n.status === 'active' || n.status === 'available') candidates.push(n)
+    }
+  }
+
+  let featured: LessonRoadmapNode | null = null
+  if (candidates.length > 0) {
+    const withTs = candidates
+      .map((n) => ({ node: n, ts: lastAccessedByLessonId?.[n.lesson.id] ?? null }))
+      .filter((entry): entry is { node: LessonRoadmapNode; ts: string } => entry.ts !== null)
+
+    if (withTs.length > 0) {
+      withTs.sort((a, b) => b.ts.localeCompare(a.ts))
+      featured = withTs[0].node
+    } else {
+      featured = candidates[0]
+    }
+  }
+
+  if (featured) {
+    for (const g of groups) {
+      for (const n of g.lessons) {
+        if (n === featured) {
+          n.isFeatured = true
+          g.hasFeatured = true
+        }
+      }
+    }
   }
 
   return groups
@@ -171,6 +209,7 @@ export function useLessonGrouping(input: GroupingInput): ChapterRoadmapGroup[] {
       input.chapters,
       input.lessons,
       input.progressByLessonId,
+      input.lastAccessedByLessonId,
       input.courseAccessType,
       input.hasPaidAccess,
       input.tierSlug,

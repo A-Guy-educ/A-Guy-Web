@@ -114,6 +114,9 @@ export interface Lesson {
   chapter?: string | Chapter | null
   order?: number | null
   description?: string | null
+  /** Free-text subject area set in Admin (e.g. "פונקציות"). Rendered as part
+   *  of the breadcrumb line above the lesson title on the intro card. */
+  topic?: string | null
   type?: 'learning' | 'practice' | 'exam' | string | null
   lessonType?: string | null
   lessonContentType?: string | null
