@@ -18,11 +18,13 @@ vi.mock('@/infra/web-api/mongo-payload', () => ({
 
 const findOneMock = vi.fn()
 const insertOneMock = vi.fn()
+const deleteOneMock = vi.fn()
 vi.mock('@/infra/db/content-db', () => ({
   getContentDb: vi.fn(async () => ({
     collection: () => ({
       findOne: findOneMock,
       insertOne: insertOneMock,
+      deleteOne: deleteOneMock,
       find: () => ({ toArray: vi.fn(async () => []) }),
     }),
   })),
@@ -36,6 +38,9 @@ vi.mock('@/lib/payment/paypal', () => ({
 vi.mock('@/lib/payment/stripe', () => ({
   createStripeCheckout: vi.fn(),
   cancelStripeCheckout: vi.fn(),
+}))
+vi.mock('@/lib/payment/tranzilla', () => ({
+  createTranzillaCheckout: vi.fn(),
 }))
 
 const loggerErrorMock = vi.fn()
@@ -247,6 +252,67 @@ describe('POST /api/payments/checkout — provider routing', () => {
     expect(body.error).toBe('checkout_failed')
     expect(cancelPayPalOrder).toHaveBeenCalledTimes(1)
     expect(cancelPayPalOrder).toHaveBeenCalledWith('ORPHAN1')
+  })
+
+  it('dispatches tranzilla provider to createTranzillaCheckout and inserts a pending row first', async () => {
+    const { getWebUser } = await import('@/infra/web-api/mongo-payload')
+    ;(getWebUser as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ id: USER_ID })
+
+    const { createTranzillaCheckout } = await import('@/lib/payment/tranzilla')
+    ;(createTranzillaCheckout as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+      checkoutUrl: 'https://direct.tranzila.com/fxpaguy/iframenew.php?sum=49.00',
+      providerSessionId: 'tranzilla-pending-xxxx',
+    })
+
+    const { POST } = await import('@/app/api/payments/checkout/route')
+    const res = await POST(buildRequest({ productId: PRODUCT_ID, provider: 'tranzilla' }))
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.success).toBe(true)
+    expect(body.checkoutUrl).toBe('https://direct.tranzila.com/fxpaguy/iframenew.php?sum=49.00')
+
+    // The row must be inserted BEFORE the URL is built — the URL carries the
+    // row's _id as `u72` so Admin's webhook can correlate the capture.
+    expect(insertOneMock).toHaveBeenCalledTimes(1)
+    const insertedDoc = insertOneMock.mock.calls[0]?.[0] as {
+      _id: unknown
+      provider: string
+      providerTransactionId: string
+      status: string
+    }
+    expect(insertedDoc.provider).toBe('tranzilla')
+    expect(insertedDoc.status).toBe('pending')
+    expect(insertedDoc.providerTransactionId).toMatch(/^tranzilla-pending-/)
+    expect(insertedDoc._id).toBeDefined()
+
+    // The URL builder got the row _id as transactionRowId.
+    const arg = (createTranzillaCheckout as unknown as ReturnType<typeof vi.fn>).mock
+      .calls[0]?.[0] as { transactionRowId: string; successUrl: string }
+    expect(arg.transactionRowId).toBe(String(insertedDoc._id))
+    expect(arg.successUrl).toContain('tranzilla_tx=')
+
+    const { createPayPalOrder } = await import('@/lib/payment/paypal')
+    expect(createPayPalOrder).not.toHaveBeenCalled()
+  })
+
+  it('deletes the just-inserted row if Tranzilla URL build fails with missing-env', async () => {
+    const { getWebUser } = await import('@/infra/web-api/mongo-payload')
+    ;(getWebUser as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ id: USER_ID })
+
+    const { createTranzillaCheckout } = await import('@/lib/payment/tranzilla')
+    ;(createTranzillaCheckout as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => {
+      throw new MissingPaymentEnvError('Tranzilla', ['TRANZILLA_TERMINAL'])
+    })
+
+    const { POST } = await import('@/app/api/payments/checkout/route')
+    const res = await POST(buildRequest({ productId: PRODUCT_ID, provider: 'tranzilla' }))
+    const body = await res.json()
+
+    expect(res.status).toBe(503)
+    expect(body.error).toBe('payment_provider_not_configured')
+    // No orphan rows left behind.
+    expect(deleteOneMock).toHaveBeenCalledTimes(1)
   })
 
   it('rejects unauthenticated requests with 401', async () => {

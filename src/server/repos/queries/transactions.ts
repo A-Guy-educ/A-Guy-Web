@@ -68,45 +68,63 @@ function toIsoString(value: unknown, fallback: string): string {
  */
 export const queryTransactionByProviderId = cache(
   async (providerTransactionId: string): Promise<CheckoutSuccessTransaction | null> => {
-    const db = await getContentDb()
-
-    const docs = (await db
-      .collection('transactions')
-      .aggregate([
-        { $match: { providerTransactionId } },
-        { $limit: 1 },
-        {
-          $lookup: {
-            from: 'products',
-            localField: 'product',
-            foreignField: '_id',
-            as: 'productDoc',
-          },
-        },
-        { $unwind: { path: '$productDoc', preserveNullAndEmptyArrays: true } },
-      ])
-      .toArray()) as TransactionDoc[]
-
-    const doc = docs[0]
-    if (!doc) return null
-
-    const product = doc.productDoc ?? null
-    const status = doc.status ?? 'pending'
-    // Only the confirmed-purchase branch on the success page consumes
-    // firstCourse (to render "Go to {course}" + drive the entitlement poll).
-    // Skip the second Mongo hop for pending / failed / refunded rows.
-    const firstCourse = status === 'succeeded' ? await resolveFirstCourseFromProduct(product) : null
-    return {
-      id: doc._id.toString(),
-      status,
-      entitlementsGrantedAt: doc.entitlementsGrantedAt
-        ? toIsoString(doc.entitlementsGrantedAt, '')
-        : null,
-      productName: product?.name ?? product?.title ?? null,
-      firstCourse,
-    }
+    return queryTransactionByMatch({ providerTransactionId })
   },
 )
+
+/**
+ * Look up a single transaction by its Mongo _id. Used by the Tranzilla return
+ * path — the provider's real `index` isn't persisted on the row until Admin's
+ * webhook replaces the `tranzilla-pending-<id>` placeholder, so the buyer-side
+ * success page cannot look up by `providerTransactionId`. Instead the checkout
+ * route bakes the row _id into the success URL as `?tranzilla_tx=<id>` and we
+ * look it up directly here.
+ */
+export const queryTransactionById = cache(
+  async (transactionId: string): Promise<CheckoutSuccessTransaction | null> => {
+    if (!ObjectId.isValid(transactionId)) return null
+    return queryTransactionByMatch({ _id: new ObjectId(transactionId) })
+  },
+)
+
+async function queryTransactionByMatch(
+  match: Record<string, unknown>,
+): Promise<CheckoutSuccessTransaction | null> {
+  const db = await getContentDb()
+
+  const docs = (await db
+    .collection('transactions')
+    .aggregate([
+      { $match: match },
+      { $limit: 1 },
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'product',
+          foreignField: '_id',
+          as: 'productDoc',
+        },
+      },
+      { $unwind: { path: '$productDoc', preserveNullAndEmptyArrays: true } },
+    ])
+    .toArray()) as TransactionDoc[]
+
+  const doc = docs[0]
+  if (!doc) return null
+
+  const product = doc.productDoc ?? null
+  const status = doc.status ?? 'pending'
+  const firstCourse = status === 'succeeded' ? await resolveFirstCourseFromProduct(product) : null
+  return {
+    id: doc._id.toString(),
+    status,
+    entitlementsGrantedAt: doc.entitlementsGrantedAt
+      ? toIsoString(doc.entitlementsGrantedAt, '')
+      : null,
+    productName: product?.name ?? product?.title ?? null,
+    firstCourse,
+  }
+}
 
 // Walk product.contents to find the first courseBlock, then fetch that course's
 // display fields. Kept as a second round-trip instead of a second $lookup so we

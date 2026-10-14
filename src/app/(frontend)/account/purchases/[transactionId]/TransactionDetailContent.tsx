@@ -20,7 +20,7 @@ import {
 } from 'lucide-react'
 
 export type TransactionStatus = 'pending' | 'succeeded' | 'failed' | 'refunded'
-export type TransactionProvider = 'stripe' | 'paypal'
+export type TransactionProvider = 'stripe' | 'paypal' | 'tranzilla'
 
 export interface TransactionDetailData {
   id: string
@@ -91,7 +91,7 @@ function StatusDisplay({ status }: { status: TransactionStatus }) {
   const label = t(`status.${status}`)
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-content-gap-xs">
       <Icon className={`w-5 h-5 ${cfg.color}`} />
       <span className={`text-body-md font-medium ${cfg.textColor}`}>{label}</span>
     </div>
@@ -146,7 +146,7 @@ function EntitlementsSection({ entitlements }: { entitlements: EntitlementInfo }
             </h4>
             <ul className="space-y-2">
               {entitlements.lessons.map((lesson) => (
-                <li key={lesson.id} className="flex items-center gap-2">
+                <li key={lesson.id} className="flex items-center gap-content-gap-xs">
                   <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0" />
                   <span className="text-body-sm">{lesson.title}</span>
                 </li>
@@ -161,7 +161,7 @@ function EntitlementsSection({ entitlements }: { entitlements: EntitlementInfo }
             </h4>
             <ul className="space-y-2">
               {entitlements.features.map((feature) => (
-                <li key={feature.key} className="flex items-center gap-2">
+                <li key={feature.key} className="flex items-center gap-content-gap-xs">
                   <Key className="w-4 h-4 text-primary flex-shrink-0" />
                   <span className="text-body-sm">{feature.key}</span>
                 </li>
@@ -191,7 +191,7 @@ function RefundInfo({
 
   return (
     <div className="rounded-lg bg-muted/50 p-card-padding-sm">
-      <div className="flex items-center gap-2 mb-2">
+      <div className="flex items-center gap-content-gap-xs mb-2">
         <RotateCcw className="w-4 h-4 text-muted-foreground" />
         <span className="text-body-sm font-medium text-muted-foreground">{t('refunded')}</span>
       </div>

@@ -24,10 +24,11 @@ import {
   type PayPalPlanProductDoc,
 } from '@/lib/payment/paypal'
 import { cancelStripeCheckout, createStripeCheckout } from '@/lib/payment/stripe'
+import { createTranzillaCheckout } from '@/lib/payment/tranzilla'
 
 const BodySchema = z.object({
   productId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'invalid_product_id'),
-  provider: z.enum(['stripe', 'paypal']).default('stripe'),
+  provider: z.enum(['stripe', 'paypal', 'tranzilla']).default('stripe'),
   couponCode: z.string().max(50).optional(),
 })
 
@@ -47,7 +48,7 @@ interface SubscriptionCheckoutParams {
   user: { id: string }
   product: PayPalPlanProductDoc & Record<string, unknown>
   productId: string
-  provider: 'stripe' | 'paypal'
+  provider: 'stripe' | 'paypal' | 'tranzilla'
   couponCode?: string
 }
 
@@ -78,10 +79,13 @@ async function createSubscriptionCheckout({
   }
 
   if (provider !== 'paypal') {
-    return NextResponse.json(
-      { success: false, error: 'stripe_subscriptions_not_supported' },
-      { status: 400 },
-    )
+    // Only PayPal supports recurring billing in this flow. Stripe
+    // subscriptions and Tranzilla recurring charges are not wired on this path.
+    const errorCode =
+      provider === 'tranzilla'
+        ? 'tranzilla_subscriptions_not_supported'
+        : 'stripe_subscriptions_not_supported'
+    return NextResponse.json({ success: false, error: errorCode }, { status: 400 })
   }
   if (couponCode) {
     return NextResponse.json(
@@ -406,6 +410,103 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: 'invalid_currency' }, { status: 400 })
   }
   const productName = String(product.name || product.title || 'Product')
+
+  // Tranzilla: no server-side order creation at the provider — just build the
+  // hosted-checkout URL. We need the local transaction row _id baked into the
+  // URL as `u72` so Admin's webhook can correlate the capture. Pre-generate
+  // the ObjectId, insert first, then build. If URL building fails afterwards
+  // we delete the row so the user doesn't see an orphaned pending purchase.
+  if (parsed.data.provider === 'tranzilla') {
+    const transactionId = new ObjectId()
+    const tranzillaSuccessUrl = `${baseUrl}/checkout/success?tranzilla_tx=${transactionId.toString()}`
+    const placeholderProviderId = `tranzilla-pending-${transactionId.toString()}`
+
+    try {
+      await createTransaction({
+        _id: transactionId,
+        tenant: product.tenant ?? null,
+        user: ObjectId.isValid(user.id) ? new ObjectId(user.id) : user.id,
+        product: product._id,
+        provider: 'tranzilla',
+        providerTransactionId: placeholderProviderId,
+        status: 'pending',
+        amount,
+        currency,
+        metadata: { itemIds, featureKeys, ...(appliedCoupon ? { appliedCoupon } : {}) },
+        successUrl: tranzillaSuccessUrl,
+        cancelUrl,
+      })
+    } catch (insertErr) {
+      logger.error(
+        {
+          err:
+            insertErr instanceof Error
+              ? { message: insertErr.message, stack: insertErr.stack }
+              : insertErr,
+          provider: 'tranzilla',
+          productId: parsed.data.productId,
+          userId: user.id,
+        },
+        'Tranzilla checkout: transaction insert failed before URL build',
+      )
+      return NextResponse.json({ success: false, error: 'checkout_failed' }, { status: 500 })
+    }
+
+    try {
+      const { checkoutUrl } = createTranzillaCheckout({
+        productId: parsed.data.productId,
+        productName,
+        amount,
+        currency,
+        userId: user.id,
+        successUrl: tranzillaSuccessUrl,
+        cancelUrl,
+        transactionRowId: transactionId.toString(),
+      })
+      return NextResponse.json({
+        success: true,
+        checkoutUrl,
+        transactionId: transactionId.toString(),
+        ...(appliedCoupon ? { appliedCoupon } : {}),
+      })
+    } catch (buildErr) {
+      // URL build failed (missing env or unsupported currency). Delete the row
+      // we just inserted so the user isn't left with a dangling pending row.
+      try {
+        await deleteTransactionRow(transactionId)
+      } catch (cleanupErr) {
+        logger.error(
+          {
+            err:
+              cleanupErr instanceof Error
+                ? { message: cleanupErr.message, stack: cleanupErr.stack }
+                : cleanupErr,
+            transactionRowId: transactionId.toString(),
+          },
+          'Tranzilla checkout: failed to delete partial transaction row after URL build error',
+        )
+      }
+      if (buildErr instanceof MissingPaymentEnvError) {
+        return NextResponse.json(
+          { success: false, error: 'payment_provider_not_configured' },
+          { status: 503 },
+        )
+      }
+      logger.error(
+        {
+          err:
+            buildErr instanceof Error
+              ? { message: buildErr.message, stack: buildErr.stack }
+              : buildErr,
+          provider: 'tranzilla',
+          productId: parsed.data.productId,
+          userId: user.id,
+        },
+        'Tranzilla checkout: URL build failed',
+      )
+      return NextResponse.json({ success: false, error: 'checkout_failed' }, { status: 500 })
+    }
+  }
 
   let checkoutUrl: string
   let providerSessionId: string
