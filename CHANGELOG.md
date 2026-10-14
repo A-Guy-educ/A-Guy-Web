@@ -4924,6 +4924,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Polish math sizing, lesson intro, and course status card ([#1371](https://github.com/A-Guy-educ/A-Guy-Web/pull/1371)) — @aguyshayb
 ## [v0.47.1] - 2026-10-12
 
 - promote: dev -> main (v0.47.1) ([#1356](https://github.com/A-Guy-educ/A-Guy-Web/pull/1356)) — @aguyshayb
