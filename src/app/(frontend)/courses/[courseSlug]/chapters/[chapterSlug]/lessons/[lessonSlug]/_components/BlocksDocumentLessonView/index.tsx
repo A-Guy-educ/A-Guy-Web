@@ -204,10 +204,10 @@ export function BlocksDocumentLessonView({
       primaryContent={
         <div className="flex h-full flex-col">
           {headerSlot}
-          <div className="flex-1 overflow-auto max-w-full bg-muted py-section-md px-4 print:bg-background print:overflow-visible print:p-0">
-            <div className="mx-auto max-w-[794px] rounded-xl border border-border bg-card shadow-elevation-1 overflow-hidden print:shadow-none print:border-0 print:rounded-none print:max-w-full">
+          <div className="flex-1 overflow-auto max-w-full bg-muted py-section-sm px-1 sm:px-2 print:bg-background print:overflow-visible print:p-0">
+            <div className="mx-auto max-w-5xl rounded-xl border border-border bg-card shadow-elevation-1 overflow-hidden print:shadow-none print:border-0 print:rounded-none print:max-w-full">
               <div
-                className="px-12 py-10 font-serif sm:px-16 sm:py-section-lg max-w-full overflow-hidden"
+                className="px-3 py-5 font-serif sm:px-6 sm:py-section-md max-w-full overflow-hidden"
                 dir={dir}
               >
                 {lessonTitle && (

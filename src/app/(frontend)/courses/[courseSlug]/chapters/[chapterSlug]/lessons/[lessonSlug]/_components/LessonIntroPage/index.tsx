@@ -25,6 +25,7 @@ import {
 import { GoogleLoginButton } from '@/ui/web/auth/GoogleLoginButton'
 import { Progress } from '@/ui/web/components/progress'
 import { useTranslations } from '@/ui/web/providers/I18n'
+import { MathMarkdown } from '@/ui/web/shared/MathMarkdown'
 
 import { ContentPagesPreamble } from '../ContentPagesPreamble'
 import { DualModeLessonView } from '../DualModeLessonView'
@@ -42,6 +43,10 @@ interface LessonProgressSummary {
 
 interface LessonIntroPageProps {
   lesson: Lesson
+  /** Parent course title — rendered as the first breadcrumb segment above the lesson title. */
+  courseTitle?: string
+  /** Parent chapter title — rendered as the second breadcrumb segment above the lesson title. */
+  chapterTitle?: string
   blocks: ResolvedLessonBlock[]
   /** Pre-rendered content page bodies, keyed by content page ID (built server-side) */
   contentPageBodies?: Record<string, React.ReactNode>
@@ -92,8 +97,15 @@ function plainText(value?: string | null) {
   )
 }
 
+// We render the description as markdown + KaTeX so admin-authored `$...$` math
+// is rendered instead of leaking out as literal `$x+5=12$`. Admin descriptions
+// are stored as HTML, so tags are stripped first — formatting is lost but math
+// is preserved and renders correctly.
+
 export function LessonIntroPage({
   lesson,
+  courseTitle,
+  chapterTitle,
   blocks,
   contentPageBodies,
   backUrl,
@@ -312,7 +324,9 @@ export function LessonIntroPage({
             </div>
 
             <div className="space-y-3 md:space-y-4">
-              <p className="text-body-sm text-muted-foreground md:text-body-md">{gradeLevel}</p>
+              <p className="text-body-sm text-muted-foreground md:text-body-md">
+                {[gradeLevel, courseTitle, chapterTitle].filter(Boolean).join(' / ')}
+              </p>
               <h1 className="text-heading-xl font-medium leading-tight text-foreground md:text-display-lg">
                 {lesson.title}
               </h1>
@@ -321,9 +335,10 @@ export function LessonIntroPage({
                   <h2 className="text-heading-sm font-medium text-foreground md:text-heading-md">
                     {t('lessonLobbySummary')}
                   </h2>
-                  <p className="line-clamp-3 text-body-sm leading-relaxed text-muted-foreground md:text-body-md">
-                    {description}
-                  </p>
+                  <MathMarkdown
+                    content={description}
+                    className="text-body-sm leading-relaxed text-muted-foreground md:text-body-md"
+                  />
                 </div>
               ) : null}
             </div>

@@ -190,7 +190,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
     notFound()
   }
 
-  const { contentLocale, course, lesson, blocks, isLocaleFallback } = lessonData
+  const { contentLocale, course, chapter, lesson, blocks, isLocaleFallback } = lessonData
   const accessType = resolveAccessType(lesson.accessType, course.accessType)
   const [gatedDelayMs, gatedWarningMs] = await Promise.all([
     SystemParams.getGatedDelayMs(),
@@ -322,6 +322,8 @@ export default async function LessonPage({ params }: LessonPageProps) {
       />
       <LessonIntroPage
         lesson={lesson}
+        courseTitle={course.title}
+        chapterTitle={chapter.title}
         blocks={blocks}
         contentPageBodies={contentPageBodies}
         backUrl={backUrl}
