@@ -48,12 +48,16 @@ export async function GET(request: NextRequest) {
   if (recordType) records = records.filter((record) => record.recordType === recordType)
   if (recordIds) records = records.filter((record) => recordIds.includes(record.recordId))
 
-  const data: Record<string, { completionPercentage: number; status: string; score?: number }> = {}
+  const data: Record<
+    string,
+    { completionPercentage: number; status: string; score?: number; lastAccessedAt?: string }
+  > = {}
   for (const record of records) {
     data[record.recordId] = {
       completionPercentage: record.completionPercentage ?? 0,
       status: record.status ?? 'not_started',
       ...(record.score != null ? { score: record.score } : {}),
+      ...(record.lastAccessedAt ? { lastAccessedAt: record.lastAccessedAt } : {}),
     }
   }
 

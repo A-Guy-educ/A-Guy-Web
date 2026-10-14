@@ -123,6 +123,56 @@ describe('computeLessonGroups — featured assignment', () => {
     expect(groups[0].hasFeatured).toBe(false)
   })
 
+  it('prefers the most-recently-accessed non-completed lesson over first-in-order when timestamps are provided', () => {
+    const chapters = [chapter('c1', 1), chapter('c2', 2)]
+    const lessons = [lesson('a', 'c1', 1), lesson('b', 'c1', 2), lesson('c', 'c2', 1)]
+    const groups = computeLessonGroups({
+      chapters,
+      lessons,
+      progressByLessonId: { a: 0, b: 20, c: 60 },
+      // Student touched 'c' most recently — hero should jump there instead of
+      // 'a' (which the legacy first-in-order rule would have featured).
+      lastAccessedByLessonId: {
+        a: '2026-10-10T08:00:00.000Z',
+        b: '2026-10-12T08:00:00.000Z',
+        c: '2026-10-14T08:00:00.000Z',
+      },
+      ...noPaywallDefaults,
+    })
+    expect(findFeaturedNode(groups)?.lesson.id).toBe('c')
+  })
+
+  it('skips completed lessons even when they were the most recently accessed', () => {
+    const chapters = [chapter('c1', 1)]
+    const lessons = [lesson('a', 'c1', 1), lesson('b', 'c1', 2)]
+    const groups = computeLessonGroups({
+      chapters,
+      lessons,
+      // 'b' just hit 100% and is the latest touch; hero should move to the
+      // next non-completed lesson, not stay on the finished one.
+      progressByLessonId: { a: 0, b: 100 },
+      lastAccessedByLessonId: {
+        a: '2026-10-10T08:00:00.000Z',
+        b: '2026-10-14T08:00:00.000Z',
+      },
+      ...noPaywallDefaults,
+    })
+    expect(findFeaturedNode(groups)?.lesson.id).toBe('a')
+  })
+
+  it('falls back to first in-order when none of the accessible lessons have a timestamp', () => {
+    const chapters = [chapter('c1', 1)]
+    const lessons = [lesson('a', 'c1', 1), lesson('b', 'c1', 2)]
+    const groups = computeLessonGroups({
+      chapters,
+      lessons,
+      progressByLessonId: { a: 0, b: 0 },
+      lastAccessedByLessonId: {},
+      ...noPaywallDefaults,
+    })
+    expect(findFeaturedNode(groups)?.lesson.id).toBe('a')
+  })
+
   it('skips paywall-locked lessons when picking the featured one', () => {
     // Course-level type is 'free' so only the lesson that explicitly opts in
     // to 'paid' gets locked — otherwise every lesson would inherit the course

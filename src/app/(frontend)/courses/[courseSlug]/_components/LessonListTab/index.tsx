@@ -67,7 +67,7 @@ export function LessonListTab({
   )
 
   const lessonIds = useMemo(() => filteredLessons.map((l) => l.id), [filteredLessons])
-  const { progressMap } = useProgressMap({
+  const { progressMap, lastAccessedMap } = useProgressMap({
     recordType: 'lesson',
     recordIds: lessonIds,
     gradeLevel,
@@ -111,6 +111,7 @@ export function LessonListTab({
     chapters,
     lessons: filteredLessons,
     progressByLessonId,
+    lastAccessedByLessonId: lastAccessedMap,
     courseAccessType,
     hasPaidAccess,
     tierSlug,

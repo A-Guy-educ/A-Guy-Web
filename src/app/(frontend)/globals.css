@@ -463,19 +463,15 @@ html[data-theme='light'] {
     @apply text-foreground;
     /* Inline math is intentionally bigger than surrounding prose — KaTeX
        glyphs otherwise render visually smaller than their CSS size would
-       suggest (baseline shift, thinner stroke). Every inline expression
-       except function definitions uses this base. Function definitions
-       opt into `.math-long` below. Block math (`$$...$$`) is always
-       `.math-long`. */
-    font-size: 1.5em;
+       suggest (baseline shift, thinner stroke). All math (short, long,
+       function definitions, block) renders at this one size so lines don't
+       drop on mobile when a stacked expression (fraction, function def)
+       appears inline. */
+    font-size: 1.35em;
   }
 
-  /* Bigger size reserved for inline function definitions and all block
-     math. Classification for inline lives in rehype-math-wrapper (markdown)
-     and renderAdminHtmlWithMath (admin HTML), both of which tag the wrapper
-     with `.math-long` only for `name(args)=...` sources. */
   .math-long .katex {
-    font-size: 2.475em;
+    font-size: 1.35em;
   }
 
   .katex-display {
