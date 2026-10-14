@@ -4924,6 +4924,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore(deps-dev): Bump the dev-dependencies group with 5 updates ([#1357](https://github.com/A-Guy-educ/A-Guy-Web/pull/1357)) — @dependabot[bot]
 - chore(deps): Bump peter-evans/create-pull-request from 7 to 8 ([#1367](https://github.com/A-Guy-educ/A-Guy-Web/pull/1367)) — @dependabot[bot]
 - chore(deps): Bump actions/cache from 5 to 6 ([#1368](https://github.com/A-Guy-educ/A-Guy-Web/pull/1368)) — @dependabot[bot]
 - chore(deps): Bump actions/setup-node from 4 to 7 ([#1369](https://github.com/A-Guy-educ/A-Guy-Web/pull/1369)) — @dependabot[bot]
