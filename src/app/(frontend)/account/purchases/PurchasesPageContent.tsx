@@ -8,7 +8,7 @@ import { Button } from '@/ui/web/components/button'
 import { Package, RefreshCw, ExternalLink } from 'lucide-react'
 
 export type TransactionStatus = 'pending' | 'succeeded' | 'failed' | 'refunded'
-export type TransactionProvider = 'stripe' | 'paypal'
+export type TransactionProvider = 'stripe' | 'paypal' | 'tranzilla'
 
 export interface TransactionWithProduct {
   id: string
@@ -87,7 +87,7 @@ function PurchaseRow({ transaction }: { transaction: TransactionWithProduct }) {
         <CardContent className="p-card-padding-sm flex flex-col sm:flex-row sm:items-center gap-3">
           {/* Left: Product info */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-content-gap-xs mb-1">
               <h3 className="text-body-md font-semibold text-foreground truncate">
                 {transaction.productName || t('unknownProduct')}
               </h3>

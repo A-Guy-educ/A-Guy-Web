@@ -14,7 +14,10 @@ import { getDirection } from '@/i18n/config'
 import { getSystemLocale } from '@/i18n/server-locale'
 import { pageMetadata } from '@/infra/seo/pageMetadata'
 import { capturePayPalOrder } from '@/lib/payment/paypal'
-import { queryTransactionByProviderId } from '@/server/repos/queries/transactions'
+import {
+  queryTransactionById,
+  queryTransactionByProviderId,
+} from '@/server/repos/queries/transactions'
 import type { Metadata } from 'next'
 import { CheckoutSuccessContent } from './CheckoutSuccessContent'
 
@@ -29,6 +32,7 @@ type Props = {
     subscription_id?: string
     ba_token?: string
     provider?: string
+    tranzilla_tx?: string
   }>
 }
 
@@ -55,8 +59,13 @@ export default async function CheckoutSuccessPage({ searchParams: searchParamsPr
   // like ?subscription_id=I-...&token=61R... would be looked up by the token,
   // hit no row, and leave the buyer stuck on the pending screen forever even
   // though the sub is already Active in Mongo.
-  const { session_id, token, subscription_id } = await searchParamsPromise
+  const { session_id, token, subscription_id, tranzilla_tx } = await searchParamsPromise
+  // Tranzilla's real `index` is not on the row until Admin's webhook replaces
+  // the placeholder, so for that provider we look up by the Payload row _id
+  // that we baked into the success URL at checkout-create time.
   const lookupId = session_id ?? subscription_id ?? token
+  const tranzillaTxId =
+    typeof tranzilla_tx === 'string' && tranzilla_tx.length > 0 ? tranzilla_tx : null
 
   // PayPal orders are created with intent: 'CAPTURE', which does NOT auto-capture
   // on buyer approval — someone has to POST /v2/checkout/orders/{token}/capture
@@ -77,7 +86,12 @@ export default async function CheckoutSuccessPage({ searchParams: searchParamsPr
   // the Pending state, the entitlement poll runs, and the manual refresh button
   // remains as an escape. Blocking here would trap someone who paid successfully
   // behind a page crash if PayPal's API had a transient issue at capture time.
-  if (token && !subscription_id) {
+  // Only attempt PayPal capture when we have a token AND we're NOT on a
+  // Tranzilla return path. Tranzilla also appends its own query params to the
+  // success URL, which could coincidentally include a `token`-shaped param on
+  // some gateway flows — the tranzilla_tx guard keeps us from firing a PayPal
+  // capture call that would 404 against PayPal's API.
+  if (token && !subscription_id && !tranzillaTxId) {
     try {
       await capturePayPalOrder(token)
     } catch (error) {
@@ -90,7 +104,11 @@ export default async function CheckoutSuccessPage({ searchParams: searchParamsPr
 
   const [locale, transaction] = await Promise.all([
     getSystemLocale(),
-    lookupId ? queryTransactionByProviderId(lookupId) : Promise.resolve(null),
+    tranzillaTxId
+      ? queryTransactionById(tranzillaTxId)
+      : lookupId
+        ? queryTransactionByProviderId(lookupId)
+        : Promise.resolve(null),
   ])
 
   return (
@@ -99,7 +117,7 @@ export default async function CheckoutSuccessPage({ searchParams: searchParamsPr
       dir={getDirection(locale)}
     >
       <CheckoutSuccessContent
-        sessionId={lookupId}
+        sessionId={lookupId ?? tranzillaTxId ?? undefined}
         transaction={
           transaction
             ? {

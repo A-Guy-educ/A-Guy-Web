@@ -9,6 +9,8 @@ import { Button } from '@/ui/web/components/button'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
+type CheckoutProvider = 'paypal' | 'tranzilla'
+
 interface BuyButtonProps {
   productId: string
   productSlug: string
@@ -26,7 +28,7 @@ export function BuyButton({
   const t = useTranslations('products')
   const router = useRouter()
   const { user, isLoading: isAuthLoading } = useCurrentUser()
-  const [isLoadingPayPal, setIsLoadingPayPal] = useState(false)
+  const [loadingProvider, setLoadingProvider] = useState<CheckoutProvider | null>(null)
 
   if (isAuthLoading) {
     return (
@@ -57,8 +59,8 @@ export function BuyButton({
     )
   }
 
-  const handleCheckout = async (provider: 'paypal') => {
-    setIsLoadingPayPal(true)
+  const handleCheckout = async (provider: CheckoutProvider) => {
+    setLoadingProvider(provider)
 
     try {
       const body: Record<string, string> = { productId, provider }
@@ -91,6 +93,7 @@ export function BuyButton({
           subscription_checkout_disabled: t('errors.subscriptionCheckoutDisabled'),
           in_flight_subscription_exists: t('errors.inFlightSubscriptionExists'),
           stripe_subscriptions_not_supported: t('errors.stripeSubscriptionsNotSupported'),
+          tranzilla_subscriptions_not_supported: t('errors.tranzillaSubscriptionsNotSupported'),
           coupons_not_supported_on_subscriptions: t('errors.couponsNotSupportedOnSubscriptions'),
           product_missing_interval: t('errors.productMissingInterval'),
           product_invalid_interval: t('errors.productInvalidInterval'),
@@ -98,8 +101,6 @@ export function BuyButton({
           invalid_currency: t('errors.invalidCurrency'),
         }
         const message = errorMessages[errorKey] ?? t('errors.checkoutFailed')
-        // Longer toast for states the buyer can't self-serve (misconfig or
-        // provider outage) — they need time to read what to do next.
         const longToastKeys = new Set([
           'payment_provider_not_configured',
           'subscription_checkout_disabled',
@@ -113,22 +114,41 @@ export function BuyButton({
         } else {
           toast.error(message)
         }
-        setIsLoadingPayPal(false)
+        setLoadingProvider(null)
         return
       }
 
       window.location.href = data.checkoutUrl
     } catch {
       toast.error(t('errors.checkoutFailed'))
-      setIsLoadingPayPal(false)
+      setLoadingProvider(null)
     }
   }
+
+  const isLoadingTranzilla = loadingProvider === 'tranzilla'
+  const isLoadingPayPal = loadingProvider === 'paypal'
+  const isAnyLoading = loadingProvider !== null
 
   return (
     <div className="flex flex-col sm:flex-row gap-3">
       <Button
+        onClick={() => handleCheckout('tranzilla')}
+        disabled={isAnyLoading}
+        className="w-full sm:flex-1 h-14 text-body-md font-bold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-elevation-1 hover:scale-[1.02]"
+        size="lg"
+      >
+        {isLoadingTranzilla ? (
+          <>
+            <Loader2 className="w-5 h-5 animate-spin me-2" />
+            {t('redirecting')}
+          </>
+        ) : (
+          t('payWithTranzilla')
+        )}
+      </Button>
+      <Button
         onClick={() => handleCheckout('paypal')}
-        disabled={isLoadingPayPal}
+        disabled={isAnyLoading}
         className="w-full sm:flex-1 h-14 text-body-md font-bold rounded-xl bg-warning text-warning-foreground hover:bg-warning/90 hover:shadow-elevation-1 hover:scale-[1.02]"
         size="lg"
       >

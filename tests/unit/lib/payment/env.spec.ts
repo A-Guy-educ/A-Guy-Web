@@ -8,6 +8,7 @@ import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import {
   getPayPalEnv,
   getStripeEnv,
+  getTranzillaEnv,
   MissingPaymentEnvError,
   resetPaymentEnvCache,
 } from '@/lib/payment/env'
@@ -24,9 +25,10 @@ const PAYPAL_VARS = [
   'PAYPAL_WEBHOOK_ID',
   'PAYPAL_SANDBOX',
 ]
+const TRANZILLA_VARS = ['TRANZILLA_TERMINAL', 'TRANZILLA_NOTIFY_URL']
 
 function clearAllPaymentVars() {
-  for (const name of [...STRIPE_VARS, ...PAYPAL_VARS]) {
+  for (const name of [...STRIPE_VARS, ...PAYPAL_VARS, ...TRANZILLA_VARS]) {
     delete process.env[name]
   }
 }
@@ -188,6 +190,46 @@ describe('Payment Environment Helpers', () => {
           expect(err.missing).toContain('PAYPAL_CLIENT_ID')
         }
       }
+    })
+  })
+
+  describe('getTranzillaEnv', () => {
+    it('returns terminal + notify URL when both are set', () => {
+      process.env.TRANZILLA_TERMINAL = 'fxpaguy'
+      process.env.TRANZILLA_NOTIFY_URL = 'https://admin.example/api/webhooks/tranzilla'
+
+      const env = getTranzillaEnv()
+
+      expect(env.tranzillaTerminal).toBe('fxpaguy')
+      expect(env.tranzillaNotifyUrl).toBe('https://admin.example/api/webhooks/tranzilla')
+    })
+
+    it('throws listing every missing Tranzilla var', () => {
+      expect(() => getTranzillaEnv()).toThrow(
+        'Missing required Tranzilla environment variables: TRANZILLA_TERMINAL, TRANZILLA_NOTIFY_URL',
+      )
+    })
+
+    it('throws when only TRANZILLA_NOTIFY_URL is missing', () => {
+      process.env.TRANZILLA_TERMINAL = 'fxpaguy'
+
+      expect(() => getTranzillaEnv()).toThrow(
+        'Missing required Tranzilla environment variables: TRANZILLA_NOTIFY_URL',
+      )
+    })
+
+    it('does NOT throw when PayPal/Stripe vars are missing', () => {
+      process.env.TRANZILLA_TERMINAL = 'fxpaguy'
+      process.env.TRANZILLA_NOTIFY_URL = 'https://admin.example/api/webhooks/tranzilla'
+
+      expect(() => getTranzillaEnv()).not.toThrow()
+    })
+
+    it('caches the result across calls', () => {
+      process.env.TRANZILLA_TERMINAL = 'fxpaguy'
+      process.env.TRANZILLA_NOTIFY_URL = 'https://admin.example/api/webhooks/tranzilla'
+
+      expect(getTranzillaEnv()).toBe(getTranzillaEnv())
     })
   })
 

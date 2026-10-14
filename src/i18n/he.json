@@ -1102,6 +1102,7 @@
       "subscriptionCheckoutDisabled": "מנויים יהיו זמינים בקרוב. אנא חזרו לבדוק בקרוב.",
       "inFlightSubscriptionExists": "כבר קיים תהליך תשלום פעיל למנוי הזה. אנא סיימו או בטלו אותו לפני שתתחילו חדש.",
       "stripeSubscriptionsNotSupported": "ניתן לשלם על מנויים רק באמצעות PayPal.",
+      "tranzillaSubscriptionsNotSupported": "ניתן לשלם על תוכניות חוזרות רק באמצעות PayPal. אנא בחרו PayPal כדי להירשם.",
       "couponsNotSupportedOnSubscriptions": "לא ניתן להשתמש בקודי קופון בתוכניות מנוי.",
       "productMissingInterval": "המנוי אינו מוגדר כראוי. אנא צור קשר עם התמיכה.",
       "productInvalidInterval": "המנוי אינו מוגדר כראוי. אנא צור קשר עם התמיכה.",
@@ -1109,7 +1110,8 @@
       "invalidCurrency": "המוצר אינו מוגדר כראוי. אנא צור קשר עם התמיכה."
     },
     "payWithCard": "שלם בכרטיס אשראי",
-    "payWithPaypal": "שלם עם PayPal"
+    "payWithPaypal": "שלם עם PayPal",
+    "payWithTranzilla": "אשראי"
   },
   "subscriptions": {
     "title": "בחרו מסלול",
@@ -1118,6 +1120,7 @@
     "freePriceLabel": "חינם",
     "currentPlan": "המסלול הנוכחי שלך",
     "subscribeButton": "הירשם עם PayPal",
+    "subscribeWithTranzilla": "הירשם באשראי",
     "loginToSubscribe": "התחברו כדי להירשם",
     "redirecting": "מעביר לתשלום...",
     "mostPopular": "הפופולרי ביותר",

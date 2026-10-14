@@ -5,7 +5,7 @@
  * Used by checkout creation, webhook verification, and refund operations.
  */
 
-export type PaymentProvider = 'stripe' | 'paypal'
+export type PaymentProvider = 'stripe' | 'paypal' | 'tranzilla'
 
 export type TransactionStatus = 'pending' | 'succeeded' | 'failed' | 'refunded'
 

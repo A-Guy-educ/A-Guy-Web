@@ -107,7 +107,7 @@ describe('BuyButton — responsive layout (#785)', () => {
     expect(button.className).toContain('w-full')
   })
 
-  it('renders the payment button as a full-width row-child (paypal-only checkout, #979)', () => {
+  it('renders the Tranzilla + PayPal payment buttons as full-width row-children', () => {
     useCurrentUserMock.mockReturnValue({
       user: sampleUser,
       isLoading: false,
@@ -124,13 +124,13 @@ describe('BuyButton — responsive layout (#785)', () => {
         discountedAmount={3900}
       />,
     )
-    // Wrapper still uses the flex-col/sm:flex-row layout so re-introducing
-    // Stripe (or any other provider) later doesn't require re-plumbing.
+    // Each provider gets its own full-width button; the flex-col/sm:flex-row
+    // wrapper lets them stack on mobile and sit side-by-side at sm+.
     const row = container.querySelector('div.flex.flex-col.sm\\:flex-row') as HTMLElement
     expect(row).toBeTruthy()
     expect(row.className).toContain('gap-3')
     const buttons = container.querySelectorAll('button')
-    expect(buttons.length).toBe(1)
+    expect(buttons.length).toBe(2)
     buttons.forEach((btn) => {
       expect(btn.className).toContain('w-full')
       expect(btn.className).toContain('sm:flex-1')
