@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.48.0 — 2026-10-14
+
+### Features
+- Tranzilla hosted-checkout alongside PayPal with two provider buttons (#1375)
+
+### Bug Fixes
+- Widen scroll view and normalize every svg sibling (#1374)
+- Revert scroll-view card width to 794px to stop SVG overflow (#1373)
+- Show lesson topic on intro and refresh last-accessed on view (#1372)
+- Polish math sizing, lesson intro, and course status card (#1371)
+
+### Chores
+- Bump actions/checkout from 4 to 7 (#1370)
+- Bump actions/setup-node from 4 to 7 (#1369)
+- Bump actions/cache from 5 to 6 (#1368)
+- Bump peter-evans/create-pull-request from 7 to 8 (#1367)
+- Bump dev-dependencies group (Playwright 1.63→1.64, typescript-eslint 8.71.0→8.71.1, @next/eslint-plugin-next 16.3.8→16.4.0) (#1357)
+
 ## v0.47.1 — 2026-10-12
 
 ### Bug Fixes
