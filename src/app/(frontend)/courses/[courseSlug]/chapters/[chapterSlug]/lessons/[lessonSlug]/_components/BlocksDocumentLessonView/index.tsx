@@ -205,7 +205,16 @@ export function BlocksDocumentLessonView({
         <div className="flex h-full flex-col">
           {headerSlot}
           <div className="flex-1 overflow-auto max-w-full bg-muted py-section-sm px-1 sm:px-2 print:bg-background print:overflow-visible print:p-0">
-            <div className="mx-auto max-w-5xl rounded-xl border border-border bg-card shadow-elevation-1 overflow-hidden print:shadow-none print:border-0 print:rounded-none print:max-w-full">
+            {/*
+              Card width stays at 794px (A4-ish) because exercise SVGs are
+              authored at `displaySize: 'full'` → width: 100% of the card's
+              inner width. Widening the card inflates every SVG, which both
+              bursts wide diagrams past the viewport and breaks visual parity
+              between sibling SVGs rendered at the same displaySize. The
+              "text expansion" win asked for in #1371 is preserved by the
+              tight inner padding below, not by widening the card itself.
+            */}
+            <div className="mx-auto max-w-[794px] rounded-xl border border-border bg-card shadow-elevation-1 overflow-hidden print:shadow-none print:border-0 print:rounded-none print:max-w-full">
               <div
                 className="px-3 py-5 font-serif sm:px-6 sm:py-section-md max-w-full overflow-hidden"
                 dir={dir}
