@@ -4942,6 +4942,8 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+## [v0.48.0] - 2026-10-14
+
 - promote: dev -> main (v0.48.0) ([#1377](https://github.com/A-Guy-educ/A-Guy-Web/pull/1377)) — @aguyshayb
 - chore: Release v0.48.0 ([#1376](https://github.com/A-Guy-educ/A-Guy-Web/pull/1376)) — @aguyshayb
 - feat: Add Tranzilla hosted-checkout alongside PayPal ([#1375](https://github.com/A-Guy-educ/A-Guy-Web/pull/1375)) — @aguyshayb
