@@ -4924,6 +4924,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Add Tranzilla hosted-checkout alongside PayPal ([#1375](https://github.com/A-Guy-educ/A-Guy-Web/pull/1375)) — @aguyshayb
 - fix: Widen scroll view and normalize every svg sibling ([#1374](https://github.com/A-Guy-educ/A-Guy-Web/pull/1374)) — @aguyshayb
 - fix: Revert scroll-view card width to 794px to stop SVG overflow ([#1373](https://github.com/A-Guy-educ/A-Guy-Web/pull/1373)) — @aguyshayb
 - fix: Show lesson topic on intro and refresh last-accessed on view ([#1372](https://github.com/A-Guy-educ/A-Guy-Web/pull/1372)) — @aguyshayb
