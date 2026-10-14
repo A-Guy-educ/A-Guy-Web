@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { BookOpen, ChevronLeft, FileText, Globe, Layers, RotateCcw, Sparkles } from 'lucide-react'
 import { usePathname, useSearchParams } from 'next/navigation'
 
@@ -170,6 +170,39 @@ export function LessonIntroPage({
   const pdfCount = mediaFiles.length
   const description = plainText(lesson.description)
 
+  // Touch the lesson's progress record on view so `lastAccessedAt` reflects
+  // this visit, which is what the course page's hero card ("where I left off"
+  // featured lesson) sorts by. We re-POST the current status + percent so
+  // the merge in /api/progress doesn't downgrade a completed lesson back to
+  // in-progress — this is a timestamp refresh, not a status change.
+  const touchedRef = useRef(false)
+  const touchStatus: 'completed' | 'in_progress' =
+    progress?.status === 'completed' || (progress?.percent ?? 0) >= 100
+      ? 'completed'
+      : 'in_progress'
+  const touchPercent = Math.min(100, Math.max(0, progress?.percent ?? 0))
+  useEffect(() => {
+    if (touchedRef.current) return
+    if (isAnonymous || isAuthLoading) return
+    if (!gradeLevel) return
+    if (!lessonId) return
+    touchedRef.current = true
+    fetch('/api/progress', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        recordType: 'lesson',
+        recordId: lessonId,
+        completionPercentage: touchPercent,
+        status: touchStatus,
+        gradeLevel,
+      }),
+    }).catch(() => {
+      /* silent — this is a best-effort "last accessed" touch */
+    })
+  }, [isAnonymous, isAuthLoading, gradeLevel, lessonId, touchPercent, touchStatus])
+
   const hasExerciseContent = exercises.some((exercise) => {
     if (!exercise || typeof exercise !== 'object') return false
     return getExerciseBlocks(exercise).length > 0
@@ -325,7 +358,7 @@ export function LessonIntroPage({
 
             <div className="space-y-3 md:space-y-4">
               <p className="text-body-sm text-muted-foreground md:text-body-md">
-                {[gradeLevel, courseTitle, chapterTitle].filter(Boolean).join(' / ')}
+                {[gradeLevel, courseTitle, chapterTitle, lesson.topic].filter(Boolean).join(' / ')}
               </p>
               <h1 className="text-heading-xl font-medium leading-tight text-foreground md:text-display-lg">
                 {lesson.title}
