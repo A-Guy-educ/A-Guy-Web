@@ -144,6 +144,14 @@ export function LessonListTab({
     return lessons
   }
 
+  // When hiding completed lessons, also drop chapters whose remaining lessons
+  // are all completed — otherwise their headers linger and the toggle feels
+  // like it did nothing.
+  const visibleGroups = useMemo(() => {
+    if (filterMode !== 'uncompleted') return groups
+    return groups.filter((g) => g.lessons.some((n) => n.status !== 'completed'))
+  }, [filterMode, groups])
+
   const handleFocusNext = () => {
     if (!featured) return
     const group = groups.find((g) => g.lessons.some((n) => n.isFeatured))
@@ -188,7 +196,7 @@ export function LessonListTab({
           onValueChange={setOpenChapters}
           className="space-y-content-gap-sm relative z-10"
         >
-          {groups.map((group) => (
+          {visibleGroups.map((group) => (
             <ChapterAccordion
               key={group.chapter.id}
               group={group}
