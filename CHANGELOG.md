@@ -4942,6 +4942,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Render multi-select MCQ in chat-native bubble ([#1385](https://github.com/A-Guy-educ/A-Guy-Web/pull/1385)) — @aguyshayb
 - fix: Show progress ring on course lesson rows and hide empty chapters ([#1384](https://github.com/A-Guy-educ/A-Guy-Web/pull/1384)) — @aguyshayb
 - chore(subscriptions): Drop unused intro-pricing scaffolding ([#1383](https://github.com/A-Guy-educ/A-Guy-Web/pull/1383)) — @aguyshayb
 - feat: Simplify course lesson roadmap filters and surface progress ([#1382](https://github.com/A-Guy-educ/A-Guy-Web/pull/1382)) — @aguyshayb
