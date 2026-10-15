@@ -1111,6 +1111,18 @@
     "payWithPaypal": "Pay with PayPal",
     "payWithTranzilla": "Credit Card"
   },
+  "subtest": {
+    "testBadge": "TEST",
+    "title": "Subscription smoke test",
+    "description": "A 1 ILS Tranzilla checkout for exercising the full web → payment → webhook → user-tier flow end-to-end. Grants the basic tier on success.",
+    "oneTime": "one-time",
+    "continueButton": "Continue",
+    "loginToTest": "Log in to test",
+    "redirecting": "Redirecting to checkout...",
+    "errors": {
+      "checkoutFailed": "Unable to start checkout. Please try again."
+    }
+  },
   "subscriptions": {
     "title": "Choose your plan",
     "description": "Full access to lessons, practice, exams, and an AI tutor — pick what fits.",

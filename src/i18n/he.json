@@ -1111,6 +1111,18 @@
     "payWithPaypal": "שלם עם PayPal",
     "payWithTranzilla": "אשראי"
   },
+  "subtest": {
+    "testBadge": "בדיקה",
+    "title": "בדיקת מנוי",
+    "description": "תשלום Tranzilla של שקל אחד להרצת כל הזרימה: אתר → תשלום → webhook → עדכון מסלול המשתמש. בהצלחה המשתמש יועלה למסלול בסיס.",
+    "oneTime": "חד פעמי",
+    "continueButton": "המשך",
+    "loginToTest": "התחבר לבדיקה",
+    "redirecting": "מעביר לתשלום...",
+    "errors": {
+      "checkoutFailed": "לא ניתן היה להתחיל תשלום. אנא נסה שוב."
+    }
+  },
   "subscriptions": {
     "title": "בחרו מסלול",
     "description": "גישה מלאה לשיעורים, תרגול, מבחנים ומורה AI — בחרו את המסלול שמתאים לכם.",
