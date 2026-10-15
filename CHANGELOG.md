@@ -4942,6 +4942,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Show progress ring on course lesson rows and hide empty chapters ([#1384](https://github.com/A-Guy-educ/A-Guy-Web/pull/1384)) — @aguyshayb
 - chore(subscriptions): Drop unused intro-pricing scaffolding ([#1383](https://github.com/A-Guy-educ/A-Guy-Web/pull/1383)) — @aguyshayb
 - feat: Simplify course lesson roadmap filters and surface progress ([#1382](https://github.com/A-Guy-educ/A-Guy-Web/pull/1382)) — @aguyshayb
 - feat: Render sibling sketch blocks inline in ChatView bubbles ([#1380](https://github.com/A-Guy-educ/A-Guy-Web/pull/1380)) — @aguyshayb
