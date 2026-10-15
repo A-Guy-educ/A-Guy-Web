@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import { Check, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -8,7 +8,23 @@ import { toast } from 'sonner'
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { Button } from '@/ui/web/components/button'
 import { useI18n, useTranslations } from '@/ui/web/providers/I18n'
-import { TIER_PRICE_ILS, getUserTierSlug, type TierSlug } from '@/lib/tiers'
+import {
+  TIER_PRICE_ILS,
+  getUserTierSlug,
+  type ActiveSubscription,
+  type TierSlug,
+} from '@/lib/tiers'
+
+type OfferSlug = 'default' | 'intro3mo'
+
+const KNOWN_OFFER_SLUGS: readonly OfferSlug[] = ['default', 'intro3mo']
+
+function resolveOfferSlug(raw: string | null): OfferSlug {
+  if (raw && (KNOWN_OFFER_SLUGS as readonly string[]).includes(raw)) {
+    return raw as OfferSlug
+  }
+  return 'default'
+}
 
 const TIER_ACCENT: Record<TierSlug, string> = {
   free: 'hsl(217 10% 55%)',
@@ -34,6 +50,7 @@ export function TierCard({ tier }: TierCardProps) {
   const t = useTranslations('subscriptions')
   const { messages } = useI18n()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user, isLoading: isAuthLoading } = useCurrentUser()
   const [isCheckingOut, setIsCheckingOut] = useState(false)
 
@@ -41,8 +58,18 @@ export function TierCard({ tier }: TierCardProps) {
   const isFree = tier === 'free'
   const isHighlighted = tier === 'advanced'
   const accent = TIER_ACCENT[tier]
-  const currentTier = getUserTierSlug(user as { currentTier?: string | null } | null)
+
+  // "Current plan" is driven by the subscription row when one exists —
+  // falling back to `user.currentTier` for the legacy / free / cancelled-and-
+  // past-period case. activeSubscription is the admin-attached virtual on
+  // /api/users/me (afterRead hook); null for users without an active sub.
+  const activeSubscription = (user as { activeSubscription?: ActiveSubscription | null } | null)
+    ?.activeSubscription
+  const currentTier =
+    activeSubscription?.tierSlug ?? getUserTierSlug(user as { currentTier?: string | null } | null)
   const isCurrent = currentTier === tier
+
+  const offerSlug = resolveOfferSlug(searchParams?.get('offer') ?? null)
 
   // Features are an array in the i18n JSON — pulled directly from the raw
   // messages tree because the typed `t()` helper only resolves string leaves.
@@ -64,7 +91,7 @@ export function TierCard({ tier }: TierCardProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ tier, provider: 'tranzilla' }),
+        body: JSON.stringify({ tier, offerSlug }),
       })
       const data = await res.json()
       if (!res.ok || !data.success) {

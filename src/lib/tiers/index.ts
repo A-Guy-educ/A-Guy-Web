@@ -25,6 +25,12 @@ export {
 export { isTierEnforcementEnabled } from './enforcement'
 export { getUserTierSlug, getUserTierRank, userMeetsTier, type UserWithTier } from './user-tier'
 export {
+  type ActiveSubscription,
+  type SubscriptionStatus,
+  hasPastDueSubscription,
+  willCancelAtPeriodEnd,
+} from './active-subscription'
+export {
   canAccessLearningLesson,
   canAccessLearningExercise,
   canAccessPracticeLesson,
