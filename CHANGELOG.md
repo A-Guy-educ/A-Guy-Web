@@ -4942,6 +4942,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore(subscriptions): Drop unused intro-pricing scaffolding ([#1383](https://github.com/A-Guy-educ/A-Guy-Web/pull/1383)) — @aguyshayb
 - feat: Simplify course lesson roadmap filters and surface progress ([#1382](https://github.com/A-Guy-educ/A-Guy-Web/pull/1382)) — @aguyshayb
 - feat: Render sibling sketch blocks inline in ChatView bubbles ([#1380](https://github.com/A-Guy-educ/A-Guy-Web/pull/1380)) — @aguyshayb
 - feat: Render question sketches in ChatView bubbles ([#1378](https://github.com/A-Guy-educ/A-Guy-Web/pull/1378)) — @aguyshayb
