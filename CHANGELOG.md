@@ -4942,6 +4942,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Render sibling sketch blocks inline in ChatView bubbles ([#1380](https://github.com/A-Guy-educ/A-Guy-Web/pull/1380)) — @aguyshayb
 - feat: Render question sketches in ChatView bubbles ([#1378](https://github.com/A-Guy-educ/A-Guy-Web/pull/1378)) — @aguyshayb
 ## [v0.48.0] - 2026-10-14
 
