@@ -1,7 +1,9 @@
 'use client'
 
 import { cn } from '@/infra/utils/ui'
+import { QuestionWithAttachment } from '@/ui/web/exerciserenderer/blocks/QuestionWithAttachment'
 import { RichTextRenderer } from '@/ui/web/exerciserenderer/blocks/RichTextRenderer'
+import { renderQuestionAttachment } from '@/ui/web/exerciserenderer/blocks/renderQuestionAttachment'
 import { QuestionNotebook } from '@/ui/web/exerciserenderer/components/QuestionNotebook'
 import type {
   InlineRichText,
@@ -192,7 +194,7 @@ export function ChatQuestionSelectBubble({
     typeof retryHintLabel === 'string' &&
     retryHintLabel.length > 0
 
-  return (
+  const questionContent = (
     <div className="flex flex-col gap-content-gap">
       <QuestionHeaderBadges sectionLabel={questionLabel}>
         <div className="text-body-md font-medium text-foreground leading-relaxed">
@@ -274,6 +276,23 @@ export function ChatQuestionSelectBubble({
       )}
     </div>
   )
+
+  // Admin-authored sketch attachment (svg / geometry / axis) rendered in the
+  // same slot as Interactive, so the same `textLeft/textRight/textAbove/
+  // textBelow` layout decisions carry over inside the chat bubble. The outer
+  // ExerciseSectionBubble already installs MediaMapProvider, so SvgRenderer
+  // can resolve any mediaIds the attachment references.
+  if (block.attachment) {
+    return (
+      <QuestionWithAttachment
+        layout={block.attachment.layout}
+        question={questionContent}
+        attachment={renderQuestionAttachment(block.id, block.attachment)}
+      />
+    )
+  }
+
+  return questionContent
 }
 
 function getChoices(block: QuestionSelectBlock): Choice[] {
