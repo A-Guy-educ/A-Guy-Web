@@ -326,7 +326,11 @@ export function ExerciseSectionBubble({
   // full opacity and remain answerable: the runner routes their feedback
   // under the correct section via `sectionKey`.
   return (
-    <div className="flex flex-col gap-content-gap">
+    <div
+      className="flex flex-col gap-content-gap"
+      data-chat-native={String(isChatNativePath)}
+      data-block-types={group.blocks.map((b) => b.type).join(',')}
+    >
       {isChatNativePath ? (
         // MediaMapProvider is required so RichTextRenderer's MediaAttachments
         // (used inside prompts, option labels, and inline rich_text) can look
