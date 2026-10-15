@@ -4942,6 +4942,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat(subscriptions): Add /subtest smoke-test page at 1 ILS ([#1388](https://github.com/A-Guy-educ/A-Guy-Web/pull/1388)) — @aguyshayb
 - feat: Surface chat-view lesson progress on the course roadmap ([#1387](https://github.com/A-Guy-educ/A-Guy-Web/pull/1387)) — @aguyshayb
 - fix(subscriptions): Keep only Tranzilla button, label it Continue ([#1386](https://github.com/A-Guy-educ/A-Guy-Web/pull/1386)) — @aguyshayb
 - feat: Render multi-select MCQ in chat-native bubble ([#1385](https://github.com/A-Guy-educ/A-Guy-Web/pull/1385)) — @aguyshayb
