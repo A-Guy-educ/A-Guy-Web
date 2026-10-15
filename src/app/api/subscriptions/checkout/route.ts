@@ -24,14 +24,8 @@ import { logger } from '@/infra/utils/logger/logger'
 import { MissingPaymentEnvError } from '@/lib/payment/env'
 import { cancelPayPalOrder, createPayPalOrder } from '@/lib/payment/paypal'
 import { createTranzillaCheckout } from '@/lib/payment/tranzilla'
-import {
-  TIER_INTRO_OFFER,
-  TIER_LABEL_EN,
-  TIER_PRICE_ILS,
-  type TierSlug,
-} from '@/lib/tiers/constants'
+import { TIER_LABEL_EN, TIER_PRICE_ILS, type TierSlug } from '@/lib/tiers/constants'
 import { createTransaction, deleteTransactionRow } from '@/server/services/checkout'
-import { countSucceededTierPurchases } from '@/server/services/tier-pricing'
 
 const BodySchema = z.object({
   tier: z.enum(['basic', 'advanced', 'premium']),
@@ -50,19 +44,10 @@ export async function POST(request: NextRequest) {
   }
 
   const tier: TierSlug = parsed.data.tier
-  const regularPriceIls = TIER_PRICE_ILS[tier]
-  if (!(regularPriceIls > 0)) {
+  const priceIls = TIER_PRICE_ILS[tier]
+  if (!(priceIls > 0)) {
     return NextResponse.json({ success: false, error: 'invalid_tier' }, { status: 400 })
   }
-
-  // Intro-offer eligibility: if the tier has an active promo and the buyer
-  // has fewer than `introMonths` prior succeeded `tier_subscription`
-  // transactions for this tier, charge the intro price. Keyed on buyer+tier
-  // so a basic→advanced step-up starts a fresh intro budget per tier.
-  const intro = TIER_INTRO_OFFER[tier]
-  const { priceIls, isIntro } = intro
-    ? await resolveIntroPricing({ userId: user.id, tier, regularPriceIls, intro })
-    : { priceIls: regularPriceIls, isIntro: false }
 
   const amount = Math.round(priceIls * 100)
   const currency = 'ILS'
@@ -84,8 +69,6 @@ export async function POST(request: NextRequest) {
       user,
       baseUrl,
       cancelUrl,
-      isIntro,
-      regularPriceIls,
     })
   }
 
@@ -143,7 +126,6 @@ export async function POST(request: NextRequest) {
       status: 'pending',
       amount,
       currency,
-      ...(isIntro ? { metadata: { introApplied: true, regularPriceIls } } : {}),
       successUrl,
       cancelUrl,
     })
@@ -192,24 +174,12 @@ interface TranzillaTierCheckoutParams {
   user: { id: string }
   baseUrl: string
   cancelUrl: string
-  isIntro: boolean
-  regularPriceIls: number
 }
 
 async function createTranzillaTierCheckout(
   params: TranzillaTierCheckoutParams,
 ): Promise<NextResponse> {
-  const {
-    tier,
-    amount,
-    currency,
-    productName,
-    user,
-    baseUrl,
-    cancelUrl,
-    isIntro,
-    regularPriceIls,
-  } = params
+  const { tier, amount, currency, productName, user, baseUrl, cancelUrl } = params
 
   const transactionId = new ObjectId()
   const tranzillaSuccessUrl = `${baseUrl}/checkout/success?tranzilla_tx=${transactionId.toString()}`
@@ -227,7 +197,6 @@ async function createTranzillaTierCheckout(
       status: 'pending',
       amount,
       currency,
-      ...(isIntro ? { metadata: { introApplied: true, regularPriceIls } } : {}),
       successUrl: tranzillaSuccessUrl,
       cancelUrl,
     })
@@ -295,31 +264,5 @@ async function createTranzillaTierCheckout(
       'Tranzilla tier checkout: URL build failed',
     )
     return NextResponse.json({ success: false, error: 'checkout_failed' }, { status: 500 })
-  }
-}
-
-interface ResolveIntroArgs {
-  userId: string
-  tier: TierSlug
-  regularPriceIls: number
-  intro: { introPriceIls: number; introMonths: number }
-}
-
-/**
- * Decides whether this checkout is still inside the intro window. Counts the
- * buyer's succeeded `tier_subscription` transactions for this tier — strictly
- * fewer than `introMonths` → intro price applies.
- */
-async function resolveIntroPricing({
-  userId,
-  tier,
-  regularPriceIls,
-  intro,
-}: ResolveIntroArgs): Promise<{ priceIls: number; isIntro: boolean }> {
-  const used = await countSucceededTierPurchases(userId, tier)
-  const isIntro = used < intro.introMonths
-  return {
-    priceIls: isIntro ? intro.introPriceIls : regularPriceIls,
-    isIntro,
   }
 }

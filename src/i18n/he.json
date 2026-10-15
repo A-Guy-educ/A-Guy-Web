@@ -1122,7 +1122,6 @@
     "loginToSubscribe": "התחברו כדי להירשם",
     "redirecting": "מעביר לתשלום...",
     "mostPopular": "הפופולרי ביותר",
-    "introPrefix": "{months} החודשים הראשונים, אחר כך {regular} לחודש",
     "tiers": {
       "free": {
         "name": "חינם",

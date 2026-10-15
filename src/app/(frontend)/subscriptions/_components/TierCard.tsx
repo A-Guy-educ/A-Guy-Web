@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { Button } from '@/ui/web/components/button'
 import { useI18n, useTranslations } from '@/ui/web/providers/I18n'
-import { TIER_INTRO_OFFER, TIER_PRICE_ILS, getUserTierSlug, type TierSlug } from '@/lib/tiers'
+import { TIER_PRICE_ILS, getUserTierSlug, type TierSlug } from '@/lib/tiers'
 
 const TIER_ACCENT: Record<TierSlug, string> = {
   free: 'hsl(217 10% 55%)',
@@ -40,7 +40,6 @@ export function TierCard({ tier }: TierCardProps) {
   const [loadingProvider, setLoadingProvider] = useState<CheckoutProvider | null>(null)
 
   const price = TIER_PRICE_ILS[tier]
-  const intro = TIER_INTRO_OFFER[tier]
   const isFree = tier === 'free'
   const isHighlighted = tier === 'advanced'
   const accent = TIER_ACCENT[tier]
@@ -110,29 +109,11 @@ export function TierCard({ tier }: TierCardProps) {
         </div>
 
         <div className="flex items-baseline gap-content-gap-xs">
-          {intro ? (
-            <>
-              <span className="text-display-sm font-black text-foreground">
-                {formatIls(intro.introPriceIls)}
-              </span>
-              <span className="text-body-sm text-muted-foreground">{t('perMonth')}</span>
-            </>
-          ) : (
-            <>
-              <span className="text-display-sm font-black text-foreground">{priceLabel}</span>
-              {!isFree ? (
-                <span className="text-body-sm text-muted-foreground">{t('perMonth')}</span>
-              ) : null}
-            </>
-          )}
+          <span className="text-display-sm font-black text-foreground">{priceLabel}</span>
+          {!isFree ? (
+            <span className="text-body-sm text-muted-foreground">{t('perMonth')}</span>
+          ) : null}
         </div>
-        {intro ? (
-          <p className="text-body-sm text-muted-foreground">
-            {t('introPrefix')
-              .replace('{months}', String(intro.introMonths))
-              .replace('{regular}', formatIls(price))}
-          </p>
-        ) : null}
 
         <ul className="mt-2 flex flex-col gap-content-gap-xs">
           {features.map((feature, i) => (
