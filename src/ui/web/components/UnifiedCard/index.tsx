@@ -207,7 +207,9 @@ export function UnifiedCard({
                 percentage={progress}
                 size={56}
                 strokeWidth={6}
-                strokeColor={progress >= 100 ? 'hsl(var(--success))' : color}
+                strokeColor={
+                  variant === 'lesson' || progress >= 100 ? 'hsl(var(--success))' : color
+                }
               >
                 {progress >= 100 ? null : (
                   <>
