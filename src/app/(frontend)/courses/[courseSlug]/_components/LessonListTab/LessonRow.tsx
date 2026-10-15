@@ -15,8 +15,8 @@ import { storeLessonOpenTimestamp } from '@/infra/analytics/utils/lesson-load-ti
 import { SYSTEM_EVENTS, systemEventBus } from '@/infra/system-events'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { ContentStatusBadge } from '@/ui/web/shared/ContentStatusBadge'
+import { ProgressCircle } from '@/ui/web/shared/ProgressCircle'
 import { ShareButton } from '@/ui/web/shared/ShareButton'
-import { formatMessage } from './formatMessage'
 import type { LessonRoadmapNode } from './lessonRoadmapTypes'
 
 interface LessonRowProps {
@@ -135,12 +135,6 @@ export function LessonRow({ node, courseSlug, purchaseHref }: LessonRowProps) {
                 contentStatusExpiresAt={lesson.contentStatusExpiresAt ?? undefined}
                 contentStatusLabel={lesson.contentStatusLabel ?? undefined}
               />
-              {progressPercent > 0 && progressPercent < 100 && (
-                <span className="inline-flex items-center gap-1 text-body-2xs text-muted-foreground font-mono tabular-nums">
-                  <Clock className="w-3 h-3" />
-                  {formatMessage(t('roadmapLessonProgressBadge'), { percent: progressPercent })}
-                </span>
-              )}
             </div>
             <h4 className="text-body-sm font-bold text-foreground tracking-tight">
               {lesson.title}
@@ -148,6 +142,9 @@ export function LessonRow({ node, courseSlug, purchaseHref }: LessonRowProps) {
           </div>
         </div>
         <div className="flex items-center gap-content-gap-xs self-stretch sm:self-auto justify-end shrink-0">
+          {status !== 'locked' && status !== 'soon' && (
+            <LessonProgressRing percent={progressPercent} />
+          )}
           {/* Share comes before the status chip in DOM so flex visual
               ordering lands it on the opposite side of the start/continue
               button — Hebrew (RTL): start on left, share to the right of it;
@@ -164,6 +161,25 @@ export function LessonRow({ node, courseSlug, purchaseHref }: LessonRowProps) {
           {renderStatusControl({ node, t })}
         </div>
       </SystemLink>
+    </div>
+  )
+}
+
+function LessonProgressRing({ percent }: { percent: number }) {
+  const safe = Math.max(0, Math.min(100, Math.round(percent)))
+  return (
+    <div className="w-10 h-10 shrink-0" aria-label={`${safe}%`}>
+      <ProgressCircle percentage={safe} size={40} strokeWidth={4} strokeColor="hsl(var(--success))">
+        <text
+          x="50%"
+          y="50%"
+          textAnchor="middle"
+          dy=".3em"
+          className="text-[9px] font-bold fill-foreground tabular-nums"
+        >
+          {safe}%
+        </text>
+      </ProgressCircle>
     </div>
   )
 }
