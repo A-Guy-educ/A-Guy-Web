@@ -44,4 +44,4 @@ export interface ChapterRoadmapGroup {
   hasFeatured: boolean
 }
 
-export type FilterMode = 'all' | 'focus' | 'uncompleted'
+export type FilterMode = 'all' | 'uncompleted'

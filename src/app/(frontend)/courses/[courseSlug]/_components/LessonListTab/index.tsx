@@ -139,13 +139,6 @@ export function LessonListTab({
     setAutoExpandedFor(featuredChapterId)
   }, [autoExpandedFor, featured, groups])
 
-  const visibleGroups = useMemo(() => {
-    if (filterMode === 'focus' && featured) {
-      return groups.filter((g) => g.hasFeatured)
-    }
-    return groups
-  }, [filterMode, featured, groups])
-
   const visibleLessonsFor = (lessons: LessonRoadmapNode[]) => {
     if (filterMode === 'uncompleted') return lessons.filter((n) => n.status !== 'completed')
     return lessons
@@ -195,7 +188,7 @@ export function LessonListTab({
           onValueChange={setOpenChapters}
           className="space-y-content-gap-sm relative z-10"
         >
-          {visibleGroups.map((group) => (
+          {groups.map((group) => (
             <ChapterAccordion
               key={group.chapter.id}
               group={group}
