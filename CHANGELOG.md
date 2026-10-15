@@ -4942,6 +4942,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat(subscriptions): Wire real subscription bootstrap + cancel to admin ([#1389](https://github.com/A-Guy-educ/A-Guy-Web/pull/1389)) — @aguyshayb
 - feat(subscriptions): Add /subtest smoke-test page at 1 ILS ([#1388](https://github.com/A-Guy-educ/A-Guy-Web/pull/1388)) — @aguyshayb
 - feat: Surface chat-view lesson progress on the course roadmap ([#1387](https://github.com/A-Guy-educ/A-Guy-Web/pull/1387)) — @aguyshayb
 - fix(subscriptions): Keep only Tranzilla button, label it Continue ([#1386](https://github.com/A-Guy-educ/A-Guy-Web/pull/1386)) — @aguyshayb
