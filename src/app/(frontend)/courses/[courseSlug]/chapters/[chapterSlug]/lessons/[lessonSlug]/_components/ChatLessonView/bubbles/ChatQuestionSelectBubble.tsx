@@ -16,7 +16,8 @@ import {
   patchExerciseStateBlockMeta,
   readExerciseState,
 } from '@/ui/web/exerciserenderer/utils/exerciseStateStorage'
-import { ArrowLeft, Lightbulb } from 'lucide-react'
+import { useTranslations } from '@/ui/web/providers/I18n'
+import { ArrowLeft, Check, Lightbulb } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { QuestionHeaderBadges } from './QuestionHeaderBadges'
 
@@ -68,17 +69,33 @@ interface Choice {
 }
 
 /**
- * Chat-native renderer for `question_select` blocks (both MCQ single-select
- * and true/false). Auto-submits on click — no separate "Check" button, no
- * card chrome around the question. Correctness is computed locally against
- * the block's `correctOptionIds` / `correctOptionId` and reported to the
- * parent via `onSubmit(optionText, isCorrect)`.
+ * Chat-native renderer for `question_select` blocks. Dispatches to one of
+ * two inner components based on the block's selection mode:
  *
- * Multi-select MCQs are NOT handled here — the caller should route them to
- * the existing ExerciseRenderer (with `questionCardVariant='flat'`) since
- * multi-select needs a submit-after-selection flow this component skips.
+ *   - `SingleSelectBubble` — auto-submits on first click. Covers true/false
+ *     and single-select MCQs. Handles the Task-3 retry/hint flow for 3+
+ *     option MCQs.
+ *   - `MultiSelectBubble` — toggles options; a check button at the bottom
+ *     finalizes the answer. Correctness is set-equality against
+ *     `correctOptionIds`.
+ *
+ * Correctness is computed locally and reported to the parent via
+ * `onSubmit(blockId, optionText, isCorrect)`.
  */
-export function ChatQuestionSelectBubble({
+export function ChatQuestionSelectBubble(props: ChatQuestionSelectBubbleProps) {
+  // Multi-select MCQ takes a different flow: toggle-style options + a submit
+  // button. Branch at the top so the single-select retry/hint plumbing below
+  // can assume one-pick-locks semantics.
+  if (
+    props.block.variant === 'mcq' &&
+    (props.block as QuestionSelectMcqBlock).answer.multiSelect === true
+  ) {
+    return <MultiSelectBubble {...props} />
+  }
+  return <SingleSelectBubble {...props} />
+}
+
+function SingleSelectBubble({
   block,
   questionLabel,
   disabled,
@@ -282,6 +299,172 @@ export function ChatQuestionSelectBubble({
   // textBelow` layout decisions carry over inside the chat bubble. The outer
   // ExerciseSectionBubble already installs MediaMapProvider, so SvgRenderer
   // can resolve any mediaIds the attachment references.
+  if (block.attachment) {
+    return (
+      <QuestionWithAttachment
+        layout={block.attachment.layout}
+        question={questionContent}
+        attachment={renderQuestionAttachment(block.id, block.attachment)}
+      />
+    )
+  }
+
+  return questionContent
+}
+
+/**
+ * Chat-native renderer for multi-select MCQ. Options toggle on tap; a check
+ * button at the bottom finalizes the attempt. Correctness is set-equality
+ * against `correctOptionIds` — any missing-correct or extra-wrong option
+ * counts the whole answer wrong. Retry/hint flow isn't wired for multi-
+ * select (student can already toggle until happy), but hint / explain / skip
+ * chips still live on the parent and work normally.
+ */
+function MultiSelectBubble({
+  block,
+  questionLabel,
+  disabled,
+  exerciseId,
+  onSubmit,
+}: ChatQuestionSelectBubbleProps) {
+  const t = useTranslations('courses')
+  const choices = useMemo(() => getChoices(block), [block])
+  const correctIds = useMemo(() => getCorrectIds(block), [block])
+
+  // Hydrate: pickedIds + submitted state come from the shared answer bundle
+  // so a return visit shows the final selection locked with its green/red/
+  // amber styling. Mirrors the single-select hydration above.
+  const [pickedIds, setPickedIds] = useState<Set<string>>(() => {
+    if (!exerciseId) return new Set()
+    const saved = readExerciseState(exerciseId)
+    const answer = saved?.answers[block.id]
+    if (!answer || answer.type !== 'mcq') return new Set()
+    return new Set(answer.selectedIds)
+  })
+  const [submitted, setSubmitted] = useState<boolean>(() => {
+    if (!exerciseId) return false
+    const saved = readExerciseState(exerciseId)
+    return Boolean(saved?.checkResults[block.id])
+  })
+
+  const handleToggle = (choiceId: string) => {
+    if (submitted || disabled) return
+    setPickedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(choiceId)) next.delete(choiceId)
+      else next.add(choiceId)
+      return next
+    })
+  }
+
+  const handleSubmit = () => {
+    if (submitted || disabled || pickedIds.size === 0) return
+    const isCorrect =
+      pickedIds.size === correctIds.size && [...pickedIds].every((id) => correctIds.has(id))
+    setSubmitted(true)
+    if (exerciseId) {
+      patchExerciseStateBlock(exerciseId, block.id, {
+        answer: { type: 'mcq', selectedIds: Array.from(pickedIds) },
+        checkResult: { isCorrect },
+      })
+    }
+    const text = choices
+      .filter((c) => pickedIds.has(c.id))
+      .map((c) => c.labelValue)
+      .join(', ')
+    onSubmit(block.id, text, isCorrect)
+  }
+
+  const questionContent = (
+    <div className="flex flex-col gap-content-gap">
+      <QuestionHeaderBadges sectionLabel={questionLabel}>
+        <div className="text-body-md font-medium text-foreground leading-relaxed">
+          <RichTextRenderer block={block.prompt} />
+        </div>
+      </QuestionHeaderBadges>
+
+      <div className="grid grid-cols-1 gap-content-gap-xs mt-2">
+        {choices.map((choice) => {
+          const isPicked = pickedIds.has(choice.id)
+          const isCorrectOption = correctIds.has(choice.id)
+          // Post-submit colouring: picked+correct = green; picked+wrong = red;
+          // not-picked+correct = amber (student missed it). Not-picked+wrong
+          // stays neutral so the student focuses on their own answer rather
+          // than parsing every option they didn't pick.
+          const showAsCorrect = submitted && isPicked && isCorrectOption
+          const showAsWrong = submitted && isPicked && !isCorrectOption
+          const showAsMissed = submitted && !isPicked && isCorrectOption
+          const isDisabled = submitted || Boolean(disabled)
+
+          return (
+            <button
+              key={choice.id}
+              type="button"
+              disabled={isDisabled}
+              onClick={() => handleToggle(choice.id)}
+              className={cn(
+                'w-full text-right p-3.5 rounded-xl border-2 flex items-center justify-between gap-3',
+                'font-semibold text-body-md transition-colors',
+                'disabled:cursor-not-allowed',
+                !submitted &&
+                  !isPicked &&
+                  'border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 text-foreground',
+                !submitted && isPicked && 'border-primary bg-primary/15 text-foreground',
+                showAsCorrect && 'border-success/60 bg-success/10 text-foreground',
+                showAsWrong && 'border-error/60 bg-error/10 text-foreground',
+                showAsMissed && 'border-warning/60 bg-warning/10 text-foreground',
+                submitted &&
+                  !showAsCorrect &&
+                  !showAsWrong &&
+                  !showAsMissed &&
+                  'border-border/40 bg-muted/40 text-muted-foreground opacity-70',
+              )}
+            >
+              <span className="flex-1 text-right">
+                <RichTextRenderer block={choice.labelBlock} />
+              </span>
+              <span
+                className={cn(
+                  'w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0',
+                  !submitted && !isPicked && 'border-primary/40',
+                  !submitted && isPicked && 'bg-primary border-primary text-primary-foreground',
+                  showAsCorrect && 'bg-success border-success text-primary-foreground',
+                  showAsWrong && 'bg-error border-error text-primary-foreground',
+                  showAsMissed && 'bg-warning border-warning text-primary-foreground',
+                )}
+                aria-hidden="true"
+              >
+                {(isPicked || showAsMissed) && <Check className="w-3.5 h-3.5" />}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+
+      {!submitted && (
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={Boolean(disabled) || pickedIds.size === 0}
+          className={cn(
+            'self-end mt-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground font-semibold',
+            'hover:bg-primary/90 transition-colors',
+            'disabled:opacity-50 disabled:cursor-not-allowed',
+          )}
+        >
+          {t('checkAnswer')}
+        </button>
+      )}
+
+      {block.showNotebook === true && (
+        <QuestionNotebook
+          contextTitle={questionLabel ?? block.id}
+          disabled={disabled || submitted}
+        />
+      )}
+    </div>
+  )
+
   if (block.attachment) {
     return (
       <QuestionWithAttachment

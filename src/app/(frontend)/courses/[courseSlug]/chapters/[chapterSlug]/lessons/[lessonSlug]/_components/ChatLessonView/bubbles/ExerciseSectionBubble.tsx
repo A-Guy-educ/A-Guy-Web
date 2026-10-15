@@ -128,14 +128,16 @@ interface ExerciseSectionBubbleProps {
 /**
  * A section rendered as a chat bubble. Two rendering paths:
  *
- * - CHAT-NATIVE: when every question in the section is a single-select
- *   `question_select` (mcq single-select OR true/false). Renders the prompt
- *   as a chat message, options as chat buttons that auto-submit on click,
- *   and echoes each pick as a right-side student bubble in the stream via
- *   `onQuestionSubmit`. Non-question blocks (rich_text) render inline.
+ * - CHAT-NATIVE: when every question in the section is a `question_select`
+ *   (single- OR multi-select mcq, OR true/false) or `question_free_response`,
+ *   optionally alongside a decorative sibling sketch (non-interactive svg,
+ *   display-only geometry/axis) or a `rich_text` note. Renders the prompt as
+ *   a chat message, options as chat buttons (auto-submit for single-select,
+ *   toggle + check button for multi-select), and echoes each pick as a
+ *   right-side student bubble in the stream via `onQuestionSubmit`.
  *
- * - FALLBACK: any other shape (multi-select mcq, free-response, table,
- *   matching, geometry, axis, svg, etc.) drops through to the shared
+ * - FALLBACK: any other shape (table, matching, interactive-hotspot svg,
+ *   multi-axis, html, latex, media) drops through to the shared
  *   `ExerciseRenderer` with `questionCardVariant='flat'` so the internal
  *   card chrome is stripped to blend inside the bubble.
  *
@@ -485,14 +487,13 @@ export function ExerciseSectionBubble({
 
 /**
  * Allowlist guard: a section is chat-native ONLY when every block is one of
- * — single-select `question_select`, `question_free_response`, a `rich_text`
+ * — `question_select` (any variant), `question_free_response`, a `rich_text`
  * decoration, or a decorative sibling sketch (non-interactive svg, display-
  * only geometry/axis — see `isDecorativeSibling`). The chat-native render
  * loop below only knows how to render those; anything else (media, html,
- * latex, multi-axis, table/matching, interactive-hotspot svg, multi-select
- * mcq) must fall back to the shared ExerciseRenderer so nothing is silently
- * dropped AND the section outcome doesn't fire prematurely on a partial
- * answer count.
+ * latex, multi-axis, table/matching, interactive-hotspot svg) must fall back
+ * to the shared ExerciseRenderer so nothing is silently dropped AND the
+ * section outcome doesn't fire prematurely on a partial answer count.
  *
  * Questions carrying an `attachment` (sketch shown side-by-side with the
  * question) stay on the chat-native path — ChatQuestionSelectBubble and
@@ -509,8 +510,6 @@ function isChatNativeSection(group: ExerciseBlockGroup): boolean {
     if (block.type === 'rich_text') continue
     if (block.type === 'question_select') {
       hasAnyQuestion = true
-      const b = block as unknown as QuestionSelectBlock
-      if (b.variant === 'mcq' && b.answer.multiSelect) return false
       continue
     }
     if (block.type === 'question_free_response') {
