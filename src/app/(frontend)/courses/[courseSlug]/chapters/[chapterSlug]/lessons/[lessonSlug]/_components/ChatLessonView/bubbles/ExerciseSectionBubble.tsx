@@ -1,15 +1,27 @@
 'use client'
 
+import type { AxisSpecV1 } from '@/infra/contracts/graphics/axis.v1'
+import type { GeometrySpecV1 } from '@/infra/contracts/graphics/geometry.v1'
 import type { Exercise, Media } from '@/infra/types/content'
-import type { ExerciseBlockGroup, RichTextBlock } from '@/infra/types/exercise'
+import type {
+  ExerciseBlockGroup,
+  GraphLayout,
+  InlineRichText,
+  RichTextBlock,
+} from '@/infra/types/exercise'
 import type {
   QuestionFreeResponseBlock,
   QuestionSelectBlock,
   QuestionSelectMcqBlock,
   QuestionSelectTrueFalseBlock,
+  SvgBlock,
 } from '@/ui/web/exerciserenderer/types'
 import { ExerciseRenderer } from '@/ui/web/exerciserenderer'
+import { AxisRenderer } from '@/ui/web/exerciserenderer/blocks/AxisRenderer'
+import { GeometryRenderer } from '@/ui/web/exerciserenderer/blocks/GeometryRenderer'
+import { GraphWithPrompt } from '@/ui/web/exerciserenderer/blocks/GraphWithPrompt'
 import { RichTextRenderer } from '@/ui/web/exerciserenderer/blocks/RichTextRenderer'
+import { SvgRenderer } from '@/ui/web/exerciserenderer/blocks/SvgRenderer'
 import { MediaMapProvider } from '@/ui/web/exerciserenderer/context/MediaMapContext'
 import { readExerciseState } from '@/ui/web/exerciserenderer/utils/exerciseStateStorage'
 import { useCallback, useMemo, useRef, useState } from 'react'
@@ -380,6 +392,55 @@ export function ExerciseSectionBubble({
                 </div>
               )
             }
+            // Decorative sibling sketches (non-interactive svg, display-only
+            // geometry/axis). The allowlist in `isChatNativeSection` lets these
+            // through so a section like `[question_geometry, question_select]`
+            // keeps the chat-native treatment on the question instead of
+            // dumping the whole group into the ExerciseRenderer fallback. Each
+            // uses the same renderer the Interactive tab does so the sketch
+            // looks identical across views.
+            if (block.type === 'svg') {
+              const svg = block as SvgBlock
+              return <SvgRenderer key={svg.id} block={svg} displaySize={svg.displaySize} />
+            }
+            if (block.type === 'question_geometry') {
+              const g = block as {
+                id: string
+                geometry: GeometrySpecV1
+                layout?: GraphLayout
+                prompt?: InlineRichText
+                displaySize?: 'small' | 'medium' | 'large' | 'full'
+              }
+              return (
+                <GraphWithPrompt
+                  key={g.id}
+                  blockId={g.id}
+                  layout={g.layout ?? 'textRight'}
+                  prompt={g.prompt}
+                >
+                  <GeometryRenderer blockId={g.id} spec={g.geometry} displaySize={g.displaySize} />
+                </GraphWithPrompt>
+              )
+            }
+            if (block.type === 'question_axis') {
+              const a = block as {
+                id: string
+                axis: AxisSpecV1
+                layout?: GraphLayout
+                prompt?: InlineRichText
+                displaySize?: 'small' | 'medium' | 'large' | 'full'
+              }
+              return (
+                <GraphWithPrompt
+                  key={a.id}
+                  blockId={a.id}
+                  layout={a.layout ?? 'textRight'}
+                  prompt={a.prompt}
+                >
+                  <AxisRenderer blockId={a.id} spec={a.axis} displaySize={a.displaySize} />
+                </GraphWithPrompt>
+              )
+            }
             return null
           })}
 
@@ -424,18 +485,20 @@ export function ExerciseSectionBubble({
 
 /**
  * Allowlist guard: a section is chat-native ONLY when every block is one of
- * — single-select `question_select`, `question_free_response`, or a
- * `rich_text` decoration. The chat-native render loop below only knows how
- * to render those three; anything else (media, svg, html, latex, multi-
- * axis, table/matching/geometry/axis, multi-select mcq) must fall back to
- * the shared ExerciseRenderer so nothing is silently dropped AND the
- * section outcome doesn't fire prematurely on a partial answer count.
+ * — single-select `question_select`, `question_free_response`, a `rich_text`
+ * decoration, or a decorative sibling sketch (non-interactive svg, display-
+ * only geometry/axis — see `isDecorativeSibling`). The chat-native render
+ * loop below only knows how to render those; anything else (media, html,
+ * latex, multi-axis, table/matching, interactive-hotspot svg, multi-select
+ * mcq) must fall back to the shared ExerciseRenderer so nothing is silently
+ * dropped AND the section outcome doesn't fire prematurely on a partial
+ * answer count.
  *
  * Questions carrying an `attachment` (sketch shown side-by-side with the
  * question) stay on the chat-native path — ChatQuestionSelectBubble and
- * ChatFreeResponseBubble now wrap their content in QuestionWithAttachment
- * when the field is set, reusing the Interactive-tab renderer so the
- * authored `textLeft/textRight/textAbove/textBelow` layout is honored.
+ * ChatFreeResponseBubble wrap their content in QuestionWithAttachment when
+ * the field is set, reusing the Interactive-tab renderer so the authored
+ * `textLeft/textRight/textAbove/textBelow` layout is honored.
  *
  * Kept as an explicit allowlist (rather than a growing rejectlist) so
  * adding new block types can't accidentally slip through.
@@ -454,11 +517,30 @@ function isChatNativeSection(group: ExerciseBlockGroup): boolean {
       hasAnyQuestion = true
       continue
     }
+    if (isDecorativeSibling(block)) continue
     // Any other block type → fallback path. ExerciseRenderer knows how to
-    // render media/svg/html/latex/etc. with all their affordances.
+    // render media/html/latex/etc. with all their affordances.
     return false
   }
   return hasAnyQuestion
+}
+
+/**
+ * Non-gradable sketch siblings the chat-native loop renders inline next to a
+ * question block. Mirrors `useExerciseWalker.isAnswerRequired`: svg is
+ * decorative unless it carries interactive hotspots, and `question_axis` /
+ * `question_geometry` are always treated as display in chat (their answer
+ * flows aren't wired up here — if we need them, the whole group should drop
+ * to the ExerciseRenderer fallback so the answer UI isn't silently lost).
+ */
+function isDecorativeSibling(block: { type: string; [key: string]: unknown }): boolean {
+  if (block.type === 'question_axis' || block.type === 'question_geometry') return true
+  if (block.type === 'svg') {
+    const interactive = (block as { interactive?: boolean }).interactive === true
+    const hotspots = (block as { hotspots?: unknown[] }).hotspots
+    return !(interactive && Array.isArray(hotspots) && hotspots.length > 0)
+  }
+  return false
 }
 
 /** Blocks the chat-native path treats as "gradable questions". */
