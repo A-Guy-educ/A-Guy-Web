@@ -19,9 +19,13 @@ import { useCallback, useRef, useState } from 'react'
 const STORAGE_KEY_PREFIX = 'aguy:lessonChatProgress:'
 const CORRECT_STATE_KEY_PREFIX = 'aguy:lessonChatCorrect:'
 const STARTED_AT_KEY_PREFIX = 'aguy:lessonChatStartedAt:'
+// Read on the course page by useChatProgressMap. If you rename this prefix,
+// rename it there too — the two must stay in lockstep.
+export const LESSON_PERCENT_KEY_PREFIX = 'aguy:lessonChatPercent:'
 const STORAGE_VERSION = 1
 const CORRECT_STATE_VERSION = 1
 const STARTED_AT_VERSION = 1
+export const LESSON_PERCENT_VERSION = 1
 
 interface SavedProgress {
   version: number
@@ -50,11 +54,25 @@ interface SavedCorrectState {
   state: CorrectResponseState
 }
 
+export interface SavedLessonPercent {
+  version: number
+  percent: number
+  completed: boolean
+  updatedAt: number
+}
+
 export interface LessonChatProgress {
   /** Walker step to resume from. Null on SSR / fresh browser / stored version mismatch. */
   initialStepCursor: number | null
   /** Persist the current walker step cursor. Best-effort — swallows storage errors. */
   saveStepCursor: (stepCursor: number) => void
+  /**
+   * Persist the lesson's overall completion percentage so the course-page
+   * roadmap can display it on the lesson row's progress ring. Chat view has no
+   * server-side progress writes (unlike the pager), so this is the only signal
+   * the roadmap can read for lessons the student does in chat mode.
+   */
+  saveLessonPercent: (percent: number, completed: boolean) => void
   /** Snapshot of the canned-reaction state loaded on mount. */
   initialCorrectResponseState: CorrectResponseState
   /** Record a correct-answer reaction: updates lastPairKey + marks exercise as long-shown. */
@@ -82,6 +100,10 @@ function correctStateKey(lessonId: string): string {
 
 function startedAtKey(lessonId: string): string {
   return `${STARTED_AT_KEY_PREFIX}${lessonId}`
+}
+
+function lessonPercentKey(lessonId: string): string {
+  return `${LESSON_PERCENT_KEY_PREFIX}${lessonId}`
 }
 
 /**
@@ -191,6 +213,24 @@ export function useLessonChatProgress(lessonId: string): LessonChatProgress {
     [lessonId],
   )
 
+  const saveLessonPercent = useCallback(
+    (percent: number, completed: boolean) => {
+      if (typeof window === 'undefined') return
+      try {
+        const payload: SavedLessonPercent = {
+          version: LESSON_PERCENT_VERSION,
+          percent: Math.max(0, Math.min(100, Math.round(percent))),
+          completed,
+          updatedAt: Date.now(),
+        }
+        window.localStorage.setItem(lessonPercentKey(lessonId), JSON.stringify(payload))
+      } catch {
+        // Private browsing / quota-exceeded — persistence is best-effort.
+      }
+    },
+    [lessonId],
+  )
+
   const recordCorrectReaction = useCallback(
     (exerciseId: string, pairKey: string) => {
       const next: CorrectResponseState = {
@@ -223,6 +263,7 @@ export function useLessonChatProgress(lessonId: string): LessonChatProgress {
       window.localStorage.removeItem(storageKey(lessonId))
       window.localStorage.removeItem(correctStateKey(lessonId))
       window.localStorage.removeItem(startedAtKey(lessonId))
+      window.localStorage.removeItem(lessonPercentKey(lessonId))
     } catch {
       // See saveStepCursor.
     }
@@ -231,6 +272,7 @@ export function useLessonChatProgress(lessonId: string): LessonChatProgress {
   return {
     initialStepCursor,
     saveStepCursor,
+    saveLessonPercent,
     initialCorrectResponseState,
     recordCorrectReaction,
     getCorrectResponseState,
