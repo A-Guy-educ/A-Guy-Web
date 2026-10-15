@@ -14,11 +14,10 @@ import { SvgRenderer } from './SvgRenderer'
  * attachment carries no answer state — the SVG variant intentionally omits
  * hotspot / interactive fields (those stay on the standalone SVG block).
  *
- * Shared by ExerciseRenderer (interactive view) and ExerciseWorksheet
- * (scroll/PDF view) so a question block's `attachment` renders identically
- * across both. Chat-view bubbles do NOT call this directly — sections that
- * contain an attachment are routed through ExerciseRenderer instead (see
- * `isChatNativeSection` in ExerciseSectionBubble).
+ * Shared by ExerciseRenderer (interactive view), ExerciseWorksheet
+ * (scroll/PDF view), and the ChatLessonView chat-native bubbles
+ * (ChatQuestionSelectBubble / ChatFreeResponseBubble) so a question
+ * block's `attachment` renders identically across all three.
  */
 export function renderQuestionAttachment(
   blockId: string,

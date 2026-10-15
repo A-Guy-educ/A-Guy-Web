@@ -431,10 +431,11 @@ export function ExerciseSectionBubble({
  * the shared ExerciseRenderer so nothing is silently dropped AND the
  * section outcome doesn't fire prematurely on a partial answer count.
  *
- * A question carrying an `attachment` (sketch shown side-by-side with the
- * question) also forces the fallback path: ChatQuestionSelectBubble /
- * ChatFreeResponseBubble don't render attachments, so a chat-native section
- * with an attached sketch would silently drop the visual.
+ * Questions carrying an `attachment` (sketch shown side-by-side with the
+ * question) stay on the chat-native path — ChatQuestionSelectBubble and
+ * ChatFreeResponseBubble now wrap their content in QuestionWithAttachment
+ * when the field is set, reusing the Interactive-tab renderer so the
+ * authored `textLeft/textRight/textAbove/textBelow` layout is honored.
  *
  * Kept as an explicit allowlist (rather than a growing rejectlist) so
  * adding new block types can't accidentally slip through.
@@ -447,12 +448,10 @@ function isChatNativeSection(group: ExerciseBlockGroup): boolean {
       hasAnyQuestion = true
       const b = block as unknown as QuestionSelectBlock
       if (b.variant === 'mcq' && b.answer.multiSelect) return false
-      if (hasAttachment(block)) return false
       continue
     }
     if (block.type === 'question_free_response') {
       hasAnyQuestion = true
-      if (hasAttachment(block)) return false
       continue
     }
     // Any other block type → fallback path. ExerciseRenderer knows how to
@@ -460,16 +459,6 @@ function isChatNativeSection(group: ExerciseBlockGroup): boolean {
     return false
   }
   return hasAnyQuestion
-}
-
-/** True when a question block carries a sketch attachment (svg / geometry / axis). */
-function hasAttachment(block: unknown): boolean {
-  return (
-    typeof block === 'object' &&
-    block !== null &&
-    'attachment' in block &&
-    Boolean((block as { attachment?: unknown }).attachment)
-  )
 }
 
 /** Blocks the chat-native path treats as "gradable questions". */
