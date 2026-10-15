@@ -12,10 +12,18 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 
+import { getWebUser } from '@/infra/web-api/mongo-payload'
 import { logger } from '@/infra/utils/logger/logger'
 import { fetchAdminApi } from '@/server/services/admin-api'
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  // Early auth gate — admin re-checks ownership via payload.auth(), but
+  // bouncing unauth requests here avoids a cross-origin round trip.
+  const user = await getWebUser(request.headers)
+  if (!user?.id) {
+    return NextResponse.json({ success: false, error: 'authentication_required' }, { status: 401 })
+  }
+
   const { id } = await params
   if (!id || typeof id !== 'string') {
     return NextResponse.json({ success: false, error: 'missing_subscription_id' }, { status: 400 })

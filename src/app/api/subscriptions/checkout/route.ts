@@ -23,6 +23,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
+import { getWebUser } from '@/infra/web-api/mongo-payload'
 import { logger } from '@/infra/utils/logger/logger'
 import { fetchAdminApi } from '@/server/services/admin-api'
 
@@ -32,6 +33,14 @@ const BodySchema = z.object({
 })
 
 export async function POST(request: NextRequest) {
+  // Early auth gate — admin re-checks via its own payload.auth(), but
+  // short-circuiting here means unauth requests don't incur a cross-origin
+  // round-trip to admin before getting their 401.
+  const user = await getWebUser(request.headers)
+  if (!user?.id) {
+    return NextResponse.json({ success: false, error: 'authentication_required' }, { status: 401 })
+  }
+
   const parsed = BodySchema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) {
     return NextResponse.json({ success: false, error: 'invalid_tier' }, { status: 400 })
