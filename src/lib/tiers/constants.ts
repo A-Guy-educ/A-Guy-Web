@@ -45,30 +45,6 @@ export const TIER_PRICE_ILS: Record<TierSlug, number> = {
 }
 
 /**
- * Optional "first N months at discounted price" promo per tier.
- *
- * When set, the subscription checkout charges `introPriceIls` for the first
- * `introMonths` purchases, then rolls to `TIER_PRICE_ILS[tier]`. Eligibility
- * is tracked server-side on each checkout (count of prior successful
- * tier_subscription transactions for this user+tier). All null today — fill
- * one in and the pricing hint + checkout both start honouring it.
- *
- * Keeping this in the constants file (not DB-driven) so pricing promos stay
- * reviewable in diffs — align with Admin before changing production values.
- */
-export interface TierIntroOffer {
-  introPriceIls: number
-  introMonths: number
-}
-
-export const TIER_INTRO_OFFER: Record<TierSlug, TierIntroOffer | null> = {
-  free: null,
-  basic: null,
-  advanced: null,
-  premium: null,
-}
-
-/**
  * Monthly internal AI cost cap (ILS). `null` = no hard cap (fair-use only).
  * Admin-facing / display semantic — the number of shekels we're willing to
  * spend on a user per month. Not consumed by any gating code; see

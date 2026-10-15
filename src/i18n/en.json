@@ -1122,7 +1122,6 @@
     "loginToSubscribe": "Log in to subscribe",
     "redirecting": "Redirecting to checkout...",
     "mostPopular": "Most popular",
-    "introPrefix": "First {months} months, then {regular}/mo",
     "tiers": {
       "free": {
         "name": "Free",
