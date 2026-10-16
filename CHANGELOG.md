@@ -4962,6 +4962,8 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+## [v0.49.0] - 2026-10-16
+
 - promote: dev -> main (v0.49.0) ([#1392](https://github.com/A-Guy-educ/A-Guy-Web/pull/1392)) — @aguyshayb
 - chore: Release v0.49.0 ([#1391](https://github.com/A-Guy-educ/A-Guy-Web/pull/1391)) — @aguyshayb
 - feat(subtest): Rewire to admin bootstrap with basic.test offer ([#1390](https://github.com/A-Guy-educ/A-Guy-Web/pull/1390)) — @aguyshayb
