@@ -4962,6 +4962,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.49.0 ([#1391](https://github.com/A-Guy-educ/A-Guy-Web/pull/1391)) — @aguyshayb
 - feat(subtest): Rewire to admin bootstrap with basic.test offer ([#1390](https://github.com/A-Guy-educ/A-Guy-Web/pull/1390)) — @aguyshayb
 - feat(subscriptions): Wire real subscription bootstrap + cancel to admin ([#1389](https://github.com/A-Guy-educ/A-Guy-Web/pull/1389)) — @aguyshayb
 - feat(subscriptions): Add /subtest smoke-test page at 1 ILS ([#1388](https://github.com/A-Guy-educ/A-Guy-Web/pull/1388)) — @aguyshayb
