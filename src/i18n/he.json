@@ -767,10 +767,8 @@
     "roadmapAllComplete": "כל השיעורים הושלמו",
     "roadmapStartNext": "התחל את השיעור הבא",
     "roadmapHeroHint": "הפרקים מקופלים אוטומטית כדי לחסוך מקום. השלם שיעור כדי לפתוח את הבא בתור.",
-    "roadmapFilterAll": "הצג הכל",
-    "roadmapFilterFocus": "מצב פוקוס",
     "roadmapFilterHideCompleted": "הסתר שיעורים שהושלמו",
-    "roadmapFilterGroupLabel": "מצבי סינון ותצוגה",
+    "roadmapFilterShowCompleted": "הצג שיעורים שהושלמו",
     "roadmapChapterLabel": "נושא מורחב {num}",
     "roadmapChapterUnlocked": "{done}/{total} שוחרר",
     "roadmapChapterCount": "{count} שיעורים",
@@ -1113,18 +1111,28 @@
     "payWithPaypal": "שלם עם PayPal",
     "payWithTranzilla": "אשראי"
   },
+  "subtest": {
+    "testBadge": "בדיקה",
+    "title": "בדיקת מנוי",
+    "description": "תשלום Tranzilla של שקל אחד להרצת כל הזרימה: אתר → תשלום → webhook → עדכון מסלול המשתמש. בהצלחה המשתמש יועלה למסלול בסיס.",
+    "oneTime": "חד פעמי",
+    "continueButton": "המשך",
+    "loginToTest": "התחבר לבדיקה",
+    "redirecting": "מעביר לתשלום...",
+    "errors": {
+      "checkoutFailed": "לא ניתן היה להתחיל תשלום. אנא נסה שוב."
+    }
+  },
   "subscriptions": {
     "title": "בחרו מסלול",
     "description": "גישה מלאה לשיעורים, תרגול, מבחנים ומורה AI — בחרו את המסלול שמתאים לכם.",
     "perMonth": "לחודש",
     "freePriceLabel": "חינם",
     "currentPlan": "המסלול הנוכחי שלך",
-    "subscribeButton": "הירשם עם PayPal",
-    "subscribeWithTranzilla": "הירשם באשראי",
+    "continueButton": "המשך",
     "loginToSubscribe": "התחברו כדי להירשם",
     "redirecting": "מעביר לתשלום...",
     "mostPopular": "הפופולרי ביותר",
-    "introPrefix": "{months} החודשים הראשונים, אחר כך {regular} לחודש",
     "tiers": {
       "free": {
         "name": "חינם",

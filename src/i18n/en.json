@@ -767,10 +767,8 @@
     "roadmapAllComplete": "All lessons completed",
     "roadmapStartNext": "Start the next lesson",
     "roadmapHeroHint": "Chapters auto-collapse to save space. Complete a lesson to open the next.",
-    "roadmapFilterAll": "Show all",
-    "roadmapFilterFocus": "Focus mode",
     "roadmapFilterHideCompleted": "Hide completed",
-    "roadmapFilterGroupLabel": "View modes",
+    "roadmapFilterShowCompleted": "Show completed",
     "roadmapChapterLabel": "Chapter {num}",
     "roadmapChapterUnlocked": "{done}/{total} unlocked",
     "roadmapChapterCount": "{count} lessons",
@@ -1113,18 +1111,28 @@
     "payWithPaypal": "Pay with PayPal",
     "payWithTranzilla": "Credit Card"
   },
+  "subtest": {
+    "testBadge": "TEST",
+    "title": "Subscription smoke test",
+    "description": "A 1 ILS Tranzilla checkout for exercising the full web → payment → webhook → user-tier flow end-to-end. Grants the basic tier on success.",
+    "oneTime": "one-time",
+    "continueButton": "Continue",
+    "loginToTest": "Log in to test",
+    "redirecting": "Redirecting to checkout...",
+    "errors": {
+      "checkoutFailed": "Unable to start checkout. Please try again."
+    }
+  },
   "subscriptions": {
     "title": "Choose your plan",
     "description": "Full access to lessons, practice, exams, and an AI tutor — pick what fits.",
     "perMonth": "per month",
     "freePriceLabel": "Free",
     "currentPlan": "Your current plan",
-    "subscribeButton": "Subscribe with PayPal",
-    "subscribeWithTranzilla": "Subscribe with Credit Card",
+    "continueButton": "Continue",
     "loginToSubscribe": "Log in to subscribe",
     "redirecting": "Redirecting to checkout...",
     "mostPopular": "Most popular",
-    "introPrefix": "First {months} months, then {regular}/mo",
     "tiers": {
       "free": {
         "name": "Free",

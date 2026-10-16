@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import { Check, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -8,7 +8,23 @@ import { toast } from 'sonner'
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { Button } from '@/ui/web/components/button'
 import { useI18n, useTranslations } from '@/ui/web/providers/I18n'
-import { TIER_INTRO_OFFER, TIER_PRICE_ILS, getUserTierSlug, type TierSlug } from '@/lib/tiers'
+import {
+  TIER_PRICE_ILS,
+  getUserTierSlug,
+  type ActiveSubscription,
+  type TierSlug,
+} from '@/lib/tiers'
+
+type OfferSlug = 'default' | 'intro3mo'
+
+const KNOWN_OFFER_SLUGS: readonly OfferSlug[] = ['default', 'intro3mo']
+
+function resolveOfferSlug(raw: string | null): OfferSlug {
+  if (raw && (KNOWN_OFFER_SLUGS as readonly string[]).includes(raw)) {
+    return raw as OfferSlug
+  }
+  return 'default'
+}
 
 const TIER_ACCENT: Record<TierSlug, string> = {
   free: 'hsl(217 10% 55%)',
@@ -26,8 +42,6 @@ function formatIls(amount: number): string {
   }).format(amount)
 }
 
-type CheckoutProvider = 'paypal' | 'tranzilla'
-
 interface TierCardProps {
   tier: TierSlug
 }
@@ -36,16 +50,26 @@ export function TierCard({ tier }: TierCardProps) {
   const t = useTranslations('subscriptions')
   const { messages } = useI18n()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user, isLoading: isAuthLoading } = useCurrentUser()
-  const [loadingProvider, setLoadingProvider] = useState<CheckoutProvider | null>(null)
+  const [isCheckingOut, setIsCheckingOut] = useState(false)
 
   const price = TIER_PRICE_ILS[tier]
-  const intro = TIER_INTRO_OFFER[tier]
   const isFree = tier === 'free'
   const isHighlighted = tier === 'advanced'
   const accent = TIER_ACCENT[tier]
-  const currentTier = getUserTierSlug(user as { currentTier?: string | null } | null)
+
+  // "Current plan" is driven by the subscription row when one exists —
+  // falling back to `user.currentTier` for the legacy / free / cancelled-and-
+  // past-period case. activeSubscription is the admin-attached virtual on
+  // /api/users/me (afterRead hook); null for users without an active sub.
+  const activeSubscription = (user as { activeSubscription?: ActiveSubscription | null } | null)
+    ?.activeSubscription
+  const currentTier =
+    activeSubscription?.tierSlug ?? getUserTierSlug(user as { currentTier?: string | null } | null)
   const isCurrent = currentTier === tier
+
+  const offerSlug = resolveOfferSlug(searchParams?.get('offer') ?? null)
 
   // Features are an array in the i18n JSON — pulled directly from the raw
   // messages tree because the typed `t()` helper only resolves string leaves.
@@ -55,19 +79,19 @@ export function TierCard({ tier }: TierCardProps) {
   const tagline = t(`tiers.${tier}.tagline`)
   const priceLabel = isFree ? t('freePriceLabel') : formatIls(price)
 
-  const handleSubscribe = async (provider: CheckoutProvider) => {
+  const handleSubscribe = async () => {
     if (!user) {
       const returnTo = encodeURIComponent('/subscriptions')
       router.push(`/login?returnTo=${returnTo}`)
       return
     }
-    setLoadingProvider(provider)
+    setIsCheckingOut(true)
     try {
       const res = await fetch('/api/subscriptions/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ tier, provider }),
+        body: JSON.stringify({ tier, offerSlug }),
       })
       const data = await res.json()
       if (!res.ok || !data.success) {
@@ -79,13 +103,13 @@ export function TierCard({ tier }: TierCardProps) {
           payment_provider_not_configured: t('errors.providerNotConfigured'),
         }
         toast.error(errorMap[errorKey] ?? t('errors.checkoutFailed'))
-        setLoadingProvider(null)
+        setIsCheckingOut(false)
         return
       }
       window.location.href = data.checkoutUrl
     } catch {
       toast.error(t('errors.checkoutFailed'))
-      setLoadingProvider(null)
+      setIsCheckingOut(false)
     }
   }
 
@@ -110,29 +134,11 @@ export function TierCard({ tier }: TierCardProps) {
         </div>
 
         <div className="flex items-baseline gap-content-gap-xs">
-          {intro ? (
-            <>
-              <span className="text-display-sm font-black text-foreground">
-                {formatIls(intro.introPriceIls)}
-              </span>
-              <span className="text-body-sm text-muted-foreground">{t('perMonth')}</span>
-            </>
-          ) : (
-            <>
-              <span className="text-display-sm font-black text-foreground">{priceLabel}</span>
-              {!isFree ? (
-                <span className="text-body-sm text-muted-foreground">{t('perMonth')}</span>
-              ) : null}
-            </>
-          )}
+          <span className="text-display-sm font-black text-foreground">{priceLabel}</span>
+          {!isFree ? (
+            <span className="text-body-sm text-muted-foreground">{t('perMonth')}</span>
+          ) : null}
         </div>
-        {intro ? (
-          <p className="text-body-sm text-muted-foreground">
-            {t('introPrefix')
-              .replace('{months}', String(intro.introMonths))
-              .replace('{regular}', formatIls(price))}
-          </p>
-        ) : null}
 
         <ul className="mt-2 flex flex-col gap-content-gap-xs">
           {features.map((feature, i) => (
@@ -152,13 +158,12 @@ export function TierCard({ tier }: TierCardProps) {
           isFree,
           isCurrent,
           isAuthLoading,
-          loadingProvider,
+          isCheckingOut,
           hasUser: !!user,
           onSubscribe: handleSubscribe,
           labels: {
             currentPlan: t('currentPlan'),
-            subscribe: t('subscribeButton'),
-            subscribeWithTranzilla: t('subscribeWithTranzilla'),
+            continue: t('continueButton'),
             login: t('loginToSubscribe'),
             redirecting: t('redirecting'),
           },
@@ -176,13 +181,12 @@ interface CtaProps {
   isFree: boolean
   isCurrent: boolean
   isAuthLoading: boolean
-  loadingProvider: CheckoutProvider | null
+  isCheckingOut: boolean
   hasUser: boolean
-  onSubscribe: (provider: CheckoutProvider) => void
+  onSubscribe: () => void
   labels: {
     currentPlan: string
-    subscribe: string
-    subscribeWithTranzilla: string
+    continue: string
     login: string
     redirecting: string
   }
@@ -192,7 +196,7 @@ function renderCta({
   isFree,
   isCurrent,
   isAuthLoading,
-  loadingProvider,
+  isCheckingOut,
   hasUser,
   onSubscribe,
   labels,
@@ -222,45 +226,23 @@ function renderCta({
 
   if (!hasUser) {
     return (
-      <Button onClick={() => onSubscribe('paypal')} className="w-full h-12 font-bold">
+      <Button onClick={onSubscribe} className="w-full h-12 font-bold">
         {labels.login}
       </Button>
     )
   }
 
-  const isAnyLoading = loadingProvider !== null
   return (
-    <div className="flex flex-col gap-content-gap-xs">
-      <Button
-        onClick={() => onSubscribe('tranzilla')}
-        disabled={isAnyLoading}
-        className="w-full h-12 font-bold"
-      >
-        {loadingProvider === 'tranzilla' ? (
-          <>
-            <Loader2 className="me-2 h-4 w-4 animate-spin" />
-            {labels.redirecting}
-          </>
-        ) : (
-          labels.subscribeWithTranzilla
-        )}
-      </Button>
-      <Button
-        onClick={() => onSubscribe('paypal')}
-        disabled={isAnyLoading}
-        variant="outline"
-        className="w-full h-12 font-bold"
-      >
-        {loadingProvider === 'paypal' ? (
-          <>
-            <Loader2 className="me-2 h-4 w-4 animate-spin" />
-            {labels.redirecting}
-          </>
-        ) : (
-          labels.subscribe
-        )}
-      </Button>
-    </div>
+    <Button onClick={onSubscribe} disabled={isCheckingOut} className="w-full h-12 font-bold">
+      {isCheckingOut ? (
+        <>
+          <Loader2 className="me-2 h-4 w-4 animate-spin" />
+          {labels.redirecting}
+        </>
+      ) : (
+        labels.continue
+      )}
+    </Button>
   )
 }
 

@@ -14,6 +14,7 @@ import type { Chapter, Lesson } from '@/infra/types/content'
 import { getEffectiveLessonType, type LessonType } from '@/server/constants/lesson-types'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { useProgressMap } from '@/client/hooks/useProgressMap'
+import { useChatProgressMap } from '@/client/hooks/useChatProgressMap'
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { getUserTierSlug } from '@/lib/tiers'
 import { ChapterAccordion } from './ChapterAccordion'
@@ -72,6 +73,10 @@ export function LessonListTab({
     recordIds: lessonIds,
     gradeLevel,
   })
+  // Chat view (now the default renderer) does not write to the Progress API —
+  // only to localStorage. Merge those entries in so chat-driven progress still
+  // shows up on the roadmap rings and flips lessons to `completed`.
+  const { chatProgressMap } = useChatProgressMap(lessonIds)
 
   const [hasPaidAccessClient, setHasPaidAccessClient] = useState<boolean | undefined>(undefined)
   useEffect(() => {
@@ -102,10 +107,12 @@ export function LessonListTab({
   const progressByLessonId = useMemo(() => {
     const map: Record<string, number> = {}
     for (const l of filteredLessons) {
-      map[l.id] = lessonProgressMap[l.id]?.percent ?? progressMap[l.id] ?? 0
+      const serverPct = lessonProgressMap[l.id]?.percent ?? progressMap[l.id] ?? 0
+      const chatPct = chatProgressMap[l.id] ?? 0
+      map[l.id] = Math.max(serverPct, chatPct)
     }
     return map
-  }, [filteredLessons, lessonProgressMap, progressMap])
+  }, [filteredLessons, lessonProgressMap, progressMap, chatProgressMap])
 
   const groups = useLessonGrouping({
     chapters,
@@ -139,17 +146,18 @@ export function LessonListTab({
     setAutoExpandedFor(featuredChapterId)
   }, [autoExpandedFor, featured, groups])
 
-  const visibleGroups = useMemo(() => {
-    if (filterMode === 'focus' && featured) {
-      return groups.filter((g) => g.hasFeatured)
-    }
-    return groups
-  }, [filterMode, featured, groups])
-
   const visibleLessonsFor = (lessons: LessonRoadmapNode[]) => {
     if (filterMode === 'uncompleted') return lessons.filter((n) => n.status !== 'completed')
     return lessons
   }
+
+  // When hiding completed lessons, also drop chapters whose remaining lessons
+  // are all completed — otherwise their headers linger and the toggle feels
+  // like it did nothing.
+  const visibleGroups = useMemo(() => {
+    if (filterMode !== 'uncompleted') return groups
+    return groups.filter((g) => g.lessons.some((n) => n.status !== 'completed'))
+  }, [filterMode, groups])
 
   const handleFocusNext = () => {
     if (!featured) return

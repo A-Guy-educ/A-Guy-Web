@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.49.0 — 2026-10-16
+
+### Features
+- Rewire /subtest to Admin bootstrap with basic.test offer at 1 ILS (#1390)
+- Wire real subscription bootstrap and cancel to Admin (#1389)
+- Add /subtest smoke-test page at 1 ILS (#1388)
+- Surface chat-view lesson progress on the course roadmap (#1387)
+- Render multi-select MCQ in chat-native bubble (#1385)
+- Simplify course lesson roadmap filters and surface progress (#1382)
+- Render sibling sketch blocks inline in chat-native bubbles (#1380)
+- Render question sketches in ChatView bubbles (#1378)
+
+### Bug Fixes
+- Early auth gate on subscription proxy routes to satisfy lint (#1389)
+- Keep only the Tranzilla button on subscription cards, label it Continue (#1386)
+- Show progress ring on course lesson rows and hide empty chapters (#1384)
+
+### Chores
+- Drop unused intro-pricing scaffolding; Admin now owns offer-based pricing (#1383)
+
 ## v0.48.0 — 2026-10-14
 
 ### Features
@@ -4942,6 +4962,21 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.49.0 ([#1391](https://github.com/A-Guy-educ/A-Guy-Web/pull/1391)) — @aguyshayb
+- feat(subtest): Rewire to admin bootstrap with basic.test offer ([#1390](https://github.com/A-Guy-educ/A-Guy-Web/pull/1390)) — @aguyshayb
+- feat(subscriptions): Wire real subscription bootstrap + cancel to admin ([#1389](https://github.com/A-Guy-educ/A-Guy-Web/pull/1389)) — @aguyshayb
+- feat(subscriptions): Add /subtest smoke-test page at 1 ILS ([#1388](https://github.com/A-Guy-educ/A-Guy-Web/pull/1388)) — @aguyshayb
+- feat: Surface chat-view lesson progress on the course roadmap ([#1387](https://github.com/A-Guy-educ/A-Guy-Web/pull/1387)) — @aguyshayb
+- fix(subscriptions): Keep only Tranzilla button, label it Continue ([#1386](https://github.com/A-Guy-educ/A-Guy-Web/pull/1386)) — @aguyshayb
+- feat: Render multi-select MCQ in chat-native bubble ([#1385](https://github.com/A-Guy-educ/A-Guy-Web/pull/1385)) — @aguyshayb
+- fix: Show progress ring on course lesson rows and hide empty chapters ([#1384](https://github.com/A-Guy-educ/A-Guy-Web/pull/1384)) — @aguyshayb
+- chore(subscriptions): Drop unused intro-pricing scaffolding ([#1383](https://github.com/A-Guy-educ/A-Guy-Web/pull/1383)) — @aguyshayb
+- feat: Simplify course lesson roadmap filters and surface progress ([#1382](https://github.com/A-Guy-educ/A-Guy-Web/pull/1382)) — @aguyshayb
+- feat: Render sibling sketch blocks inline in ChatView bubbles ([#1380](https://github.com/A-Guy-educ/A-Guy-Web/pull/1380)) — @aguyshayb
+- feat: Render question sketches in ChatView bubbles ([#1378](https://github.com/A-Guy-educ/A-Guy-Web/pull/1378)) — @aguyshayb
+## [v0.48.0] - 2026-10-14
+
+- promote: dev -> main (v0.48.0) ([#1377](https://github.com/A-Guy-educ/A-Guy-Web/pull/1377)) — @aguyshayb
 - chore: Release v0.48.0 ([#1376](https://github.com/A-Guy-educ/A-Guy-Web/pull/1376)) — @aguyshayb
 - feat: Add Tranzilla hosted-checkout alongside PayPal ([#1375](https://github.com/A-Guy-educ/A-Guy-Web/pull/1375)) — @aguyshayb
 - fix: Widen scroll view and normalize every svg sibling ([#1374](https://github.com/A-Guy-educ/A-Guy-Web/pull/1374)) — @aguyshayb

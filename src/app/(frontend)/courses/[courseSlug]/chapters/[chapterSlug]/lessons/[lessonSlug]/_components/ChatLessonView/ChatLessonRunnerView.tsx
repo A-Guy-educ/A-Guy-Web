@@ -182,6 +182,7 @@ function ActiveChat({
   const {
     initialStepCursor,
     saveStepCursor,
+    saveLessonPercent,
     getCorrectResponseState,
     recordCorrectReaction,
     getLessonStartedAt,
@@ -200,9 +201,18 @@ function ActiveChat({
 
   // Mirror every walker advance into storage. Fires on seed too (cursor is
   // whatever we resumed to), which is harmless — same value in, same value out.
+  // Also persist a lesson-level percentage keyed by lesson id so the course
+  // page's roadmap ring can read it (the chat view has no server-side
+  // progress writes — see useChatProgressMap).
   useEffect(() => {
     saveStepCursor(walker.stepCursor)
-  }, [walker.stepCursor, saveStepCursor])
+    if (walker.totalSteps > 0) {
+      const percent = walker.isComplete
+        ? 100
+        : Math.round((walker.stepCursor / walker.totalSteps) * 100)
+      saveLessonPercent(percent, walker.isComplete)
+    }
+  }, [walker.stepCursor, walker.totalSteps, walker.isComplete, saveStepCursor, saveLessonPercent])
 
   // Scope the AI's attention to the current section (not the whole exercise
   // or, worse, whatever exercise the shared lesson-conversation was last

@@ -2,11 +2,12 @@
  * @fileType component
  * @domain frontend
  * @pattern lesson-roadmap-filter
- * @ai-summary Segmented filter switch above the chapter accordions. Three mutually-exclusive modes: `all` (default), `focus` (only the chapter with the featured lesson), `uncompleted` (hides completed lessons in every chapter). Purely presentational — parent owns the state.
+ * @ai-summary Single toggle button above the chapter accordions. Flips between `all` (show every lesson) and `uncompleted` (hide completed lessons). Purely presentational — parent owns the state.
  */
 
 'use client'
 
+import { Eye, EyeOff } from 'lucide-react'
 import { cn } from '@/infra/utils/ui'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import type { FilterMode } from './lessonRoadmapTypes'
@@ -16,47 +17,29 @@ interface CourseLessonsFilterBarProps {
   onChange: (mode: FilterMode) => void
 }
 
-const OPTIONS: Array<{ key: FilterMode; label: string }> = [
-  { key: 'all', label: 'roadmapFilterAll' },
-  { key: 'focus', label: 'roadmapFilterFocus' },
-  { key: 'uncompleted', label: 'roadmapFilterHideCompleted' },
-]
-
 export function CourseLessonsFilterBar({ mode, onChange }: CourseLessonsFilterBarProps) {
   const t = useTranslations('coursePage')
+  const isHiding = mode === 'uncompleted'
+  const label = isHiding ? t('roadmapFilterShowCompleted') : t('roadmapFilterHideCompleted')
+  const Icon = isHiding ? Eye : EyeOff
+
   return (
-    <div className="flex flex-wrap items-center justify-between gap-content-gap-xs mb-content-gap px-2">
-      <div className="flex items-center gap-content-gap-xs">
-        <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40" />
-        <span className="text-body-xs font-semibold tracking-tracking-sm text-muted-foreground uppercase">
-          {t('roadmapFilterGroupLabel')}
-        </span>
-      </div>
-      <div
-        role="group"
-        aria-label={t('roadmapFilterGroupLabel')}
-        className="flex gap-1 bg-muted p-1 rounded-xl border border-border"
+    <div className="flex justify-end mb-content-gap px-2">
+      <button
+        type="button"
+        onClick={() => onChange(isHiding ? 'all' : 'uncompleted')}
+        aria-pressed={isHiding}
+        className={cn(
+          'inline-flex items-center gap-content-gap-xs rounded-xl border px-3.5 py-1.5',
+          'text-body-xs font-semibold transition-all duration-normal',
+          isHiding
+            ? 'bg-card text-foreground border-border shadow-elevation-1'
+            : 'bg-muted text-muted-foreground border-border hover:text-foreground',
+        )}
       >
-        {OPTIONS.map((opt) => {
-          const isActive = mode === opt.key
-          return (
-            <button
-              key={opt.key}
-              type="button"
-              onClick={() => onChange(opt.key)}
-              aria-pressed={isActive}
-              className={cn(
-                'px-3.5 py-1.5 rounded-lg text-body-xs font-semibold transition-all duration-normal',
-                isActive
-                  ? 'bg-card text-foreground border border-border shadow-elevation-1'
-                  : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              {t(opt.label)}
-            </button>
-          )
-        })}
-      </div>
+        <Icon className="w-3.5 h-3.5" />
+        <span>{label}</span>
+      </button>
     </div>
   )
 }

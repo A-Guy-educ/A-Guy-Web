@@ -17,8 +17,6 @@ export {
   TIER_LABEL_HE,
   TIER_LABEL_EN,
   TIER_PRICE_ILS,
-  TIER_INTRO_OFFER,
-  type TierIntroOffer,
   TIER_AI_COST_CAP_ILS,
   TIER_LLM_TOKEN_CAP_MONTHLY,
   isTierSlug,
@@ -26,6 +24,12 @@ export {
 } from './constants'
 export { isTierEnforcementEnabled } from './enforcement'
 export { getUserTierSlug, getUserTierRank, userMeetsTier, type UserWithTier } from './user-tier'
+export {
+  type ActiveSubscription,
+  type SubscriptionStatus,
+  hasPastDueSubscription,
+  willCancelAtPeriodEnd,
+} from './active-subscription'
 export {
   canAccessLearningLesson,
   canAccessLearningExercise,
