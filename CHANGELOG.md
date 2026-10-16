@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.49.0 — 2026-10-16
+
+### Features
+- Rewire /subtest to Admin bootstrap with basic.test offer at 1 ILS (#1390)
+- Wire real subscription bootstrap and cancel to Admin (#1389)
+- Add /subtest smoke-test page at 1 ILS (#1388)
+- Surface chat-view lesson progress on the course roadmap (#1387)
+- Render multi-select MCQ in chat-native bubble (#1385)
+- Simplify course lesson roadmap filters and surface progress (#1382)
+- Render sibling sketch blocks inline in chat-native bubbles (#1380)
+- Render question sketches in ChatView bubbles (#1378)
+
+### Bug Fixes
+- Early auth gate on subscription proxy routes to satisfy lint (#1389)
+- Keep only the Tranzilla button on subscription cards, label it Continue (#1386)
+- Show progress ring on course lesson rows and hide empty chapters (#1384)
+
+### Chores
+- Drop unused intro-pricing scaffolding; Admin now owns offer-based pricing (#1383)
+
 ## v0.48.0 — 2026-10-14
 
 ### Features
