@@ -4962,6 +4962,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix(brand): Use the clean telescope paths in favicon.svg ([#1398](https://github.com/A-Guy-educ/A-Guy-Web/pull/1398)) — @aguyshayb
 - feat(brand): Use full Aguy logo in OG preview ([#1397](https://github.com/A-Guy-educ/A-Guy-Web/pull/1397)) — @aguyshayb
 - feat(graphics): Fixed-height 330px sketch sizing with container-relative width ([#1396](https://github.com/A-Guy-educ/A-Guy-Web/pull/1396)) — @aguyshayb
 - fix: Gate chat-view exercises behind the welcome bubble ([#1395](https://github.com/A-Guy-educ/A-Guy-Web/pull/1395)) — @aguyshayb
