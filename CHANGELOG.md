@@ -4962,6 +4962,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: lesson intro sentence spacing, chat view welcome, dev OG preview ([#1394](https://github.com/A-Guy-educ/A-Guy-Web/pull/1394)) — @aguyshayb
 - feat: polish OG preview, chat welcome, lesson spacing, privacy page, footer ([#1393](https://github.com/A-Guy-educ/A-Guy-Web/pull/1393)) — @aguyshayb
 ## [v0.49.0] - 2026-10-16
 
