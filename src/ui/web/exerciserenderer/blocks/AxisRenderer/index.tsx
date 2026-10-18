@@ -6,7 +6,6 @@ import type { AxisSpecV1 } from '@/infra/contracts'
 import { renderAxisSpec } from '../../graphics/axisElements'
 import { resolveViewport } from '@/infra/utils/graphics/viewport-utils'
 import { computeBoardSize } from '@/infra/utils/graphics/board-sizing'
-import { useEffectiveDisplaySize } from '../../hooks/useEffectiveDisplaySize'
 
 const JSXGraphBoard = dynamic(
   () => import('../../graphics/JSXGraphBoard').then((m) => ({ default: m.JSXGraphBoard })),
@@ -16,24 +15,22 @@ const JSXGraphBoard = dynamic(
   },
 )
 
-// Display size to percentage mapping
-const SIZE_MAP = {
-  small: 0.25,
-  medium: 0.5,
-  large: 0.75,
-  full: 1,
-} as const
-
-export type DisplaySize = 'small' | 'medium' | 'large' | 'full'
+// Legacy display-size enum kept for backward compatibility — the renderer no
+// longer multiplies the container width by this value. Sizing is now a single
+// container-relative rule in `board-sizing.ts` (fixed 330px height,
+// aspect-driven width, min 280px, max 75% of container). `xsmall` matches
+// Admin's expanded enum so admin-authored content with the finer size round-
+// trips cleanly.
+export type DisplaySize = 'xsmall' | 'small' | 'medium' | 'large' | 'full'
 
 interface AxisRendererProps {
   blockId: string
   spec: AxisSpecV1
+  /** Legacy — see note on `DisplaySize` above. Unused in sizing math. */
   displaySize?: DisplaySize
 }
 
-export function AxisRenderer({ blockId, spec, displaySize = 'full' }: AxisRendererProps) {
-  const effectiveDisplaySize = useEffectiveDisplaySize(displaySize) ?? 'full'
+export function AxisRenderer({ blockId, spec }: AxisRendererProps) {
   const handleBoardReady = useCallback(
     (board: JXG.Board) => {
       renderAxisSpec(board, spec)
@@ -65,19 +62,15 @@ export function AxisRenderer({ blockId, spec, displaySize = 'full' }: AxisRender
     const container = containerRef.current
     if (!container) return
 
-    const percentage = SIZE_MAP[effectiveDisplaySize]
-
     const recompute = () => {
-      const availableWidth = container.clientWidth * percentage
+      // Pass the raw container width — board-sizing now handles the
+      // 75%-of-container cap, min width, and narrow-screen fallbacks
+      // internally.
       const size = computeBoardSize({
         xRange: viewportSize.xRange,
         yRange: viewportSize.yRange,
-        availableWidth,
+        availableWidth: container.clientWidth,
         proportion,
-        maxWidth: availableWidth,
-        maxHeight: Number.POSITIVE_INFINITY,
-        minWidth: Math.min(200, availableWidth),
-        minHeight: 200,
       })
       setDimensions(size)
     }
@@ -103,13 +96,13 @@ export function AxisRenderer({ blockId, spec, displaySize = 'full' }: AxisRender
       resizeObserver.disconnect()
       if (rafId !== null) cancelAnimationFrame(rafId)
     }
-  }, [effectiveDisplaySize, viewportSize.xRange, viewportSize.yRange, proportion])
+  }, [viewportSize.xRange, viewportSize.yRange, proportion])
 
   // See GeometryRenderer for the centering rationale — shrunk boards
   // sit flush left inside `w-full` unless we center the fixed-pixel
   // JSXGraph child.
   return (
-    <div className="w-full flex justify-center" ref={containerRef}>
+    <div className="w-full flex justify-center my-4" ref={containerRef}>
       <JSXGraphBoard
         id={blockId}
         width={dimensions.width}

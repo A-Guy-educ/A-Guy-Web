@@ -5,7 +5,6 @@ import dynamic from 'next/dynamic'
 import type { GeometrySpecV1 } from '@/infra/contracts'
 import { renderGeometrySpec } from '../../graphics/geometryElements'
 import { computeBoardSize } from '@/infra/utils/graphics/board-sizing'
-import { useEffectiveDisplaySize } from '../../hooks/useEffectiveDisplaySize'
 
 const JSXGraphBoard = dynamic(
   () => import('../../graphics/JSXGraphBoard').then((m) => ({ default: m.JSXGraphBoard })),
@@ -15,23 +14,20 @@ const JSXGraphBoard = dynamic(
   },
 )
 
-export type DisplaySize = 'small' | 'medium' | 'large' | 'full'
-
-const SIZE_MAP: Record<DisplaySize, number> = {
-  small: 0.25,
-  medium: 0.5,
-  large: 0.75,
-  full: 1,
-}
+// Legacy display-size enum kept for prop compatibility; sizing is now a single
+// container-relative rule in `board-sizing.ts` (fixed 330px height, aspect-
+// driven width, min 280px, max 75% of container). `xsmall` matches Admin's
+// expanded enum so content with that value type-checks.
+export type DisplaySize = 'xsmall' | 'small' | 'medium' | 'large' | 'full'
 
 interface GeometryRendererProps {
   blockId: string
   spec: GeometrySpecV1
+  /** Legacy — see note on `DisplaySize` above. Unused in sizing math. */
   displaySize?: DisplaySize
 }
 
-export function GeometryRenderer({ blockId, spec, displaySize = 'full' }: GeometryRendererProps) {
-  const effectiveDisplaySize = useEffectiveDisplaySize(displaySize) ?? 'full'
+export function GeometryRenderer({ blockId, spec }: GeometryRendererProps) {
   const handleBoardReady = useCallback(
     (board: JXG.Board) => {
       renderGeometrySpec(board, spec)
@@ -60,17 +56,13 @@ export function GeometryRenderer({ blockId, spec, displaySize = 'full' }: Geomet
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
-    const percentage = SIZE_MAP[effectiveDisplaySize]
     const recompute = () => {
-      const availableWidth = container.clientWidth * percentage
+      // Pass the raw container width — board-sizing applies the 75%-of-
+      // container cap, min width, and narrow-screen fallbacks itself.
       const size = computeBoardSize({
         xRange,
         yRange,
-        availableWidth,
-        maxWidth: availableWidth,
-        maxHeight: Number.POSITIVE_INFINITY,
-        minWidth: Math.min(200, availableWidth),
-        minHeight: 200,
+        availableWidth: container.clientWidth,
       })
       setDimensions(size)
     }
@@ -95,15 +87,15 @@ export function GeometryRenderer({ blockId, spec, displaySize = 'full' }: Geomet
       observer.disconnect()
       if (rafId !== null) cancelAnimationFrame(rafId)
     }
-  }, [xRange, yRange, effectiveDisplaySize])
+  }, [xRange, yRange])
 
-  // When displaySize shrinks the board below the container width, center
-  // the fixed-pixel JSXGraph child so it doesn't sit flush against the
-  // inline-start edge (SvgRenderer centers its scaled wrapper the same
-  // way via mx-auto — this keeps svg / geometry / axis sketches visually
-  // consistent when authored side-by-side at the same displaySize).
+  // When the board shrinks below the container width, center the fixed-
+  // pixel JSXGraph child so it doesn't sit flush against the inline-start
+  // edge (SvgRenderer centers its scaled wrapper the same way via mx-auto —
+  // this keeps svg / geometry / axis sketches visually consistent when
+  // authored side-by-side).
   return (
-    <div className="w-full flex justify-center" ref={containerRef}>
+    <div className="w-full flex justify-center my-4" ref={containerRef}>
       <JSXGraphBoard
         id={blockId}
         width={dimensions.width}
