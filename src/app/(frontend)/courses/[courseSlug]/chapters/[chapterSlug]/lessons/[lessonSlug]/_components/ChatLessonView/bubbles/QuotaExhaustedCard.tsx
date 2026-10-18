@@ -20,7 +20,10 @@ interface QuotaExhaustedCardProps {
  * or hit the quota wall mid-lesson.
  */
 export function QuotaExhaustedCard({ bodyText, continueLabel }: QuotaExhaustedCardProps) {
-  const t = useTranslations('coursePage')
+  // Namespace must match the parent `ChatLessonRunnerView`, which already uses
+  // `courses` for every other `chatView…` key. Mis-matching the namespace made
+  // the headline + restricted-mode copy render as the raw key path.
+  const t = useTranslations('courses')
   return (
     <UpgradeOfferCard
       title={t('chatViewQuotaOfferTitle')}

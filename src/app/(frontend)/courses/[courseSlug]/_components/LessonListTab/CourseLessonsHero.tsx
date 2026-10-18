@@ -7,7 +7,7 @@
 
 'use client'
 
-import { ArrowLeft, Crosshair } from 'lucide-react'
+import { ArrowLeft, Play } from 'lucide-react'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { formatMessage } from './formatMessage'
 import { HeroProgressRing } from './HeroProgressRing'
@@ -60,13 +60,12 @@ export function CourseLessonsHero({
           <div className="flex items-center gap-content-gap-sm w-full sm:w-auto min-w-0">
             <HeroProgressRing percent={percent} accentColor={accentColor} />
             <div className="text-start min-w-0 flex-1">
-              <span className="inline-block px-2 py-0.5 rounded text-body-2xs font-semibold bg-muted text-muted-foreground uppercase tracking-tracking-sm">
-                {t('roadmapHeroBadge')}
-              </span>
+              <p className="text-body-xs font-semibold text-muted-foreground">
+                {t('roadmapResume')}
+              </p>
               <h3 className="text-body-lg font-bold text-foreground tracking-tight mt-1 line-clamp-2 break-words">
                 {heroTitle}
               </h3>
-              <p className="text-body-xs text-muted-foreground mt-0.5">{t('roadmapHeroHint')}</p>
             </div>
           </div>
 
@@ -77,8 +76,8 @@ export function CourseLessonsHero({
               disabled={!featured}
               className="flex-1 sm:flex-none inline-flex items-center justify-center gap-content-gap-xs bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-body-xs px-5 py-3 rounded-xl shadow-elevation-3 transition-opacity duration-normal"
             >
-              <Crosshair className="w-3.5 h-3.5" />
-              <span>{t('roadmapFocusNext')}</span>
+              <Play className="w-3.5 h-3.5" />
+              <span>{t('roadmapLessonContinue')}</span>
             </button>
           </div>
         </div>
