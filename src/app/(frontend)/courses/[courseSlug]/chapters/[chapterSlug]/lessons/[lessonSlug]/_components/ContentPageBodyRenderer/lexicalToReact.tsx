@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { renderTextWithMath } from '@/infra/utils/renderAdminHtmlWithMath'
+import { splitSentencesInLessonHtml } from '@/infra/utils/splitSentencesInLessonHtml'
 
 interface LexicalNode {
   type: string
@@ -26,7 +27,11 @@ function applyTextFormats(text: string, format = 0): React.ReactNode {
     format & FMT_CODE ? (
       text
     ) : (
-      <span dangerouslySetInnerHTML={{ __html: renderTextWithMath(text) }} />
+      <span
+        dangerouslySetInnerHTML={{
+          __html: splitSentencesInLessonHtml(renderTextWithMath(text)),
+        }}
+      />
     )
   if (format & FMT_CODE) node = <code>{node}</code>
   if (format & FMT_STRIKETHROUGH) node = <s>{node}</s>
