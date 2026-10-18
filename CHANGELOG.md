@@ -4962,6 +4962,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix(brand): Bump icon URL to ?v=2 to force refetch past stuck caches ([#1402](https://github.com/A-Guy-educ/A-Guy-Web/pull/1402)) — @aguyshayb
 - fix: Tier copy revert, chat offer namespace, lesson grid ([#1401](https://github.com/A-Guy-educ/A-Guy-Web/pull/1401)) — @aguyshayb
 - fix(brand): Regenerate favicon.ico and drop immutable cache on icon routes ([#1400](https://github.com/A-Guy-educ/A-Guy-Web/pull/1400)) — @aguyshayb
 - feat: Match plan copy, chat upsell + lesson-list polish ([#1399](https://github.com/A-Guy-educ/A-Guy-Web/pull/1399)) — @aguyshayb
