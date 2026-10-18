@@ -4962,6 +4962,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix(brand): Regenerate favicon.ico and drop immutable cache on icon routes ([#1400](https://github.com/A-Guy-educ/A-Guy-Web/pull/1400)) — @aguyshayb
 - feat: Match plan copy, chat upsell + lesson-list polish ([#1399](https://github.com/A-Guy-educ/A-Guy-Web/pull/1399)) — @aguyshayb
 - fix(brand): Use the clean telescope paths in favicon.svg ([#1398](https://github.com/A-Guy-educ/A-Guy-Web/pull/1398)) — @aguyshayb
 - feat(brand): Use full Aguy logo in OG preview ([#1397](https://github.com/A-Guy-educ/A-Guy-Web/pull/1397)) — @aguyshayb
