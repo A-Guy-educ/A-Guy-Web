@@ -1,6 +1,7 @@
 import { DemoLandingPage } from '@/ui/web/homepage/DemoLandingPage'
 import { resolveLandingRedirect } from '@/infra/onboarding/homeRedirect'
 import { getMeUser } from '@/infra/utils/getMeUser'
+import { mergeOpenGraph } from '@/infra/utils/mergeOpenGraph'
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 
@@ -20,10 +21,9 @@ export function generateMetadata(): Metadata {
     title: 'Aguy - הדור הבא של הלמידה',
     description:
       'פלטפורמת למידה אישית למתמטיקה עם שיעורים, תרגול, מורה דיגיטלי, תוכנית אישית וזמינות מלאה.',
-    openGraph: {
+    openGraph: mergeOpenGraph({
       title: 'Aguy - הדור הבא של הלמידה',
       description: 'ממש כמו מורה פרטי, רק זמין יותר, משתלם יותר ומותאם בדיוק בשבילך.',
-      images: [{ url: '/website-template-OG.webp' }],
-    },
+    }),
   }
 }

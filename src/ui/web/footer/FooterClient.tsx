@@ -15,6 +15,7 @@ import { useCallback, useMemo, useState } from 'react'
 
 import { cn } from '@/infra/utils/ui'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
+import { useTranslations } from '@/ui/web/providers/I18n'
 import { BrandLogo } from '@/ui/web/BrandLogo'
 import { CMSLink } from '@/ui/web/Link'
 import { ThemeSelector } from '@/ui/web/providers/Theme/ThemeSelector'
@@ -62,6 +63,8 @@ function resolveNavHref(
 }
 
 export const FooterClient: React.FC<FooterClientProps> = ({ data, version, showExtras = true }) => {
+  const tLegal = useTranslations('legal')
+  const tFooter = useTranslations('footer')
   const [activePageId, setActivePageId] = useState<string | null>(null)
 
   const activePage = useMemo(() => {
@@ -173,6 +176,14 @@ export const FooterClient: React.FC<FooterClientProps> = ({ data, version, showE
             )
           })}
 
+          <SystemLink
+            href="/privacy-policy"
+            data-testid="footer-privacy-policy"
+            className="text-card-foreground hover:text-primary transition-all duration-normal text-body-xs whitespace-nowrap"
+          >
+            {tLegal('privacyPolicy')}
+          </SystemLink>
+
           {showExtras ? (
             <>
               <span className="text-muted-foreground/30">|</span>
@@ -198,6 +209,10 @@ export const FooterClient: React.FC<FooterClientProps> = ({ data, version, showE
           {contactAddress ? <span>{contactAddress}</span> : null}
         </div>
       )}
+
+      <div className="container pb-3 pt-1 text-center text-body-xs text-muted-foreground/70">
+        {tFooter('copyright')}
+      </div>
 
       <FooterLegalModal page={activePage} isOpen={activePage !== null} onClose={closeModal} />
     </footer>

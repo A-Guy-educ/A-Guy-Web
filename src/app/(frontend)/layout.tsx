@@ -111,10 +111,26 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   )
 }
 
+/**
+ * Resolve `metadataBase` so relative URLs (og:image, canonicals) point to the
+ * host the request actually arrived on. In production we always use the brand
+ * host. On Vercel preview deployments we use the raw deploy URL so social
+ * crawlers hitting `dev.aguy.co.il` fetch og:image from the same deployment —
+ * otherwise og:image resolves to prod, which may not have the asset yet (or
+ * at all for preview-only changes) and link previews fall through to a cached
+ * default.
+ */
+function resolveMetadataBase(prodHost: string): URL {
+  if (process.env.VERCEL_ENV === 'preview' && process.env.VERCEL_URL) {
+    return new URL(`https://${process.env.VERCEL_URL}`)
+  }
+  return new URL(prodHost)
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   const b = getBrand().config
   return {
-    metadataBase: new URL(b.host),
+    metadataBase: resolveMetadataBase(b.host),
     title: { default: b.defaultTitle, template: b.titleTemplate },
     description: b.description,
     keywords: b.keywords,
@@ -140,9 +156,14 @@ export async function generateMetadata(): Promise<Metadata> {
       creator: b.social.twitterHandle,
     },
     icons: {
-      icon: '/favicon.svg',
-      shortcut: '/favicon.ico',
-      apple: '/apple-icon.png',
+      // ?v=N invalidates clients that cached the earlier icon under the old
+      // `Cache-Control: immutable, max-age=1y` header (which never revalidates
+      // regardless of what we send next). Bump N whenever the icon changes;
+      // visitors fetch the new resource on their next page load with no manual
+      // cache clear needed.
+      icon: '/favicon.svg?v=2',
+      shortcut: '/favicon.ico?v=2',
+      apple: '/apple-icon.png?v=2',
     },
     manifest: '/manifest.webmanifest',
   }

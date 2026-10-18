@@ -638,7 +638,14 @@ function ActiveChat({
     return () => window.removeEventListener(CHAT_LESSON_RESET_EVENT, handler)
   }, [])
 
-  const showContinueButton = !walker.isComplete && entries.length > 0
+  // Gate the exercise stream behind the welcome bubble so the chat view opens
+  // on a single teacher message + Continue, matching the "message, press
+  // continue, first exercise" flow Shay specced. Reset flows re-mount the
+  // runner via `onExit`, so this state naturally returns to `false`.
+  const [hasAcknowledgedWelcome, setHasAcknowledgedWelcome] = useState(false)
+  const acknowledgeWelcome = useCallback(() => setHasAcknowledgedWelcome(true), [])
+
+  const showContinueButton = hasAcknowledgedWelcome && !walker.isComplete && entries.length > 0
 
   // Given-data blocks for the current EXERCISE — top-level only (pre-section
   // content.blocks) with answer-required blocks filtered out via the same
@@ -658,48 +665,58 @@ function ActiveChat({
     <>
       <main className="flex-1 overflow-y-auto bg-muted px-4 pt-16 pb-28 md:px-6 md:pt-20 md:pb-32">
         <div className="max-w-2xl mx-auto flex flex-col gap-content-gap" dir="rtl">
-          {entries.map((entry) => (
-            <StreamEntryView
-              key={entry.key}
-              entry={entry}
-              isActive={entry.key === activeStepKey}
-              lessonId={lessonId}
-              mediaMap={mediaMap}
-              tts={tts}
-              onOutcome={handleOutcome}
-              onQuickAction={handleQuickAction}
-              onHintRequest={chat.isQuotaExhausted ? undefined : handleHintRequest}
-              retryHintLabel={retryHintLabel}
-              quickActionLabels={quickActionLabels}
-              quickActionsDisabled={chat.isSending}
-              freeResponsePlaceholder={t('chatViewAnswerPlaceholder')}
-              freeResponseSendLabel={t('chatViewCheckLabel')}
-              freeResponsePendingLabel={t('chatViewFreeResponsePending')}
-              freeResponseNotCheckedLabel={t('chatViewFreeResponseNotChecked')}
-              freeResponseValidationErrors={freeResponseValidationErrors}
-              isQuotaExhausted={chat.isQuotaExhausted}
-              introPrefix={t('chatViewIntroPrefix')}
-              quotaExhaustedBody={t('chatViewQuotaExhaustedBody')}
-              quotaUpgradeLabel={t('chatViewQuotaUpgradeCta')}
-              quotaContinueLabel={t('chatViewQuotaContinueCta')}
-              reviewOfferBody={t('chatViewReviewOfferBody')}
-              reviewYesLabel={t('chatViewReviewYesCta')}
-              reviewEndLabel={t('chatViewReviewEndCta')}
-              onReviewYes={handleReviewYes}
-              onReviewEnd={handleReviewEnd}
-              summaryProps={{
-                lessonTitle,
-                outcome: summaryOutcome,
-                stats: summaryStats,
-                elapsedMinutes: summaryElapsedMinutes,
-                moneySavedIls: summaryMoneySaved,
-                reviewableCount: summaryReviewableCount,
-                copy: summaryCopy,
-                onReview: handleReviewYes,
-                onFinish: handleSummaryFinish,
-              }}
-            />
-          ))}
+          <TeacherBubble
+            text={t('chatWelcome')}
+            onSpeak={() => tts.speak(t('chatWelcome'))}
+            speaking={tts.speaking}
+            muted={tts.muted}
+            ttsSupported={tts.supported}
+          />
+          {!hasAcknowledgedWelcome && (
+            <ContinueButton disabled={false} isEnd={false} onClick={acknowledgeWelcome} />
+          )}
+          {hasAcknowledgedWelcome &&
+            entries.map((entry) => (
+              <StreamEntryView
+                key={entry.key}
+                entry={entry}
+                isActive={entry.key === activeStepKey}
+                lessonId={lessonId}
+                mediaMap={mediaMap}
+                tts={tts}
+                onOutcome={handleOutcome}
+                onQuickAction={handleQuickAction}
+                onHintRequest={chat.isQuotaExhausted ? undefined : handleHintRequest}
+                retryHintLabel={retryHintLabel}
+                quickActionLabels={quickActionLabels}
+                quickActionsDisabled={chat.isSending}
+                freeResponsePlaceholder={t('chatViewAnswerPlaceholder')}
+                freeResponseSendLabel={t('chatViewCheckLabel')}
+                freeResponsePendingLabel={t('chatViewFreeResponsePending')}
+                freeResponseNotCheckedLabel={t('chatViewFreeResponseNotChecked')}
+                freeResponseValidationErrors={freeResponseValidationErrors}
+                isQuotaExhausted={chat.isQuotaExhausted}
+                introPrefix={t('chatViewIntroPrefix')}
+                quotaExhaustedBody={t('chatViewQuotaExhaustedBody')}
+                quotaContinueLabel={t('chatViewQuotaContinueCta')}
+                reviewOfferBody={t('chatViewReviewOfferBody')}
+                reviewYesLabel={t('chatViewReviewYesCta')}
+                reviewEndLabel={t('chatViewReviewEndCta')}
+                onReviewYes={handleReviewYes}
+                onReviewEnd={handleReviewEnd}
+                summaryProps={{
+                  lessonTitle,
+                  outcome: summaryOutcome,
+                  stats: summaryStats,
+                  elapsedMinutes: summaryElapsedMinutes,
+                  moneySavedIls: summaryMoneySaved,
+                  reviewableCount: summaryReviewableCount,
+                  copy: summaryCopy,
+                  onReview: handleReviewYes,
+                  onFinish: handleSummaryFinish,
+                }}
+              />
+            ))}
           {showContinueButton && (
             <ContinueButton disabled={chat.isSending} isEnd={false} onClick={advanceNow} />
           )}
@@ -761,9 +778,8 @@ interface StreamEntryViewProps {
   freeResponsePlaceholder: string
   freeResponseSendLabel: string
   introPrefix: string
-  /** Copy + CTAs for the one-time Task-7 quota-exhausted card. */
+  /** Copy + CTAs for the one-time quota-exhausted card. */
   quotaExhaustedBody: string
-  quotaUpgradeLabel: string
   quotaContinueLabel: string
   /** Task-5 review-offer card copy + handlers. */
   reviewOfferBody: string
@@ -810,7 +826,6 @@ function StreamEntryView({
   freeResponseSendLabel,
   introPrefix,
   quotaExhaustedBody,
-  quotaUpgradeLabel,
   quotaContinueLabel,
   reviewOfferBody,
   reviewYesLabel,
@@ -920,14 +935,8 @@ function StreamEntryView({
     case 'skipped-marker':
       return <SkippedMarker />
     case 'quota-exhausted':
-      return (
-        <QuotaExhaustedCard
-          bodyText={quotaExhaustedBody}
-          upgradeLabel={quotaUpgradeLabel}
-          continueLabel={quotaContinueLabel}
-          upgradeHref="/subscriptions"
-        />
-      )
+      return <QuotaExhaustedCard bodyText={quotaExhaustedBody} continueLabel={quotaContinueLabel} />
+
     case 'review-offer':
       return (
         <ReviewOfferCard

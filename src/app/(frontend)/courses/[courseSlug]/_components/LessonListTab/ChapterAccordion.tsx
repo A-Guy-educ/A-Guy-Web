@@ -122,14 +122,8 @@ export function ChapterAccordion({
             </p>
           )}
 
-          <div className="relative">
-            {visibleLessons.length > 0 && (
-              <div
-                className="absolute start-[15px] top-6 bottom-6 w-px bg-border rounded-full z-0"
-                aria-hidden
-              />
-            )}
-            <div className="space-y-content-gap-xs relative z-10">
+          {visibleLessons.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-content-gap-xs items-stretch">
               {visibleLessons.map((node) => (
                 <LessonRow
                   key={node.lesson.id}
@@ -138,13 +132,12 @@ export function ChapterAccordion({
                   purchaseHref={purchaseHref}
                 />
               ))}
-              {visibleLessons.length === 0 && (
-                <div className="text-center py-content-gap text-body-xs text-muted-foreground ms-12">
-                  {t('roadmapEmptyChapter')}
-                </div>
-              )}
             </div>
-          </div>
+          ) : (
+            <div className="text-center py-content-gap text-body-xs text-muted-foreground">
+              {t('roadmapEmptyChapter')}
+            </div>
+          )}
         </div>
       </AccordionPrimitive.Content>
     </AccordionPrimitive.Item>

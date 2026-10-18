@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.50.0 — 2026-10-18
+
+### Features
+- Match plan copy, chat upsell + lesson-list polish (#1399)
+- Use full Aguy logo in OG preview (#1397)
+- Fixed-height 330px sketch sizing with container-relative width (#1396)
+- Polish OG preview, chat welcome, lesson spacing, privacy page, footer (#1393)
+
+### Bug Fixes
+- Bump icon URL to ?v=2 to force refetch past stuck caches (#1402)
+- Tier copy revert, chat offer namespace, lesson grid (#1401)
+- Regenerate favicon.ico and drop immutable cache on icon routes (#1400)
+- Use the clean telescope paths in favicon.svg (#1398)
+- Gate chat-view exercises behind the welcome bubble (#1395)
+- Lesson intro sentence spacing, chat view welcome, dev OG preview (#1394)
+
 ## v0.49.0 — 2026-10-16
 
 ### Features
@@ -4962,6 +4978,20 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.50.0 ([#1403](https://github.com/A-Guy-educ/A-Guy-Web/pull/1403)) — @aguyshayb
+- fix(brand): Bump icon URL to ?v=2 to force refetch past stuck caches ([#1402](https://github.com/A-Guy-educ/A-Guy-Web/pull/1402)) — @aguyshayb
+- fix: Tier copy revert, chat offer namespace, lesson grid ([#1401](https://github.com/A-Guy-educ/A-Guy-Web/pull/1401)) — @aguyshayb
+- fix(brand): Regenerate favicon.ico and drop immutable cache on icon routes ([#1400](https://github.com/A-Guy-educ/A-Guy-Web/pull/1400)) — @aguyshayb
+- feat: Match plan copy, chat upsell + lesson-list polish ([#1399](https://github.com/A-Guy-educ/A-Guy-Web/pull/1399)) — @aguyshayb
+- fix(brand): Use the clean telescope paths in favicon.svg ([#1398](https://github.com/A-Guy-educ/A-Guy-Web/pull/1398)) — @aguyshayb
+- feat(brand): Use full Aguy logo in OG preview ([#1397](https://github.com/A-Guy-educ/A-Guy-Web/pull/1397)) — @aguyshayb
+- feat(graphics): Fixed-height 330px sketch sizing with container-relative width ([#1396](https://github.com/A-Guy-educ/A-Guy-Web/pull/1396)) — @aguyshayb
+- fix: Gate chat-view exercises behind the welcome bubble ([#1395](https://github.com/A-Guy-educ/A-Guy-Web/pull/1395)) — @aguyshayb
+- fix: lesson intro sentence spacing, chat view welcome, dev OG preview ([#1394](https://github.com/A-Guy-educ/A-Guy-Web/pull/1394)) — @aguyshayb
+- feat: polish OG preview, chat welcome, lesson spacing, privacy page, footer ([#1393](https://github.com/A-Guy-educ/A-Guy-Web/pull/1393)) — @aguyshayb
+## [v0.49.0] - 2026-10-16
+
+- promote: dev -> main (v0.49.0) ([#1392](https://github.com/A-Guy-educ/A-Guy-Web/pull/1392)) — @aguyshayb
 - chore: Release v0.49.0 ([#1391](https://github.com/A-Guy-educ/A-Guy-Web/pull/1391)) — @aguyshayb
 - feat(subtest): Rewire to admin bootstrap with basic.test offer ([#1390](https://github.com/A-Guy-educ/A-Guy-Web/pull/1390)) — @aguyshayb
 - feat(subscriptions): Wire real subscription bootstrap + cancel to admin ([#1389](https://github.com/A-Guy-educ/A-Guy-Web/pull/1389)) — @aguyshayb

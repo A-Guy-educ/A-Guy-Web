@@ -381,9 +381,11 @@
     "chatViewChatError": "Chat error — please try again",
     "chatViewAuthRequired": "Please log in to chat",
     "chatViewQuotaExceeded": "Daily chat limit reached",
-    "chatViewQuotaExhaustedBody": "Your plan's AI quota has run out. To get help and have open answers checked, upgrade your plan. You can keep going in this lesson without AI help or AI checking.",
+    "chatViewQuotaExhaustedBody": "You've reached the help and checking limit on your plan. Upgrade to keep getting hints, guidance, and answer-checking in chat.",
     "chatViewQuotaUpgradeCta": "Upgrade plan",
-    "chatViewQuotaContinueCta": "Keep going",
+    "chatViewQuotaContinueCta": "Keep going without help",
+    "chatViewQuotaOfferTitle": "Keep the help going?",
+    "chatViewQuotaRestrictedBody": "Continuing in the lesson. Help and answer-checking aren't available here — keep solving and come back any time to upgrade.",
     "chatViewCorrectionPrompt": "The student answered the current section incorrectly. Explain the correct solution briefly in the lesson's language, in three sentences or fewer, in a neutral (non-gendered) voice. Do not address the student directly and do not ask them to retry — just explain the solution.",
     "chatViewCorrectionPromptWithChoice": "The student picked \"{choice}\" but the correct answer is \"{correct}\". Explain in the lesson's language, briefly and in a neutral (non-gendered) voice, why that pick is wrong and what the correct line of reasoning is — three sentences or fewer. Do not address the student directly, do not ask them to retry, and do not repeat the full option text.",
     "chatViewHintPromptWithChoice": "The student picked \"{choice}\" and asked for a hint before picking again. The correct answer is \"{correct}\" but do NOT reveal it. Give a short hint in the lesson's language, one or two sentences, that nudges the correct line of reasoning without naming the correct answer or echoing its text. Don't address the student directly or use gendered phrasing.",
@@ -504,7 +506,7 @@
     "chatPanelTitle": "Chat",
     "formulasTab": "Formulas",
     "notesTab": "Notes",
-    "chatWelcome": "Hi! I'm your AI tutor. Ask me for hints, explanations, or help solving this exercise!",
+    "chatWelcome": "Hi! 👋 I'm A-Guy, your AI-powered digital tutor.\n\nI'm here to help you understand, practice, and learn on your own. Sometimes I can make mistakes too, so let's think together!",
     "chatHint": "Hint",
     "chatSolution": "Solution",
     "chatFullSolution": "Full",
@@ -639,7 +641,7 @@
       "noCoursesAvailable": "No courses available"
     },
     "ask": {
-      "chatWelcome": "Hi! Ask me anything about the course!",
+      "chatWelcome": "Hi! 👋 I'm A-Guy, your AI-powered digital tutor.\n\nI'm here to help you understand, practice, and learn on your own. Sometimes I can make mistakes too, so let's think together!",
       "chatInputPlaceholder": "Ask a question...",
       "chatAuthRequired": "Please sign in to ask questions",
       "loading": "Loading...",
@@ -769,6 +771,10 @@
     "roadmapHeroHint": "Chapters auto-collapse to save space. Complete a lesson to open the next.",
     "roadmapFilterHideCompleted": "Hide completed",
     "roadmapFilterShowCompleted": "Show completed",
+    "roadmapFilterAll": "All lessons",
+    "roadmapFilterStarted": "Started lessons",
+    "roadmapFilterGroupLabel": "Lesson filter",
+    "roadmapNextLessonLabel": "Next lesson",
     "roadmapChapterLabel": "Chapter {num}",
     "roadmapChapterUnlocked": "{done}/{total} unlocked",
     "roadmapChapterCount": "{count} lessons",
@@ -780,6 +786,10 @@
     "roadmapLessonLearnNow": "Learn now",
     "roadmapLessonContinue": "Continue",
     "roadmapLessonStart": "Start",
+    "roadmapLessonOpen": "Open",
+    "roadmapStatusInProgress": "In progress",
+    "roadmapStatusNotStarted": "Not started",
+    "roadmapResume": "Continue where you left off",
     "roadmapEmptyChapter": "No lessons match the selected filter in this chapter.",
     "roadmapFocused": "Focused on: {chapter}",
     "quickSearchTrigger": "Quick lesson search",
@@ -1136,46 +1146,85 @@
     "tiers": {
       "free": {
         "name": "Free",
-        "tagline": "Taste the material",
+        "tagline": "Start learning for free",
         "features": [
-          "First 3 learning lessons fully open",
-          "Later lessons locked at exercise 3",
-          "First 3 practice lessons",
-          "First 3 exams",
-          "Limited AI tutor"
+          "3 learning lessons",
+          "3 practice lessons",
+          "3 simulation exams",
+          "AI tutor — daily quota",
+          "Smart notebook v1",
+          "Personal learning plan",
+          "Progress and achievement tracking"
         ]
       },
       "basic": {
         "name": "Basic",
-        "tagline": "Learn without limits",
+        "tagline": "Learn and practice at your own pace",
         "features": [
           "All learning lessons unlocked",
           "All practice lessons unlocked",
-          "First 3 exams",
-          "AI tutor with daily quota"
+          "3 simulation exams",
+          "AI tutor — extended monthly quota",
+          "Smart notebook v1",
+          "Exam preparation plan",
+          "Progress and achievement tracking"
         ]
       },
       "advanced": {
         "name": "Advanced",
-        "tagline": "Everything, including exams",
-        "features": ["Everything in Basic", "All exams unlocked", "Higher AI tutor quota"]
+        "tagline": "Every tool for math success",
+        "features": [
+          "All learning lessons unlocked",
+          "All practice lessons unlocked",
+          "All simulation exams unlocked",
+          "AI tutor — large monthly quota",
+          "Smart notebook v1",
+          "Exam preparation plan",
+          "Progress and achievement tracking"
+        ]
       },
       "premium": {
         "name": "Premium",
-        "tagline": "Unlimited learning",
+        "tagline": "Learn without limits",
         "features": [
-          "Everything in Advanced",
-          "No limit on AI tutor",
-          "Top AI model for every question"
-        ]
+          "All learning lessons unlocked",
+          "All practice lessons unlocked",
+          "All simulation exams unlocked",
+          "AI tutor — unlimited quota*",
+          "Smart notebook v1",
+          "Exam preparation plan",
+          "Progress and achievement tracking"
+        ],
+        "footnote": "* Subject to fair use policy"
       }
+    },
+    "comingSoon": {
+      "title": "More features — coming soon",
+      "items": [
+        "Solution video generation",
+        "Custom simulation exams",
+        "Reminders, encouragement, and motivation"
+      ]
     },
     "errors": {
       "authRequired": "Please log in to subscribe.",
       "invalidTier": "That plan is not available.",
       "checkoutFailed": "Unable to start checkout. Please try again.",
-      "providerNotConfigured": "PayPal is not configured. Please contact support."
+      "providerNotConfigured": "Payment is not configured. Please contact support."
     }
+  },
+  "upgradeOffer": {
+    "recommended": "Recommended"
+  },
+  "upgradeDialog": {
+    "title": "Complete your upgrade",
+    "description": "You'll be back to the lesson exactly where you left off.",
+    "recurringLabel": "Recurring monthly subscription",
+    "payButton": "Complete payment",
+    "loading": "Verifying payment…",
+    "error": "We couldn't start the payment. You can try again, or close and keep going.",
+    "close": "Close",
+    "secure": "🔒 Payment is secured — we never store card details."
   },
   "checkout": {
     "success": {
@@ -1209,6 +1258,9 @@
     "privacyPolicy": "Privacy Policy",
     "cancellationRefund": "Cancellation & Refunds",
     "aiUsageStatement": "AI Usage Statement"
+  },
+  "footer": {
+    "copyright": "2026 A-Guy | גיא קורן – מתמטיקה ופיזיקה. כל הזכויות שמורות."
   },
   "prep7": {
     "brand": {

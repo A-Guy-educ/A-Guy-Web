@@ -97,6 +97,15 @@ function plainText(value?: string | null) {
   )
 }
 
+// Convert sentence boundaries (`.`, `!`, `?` followed by whitespace) into
+// markdown paragraph breaks so the lesson description renders one sentence
+// per visual line — matches the sentence-per-line treatment the ContentPage
+// renderer already applies inside lesson content.
+function splitSentencesAsMarkdownParagraphs(value: string): string {
+  if (!value) return ''
+  return value.replace(/([.!?])\s+/g, '$1\n\n')
+}
+
 // We render the description as markdown + KaTeX so admin-authored `$...$` math
 // is rendered instead of leaking out as literal `$x+5=12$`. Admin descriptions
 // are stored as HTML, so tags are stripped first — formatting is lost but math
@@ -168,7 +177,7 @@ export function LessonIntroPage({
     handleStart(index)
   }
   const pdfCount = mediaFiles.length
-  const description = plainText(lesson.description)
+  const description = splitSentencesAsMarkdownParagraphs(plainText(lesson.description))
 
   // Touch the lesson's progress record on view so `lastAccessedAt` reflects
   // this visit, which is what the course page's hero card ("where I left off"

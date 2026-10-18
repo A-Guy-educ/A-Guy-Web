@@ -21,7 +21,12 @@ import { ChapterAccordion } from './ChapterAccordion'
 import { CourseLessonsFilterBar } from './CourseLessonsFilterBar'
 import { CourseLessonsHero } from './CourseLessonsHero'
 import { formatMessage } from './formatMessage'
-import { countTotals, findFeaturedNode, useLessonGrouping } from './useLessonGrouping'
+import {
+  countTotals,
+  findFeaturedNode,
+  findNextSuggestionNode,
+  useLessonGrouping,
+} from './useLessonGrouping'
 import type { FilterMode, LessonRoadmapNode } from './lessonRoadmapTypes'
 import type { LessonProgress } from '../types'
 
@@ -125,6 +130,7 @@ export function LessonListTab({
   })
 
   const featured = findFeaturedNode(groups)
+  const nextSuggestion = findNextSuggestionNode(groups, featured)
   const { total, completed } = countTotals(groups)
   const accentColor = tabColor?.stroke ?? 'hsl(var(--primary))'
 
@@ -146,17 +152,20 @@ export function LessonListTab({
     setAutoExpandedFor(featuredChapterId)
   }, [autoExpandedFor, featured, groups])
 
+  // "Started" chip in the demo = lessons the student has touched (active or
+  // completed). Not-yet-opened `available` rows are filtered out so the chip
+  // actually shrinks the list to the student's in-flight work.
   const visibleLessonsFor = (lessons: LessonRoadmapNode[]) => {
-    if (filterMode === 'uncompleted') return lessons.filter((n) => n.status !== 'completed')
+    if (filterMode === 'started')
+      return lessons.filter((n) => n.status === 'active' || n.status === 'completed')
     return lessons
   }
 
-  // When hiding completed lessons, also drop chapters whose remaining lessons
-  // are all completed — otherwise their headers linger and the toggle feels
-  // like it did nothing.
   const visibleGroups = useMemo(() => {
-    if (filterMode !== 'uncompleted') return groups
-    return groups.filter((g) => g.lessons.some((n) => n.status !== 'completed'))
+    if (filterMode !== 'started') return groups
+    return groups.filter((g) =>
+      g.lessons.some((n) => n.status === 'active' || n.status === 'completed'),
+    )
   }, [filterMode, groups])
 
   const handleFocusNext = () => {
@@ -174,6 +183,21 @@ export function LessonListTab({
     })
   }
 
+  const handleFocusSuggestion = () => {
+    if (!nextSuggestion) return
+    const group = groups.find((g) => g.lessons.some((n) => n === nextSuggestion))
+    if (!group) return
+    setOpenChapters((prev) =>
+      prev.includes(group.chapter.id) ? prev : [...prev, group.chapter.id],
+    )
+    requestAnimationFrame(() => {
+      const el = document.querySelector<HTMLElement>(
+        `[data-lesson-id="${nextSuggestion.lesson.id}"]`,
+      )
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+  }
+
   if (filteredLessons.length === 0) return null
 
   const timelineFill = total > 0 ? Math.max(5, Math.round((completed / total) * 100)) : 5
@@ -184,8 +208,10 @@ export function LessonListTab({
         completed={completed}
         total={total}
         featured={featured}
+        suggestion={nextSuggestion}
         accentColor={accentColor}
         onFocusNext={handleFocusNext}
+        onFocusSuggestion={handleFocusSuggestion}
       />
 
       <CourseLessonsFilterBar mode={filterMode} onChange={setFilterMode} />

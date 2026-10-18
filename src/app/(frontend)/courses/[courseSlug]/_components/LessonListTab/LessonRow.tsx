@@ -1,8 +1,8 @@
 /**
  * @fileType component
  * @domain frontend
- * @pattern lesson-roadmap-row
- * @ai-summary Single lesson row inside a chapter accordion — renders the big index number, ContentStatusBadge (which handles expiry + custom label), title, in-progress percentage, and a state-aware action (Learn now / Continue / Start / Locked / Coming soon). Wrapped in a SystemLink so route-loading state gets registered on navigation; paywall-locked variants route to the pre-resolved purchase URL instead.
+ * @pattern lesson-roadmap-card
+ * @ai-summary Compact lesson card for the 3-per-row chapter grid. Renders a numbered badge, title with status/percent meta, and a right-aligned action chip (Continue / Start / Learn now / Locked / Coming soon). Replaces the earlier full-width row layout to match the home-page demo. Still wrapped in a SystemLink so route-loading state registers on navigation; paywall-locked variants route to the resolved purchase URL instead.
  */
 
 'use client'
@@ -14,9 +14,6 @@ import { SystemLink } from '@/infra/loading/components/SystemLink'
 import { storeLessonOpenTimestamp } from '@/infra/analytics/utils/lesson-load-timing'
 import { SYSTEM_EVENTS, systemEventBus } from '@/infra/system-events'
 import { useTranslations } from '@/ui/web/providers/I18n'
-import { ContentStatusBadge } from '@/ui/web/shared/ContentStatusBadge'
-import { ProgressCircle } from '@/ui/web/shared/ProgressCircle'
-import { ShareButton } from '@/ui/web/shared/ShareButton'
 import type { LessonRoadmapNode } from './lessonRoadmapTypes'
 
 interface LessonRowProps {
@@ -32,7 +29,7 @@ function formatIndex(n: number): string {
 export function LessonRow({ node, courseSlug, purchaseHref }: LessonRowProps) {
   const t = useTranslations('coursePage')
   const tc = useTranslations('courses')
-  const { lesson, chapterSlug, displayIndex, progressPercent, status } = node
+  const { lesson, chapterSlug, displayIndex, status } = node
 
   const href = chapterSlug
     ? `/courses/${courseSlug}/chapters/${chapterSlug}/lessons/${lesson.slug}`
@@ -68,120 +65,94 @@ export function LessonRow({ node, courseSlug, purchaseHref }: LessonRowProps) {
 
   const cardTone =
     status === 'completed'
-      ? 'border-success/20 bg-success/[0.03] hover:border-success/30'
+      ? 'border-success/20 bg-success/[0.03] hover:border-success/40'
       : isActiveTone
-        ? 'border-primary/40 bg-primary/[0.03] ring-1 ring-primary/20'
+        ? 'border-primary/50 bg-primary/[0.04] ring-1 ring-primary/20'
         : status === 'locked'
           ? 'border-warning/30 bg-warning/[0.05] hover:border-warning/40'
           : status === 'soon'
             ? 'border-border/60 bg-muted/20 opacity-70'
-            : 'border-border bg-card hover:border-border/80'
+            : // Not-yet-started: inviting primary-tinted card instead of gray.
+              'border-primary/20 bg-primary/[0.015] hover:border-primary/40'
 
   const numberTone =
     status === 'completed'
-      ? 'text-success/80 font-semibold'
+      ? 'bg-success/10 text-success'
       : isActiveTone
-        ? 'text-foreground font-extrabold'
+        ? 'bg-primary/15 text-primary'
         : status === 'locked'
-          ? 'text-warning/70'
-          : 'text-muted-foreground/60'
-
-  const dotTone =
-    status === 'completed'
-      ? 'bg-success ring-4 ring-success/10'
-      : isActiveTone
-        ? 'bg-primary ring-4 ring-primary/20 animate-pulse'
-        : status === 'locked'
-          ? 'bg-warning/60 ring-4 ring-warning/10'
-          : 'bg-muted border border-border'
+          ? 'bg-warning/10 text-warning'
+          : status === 'soon'
+            ? 'bg-muted text-muted-foreground'
+            : 'bg-primary/10 text-primary'
 
   return (
-    <div
-      className="flex items-center gap-content-gap-sm relative group"
+    <SystemLink
+      href={targetHref}
+      onClick={handleClick}
       data-testid="course-lesson-row"
       data-lesson-id={lesson.id}
       data-lesson-status={status}
+      className={cn(
+        'group flex items-center gap-content-gap-xs rounded-xl border p-card-padding-sm min-h-[60px]',
+        'transition-all duration-normal',
+        cardTone,
+        isInteractive && 'hover:-translate-y-0.5 hover:shadow-elevation-1',
+      )}
     >
       <div
         className={cn(
-          'absolute start-[11px] top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full z-10 transition-all duration-normal',
-          dotTone,
-        )}
-        aria-hidden
-      />
-      <SystemLink
-        href={targetHref}
-        onClick={handleClick}
-        className={cn(
-          'ms-8 flex-1 rounded-xl p-card-padding-sm border transition-all duration-normal flex flex-col sm:flex-row justify-between items-start sm:items-center gap-content-gap-xs',
-          cardTone,
-          isInteractive && 'hover:-translate-x-[1px]',
+          'flex items-center justify-center w-8 h-9 rounded-lg font-bold text-body-sm shrink-0 tabular-nums',
+          numberTone,
         )}
       >
-        <div className="flex items-center gap-content-gap-sm text-start w-full sm:w-auto">
-          <div
-            className={cn(
-              'text-heading-xl md:text-display-sm font-mono tracking-tight shrink-0 select-none transition-colors duration-normal tabular-nums',
-              numberTone,
-            )}
-          >
-            {formatIndex(displayIndex)}
-          </div>
-          <div className="w-px h-9 bg-border shrink-0" />
-          <div className="space-y-1">
-            <div className="flex items-center gap-content-gap-xs flex-wrap">
-              <ContentStatusBadge
-                contentStatus={lesson.contentStatus}
-                contentStatusExpiresAt={lesson.contentStatusExpiresAt ?? undefined}
-                contentStatusLabel={lesson.contentStatusLabel ?? undefined}
-              />
-            </div>
-            <h4 className="text-body-sm font-bold text-foreground tracking-tight">
-              {lesson.title}
-            </h4>
-          </div>
-        </div>
-        <div className="flex items-center gap-content-gap-xs self-stretch sm:self-auto justify-end shrink-0">
-          {status !== 'locked' && status !== 'soon' && (
-            <LessonProgressRing percent={progressPercent} />
-          )}
-          {/* Share comes before the status chip in DOM so flex visual
-              ordering lands it on the opposite side of the start/continue
-              button — Hebrew (RTL): start on left, share to the right of it;
-              English (LTR): mirror. Same action-group placement as before,
-              just the two children swapped. */}
-          {isInteractive && chapterSlug && lesson.slug && (
-            <ShareButton
-              title={lesson.title}
-              url={`/courses/${courseSlug}/chapters/${chapterSlug}/lessons/${lesson.slug}`}
-              ariaLabel={tc('shareLesson')}
-              className="h-7 w-7 shadow-none"
-            />
-          )}
-          {renderStatusControl({ node, t })}
-        </div>
-      </SystemLink>
-    </div>
+        {formatIndex(displayIndex)}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <h4 className="text-body-sm font-bold text-foreground tracking-tight line-clamp-2 leading-tight">
+          {lesson.title}
+        </h4>
+        <LessonMeta node={node} t={t} />
+      </div>
+
+      {renderStatusControl({ node, t })}
+    </SystemLink>
   )
 }
 
-function LessonProgressRing({ percent }: { percent: number }) {
-  const safe = Math.max(0, Math.min(100, Math.round(percent)))
-  return (
-    <div className="w-10 h-10 shrink-0" aria-label={`${safe}%`}>
-      <ProgressCircle percentage={safe} size={40} strokeWidth={4} strokeColor="hsl(var(--success))">
-        <text
-          x="50%"
-          y="50%"
-          textAnchor="middle"
-          dy=".3em"
-          className="text-[9px] font-bold fill-foreground tabular-nums"
-        >
-          {safe}%
-        </text>
-      </ProgressCircle>
-    </div>
-  )
+function LessonMeta({
+  node,
+  t,
+}: {
+  node: LessonRoadmapNode
+  t: ReturnType<typeof useTranslations>
+}) {
+  const { status, progressPercent } = node
+  if (status === 'active') {
+    return (
+      <div className="flex items-center gap-1 text-body-2xs text-primary mt-1">
+        <span className="font-semibold">{t('roadmapStatusInProgress')}</span>
+        <span className="text-muted-foreground">·</span>
+        <span className="tabular-nums text-muted-foreground">{progressPercent}%</span>
+      </div>
+    )
+  }
+  if (status === 'completed') {
+    return (
+      <div className="flex items-center gap-1 text-body-2xs text-success mt-1">
+        <span className="font-semibold">{t('roadmapLessonCompleted')}</span>
+        <span className="text-muted-foreground">·</span>
+        <span className="tabular-nums text-muted-foreground">100%</span>
+      </div>
+    )
+  }
+  if (status === 'available') {
+    return (
+      <div className="text-body-2xs text-muted-foreground mt-1">{t('roadmapStatusNotStarted')}</div>
+    )
+  }
+  return null
 }
 
 function renderStatusControl({
@@ -194,25 +165,25 @@ function renderStatusControl({
   const { status, isFeatured } = node
   if (status === 'completed') {
     return (
-      <span className="text-body-xs font-bold text-success flex items-center gap-1.5 font-mono">
-        <CheckCircle2 className="w-3.5 h-3.5" />
-        <span className="hidden sm:inline">{t('roadmapLessonCompleted')}</span>
+      <span className="shrink-0 inline-flex items-center justify-center rounded-lg bg-muted px-3 h-9 text-body-xs font-bold text-foreground">
+        <CheckCircle2 className="w-3.5 h-3.5 text-success me-1" />
+        {t('roadmapLessonOpen')}
       </span>
     )
   }
   if (status === 'locked') {
     return (
-      <span className="text-body-xs text-warning font-medium flex items-center gap-1.5">
-        <Lock className="w-3 h-3" />
-        <span className="hidden sm:inline">{t('roadmapLessonLocked')}</span>
+      <span className="shrink-0 inline-flex items-center justify-center rounded-lg bg-warning/10 px-3 h-9 text-body-xs font-bold text-warning">
+        <Lock className="w-3 h-3 me-1" />
+        {t('roadmapLessonLocked')}
       </span>
     )
   }
   if (status === 'soon') {
     return (
-      <span className="text-body-xs text-muted-foreground flex items-center gap-1.5">
-        <Clock className="w-3 h-3" />
-        <span className="hidden sm:inline">{t('roadmapLessonComingSoon')}</span>
+      <span className="shrink-0 inline-flex items-center justify-center rounded-lg bg-muted px-3 h-9 text-body-xs font-medium text-muted-foreground">
+        <Clock className="w-3 h-3 me-1" />
+        {t('roadmapLessonComingSoon')}
       </span>
     )
   }
@@ -225,14 +196,15 @@ function renderStatusControl({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 font-bold text-body-2xs px-3 py-1.5 rounded-lg transition-all duration-normal',
+        'shrink-0 inline-flex items-center justify-center rounded-lg px-3 h-9 text-body-xs font-bold',
+        'transition-colors duration-normal',
         isFeatured || status === 'active'
-          ? 'bg-primary text-primary-foreground shadow-elevation-2'
-          : 'bg-muted text-foreground hover:bg-muted/70',
+          ? 'bg-primary text-primary-foreground shadow-elevation-1'
+          : 'bg-primary/10 text-primary border border-primary/30 group-hover:bg-primary/20',
       )}
     >
-      <Play className="w-2.5 h-2.5" />
-      <span>{label}</span>
+      <Play className="w-2.5 h-2.5 me-1" />
+      {label}
     </span>
   )
 }
