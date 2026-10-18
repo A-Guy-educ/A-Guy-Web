@@ -75,7 +75,10 @@ export function LessonRow({ node, courseSlug, purchaseHref }: LessonRowProps) {
           ? 'border-warning/30 bg-warning/[0.05] hover:border-warning/40'
           : status === 'soon'
             ? 'border-border/60 bg-muted/20 opacity-70'
-            : 'border-border bg-card hover:border-border/80'
+            : // Not-yet-started lesson: an inviting primary-tinted card instead
+              // of a dim gray row, so the "התחל" affordance reads as available
+              // from across the roadmap.
+              'border-primary/20 bg-primary/[0.015] hover:border-primary/40'
 
   const numberTone =
     status === 'completed'
@@ -84,7 +87,7 @@ export function LessonRow({ node, courseSlug, purchaseHref }: LessonRowProps) {
         ? 'text-foreground font-extrabold'
         : status === 'locked'
           ? 'text-warning/70'
-          : 'text-muted-foreground/60'
+          : 'text-primary/70 font-semibold'
 
   const dotTone =
     status === 'completed'
@@ -228,7 +231,10 @@ function renderStatusControl({
         'inline-flex items-center gap-1 font-bold text-body-2xs px-3 py-1.5 rounded-lg transition-all duration-normal',
         isFeatured || status === 'active'
           ? 'bg-primary text-primary-foreground shadow-elevation-2'
-          : 'bg-muted text-foreground hover:bg-muted/70',
+          : // Not-featured / not-started lessons kept a muted gray chip that
+            // read as disabled. Primary-tinted outline chip keeps the hierarchy
+            // (featured still wins) while making the start CTA inviting.
+            'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/15',
       )}
     >
       <Play className="w-2.5 h-2.5" />
