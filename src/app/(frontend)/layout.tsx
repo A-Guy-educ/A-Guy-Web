@@ -156,9 +156,14 @@ export async function generateMetadata(): Promise<Metadata> {
       creator: b.social.twitterHandle,
     },
     icons: {
-      icon: '/favicon.svg',
-      shortcut: '/favicon.ico',
-      apple: '/apple-icon.png',
+      // ?v=N invalidates clients that cached the earlier icon under the old
+      // `Cache-Control: immutable, max-age=1y` header (which never revalidates
+      // regardless of what we send next). Bump N whenever the icon changes;
+      // visitors fetch the new resource on their next page load with no manual
+      // cache clear needed.
+      icon: '/favicon.svg?v=2',
+      shortcut: '/favicon.ico?v=2',
+      apple: '/apple-icon.png?v=2',
     },
     manifest: '/manifest.webmanifest',
   }
