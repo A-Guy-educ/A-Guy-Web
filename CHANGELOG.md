@@ -4962,6 +4962,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat(brand): Use full Aguy logo in OG preview ([#1397](https://github.com/A-Guy-educ/A-Guy-Web/pull/1397)) — @aguyshayb
 - feat(graphics): Fixed-height 330px sketch sizing with container-relative width ([#1396](https://github.com/A-Guy-educ/A-Guy-Web/pull/1396)) — @aguyshayb
 - fix: Gate chat-view exercises behind the welcome bubble ([#1395](https://github.com/A-Guy-educ/A-Guy-Web/pull/1395)) — @aguyshayb
 - fix: lesson intro sentence spacing, chat view welcome, dev OG preview ([#1394](https://github.com/A-Guy-educ/A-Guy-Web/pull/1394)) — @aguyshayb
