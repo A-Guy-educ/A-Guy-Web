@@ -14,6 +14,7 @@ import { getDirection } from '@/i18n/config'
 import { getSystemLocale } from '@/i18n/server-locale'
 import { pageMetadata } from '@/infra/seo/pageMetadata'
 import { TIER_SLUGS } from '@/lib/tiers/constants'
+import { ComingSoonSection } from './_components/ComingSoonSection'
 import { SubscriptionsHeader } from './_components/SubscriptionsHeader'
 import { TierCard } from './_components/TierCard'
 
@@ -32,6 +33,7 @@ export default async function SubscriptionsPage() {
             <TierCard key={tier} tier={tier} />
           ))}
         </div>
+        <ComingSoonSection />
       </div>
     </div>
   )

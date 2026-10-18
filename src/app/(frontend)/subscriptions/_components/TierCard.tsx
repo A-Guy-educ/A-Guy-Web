@@ -74,6 +74,7 @@ export function TierCard({ tier }: TierCardProps) {
   // Features are an array in the i18n JSON — pulled directly from the raw
   // messages tree because the typed `t()` helper only resolves string leaves.
   const features = readFeatures(messages, tier)
+  const footnote = readFootnote(messages, tier)
 
   const tierName = t(`tiers.${tier}.name`)
   const tagline = t(`tiers.${tier}.tagline`)
@@ -151,6 +152,8 @@ export function TierCard({ tier }: TierCardProps) {
             </li>
           ))}
         </ul>
+
+        {footnote ? <p className="mt-1 text-body-xs text-muted-foreground">{footnote}</p> : null}
       </div>
 
       {(() => {
@@ -252,4 +255,12 @@ function readFeatures(messages: Record<string, unknown>, tier: TierSlug): string
   const tierEntry = tiers?.[tier] as Record<string, unknown> | undefined
   const features = tierEntry?.features
   return Array.isArray(features) ? features.filter((f): f is string => typeof f === 'string') : []
+}
+
+function readFootnote(messages: Record<string, unknown>, tier: TierSlug): string | null {
+  const subscriptions = messages.subscriptions as Record<string, unknown> | undefined
+  const tiers = subscriptions?.tiers as Record<string, unknown> | undefined
+  const tierEntry = tiers?.[tier] as Record<string, unknown> | undefined
+  const footnote = tierEntry?.footnote
+  return typeof footnote === 'string' && footnote ? footnote : null
 }
