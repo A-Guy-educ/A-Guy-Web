@@ -224,6 +224,27 @@ export function findFeaturedNode(groups: ChapterRoadmapGroup[]): LessonRoadmapNo
   return null
 }
 
+/**
+ * The lesson the student would naturally start *after* the featured one.
+ * Drives the "next lesson" quick-link under the hero so the student has an
+ * easy jump to the upcoming lesson without scanning the chapter list. Walks
+ * the groups in course order from the position of the featured lesson and
+ * returns the next node that is not completed and not locked/soon.
+ */
+export function findNextSuggestionNode(
+  groups: ChapterRoadmapGroup[],
+  featured: LessonRoadmapNode | null,
+): LessonRoadmapNode | null {
+  const flat: LessonRoadmapNode[] = []
+  for (const g of groups) flat.push(...g.lessons)
+  const startIndex = featured ? flat.findIndex((n) => n === featured) : -1
+  for (let i = startIndex + 1; i < flat.length; i++) {
+    const n = flat[i]
+    if (n.status === 'available' || n.status === 'active') return n
+  }
+  return null
+}
+
 export function countTotals(groups: ChapterRoadmapGroup[]): { total: number; completed: number } {
   let total = 0
   let completed = 0
