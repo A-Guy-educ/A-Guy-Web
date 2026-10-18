@@ -4962,6 +4962,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: polish OG preview, chat welcome, lesson spacing, privacy page, footer ([#1393](https://github.com/A-Guy-educ/A-Guy-Web/pull/1393)) — @aguyshayb
 ## [v0.49.0] - 2026-10-16
 
 - promote: dev -> main (v0.49.0) ([#1392](https://github.com/A-Guy-educ/A-Guy-Web/pull/1392)) — @aguyshayb
