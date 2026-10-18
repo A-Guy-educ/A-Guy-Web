@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.50.0 — 2026-10-18
+
+### Features
+- Match plan copy, chat upsell + lesson-list polish (#1399)
+- Use full Aguy logo in OG preview (#1397)
+- Fixed-height 330px sketch sizing with container-relative width (#1396)
+- Polish OG preview, chat welcome, lesson spacing, privacy page, footer (#1393)
+
+### Bug Fixes
+- Bump icon URL to ?v=2 to force refetch past stuck caches (#1402)
+- Tier copy revert, chat offer namespace, lesson grid (#1401)
+- Regenerate favicon.ico and drop immutable cache on icon routes (#1400)
+- Use the clean telescope paths in favicon.svg (#1398)
+- Gate chat-view exercises behind the welcome bubble (#1395)
+- Lesson intro sentence spacing, chat view welcome, dev OG preview (#1394)
+
 ## v0.49.0 — 2026-10-16
 
 ### Features
