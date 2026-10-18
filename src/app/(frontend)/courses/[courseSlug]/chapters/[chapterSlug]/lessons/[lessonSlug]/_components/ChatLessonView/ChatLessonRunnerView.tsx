@@ -658,6 +658,13 @@ function ActiveChat({
     <>
       <main className="flex-1 overflow-y-auto bg-muted px-4 pt-16 pb-28 md:px-6 md:pt-20 md:pb-32">
         <div className="max-w-2xl mx-auto flex flex-col gap-content-gap" dir="rtl">
+          <TeacherBubble
+            text={t('chatWelcome')}
+            onSpeak={() => tts.speak(t('chatWelcome'))}
+            speaking={tts.speaking}
+            muted={tts.muted}
+            ttsSupported={tts.supported}
+          />
           {entries.map((entry) => (
             <StreamEntryView
               key={entry.key}
