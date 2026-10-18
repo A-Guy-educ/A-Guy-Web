@@ -4978,6 +4978,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- promote: dev -> main (v0.50.0) ([#1404](https://github.com/A-Guy-educ/A-Guy-Web/pull/1404)) — @aguyshayb
 - chore: Release v0.50.0 ([#1403](https://github.com/A-Guy-educ/A-Guy-Web/pull/1403)) — @aguyshayb
 - fix(brand): Bump icon URL to ?v=2 to force refetch past stuck caches ([#1402](https://github.com/A-Guy-educ/A-Guy-Web/pull/1402)) — @aguyshayb
 - fix: Tier copy revert, chat offer namespace, lesson grid ([#1401](https://github.com/A-Guy-educ/A-Guy-Web/pull/1401)) — @aguyshayb
