@@ -698,7 +698,6 @@ function ActiveChat({
                 isQuotaExhausted={chat.isQuotaExhausted}
                 introPrefix={t('chatViewIntroPrefix')}
                 quotaExhaustedBody={t('chatViewQuotaExhaustedBody')}
-                quotaUpgradeLabel={t('chatViewQuotaUpgradeCta')}
                 quotaContinueLabel={t('chatViewQuotaContinueCta')}
                 reviewOfferBody={t('chatViewReviewOfferBody')}
                 reviewYesLabel={t('chatViewReviewYesCta')}
@@ -779,9 +778,8 @@ interface StreamEntryViewProps {
   freeResponsePlaceholder: string
   freeResponseSendLabel: string
   introPrefix: string
-  /** Copy + CTAs for the one-time Task-7 quota-exhausted card. */
+  /** Copy + CTAs for the one-time quota-exhausted card. */
   quotaExhaustedBody: string
-  quotaUpgradeLabel: string
   quotaContinueLabel: string
   /** Task-5 review-offer card copy + handlers. */
   reviewOfferBody: string
@@ -828,7 +826,6 @@ function StreamEntryView({
   freeResponseSendLabel,
   introPrefix,
   quotaExhaustedBody,
-  quotaUpgradeLabel,
   quotaContinueLabel,
   reviewOfferBody,
   reviewYesLabel,
@@ -938,14 +935,8 @@ function StreamEntryView({
     case 'skipped-marker':
       return <SkippedMarker />
     case 'quota-exhausted':
-      return (
-        <QuotaExhaustedCard
-          bodyText={quotaExhaustedBody}
-          upgradeLabel={quotaUpgradeLabel}
-          continueLabel={quotaContinueLabel}
-          upgradeHref="/subscriptions"
-        />
-      )
+      return <QuotaExhaustedCard bodyText={quotaExhaustedBody} continueLabel={quotaContinueLabel} />
+
     case 'review-offer':
       return (
         <ReviewOfferCard
