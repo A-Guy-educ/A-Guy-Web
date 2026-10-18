@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react'
 import type { GeometrySpecV1, AxisSpecV1 } from '@/infra/contracts'
 import { renderAdminHtmlWithMath } from '@/infra/utils/renderAdminHtmlWithMath'
+import { splitSentencesInLessonHtml } from '@/infra/utils/splitSentencesInLessonHtml'
 import { cn } from '@/infra/utils/ui'
 import { SafeHtml } from '@/ui/web/SafeHtml'
 import { AxisRenderer, type DisplaySize } from '@/ui/web/exerciserenderer/blocks/AxisRenderer'
@@ -25,7 +26,7 @@ function HtmlBlock({ html }: { html: string }) {
   // Math delimiters ($...$, $$...$$) are converted to KaTeX HTML up front
   // so the sanitization pass that follows can preserve the resulting
   // `katex` / `katex-display` markup without re-parsing delimiters.
-  const rendered = useMemo(() => renderAdminHtmlWithMath(html), [html])
+  const rendered = useMemo(() => splitSentencesInLessonHtml(renderAdminHtmlWithMath(html)), [html])
   return <SafeHtml html={rendered} enableProse className="rich-text-content" />
 }
 

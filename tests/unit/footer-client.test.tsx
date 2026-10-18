@@ -9,10 +9,27 @@
  *   continue to render as plain anchor tags.
  */
 import { fireEvent, render, screen } from '@testing-library/react'
+import type { ReactElement } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { FooterClient } from '@/ui/web/footer/FooterClient'
 import type { FooterData } from '@/ui/web/footer/footer-data'
+import { I18nProvider } from '@/ui/web/providers/I18n'
+
+// Deliberately unique label values so these mock copies don't collide with CMS
+// page titles that appear in dialog bodies ("Privacy Policy", etc.).
+const FOOTER_MESSAGES = {
+  legal: { privacyPolicy: 'FOOTER_PRIVACY_LINK' },
+  footer: { copyright: 'FOOTER_COPYRIGHT_TEXT' },
+}
+
+function renderWithI18n(ui: ReactElement) {
+  return render(
+    <I18nProvider locale="en" messages={FOOTER_MESSAGES}>
+      {ui}
+    </I18nProvider>,
+  )
+}
 
 // Radix Dialog uses ResizeObserver/IntersectionObserver/hasPointerCapture in some paths.
 // Stub them so jsdom does not blow up.
@@ -77,7 +94,7 @@ const baseData: FooterData = {
 
 describe('FooterClient', () => {
   it('renders every meta field that has a value', () => {
-    render(<FooterClient data={baseData} version="1.2.3" showExtras={false} />)
+    renderWithI18n(<FooterClient data={baseData} version="1.2.3" showExtras={false} />)
 
     expect(screen.getByText('Aguy Learning Platform')).toBeTruthy()
     expect(screen.getByText('Subtitle text')).toBeTruthy()
@@ -88,12 +105,12 @@ describe('FooterClient', () => {
   })
 
   it('renders the version when showExtras is true', () => {
-    render(<FooterClient data={baseData} version="1.2.3" />)
+    renderWithI18n(<FooterClient data={baseData} version="1.2.3" />)
     expect(screen.getByText('v1.2.3')).toBeTruthy()
   })
 
   it('opens the modal when a page-reference link is clicked', () => {
-    render(<FooterClient data={baseData} version="1.2.3" showExtras={false} />)
+    renderWithI18n(<FooterClient data={baseData} version="1.2.3" showExtras={false} />)
 
     fireEvent.click(screen.getByTestId('footer-nav-0'))
 
@@ -102,7 +119,7 @@ describe('FooterClient', () => {
   })
 
   it('closes the modal when the same page-reference link is clicked again', () => {
-    render(<FooterClient data={baseData} version="1.2.3" showExtras={false} />)
+    renderWithI18n(<FooterClient data={baseData} version="1.2.3" showExtras={false} />)
 
     const button = screen.getByTestId('footer-nav-0')
     fireEvent.click(button)
@@ -113,7 +130,7 @@ describe('FooterClient', () => {
   })
 
   it('swaps the modal content (instead of stacking) when a different page link is clicked', () => {
-    render(<FooterClient data={baseData} version="1.2.3" showExtras={false} />)
+    renderWithI18n(<FooterClient data={baseData} version="1.2.3" showExtras={false} />)
 
     fireEvent.click(screen.getByTestId('footer-nav-0'))
     expect(screen.getByText('Terms of Service')).toBeTruthy()
@@ -124,7 +141,7 @@ describe('FooterClient', () => {
   })
 
   it('closes the modal when the body of the modal is clicked', () => {
-    render(<FooterClient data={baseData} version="1.2.3" showExtras={false} />)
+    renderWithI18n(<FooterClient data={baseData} version="1.2.3" showExtras={false} />)
 
     fireEvent.click(screen.getByTestId('footer-nav-0'))
     expect(screen.getByText('Terms of Service')).toBeTruthy()
@@ -135,7 +152,7 @@ describe('FooterClient', () => {
   })
 
   it('renders non-reference links as anchors (no modal), without showing the page label as a button', () => {
-    render(<FooterClient data={baseData} version="1.2.3" showExtras={false} />)
+    renderWithI18n(<FooterClient data={baseData} version="1.2.3" showExtras={false} />)
 
     const aboutLink = screen.getByText('About')
     expect(aboutLink.tagName).toBe('A')
@@ -143,7 +160,7 @@ describe('FooterClient', () => {
   })
 
   it('skips the version/separator block when showExtras is false', () => {
-    render(<FooterClient data={baseData} version="1.2.3" showExtras={false} />)
+    renderWithI18n(<FooterClient data={baseData} version="1.2.3" showExtras={false} />)
     expect(screen.queryByText('v1.2.3')).toBeNull()
   })
 })

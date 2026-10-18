@@ -25,6 +25,6 @@ export const aguyConfig: BrandConfig = {
   author: { name: 'A-Guy', url: 'https://www.aguy.co.il' },
   themeColor: { light: '#91262C', dark: '#0f172a' },
   social: { twitterHandle: '@aguy' },
-  ogImage: 'https://www.aguy.co.il/api/media/file/telescope.4ee60378.svg',
+  ogImage: '/og-image.png',
   appleWebApp: { title: 'A-Guy' },
 }

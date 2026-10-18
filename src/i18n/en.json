@@ -504,7 +504,7 @@
     "chatPanelTitle": "Chat",
     "formulasTab": "Formulas",
     "notesTab": "Notes",
-    "chatWelcome": "Hi! I'm your AI tutor. Ask me for hints, explanations, or help solving this exercise!",
+    "chatWelcome": "Hi! 👋 I'm A-Guy, your AI-powered digital tutor.\n\nI'm here to help you understand, practice, and learn on your own. Sometimes I can make mistakes too, so let's think together!",
     "chatHint": "Hint",
     "chatSolution": "Solution",
     "chatFullSolution": "Full",
@@ -639,7 +639,7 @@
       "noCoursesAvailable": "No courses available"
     },
     "ask": {
-      "chatWelcome": "Hi! Ask me anything about the course!",
+      "chatWelcome": "Hi! 👋 I'm A-Guy, your AI-powered digital tutor.\n\nI'm here to help you understand, practice, and learn on your own. Sometimes I can make mistakes too, so let's think together!",
       "chatInputPlaceholder": "Ask a question...",
       "chatAuthRequired": "Please sign in to ask questions",
       "loading": "Loading...",
@@ -1209,6 +1209,9 @@
     "privacyPolicy": "Privacy Policy",
     "cancellationRefund": "Cancellation & Refunds",
     "aiUsageStatement": "AI Usage Statement"
+  },
+  "footer": {
+    "copyright": "2026 A-Guy | גיא קורן – מתמטיקה ופיזיקה. כל הזכויות שמורות."
   },
   "prep7": {
     "brand": {
