@@ -1247,7 +1247,10 @@
       "backToProducts": "Browse Products",
       "goHome": "Go to Home",
       "goToCourse": "Go to {course}",
-      "grantingAccess": "Granting access…"
+      "grantingAccess": "Granting access…",
+      "subscriptionConfirming": "Confirming your subscription…",
+      "subscriptionConfirmedTitle": "Subscription confirmed!",
+      "subscriptionConfirmedDescription": "Your subscription is active. Welcome aboard!"
     },
     "cancel": {
       "title": "Payment Cancelled",
