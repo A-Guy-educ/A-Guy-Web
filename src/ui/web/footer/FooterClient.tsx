@@ -177,6 +177,14 @@ export const FooterClient: React.FC<FooterClientProps> = ({ data, version, showE
           })}
 
           <SystemLink
+            href="/terms-of-service"
+            data-testid="footer-terms-of-service"
+            className="text-card-foreground hover:text-primary transition-all duration-normal text-body-xs whitespace-nowrap"
+          >
+            {tLegal('termsOfService')}
+          </SystemLink>
+
+          <SystemLink
             href="/privacy-policy"
             data-testid="footer-privacy-policy"
             className="text-card-foreground hover:text-primary transition-all duration-normal text-body-xs whitespace-nowrap"
