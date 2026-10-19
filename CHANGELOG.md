@@ -4978,6 +4978,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat(legal): Add Hebrew terms of service page and footer link ([#1418](https://github.com/A-Guy-educ/A-Guy-Web/pull/1418)) — @aguyshayb
 - chore(deps-dev): Bump jsdom from 26.1.0 to 30.1.3 ([#1409](https://github.com/A-Guy-educ/A-Guy-Web/pull/1409)) — @dependabot[bot]
 - chore(deps): Bump dotenv from 17.4.2 to 18.0.8 ([#1410](https://github.com/A-Guy-educ/A-Guy-Web/pull/1410)) — @dependabot[bot]
 - chore(deps-dev): Bump @testcontainers/mongodb from 11.11.0 to 12.2.1 ([#1413](https://github.com/A-Guy-educ/A-Guy-Web/pull/1413)) — @dependabot[bot]
