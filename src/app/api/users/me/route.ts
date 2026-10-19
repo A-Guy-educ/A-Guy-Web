@@ -5,6 +5,7 @@ import {
   getSessionFromHeaders,
   tokensFromHeaders,
 } from '@/infra/auth/web-auth'
+import { readActiveSubscription } from '@/server/services/active-subscription-reader'
 
 export const runtime = 'nodejs'
 
@@ -21,5 +22,15 @@ export async function GET(request: NextRequest) {
     }
     return res
   }
-  return NextResponse.json({ user: session.user })
+  // Mirror admin's `attachActiveSubscription` afterRead hook — Web's
+  // /api/users/me is a custom route (not Payload REST), so admin's Payload
+  // hooks don't fire here. Without this the subscriptions UI on web can't
+  // see the active subscription even after admin's bootstrap webhook has
+  // written the row. Service short-circuits on no-sub users with a single
+  // indexed Mongo lookup, so the cost on free users is negligible.
+  const activeSubscription = await readActiveSubscription(session.user.id)
+
+  return NextResponse.json({
+    user: { ...session.user, activeSubscription },
+  })
 }
