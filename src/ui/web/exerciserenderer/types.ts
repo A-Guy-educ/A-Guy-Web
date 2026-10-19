@@ -198,12 +198,20 @@ export type ContentBlock =
   RichTextBlock | LatexBlock | HtmlBlock | QuestionBlock | SvgBlock | MediaBlock
 
 /**
- * Help system state per question
+ * Help system state per question.
+ *
+ * Each help button progresses through: idle → field-shown → ai-asked.
+ * The `*AiAsked` flags lock the button once the AI has been invoked for
+ * that help type, so the student can't keep spamming the same button.
  */
 export interface HelpUsageState {
   hintShown: boolean
+  hintAiAsked: boolean
   guidingUsed: boolean
+  guidingAiAsked: boolean
   solutionUnlocked: boolean
+  solutionShown: boolean
+  solutionAiAsked: boolean
 }
 
 /**
