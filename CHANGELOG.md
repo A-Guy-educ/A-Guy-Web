@@ -4978,6 +4978,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Ask PDF full-page, wider chat view, drop-to-ask, daily token infra ([#1405](https://github.com/A-Guy-educ/A-Guy-Web/pull/1405)) — @aguyshayb
 - feat(help-system): Two-click hint/solution flow with Gemini follow-up ([#1416](https://github.com/A-Guy-educ/A-Guy-Web/pull/1416)) — @aguyshayb
 ## [v0.50.0] - 2026-10-18
 
