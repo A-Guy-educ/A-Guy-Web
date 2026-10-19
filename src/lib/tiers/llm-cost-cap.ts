@@ -50,12 +50,18 @@ export async function reconcileUserLlmLimit({ userId, user }: ReconcileArgs): Pr
   // Seed only — never overwrite an existing (admin-set) value. Monthly and
   // daily are seeded independently so an admin can set one without the other
   // being auto-filled next request.
+  //
+  // The daily predicate checks for `undefined` only (not "non-number") so an
+  // admin's explicit `null` — meaning "no daily cap for this user, override
+  // the tier default" — survives the next seed pass. Monthly keeps the
+  // historical typeof-number check for backwards compatibility with the
+  // existing Admin UI, which doesn't expose a null option on that field.
   const toSet: Record<string, number> = {}
   if (typeof user.llmTokensLimit !== 'number') {
     const monthly = tierLlmLimit(user)
     if (monthly !== null) toSet.llmTokensLimit = monthly
   }
-  if (typeof user.llmTokensDailyLimit !== 'number') {
+  if (user.llmTokensDailyLimit === undefined) {
     const daily = tierLlmLimitDaily(user)
     if (daily !== null) toSet.llmTokensDailyLimit = daily
   }
