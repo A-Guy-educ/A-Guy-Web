@@ -4978,6 +4978,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore(deps-dev): Bump @testcontainers/mongodb from 11.11.0 to 12.2.1 ([#1413](https://github.com/A-Guy-educ/A-Guy-Web/pull/1413)) — @dependabot[bot]
 - chore(deps): Bump nanoid from 5.1.16 to 6.0.2 ([#1407](https://github.com/A-Guy-educ/A-Guy-Web/pull/1407)) — @dependabot[bot]
 - chore(deps): Bump framer-motion from 13.5.1 to 14.3.0 ([#1415](https://github.com/A-Guy-educ/A-Guy-Web/pull/1415)) — @dependabot[bot]
 - chore(deps-dev): Bump the dev-dependencies group with 6 updates ([#1406](https://github.com/A-Guy-educ/A-Guy-Web/pull/1406)) — @dependabot[bot]
