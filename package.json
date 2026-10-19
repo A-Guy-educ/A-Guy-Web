@@ -182,7 +182,7 @@
     "@playwright/test": "1.64.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@tailwindcss/typography": "^0.5.20",
-    "@testcontainers/mongodb": "^11.11.0",
+    "@testcontainers/mongodb": "^12.2.1",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "16.3.3",
     "@types/hast": "^3.0.5",
