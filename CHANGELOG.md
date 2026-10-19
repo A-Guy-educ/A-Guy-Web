@@ -4978,6 +4978,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore(deps): Bump framer-motion from 13.5.1 to 14.3.0 ([#1415](https://github.com/A-Guy-educ/A-Guy-Web/pull/1415)) — @dependabot[bot]
 - chore(deps-dev): Bump the dev-dependencies group with 6 updates ([#1406](https://github.com/A-Guy-educ/A-Guy-Web/pull/1406)) — @dependabot[bot]
 - chore(docs): fix broken internal links ([#1381](https://github.com/A-Guy-educ/A-Guy-Web/pull/1381)) — @github-actions[bot]
 - chore(ai-docs): Refresh indexes ([#1379](https://github.com/A-Guy-educ/A-Guy-Web/pull/1379)) — @github-actions[bot]
