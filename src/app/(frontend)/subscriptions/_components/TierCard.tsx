@@ -14,6 +14,7 @@ import {
   type ActiveSubscription,
   type TierSlug,
 } from '@/lib/tiers'
+import { CurrentPlanCta } from './CurrentPlanCta'
 
 type OfferSlug = 'default' | 'intro3mo'
 
@@ -157,15 +158,23 @@ export function TierCard({ tier }: TierCardProps) {
       </div>
 
       {(() => {
+        // Current plan gets a dedicated footer that owns its own cancel flow.
+        // We hand it the full activeSubscription so it can derive the right
+        // state (active with cancel link, cancelled-and-counting-down, etc.).
+        if (isCurrent) {
+          return (
+            <div className="mt-auto border-t border-border/40 p-card-padding-sm">
+              <CurrentPlanCta activeSubscription={activeSubscription} />
+            </div>
+          )
+        }
         const cta = renderCta({
           isFree,
-          isCurrent,
           isAuthLoading,
           isCheckingOut,
           hasUser: !!user,
           onSubscribe: handleSubscribe,
           labels: {
-            currentPlan: t('currentPlan'),
             continue: t('continueButton'),
             login: t('loginToSubscribe'),
             redirecting: t('redirecting'),
@@ -182,13 +191,11 @@ export function TierCard({ tier }: TierCardProps) {
 
 interface CtaProps {
   isFree: boolean
-  isCurrent: boolean
   isAuthLoading: boolean
   isCheckingOut: boolean
   hasUser: boolean
   onSubscribe: () => void
   labels: {
-    currentPlan: string
     continue: string
     login: string
     redirecting: string
@@ -197,21 +204,12 @@ interface CtaProps {
 
 function renderCta({
   isFree,
-  isCurrent,
   isAuthLoading,
   isCheckingOut,
   hasUser,
   onSubscribe,
   labels,
 }: CtaProps) {
-  if (isCurrent) {
-    return (
-      <Button disabled variant="outline" className="w-full h-12 font-bold">
-        {labels.currentPlan}
-      </Button>
-    )
-  }
-
   if (isFree) {
     // Free tier when the user is on a paid plan — not actionable from here,
     // and showing another "Your current plan" button would duplicate the

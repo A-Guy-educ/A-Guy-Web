@@ -2,24 +2,23 @@
 /**
  * @fileType test
  * @domain frontend
- * @pattern footer-modal
- * @ai-summary Unit tests for the FooterClient modal behaviour: opening,
- *   closing, and swapping between page references; the visibility of CMS
- *   meta/text fields; and the contrast with non-reference links that should
- *   continue to render as plain anchor tags.
+ * @pattern footer-static
+ * @ai-summary Smoke tests for the static FooterClient — Terms + Privacy links
+ *   land on the expected routes, version renders when showExtras is on, and
+ *   the version row is hidden when showExtras is off.
  */
-import { fireEvent, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { FooterClient } from '@/ui/web/footer/FooterClient'
-import type { FooterData } from '@/ui/web/footer/footer-data'
 import { I18nProvider } from '@/ui/web/providers/I18n'
 
-// Deliberately unique label values so these mock copies don't collide with CMS
-// page titles that appear in dialog bodies ("Privacy Policy", etc.).
 const FOOTER_MESSAGES = {
-  legal: { privacyPolicy: 'FOOTER_PRIVACY_LINK' },
+  legal: {
+    termsOfService: 'FOOTER_TERMS_LINK',
+    privacyPolicy: 'FOOTER_PRIVACY_LINK',
+  },
   footer: { copyright: 'FOOTER_COPYRIGHT_TEXT' },
 }
 
@@ -31,136 +30,37 @@ function renderWithI18n(ui: ReactElement) {
   )
 }
 
-// Radix Dialog uses ResizeObserver/IntersectionObserver/hasPointerCapture in some paths.
-// Stub them so jsdom does not blow up.
-class ResizeObserverStub {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-}
-
-;(globalThis as unknown as { ResizeObserver: typeof ResizeObserverStub }).ResizeObserver =
-  ResizeObserverStub
-
 afterEach(() => {
   vi.restoreAllMocks()
 })
 
-const baseData: FooterData = {
-  meta: {
-    titleColumn: 'Aguy Learning Platform',
-    subtitleColumn: 'Subtitle text',
-    introColumn: 'Intro text',
-    contact: { email: 'support@aguy.co.il', phone: '+972-50-0000000' },
-  },
-  text: 'A footer description paragraph',
-  navItems: [
-    {
-      id: 'nav-page',
-      link: {
-        type: 'reference',
-        reference: { relationTo: 'pages', value: 'page-1' },
-        label: 'Terms',
-      },
-    },
-    {
-      id: 'nav-page-2',
-      link: {
-        type: 'reference',
-        reference: { relationTo: 'pages', value: 'page-2' },
-        label: 'Privacy',
-      },
-    },
-    {
-      id: 'nav-custom',
-      link: { type: 'custom', url: '/about', label: 'About' },
-    },
-  ],
-  legalPages: {
-    'page-1': {
-      id: 'page-1',
-      slug: 'terms-of-service',
-      title: 'Terms of Service',
-      layout: [{ id: 'b1', blockType: 'html', html: '<p>Terms body</p>' }],
-    },
-    'page-2': {
-      id: 'page-2',
-      slug: 'privacy-policy',
-      title: 'Privacy Policy',
-      layout: [{ id: 'b2', blockType: 'html', html: '<p>Privacy body</p>' }],
-    },
-  },
-}
-
 describe('FooterClient', () => {
-  it('renders every meta field that has a value', () => {
-    renderWithI18n(<FooterClient data={baseData} version="1.2.3" showExtras={false} />)
+  it('renders the Terms of Service link pointing at /terms-of-service', () => {
+    renderWithI18n(<FooterClient version="1.2.3" showExtras={false} />)
+    const link = screen.getByTestId('footer-terms-of-service')
+    expect(link.getAttribute('href')).toBe('/terms-of-service')
+    expect(link.textContent).toBe('FOOTER_TERMS_LINK')
+  })
 
-    expect(screen.getByText('Aguy Learning Platform')).toBeTruthy()
-    expect(screen.getByText('Subtitle text')).toBeTruthy()
-    expect(screen.getByText('Intro text')).toBeTruthy()
-    expect(screen.getByText('support@aguy.co.il')).toBeTruthy()
-    expect(screen.getByText('+972-50-0000000')).toBeTruthy()
-    expect(screen.getByText('A footer description paragraph')).toBeTruthy()
+  it('renders the Privacy Policy link pointing at /privacy-policy', () => {
+    renderWithI18n(<FooterClient version="1.2.3" showExtras={false} />)
+    const link = screen.getByTestId('footer-privacy-policy')
+    expect(link.getAttribute('href')).toBe('/privacy-policy')
+    expect(link.textContent).toBe('FOOTER_PRIVACY_LINK')
+  })
+
+  it('renders the copyright line', () => {
+    renderWithI18n(<FooterClient version="1.2.3" showExtras={false} />)
+    expect(screen.getByText('FOOTER_COPYRIGHT_TEXT')).toBeTruthy()
   })
 
   it('renders the version when showExtras is true', () => {
-    renderWithI18n(<FooterClient data={baseData} version="1.2.3" />)
+    renderWithI18n(<FooterClient version="1.2.3" />)
     expect(screen.getByText('v1.2.3')).toBeTruthy()
   })
 
-  it('opens the modal when a page-reference link is clicked', () => {
-    renderWithI18n(<FooterClient data={baseData} version="1.2.3" showExtras={false} />)
-
-    fireEvent.click(screen.getByTestId('footer-nav-0'))
-
-    expect(screen.getByText('Terms of Service')).toBeTruthy()
-    expect(screen.getByText('Terms body')).toBeTruthy()
-  })
-
-  it('closes the modal when the same page-reference link is clicked again', () => {
-    renderWithI18n(<FooterClient data={baseData} version="1.2.3" showExtras={false} />)
-
-    const button = screen.getByTestId('footer-nav-0')
-    fireEvent.click(button)
-    expect(screen.getByText('Terms of Service')).toBeTruthy()
-
-    fireEvent.click(button)
-    expect(screen.queryByText('Terms of Service')).toBeNull()
-  })
-
-  it('swaps the modal content (instead of stacking) when a different page link is clicked', () => {
-    renderWithI18n(<FooterClient data={baseData} version="1.2.3" showExtras={false} />)
-
-    fireEvent.click(screen.getByTestId('footer-nav-0'))
-    expect(screen.getByText('Terms of Service')).toBeTruthy()
-
-    fireEvent.click(screen.getByTestId('footer-nav-1'))
-    expect(screen.getByText('Privacy Policy')).toBeTruthy()
-    expect(screen.queryByText('Terms of Service')).toBeNull()
-  })
-
-  it('closes the modal when the body of the modal is clicked', () => {
-    renderWithI18n(<FooterClient data={baseData} version="1.2.3" showExtras={false} />)
-
-    fireEvent.click(screen.getByTestId('footer-nav-0'))
-    expect(screen.getByText('Terms of Service')).toBeTruthy()
-
-    // Clicking the title text (an inner element of the body) closes the modal.
-    fireEvent.click(screen.getByText('Terms of Service'))
-    expect(screen.queryByText('Terms of Service')).toBeNull()
-  })
-
-  it('renders non-reference links as anchors (no modal), without showing the page label as a button', () => {
-    renderWithI18n(<FooterClient data={baseData} version="1.2.3" showExtras={false} />)
-
-    const aboutLink = screen.getByText('About')
-    expect(aboutLink.tagName).toBe('A')
-    expect(aboutLink.getAttribute('href')).toBe('/about')
-  })
-
   it('skips the version/separator block when showExtras is false', () => {
-    renderWithI18n(<FooterClient data={baseData} version="1.2.3" showExtras={false} />)
+    renderWithI18n(<FooterClient version="1.2.3" showExtras={false} />)
     expect(screen.queryByText('v1.2.3')).toBeNull()
   })
 })
