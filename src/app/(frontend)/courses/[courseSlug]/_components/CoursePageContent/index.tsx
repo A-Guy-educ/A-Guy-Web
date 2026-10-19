@@ -119,6 +119,7 @@ export function CoursePageContent({
         <div className="container mx-auto px-6 max-w-5xl mb-content-gap">
           <CourseComposer
             nodes={searchNodes}
+            courseId={course.id}
             courseSlug={courseSlug}
             courseTitle={course.title}
             lessonsForSuggest={lessonsForSuggest}

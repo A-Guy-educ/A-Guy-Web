@@ -1,4 +1,5 @@
 import { TutorChatError } from '@/infra/types/tutor-chat'
+import { logger } from '@/infra/utils/logger'
 
 export type TutorModelPart = { text: string } | { inlineData: { mimeType: string; data: string } }
 
@@ -133,6 +134,21 @@ export class GeminiTutorModelGateway implements TutorModelGateway {
     )
 
     if (!response.ok) {
+      const body = await response
+        .clone()
+        .text()
+        .catch(() => '<body-read-failed>')
+      logger.error(
+        {
+          status: response.status,
+          statusText: response.statusText,
+          model: this.model,
+          path,
+          body: body.slice(0, 2000),
+          requestId: response.headers.get('x-request-id') || undefined,
+        },
+        'Gemini tutor provider returned non-OK response',
+      )
       throw new TutorChatError('provider_error', 'The tutor provider rejected the request.', {
         traceId: response.headers.get('x-request-id') || undefined,
       })
