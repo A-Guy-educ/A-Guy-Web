@@ -1,6 +1,5 @@
 'use client'
 
-import { cn } from '@/infra/utils/ui'
 import { interactiveLessonToGuidedExplanation } from '@/infra/llm/services/interactive-lesson/lesson-to-guided-explanation'
 import { GuidedExplanationRunner } from '@/ui/web/GuidedExplanationRunner'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
@@ -14,11 +13,17 @@ import {
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
-import type { AskMediaAttachEvent, AskMediaRestoreEvent, ExerciseFile } from '../ask-types'
+import type {
+  AskMediaAttachEvent,
+  AskMediaRestoreEvent,
+  AskPendingMediaPayload,
+  ExerciseFile,
+} from '../ask-types'
 import {
   ASK_MEDIA_ATTACH_EVENT,
   ASK_MEDIA_CLEAR_EVENT,
   ASK_MEDIA_RESTORE_EVENT,
+  ASK_PENDING_MEDIA_KEY,
 } from '../ask-types'
 import { AskExerciseCard } from '../AskExerciseCard'
 import { AskPdfWorkspace } from '../AskPdfWorkspace'
@@ -58,10 +63,10 @@ export function AskPrimaryContent() {
     return () => window.removeEventListener(ASK_MEDIA_CLEAR_EVENT, handler)
   }, [currentFile])
 
-  // Restore image from conversation history
+  // Restore image from conversation history (or from a composer drop handoff).
   useEffect(() => {
     const handler = (e: Event) => {
-      const { mediaId, filename, url } = (e as CustomEvent<AskMediaRestoreEvent>).detail
+      const { mediaId, filename, url, mimeType } = (e as CustomEvent<AskMediaRestoreEvent>).detail
       setCurrentFile({
         id: Date.now(),
         title: filename.replace(/\.[^/.]+$/, '') || 'Uploaded image',
@@ -69,11 +74,35 @@ export function AskPrimaryContent() {
         date: '',
         mediaId,
         isUploading: false,
+        filename,
+        mimeType,
       })
       dispatchMediaAttach({ mediaId, filename })
     }
     window.addEventListener(ASK_MEDIA_RESTORE_EVENT, handler)
     return () => window.removeEventListener(ASK_MEDIA_RESTORE_EVENT, handler)
+  }, [])
+
+  // Pending-media handoff from the course search composer: a dropped file was
+  // uploaded + a conversation was spun up before navigation, and the media
+  // metadata was parked on sessionStorage. Pull it on mount and route it
+  // through the same restore event the history path uses.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const raw = window.sessionStorage.getItem(ASK_PENDING_MEDIA_KEY)
+    if (!raw) return
+    window.sessionStorage.removeItem(ASK_PENDING_MEDIA_KEY)
+    try {
+      const { mediaId, filename, mimeType, url } = JSON.parse(raw) as AskPendingMediaPayload
+      if (!mediaId || !filename) return
+      window.dispatchEvent(
+        new CustomEvent<AskMediaRestoreEvent>(ASK_MEDIA_RESTORE_EVENT, {
+          detail: { mediaId, filename, mimeType, url },
+        }),
+      )
+    } catch {
+      // Malformed payload — silently drop; nothing a user could do anyway.
+    }
   }, [])
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -166,6 +195,10 @@ export function AskPrimaryContent() {
       /\.pdf$/i.test(currentFile.title)
     : false
 
+  // Once a PDF is uploaded, drop the title/upload chrome and the surrounding
+  // padding so the PDF.js viewer + FloatingNotebook own the entire pane.
+  const isPdfUploaded = isPdfFile && !!currentFile
+
   // Full-screen player takeover (only when explicitly showing it)
   if (status === 'done' && guidedPayload && showPlayer) {
     return (
@@ -184,14 +217,17 @@ export function AskPrimaryContent() {
     )
   }
 
+  if (isPdfUploaded) {
+    return (
+      <div className="h-full w-full min-h-0">
+        <AskPdfWorkspace file={currentFile} />
+      </div>
+    )
+  }
+
   return (
-    <div
-      className={cn(
-        'p-card-padding md:p-10',
-        isPdfFile ? 'h-full flex flex-col overflow-hidden' : 'h-full overflow-y-auto',
-      )}
-    >
-      <div className={cn('max-w-2xl mx-auto w-full', isPdfFile && 'flex-shrink-0')}>
+    <div className="p-card-padding md:p-10 h-full overflow-y-auto">
+      <div className="max-w-2xl mx-auto w-full">
         <header className="mb-10 text-center md:text-right">
           <h1 className="text-display-md font-black mb-2">{t('pageTitle')}</h1>
           <p className="text-muted-foreground">{t('pageSubtitle')}</p>
@@ -259,12 +295,6 @@ export function AskPrimaryContent() {
           </div>
         )}
       </div>
-
-      {currentFile && isPdfFile && (
-        <div className="flex-1 min-h-0 w-full">
-          <AskPdfWorkspace file={currentFile} />
-        </div>
-      )}
 
       {currentFile && !isPdfFile && (
         <div className="max-w-2xl mx-auto w-full">

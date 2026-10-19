@@ -10,7 +10,7 @@
  */
 'use client'
 
-import { ArrowUp, Search, Sparkles } from 'lucide-react'
+import { ArrowUp, Loader2, Search, Sparkles, Upload } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { cn } from '@/infra/utils/ui'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
@@ -21,9 +21,11 @@ import type { CourseTab } from '../CourseTabs'
 import { TAB_COLORS } from '../CourseTabs'
 import type { LessonSearchNode } from '../LessonListTab/lessonRoadmapTypes'
 import { useCourseComposerState } from './useCourseComposerState'
+import { useCourseComposerDropToAsk } from './useCourseComposerDropToAsk'
 
 interface CourseComposerProps {
   nodes: LessonSearchNode[]
+  courseId: string
   courseSlug: string
   courseTitle: string
   lessonsForSuggest: LessonSuggestInputLesson[]
@@ -51,6 +53,7 @@ function buildHref(node: LessonSearchNode, courseSlug: string): string | null {
 
 export function CourseComposer({
   nodes,
+  courseId,
   courseSlug,
   courseTitle,
   lessonsForSuggest,
@@ -70,6 +73,16 @@ export function CourseComposer({
       locale,
       activeTab,
     })
+
+  const {
+    isUploading: isDropUploading,
+    isDragOver,
+    dropHandlers,
+  } = useCourseComposerDropToAsk({
+    courseId,
+    invalidTypeLabel: t('dropInvalidType'),
+    failureLabel: t('dropFailed'),
+  })
 
   const activeColor = TAB_COLORS[activeTab]
   const placeholderKey =
@@ -116,11 +129,33 @@ export function CourseComposer({
   const showAiMessage = !showResults && (aiLoading || aiMessage || aiError)
 
   return (
-    <div className="w-full max-w-3xl mx-auto">
+    <div className="w-full max-w-3xl mx-auto" {...dropHandlers}>
       <div
-        className="bg-card border border-border rounded-3xl shadow-elevation-2 px-4 py-3 transition-colors"
-        style={{ borderColor: query ? activeColor.stroke : undefined }}
+        className={cn(
+          'relative bg-card border border-border rounded-3xl shadow-elevation-2 px-4 py-3 transition-colors',
+          isDragOver && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
+        )}
+        style={{ borderColor: query || isDragOver ? activeColor.stroke : undefined }}
       >
+        {(isDragOver || isDropUploading) && (
+          <div
+            className="absolute inset-0 rounded-3xl bg-primary/5 flex items-center justify-center gap-content-gap-xs text-body-sm font-medium text-primary pointer-events-none"
+            role="status"
+            aria-live="polite"
+          >
+            {isDropUploading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>{t('dropUploading')}</span>
+              </>
+            ) : (
+              <>
+                <Upload className="w-4 h-4" />
+                <span>{t('dropHint')}</span>
+              </>
+            )}
+          </div>
+        )}
         <textarea
           ref={textareaRef}
           rows={1}

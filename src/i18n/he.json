@@ -810,7 +810,11 @@
       "send": "שלח",
       "thinking": "חושב…",
       "noLessonsFallback": "מצטער, לא נמצאו שיעורים שמתאימים בקורס הזה.",
-      "suggestError": "לא הצלחתי להתחבר לעוזר. נסה שוב."
+      "suggestError": "לא הצלחתי להתחבר לעוזר. נסה שוב.",
+      "dropHint": "שחרר כאן תמונה או PDF כדי לפתוח ב-Ask",
+      "dropUploading": "מעלה את הקובץ…",
+      "dropInvalidType": "אפשר לגרור רק תמונות או קובצי PDF",
+      "dropFailed": "ההעלאה נכשלה. נסה שוב."
     },
     "moreCourses": "קורסים נוספים",
     "loading": "טוען...",

@@ -810,7 +810,11 @@
       "send": "Send",
       "thinking": "Thinking…",
       "noLessonsFallback": "Sorry, no lessons seem to fit in this course.",
-      "suggestError": "Couldn’t reach the assistant. Please try again."
+      "suggestError": "Couldn’t reach the assistant. Please try again.",
+      "dropHint": "Drop an image or PDF to open it in Ask",
+      "dropUploading": "Uploading your file…",
+      "dropInvalidType": "Only images and PDFs can be dropped here",
+      "dropFailed": "Upload failed. Please try again."
     },
     "moreCourses": "More courses",
     "loading": "Loading...",
