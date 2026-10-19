@@ -743,8 +743,12 @@ export function ExerciseRenderer({
         helpUsage={
           helpUsage[question.id] ?? {
             hintShown: false,
+            hintAiAsked: false,
             guidingUsed: false,
+            guidingAiAsked: false,
             solutionUnlocked: false,
+            solutionShown: false,
+            solutionAiAsked: false,
           }
         }
         activeHelp={activeHelp[question.id] ?? null}
