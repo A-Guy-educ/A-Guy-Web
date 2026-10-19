@@ -21,6 +21,7 @@
         "src/app/(frontend)/ask/_components/AskDrawingCanvas/index.tsx",
         "src/app/(frontend)/ask/_components/AskExerciseCard/index.tsx",
         "src/app/(frontend)/ask/_components/AskPageClient/index.tsx",
+        "src/app/(frontend)/ask/_components/AskPdfWorkspace/index.tsx",
         "src/app/(frontend)/ask/_components/AskPrimaryContent/index.tsx",
         "src/app/(frontend)/ask/_components/InteractivePlayer/useGenerateLesson.ts",
         "src/app/(frontend)/checkout/cancel/CheckoutCancelContent.tsx",
@@ -49,10 +50,16 @@
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatQuestionSelectBubble.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ContinueButton.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ExerciseSectionBubble.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/LessonSummaryCard.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/PendingBubble.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/QuestionHeaderBadges.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/QuickActionChips.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/QuotaExhaustedCard.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ReviewOfferCard.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/SkippedMarker.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/StudentBubble.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/TeacherBubble.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/TierLockBubble.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/useBrowserTTS.ts",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/useChatChannel.ts",
@@ -113,6 +120,7 @@
         "src/app/(frontend)/posts/page.client.tsx",
         "src/app/(frontend)/posts/page/[pageNumber]/page.client.tsx",
         "src/app/(frontend)/prep7/page.tsx",
+        "src/app/(frontend)/privacy-policy/PrivacyPolicyContent.tsx",
         "src/app/(frontend)/products/[slug]/BuyButton.tsx",
         "src/app/(frontend)/products/[slug]/CouponInput.tsx",
         "src/app/(frontend)/products/[slug]/ProductDetailContent.tsx",
@@ -137,9 +145,14 @@
         "src/app/(frontend)/study-plan/_components/StudyPlanPage.tsx",
         "src/app/(frontend)/study-plan/_components/useStudyPlan.ts",
         "src/app/(frontend)/study/_components/StudyContent/index.tsx",
+        "src/app/(frontend)/subscriptions/_components/ComingSoonSection.tsx",
+        "src/app/(frontend)/subscriptions/_components/SubscriptionsHeader.tsx",
+        "src/app/(frontend)/subscriptions/_components/TierCard.tsx",
+        "src/app/(frontend)/subtest/_components/SubTestCard.tsx",
         "src/app/global-error.tsx",
         "src/client/hooks/useAccessGate.ts",
         "src/client/hooks/useActiveTimeTracker.ts",
+        "src/client/hooks/useChatProgressMap.ts",
         "src/client/hooks/useCurrentUser.ts",
         "src/client/hooks/useDebounce.ts",
         "src/client/hooks/useExamCountdown.ts",
@@ -164,6 +177,7 @@
         "src/infra/loading/hooks/useLoadingState.ts",
         "src/infra/loading/hooks/useRouterWithLoading.ts",
         "src/infra/utils/useClickableCard.ts",
+        "src/lib/tiers/enforcement.ts",
         "src/ui/web/BrandLogo.tsx",
         "src/ui/web/Card/index.tsx",
         "src/ui/web/CommandPalette.tsx",
@@ -285,8 +299,12 @@
         "src/ui/web/media/LatexMedia/index.tsx",
         "src/ui/web/media/OtherMedia/index.tsx",
         "src/ui/web/media/PDFMedia/index.tsx",
+        "src/ui/web/media/PDFMedia/pdfViewerBridge.ts",
         "src/ui/web/media/SVGMedia/index.tsx",
         "src/ui/web/media/VideoMedia/index.tsx",
+        "src/ui/web/notebook/FloatingNotebook/DoodleCanvas.tsx",
+        "src/ui/web/notebook/FloatingNotebook/DoodleTextArea.tsx",
+        "src/ui/web/notebook/FloatingNotebook/index.tsx",
         "src/ui/web/providers/HeaderTheme/index.tsx",
         "src/ui/web/providers/I18n/index.tsx",
         "src/ui/web/providers/PasswordLoginProvider.tsx",
@@ -298,13 +316,16 @@
         "src/ui/web/shared/FormulaSheetViewer/FormulaSheetButton.tsx",
         "src/ui/web/shared/FormulaSheetViewer/FormulaSheetContent.tsx",
         "src/ui/web/shared/LatexDocumentViewer/index.tsx",
-        "src/ui/web/shared/MathInput/FormulaComposer.tsx",
+        "src/ui/web/shared/MathInput/MathChip.tsx",
         "src/ui/web/shared/MathInput/MathField.tsx",
-        "src/ui/web/shared/MathInput/MathFieldToolbar.tsx",
+        "src/ui/web/shared/MathInput/MathPicker.tsx",
+        "src/ui/web/shared/MathInput/MixedMathInput.tsx",
         "src/ui/web/shared/MathMarkdown/index.tsx",
         "src/ui/web/shared/ProgressCircle/index.tsx",
         "src/ui/web/shared/ShareButton/index.tsx",
-        "src/ui/web/shared/TypingAnimation/index.tsx"
+        "src/ui/web/shared/TypingAnimation/index.tsx",
+        "src/ui/web/upsell/UpgradeCheckoutDialog.tsx",
+        "src/ui/web/upsell/UpgradeOfferCard.tsx"
       ]
     },
     "i18n-component": {
@@ -344,6 +365,9 @@
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatInputPanel.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonRunnerView.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatFreeResponseBubble.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatQuestionSelectBubble.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/QuotaExhaustedCard.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/TierLockBubble.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ContentPagesPreamble/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/DualModeLessonView/index.tsx",
@@ -352,6 +376,7 @@
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/LessonContent.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/LessonIntroPage/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/LessonPager/index.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/MediaTabContent/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/PdfLessonPager/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/TestViewRenderer/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ViewToggle.tsx",
@@ -401,6 +426,10 @@
         "src/app/(frontend)/study-plan/_components/LessonSelector/index.tsx",
         "src/app/(frontend)/study-plan/_components/StudyPlanPage.tsx",
         "src/app/(frontend)/study/_components/StudyContent/index.tsx",
+        "src/app/(frontend)/subscriptions/_components/ComingSoonSection.tsx",
+        "src/app/(frontend)/subscriptions/_components/SubscriptionsHeader.tsx",
+        "src/app/(frontend)/subscriptions/_components/TierCard.tsx",
+        "src/app/(frontend)/subtest/_components/SubTestCard.tsx",
         "src/ui/web/GuidedExplanationRunner/index.tsx",
         "src/ui/web/LanguageSwitcher/index.tsx",
         "src/ui/web/UserDropdown/index.tsx",
@@ -423,6 +452,7 @@
         "src/ui/web/exerciserenderer/ExerciseRenderer/index.tsx",
         "src/ui/web/exerciserenderer/components/QuestionNotebook/index.tsx",
         "src/ui/web/exerciserenderer/components/VideoPlayer/index.tsx",
+        "src/ui/web/footer/FooterClient.tsx",
         "src/ui/web/header/MobileMenu/MobileMenuAuthSection.tsx",
         "src/ui/web/header/MobileMenu/index.tsx",
         "src/ui/web/header/Nav/index.tsx",
@@ -432,12 +462,17 @@
         "src/ui/web/homepage/NavigationBar/index.tsx",
         "src/ui/web/learning-agent/AgentChatWindow/index.tsx",
         "src/ui/web/lesson-menu/LessonMenu.tsx",
+        "src/ui/web/notebook/FloatingNotebook/DoodleCanvas.tsx",
+        "src/ui/web/notebook/FloatingNotebook/DoodleTextArea.tsx",
+        "src/ui/web/notebook/FloatingNotebook/index.tsx",
         "src/ui/web/providers/I18n/index.tsx",
         "src/ui/web/shared/ContentStatusBadge/index.tsx",
         "src/ui/web/shared/FormulaSheetViewer/FormulaSheetButton.tsx",
         "src/ui/web/shared/FormulaSheetViewer/FormulaSheetContent.tsx",
         "src/ui/web/shared/LatexDocumentViewer/index.tsx",
-        "src/ui/web/shared/ShareButton/index.tsx"
+        "src/ui/web/shared/ShareButton/index.tsx",
+        "src/ui/web/upsell/UpgradeCheckoutDialog.tsx",
+        "src/ui/web/upsell/UpgradeOfferCard.tsx"
       ]
     },
     "tailwind-component": {
@@ -450,6 +485,7 @@
         "src/app/(frontend)/ask/_components/AskConversationGrid/index.tsx",
         "src/app/(frontend)/ask/_components/AskDrawingCanvas/index.tsx",
         "src/app/(frontend)/ask/_components/AskExerciseCard/index.tsx",
+        "src/app/(frontend)/ask/_components/AskPrimaryContent/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/AskTab/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/ConversationCard/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/index.tsx",
@@ -464,6 +500,8 @@
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatFreeResponseBubble.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatQuestionSelectBubble.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ContinueButton.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/LessonSummaryCard.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/QuestionHeaderBadges.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/QuickActionChips.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/StudentBubble.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/TeacherBubble.tsx",
@@ -505,6 +543,7 @@
         "src/ui/web/RichText/index.tsx",
         "src/ui/web/SafeHtml/index.tsx",
         "src/ui/web/auth/GoogleLoginButton.tsx",
+        "src/ui/web/bug-report/BugReportForm/index.tsx",
         "src/ui/web/chat/ChatErrorSurface/index.tsx",
         "src/ui/web/chat/ChatInterface/index.tsx",
         "src/ui/web/chat/ChatMessageContent/ChatCallout.tsx",
@@ -584,6 +623,9 @@
         "src/ui/web/media/PDFMedia/index.tsx",
         "src/ui/web/media/SVGMedia/index.tsx",
         "src/ui/web/media/VideoMedia/index.tsx",
+        "src/ui/web/notebook/FloatingNotebook/DoodleCanvas.tsx",
+        "src/ui/web/notebook/FloatingNotebook/DoodleTextArea.tsx",
+        "src/ui/web/notebook/FloatingNotebook/index.tsx",
         "src/ui/web/shared/ContentStatusBadge/index.tsx",
         "src/ui/web/shared/EmptyState/EmptyState.tsx",
         "src/ui/web/shared/EmptyState/ErrorState.tsx",
@@ -595,9 +637,10 @@
         "src/ui/web/shared/Layout/Stack.tsx",
         "src/ui/web/shared/Loading/Skeleton.tsx",
         "src/ui/web/shared/Loading/Spinner.tsx",
-        "src/ui/web/shared/MathInput/FormulaComposer.tsx",
+        "src/ui/web/shared/MathInput/MathChip.tsx",
         "src/ui/web/shared/MathInput/MathField.tsx",
-        "src/ui/web/shared/MathInput/MathFieldToolbar.tsx",
+        "src/ui/web/shared/MathInput/MathPicker.tsx",
+        "src/ui/web/shared/MathInput/MixedMathInput.tsx",
         "src/ui/web/shared/MathMarkdown/index.tsx",
         "src/ui/web/shared/MathMarkdown/svgAwareImage.tsx",
         "src/ui/web/shared/ProgressCircle/index.tsx",
@@ -635,8 +678,8 @@
         "src/app/(frontend)/courses/[courseSlug]/_components/LessonListTab/HeroProgressRing.tsx"
       ]
     },
-    "lesson-roadmap-row": {
-      "pattern": "lesson-roadmap-row",
+    "lesson-roadmap-card": {
+      "pattern": "lesson-roadmap-card",
       "description": "No description available",
       "files": ["src/app/(frontend)/courses/[courseSlug]/_components/LessonListTab/LessonRow.tsx"]
     },
@@ -742,6 +785,9 @@
         "src/app/api/stats/dashboard/route.ts",
         "src/app/api/stats/streak/route.ts",
         "src/app/api/study-plan/route.ts",
+        "src/app/api/subscriptions/[id]/cancel/route.ts",
+        "src/app/api/subscriptions/checkout/route.ts",
+        "src/app/api/subscriptions/test-checkout/route.ts",
         "src/app/api/teacher-profiles/route.ts",
         "src/app/api/teacher/courses/route.ts",
         "src/app/api/tts/synthesize/route.ts",
@@ -784,6 +830,7 @@
         "src/app/api/stats/streak/route.ts",
         "src/app/api/stats/track-activity/route.ts",
         "src/app/api/study-plan/route.ts",
+        "src/app/api/subscriptions/checkout/route.ts",
         "src/app/api/user-settings/route.ts",
         "src/infra/llm/schemas/lesson-duplication-output.ts",
         "src/server/services/dashboard/product-health/params.ts",
@@ -847,6 +894,17 @@
         "src/server/payload/collections/Users/hooks/syncOAuthLoginSecret-hook.ts"
       ]
     },
+    "authenticated-endpoint": {
+      "pattern": "authenticated-endpoint",
+      "description": "API endpoint requiring authentication",
+      "files": [
+        "src/app/api/subscriptions/[id]/cancel/route.ts",
+        "src/app/api/subscriptions/checkout/route.ts",
+        "src/infra/analytics/system-events-subscriber.ts",
+        "src/infra/auth/oauth_session.ts",
+        "src/server/api/with-api-handler.ts"
+      ]
+    },
     "access-gate": {
       "pattern": "access-gate",
       "description": "No description available",
@@ -856,6 +914,11 @@
       "pattern": "heartbeat",
       "description": "No description available",
       "files": ["src/client/hooks/useActiveTimeTracker.ts"]
+    },
+    "chat-progress-map": {
+      "pattern": "chat-progress-map",
+      "description": "No description available",
+      "files": ["src/client/hooks/useChatProgressMap.ts"]
     },
     "user-context": {
       "pattern": "user-context",
@@ -881,15 +944,6 @@
       "pattern": "progress-map",
       "description": "No description available",
       "files": ["src/client/hooks/useProgressMap.ts"]
-    },
-    "authenticated-endpoint": {
-      "pattern": "authenticated-endpoint",
-      "description": "API endpoint requiring authentication",
-      "files": [
-        "src/infra/analytics/system-events-subscriber.ts",
-        "src/infra/auth/oauth_session.ts",
-        "src/server/api/with-api-handler.ts"
-      ]
     },
     "encryption": {
       "pattern": "encryption",
@@ -1912,11 +1966,19 @@
       "aiSummary": "",
       "dependencies": ["next/navigation", "react"]
     },
+    "src/app/(frontend)/ask/_components/AskPdfWorkspace/index.tsx": {
+      "path": "src/app/(frontend)/ask/_components/AskPdfWorkspace/index.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["client-component"],
+      "aiSummary": "",
+      "dependencies": ["react"]
+    },
     "src/app/(frontend)/ask/_components/AskPrimaryContent/index.tsx": {
       "path": "src/app/(frontend)/ask/_components/AskPrimaryContent/index.tsx",
       "type": "unknown",
       "domain": "general",
-      "patterns": ["i18n-component", "client-component"],
+      "patterns": ["tailwind-component", "i18n-component", "client-component"],
       "aiSummary": "",
       "dependencies": ["react", "sonner"]
     },
@@ -2047,7 +2109,7 @@
         "i18n-component",
         "client-component"
       ],
-      "aiSummary": "Segmented filter switch above the chapter accordions. Three mutually-exclusive modes: `all` (default), `focus` (only the chapter with the featured lesson), `uncompleted` (hides completed lessons in every chapter). Purely presentational — parent owns the state.",
+      "aiSummary": "Single toggle button above the chapter accordions. Flips between `all` (show every lesson) and `uncompleted` (hide completed lessons). Purely presentational — parent owns the state.",
       "dependencies": []
     },
     "src/app/(frontend)/courses/[courseSlug]/_components/LessonListTab/CourseLessonsHero.tsx": {
@@ -2071,12 +2133,12 @@
       "type": "component",
       "domain": "frontend",
       "patterns": [
-        "lesson-roadmap-row",
+        "lesson-roadmap-card",
         "tailwind-component",
         "i18n-component",
         "client-component"
       ],
-      "aiSummary": "Single lesson row inside a chapter accordion — renders the big index number, ContentStatusBadge (which handles expiry + custom label), title, in-progress percentage, and a state-aware action (Learn now / Continue / Start / Locked / Coming soon). Wrapped in a SystemLink so route-loading state gets registered on navigation; paywall-locked variants route to the pre-resolved purchase URL instead.",
+      "aiSummary": "Compact lesson card for the 3-per-row chapter grid. Renders a numbered badge, title with status/percent meta, and a right-aligned action chip (Continue / Start / Learn now / Locked / Coming soon). Replaces the earlier full-width row layout to match the home-page demo. Still wrapped in a SystemLink so route-loading state registers on navigation; paywall-locked variants route to the resolved purchase URL instead.",
       "dependencies": ["lucide-react", "sonner"]
     },
     "src/app/(frontend)/courses/[courseSlug]/_components/LessonListTab/formatMessage.ts": {
@@ -2133,7 +2195,7 @@
       "domain": "general",
       "patterns": ["tailwind-component", "client-component"],
       "aiSummary": "",
-      "dependencies": ["lucide-react"]
+      "dependencies": ["framer-motion", "react"]
     },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonRunnerView.tsx": {
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonRunnerView.tsx",
@@ -2141,7 +2203,7 @@
       "domain": "general",
       "patterns": ["i18n-component", "client-component"],
       "aiSummary": "",
-      "dependencies": ["react"]
+      "dependencies": ["next/navigation", "react"]
     },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/GivenDataFloating.tsx": {
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/GivenDataFloating.tsx",
@@ -2163,7 +2225,7 @@
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatQuestionSelectBubble.tsx",
       "type": "unknown",
       "domain": "general",
-      "patterns": ["tailwind-component", "client-component"],
+      "patterns": ["tailwind-component", "i18n-component", "client-component"],
       "aiSummary": "",
       "dependencies": ["lucide-react", "react"]
     },
@@ -2183,6 +2245,14 @@
       "aiSummary": "",
       "dependencies": ["react"]
     },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/LessonSummaryCard.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/LessonSummaryCard.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["tailwind-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["lucide-react", "react"]
+    },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/PendingBubble.tsx": {
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/PendingBubble.tsx",
       "type": "unknown",
@@ -2191,6 +2261,14 @@
       "aiSummary": "",
       "dependencies": ["lucide-react"]
     },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/QuestionHeaderBadges.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/QuestionHeaderBadges.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["tailwind-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["react"]
+    },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/QuickActionChips.tsx": {
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/QuickActionChips.tsx",
       "type": "unknown",
@@ -2198,6 +2276,30 @@
       "patterns": ["tailwind-component", "client-component"],
       "aiSummary": "",
       "dependencies": ["lucide-react"]
+    },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/QuotaExhaustedCard.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/QuotaExhaustedCard.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["i18n-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": []
+    },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ReviewOfferCard.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ReviewOfferCard.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["client-component"],
+      "aiSummary": "",
+      "dependencies": ["react"]
+    },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/SkippedMarker.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/SkippedMarker.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["client-component"],
+      "aiSummary": "",
+      "dependencies": []
     },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/StudentBubble.tsx": {
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/StudentBubble.tsx",
@@ -2214,6 +2316,14 @@
       "patterns": ["tailwind-component", "client-component"],
       "aiSummary": "",
       "dependencies": ["lucide-react", "react"]
+    },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/TierLockBubble.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/TierLockBubble.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["i18n-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["lucide-react"]
     },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/index.tsx": {
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/index.tsx",
@@ -2379,9 +2489,9 @@
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/MediaTabContent/index.tsx",
       "type": "unknown",
       "domain": "general",
-      "patterns": ["tailwind-component", "client-component"],
+      "patterns": ["tailwind-component", "i18n-component", "client-component"],
       "aiSummary": "",
-      "dependencies": ["react", "lucide-react"]
+      "dependencies": ["react"]
     },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/PdfLessonPager/index.tsx": {
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/PdfLessonPager/index.tsx",
@@ -2711,6 +2821,14 @@
       "aiSummary": "",
       "dependencies": ["next/link", "react"]
     },
+    "src/app/(frontend)/privacy-policy/PrivacyPolicyContent.tsx": {
+      "path": "src/app/(frontend)/privacy-policy/PrivacyPolicyContent.tsx",
+      "type": "component",
+      "domain": "legal",
+      "patterns": ["client-component"],
+      "aiSummary": "Client renderer for the privacy policy markdown. Kept client-side",
+      "dependencies": ["react-markdown", "remark-gfm"]
+    },
     "src/app/(frontend)/products/[slug]/BuyButton.tsx": {
       "path": "src/app/(frontend)/products/[slug]/BuyButton.tsx",
       "type": "unknown",
@@ -2910,6 +3028,38 @@
       "patterns": ["client-component"],
       "aiSummary": "",
       "dependencies": ["react"]
+    },
+    "src/app/(frontend)/subscriptions/_components/ComingSoonSection.tsx": {
+      "path": "src/app/(frontend)/subscriptions/_components/ComingSoonSection.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["i18n-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["lucide-react"]
+    },
+    "src/app/(frontend)/subscriptions/_components/SubscriptionsHeader.tsx": {
+      "path": "src/app/(frontend)/subscriptions/_components/SubscriptionsHeader.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["i18n-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": []
+    },
+    "src/app/(frontend)/subscriptions/_components/TierCard.tsx": {
+      "path": "src/app/(frontend)/subscriptions/_components/TierCard.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["i18n-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["next/navigation", "react", "lucide-react", "sonner"]
+    },
+    "src/app/(frontend)/subtest/_components/SubTestCard.tsx": {
+      "path": "src/app/(frontend)/subtest/_components/SubTestCard.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["i18n-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["next/navigation", "react", "lucide-react", "sonner"]
     },
     "src/app/api/account/transactions/[id]/route.ts": {
       "path": "src/app/api/account/transactions/[id]/route.ts",
@@ -3247,6 +3397,30 @@
       "aiSummary": "",
       "dependencies": ["nanoid", "next/server", "zod"]
     },
+    "src/app/api/subscriptions/[id]/cancel/route.ts": {
+      "path": "src/app/api/subscriptions/[id]/cancel/route.ts",
+      "type": "route",
+      "domain": "billing",
+      "patterns": ["api-endpoint", "authenticated-endpoint"],
+      "aiSummary": "",
+      "dependencies": ["next/server"]
+    },
+    "src/app/api/subscriptions/checkout/route.ts": {
+      "path": "src/app/api/subscriptions/checkout/route.ts",
+      "type": "route",
+      "domain": "billing",
+      "patterns": ["api-endpoint", "authenticated-endpoint", "validated-endpoint"],
+      "aiSummary": "",
+      "dependencies": ["next/server", "zod"]
+    },
+    "src/app/api/subscriptions/test-checkout/route.ts": {
+      "path": "src/app/api/subscriptions/test-checkout/route.ts",
+      "type": "route",
+      "domain": "billing",
+      "patterns": ["api-endpoint"],
+      "aiSummary": "",
+      "dependencies": ["next/server"]
+    },
     "src/app/api/teacher/courses/route.ts": {
       "path": "src/app/api/teacher/courses/route.ts",
       "type": "unknown",
@@ -3333,6 +3507,14 @@
       "domain": "analytics",
       "patterns": ["heartbeat", "client-component"],
       "aiSummary": "Sends a heartbeat every 30 seconds while the tab is visible. Time spent in hidden tabs does NOT count — the streak can only advance when the user is actively looking at the page.",
+      "dependencies": ["react"]
+    },
+    "src/client/hooks/useChatProgressMap.ts": {
+      "path": "src/client/hooks/useChatProgressMap.ts",
+      "type": "hook",
+      "domain": "progress",
+      "patterns": ["chat-progress-map", "client-component"],
+      "aiSummary": "Read-side companion to the chat view's `saveLessonPercent` writes.",
       "dependencies": ["react"]
     },
     "src/client/hooks/useCurrentUser.ts": {
@@ -4172,7 +4354,7 @@
       "type": "utility",
       "domain": "graphics",
       "patterns": ["board-sizing"],
-      "aiSummary": "Compute JSXGraph board pixel dimensions that match a",
+      "aiSummary": "Compute JSXGraph board pixel dimensions for existing sketch",
       "dependencies": []
     },
     "src/infra/utils/graphics/viewport-utils.ts": {
@@ -4373,6 +4555,14 @@
       "domain": "payment",
       "patterns": ["env-vault"],
       "aiSummary": "Validates and exposes payment provider environment variables.",
+      "dependencies": []
+    },
+    "src/lib/tiers/enforcement.ts": {
+      "path": "src/lib/tiers/enforcement.ts",
+      "type": "helper",
+      "domain": "billing",
+      "patterns": ["client-component"],
+      "aiSummary": "",
       "dependencies": []
     },
     "src/middleware.ts": {
@@ -5051,7 +5241,7 @@
       "path": "src/ui/web/bug-report/BugReportForm/index.tsx",
       "type": "component",
       "domain": "bug-report",
-      "patterns": ["floating-form", "i18n-component", "client-component"],
+      "patterns": ["floating-form", "tailwind-component", "i18n-component", "client-component"],
       "aiSummary": "",
       "dependencies": ["framer-motion", "lucide-react", "react", "sonner"]
     },
@@ -5085,7 +5275,7 @@
       "domain": "general",
       "patterns": ["tailwind-component", "i18n-component", "client-component"],
       "aiSummary": "",
-      "dependencies": ["react", "lucide-react"]
+      "dependencies": ["react"]
     },
     "src/ui/web/chat/ChatMessageContent/ChatCallout.tsx": {
       "path": "src/ui/web/chat/ChatMessageContent/ChatCallout.tsx",
@@ -5856,7 +6046,7 @@
       "path": "src/ui/web/footer/FooterClient.tsx",
       "type": "component",
       "domain": "frontend",
-      "patterns": ["footer-client", "tailwind-component", "client-component"],
+      "patterns": ["footer-client", "tailwind-component", "i18n-component", "client-component"],
       "aiSummary": "Client wrapper that renders the dynamic footer and owns the",
       "dependencies": ["next/image", "react"]
     },
@@ -6076,6 +6266,14 @@
       "aiSummary": "",
       "dependencies": ["react"]
     },
+    "src/ui/web/media/PDFMedia/pdfViewerBridge.ts": {
+      "path": "src/ui/web/media/PDFMedia/pdfViewerBridge.ts",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["client-component"],
+      "aiSummary": "",
+      "dependencies": []
+    },
     "src/ui/web/media/SVGMedia/ensureSvgViewBox.ts": {
       "path": "src/ui/web/media/SVGMedia/ensureSvgViewBox.ts",
       "type": "utility",
@@ -6115,6 +6313,30 @@
       "patterns": ["tailwind-component", "client-component"],
       "aiSummary": "",
       "dependencies": ["react"]
+    },
+    "src/ui/web/notebook/FloatingNotebook/DoodleCanvas.tsx": {
+      "path": "src/ui/web/notebook/FloatingNotebook/DoodleCanvas.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["tailwind-component", "i18n-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["lucide-react", "react"]
+    },
+    "src/ui/web/notebook/FloatingNotebook/DoodleTextArea.tsx": {
+      "path": "src/ui/web/notebook/FloatingNotebook/DoodleTextArea.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["tailwind-component", "i18n-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["lucide-react", "react"]
+    },
+    "src/ui/web/notebook/FloatingNotebook/index.tsx": {
+      "path": "src/ui/web/notebook/FloatingNotebook/index.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["tailwind-component", "i18n-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["lucide-react", "react"]
     },
     "src/ui/web/providers/HeaderTheme/index.tsx": {
       "path": "src/ui/web/providers/HeaderTheme/index.tsx",
@@ -6292,13 +6514,13 @@
       "aiSummary": "",
       "dependencies": ["react", "class-variance-authority"]
     },
-    "src/ui/web/shared/MathInput/FormulaComposer.tsx": {
-      "path": "src/ui/web/shared/MathInput/FormulaComposer.tsx",
+    "src/ui/web/shared/MathInput/MathChip.tsx": {
+      "path": "src/ui/web/shared/MathInput/MathChip.tsx",
       "type": "unknown",
       "domain": "general",
       "patterns": ["tailwind-component", "client-component"],
       "aiSummary": "",
-      "dependencies": ["react", "lucide-react", "mathlive"]
+      "dependencies": ["react", "@tiptap/react", "katex", "mathlive"]
     },
     "src/ui/web/shared/MathInput/MathField.tsx": {
       "path": "src/ui/web/shared/MathInput/MathField.tsx",
@@ -6308,13 +6530,21 @@
       "aiSummary": "",
       "dependencies": ["react", "mathlive"]
     },
-    "src/ui/web/shared/MathInput/MathFieldToolbar.tsx": {
-      "path": "src/ui/web/shared/MathInput/MathFieldToolbar.tsx",
+    "src/ui/web/shared/MathInput/MathPicker.tsx": {
+      "path": "src/ui/web/shared/MathInput/MathPicker.tsx",
       "type": "unknown",
       "domain": "general",
       "patterns": ["tailwind-component", "client-component"],
       "aiSummary": "",
-      "dependencies": ["react", "mathlive"]
+      "dependencies": ["react", "katex", "lucide-react"]
+    },
+    "src/ui/web/shared/MathInput/MixedMathInput.tsx": {
+      "path": "src/ui/web/shared/MathInput/MixedMathInput.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["tailwind-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["@tiptap/extension-placeholder", "@tiptap/react", "@tiptap/starter-kit"]
     },
     "src/ui/web/shared/MathMarkdown/index.tsx": {
       "path": "src/ui/web/shared/MathMarkdown/index.tsx",
@@ -6396,6 +6626,22 @@
       "aiSummary": "",
       "dependencies": ["react", "class-variance-authority"]
     },
+    "src/ui/web/upsell/UpgradeCheckoutDialog.tsx": {
+      "path": "src/ui/web/upsell/UpgradeCheckoutDialog.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["i18n-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["lucide-react", "react"]
+    },
+    "src/ui/web/upsell/UpgradeOfferCard.tsx": {
+      "path": "src/ui/web/upsell/UpgradeOfferCard.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["i18n-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["react"]
+    },
     "src/utils/diff.ts": {
       "path": "src/utils/diff.ts",
       "type": "utility",
@@ -6406,8 +6652,8 @@
     }
   },
   "metadata": {
-    "generatedAt": "2026-10-05T06:59:33.975Z",
-    "totalFiles": 576,
-    "totalPatterns": 193
+    "generatedAt": "2026-10-19T06:09:29.768Z",
+    "totalFiles": 600,
+    "totalPatterns": 194
   }
 }
