@@ -1247,7 +1247,10 @@
       "backToProducts": "עיין במוצרים",
       "goHome": "לעמוד הבית",
       "goToCourse": "מעבר ל{course}",
-      "grantingAccess": "מגדיר גישה…"
+      "grantingAccess": "מגדיר גישה…",
+      "subscriptionConfirming": "מאשר את המנוי שלך…",
+      "subscriptionConfirmedTitle": "המנוי אושר!",
+      "subscriptionConfirmedDescription": "המנוי שלך פעיל. ברוך הבא!"
     },
     "cancel": {
       "title": "התשלום בוטל",

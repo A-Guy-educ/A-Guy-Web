@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 import { SYSTEM_EVENTS, systemEventBus } from '@/infra/system-events'
+import type { ActiveSubscription } from '@/lib/tiers'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { Card, CardContent } from '@/ui/web/components/card'
 import { Button } from '@/ui/web/components/button'
@@ -46,6 +47,19 @@ const ENTITLEMENT_POLL_INTERVAL_MS = 3000
 const ENTITLEMENT_POLL_TIMEOUT_MS = 45000
 const PENDING_STATUS_REFRESH_INTERVAL_MS = 5000
 const PENDING_STATUS_REFRESH_MAX_MS = 5 * 60 * 1000
+// Tranzilla's subscription return URL carries no identifier we can look up —
+// admin receives the sto notify_url webhook asynchronously, which is what
+// populates `activeSubscription` on /api/users/me. Poll for that from the
+// client with the same budget as the entitlement poll above; same 45s cap,
+// same intent (close the "pending → active" race before the buyer gives up).
+const SUBSCRIPTION_POLL_INTERVAL_MS = 3000
+const SUBSCRIPTION_POLL_TIMEOUT_MS = 45000
+
+type SubscriptionReturnStatus = 'polling' | 'confirmed' | 'timedout'
+
+interface UsersMeResponse {
+  user?: { activeSubscription?: ActiveSubscription | null } | null
+}
 
 export function CheckoutSuccessContent({
   sessionId,
@@ -177,7 +191,103 @@ export function CheckoutSuccessContent({
     }
   }, [shouldPollEntitlement, firstCourseId, firstCourseSlug])
 
+  // Tranzilla subscription returns land here with NO provider-return token in
+  // the URL — admin builds the Tranzilla hosted-checkout URL from the bare
+  // successUrl we send on bootstrap, so there's nothing to look up a
+  // transaction row by. The subscription state lives on the admin side and
+  // surfaces to Web via `activeSubscription` on /api/users/me (afterRead
+  // virtual). Poll until it populates, then show the confirmed state.
+  //
+  // This branch only runs when `sessionId` is undefined — the legacy
+  // Stripe/PayPal/old-Tranzilla paths still take the transaction-lookup
+  // branches above and skip this.
+  const [subscriptionReturnStatus, setSubscriptionReturnStatus] =
+    useState<SubscriptionReturnStatus>(sessionId ? 'timedout' : 'polling')
+  const [confirmedSubscription, setConfirmedSubscription] = useState<ActiveSubscription | null>(
+    null,
+  )
+  useEffect(() => {
+    if (sessionId) return
+    let cancelled = false
+    let timeoutId: number | undefined
+    const startedAt = Date.now()
+
+    async function poll() {
+      if (cancelled) return
+      try {
+        const res = await fetch('/api/users/me', { cache: 'no-store', credentials: 'include' })
+        if (cancelled) return
+        if (res.ok) {
+          const data: UsersMeResponse = await res.json()
+          const sub = data?.user?.activeSubscription
+          if (!cancelled && sub) {
+            setConfirmedSubscription(sub)
+            setSubscriptionReturnStatus('confirmed')
+            // Refresh the server component cache so downstream navigation sees
+            // the just-granted tier (gate helpers read user.currentTier).
+            router.refresh()
+            return
+          }
+        }
+      } catch {
+        // Transient — let the next tick retry.
+      }
+      if (cancelled) return
+      if (Date.now() - startedAt >= SUBSCRIPTION_POLL_TIMEOUT_MS) {
+        setSubscriptionReturnStatus('timedout')
+        return
+      }
+      timeoutId = window.setTimeout(poll, SUBSCRIPTION_POLL_INTERVAL_MS)
+    }
+
+    void poll()
+    return () => {
+      cancelled = true
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId)
+    }
+  }, [sessionId, router])
+
   if (!sessionId) {
+    if (subscriptionReturnStatus === 'polling') {
+      return (
+        <Card className="max-w-md mx-auto shadow-elevation-3 border border-border/60">
+          <CardContent className="p-card-padding-lg text-center">
+            <Loader2 className="w-12 h-12 text-primary mx-auto mb-4 animate-spin" />
+            <h1 className="text-heading-lg font-black text-card-foreground mb-2">
+              {t('success.subscriptionConfirming')}
+            </h1>
+            <p className="text-body-md text-muted-foreground">
+              {t('success.processingDescription')}
+            </p>
+          </CardContent>
+        </Card>
+      )
+    }
+
+    if (subscriptionReturnStatus === 'confirmed') {
+      return (
+        <Card className="max-w-md mx-auto shadow-elevation-3 border border-border/60">
+          <CardContent className="p-card-padding-lg text-center">
+            <CheckCircle2 className="w-16 h-16 text-success mx-auto mb-4" />
+            <h1 className="text-heading-lg font-black text-card-foreground mb-2">
+              {t('success.subscriptionConfirmedTitle')}
+            </h1>
+            <p className="text-body-md text-muted-foreground mb-6">
+              {t('success.subscriptionConfirmedDescription')}
+            </p>
+            <Button
+              onClick={() => (window.location.href = '/')}
+              className="w-full"
+              aria-label={confirmedSubscription?.tierSlug ?? undefined}
+            >
+              {t('success.goHome')}
+            </Button>
+          </CardContent>
+        </Card>
+      )
+    }
+
+    // Poll timed out — fall through to the legacy missing-session fallback.
     return (
       <Card className="max-w-md mx-auto shadow-elevation-3 border border-border/60">
         <CardContent className="p-card-padding-lg text-center">
@@ -188,8 +298,8 @@ export function CheckoutSuccessContent({
           <p className="text-body-md text-muted-foreground mb-6">
             {t('success.noSessionDescription')}
           </p>
-          <Button onClick={() => (window.location.href = '/products')} className="w-full">
-            {t('success.backToProducts')}
+          <Button onClick={() => (window.location.href = '/')} className="w-full">
+            {t('success.goHome')}
           </Button>
         </CardContent>
       </Card>

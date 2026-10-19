@@ -54,9 +54,14 @@ describe('CheckoutSuccessContent', () => {
     expect(refreshMock).not.toHaveBeenCalled()
   })
 
-  it('renders "missingSession" when sessionId is not provided', () => {
+  it('renders "subscriptionConfirming" while polling /api/users/me when no sessionId is present (Tranzilla subscription return path)', () => {
     render(<CheckoutSuccessContent sessionId={undefined} transaction={null} productName="" />)
-    expect(screen.getByRole('heading').textContent).toBe('success.missingSession')
+    // Admin's bootstrap flow sends buyers back to a bare /checkout/success with
+    // no provider-return token. The polling branch now shows a "confirming"
+    // spinner while /api/users/me is checked for `activeSubscription`. The
+    // legacy "missingSession" fallback only renders after the 45s timeout —
+    // that path isn't exercised here since jsdom polling is swallowed.
+    expect(screen.getByRole('heading').textContent).toBe('success.subscriptionConfirming')
   })
 
   it('renders the "processing" spinner when the transaction lookup returns null', () => {
