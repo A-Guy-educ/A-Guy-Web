@@ -4978,6 +4978,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore(docs): fix broken internal links ([#1381](https://github.com/A-Guy-educ/A-Guy-Web/pull/1381)) — @github-actions[bot]
 - chore(ai-docs): Refresh indexes ([#1379](https://github.com/A-Guy-educ/A-Guy-Web/pull/1379)) — @github-actions[bot]
 - feat: Ask PDF full-page, wider chat view, drop-to-ask, daily token infra ([#1405](https://github.com/A-Guy-educ/A-Guy-Web/pull/1405)) — @aguyshayb
 - feat(help-system): Two-click hint/solution flow with Gemini follow-up ([#1416](https://github.com/A-Guy-educ/A-Guy-Web/pull/1416)) — @aguyshayb
