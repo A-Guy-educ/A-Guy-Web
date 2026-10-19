@@ -4978,6 +4978,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat(subscriptions): Cancel-subscription UI with confirmation dialog ([#1421](https://github.com/A-Guy-educ/A-Guy-Web/pull/1421)) — @aguyshayb
 - fix(checkout-success): Confirm Tranzilla subscription returns via /api/users/me ([#1419](https://github.com/A-Guy-educ/A-Guy-Web/pull/1419)) — @aguyshayb
 - feat(legal): Add Hebrew terms of service page and footer link ([#1418](https://github.com/A-Guy-educ/A-Guy-Web/pull/1418)) — @aguyshayb
 - chore(deps-dev): Bump jsdom from 26.1.0 to 30.1.3 ([#1409](https://github.com/A-Guy-educ/A-Guy-Web/pull/1409)) — @dependabot[bot]
