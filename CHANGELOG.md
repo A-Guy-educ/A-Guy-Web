@@ -4978,6 +4978,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix(users-me): Attach activeSubscription for the subscriptions UI ([#1422](https://github.com/A-Guy-educ/A-Guy-Web/pull/1422)) — @aguyshayb
 - feat(footer): Drop admin-driven footer, keep hard-coded items only ([#1420](https://github.com/A-Guy-educ/A-Guy-Web/pull/1420)) — @aguyshayb
 - feat(subscriptions): Cancel-subscription UI with confirmation dialog ([#1421](https://github.com/A-Guy-educ/A-Guy-Web/pull/1421)) — @aguyshayb
 - fix(checkout-success): Confirm Tranzilla subscription returns via /api/users/me ([#1419](https://github.com/A-Guy-educ/A-Guy-Web/pull/1419)) — @aguyshayb
