@@ -1147,6 +1147,15 @@
     "loginToSubscribe": "התחברו כדי להירשם",
     "redirecting": "מעביר לתשלום...",
     "mostPopular": "הפופולרי ביותר",
+    "cancelButton": "ביטול מנוי",
+    "cancelsOn": "מתבטל בתאריך {date}",
+    "cancelDialogTitle": "לבטל את המנוי?",
+    "cancelDialogDescription": "הגישה שלך תישאר עד {date}. לאחר מכן החשבון יחזור למסלול חינם.",
+    "cancelDialogDescriptionNoDate": "הגישה שלך תישאר עד סוף התקופה הנוכחית. לאחר מכן החשבון יחזור למסלול חינם.",
+    "cancelConfirm": "כן, בטלו",
+    "cancelKeep": "השארת המסלול",
+    "cancelInProgress": "מבטל…",
+    "cancelSuccess": "המנוי בוטל",
     "tiers": {
       "free": {
         "name": "חינם",
@@ -1214,7 +1223,10 @@
       "authRequired": "אנא התחברו כדי להירשם.",
       "invalidTier": "המסלול הזה אינו זמין.",
       "checkoutFailed": "לא ניתן היה להתחיל תשלום. אנא נסו שוב.",
-      "providerNotConfigured": "התשלום אינו מוגדר. אנא צרו קשר עם התמיכה."
+      "providerNotConfigured": "התשלום אינו מוגדר. אנא צרו קשר עם התמיכה.",
+      "cancelFailed": "לא הצלחנו לבטל את המנוי. אנא נסו שוב.",
+      "cancelHandoff": "הקמת המנוי עדיין בעיצומה — אנא נסו שוב בעוד רגע.",
+      "cancelProvider": "ספק התשלום דחה את בקשת הביטול. אנא נסו שוב."
     }
   },
   "upgradeOffer": {

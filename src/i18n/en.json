@@ -1147,6 +1147,15 @@
     "loginToSubscribe": "Log in to subscribe",
     "redirecting": "Redirecting to checkout...",
     "mostPopular": "Most popular",
+    "cancelButton": "Cancel subscription",
+    "cancelsOn": "Cancels on {date}",
+    "cancelDialogTitle": "Cancel your subscription?",
+    "cancelDialogDescription": "You'll keep access until {date}. After that your account moves back to Free.",
+    "cancelDialogDescriptionNoDate": "You'll keep access until the end of the current period. After that your account moves back to Free.",
+    "cancelConfirm": "Yes, cancel",
+    "cancelKeep": "Keep plan",
+    "cancelInProgress": "Cancelling…",
+    "cancelSuccess": "Subscription cancelled",
     "tiers": {
       "free": {
         "name": "Free",
@@ -1214,7 +1223,10 @@
       "authRequired": "Please log in to subscribe.",
       "invalidTier": "That plan is not available.",
       "checkoutFailed": "Unable to start checkout. Please try again.",
-      "providerNotConfigured": "Payment is not configured. Please contact support."
+      "providerNotConfigured": "Payment is not configured. Please contact support.",
+      "cancelFailed": "Could not cancel subscription. Please try again.",
+      "cancelHandoff": "Subscription setup is still in progress — please try again in a moment.",
+      "cancelProvider": "Payment provider refused the cancel request. Please try again."
     }
   },
   "upgradeOffer": {
