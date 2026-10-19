@@ -319,6 +319,24 @@
       "segmentGroup": null
     },
     {
+      "routePath": "/api/subscriptions/:id/cancel",
+      "filePath": "src/app/api/subscriptions/[id]/cancel/route.ts",
+      "kind": "route",
+      "segmentGroup": null
+    },
+    {
+      "routePath": "/api/subscriptions/checkout",
+      "filePath": "src/app/api/subscriptions/checkout/route.ts",
+      "kind": "route",
+      "segmentGroup": null
+    },
+    {
+      "routePath": "/api/subscriptions/test-checkout",
+      "filePath": "src/app/api/subscriptions/test-checkout/route.ts",
+      "kind": "route",
+      "segmentGroup": null
+    },
+    {
       "routePath": "/api/teacher-profiles",
       "filePath": "src/app/api/teacher-profiles/route.ts",
       "kind": "route",
@@ -517,6 +535,12 @@
       "segmentGroup": "(frontend)"
     },
     {
+      "routePath": "/og-image.png",
+      "filePath": "src/app/(frontend)/og-image.png/route.tsx",
+      "kind": "route",
+      "segmentGroup": "(frontend)"
+    },
+    {
       "routePath": "/onboarding/persona",
       "filePath": "src/app/(frontend)/onboarding/persona/loading.tsx",
       "kind": "loading",
@@ -573,6 +597,12 @@
     {
       "routePath": "/prep7",
       "filePath": "src/app/(frontend)/prep7/page.tsx",
+      "kind": "page",
+      "segmentGroup": "(frontend)"
+    },
+    {
+      "routePath": "/privacy-policy",
+      "filePath": "src/app/(frontend)/privacy-policy/page.tsx",
       "kind": "page",
       "segmentGroup": "(frontend)"
     },
@@ -649,6 +679,18 @@
       "segmentGroup": "(frontend)"
     },
     {
+      "routePath": "/subscriptions",
+      "filePath": "src/app/(frontend)/subscriptions/page.tsx",
+      "kind": "page",
+      "segmentGroup": "(frontend)"
+    },
+    {
+      "routePath": "/subtest",
+      "filePath": "src/app/(frontend)/subtest/page.tsx",
+      "kind": "page",
+      "segmentGroup": "(frontend)"
+    },
+    {
       "routePath": "/test",
       "filePath": "src/app/(frontend)/test/loading.tsx",
       "kind": "loading",
@@ -668,7 +710,7 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-10-05T06:59:36.686Z",
-    "totalRoutes": 111
+    "generatedAt": "2026-10-19T06:09:32.663Z",
+    "totalRoutes": 118
   }
 }
