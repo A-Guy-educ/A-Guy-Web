@@ -18,10 +18,12 @@ const TEST_TIERS: readonly TierSlug[] = ['basic', 'advanced', 'premium']
  * bootstrap, so these numbers are display-only. If admin changes them, update
  * here for honesty.
  *
- * All current test prices sit above admin's ₪1 charge-floor, so upgrades DO
- * fire a real Tranzilla charge (admin PR #664's below-₪1 skip no longer
- * triggers for these). The skip-branch in the success toast stays wired as
- * future-proofing in case admin adds a sub-shekel offer later.
+ * On upgrade: admin's change-tier endpoint flips the tier immediately and
+ * swaps the STO's recurring price; it does NOT charge the buyer in the
+ * moment. The next STO cycle (whenever it falls) bills at the new price.
+ * See admin's post-PR-664 revert — the charge-on-upgrade path turned out to
+ * depend on a stored card token that the MyBilling handshake model no longer
+ * writes.
  */
 const TEST_TIER_PRICE_LABEL: Record<TierSlug, string> = {
   free: '—',
@@ -88,18 +90,13 @@ export function SubTestCard() {
           body: JSON.stringify({ tierSlug: tier }),
         },
       )
-      const data = (await res.json()) as {
-        success?: boolean
-        error?: string
-        currentPeriodEnd?: string
-        upgradeChargeIndex?: string | null
-      }
+      const data = (await res.json()) as { success?: boolean; error?: string }
       if (!res.ok || !data.success) {
         toast.error(describeChangeTierError(res.status, data?.error, t))
         setPendingAction(null)
         return
       }
-      toast.success(buildChangeTierSuccessMessage({ tier, data, t }))
+      toast.success(t('changeTierSuccess').replace('{tier}', TIER_LABEL[tier]))
       setPendingAction(null)
       router.refresh()
     } catch {
@@ -291,47 +288,10 @@ function describeChangeTierError(
   if (status === 400 && err.includes('downgrade')) return t('errors.downgradeNotSupported')
   if (status === 400) return t('errors.changeTierBadRequest')
   if (status === 409) return t('errors.changeTierHandoff')
-  // Admin's PR #664 introduced three distinct 502s on the upgrade-charge path.
-  // Match on keywords from admin's canonical error strings so each surfaces a
-  // user-actionable toast — a declined card needs the user to fix their card,
-  // a provider outage is just "try again later."
-  if (status === 502 && err.includes('declin')) return t('errors.changeTierCardDeclined')
-  if (status === 502 && (err.includes('reach') || err.includes('unreachable'))) {
-    return t('errors.changeTierProviderUnreachable')
-  }
+  // 502 covers STO/Tranzilla failures on the item-swap itself. The
+  // charge-on-upgrade specific 502 variants are gone with admin's revert.
   if (status === 502) return t('errors.changeTierProvider')
-  // 500 "Subscription has no stored card" — admin flagged this as a rare
-  // state-corruption fallback: the user has an active sub row but no token
-  // we can charge. Only recovery is cancel + fresh signup.
-  if (status === 500 && err.includes('stored card')) return t('errors.changeTierNoStoredCard')
   return t('errors.changeTierFailed')
-}
-
-/**
- * Compose the success toast from admin's PR #664 response fields. Charge is
- * skipped on sub-shekel test flows (admin's below-₪1 guard), which is a
- * useful signal when verifying the test matrix — the user's tier flipped
- * but no transactions row got written. The success message surfaces that
- * explicitly so it's not confused with a broken write path.
- */
-function buildChangeTierSuccessMessage({
-  tier,
-  data,
-  t,
-}: {
-  tier: TierSlug
-  data: { currentPeriodEnd?: string; upgradeChargeIndex?: string | null }
-  t: (key: string) => string
-}): string {
-  const base = t('changeTierSuccess').replace('{tier}', TIER_LABEL[tier])
-  const periodEnd = data.currentPeriodEnd
-    ? new Date(data.currentPeriodEnd).toISOString().slice(0, 10)
-    : null
-  const chargeSkipped = data.upgradeChargeIndex === null
-  const parts = [base]
-  if (periodEnd) parts.push(t('changeTierRenewsOn').replace('{date}', periodEnd))
-  if (chargeSkipped) parts.push(t('changeTierChargeSkipped'))
-  return parts.join(' • ')
 }
 
 function describeCancelError(status: number, t: (key: string) => string): string {
