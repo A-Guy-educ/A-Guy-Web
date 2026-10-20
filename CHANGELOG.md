@@ -5005,6 +5005,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix(subtest): Wire admin PR #664 upgrade-charge response + new test prices ([#1435](https://github.com/A-Guy-educ/A-Guy-Web/pull/1435)) — @aguyshayb
 - feat(billing): Gate payment on 18+/guardian + ToS consent ([#1434](https://github.com/A-Guy-educ/A-Guy-Web/pull/1434)) — @aguyshayb
 - fix(ask): Render dropped file after course-composer handoff ([#1433](https://github.com/A-Guy-educ/A-Guy-Web/pull/1433)) — @aguyshayb
 - feat(chat): Name the exceeded window and tier-filter the quota upsell ([#1432](https://github.com/A-Guy-educ/A-Guy-Web/pull/1432)) — @aguyshayb
