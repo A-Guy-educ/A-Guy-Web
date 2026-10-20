@@ -17,12 +17,17 @@ const TEST_TIERS: readonly TierSlug[] = ['basic', 'advanced', 'premium']
  * `tier-tranzilla-pricing.ts` — admin resolves + snapshots the real price at
  * bootstrap, so these numbers are display-only. If admin changes them, update
  * here for honesty.
+ *
+ * All current test prices sit above admin's ₪1 charge-floor, so upgrades DO
+ * fire a real Tranzilla charge (admin PR #664's below-₪1 skip no longer
+ * triggers for these). The skip-branch in the success toast stays wired as
+ * future-proofing in case admin adds a sub-shekel offer later.
  */
 const TEST_TIER_PRICE_LABEL: Record<TierSlug, string> = {
   free: '—',
-  basic: '₪0.01',
-  advanced: '₪0.02',
-  premium: '₪0.03',
+  basic: '₪1.50',
+  advanced: '₪3.00',
+  premium: '₪4.50',
 }
 
 const TIER_LABEL: Record<TierSlug, string> = {
@@ -83,13 +88,18 @@ export function SubTestCard() {
           body: JSON.stringify({ tierSlug: tier }),
         },
       )
-      const data = await res.json()
+      const data = (await res.json()) as {
+        success?: boolean
+        error?: string
+        currentPeriodEnd?: string
+        upgradeChargeIndex?: string | null
+      }
       if (!res.ok || !data.success) {
         toast.error(describeChangeTierError(res.status, data?.error, t))
         setPendingAction(null)
         return
       }
-      toast.success(t('changeTierSuccess').replace('{tier}', TIER_LABEL[tier]))
+      toast.success(buildChangeTierSuccessMessage({ tier, data, t }))
       setPendingAction(null)
       router.refresh()
     } catch {
@@ -156,6 +166,7 @@ export function SubTestCard() {
             <CurrentSubBlock sub={activeSubscription} t={t} />
             <TierButtonRow
               heading={t('changeTierHeading')}
+              hint={t('changeTierTestNote')}
               tiers={TEST_TIERS}
               label={(tier) => `${t('switchTo')} ${TIER_LABEL[tier]}`}
               busyKey={(tier) => `change:${tier}`}
@@ -184,6 +195,7 @@ export function SubTestCard() {
 
 interface TierButtonRowProps {
   heading: string
+  hint?: string
   tiers: readonly TierSlug[]
   label: (tier: TierSlug) => string
   busyKey: (tier: TierSlug) => string
@@ -195,6 +207,7 @@ interface TierButtonRowProps {
 
 function TierButtonRow({
   heading,
+  hint,
   tiers,
   label,
   busyKey,
@@ -207,6 +220,7 @@ function TierButtonRow({
   return (
     <div className="flex flex-col gap-content-gap-xs">
       <h2 className="text-body-sm font-bold text-foreground">{heading}</h2>
+      {hint ? <p className="text-body-xs text-muted-foreground">{hint}</p> : null}
       {tiers.map((tier) => {
         const key = busyKey(tier)
         const isBusy = pendingAction === key
@@ -273,13 +287,51 @@ function describeChangeTierError(
   errorKey: string | undefined,
   t: (key: string) => string,
 ): string {
-  if (status === 400 && errorKey?.toLowerCase().includes('downgrade')) {
-    return t('errors.downgradeNotSupported')
-  }
+  const err = errorKey?.toLowerCase() ?? ''
+  if (status === 400 && err.includes('downgrade')) return t('errors.downgradeNotSupported')
   if (status === 400) return t('errors.changeTierBadRequest')
   if (status === 409) return t('errors.changeTierHandoff')
+  // Admin's PR #664 introduced three distinct 502s on the upgrade-charge path.
+  // Match on keywords from admin's canonical error strings so each surfaces a
+  // user-actionable toast — a declined card needs the user to fix their card,
+  // a provider outage is just "try again later."
+  if (status === 502 && err.includes('declin')) return t('errors.changeTierCardDeclined')
+  if (status === 502 && (err.includes('reach') || err.includes('unreachable'))) {
+    return t('errors.changeTierProviderUnreachable')
+  }
   if (status === 502) return t('errors.changeTierProvider')
+  // 500 "Subscription has no stored card" — admin flagged this as a rare
+  // state-corruption fallback: the user has an active sub row but no token
+  // we can charge. Only recovery is cancel + fresh signup.
+  if (status === 500 && err.includes('stored card')) return t('errors.changeTierNoStoredCard')
   return t('errors.changeTierFailed')
+}
+
+/**
+ * Compose the success toast from admin's PR #664 response fields. Charge is
+ * skipped on sub-shekel test flows (admin's below-₪1 guard), which is a
+ * useful signal when verifying the test matrix — the user's tier flipped
+ * but no transactions row got written. The success message surfaces that
+ * explicitly so it's not confused with a broken write path.
+ */
+function buildChangeTierSuccessMessage({
+  tier,
+  data,
+  t,
+}: {
+  tier: TierSlug
+  data: { currentPeriodEnd?: string; upgradeChargeIndex?: string | null }
+  t: (key: string) => string
+}): string {
+  const base = t('changeTierSuccess').replace('{tier}', TIER_LABEL[tier])
+  const periodEnd = data.currentPeriodEnd
+    ? new Date(data.currentPeriodEnd).toISOString().slice(0, 10)
+    : null
+  const chargeSkipped = data.upgradeChargeIndex === null
+  const parts = [base]
+  if (periodEnd) parts.push(t('changeTierRenewsOn').replace('{date}', periodEnd))
+  if (chargeSkipped) parts.push(t('changeTierChargeSkipped'))
+  return parts.join(' • ')
 }
 
 function describeCancelError(status: number, t: (key: string) => string): string {
