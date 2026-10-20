@@ -382,6 +382,8 @@
     "chatViewAuthRequired": "התחבר כדי לשוחח עם הצ׳אט",
     "chatViewQuotaExceeded": "הגעת למכסה היומית של הצ׳אט",
     "chatViewQuotaExhaustedBody": "הגעת למגבלת העזרה והבדיקה במסלול שלך. שדרגו את המנוי כדי להמשיך לקבל רמזים, הכוונה ובדיקת תשובות מהצ'אט.",
+    "chatViewQuotaExhaustedBodyDaily": "הגעת למגבלה היומית שלך. אפשר לחזור מחר, או לשדרג את המנוי כדי להמשיך עכשיו.",
+    "chatViewQuotaExhaustedBodyMonthly": "הגעת למגבלה החודשית שלך. אפשר להמתין עד תחילת החודש הבא, או לשדרג את המנוי כדי להמשיך עכשיו.",
     "chatViewQuotaUpgradeCta": "שדרוג מנוי",
     "chatViewQuotaContinueCta": "להמשיך את השיעור ללא עזרה ובדיקה",
     "chatViewQuotaOfferTitle": "ממשיכים עם העזרה?",

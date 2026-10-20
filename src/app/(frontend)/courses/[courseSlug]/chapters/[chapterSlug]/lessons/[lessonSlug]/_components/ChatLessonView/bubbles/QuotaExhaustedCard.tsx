@@ -1,6 +1,7 @@
 'use client'
 
 import { useTranslations } from '@/ui/web/providers/I18n'
+import { type TierSlug } from '@/lib/tiers'
 import { UpgradeOfferCard } from '@/ui/web/upsell/UpgradeOfferCard'
 
 interface QuotaExhaustedCardProps {
@@ -8,18 +9,24 @@ interface QuotaExhaustedCardProps {
   bodyText: string
   /** Label for the "continue without AI" skip link. */
   continueLabel: string
+  /** Student's current tier — drives which upsell tiers show below the intro. */
+  currentTier: TierSlug
 }
 
 /**
  * One-time card rendered when the student's chat quota runs out. Replaces the
  * earlier single-CTA layout with the chat-payment demo layout: title + intro +
- * two plan buttons (basic + advanced) + a "continue without AI" skip link.
- * Picking a plan opens the floating `UpgradeCheckoutDialog`, which submits to
- * the same `/api/subscriptions/checkout` endpoint `/subscriptions` uses — so
- * payment stays consistent whether the student started from the catalog page
- * or hit the quota wall mid-lesson.
+ * tier buttons + a "continue without AI" skip link. Picking a plan opens the
+ * floating `UpgradeCheckoutDialog`, which submits to the same
+ * `/api/subscriptions/checkout` endpoint `/subscriptions` uses — so payment
+ * stays consistent whether the student started from the catalog page or hit
+ * the quota wall mid-lesson.
  */
-export function QuotaExhaustedCard({ bodyText, continueLabel }: QuotaExhaustedCardProps) {
+export function QuotaExhaustedCard({
+  bodyText,
+  continueLabel,
+  currentTier,
+}: QuotaExhaustedCardProps) {
   // Namespace must match the parent `ChatLessonRunnerView`, which already uses
   // `courses` for every other `chatView…` key. Mis-matching the namespace made
   // the headline + restricted-mode copy render as the raw key path.
@@ -30,6 +37,7 @@ export function QuotaExhaustedCard({ bodyText, continueLabel }: QuotaExhaustedCa
       intro={bodyText}
       continueLabel={continueLabel}
       restrictedLabel={t('chatViewQuotaRestrictedBody')}
+      currentTier={currentTier}
       onContinue={() => {
         /* Parent `useChatChannel` already suppresses AI calls once the quota
          *  flag is set — the skip is a UX acknowledgment, not a state wipe. */

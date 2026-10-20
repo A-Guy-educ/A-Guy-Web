@@ -162,6 +162,13 @@ export interface SkippedMarkerEntry extends EntryBase {
  */
 export interface QuotaExhaustedEntry extends EntryBase {
   kind: 'quota-exhausted'
+  /**
+   * Which LLM-token window tripped on the server side — read from the
+   * `token_limit_exceeded` error payload. Drives whether the card headline
+   * reads "daily limit" or "monthly limit". Null for the daily per-question
+   * `quota_exceeded` path or when the server didn't surface the window.
+   */
+  exceededWindow?: 'daily' | 'monthly' | null
 }
 
 /**

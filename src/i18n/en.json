@@ -382,6 +382,8 @@
     "chatViewAuthRequired": "Please log in to chat",
     "chatViewQuotaExceeded": "Daily chat limit reached",
     "chatViewQuotaExhaustedBody": "You've reached the help and checking limit on your plan. Upgrade to keep getting hints, guidance, and answer-checking in chat.",
+    "chatViewQuotaExhaustedBodyDaily": "You've reached your daily limit. Come back tomorrow, or upgrade your plan to keep going now.",
+    "chatViewQuotaExhaustedBodyMonthly": "You've reached your monthly limit. Wait until the next month starts, or upgrade your plan to keep going now.",
     "chatViewQuotaUpgradeCta": "Upgrade plan",
     "chatViewQuotaContinueCta": "Keep going without help",
     "chatViewQuotaOfferTitle": "Keep the help going?",

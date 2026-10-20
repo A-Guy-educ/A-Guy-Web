@@ -15,6 +15,7 @@ export async function enforceTutorTurnPolicy(input: {
       used: tokenLimit.used,
       limit: tokenLimit.limit,
       resetAt: tokenLimit.resetAt,
+      exceededWindow: tokenLimit.exceededWindow,
     })
   }
 
