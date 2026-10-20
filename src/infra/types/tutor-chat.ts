@@ -21,6 +21,13 @@ export type ChatErrorBody = {
   resetAt?: string | null
   used?: number
   limit?: number | null
+  /**
+   * Which LLM token window tripped on a `token_limit_exceeded` error. Lets the
+   * client swap the quota-exhausted copy ("you hit your daily / monthly limit")
+   * instead of showing a generic "limit reached" line. Null / absent for other
+   * error codes.
+   */
+  exceededWindow?: 'daily' | 'monthly' | null
   traceId?: string
 }
 
@@ -66,6 +73,7 @@ export function chatError(
       ...(details.resetAt !== undefined ? { resetAt: details.resetAt } : {}),
       ...(details.used !== undefined ? { used: details.used } : {}),
       ...(details.limit !== undefined ? { limit: details.limit } : {}),
+      ...(details.exceededWindow !== undefined ? { exceededWindow: details.exceededWindow } : {}),
       ...(details.traceId ? { traceId: details.traceId } : {}),
     },
   }

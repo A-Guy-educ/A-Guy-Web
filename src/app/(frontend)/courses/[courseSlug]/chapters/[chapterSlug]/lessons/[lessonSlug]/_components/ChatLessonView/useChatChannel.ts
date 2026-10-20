@@ -105,7 +105,7 @@ export function useChatChannel({
         replace(targetKey, { key: nextKey('e'), kind: 'chat-error', text })
       }
 
-      const finalizeQuotaExhausted = () => {
+      const finalizeQuotaExhausted = (exceededWindow: 'daily' | 'monthly' | null) => {
         // Promote the pending bubble into the one-time quota card so the
         // student sees upgrade + continue CTAs instead of a plain error.
         // Flip the ref synchronously so parallel in-flight requests (none
@@ -113,7 +113,7 @@ export function useChatChannel({
         quotaExhaustedRef.current = true
         setIsQuotaExhausted(true)
         const targetKey = assistantKey ?? pendingKey
-        replace(targetKey, { key: nextKey('qx'), kind: 'quota-exhausted' })
+        replace(targetKey, { key: nextKey('qx'), kind: 'quota-exhausted', exceededWindow })
       }
 
       try {
@@ -131,12 +131,12 @@ export function useChatChannel({
         })
 
         if (!response.ok || !response.body) {
-          const { text, quotaExceeded } = await resolveErrorText(response, {
+          const { text, quotaExceeded, exceededWindow } = await resolveErrorText(response, {
             authRequiredMessage,
             quotaExceededMessage,
             errorMessage,
           })
-          if (quotaExceeded) finalizeQuotaExhausted()
+          if (quotaExceeded) finalizeQuotaExhausted(exceededWindow)
           else finalizeError(text)
           return
         }
@@ -187,7 +187,10 @@ export function useChatChannel({
               // what the pre-fix UI was unhelpfully displaying verbatim).
               const errCode = typeof parsed.data.error === 'string' ? parsed.data.error : null
               if (errCode === 'quota_exceeded' || errCode === 'token_limit_exceeded') {
-                finalizeQuotaExhausted()
+                const rawWindow = parsed.data.exceededWindow
+                const window: 'daily' | 'monthly' | null =
+                  rawWindow === 'daily' || rawWindow === 'monthly' ? rawWindow : null
+                finalizeQuotaExhausted(window)
                 return
               }
               const text =
@@ -328,11 +331,15 @@ function parseSseFrame(raw: string): SseFrame | null {
 async function resolveErrorText(
   response: Response,
   labels: { authRequiredMessage: string; quotaExceededMessage: string; errorMessage: string },
-): Promise<{ text: string; quotaExceeded: boolean }> {
+): Promise<{
+  text: string
+  quotaExceeded: boolean
+  exceededWindow: 'daily' | 'monthly' | null
+}> {
   if (response.status === 401) {
-    return { text: labels.authRequiredMessage, quotaExceeded: false }
+    return { text: labels.authRequiredMessage, quotaExceeded: false, exceededWindow: null }
   }
-  let body: { error?: string; message?: string } = {}
+  let body: { error?: string; message?: string; exceededWindow?: string } = {}
   try {
     body = (await response.json()) as typeof body
   } catch {
@@ -342,7 +349,11 @@ async function resolveErrorText(
     response.status === 429 &&
     (body.error === 'quota_exceeded' || body.error === 'token_limit_exceeded')
   ) {
-    return { text: labels.quotaExceededMessage, quotaExceeded: true }
+    const window: 'daily' | 'monthly' | null =
+      body.exceededWindow === 'daily' || body.exceededWindow === 'monthly'
+        ? body.exceededWindow
+        : null
+    return { text: labels.quotaExceededMessage, quotaExceeded: true, exceededWindow: window }
   }
-  return { text: body.message ?? labels.errorMessage, quotaExceeded: false }
+  return { text: body.message ?? labels.errorMessage, quotaExceeded: false, exceededWindow: null }
 }
