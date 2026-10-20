@@ -84,6 +84,14 @@ interface ExerciseSectionBubbleProps {
   quickActionLabels?: { hint: string; explain: string; skip: string; skipExercise: string }
   /** Disable chips while a chat request is already in flight. */
   quickActionsDisabled?: boolean
+  /**
+   * Per-chip disable from the runner's section-help bookkeeping. Flips to
+   * true after the chip's AI follow-up has already fired for THIS section,
+   * so a third tap can't keep spamming Gemini after both the authored
+   * field reveal and the AI follow-up have been consumed.
+   */
+  hintDisabled?: boolean
+  explainDisabled?: boolean
   /** i18n placeholders used by the chat-native free-response input. */
   freeResponsePlaceholder?: string
   freeResponseSendLabel?: string
@@ -160,6 +168,8 @@ export function ExerciseSectionBubble({
   onQuickAction,
   quickActionLabels,
   quickActionsDisabled,
+  hintDisabled,
+  explainDisabled,
   freeResponsePlaceholder,
   freeResponseSendLabel,
   freeResponsePendingLabel,
@@ -458,6 +468,8 @@ export function ExerciseSectionBubble({
             chatNativeQuestionCount > 0 && (
               <QuickActionChips
                 disabled={quickActionsDisabled}
+                hintDisabled={hintDisabled}
+                explainDisabled={explainDisabled}
                 hintLabel={quickActionLabels.hint}
                 explainLabel={quickActionLabels.explain}
                 skipLabel={quickActionLabels.skip}
@@ -495,6 +507,8 @@ export function ExerciseSectionBubble({
           {isActive && !hasAnyAnswer && onQuickAction && quickActionLabels && questionCount > 0 && (
             <QuickActionChips
               disabled={quickActionsDisabled}
+              hintDisabled={hintDisabled}
+              explainDisabled={explainDisabled}
               hintLabel={quickActionLabels.hint}
               explainLabel={quickActionLabels.explain}
               skipLabel={quickActionLabels.skip}
