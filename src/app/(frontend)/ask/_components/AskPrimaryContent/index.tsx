@@ -85,24 +85,36 @@ export function AskPrimaryContent() {
 
   // Pending-media handoff from the course search composer: a dropped file was
   // uploaded + a conversation was spun up before navigation, and the media
-  // metadata was parked on sessionStorage. Pull it on mount and route it
-  // through the same restore event the history path uses.
+  // metadata was parked on sessionStorage. Pull it on mount, set the local
+  // file state directly, and defer the chat-attach dispatch to the next
+  // microtask so the sibling ChatInterface listener (which attaches later
+  // in the sibling order) has a chance to mount first.
   useEffect(() => {
     if (typeof window === 'undefined') return
     const raw = window.sessionStorage.getItem(ASK_PENDING_MEDIA_KEY)
     if (!raw) return
     window.sessionStorage.removeItem(ASK_PENDING_MEDIA_KEY)
+    let payload: AskPendingMediaPayload
     try {
-      const { mediaId, filename, mimeType, url } = JSON.parse(raw) as AskPendingMediaPayload
-      if (!mediaId || !filename) return
-      window.dispatchEvent(
-        new CustomEvent<AskMediaRestoreEvent>(ASK_MEDIA_RESTORE_EVENT, {
-          detail: { mediaId, filename, mimeType, url },
-        }),
-      )
+      payload = JSON.parse(raw) as AskPendingMediaPayload
     } catch {
-      // Malformed payload — silently drop; nothing a user could do anyway.
+      return
     }
+    const { mediaId, filename, mimeType, url } = payload
+    if (!mediaId || !filename) return
+    setCurrentFile({
+      id: Date.now(),
+      title: filename.replace(/\.[^/.]+$/, '') || 'Uploaded image',
+      url,
+      date: '',
+      mediaId,
+      isUploading: false,
+      filename,
+      mimeType,
+    })
+    queueMicrotask(() => {
+      dispatchMediaAttach({ mediaId, filename })
+    })
   }, [])
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
