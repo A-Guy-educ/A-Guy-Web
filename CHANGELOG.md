@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.52.0 — 2026-10-20
+
+### Features
+- Full subscribe + change-tier + cancel test matrix on /subtest (#1429)
+- Format authored hint and explanation posts like AI bubbles (#1430)
+- Name the exceeded window and tier-filter the upsell (#1432)
+- Gate payment on 18+/guardian + ToS consent (#1434)
+
+### Bug Fixes
+- Forward llmTokensDailyLimit to the daily token reconciler (#1431)
+- Render dropped file after course-composer handoff (#1433)
+- Admin PR 664 wiring — split 502 errors, period-end toast, new test prices (#1435)
+- Drop upgrade-charge wiring per admin's PR 664 revert (#1436)
+- Persist dropped media per room across remounts in Ask (#1437)
+
 ## v0.51.0 — 2026-10-20
 
 ### Features
