@@ -5020,6 +5020,8 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+## [v0.52.0] - 2026-10-20
+
 - promote: dev -> main (v0.52.0) ([#1439](https://github.com/A-Guy-educ/A-Guy-Web/pull/1439)) — @aguyshayb
 - chore: Release v0.52.0 ([#1438](https://github.com/A-Guy-educ/A-Guy-Web/pull/1438)) — @aguyshayb
 - fix(ask): Persist dropped media per room across remounts ([#1437](https://github.com/A-Guy-educ/A-Guy-Web/pull/1437)) — @aguyshayb
