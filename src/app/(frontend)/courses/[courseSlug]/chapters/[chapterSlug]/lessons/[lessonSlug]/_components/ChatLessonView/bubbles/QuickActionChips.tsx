@@ -6,7 +6,16 @@ import { HelpCircle, Lightbulb, SkipForward } from 'lucide-react'
 export type QuickAction = 'hint' | 'explain' | 'skip' | 'skipExercise'
 
 interface QuickActionChipsProps {
+  /** Global disable — e.g. while a chat request is in flight. Overrides per-chip disables. */
   disabled?: boolean
+  /**
+   * Per-chip disable for hint. Flips to true after the student has already
+   * burned the hint's AI follow-up, so a third tap can't keep spamming Gemini.
+   * The authored-field reveal (first tap) does NOT disable the chip; only
+   * the AI-asked state (second tap) does.
+   */
+  hintDisabled?: boolean
+  explainDisabled?: boolean
   hintLabel: string
   explainLabel: string
   skipLabel: string
@@ -30,6 +39,8 @@ interface QuickActionChipsProps {
  */
 export function QuickActionChips({
   disabled,
+  hintDisabled,
+  explainDisabled,
   hintLabel,
   explainLabel,
   skipLabel,
@@ -41,13 +52,13 @@ export function QuickActionChips({
       <Chip
         icon={<Lightbulb className="w-3.5 h-3.5" aria-hidden="true" />}
         label={hintLabel}
-        disabled={disabled}
+        disabled={disabled || hintDisabled}
         onClick={() => onAction('hint')}
       />
       <Chip
         icon={<HelpCircle className="w-3.5 h-3.5" aria-hidden="true" />}
         label={explainLabel}
-        disabled={disabled}
+        disabled={disabled || explainDisabled}
         onClick={() => onAction('explain')}
       />
       <Chip
