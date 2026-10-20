@@ -88,6 +88,15 @@ export function TierCard({ tier, isConsented = true }: TierCardProps) {
   const tagline = t(`tiers.${tier}.tagline`)
   const priceLabel = isFree ? t('freePriceLabel') : formatIls(price)
 
+  // Branch for the primary CTA: fresh signup goes through bootstrap/tranzilla,
+  // a tier change on an existing sub goes through admin's change-tier endpoint.
+  // Hitting bootstrap on an existing sub returns admin's 409 "sub exists" (the
+  // bug admin surfaced from prod); hitting change-tier without a sub id is a
+  // non-starter. The split is driven solely by whether the user has an active
+  // sub row at the moment of click.
+  const hasExistingSub = !!activeSubscription?.id
+  const canChangeTier = hasExistingSub && !isCurrent
+
   const handleSubscribe = async () => {
     if (!user) {
       const returnTo = encodeURIComponent('/subscriptions')
@@ -100,30 +109,59 @@ export function TierCard({ tier, isConsented = true }: TierCardProps) {
     }
     setIsCheckingOut(true)
     try {
-      const res = await fetch('/api/subscriptions/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ tier, offerSlug }),
-      })
-      const data = await res.json()
-      if (!res.ok || !data.success) {
-        const errorKey = data.error ?? 'checkoutFailed'
-        const errorMap: Record<string, string> = {
-          authentication_required: t('errors.authRequired'),
-          invalid_tier: t('errors.invalidTier'),
-          checkout_failed: t('errors.checkoutFailed'),
-          payment_provider_not_configured: t('errors.providerNotConfigured'),
-        }
-        toast.error(errorMap[errorKey] ?? t('errors.checkoutFailed'))
-        setIsCheckingOut(false)
-        return
+      if (canChangeTier && activeSubscription?.id) {
+        await submitChangeTier(activeSubscription.id, tier)
+      } else {
+        await submitBootstrap(tier, offerSlug)
       }
-      window.location.href = data.checkoutUrl
     } catch {
       toast.error(t('errors.checkoutFailed'))
       setIsCheckingOut(false)
     }
+  }
+
+  const submitBootstrap = async (targetTier: TierSlug, slug: OfferSlug) => {
+    const res = await fetch('/api/subscriptions/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ tier: targetTier, offerSlug: slug }),
+    })
+    const data = await res.json()
+    if (!res.ok || !data.success) {
+      const errorKey = data.error ?? 'checkoutFailed'
+      const errorMap: Record<string, string> = {
+        authentication_required: t('errors.authRequired'),
+        invalid_tier: t('errors.invalidTier'),
+        checkout_failed: t('errors.checkoutFailed'),
+        payment_provider_not_configured: t('errors.providerNotConfigured'),
+      }
+      toast.error(errorMap[errorKey] ?? t('errors.checkoutFailed'))
+      setIsCheckingOut(false)
+      return
+    }
+    window.location.href = data.checkoutUrl
+  }
+
+  const submitChangeTier = async (subscriptionId: string, targetTier: TierSlug) => {
+    const res = await fetch(
+      `/api/subscriptions/${encodeURIComponent(subscriptionId)}/change-tier`,
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ tierSlug: targetTier }),
+      },
+    )
+    const data = (await res.json()) as { success?: boolean; error?: string }
+    if (!res.ok || !data.success) {
+      toast.error(describeChangeTierError(res.status, data?.error, t))
+      setIsCheckingOut(false)
+      return
+    }
+    toast.success(t('changeTierSuccess').replace('{tier}', tierName))
+    setIsCheckingOut(false)
+    router.refresh()
   }
 
   return (
@@ -184,9 +222,12 @@ export function TierCard({ tier, isConsented = true }: TierCardProps) {
           isAuthLoading,
           isCheckingOut,
           hasUser: !!user,
+          isChangingTier: canChangeTier,
           onSubscribe: handleSubscribe,
           labels: {
-            continue: t('continueButton'),
+            continue: canChangeTier
+              ? t('changeTierButton').replace('{tier}', tierName)
+              : t('continueButton'),
             login: t('loginToSubscribe'),
             redirecting: t('redirecting'),
           },
@@ -205,6 +246,11 @@ interface CtaProps {
   isAuthLoading: boolean
   isCheckingOut: boolean
   hasUser: boolean
+  // True when the click will hit admin's change-tier endpoint instead of
+  // bootstrap. Doesn't change rendering today — kept as a hook for e.g. a
+  // different button variant on upgrade. The label switch is driven by
+  // the caller via `labels.continue`.
+  isChangingTier: boolean
   onSubscribe: () => void
   labels: {
     continue: string
@@ -218,6 +264,7 @@ function renderCta({
   isAuthLoading,
   isCheckingOut,
   hasUser,
+  isChangingTier: _isChangingTier,
   onSubscribe,
   labels,
 }: CtaProps) {
@@ -272,4 +319,21 @@ function readFootnote(messages: Record<string, unknown>, tier: TierSlug): string
   const tierEntry = tiers?.[tier] as Record<string, unknown> | undefined
   const footnote = tierEntry?.footnote
   return typeof footnote === 'string' && footnote ? footnote : null
+}
+
+/**
+ * Map admin's change-tier status + error body to a user-facing toast.
+ * Mirrors the mapping in SubTestCard so both pages speak the same language.
+ */
+function describeChangeTierError(
+  status: number,
+  errorKey: string | undefined,
+  t: (key: string) => string,
+): string {
+  const err = errorKey?.toLowerCase() ?? ''
+  if (status === 400 && err.includes('downgrade')) return t('errors.downgradeNotSupported')
+  if (status === 400) return t('errors.changeTierBadRequest')
+  if (status === 409) return t('errors.changeTierHandoff')
+  if (status === 502) return t('errors.changeTierProvider')
+  return t('errors.changeTierFailed')
 }
