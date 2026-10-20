@@ -23,7 +23,7 @@ import {
   ASK_MEDIA_ATTACH_EVENT,
   ASK_MEDIA_CLEAR_EVENT,
   ASK_MEDIA_RESTORE_EVENT,
-  ASK_PENDING_MEDIA_KEY,
+  getAskPendingMediaKey,
 } from '../ask-types'
 import { AskExerciseCard } from '../AskExerciseCard'
 import { AskPdfWorkspace } from '../AskPdfWorkspace'
@@ -33,7 +33,17 @@ function dispatchMediaAttach(detail: AskMediaAttachEvent) {
   window.dispatchEvent(new CustomEvent(ASK_MEDIA_ATTACH_EVENT, { detail }))
 }
 
-export function AskPrimaryContent() {
+interface AskPrimaryContentProps {
+  /**
+   * Conversation contextKey — scopes the sessionStorage pending-media
+   * lookup to this room so a drop in one Ask conversation doesn't bleed
+   * into another, and so the dropped file survives sibling-tree remounts
+   * (e.g. SplitPaneLayout's breakpoint switch when DevTools toggles).
+   */
+  contextKey?: string
+}
+
+export function AskPrimaryContent({ contextKey }: AskPrimaryContentProps) {
   const t = useTranslations('homepage.ask')
   const locale = useLocale()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -58,10 +68,13 @@ export function AskPrimaryContent() {
     const handler = () => {
       if (currentFile?.url.startsWith('blob:')) URL.revokeObjectURL(currentFile.url)
       setCurrentFile(null)
+      if (contextKey) {
+        window.sessionStorage.removeItem(getAskPendingMediaKey(contextKey))
+      }
     }
     window.addEventListener(ASK_MEDIA_CLEAR_EVENT, handler)
     return () => window.removeEventListener(ASK_MEDIA_CLEAR_EVENT, handler)
-  }, [currentFile])
+  }, [currentFile, contextKey])
 
   // Restore image from conversation history (or from a composer drop handoff).
   useEffect(() => {
@@ -85,15 +98,19 @@ export function AskPrimaryContent() {
 
   // Pending-media handoff from the course search composer: a dropped file was
   // uploaded + a conversation was spun up before navigation, and the media
-  // metadata was parked on sessionStorage. Pull it on mount, set the local
-  // file state directly, and defer the chat-attach dispatch to the next
-  // microtask so the sibling ChatInterface listener (which attaches later
-  // in the sibling order) has a chance to mount first.
+  // metadata was parked on sessionStorage under a per-room key. Read it on
+  // every mount keyed by contextKey (and leave it in place) so the dropped
+  // file survives sibling-tree remounts — e.g. SplitPaneLayout flipping
+  // between its desktop and mobile branches when the viewport crosses the
+  // lg breakpoint (DevTools open/close is the usual trigger). The entry
+  // is only removed when the student explicitly clears or starts over.
+  // Also defer the chat-attach dispatch by a microtask so the sibling
+  // ChatInterface listener (which attaches later in sibling order) has
+  // mounted first.
   useEffect(() => {
-    if (typeof window === 'undefined') return
-    const raw = window.sessionStorage.getItem(ASK_PENDING_MEDIA_KEY)
+    if (typeof window === 'undefined' || !contextKey) return
+    const raw = window.sessionStorage.getItem(getAskPendingMediaKey(contextKey))
     if (!raw) return
-    window.sessionStorage.removeItem(ASK_PENDING_MEDIA_KEY)
     let payload: AskPendingMediaPayload
     try {
       payload = JSON.parse(raw) as AskPendingMediaPayload
@@ -115,7 +132,7 @@ export function AskPrimaryContent() {
     queueMicrotask(() => {
       dispatchMediaAttach({ mediaId, filename })
     })
-  }, [])
+  }, [contextKey])
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -194,6 +211,9 @@ export function AskPrimaryContent() {
     setCurrentFile(null)
     resetLesson()
     setShowPlayer(true)
+    if (contextKey) {
+      window.sessionStorage.removeItem(getAskPendingMediaKey(contextKey))
+    }
   }
 
   const guidedPayload = lesson ? interactiveLessonToGuidedExplanation(lesson) : null

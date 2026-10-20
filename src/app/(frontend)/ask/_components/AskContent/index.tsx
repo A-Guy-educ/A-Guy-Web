@@ -127,7 +127,7 @@ export function AskContent({
       exerciseTitle={t('pageTitle')}
       backUrl={backUrl}
       menuVariant={menuVariant}
-      primaryContent={<AskPrimaryContent />}
+      primaryContent={<AskPrimaryContent contextKey={conversationContextKey} />}
       chatContent={
         <ChatInterface
           courseId={courseId}
