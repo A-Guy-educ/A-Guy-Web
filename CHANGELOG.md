@@ -5005,6 +5005,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat(chat): Name the exceeded window and tier-filter the quota upsell ([#1432](https://github.com/A-Guy-educ/A-Guy-Web/pull/1432)) — @aguyshayb
 - fix(tiers): Forward llmTokensDailyLimit to reconciler so admin edits stick ([#1431](https://github.com/A-Guy-educ/A-Guy-Web/pull/1431)) — @aguyshayb
 - feat(chat): Format authored hint and explanation posts like AI bubbles ([#1430](https://github.com/A-Guy-educ/A-Guy-Web/pull/1430)) — @aguyshayb
 - feat(subtest): Full subscribe + change-tier + cancel test matrix ([#1429](https://github.com/A-Guy-educ/A-Guy-Web/pull/1429)) — @aguyshayb
