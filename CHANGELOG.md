@@ -1,5 +1,32 @@
 # Changelog
 
+## v0.51.0 — 2026-10-20
+
+### Features
+- Two-click flow for hint and explain chips in chat view (#1426)
+- Format hint bubbles, draw smaller angle, unify table help UI (#1424)
+- Add cancel-subscription UI with confirmation dialog (#1421)
+- Drop admin-driven footer, keep hard-coded items only
+- Add Hebrew terms of service page and footer link (#1418)
+- Two-click flow for hint and solution buttons in help system (#1416)
+- Ask PDF full-page, wider chat view, drop-to-ask, daily token infra (#1405)
+
+### Bug Fixes
+- Attach activeSubscription for the subscriptions UI (#1422)
+- Confirm Tranzilla subscription returns via /api/users/me (#1419)
+- Preserve admin's null daily cap in seeder
+- Log Gemini response body on non-OK provider errors
+
+### Chores
+- Bump dotenv from 17.4.2 to 18.0.8 (#1410)
+- Bump framer-motion from 13.5.1 to 14.3.0 (#1415)
+- Bump nanoid from 5.1.16 to 6.0.2 (#1407)
+- Bump jsdom from 26.1.0 to 30.1.3 (#1409)
+- Bump @testcontainers/mongodb from 11.11.0 to 12.2.1 (#1413)
+- Bump dev-dependencies group with 6 updates (#1406)
+- Fix broken internal doc links (#1381)
+- Refresh AI docs indexes (#1379)
+
 ## v0.50.0 — 2026-10-18
 
 ### Features
