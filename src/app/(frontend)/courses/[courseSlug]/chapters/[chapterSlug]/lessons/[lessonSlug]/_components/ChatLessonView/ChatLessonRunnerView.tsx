@@ -8,6 +8,7 @@ import type { Exercise, Media } from '@/infra/types/content'
 import type { ContentBlock } from '@/infra/types/exercise'
 import { getExerciseBlockGroups } from '@/lib/exercises/getExerciseBlocks'
 import { formatExerciseContextMessage } from '@/infra/llm/exercise-context'
+import { formatAuthoredChatContent } from '@/infra/utils/formatAuthoredChatContent'
 import { uploadDataUrlAsMedia } from '@/infra/media/uploadDataUrl'
 import { ExerciseRenderer } from '@/ui/web/exerciserenderer'
 import { clearExerciseState } from '@/ui/web/exerciserenderer/utils/exerciseStateStorage'
@@ -481,10 +482,14 @@ function ActiveChat({
         }))
 
       if (stage === 'idle' && fieldContent) {
+        // Reformat authored content before posting so admin-written strings
+        // get the same visual rhythm as AI replies — each sentence on its
+        // own line, every math expression promoted to block form so it
+        // picks up the muted `math-long` background in the chat bubble.
         append({
           key: `authored-${action}-${stepKey}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
           kind: 'chat-assistant',
-          text: fieldContent,
+          text: formatAuthoredChatContent(fieldContent),
         })
         updateStage('field-shown')
         return

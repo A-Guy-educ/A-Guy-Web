@@ -30,6 +30,7 @@ import { useNotebookChat } from '../hooks/useNotebookChat'
 import { useTeacherProfileLabel } from '../hooks/useTeacherProfileLabel'
 import { useTTS } from '../hooks/useTTS'
 import { formatMessageTime } from '../utils/formatMessageTime'
+import { formatAuthoredChatContent } from '@/infra/utils/formatAuthoredChatContent'
 import { MathPicker } from '@/ui/web/shared/MathInput/MathPicker'
 import { MixedMathInput, type MixedMathInputRef } from '@/ui/web/shared/MathInput/MixedMathInput'
 import { FormulaSheetButton } from '@/ui/web/shared/FormulaSheetViewer/FormulaSheetButton'
@@ -382,7 +383,11 @@ export function ChatInterface({
         )
       }
     } else if (backendContent) {
-      addAssistantMessage(backendContent)
+      // Reformat authored content before posting so admin-written strings get
+      // the same visual rhythm as AI replies — each sentence on its own line
+      // and every math expression promoted to block form so it picks up the
+      // muted `math-long` background in the chat bubble.
+      addAssistantMessage(formatAuthoredChatContent(backendContent))
     } else if (type === 'hint') {
       sendVisibleHelp(
         `The student needs a hint for this exercise question: "${questionContent}". Provide a short, helpful hint that nudges them in the right direction without giving away the answer.`,
