@@ -240,6 +240,11 @@ export function ExerciseSectionBubble({
   // once the section has been fully checked via the Check button flow.
   const handleAggregateResults = useCallback(
     (results: { totalQuestions: number; checkedCount: number; correctCount: number }) => {
+      // Mirror the chat-native "hide chips once the student engages" rule:
+      // as soon as any question in the fallback section has been checked,
+      // the quick-action chips are no longer a pre-answer discovery
+      // affordance — they belong to the beginning of the attempt.
+      if (results.checkedCount > 0) setHasAnyAnswer(true)
       if (outcomeReportedRef.current) return
       if (results.totalQuestions === 0) return
       if (results.checkedCount < results.totalQuestions) return
@@ -462,24 +467,42 @@ export function ExerciseSectionBubble({
             )}
         </MediaMapProvider>
       ) : (
-        <ExerciseRenderer
-          groups={[group]}
-          questionLabelsOverride={questionLabels}
-          mediaMap={mediaMap}
-          exerciseNumber={ordinal}
-          showExerciseNumber={false}
-          lessonId={lessonId}
-          exerciseId={storageIdOverride ?? exercise.id}
-          hideLatexBlocks
-          questionCardVariant="flat"
-          // Only enable on the walker's current step — scroll-back
-          // (historical) bubbles keep the notebook hidden so a stray
-          // Check-solution click can't dispatch a drawing that
-          // ChatLessonRunnerView would then attribute to whatever
-          // section the walker is on RIGHT NOW.
-          showNotebook={isActive}
-          onResultsChange={questionCount > 0 ? handleAggregateResults : undefined}
-        />
+        <>
+          <ExerciseRenderer
+            groups={[group]}
+            questionLabelsOverride={questionLabels}
+            mediaMap={mediaMap}
+            exerciseNumber={ordinal}
+            showExerciseNumber={false}
+            lessonId={lessonId}
+            exerciseId={storageIdOverride ?? exercise.id}
+            hideLatexBlocks
+            questionCardVariant="flat"
+            // Only enable on the walker's current step — scroll-back
+            // (historical) bubbles keep the notebook hidden so a stray
+            // Check-solution click can't dispatch a drawing that
+            // ChatLessonRunnerView would then attribute to whatever
+            // section the walker is on RIGHT NOW.
+            showNotebook={isActive}
+            onResultsChange={questionCount > 0 ? handleAggregateResults : undefined}
+            // Suppress the inline amber/purple HelpSystem — we render
+            // QuickActionChips below instead so tables, matching, and the
+            // other fallback block types share the chat view's button
+            // styling (hint/explain in primary color plus skip + skip-
+            // exercise) with the chat-native path above.
+            hideHelpSystem
+          />
+          {isActive && !hasAnyAnswer && onQuickAction && quickActionLabels && questionCount > 0 && (
+            <QuickActionChips
+              disabled={quickActionsDisabled}
+              hintLabel={quickActionLabels.hint}
+              explainLabel={quickActionLabels.explain}
+              skipLabel={quickActionLabels.skip}
+              skipExerciseLabel={quickActionLabels.skipExercise}
+              onAction={handleChipAction}
+            />
+          )}
+        </>
       )}
     </div>
   )
