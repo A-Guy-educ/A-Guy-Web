@@ -691,6 +691,12 @@
       "segmentGroup": "(frontend)"
     },
     {
+      "routePath": "/terms-of-service",
+      "filePath": "src/app/(frontend)/terms-of-service/page.tsx",
+      "kind": "page",
+      "segmentGroup": "(frontend)"
+    },
+    {
       "routePath": "/test",
       "filePath": "src/app/(frontend)/test/loading.tsx",
       "kind": "loading",
@@ -710,7 +716,7 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-10-19T06:09:32.663Z",
-    "totalRoutes": 118
+    "generatedAt": "2026-10-20T05:59:28.192Z",
+    "totalRoutes": 119
   }
 }

@@ -31,6 +31,7 @@
         "src/app/(frontend)/courses/[courseSlug]/_components/ConversationCard/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/CourseAnalytics.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/index.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/useCourseComposerDropToAsk.ts",
         "src/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/useCourseComposerState.ts",
         "src/app/(frontend)/courses/[courseSlug]/_components/CoursePageContent/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/CourseTabs/index.tsx",
@@ -146,9 +147,11 @@
         "src/app/(frontend)/study-plan/_components/useStudyPlan.ts",
         "src/app/(frontend)/study/_components/StudyContent/index.tsx",
         "src/app/(frontend)/subscriptions/_components/ComingSoonSection.tsx",
+        "src/app/(frontend)/subscriptions/_components/CurrentPlanCta.tsx",
         "src/app/(frontend)/subscriptions/_components/SubscriptionsHeader.tsx",
         "src/app/(frontend)/subscriptions/_components/TierCard.tsx",
         "src/app/(frontend)/subtest/_components/SubTestCard.tsx",
+        "src/app/(frontend)/terms-of-service/TermsOfServiceContent.tsx",
         "src/app/global-error.tsx",
         "src/client/hooks/useAccessGate.ts",
         "src/client/hooks/useActiveTimeTracker.ts",
@@ -273,7 +276,6 @@
         "src/ui/web/exerciserenderer/questions/TableQuestion/index.tsx",
         "src/ui/web/exerciserenderer/questions/TrueFalseQuestion/index.tsx",
         "src/ui/web/footer/FooterClient.tsx",
-        "src/ui/web/footer/FooterLegalModal.tsx",
         "src/ui/web/guards/RequireCourseSelection.tsx",
         "src/ui/web/header/Component.client.tsx",
         "src/ui/web/header/MobileMenu/MobileMenuAuthSection.tsx",
@@ -427,6 +429,7 @@
         "src/app/(frontend)/study-plan/_components/StudyPlanPage.tsx",
         "src/app/(frontend)/study/_components/StudyContent/index.tsx",
         "src/app/(frontend)/subscriptions/_components/ComingSoonSection.tsx",
+        "src/app/(frontend)/subscriptions/_components/CurrentPlanCta.tsx",
         "src/app/(frontend)/subscriptions/_components/SubscriptionsHeader.tsx",
         "src/app/(frontend)/subscriptions/_components/TierCard.tsx",
         "src/app/(frontend)/subtest/_components/SubTestCard.tsx",
@@ -485,7 +488,6 @@
         "src/app/(frontend)/ask/_components/AskConversationGrid/index.tsx",
         "src/app/(frontend)/ask/_components/AskDrawingCanvas/index.tsx",
         "src/app/(frontend)/ask/_components/AskExerciseCard/index.tsx",
-        "src/app/(frontend)/ask/_components/AskPrimaryContent/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/AskTab/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/ConversationCard/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/index.tsx",
@@ -607,7 +609,6 @@
         "src/ui/web/exerciserenderer/questions/TableQuestion/ExerciseTable.tsx",
         "src/ui/web/exerciserenderer/questions/TableQuestion/index.tsx",
         "src/ui/web/exerciserenderer/questions/TrueFalseQuestion/index.tsx",
-        "src/ui/web/footer/FooterClient.tsx",
         "src/ui/web/header/Component.client.tsx",
         "src/ui/web/header/MobileMenu/index.tsx",
         "src/ui/web/homepage/LandingPage/index.tsx",
@@ -1316,11 +1317,6 @@
       "description": "No description available",
       "files": ["src/infra/utils/deepMerge.ts"]
     },
-    "server-component-data": {
-      "pattern": "server-component-data",
-      "description": "No description available",
-      "files": ["src/infra/utils/footer-data.ts"]
-    },
     "datetime-format": {
       "pattern": "datetime-format",
       "description": "No description available",
@@ -1760,16 +1756,6 @@
       "description": "No description available",
       "files": ["src/ui/web/footer/FooterClient.tsx"]
     },
-    "legal-modal": {
-      "pattern": "legal-modal",
-      "description": "No description available",
-      "files": ["src/ui/web/footer/FooterLegalModal.tsx"]
-    },
-    "footer-data": {
-      "pattern": "footer-data",
-      "description": "No description available",
-      "files": ["src/ui/web/footer/footer-data.ts"]
-    },
     "svg-normalization": {
       "pattern": "svg-normalization",
       "description": "No description available",
@@ -1978,7 +1964,7 @@
       "path": "src/app/(frontend)/ask/_components/AskPrimaryContent/index.tsx",
       "type": "unknown",
       "domain": "general",
-      "patterns": ["tailwind-component", "i18n-component", "client-component"],
+      "patterns": ["i18n-component", "client-component"],
       "aiSummary": "",
       "dependencies": ["react", "sonner"]
     },
@@ -2045,6 +2031,14 @@
       "patterns": ["tailwind-component", "i18n-component", "client-component"],
       "aiSummary": "",
       "dependencies": ["lucide-react", "react"]
+    },
+    "src/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/useCourseComposerDropToAsk.ts": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/useCourseComposerDropToAsk.ts",
+      "type": "hook",
+      "domain": "frontend",
+      "patterns": ["client-component"],
+      "aiSummary": "",
+      "dependencies": ["next/navigation", "react", "sonner"]
     },
     "src/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/useCourseComposerState.ts": {
       "path": "src/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/useCourseComposerState.ts",
@@ -3037,6 +3031,14 @@
       "aiSummary": "",
       "dependencies": ["lucide-react"]
     },
+    "src/app/(frontend)/subscriptions/_components/CurrentPlanCta.tsx": {
+      "path": "src/app/(frontend)/subscriptions/_components/CurrentPlanCta.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["i18n-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["next/navigation", "react", "lucide-react", "sonner"]
+    },
     "src/app/(frontend)/subscriptions/_components/SubscriptionsHeader.tsx": {
       "path": "src/app/(frontend)/subscriptions/_components/SubscriptionsHeader.tsx",
       "type": "unknown",
@@ -3060,6 +3062,14 @@
       "patterns": ["i18n-component", "client-component"],
       "aiSummary": "",
       "dependencies": ["next/navigation", "react", "lucide-react", "sonner"]
+    },
+    "src/app/(frontend)/terms-of-service/TermsOfServiceContent.tsx": {
+      "path": "src/app/(frontend)/terms-of-service/TermsOfServiceContent.tsx",
+      "type": "component",
+      "domain": "legal",
+      "patterns": ["client-component"],
+      "aiSummary": "Client renderer for the terms-of-service markdown. Same renderer",
+      "dependencies": ["react-markdown", "remark-gfm"]
     },
     "src/app/api/account/transactions/[id]/route.ts": {
       "path": "src/app/api/account/transactions/[id]/route.ts",
@@ -4309,14 +4319,6 @@
       "aiSummary": "Shallow copy of target + recursive merge of source; does not clone nested objects, so source object references are retained in the output.",
       "dependencies": []
     },
-    "src/infra/utils/footer-data.ts": {
-      "path": "src/infra/utils/footer-data.ts",
-      "type": "data-loader",
-      "domain": "infra",
-      "patterns": ["server-component-data"],
-      "aiSummary": "Server-side loader for the footer global. Picks the nav items",
-      "dependencies": ["react", "mongodb"]
-    },
     "src/infra/utils/formatDateTime.ts": {
       "path": "src/infra/utils/formatDateTime.ts",
       "type": "utility",
@@ -4970,7 +4972,7 @@
       "type": "service",
       "domain": "llm",
       "patterns": ["counter-collection + user-schema-counter"],
-      "aiSummary": "Per-call token event log + per-user monthly counter with rate-limit check",
+      "aiSummary": "Per-call token event log + per-user daily+monthly counters with rate-limit check",
       "dependencies": ["mongodb"]
     },
     "src/server/services/media.ts": {
@@ -6046,24 +6048,8 @@
       "path": "src/ui/web/footer/FooterClient.tsx",
       "type": "component",
       "domain": "frontend",
-      "patterns": ["footer-client", "tailwind-component", "i18n-component", "client-component"],
-      "aiSummary": "Client wrapper that renders the dynamic footer and owns the",
-      "dependencies": ["next/image", "react"]
-    },
-    "src/ui/web/footer/FooterLegalModal.tsx": {
-      "path": "src/ui/web/footer/FooterLegalModal.tsx",
-      "type": "component",
-      "domain": "frontend",
-      "patterns": ["legal-modal", "client-component"],
-      "aiSummary": "Renders the content of a CMS legal page inside a Dialog. The page",
-      "dependencies": ["react"]
-    },
-    "src/ui/web/footer/footer-data.ts": {
-      "path": "src/ui/web/footer/footer-data.ts",
-      "type": "types",
-      "domain": "frontend",
-      "patterns": ["footer-data"],
-      "aiSummary": "Type-only re-export from the infra loader. The loader itself",
+      "patterns": ["footer-client", "i18n-component", "client-component"],
+      "aiSummary": "Static footer: brand logo, Terms + Privacy links, version, theme",
       "dependencies": []
     },
     "src/ui/web/guards/RequireCourseSelection.tsx": {
@@ -6652,8 +6638,8 @@
     }
   },
   "metadata": {
-    "generatedAt": "2026-10-19T06:09:29.768Z",
+    "generatedAt": "2026-10-20T05:59:25.392Z",
     "totalFiles": 600,
-    "totalPatterns": 194
+    "totalPatterns": 191
   }
 }
