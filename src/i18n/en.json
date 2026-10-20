@@ -1130,13 +1130,30 @@
   "subtest": {
     "testBadge": "TEST",
     "title": "Subscription smoke test",
-    "description": "A 1 ILS Tranzilla checkout for exercising the full web → payment → webhook → user-tier flow end-to-end. Grants the basic tier on success.",
-    "oneTime": "one-time",
-    "continueButton": "Continue",
+    "description": "Full subscription matrix at test prices (₪0.01–₪0.03). Subscribe to any tier, swap between tiers mid-cycle, or cancel. Dev/preview only.",
     "loginToTest": "Log in to test",
-    "redirecting": "Redirecting to checkout...",
+    "subscribeHeading": "Subscribe (test prices)",
+    "changeTierHeading": "Change tier (mid-cycle)",
+    "switchTo": "Switch to",
+    "cancelButton": "Cancel subscription",
+    "cancelSuccess": "Subscription cancelled",
+    "changeTierSuccess": "Tier changed to {tier}",
+    "currentSubHeading": "Current subscription: {tier}",
+    "currentSubStatus": "Status: {status}",
+    "currentSubPeriodEnd": "Period end: {date}",
+    "currentSubCancelling": "Will cancel at period end",
     "errors": {
-      "checkoutFailed": "Unable to start checkout. Please try again."
+      "checkoutFailed": "Unable to start checkout. Please try again.",
+      "subscriptionExists": "You already have an active subscription. Cancel it first.",
+      "offerNotAvailable": "Test offer is not available in this environment.",
+      "changeTierFailed": "Could not change tier. Please try again.",
+      "changeTierBadRequest": "Tier change rejected by server. Please try again.",
+      "changeTierHandoff": "Subscription setup is still in progress — try again in a moment.",
+      "changeTierProvider": "Payment provider refused the tier change. Please try again.",
+      "downgradeNotSupported": "Downgrades aren't supported yet. Admin side is working on it.",
+      "cancelFailed": "Could not cancel subscription. Please try again.",
+      "cancelHandoff": "Subscription setup is still in progress — try again in a moment.",
+      "cancelProvider": "Payment provider refused the cancel request. Please try again."
     }
   },
   "subscriptions": {
