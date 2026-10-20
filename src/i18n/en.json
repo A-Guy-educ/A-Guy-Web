@@ -386,9 +386,9 @@
     "chatViewQuotaContinueCta": "Keep going without help",
     "chatViewQuotaOfferTitle": "Keep the help going?",
     "chatViewQuotaRestrictedBody": "Continuing in the lesson. Help and answer-checking aren't available here — keep solving and come back any time to upgrade.",
-    "chatViewCorrectionPrompt": "The student answered the current section incorrectly. Explain the correct solution briefly in the lesson's language, in three sentences or fewer, in a neutral (non-gendered) voice. Do not address the student directly and do not ask them to retry — just explain the solution.",
-    "chatViewCorrectionPromptWithChoice": "The student picked \"{choice}\" but the correct answer is \"{correct}\". Explain in the lesson's language, briefly and in a neutral (non-gendered) voice, why that pick is wrong and what the correct line of reasoning is — three sentences or fewer. Do not address the student directly, do not ask them to retry, and do not repeat the full option text.",
-    "chatViewHintPromptWithChoice": "The student picked \"{choice}\" and asked for a hint before picking again. The correct answer is \"{correct}\" but do NOT reveal it. Give a short hint in the lesson's language, one or two sentences, that nudges the correct line of reasoning without naming the correct answer or echoing its text. Don't address the student directly or use gendered phrasing.",
+    "chatViewCorrectionPrompt": "The student answered the current section incorrectly. Explain the correct solution briefly in the lesson's language, in three sentences or fewer, in a neutral (non-gendered) voice. Do not address the student directly and do not ask them to retry — just explain the solution. Formatting: put each sentence in its own paragraph (blank line between sentences). Write every math expression as block math \\[...\\] on its own line, not inline.",
+    "chatViewCorrectionPromptWithChoice": "The student picked \"{choice}\" but the correct answer is \"{correct}\". Explain in the lesson's language, briefly and in a neutral (non-gendered) voice, why that pick is wrong and what the correct line of reasoning is — three sentences or fewer. Do not address the student directly, do not ask them to retry, and do not repeat the full option text. Formatting: put each sentence in its own paragraph (blank line between sentences). Write every math expression as block math \\[...\\] on its own line, not inline.",
+    "chatViewHintPromptWithChoice": "The student picked \"{choice}\" and asked for a hint before picking again. The correct answer is \"{correct}\" but do NOT reveal it. Give a short hint in the lesson's language, one or two sentences, that nudges the correct line of reasoning without naming the correct answer or echoing its text. Don't address the student directly or use gendered phrasing. Formatting: put each sentence in its own paragraph (blank line between sentences). Write every math expression as block math \\[...\\] on its own line, not inline.",
     "chatViewRetryHintCta": "Give me a hint",
     "chatViewReviewOfferBody": "Nice work! Want to try the sections you missed or needed help on again?",
     "chatViewReviewYesCta": "Yes, let's try again",
@@ -445,8 +445,10 @@
     "chatViewChipExplain": "Explain",
     "chatViewChipSkip": "Skip",
     "chatViewChipSkipExercise": "Skip exercise",
-    "chatViewChipHintPrompt": "The student asked for a hint on the current section. Give a short, neutral hint in the lesson's language that nudges them toward the solution without revealing the answer. One or two sentences at most. Don't address the student directly or use gendered phrasing.",
-    "chatViewChipExplainPrompt": "The student asked for an explanation of the concept behind the current section. Explain the underlying math idea in the lesson's language in three sentences or fewer, without revealing the final answer. Don't address the student directly or use gendered phrasing.",
+    "chatViewChipHintPrompt": "The student asked for a hint on the current section. Give a short, neutral hint in the lesson's language that nudges them toward the solution without revealing the answer. One or two sentences at most. Don't address the student directly or use gendered phrasing. Formatting: put each sentence in its own paragraph (blank line between sentences). Write every math expression as block math \\[...\\] on its own line, not inline.",
+    "chatViewChipExplainPrompt": "The student asked for an explanation of the concept behind the current section. Explain the underlying math idea in the lesson's language in three sentences or fewer, without revealing the final answer. Don't address the student directly or use gendered phrasing. Formatting: put each sentence in its own paragraph (blank line between sentences). Write every math expression as block math \\[...\\] on its own line, not inline.",
+    "chatViewChipHintFollowUpPrompt": "The student already saw this authored hint for the current section but it wasn't enough: \"{previous}\". Give a different, more specific hint in the lesson's language — do NOT repeat the text above, and still do not reveal the answer. One or two sentences at most. Don't address the student directly or use gendered phrasing. Formatting: put each sentence in its own paragraph (blank line between sentences). Write every math expression as block math \\[...\\] on its own line, not inline.",
+    "chatViewChipExplainFollowUpPrompt": "The student already saw this authored explanation for the current section but still needs help understanding it: \"{previous}\". Explain the underlying idea in a different way — simpler, with concrete reasoning — in the lesson's language, without revealing the final answer and without just restating the text above. Three sentences or fewer. Don't address the student directly or use gendered phrasing. Formatting: put each sentence in its own paragraph (blank line between sentences). Write every math expression as block math \\[...\\] on its own line, not inline.",
     "chatViewAnswerPlaceholder": "Type your answer here…",
     "chatViewTierLockTitle": "That's your preview",
     "chatViewTierLockBody": "Upgrade to unlock {count} more exercises in this lesson.",
@@ -810,7 +812,11 @@
       "send": "Send",
       "thinking": "Thinking…",
       "noLessonsFallback": "Sorry, no lessons seem to fit in this course.",
-      "suggestError": "Couldn’t reach the assistant. Please try again."
+      "suggestError": "Couldn’t reach the assistant. Please try again.",
+      "dropHint": "Drop an image or PDF to open it in Ask",
+      "dropUploading": "Uploading your file…",
+      "dropInvalidType": "Only images and PDFs can be dropped here",
+      "dropFailed": "Upload failed. Please try again."
     },
     "moreCourses": "More courses",
     "loading": "Loading...",
@@ -1143,6 +1149,15 @@
     "loginToSubscribe": "Log in to subscribe",
     "redirecting": "Redirecting to checkout...",
     "mostPopular": "Most popular",
+    "cancelButton": "Cancel subscription",
+    "cancelsOn": "Cancels on {date}",
+    "cancelDialogTitle": "Cancel your subscription?",
+    "cancelDialogDescription": "You'll keep access until {date}. After that your account moves back to Free.",
+    "cancelDialogDescriptionNoDate": "You'll keep access until the end of the current period. After that your account moves back to Free.",
+    "cancelConfirm": "Yes, cancel",
+    "cancelKeep": "Keep plan",
+    "cancelInProgress": "Cancelling…",
+    "cancelSuccess": "Subscription cancelled",
     "tiers": {
       "free": {
         "name": "Free",
@@ -1210,7 +1225,10 @@
       "authRequired": "Please log in to subscribe.",
       "invalidTier": "That plan is not available.",
       "checkoutFailed": "Unable to start checkout. Please try again.",
-      "providerNotConfigured": "Payment is not configured. Please contact support."
+      "providerNotConfigured": "Payment is not configured. Please contact support.",
+      "cancelFailed": "Could not cancel subscription. Please try again.",
+      "cancelHandoff": "Subscription setup is still in progress — please try again in a moment.",
+      "cancelProvider": "Payment provider refused the cancel request. Please try again."
     }
   },
   "upgradeOffer": {
@@ -1243,7 +1261,10 @@
       "backToProducts": "Browse Products",
       "goHome": "Go to Home",
       "goToCourse": "Go to {course}",
-      "grantingAccess": "Granting access…"
+      "grantingAccess": "Granting access…",
+      "subscriptionConfirming": "Confirming your subscription…",
+      "subscriptionConfirmedTitle": "Subscription confirmed!",
+      "subscriptionConfirmedDescription": "Your subscription is active. Welcome aboard!"
     },
     "cancel": {
       "title": "Payment Cancelled",

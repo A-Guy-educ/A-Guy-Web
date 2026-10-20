@@ -344,20 +344,44 @@ export function ChatInterface({
     return () => window.removeEventListener('ask-action', handler)
   }, [])
 
-  // Exercise help system actions (hint/guiding/solution from HelpSystem component)
+  // Exercise help system actions (hint/guiding/solution from HelpSystem component).
+  //
+  // Three dispatch shapes to handle, in priority order:
+  //   1. `previousContent` present → second click. The pre-written content was
+  //      already shown; ask Gemini for a different/deeper response and pass
+  //      the previous content as context so it doesn't just repeat it.
+  //   2. `backendContent` present → first click, block has pre-written content.
+  //      Post it as an assistant message, no AI call.
+  //   3. Neither → first click, block has no pre-written content. Call AI
+  //      with the generic hint/guiding/solution prompt.
   const exerciseHelpRef = useRef<(e: Event) => void>(() => {})
   exerciseHelpRef.current = (e: Event) => {
-    const { type, questionContent, backendContent } = (e as CustomEvent).detail as {
+    const { type, questionContent, backendContent, previousContent } = (e as CustomEvent)
+      .detail as {
       type: 'hint' | 'guiding' | 'solution'
       questionContent?: string
       backendContent?: string
+      previousContent?: string
       exerciseId?: string
       lessonId?: string
     }
     onChatInteraction?.()
 
-    if (backendContent) {
-      // Backend has content — show it directly without AI call (persisted for refresh)
+    if (previousContent) {
+      if (type === 'hint') {
+        sendVisibleHelp(
+          `The student is working on this exercise question: "${questionContent}". They already received this hint, but it wasn't enough: "${previousContent}". Provide a different, more specific hint that pushes them further — do not repeat the previous hint, and still do not give away the answer.`,
+        )
+      } else if (type === 'guiding') {
+        sendVisibleHelp(
+          `The student is working on this exercise question: "${questionContent}". They already received this guiding question, but need more direction: "${previousContent}". Ask a different, more pointed guiding question that builds on it without giving the answer.`,
+        )
+      } else {
+        sendVisibleHelp(
+          `The student is working on this exercise question: "${questionContent}". They already saw this full solution but still need help understanding it: "${previousContent}". Walk them through it step by step, explaining the reasoning for each step clearly.`,
+        )
+      }
+    } else if (backendContent) {
       addAssistantMessage(backendContent)
     } else if (type === 'hint') {
       sendVisibleHelp(

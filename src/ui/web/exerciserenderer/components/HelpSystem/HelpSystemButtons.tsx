@@ -3,6 +3,10 @@
  *
  * Three action buttons: Hint (amber), Guiding Question (purple), Solution (blue).
  * Solution is hidden until both hint and guiding have been used.
+ *
+ * Each button locks once the AI has been invoked for that help type
+ * (`*AiAsked` flags on HelpUsageState) — after that the student must use
+ * the chat input directly instead of spamming the button.
  */
 
 'use client'
@@ -34,19 +38,26 @@ export function HelpSystemButtons({
   guidingLabel,
   solutionLabel,
 }: HelpSystemButtonsProps) {
+  const hintDisabled = helpUsage.hintAiAsked
+  const guidingDisabled = helpUsage.guidingAiAsked
+  const solutionDisabled = helpUsage.solutionAiAsked
+
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-content-gap-xs">
       {/* Hint Button — always amber colored */}
       <motion.button
         type="button"
         onClick={onHintClick}
-        whileHover={{ scale: 1.03 }}
-        whileTap={{ scale: 0.97 }}
+        disabled={hintDisabled}
+        whileHover={hintDisabled ? undefined : { scale: 1.03 }}
+        whileTap={hintDisabled ? undefined : { scale: 0.97 }}
         className={cn(
           'flex items-center gap-content-gap-xs px-4 py-2 rounded-full text-body-xs font-medium transition-colors duration-normal border shadow-elevation-1',
           activeHelp === 'hint'
             ? 'bg-warning/15 border-warning/40 text-warning shadow-[inset_0_0_8px_hsl(var(--warning)/0.15)]'
             : 'bg-warning/10 border-warning/30 text-warning/80 hover:bg-warning/15 hover:border-warning/40 hover:shadow-elevation-2 hover:-translate-y-0.5',
+          hintDisabled &&
+            'opacity-disabled cursor-not-allowed hover:translate-y-0 hover:shadow-elevation-1',
         )}
       >
         <span
@@ -64,13 +75,16 @@ export function HelpSystemButtons({
       <motion.button
         type="button"
         onClick={onGuidingClick}
-        whileHover={{ scale: 1.03 }}
-        whileTap={{ scale: 0.97 }}
+        disabled={guidingDisabled}
+        whileHover={guidingDisabled ? undefined : { scale: 1.03 }}
+        whileTap={guidingDisabled ? undefined : { scale: 0.97 }}
         className={cn(
           'flex items-center gap-content-gap-xs px-4 py-2 rounded-full text-body-xs font-medium transition-colors duration-normal border shadow-elevation-1',
           activeHelp === 'guiding'
             ? 'bg-accent/15 border-accent/40 text-accent shadow-[inset_0_0_8px_hsl(var(--accent)/0.15)]'
             : 'bg-accent/10 border-accent/30 text-accent/80 hover:bg-accent/15 hover:border-accent/40 hover:shadow-elevation-2 hover:-translate-y-0.5',
+          guidingDisabled &&
+            'opacity-disabled cursor-not-allowed hover:translate-y-0 hover:shadow-elevation-1',
         )}
       >
         <span
@@ -90,17 +104,20 @@ export function HelpSystemButtons({
           <motion.button
             type="button"
             onClick={onSolutionClick}
+            disabled={solutionDisabled}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
+            whileHover={solutionDisabled ? undefined : { scale: 1.03 }}
+            whileTap={solutionDisabled ? undefined : { scale: 0.97 }}
             className={cn(
               'flex items-center gap-content-gap-xs px-4 py-2 rounded-full text-body-xs font-medium transition-colors duration-normal border shadow-elevation-1',
               activeHelp === 'solution'
                 ? 'bg-primary/15 border-primary/40 text-primary shadow-[inset_0_0_8px_hsl(var(--primary)/0.15)]'
                 : 'bg-primary/10 border-primary/30 text-primary/80 hover:bg-primary/15 hover:border-primary/40 hover:shadow-elevation-2 hover:-translate-y-0.5',
+              solutionDisabled &&
+                'opacity-disabled cursor-not-allowed hover:translate-y-0 hover:shadow-elevation-1',
             )}
           >
             <span

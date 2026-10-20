@@ -84,6 +84,14 @@ interface ExerciseSectionBubbleProps {
   quickActionLabels?: { hint: string; explain: string; skip: string; skipExercise: string }
   /** Disable chips while a chat request is already in flight. */
   quickActionsDisabled?: boolean
+  /**
+   * Per-chip disable from the runner's section-help bookkeeping. Flips to
+   * true after the chip's AI follow-up has already fired for THIS section,
+   * so a third tap can't keep spamming Gemini after both the authored
+   * field reveal and the AI follow-up have been consumed.
+   */
+  hintDisabled?: boolean
+  explainDisabled?: boolean
   /** i18n placeholders used by the chat-native free-response input. */
   freeResponsePlaceholder?: string
   freeResponseSendLabel?: string
@@ -160,6 +168,8 @@ export function ExerciseSectionBubble({
   onQuickAction,
   quickActionLabels,
   quickActionsDisabled,
+  hintDisabled,
+  explainDisabled,
   freeResponsePlaceholder,
   freeResponseSendLabel,
   freeResponsePendingLabel,
@@ -240,6 +250,11 @@ export function ExerciseSectionBubble({
   // once the section has been fully checked via the Check button flow.
   const handleAggregateResults = useCallback(
     (results: { totalQuestions: number; checkedCount: number; correctCount: number }) => {
+      // Mirror the chat-native "hide chips once the student engages" rule:
+      // as soon as any question in the fallback section has been checked,
+      // the quick-action chips are no longer a pre-answer discovery
+      // affordance — they belong to the beginning of the attempt.
+      if (results.checkedCount > 0) setHasAnyAnswer(true)
       if (outcomeReportedRef.current) return
       if (results.totalQuestions === 0) return
       if (results.checkedCount < results.totalQuestions) return
@@ -453,6 +468,8 @@ export function ExerciseSectionBubble({
             chatNativeQuestionCount > 0 && (
               <QuickActionChips
                 disabled={quickActionsDisabled}
+                hintDisabled={hintDisabled}
+                explainDisabled={explainDisabled}
                 hintLabel={quickActionLabels.hint}
                 explainLabel={quickActionLabels.explain}
                 skipLabel={quickActionLabels.skip}
@@ -462,24 +479,44 @@ export function ExerciseSectionBubble({
             )}
         </MediaMapProvider>
       ) : (
-        <ExerciseRenderer
-          groups={[group]}
-          questionLabelsOverride={questionLabels}
-          mediaMap={mediaMap}
-          exerciseNumber={ordinal}
-          showExerciseNumber={false}
-          lessonId={lessonId}
-          exerciseId={storageIdOverride ?? exercise.id}
-          hideLatexBlocks
-          questionCardVariant="flat"
-          // Only enable on the walker's current step — scroll-back
-          // (historical) bubbles keep the notebook hidden so a stray
-          // Check-solution click can't dispatch a drawing that
-          // ChatLessonRunnerView would then attribute to whatever
-          // section the walker is on RIGHT NOW.
-          showNotebook={isActive}
-          onResultsChange={questionCount > 0 ? handleAggregateResults : undefined}
-        />
+        <>
+          <ExerciseRenderer
+            groups={[group]}
+            questionLabelsOverride={questionLabels}
+            mediaMap={mediaMap}
+            exerciseNumber={ordinal}
+            showExerciseNumber={false}
+            lessonId={lessonId}
+            exerciseId={storageIdOverride ?? exercise.id}
+            hideLatexBlocks
+            questionCardVariant="flat"
+            // Only enable on the walker's current step — scroll-back
+            // (historical) bubbles keep the notebook hidden so a stray
+            // Check-solution click can't dispatch a drawing that
+            // ChatLessonRunnerView would then attribute to whatever
+            // section the walker is on RIGHT NOW.
+            showNotebook={isActive}
+            onResultsChange={questionCount > 0 ? handleAggregateResults : undefined}
+            // Suppress the inline amber/purple HelpSystem — we render
+            // QuickActionChips below instead so tables, matching, and the
+            // other fallback block types share the chat view's button
+            // styling (hint/explain in primary color plus skip + skip-
+            // exercise) with the chat-native path above.
+            hideHelpSystem
+          />
+          {isActive && !hasAnyAnswer && onQuickAction && quickActionLabels && questionCount > 0 && (
+            <QuickActionChips
+              disabled={quickActionsDisabled}
+              hintDisabled={hintDisabled}
+              explainDisabled={explainDisabled}
+              hintLabel={quickActionLabels.hint}
+              explainLabel={quickActionLabels.explain}
+              skipLabel={quickActionLabels.skip}
+              skipExerciseLabel={quickActionLabels.skipExercise}
+              onAction={handleChipAction}
+            />
+          )}
+        </>
       )}
     </div>
   )

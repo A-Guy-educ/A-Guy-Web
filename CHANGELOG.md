@@ -1,5 +1,32 @@
 # Changelog
 
+## v0.51.0 — 2026-10-20
+
+### Features
+- Two-click flow for hint and explain chips in chat view (#1426)
+- Format hint bubbles, draw smaller angle, unify table help UI (#1424)
+- Add cancel-subscription UI with confirmation dialog (#1421)
+- Drop admin-driven footer, keep hard-coded items only
+- Add Hebrew terms of service page and footer link (#1418)
+- Two-click flow for hint and solution buttons in help system (#1416)
+- Ask PDF full-page, wider chat view, drop-to-ask, daily token infra (#1405)
+
+### Bug Fixes
+- Attach activeSubscription for the subscriptions UI (#1422)
+- Confirm Tranzilla subscription returns via /api/users/me (#1419)
+- Preserve admin's null daily cap in seeder
+- Log Gemini response body on non-OK provider errors
+
+### Chores
+- Bump dotenv from 17.4.2 to 18.0.8 (#1410)
+- Bump framer-motion from 13.5.1 to 14.3.0 (#1415)
+- Bump nanoid from 5.1.16 to 6.0.2 (#1407)
+- Bump jsdom from 26.1.0 to 30.1.3 (#1409)
+- Bump @testcontainers/mongodb from 11.11.0 to 12.2.1 (#1413)
+- Bump dev-dependencies group with 6 updates (#1406)
+- Fix broken internal doc links (#1381)
+- Refresh AI docs indexes (#1379)
+
 ## v0.50.0 — 2026-10-18
 
 ### Features
@@ -4978,6 +5005,27 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.51.0 ([#1427](https://github.com/A-Guy-educ/A-Guy-Web/pull/1427)) — @aguyshayb
+- feat(chatview): Two-click hint/explain chips with Gemini follow-up ([#1426](https://github.com/A-Guy-educ/A-Guy-Web/pull/1426)) — @aguyshayb
+- feat(chatview): Format hint bubbles, draw smaller angle, unify table help UI ([#1424](https://github.com/A-Guy-educ/A-Guy-Web/pull/1424)) — @aguyshayb
+- fix(users-me): Attach activeSubscription for the subscriptions UI ([#1422](https://github.com/A-Guy-educ/A-Guy-Web/pull/1422)) — @aguyshayb
+- feat(footer): Drop admin-driven footer, keep hard-coded items only ([#1420](https://github.com/A-Guy-educ/A-Guy-Web/pull/1420)) — @aguyshayb
+- feat(subscriptions): Cancel-subscription UI with confirmation dialog ([#1421](https://github.com/A-Guy-educ/A-Guy-Web/pull/1421)) — @aguyshayb
+- fix(checkout-success): Confirm Tranzilla subscription returns via /api/users/me ([#1419](https://github.com/A-Guy-educ/A-Guy-Web/pull/1419)) — @aguyshayb
+- feat(legal): Add Hebrew terms of service page and footer link ([#1418](https://github.com/A-Guy-educ/A-Guy-Web/pull/1418)) — @aguyshayb
+- chore(deps-dev): Bump jsdom from 26.1.0 to 30.1.3 ([#1409](https://github.com/A-Guy-educ/A-Guy-Web/pull/1409)) — @dependabot[bot]
+- chore(deps): Bump dotenv from 17.4.2 to 18.0.8 ([#1410](https://github.com/A-Guy-educ/A-Guy-Web/pull/1410)) — @dependabot[bot]
+- chore(deps-dev): Bump @testcontainers/mongodb from 11.11.0 to 12.2.1 ([#1413](https://github.com/A-Guy-educ/A-Guy-Web/pull/1413)) — @dependabot[bot]
+- chore(deps): Bump nanoid from 5.1.16 to 6.0.2 ([#1407](https://github.com/A-Guy-educ/A-Guy-Web/pull/1407)) — @dependabot[bot]
+- chore(deps): Bump framer-motion from 13.5.1 to 14.3.0 ([#1415](https://github.com/A-Guy-educ/A-Guy-Web/pull/1415)) — @dependabot[bot]
+- chore(deps-dev): Bump the dev-dependencies group with 6 updates ([#1406](https://github.com/A-Guy-educ/A-Guy-Web/pull/1406)) — @dependabot[bot]
+- chore(docs): fix broken internal links ([#1381](https://github.com/A-Guy-educ/A-Guy-Web/pull/1381)) — @github-actions[bot]
+- chore(ai-docs): Refresh indexes ([#1379](https://github.com/A-Guy-educ/A-Guy-Web/pull/1379)) — @github-actions[bot]
+- feat: Ask PDF full-page, wider chat view, drop-to-ask, daily token infra ([#1405](https://github.com/A-Guy-educ/A-Guy-Web/pull/1405)) — @aguyshayb
+- feat(help-system): Two-click hint/solution flow with Gemini follow-up ([#1416](https://github.com/A-Guy-educ/A-Guy-Web/pull/1416)) — @aguyshayb
+## [v0.50.0] - 2026-10-18
+
+- promote: dev -> main (v0.50.0) ([#1404](https://github.com/A-Guy-educ/A-Guy-Web/pull/1404)) — @aguyshayb
 - chore: Release v0.50.0 ([#1403](https://github.com/A-Guy-educ/A-Guy-Web/pull/1403)) — @aguyshayb
 - fix(brand): Bump icon URL to ?v=2 to force refetch past stuck caches ([#1402](https://github.com/A-Guy-educ/A-Guy-Web/pull/1402)) — @aguyshayb
 - fix: Tier copy revert, chat offer namespace, lesson grid ([#1401](https://github.com/A-Guy-educ/A-Guy-Web/pull/1401)) — @aguyshayb

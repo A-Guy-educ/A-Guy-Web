@@ -112,6 +112,7 @@ export function ExerciseRenderer({
   questionCardVariant = 'card',
   showNotebook = false,
   questionLabelsOverride,
+  hideHelpSystem = false,
 }: ExerciseRendererProps) {
   const t = useTranslations('courses')
   const locale = useLocale()
@@ -736,26 +737,33 @@ export function ExerciseRenderer({
 
     // Help system for this question (always shown — AI fallback when no backend content).
     // In batch check mode the help system is hidden: the student should
-    // attempt the test without hints/solutions.
-    const helpSystemNode = batchCheckMode ? null : (
-      <HelpSystem
-        question={question}
-        helpUsage={
-          helpUsage[question.id] ?? {
-            hintShown: false,
-            guidingUsed: false,
-            solutionUnlocked: false,
+    // attempt the test without hints/solutions. In chat-view mode the caller
+    // (ExerciseSectionBubble) renders its own QuickActionChips outside the
+    // renderer, so we hide the inline HelpSystem to avoid duplicate hint UX.
+    const helpSystemNode =
+      batchCheckMode || hideHelpSystem ? null : (
+        <HelpSystem
+          question={question}
+          helpUsage={
+            helpUsage[question.id] ?? {
+              hintShown: false,
+              hintAiAsked: false,
+              guidingUsed: false,
+              guidingAiAsked: false,
+              solutionUnlocked: false,
+              solutionShown: false,
+              solutionAiAsked: false,
+            }
           }
-        }
-        activeHelp={activeHelp[question.id] ?? null}
-        onHintClick={() => handleHintClick(question.id)}
-        onGuidingClick={() => handleGuidingClick(question.id)}
-        onSolutionClick={() => handleSolutionClick(question.id)}
-        hintLabel={t('helpHint')}
-        guidingLabel={t('helpGuidingQuestion')}
-        solutionLabel={t('helpSolution')}
-      />
-    )
+          activeHelp={activeHelp[question.id] ?? null}
+          onHintClick={() => handleHintClick(question.id)}
+          onGuidingClick={() => handleGuidingClick(question.id)}
+          onSolutionClick={() => handleSolutionClick(question.id)}
+          hintLabel={t('helpHint')}
+          guidingLabel={t('helpGuidingQuestion')}
+          solutionLabel={t('helpSolution')}
+        />
+      )
 
     const cardNode = (
       <QuestionCard

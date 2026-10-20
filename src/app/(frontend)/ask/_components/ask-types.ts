@@ -42,6 +42,14 @@ export interface AskMediaRestoreEvent {
   mediaId: string
   filename: string
   url: string
+  /**
+   * MIME type of the restored file. Required for PDFs so the Ask page
+   * routes them into `AskPdfWorkspace` (viewer + FloatingNotebook) instead
+   * of the image exercise card. Optional for backwards compatibility with
+   * the existing conversation-history restore path, which doesn't track
+   * MIME type.
+   */
+  mimeType?: string
 }
 
 /**
@@ -60,3 +68,17 @@ export const ASK_MEDIA_ATTACH_EVENT = 'ask-media-attach' as const
 export const ASK_MEDIA_RESTORE_EVENT = 'ask-media-restore' as const
 export const ASK_MEDIA_CLEAR_EVENT = 'ask-media-clear' as const
 export const ASK_STEP_CONTEXT_EVENT = 'ask-step-context' as const
+
+/**
+ * `sessionStorage` key for a one-shot handoff of a dropped file from the
+ * course search composer into the Ask page. Written just before the push to
+ * `/ask?chat=…`, read + cleared by `AskPrimaryContent` on mount.
+ */
+export const ASK_PENDING_MEDIA_KEY = 'aguy:askPendingMedia' as const
+
+export interface AskPendingMediaPayload {
+  mediaId: string
+  filename: string
+  mimeType: string
+  url: string
+}

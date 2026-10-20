@@ -41,7 +41,10 @@ describe('GET /api/users/me', () => {
     const res = await GET(createRequest('payload-token=valid.jwt.token'))
 
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ user })
+    // The route attaches `activeSubscription` for the subscriptions UI (admin's
+    // afterRead equivalent); readActiveSubscription short-circuits to null for
+    // non-ObjectId ids like 'user-1', so the test shape stays deterministic.
+    expect(await res.json()).toEqual({ user: { ...user, activeSubscription: null } })
     expect(setCookieHeaders(res)).toHaveLength(0)
   })
 
@@ -96,7 +99,7 @@ describe('GET /api/users/me', () => {
     )
 
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ user })
+    expect(await res.json()).toEqual({ user: { ...user, activeSubscription: null } })
     expect(setCookieHeaders(res)).toHaveLength(0)
   })
 })

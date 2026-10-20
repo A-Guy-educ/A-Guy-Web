@@ -23,32 +23,53 @@
 import { ObjectId } from 'mongodb'
 import { getContentDb } from '@/infra/db/content-db'
 import { logger } from '@/infra/utils/logger/logger'
-import { TIER_LLM_TOKEN_CAP_MONTHLY } from './constants'
+import { TIER_LLM_TOKEN_CAP_DAILY, TIER_LLM_TOKEN_CAP_MONTHLY } from './constants'
 import { isTierEnforcementEnabled } from './enforcement'
 import { getUserTierSlug, type UserWithTier } from './user-tier'
 
 interface ReconcileArgs {
   userId: string
-  user: UserWithTier & { llmTokensLimit?: number | null }
+  user: UserWithTier & {
+    llmTokensLimit?: number | null
+    llmTokensDailyLimit?: number | null
+  }
 }
 
 export function tierLlmLimit(user: UserWithTier | null | undefined): number | null {
   return TIER_LLM_TOKEN_CAP_MONTHLY[getUserTierSlug(user)]
 }
 
+export function tierLlmLimitDaily(user: UserWithTier | null | undefined): number | null {
+  return TIER_LLM_TOKEN_CAP_DAILY[getUserTierSlug(user)]
+}
+
 export async function reconcileUserLlmLimit({ userId, user }: ReconcileArgs): Promise<void> {
   if (!isTierEnforcementEnabled()) return
   if (!ObjectId.isValid(userId)) return
-  // Seed only — never overwrite an existing (admin-set) value.
-  if (typeof user.llmTokensLimit === 'number') return
-  const target = tierLlmLimit(user)
-  if (target === null) return // premium → nothing to seed.
+
+  // Seed only — never overwrite an existing (admin-set) value. Monthly and
+  // daily are seeded independently so an admin can set one without the other
+  // being auto-filled next request.
+  //
+  // The daily predicate checks for `undefined` only (not "non-number") so an
+  // admin's explicit `null` — meaning "no daily cap for this user, override
+  // the tier default" — survives the next seed pass. Monthly keeps the
+  // historical typeof-number check for backwards compatibility with the
+  // existing Admin UI, which doesn't expose a null option on that field.
+  const toSet: Record<string, number> = {}
+  if (typeof user.llmTokensLimit !== 'number') {
+    const monthly = tierLlmLimit(user)
+    if (monthly !== null) toSet.llmTokensLimit = monthly
+  }
+  if (user.llmTokensDailyLimit === undefined) {
+    const daily = tierLlmLimitDaily(user)
+    if (daily !== null) toSet.llmTokensDailyLimit = daily
+  }
+  if (Object.keys(toSet).length === 0) return
 
   try {
     const db = await getContentDb()
-    await db
-      .collection('users')
-      .updateOne({ _id: new ObjectId(userId) }, { $set: { llmTokensLimit: target } })
+    await db.collection('users').updateOne({ _id: new ObjectId(userId) }, { $set: toSet })
   } catch (err) {
     logger.warn({ err, userId }, 'reconcileUserLlmLimit failed — swallowed')
   }

@@ -198,12 +198,20 @@ export type ContentBlock =
   RichTextBlock | LatexBlock | HtmlBlock | QuestionBlock | SvgBlock | MediaBlock
 
 /**
- * Help system state per question
+ * Help system state per question.
+ *
+ * Each help button progresses through: idle → field-shown → ai-asked.
+ * The `*AiAsked` flags lock the button once the AI has been invoked for
+ * that help type, so the student can't keep spamming the same button.
  */
 export interface HelpUsageState {
   hintShown: boolean
+  hintAiAsked: boolean
   guidingUsed: boolean
+  guidingAiAsked: boolean
   solutionUnlocked: boolean
+  solutionShown: boolean
+  solutionAiAsked: boolean
 }
 
 /**
@@ -305,4 +313,15 @@ export interface ExerciseRendererProps {
    * for blocks the renderer doesn't render are ignored.
    */
   questionLabelsOverride?: Map<string, string>
+  /**
+   * When true, the per-question HelpSystem (hint / guiding / solution
+   * buttons + inline hint panel) is suppressed. Used by callers that
+   * render their own help affordances outside the renderer — e.g. the
+   * chat view's `ExerciseSectionBubble` renders `QuickActionChips`
+   * alongside the renderer and doesn't want the colored amber/purple
+   * HelpSystem showing up inside each question too. Defaults to `false`
+   * so the Interactive tab, Study page, and other non-chat callers keep
+   * the full help system.
+   */
+  hideHelpSystem?: boolean
 }

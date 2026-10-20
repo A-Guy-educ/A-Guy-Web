@@ -80,6 +80,22 @@ export const TIER_LLM_TOKEN_CAP_MONTHLY: Record<TierSlug, number | null> = {
   premium: null,
 }
 
+/**
+ * Daily token cap written to `users.llmTokensDailyLimit` and compared against
+ * `users.llmTokensUsedToday` by `checkTokenLimit`. `null` = no daily cap.
+ *
+ * Caps are a flat 1/15th of the monthly budget (≈ two months stretched out)
+ * so a single bad day can't eat the entire month's budget. Admin can override
+ * per-user via the User admin page; the seed only runs when the field is
+ * null/missing (see `reconcileUserLlmLimit`).
+ */
+export const TIER_LLM_TOKEN_CAP_DAILY: Record<TierSlug, number | null> = {
+  free: 100_000,
+  basic: 1_000_000,
+  advanced: 2_000_000,
+  premium: null,
+}
+
 export function isTierSlug(value: unknown): value is TierSlug {
   return typeof value === 'string' && (TIER_SLUGS as readonly string[]).includes(value)
 }

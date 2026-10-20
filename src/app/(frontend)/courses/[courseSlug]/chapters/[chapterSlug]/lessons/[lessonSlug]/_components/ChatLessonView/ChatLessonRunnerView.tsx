@@ -66,6 +66,49 @@ const EMPTY_MEDIA_MAP: Record<string, Media> = {}
  * cleanly; today Mongo ObjectIds are pure hex, but the walker key format
  * is the public contract between the walker + the outcome handler.
  */
+/**
+ * Per-section help stage tracked by `handleQuickAction`.
+ *
+ *   idle         → chip has never been tapped for this section.
+ *   field-shown  → tap #1 posted the authored hint/fullSolution field as an
+ *                  assistant bubble. Tap #2 will ask Gemini with that content
+ *                  passed as `previousContent` so it doesn't repeat it.
+ *   ai-asked     → the Gemini follow-up (or the straight-to-AI fallback when
+ *                  no authored content exists) has fired. Chip is disabled.
+ */
+type HelpStage = 'idle' | 'field-shown' | 'ai-asked'
+
+/**
+ * Pull the authored hint or fullSolution out of every question block in a
+ * section and join them with blank lines. We join rather than pick-first
+ * because sections can carry multiple questions and the authored field for
+ * each is attached to its own block — concatenating keeps every piece of
+ * authored help visible on the first tap.
+ *
+ * Returns an empty string when nothing is authored, which the caller treats
+ * as "go straight to Gemini on the first tap and lock the chip."
+ */
+function collectSectionHelpContent(
+  blocks: Array<{ type: string; hint?: { value?: string }; fullSolution?: { value?: string } }>,
+  action: 'hint' | 'explain',
+): string {
+  const field = action === 'hint' ? 'hint' : 'fullSolution'
+  const parts: string[] = []
+  for (const block of blocks) {
+    if (
+      block.type !== 'question_select' &&
+      block.type !== 'question_free_response' &&
+      block.type !== 'question_table' &&
+      block.type !== 'question_matching'
+    ) {
+      continue
+    }
+    const raw = block[field]?.value?.trim()
+    if (raw) parts.push(raw)
+  }
+  return parts.join('\n\n')
+}
+
 function parseSectionKey(key: string): { exerciseId: string; groupIndex: number } | null {
   if (!key.startsWith('sec-')) return null
   const rest = key.slice(4)
@@ -382,13 +425,28 @@ function ActiveChat({
   // so a future task can re-attach a per-question hook without rewiring
   // every call site.
 
-  // Quick-action chip dispatcher. Hint + explain go through the invisible
-  // requestCorrection channel so only the AI reply lands in the stream
-  // (no fake user bubble echoing our canned prompt). Skip just advances
-  // the walker without any chat roundtrip; skipExercise jumps the walker
-  // past every remaining section of the current exercise.
+  // Quick-action chip dispatcher. Hint + explain walk a two-click flow:
+  //
+  //   1. First tap, authored field present → post the field content as an
+  //      assistant bubble (no AI call). Stage flips to `field-shown`.
+  //   2. First tap, authored field empty → go straight to Gemini with the
+  //      generic prompt. Stage flips to `ai-asked` and the chip disables.
+  //   3. Second tap, after a field-shown → fire Gemini with a follow-up
+  //      prompt that quotes the authored content, so Gemini knows what the
+  //      student already saw and must say something different. Stage flips
+  //      to `ai-asked` and the chip disables.
+  //
+  // Skip just advances the walker without any chat roundtrip; skipExercise
+  // jumps the walker past every remaining section of the current exercise.
   const hintPrompt = t('chatViewChipHintPrompt')
   const explainPrompt = t('chatViewChipExplainPrompt')
+  const hintFollowUpTemplate = t('chatViewChipHintFollowUpPrompt')
+  const explainFollowUpTemplate = t('chatViewChipExplainFollowUpPrompt')
+
+  const [sectionHelp, setSectionHelp] = useState<
+    Record<string, { hintStage: HelpStage; explainStage: HelpStage }>
+  >({})
+
   const handleQuickAction = useCallback(
     (action: 'hint' | 'explain' | 'skip' | 'skipExercise') => {
       if (action === 'skip') {
@@ -400,10 +458,66 @@ function ActiveChat({
         walker.advanceToNextExercise()
         return
       }
+
+      const stepKey = walker.currentStepKey
+      const step = walker.currentStep
+      if (!stepKey || !step) {
+        chat.requestCorrection(action === 'hint' ? hintPrompt : explainPrompt)
+        return
+      }
+
+      const current = sectionHelp[stepKey] ?? { hintStage: 'idle', explainStage: 'idle' }
+      const stage = action === 'hint' ? current.hintStage : current.explainStage
+      if (stage === 'ai-asked') return // chip already locked
+
+      const fieldContent = collectSectionHelpContent(step.group.blocks, action)
+      const updateStage = (nextStage: HelpStage) =>
+        setSectionHelp((prev) => ({
+          ...prev,
+          [stepKey]: {
+            hintStage: action === 'hint' ? nextStage : current.hintStage,
+            explainStage: action === 'explain' ? nextStage : current.explainStage,
+          },
+        }))
+
+      if (stage === 'idle' && fieldContent) {
+        append({
+          key: `authored-${action}-${stepKey}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          kind: 'chat-assistant',
+          text: fieldContent,
+        })
+        updateStage('field-shown')
+        return
+      }
+
+      if (stage === 'field-shown' && fieldContent) {
+        const template = action === 'hint' ? hintFollowUpTemplate : explainFollowUpTemplate
+        chat.requestCorrection(template.replace('{previous}', fieldContent))
+        updateStage('ai-asked')
+        return
+      }
+
+      // Idle + no authored content → generic AI call, lock the chip.
       chat.requestCorrection(action === 'hint' ? hintPrompt : explainPrompt)
+      updateStage('ai-asked')
     },
-    [advanceNow, cancelPendingAdvance, chat, explainPrompt, hintPrompt, walker],
+    [
+      advanceNow,
+      append,
+      cancelPendingAdvance,
+      chat,
+      explainFollowUpTemplate,
+      explainPrompt,
+      hintFollowUpTemplate,
+      hintPrompt,
+      sectionHelp,
+      walker,
+    ],
   )
+
+  const activeStepHelp = walker.currentStepKey ? sectionHelp[walker.currentStepKey] : undefined
+  const activeHintDisabled = activeStepHelp?.hintStage === 'ai-asked'
+  const activeExplainDisabled = activeStepHelp?.explainStage === 'ai-asked'
 
   // Task-5 review-offer buttons. Both go through the walker so the mode
   // transition + emission stays in one place.
@@ -664,7 +778,7 @@ function ActiveChat({
   return (
     <>
       <main className="flex-1 overflow-y-auto bg-muted px-4 pt-16 pb-28 md:px-6 md:pt-20 md:pb-32">
-        <div className="max-w-2xl mx-auto flex flex-col gap-content-gap" dir="rtl">
+        <div className="w-[80%] max-w-5xl mx-auto flex flex-col gap-content-gap" dir="rtl">
           <TeacherBubble
             text={t('chatWelcome')}
             onSpeak={() => tts.speak(t('chatWelcome'))}
@@ -690,6 +804,8 @@ function ActiveChat({
                 retryHintLabel={retryHintLabel}
                 quickActionLabels={quickActionLabels}
                 quickActionsDisabled={chat.isSending}
+                hintDisabled={activeHintDisabled}
+                explainDisabled={activeExplainDisabled}
                 freeResponsePlaceholder={t('chatViewAnswerPlaceholder')}
                 freeResponseSendLabel={t('chatViewCheckLabel')}
                 freeResponsePendingLabel={t('chatViewFreeResponsePending')}
@@ -775,6 +891,9 @@ interface StreamEntryViewProps {
   retryHintLabel: string
   quickActionLabels: { hint: string; explain: string; skip: string; skipExercise: string }
   quickActionsDisabled: boolean
+  /** Forwarded to the active section's chips so a used-up chip stays disabled. */
+  hintDisabled: boolean
+  explainDisabled: boolean
   freeResponsePlaceholder: string
   freeResponseSendLabel: string
   introPrefix: string
@@ -822,6 +941,8 @@ function StreamEntryView({
   retryHintLabel,
   quickActionLabels,
   quickActionsDisabled,
+  hintDisabled,
+  explainDisabled,
   freeResponsePlaceholder,
   freeResponseSendLabel,
   introPrefix,
@@ -892,6 +1013,8 @@ function StreamEntryView({
           retryHintLabel={retryHintLabel}
           quickActionLabels={quickActionLabels}
           quickActionsDisabled={quickActionsDisabled}
+          hintDisabled={isActive ? hintDisabled : false}
+          explainDisabled={isActive ? explainDisabled : false}
           freeResponsePlaceholder={freeResponsePlaceholder}
           freeResponseSendLabel={freeResponseSendLabel}
           freeResponsePendingLabel={freeResponsePendingLabel}
