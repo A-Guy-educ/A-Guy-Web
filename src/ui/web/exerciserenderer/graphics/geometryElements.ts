@@ -169,7 +169,20 @@ function renderAngles(board: JXG.Board, angles: AngleSpec[], pointMap: Map<strin
       attrs.label = { visible: false }
     }
 
-    board.create('angle', [ray1, center, ray2], attrs)
+    // JSXGraph draws the sector CCW from the first ray to the second. When
+    // the CCW sweep exceeds 180° (reflex) the reader actually wants the
+    // 360°−θ complement — e.g. ∠ABC on a shape the admin authored as
+    // (A,B,C) in a direction that happens to sweep 330° should visually
+    // read as 30°. Swap the rays whenever the signed cross product is
+    // negative so we always render the non-reflex side.
+    const v1x = ray1.X() - center.X()
+    const v1y = ray1.Y() - center.Y()
+    const v2x = ray2.X() - center.X()
+    const v2y = ray2.Y() - center.Y()
+    const cross = v1x * v2y - v1y * v2x
+    const [first, second] = cross >= 0 ? [ray1, ray2] : [ray2, ray1]
+
+    board.create('angle', [first, center, second], attrs)
   }
 }
 
