@@ -5005,6 +5005,8 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+## [v0.51.0] - 2026-10-20
+
 - promote: dev -> main (v0.51.0) ([#1428](https://github.com/A-Guy-educ/A-Guy-Web/pull/1428)) — @aguyshayb
 - chore: Release v0.51.0 ([#1427](https://github.com/A-Guy-educ/A-Guy-Web/pull/1427)) — @aguyshayb
 - feat(chatview): Two-click hint/explain chips with Gemini follow-up ([#1426](https://github.com/A-Guy-educ/A-Guy-Web/pull/1426)) — @aguyshayb
