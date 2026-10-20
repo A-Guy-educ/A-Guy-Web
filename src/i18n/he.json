@@ -1299,6 +1299,13 @@
     "cancellationRefund": "ביטולים והחזרים",
     "aiUsageStatement": "שימוש בבינה מלאכותית"
   },
+  "purchaseConsent": {
+    "ageAndGuardian": "אני מאשר/ת כי מלאו לי 18 שנים, וכי אני רוכש/ת את המנוי עבור עצמי או כהורה/אפוטרופוס המורשה לאשר רכישה עבור קטין.",
+    "readAndAgreePrefix": "קראתי ואני מסכים/ה ל",
+    "readAndAgreeConnector": " ול",
+    "readAndAgreeSuffix": ".",
+    "requiredToast": "יש לאשר את תנאי השימוש ומדיניות הפרטיות לפני המעבר לתשלום."
+  },
   "footer": {
     "copyright": "2026 A-Guy | גיא קורן – מתמטיקה ופיזיקה. כל הזכויות שמורות."
   },
