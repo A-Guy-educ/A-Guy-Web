@@ -151,15 +151,28 @@ export async function getSessionFromToken(token?: string | null) {
       },
     } as Document)
     if (!user) return null
-    // Fire-and-forget: keep `users.llmTokensLimit` in sync with the user's
-    // current tier. No-ops when the kill switch is off or the stored limit
-    // already matches the tier's cap; costs a single Mongo updateOne only
-    // after a manual tier change. See TIERS.md "Web implementation".
+    // Fire-and-forget: keep `users.llmTokensLimit` and `llmTokensDailyLimit`
+    // in sync with the user's current tier. No-ops when the kill switch is
+    // off or the stored limits already have a value; costs a single Mongo
+    // updateOne only on first-time seeding. See TIERS.md "Web implementation".
+    //
+    // `llmTokensDailyLimit` must preserve the three possible stored states
+    // separately — `undefined` (legacy user, needs seeding), `null` (admin
+    // deliberately set no-cap for this user), and `number` (admin override).
+    // The reconciler's predicate is `=== undefined`, so flattening `null` to
+    // `undefined` here would re-seed over an admin's deliberate null on every
+    // authenticated request.
     void reconcileUserLlmLimit({
       userId: payload.id,
       user: {
         currentTier: typeof user.currentTier === 'string' ? user.currentTier : null,
         llmTokensLimit: typeof user.llmTokensLimit === 'number' ? user.llmTokensLimit : null,
+        llmTokensDailyLimit:
+          typeof user.llmTokensDailyLimit === 'number'
+            ? user.llmTokensDailyLimit
+            : user.llmTokensDailyLimit === null
+              ? null
+              : undefined,
       },
     })
     return { token, user: cleanUser(user) }
