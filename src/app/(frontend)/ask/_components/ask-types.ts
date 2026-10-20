@@ -70,11 +70,21 @@ export const ASK_MEDIA_CLEAR_EVENT = 'ask-media-clear' as const
 export const ASK_STEP_CONTEXT_EVENT = 'ask-step-context' as const
 
 /**
- * `sessionStorage` key for a one-shot handoff of a dropped file from the
- * course search composer into the Ask page. Written just before the push to
- * `/ask?chat=…`, read + cleared by `AskPrimaryContent` on mount.
+ * `sessionStorage` key prefix for the drop-to-ask handoff. The payload is
+ * keyed by the conversation's `contextKey` so each Ask "room" has its own
+ * slot — this lets the dropped file survive the sibling-tree remount that
+ * `SplitPaneLayout` triggers whenever the viewport crosses the
+ * desktop/mobile breakpoint (e.g. DevTools open/close), without one room
+ * accidentally picking up another room's pending drop. Written by the
+ * course composer just before `router.push('/ask?…')` and read on every
+ * mount of `AskPrimaryContent` — not removed until the user explicitly
+ * clears the media.
  */
-export const ASK_PENDING_MEDIA_KEY = 'aguy:askPendingMedia' as const
+export const ASK_PENDING_MEDIA_KEY_PREFIX = 'aguy:askPendingMedia:' as const
+
+export function getAskPendingMediaKey(contextKey: string): string {
+  return `${ASK_PENDING_MEDIA_KEY_PREFIX}${contextKey}`
+}
 
 export interface AskPendingMediaPayload {
   mediaId: string
