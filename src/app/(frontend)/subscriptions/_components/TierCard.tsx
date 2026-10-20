@@ -45,10 +45,17 @@ function formatIls(amount: number): string {
 
 interface TierCardProps {
   tier: TierSlug
+  /**
+   * Shared age / Terms / Privacy consent flag hoisted to the page-level
+   * `SubscriptionsCatalog`. False blocks `handleSubscribe` with a toast
+   * instead of advancing to Tranzilla.
+   */
+  isConsented?: boolean
 }
 
-export function TierCard({ tier }: TierCardProps) {
+export function TierCard({ tier, isConsented = true }: TierCardProps) {
   const t = useTranslations('subscriptions')
+  const tConsent = useTranslations('purchaseConsent')
   const { messages } = useI18n()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -85,6 +92,10 @@ export function TierCard({ tier }: TierCardProps) {
     if (!user) {
       const returnTo = encodeURIComponent('/subscriptions')
       router.push(`/login?returnTo=${returnTo}`)
+      return
+    }
+    if (!isConsented) {
+      toast.error(tConsent('requiredToast'))
       return
     }
     setIsCheckingOut(true)

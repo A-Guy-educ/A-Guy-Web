@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { TIER_PRICE_ILS, type TierSlug } from '@/lib/tiers'
+import { PurchaseConsentCheckbox } from './PurchaseConsentCheckbox'
 
 export interface UpgradeCheckoutDialogProps {
   /** Which tier the user picked in the offer card. */
@@ -35,6 +36,7 @@ export function UpgradeCheckoutDialog({ tier, onClose }: UpgradeCheckoutDialogPr
   const t = useTranslations('upgradeDialog')
   const tSubs = useTranslations('subscriptions')
   const [state, setState] = useState<DialogState>({ kind: 'ready' })
+  const [consent, setConsent] = useState(false)
   const closeRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
@@ -50,6 +52,7 @@ export function UpgradeCheckoutDialog({ tier, onClose }: UpgradeCheckoutDialogPr
   const tierName = tSubs(`tiers.${tier}.name`)
 
   const handlePay = useCallback(async () => {
+    if (!consent) return
     setState({ kind: 'loading' })
     try {
       const res = await fetch('/api/subscriptions/checkout', {
@@ -67,7 +70,7 @@ export function UpgradeCheckoutDialog({ tier, onClose }: UpgradeCheckoutDialogPr
     } catch {
       setState({ kind: 'error', message: t('error') })
     }
-  }, [tier, t])
+  }, [tier, t, consent])
 
   const isLoading = state.kind === 'loading'
 
@@ -118,11 +121,19 @@ export function UpgradeCheckoutDialog({ tier, onClose }: UpgradeCheckoutDialogPr
           </p>
         ) : null}
 
+        <PurchaseConsentCheckbox
+          id="upgrade-dialog-consent"
+          checked={consent}
+          onCheckedChange={setConsent}
+          disabled={isLoading}
+          className="mt-4"
+        />
+
         <button
           type="button"
           onClick={handlePay}
-          disabled={isLoading}
-          className="mt-4 flex w-full items-center justify-center gap-content-gap-xs rounded-xl bg-primary py-3 text-body-md font-bold text-primary-foreground shadow-elevation-2 transition-colors hover:bg-primary/90 disabled:cursor-wait disabled:opacity-80"
+          disabled={isLoading || !consent}
+          className="mt-4 flex w-full items-center justify-center gap-content-gap-xs rounded-xl bg-primary py-3 text-body-md font-bold text-primary-foreground shadow-elevation-2 transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isLoading ? (
             <>

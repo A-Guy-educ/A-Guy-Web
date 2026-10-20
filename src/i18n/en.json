@@ -382,6 +382,8 @@
     "chatViewAuthRequired": "Please log in to chat",
     "chatViewQuotaExceeded": "Daily chat limit reached",
     "chatViewQuotaExhaustedBody": "You've reached the help and checking limit on your plan. Upgrade to keep getting hints, guidance, and answer-checking in chat.",
+    "chatViewQuotaExhaustedBodyDaily": "You've reached your daily limit. Come back tomorrow, or upgrade your plan to keep going now.",
+    "chatViewQuotaExhaustedBodyMonthly": "You've reached your monthly limit. Wait until the next month starts, or upgrade your plan to keep going now.",
     "chatViewQuotaUpgradeCta": "Upgrade plan",
     "chatViewQuotaContinueCta": "Keep going without help",
     "chatViewQuotaOfferTitle": "Keep the help going?",
@@ -1130,13 +1132,31 @@
   "subtest": {
     "testBadge": "TEST",
     "title": "Subscription smoke test",
-    "description": "A 1 ILS Tranzilla checkout for exercising the full web → payment → webhook → user-tier flow end-to-end. Grants the basic tier on success.",
-    "oneTime": "one-time",
-    "continueButton": "Continue",
+    "description": "Full subscription matrix at test prices (₪1.50–₪4.50). Subscribe to any tier, swap between tiers mid-cycle, or cancel. Dev/preview only.",
     "loginToTest": "Log in to test",
-    "redirecting": "Redirecting to checkout...",
+    "subscribeHeading": "Subscribe (test prices)",
+    "changeTierHeading": "Change tier (mid-cycle)",
+    "changeTierTestNote": "Upgrade takes effect immediately. Your next STO billing cycle will charge the new tier's price — no immediate card charge.",
+    "switchTo": "Switch to",
+    "cancelButton": "Cancel subscription",
+    "cancelSuccess": "Subscription cancelled",
+    "changeTierSuccess": "Tier changed to {tier}",
+    "currentSubHeading": "Current subscription: {tier}",
+    "currentSubStatus": "Status: {status}",
+    "currentSubPeriodEnd": "Period end: {date}",
+    "currentSubCancelling": "Will cancel at period end",
     "errors": {
-      "checkoutFailed": "Unable to start checkout. Please try again."
+      "checkoutFailed": "Unable to start checkout. Please try again.",
+      "subscriptionExists": "You already have an active subscription. Cancel it first.",
+      "offerNotAvailable": "Test offer is not available in this environment.",
+      "changeTierFailed": "Could not change tier. Please try again.",
+      "changeTierBadRequest": "Tier change rejected by server. Please try again.",
+      "changeTierHandoff": "Subscription setup is still in progress — try again in a moment.",
+      "changeTierProvider": "Payment provider refused the tier change. Please try again.",
+      "downgradeNotSupported": "Downgrades aren't supported yet. Admin side is working on it.",
+      "cancelFailed": "Could not cancel subscription. Please try again.",
+      "cancelHandoff": "Subscription setup is still in progress — try again in a moment.",
+      "cancelProvider": "Payment provider refused the cancel request. Please try again."
     }
   },
   "subscriptions": {
@@ -1279,6 +1299,13 @@
     "privacyPolicy": "Privacy Policy",
     "cancellationRefund": "Cancellation & Refunds",
     "aiUsageStatement": "AI Usage Statement"
+  },
+  "purchaseConsent": {
+    "ageAndGuardian": "I confirm I am 18 or older, and that I am buying this subscription for myself or as a parent / legal guardian authorised to approve a purchase on behalf of a minor.",
+    "readAndAgreePrefix": "I have read and agree to the ",
+    "readAndAgreeConnector": " and the ",
+    "readAndAgreeSuffix": ".",
+    "requiredToast": "Please confirm the Terms of Service and Privacy Policy before continuing to payment."
   },
   "footer": {
     "copyright": "2026 A-Guy | גיא קורן – מתמטיקה ופיזיקה. כל הזכויות שמורות."

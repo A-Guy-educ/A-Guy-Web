@@ -18,7 +18,7 @@ import { useCallback, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { logger } from '@/infra/utils/logger'
 import {
-  ASK_PENDING_MEDIA_KEY,
+  getAskPendingMediaKey,
   type AskPendingMediaPayload,
 } from '@/app/(frontend)/ask/_components/ask-types'
 
@@ -88,7 +88,7 @@ export function useCourseComposerDropToAsk({ courseId, invalidTypeLabel, failure
         const { id, contextKey } = (await convRes.json()) as { id: string; contextKey: string }
 
         const payload: AskPendingMediaPayload = { mediaId, filename, mimeType, url }
-        window.sessionStorage.setItem(ASK_PENDING_MEDIA_KEY, JSON.stringify(payload))
+        window.sessionStorage.setItem(getAskPendingMediaKey(contextKey), JSON.stringify(payload))
 
         router.push(`/ask?chat=${id}&ctx=${encodeURIComponent(contextKey)}`)
       } catch (error) {

@@ -15,8 +15,8 @@ import { getSystemLocale } from '@/i18n/server-locale'
 import { pageMetadata } from '@/infra/seo/pageMetadata'
 import { TIER_SLUGS } from '@/lib/tiers/constants'
 import { ComingSoonSection } from './_components/ComingSoonSection'
+import { SubscriptionsCatalog } from './_components/SubscriptionsCatalog'
 import { SubscriptionsHeader } from './_components/SubscriptionsHeader'
-import { TierCard } from './_components/TierCard'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,11 +28,7 @@ export default async function SubscriptionsPage() {
       <SubscriptionsHeader />
 
       <div className="max-w-6xl mx-auto px-6 py-section-md">
-        <div className="grid gap-content-gap md:grid-cols-2 xl:grid-cols-4">
-          {TIER_SLUGS.map((tier) => (
-            <TierCard key={tier} tier={tier} />
-          ))}
-        </div>
+        <SubscriptionsCatalog tiers={TIER_SLUGS} />
         <ComingSoonSection />
       </div>
     </div>

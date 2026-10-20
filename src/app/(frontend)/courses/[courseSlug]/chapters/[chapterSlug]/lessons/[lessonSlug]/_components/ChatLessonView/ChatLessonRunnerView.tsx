@@ -8,6 +8,7 @@ import type { Exercise, Media } from '@/infra/types/content'
 import type { ContentBlock } from '@/infra/types/exercise'
 import { getExerciseBlockGroups } from '@/lib/exercises/getExerciseBlocks'
 import { formatExerciseContextMessage } from '@/infra/llm/exercise-context'
+import { formatAuthoredChatContent } from '@/infra/utils/formatAuthoredChatContent'
 import { uploadDataUrlAsMedia } from '@/infra/media/uploadDataUrl'
 import { ExerciseRenderer } from '@/ui/web/exerciserenderer'
 import { clearExerciseState } from '@/ui/web/exerciserenderer/utils/exerciseStateStorage'
@@ -481,10 +482,14 @@ function ActiveChat({
         }))
 
       if (stage === 'idle' && fieldContent) {
+        // Reformat authored content before posting so admin-written strings
+        // get the same visual rhythm as AI replies — each sentence on its
+        // own line, every math expression promoted to block form so it
+        // picks up the muted `math-long` background in the chat bubble.
         append({
           key: `authored-${action}-${stepKey}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
           kind: 'chat-assistant',
-          text: fieldContent,
+          text: formatAuthoredChatContent(fieldContent),
         })
         updateStage('field-shown')
         return
@@ -813,8 +818,11 @@ function ActiveChat({
                 freeResponseValidationErrors={freeResponseValidationErrors}
                 isQuotaExhausted={chat.isQuotaExhausted}
                 introPrefix={t('chatViewIntroPrefix')}
-                quotaExhaustedBody={t('chatViewQuotaExhaustedBody')}
+                quotaExhaustedBodyFallback={t('chatViewQuotaExhaustedBody')}
+                quotaExhaustedBodyDaily={t('chatViewQuotaExhaustedBodyDaily')}
+                quotaExhaustedBodyMonthly={t('chatViewQuotaExhaustedBodyMonthly')}
                 quotaContinueLabel={t('chatViewQuotaContinueCta')}
+                currentTier={tierSlug}
                 reviewOfferBody={t('chatViewReviewOfferBody')}
                 reviewYesLabel={t('chatViewReviewYesCta')}
                 reviewEndLabel={t('chatViewReviewEndCta')}
@@ -897,9 +905,17 @@ interface StreamEntryViewProps {
   freeResponsePlaceholder: string
   freeResponseSendLabel: string
   introPrefix: string
-  /** Copy + CTAs for the one-time quota-exhausted card. */
-  quotaExhaustedBody: string
+  /** Copy + CTAs for the one-time quota-exhausted card. The three body
+   *  variants are pre-resolved so StreamEntryView stays `t()`-free; the
+   *  switch below picks one based on `entry.exceededWindow`. */
+  quotaExhaustedBodyFallback: string
+  quotaExhaustedBodyDaily: string
+  quotaExhaustedBodyMonthly: string
   quotaContinueLabel: string
+  /** Current tier of the signed-in student — drives which upsell tiers the
+   *  quota card offers (basic → advanced+premium, advanced → premium only,
+   *  premium → no upsell block). */
+  currentTier: TierSlug
   /** Task-5 review-offer card copy + handlers. */
   reviewOfferBody: string
   reviewYesLabel: string
@@ -946,8 +962,11 @@ function StreamEntryView({
   freeResponsePlaceholder,
   freeResponseSendLabel,
   introPrefix,
-  quotaExhaustedBody,
+  quotaExhaustedBodyFallback,
+  quotaExhaustedBodyDaily,
+  quotaExhaustedBodyMonthly,
   quotaContinueLabel,
+  currentTier,
   reviewOfferBody,
   reviewYesLabel,
   reviewEndLabel,
@@ -1057,8 +1076,21 @@ function StreamEntryView({
       return <TierLockBubble lockedCount={entry.lockedCount} />
     case 'skipped-marker':
       return <SkippedMarker />
-    case 'quota-exhausted':
-      return <QuotaExhaustedCard bodyText={quotaExhaustedBody} continueLabel={quotaContinueLabel} />
+    case 'quota-exhausted': {
+      const bodyText =
+        entry.exceededWindow === 'daily'
+          ? quotaExhaustedBodyDaily
+          : entry.exceededWindow === 'monthly'
+            ? quotaExhaustedBodyMonthly
+            : quotaExhaustedBodyFallback
+      return (
+        <QuotaExhaustedCard
+          bodyText={bodyText}
+          continueLabel={quotaContinueLabel}
+          currentTier={currentTier}
+        />
+      )
+    }
 
     case 'review-offer':
       return (

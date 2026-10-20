@@ -382,6 +382,8 @@
     "chatViewAuthRequired": "התחבר כדי לשוחח עם הצ׳אט",
     "chatViewQuotaExceeded": "הגעת למכסה היומית של הצ׳אט",
     "chatViewQuotaExhaustedBody": "הגעת למגבלת העזרה והבדיקה במסלול שלך. שדרגו את המנוי כדי להמשיך לקבל רמזים, הכוונה ובדיקת תשובות מהצ'אט.",
+    "chatViewQuotaExhaustedBodyDaily": "הגעת למגבלה היומית שלך. אפשר לחזור מחר, או לשדרג את המנוי כדי להמשיך עכשיו.",
+    "chatViewQuotaExhaustedBodyMonthly": "הגעת למגבלה החודשית שלך. אפשר להמתין עד תחילת החודש הבא, או לשדרג את המנוי כדי להמשיך עכשיו.",
     "chatViewQuotaUpgradeCta": "שדרוג מנוי",
     "chatViewQuotaContinueCta": "להמשיך את השיעור ללא עזרה ובדיקה",
     "chatViewQuotaOfferTitle": "ממשיכים עם העזרה?",
@@ -1130,13 +1132,31 @@
   "subtest": {
     "testBadge": "בדיקה",
     "title": "בדיקת מנוי",
-    "description": "תשלום Tranzilla של שקל אחד להרצת כל הזרימה: אתר → תשלום → webhook → עדכון מסלול המשתמש. בהצלחה המשתמש יועלה למסלול בסיס.",
-    "oneTime": "חד פעמי",
-    "continueButton": "המשך",
+    "description": "מטריצת מנויים מלאה במחירי בדיקה (₪1.50–₪4.50). ניתן להירשם למסלול, להחליף מסלול תוך כדי מחזור, או לבטל. סביבת פיתוח בלבד.",
     "loginToTest": "התחבר לבדיקה",
-    "redirecting": "מעביר לתשלום...",
+    "subscribeHeading": "הרשמה (מחירי בדיקה)",
+    "changeTierHeading": "החלפת מסלול (באמצע מחזור)",
+    "changeTierTestNote": "השדרוג נכנס לתוקף מיידית. מחזור ה-STO הבא יחייב במחיר של המסלול החדש — אין חיוב מיידי של כרטיס.",
+    "switchTo": "החלפה ל-",
+    "cancelButton": "ביטול מנוי",
+    "cancelSuccess": "המנוי בוטל",
+    "changeTierSuccess": "המסלול שונה ל-{tier}",
+    "currentSubHeading": "מנוי נוכחי: {tier}",
+    "currentSubStatus": "סטטוס: {status}",
+    "currentSubPeriodEnd": "סוף תקופה: {date}",
+    "currentSubCancelling": "המנוי יבוטל בסוף התקופה",
     "errors": {
-      "checkoutFailed": "לא ניתן היה להתחיל תשלום. אנא נסה שוב."
+      "checkoutFailed": "לא ניתן היה להתחיל תשלום. אנא נסו שוב.",
+      "subscriptionExists": "כבר יש לך מנוי פעיל. בטל אותו קודם.",
+      "offerNotAvailable": "ההצעה הזאת אינה זמינה בסביבה הזאת.",
+      "changeTierFailed": "לא הצלחנו להחליף מסלול. אנא נסו שוב.",
+      "changeTierBadRequest": "השרת דחה את החלפת המסלול. אנא נסו שוב.",
+      "changeTierHandoff": "הקמת המנוי עדיין בעיצומה — אנא נסו שוב בעוד רגע.",
+      "changeTierProvider": "ספק התשלום דחה את החלפת המסלול. אנא נסו שוב.",
+      "downgradeNotSupported": "הורדת מסלול עדיין אינה נתמכת. ה-admin עובד על זה.",
+      "cancelFailed": "לא הצלחנו לבטל את המנוי. אנא נסו שוב.",
+      "cancelHandoff": "הקמת המנוי עדיין בעיצומה — אנא נסו שוב בעוד רגע.",
+      "cancelProvider": "ספק התשלום דחה את בקשת הביטול. אנא נסו שוב."
     }
   },
   "subscriptions": {
@@ -1279,6 +1299,13 @@
     "privacyPolicy": "מדיניות פרטיות",
     "cancellationRefund": "ביטולים והחזרים",
     "aiUsageStatement": "שימוש בבינה מלאכותית"
+  },
+  "purchaseConsent": {
+    "ageAndGuardian": "אני מאשר/ת כי מלאו לי 18 שנים, וכי אני רוכש/ת את המנוי עבור עצמי או כהורה/אפוטרופוס המורשה לאשר רכישה עבור קטין.",
+    "readAndAgreePrefix": "קראתי ואני מסכים/ה ל",
+    "readAndAgreeConnector": " ול",
+    "readAndAgreeSuffix": ".",
+    "requiredToast": "יש לאשר את תנאי השימוש ומדיניות הפרטיות לפני המעבר לתשלום."
   },
   "footer": {
     "copyright": "2026 A-Guy | גיא קורן – מתמטיקה ופיזיקה. כל הזכויות שמורות."

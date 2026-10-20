@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.52.0 — 2026-10-20
+
+### Features
+- Full subscribe + change-tier + cancel test matrix on /subtest (#1429)
+- Format authored hint and explanation posts like AI bubbles (#1430)
+- Name the exceeded window and tier-filter the upsell (#1432)
+- Gate payment on 18+/guardian + ToS consent (#1434)
+
+### Bug Fixes
+- Forward llmTokensDailyLimit to the daily token reconciler (#1431)
+- Render dropped file after course-composer handoff (#1433)
+- Admin PR 664 wiring — split 502 errors, period-end toast, new test prices (#1435)
+- Drop upgrade-charge wiring per admin's PR 664 revert (#1436)
+- Persist dropped media per room across remounts in Ask (#1437)
+
 ## v0.51.0 — 2026-10-20
 
 ### Features
@@ -5005,6 +5020,19 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.52.0 ([#1438](https://github.com/A-Guy-educ/A-Guy-Web/pull/1438)) — @aguyshayb
+- fix(ask): Persist dropped media per room across remounts ([#1437](https://github.com/A-Guy-educ/A-Guy-Web/pull/1437)) — @aguyshayb
+- fix(subtest): Drop upgrade-charge wiring per admin's PR #664 revert ([#1436](https://github.com/A-Guy-educ/A-Guy-Web/pull/1436)) — @aguyshayb
+- fix(subtest): Wire admin PR #664 upgrade-charge response + new test prices ([#1435](https://github.com/A-Guy-educ/A-Guy-Web/pull/1435)) — @aguyshayb
+- feat(billing): Gate payment on 18+/guardian + ToS consent ([#1434](https://github.com/A-Guy-educ/A-Guy-Web/pull/1434)) — @aguyshayb
+- fix(ask): Render dropped file after course-composer handoff ([#1433](https://github.com/A-Guy-educ/A-Guy-Web/pull/1433)) — @aguyshayb
+- feat(chat): Name the exceeded window and tier-filter the quota upsell ([#1432](https://github.com/A-Guy-educ/A-Guy-Web/pull/1432)) — @aguyshayb
+- fix(tiers): Forward llmTokensDailyLimit to reconciler so admin edits stick ([#1431](https://github.com/A-Guy-educ/A-Guy-Web/pull/1431)) — @aguyshayb
+- feat(chat): Format authored hint and explanation posts like AI bubbles ([#1430](https://github.com/A-Guy-educ/A-Guy-Web/pull/1430)) — @aguyshayb
+- feat(subtest): Full subscribe + change-tier + cancel test matrix ([#1429](https://github.com/A-Guy-educ/A-Guy-Web/pull/1429)) — @aguyshayb
+## [v0.51.0] - 2026-10-20
+
+- promote: dev -> main (v0.51.0) ([#1428](https://github.com/A-Guy-educ/A-Guy-Web/pull/1428)) — @aguyshayb
 - chore: Release v0.51.0 ([#1427](https://github.com/A-Guy-educ/A-Guy-Web/pull/1427)) — @aguyshayb
 - feat(chatview): Two-click hint/explain chips with Gemini follow-up ([#1426](https://github.com/A-Guy-educ/A-Guy-Web/pull/1426)) — @aguyshayb
 - feat(chatview): Format hint bubbles, draw smaller angle, unify table help UI ([#1424](https://github.com/A-Guy-educ/A-Guy-Web/pull/1424)) — @aguyshayb
