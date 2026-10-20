@@ -2,26 +2,31 @@
  * Subscription Test Checkout — POST /api/subscriptions/test-checkout
  *
  * Proxies admin's subscription-bootstrap endpoint with the dedicated test
- * offerSlug (`basic.test` = 1 ILS, non-prod only). Backs the `/subtest`
- * smoke-test page so we can walk the full real-subscription flow (bootstrap
- * → Subscription row → activeSubscription virtual → renewal cron → cancel)
- * for 1 ILS instead of 33+ ILS.
+ * offerSlug (`basic.test` ₪0.01 / `advanced.test` ₪0.02 / `premium.test`
+ * ₪0.03 — all non-prod only via admin's VERCEL_ENV gate). Backs the
+ * `/subtest` page's full subscribe matrix so Shai can hit every tier
+ * cheaply end-to-end.
  *
  * Admin returns 400 on prod-env test-offer requests (gated via
- * NODE_ENV === 'production'), so a leaked /subtest link can't ride into prod.
+ * `isOfferAllowedForEnvironment`), so a leaked /subtest link can't ride
+ * into prod.
  *
- * Delete this route and the `/subtest` page once real-subscription testing
- * is wrapped up.
+ * Delete this route and `/subtest` once real-subscription testing wraps up.
  *
  * @fileType route
  * @domain billing
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 
 import { getWebUser } from '@/infra/web-api/mongo-payload'
 import { logger } from '@/infra/utils/logger/logger'
 import { fetchAdminApi } from '@/server/services/admin-api'
+
+const BodySchema = z.object({
+  tier: z.enum(['basic', 'advanced', 'premium']),
+})
 
 export async function POST(request: NextRequest) {
   // Early auth gate — admin re-checks, but short-circuit here so unauth
@@ -29,6 +34,11 @@ export async function POST(request: NextRequest) {
   const user = await getWebUser(request.headers)
   if (!user?.id) {
     return NextResponse.json({ success: false, error: 'authentication_required' }, { status: 401 })
+  }
+
+  const parsed = BodySchema.safeParse(await request.json().catch(() => null))
+  if (!parsed.success) {
+    return NextResponse.json({ success: false, error: 'invalid_tier' }, { status: 400 })
   }
 
   const baseUrl =
@@ -41,7 +51,7 @@ export async function POST(request: NextRequest) {
       method: 'POST',
       requestHeaders: request.headers,
       body: {
-        tierSlug: 'basic',
+        tierSlug: parsed.data.tier,
         offerSlug: 'test',
         successUrl: `${baseUrl}/checkout/success`,
         cancelUrl: `${baseUrl}/subtest`,
@@ -55,6 +65,7 @@ export async function POST(request: NextRequest) {
       {
         err: err instanceof Error ? { message: err.message, stack: err.stack } : err,
         userId: user.id,
+        tier: parsed.data.tier,
       },
       'Subscription test checkout: admin proxy failed',
     )
