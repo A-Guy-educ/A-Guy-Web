@@ -5020,6 +5020,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat(subscriptions): Chat-upgrade uses change-tier + downgrades greyed + cancelled copy ([#1452](https://github.com/A-Guy-educ/A-Guy-Web/pull/1452)) — @aguyshayb
 - fix(subscriptions): Drop you-can-switch-back promise from upgrade dialog ([#1451](https://github.com/A-Guy-educ/A-Guy-Web/pull/1451)) — @aguyshayb
 - feat(tiers): Remove daily AI-question cap for paid tiers ([#1450](https://github.com/A-Guy-educ/A-Guy-Web/pull/1450)) — @aguyshayb
 - fix(subscriptions): Friendly toast on bootstrap 409 (active or recent-pending sub) ([#1449](https://github.com/A-Guy-educ/A-Guy-Web/pull/1449)) — @aguyshayb
