@@ -82,8 +82,18 @@ export function TierCard({ tier, isConsented = true }: TierCardProps) {
   // /api/users/me (afterRead hook); null for users without an active sub.
   const activeSubscription = (user as { activeSubscription?: ActiveSubscription | null } | null)
     ?.activeSubscription
+  // Pending subs are bootstrap rows admin writes BEFORE the first Tranzilla
+  // charge settles. If the user clicks Continue and bails out of the hosted
+  // checkout, that pending row sticks around — but they haven't paid, so
+  // treating its tierSlug as "current" locks the whole page (every button
+  // becomes a downgrade or already-current). For UI purposes we only trust
+  // subs that admin has moved past bootstrap. The bootstrap/change-tier
+  // endpoints still see the pending row and return 409 on retry, which is
+  // surfaced via the "mid-payment" toast — correct behavior for a race.
+  const settledSubscription =
+    activeSubscription && activeSubscription.status !== 'pending' ? activeSubscription : null
   const currentTier =
-    activeSubscription?.tierSlug ?? getUserTierSlug(user as { currentTier?: string | null } | null)
+    settledSubscription?.tierSlug ?? getUserTierSlug(user as { currentTier?: string | null } | null)
   const isCurrent = currentTier === tier
 
   const offerSlug = resolveOfferSlug(searchParams?.get('offer') ?? null)
@@ -103,7 +113,7 @@ export function TierCard({ tier, isConsented = true }: TierCardProps) {
   // bug admin surfaced from prod); hitting change-tier without a sub id is a
   // non-starter. The split is driven solely by whether the user has an active
   // sub row at the moment of click.
-  const hasExistingSub = !!activeSubscription?.id
+  const hasExistingSub = !!settledSubscription?.id
   // Downgrade = clicking a tier BELOW the user's current one while subscribed.
   // Admin's change-tier endpoint rejects downgrades with a 400 (M2 part 2 is
   // the follow-up cycle-boundary cron). Rather than let the user click and
