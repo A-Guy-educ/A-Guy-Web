@@ -1178,6 +1178,12 @@
     "cancelKeep": "השארת המסלול",
     "cancelInProgress": "מבטל…",
     "cancelSuccess": "המנוי בוטל",
+    "changeTierButton": "החלפה ל-{tier}",
+    "changeTierSuccess": "המסלול שונה ל-{tier}",
+    "upgradeDialogTitle": "יאללה — עוברים ל{tier}?",
+    "upgradeDialogDescription": "המסלול החדש נכנס לתוקף מיד, והחיוב הבא יהיה במחיר החדש. ניתן לחזור בכל רגע.",
+    "upgradeConfirm": "כן, שדרגו אותי",
+    "upgradeKeep": "לא, שיניתי את דעתי",
     "tiers": {
       "free": {
         "name": "חינם",
@@ -1248,7 +1254,12 @@
       "providerNotConfigured": "התשלום אינו מוגדר. אנא צרו קשר עם התמיכה.",
       "cancelFailed": "לא הצלחנו לבטל את המנוי. אנא נסו שוב.",
       "cancelHandoff": "הקמת המנוי עדיין בעיצומה — אנא נסו שוב בעוד רגע.",
-      "cancelProvider": "ספק התשלום דחה את בקשת הביטול. אנא נסו שוב."
+      "cancelProvider": "ספק התשלום דחה את בקשת הביטול. אנא נסו שוב.",
+      "changeTierFailed": "לא הצלחנו להחליף מסלול. אנא נסו שוב.",
+      "changeTierBadRequest": "השרת דחה את החלפת המסלול. אנא נסו שוב.",
+      "changeTierHandoff": "הקמת המנוי עדיין בעיצומה — אנא נסו שוב בעוד רגע.",
+      "changeTierProvider": "ספק התשלום דחה את החלפת המסלול. אנא נסו שוב.",
+      "downgradeNotSupported": "הורדת מסלול עדיין אינה נתמכת."
     }
   },
   "upgradeOffer": {

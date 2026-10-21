@@ -1178,6 +1178,12 @@
     "cancelKeep": "Keep plan",
     "cancelInProgress": "Cancelling…",
     "cancelSuccess": "Subscription cancelled",
+    "changeTierButton": "Switch to {tier}",
+    "changeTierSuccess": "Tier changed to {tier}",
+    "upgradeDialogTitle": "Nice — switching to {tier}?",
+    "upgradeDialogDescription": "Your new tier takes effect right away, and your next renewal will bill the new price. You can switch back any time.",
+    "upgradeConfirm": "Yes, upgrade me",
+    "upgradeKeep": "No, I changed my mind",
     "tiers": {
       "free": {
         "name": "Free",
@@ -1248,7 +1254,12 @@
       "providerNotConfigured": "Payment is not configured. Please contact support.",
       "cancelFailed": "Could not cancel subscription. Please try again.",
       "cancelHandoff": "Subscription setup is still in progress — please try again in a moment.",
-      "cancelProvider": "Payment provider refused the cancel request. Please try again."
+      "cancelProvider": "Payment provider refused the cancel request. Please try again.",
+      "changeTierFailed": "Could not change tier. Please try again.",
+      "changeTierBadRequest": "Tier change rejected by server. Please try again.",
+      "changeTierHandoff": "Subscription setup is still in progress — please try again in a moment.",
+      "changeTierProvider": "Payment provider refused the tier change. Please try again.",
+      "downgradeNotSupported": "Downgrades aren't supported yet."
     }
   },
   "upgradeOffer": {
