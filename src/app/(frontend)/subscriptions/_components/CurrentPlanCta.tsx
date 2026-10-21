@@ -86,7 +86,7 @@ export function CurrentPlanCta({ activeSubscription }: CurrentPlanCtaProps) {
       <div className="flex flex-col gap-content-gap-xs">
         <Button disabled variant="outline" className="w-full h-12 font-bold">
           {isCancelled && formattedPeriodEnd
-            ? t('cancelsOn').replace('{date}', formattedPeriodEnd)
+            ? t('currentTill').replace('{date}', formattedPeriodEnd)
             : t('currentPlan')}
         </Button>
         {canCancel ? (

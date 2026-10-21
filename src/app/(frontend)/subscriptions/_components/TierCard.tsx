@@ -17,6 +17,7 @@ import {
 import { useI18n, useTranslations } from '@/ui/web/providers/I18n'
 import {
   TIER_PRICE_ILS,
+  TIER_RANK,
   getUserTierSlug,
   type ActiveSubscription,
   type TierSlug,
@@ -103,7 +104,13 @@ export function TierCard({ tier, isConsented = true }: TierCardProps) {
   // non-starter. The split is driven solely by whether the user has an active
   // sub row at the moment of click.
   const hasExistingSub = !!activeSubscription?.id
-  const canChangeTier = hasExistingSub && !isCurrent
+  // Downgrade = clicking a tier BELOW the user's current one while subscribed.
+  // Admin's change-tier endpoint rejects downgrades with a 400 (M2 part 2 is
+  // the follow-up cycle-boundary cron). Rather than let the user click and
+  // eat an error toast, grey the button out at the source and show the
+  // "coming soon" hint next to the price.
+  const isDowngrade = hasExistingSub && !isCurrent && TIER_RANK[tier] < TIER_RANK[currentTier]
+  const canChangeTier = hasExistingSub && !isCurrent && !isDowngrade
 
   const handleSubscribe = async () => {
     if (!user) {
@@ -254,6 +261,18 @@ export function TierCard({ tier, isConsented = true }: TierCardProps) {
             return (
               <div className="mt-auto border-t border-border/40 p-card-padding-sm">
                 <CurrentPlanCta activeSubscription={activeSubscription} />
+              </div>
+            )
+          }
+          // Downgrade attempt — admin hasn't shipped the cycle-boundary
+          // downgrade flow yet, so render a disabled "coming soon" CTA
+          // instead of a live button that would just error on click.
+          if (isDowngrade) {
+            return (
+              <div className="mt-auto border-t border-border/40 p-card-padding-sm">
+                <Button disabled variant="outline" className="w-full h-12 font-bold">
+                  {t('downgradeComingSoon')}
+                </Button>
               </div>
             )
           }
