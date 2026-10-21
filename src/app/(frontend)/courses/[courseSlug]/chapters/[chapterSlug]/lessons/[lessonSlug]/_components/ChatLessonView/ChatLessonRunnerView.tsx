@@ -782,8 +782,11 @@ function ActiveChat({
 
   return (
     <>
-      <main className="flex-1 overflow-y-auto bg-muted px-4 pt-16 pb-28 md:px-6 md:pt-20 md:pb-32">
-        <div className="w-[80%] max-w-5xl mx-auto flex flex-col gap-content-gap" dir="rtl">
+      <main className="flex-1 overflow-y-auto bg-muted px-1 pt-14 pb-24 md:px-6 md:pt-20 md:pb-32">
+        <div
+          className="w-full md:w-[80%] max-w-5xl mx-auto flex flex-col gap-content-gap"
+          dir="rtl"
+        >
           <TeacherBubble
             text={t('chatWelcome')}
             onSpeak={() => tts.speak(t('chatWelcome'))}

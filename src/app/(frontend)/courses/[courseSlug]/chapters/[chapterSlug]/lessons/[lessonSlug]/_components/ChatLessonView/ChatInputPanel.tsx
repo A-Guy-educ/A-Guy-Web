@@ -7,7 +7,16 @@ import { useTranslations } from '@/ui/web/providers/I18n'
 import { MathPicker } from '@/ui/web/shared/MathInput/MathPicker'
 import { MixedMathInput, type MixedMathInputRef } from '@/ui/web/shared/MathInput/MixedMathInput'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowUp, FileUp, Image as ImageIcon, Loader2, Plus, X } from 'lucide-react'
+import {
+  ArrowUp,
+  ChevronDown,
+  ChevronUp,
+  FileUp,
+  Image as ImageIcon,
+  Loader2,
+  Plus,
+  X,
+} from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 
 interface ChatInputPanelProps {
@@ -46,6 +55,9 @@ export function ChatInputPanel({
   const [value, setValue] = useState('')
   const [toolbarOpen, setToolbarOpen] = useState(false)
   const [uploads, setUploads] = useState<UploadItem[]>([])
+  // The input pill starts folded to give the chat area more vertical room on
+  // small screens. The chevron on the physical left expands it on demand.
+  const [isFolded, setIsFolded] = useState(true)
   const mathInputRef = useRef<MixedMathInputRef>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -135,140 +147,161 @@ export function ChatInputPanel({
         'pointer-events-none',
       )}
     >
-      <div className="max-w-2xl mx-auto relative pointer-events-auto" dir="rtl" data-math-controls>
-        {uploads.length > 0 && (
-          <div className="flex flex-wrap gap-content-gap-xs mb-2">
-            {uploads.map((u) => (
-              <div
-                key={u.localId}
-                className={cn(
-                  'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-body-sm border',
-                  u.status === 'complete' && 'border-success/30 bg-success/10',
-                  u.status === 'failed' && 'border-destructive/30 bg-destructive/10',
-                  u.status === 'uploading' && 'border-border bg-muted',
-                )}
-              >
-                {u.file.type.startsWith('image/') ? (
-                  <ImageIcon
-                    className={cn(
-                      'w-4 h-4',
-                      u.status === 'failed' ? 'text-destructive' : 'text-muted-foreground',
-                    )}
-                  />
-                ) : (
-                  <FileUp
-                    className={cn(
-                      'w-4 h-4',
-                      u.status === 'failed' ? 'text-destructive' : 'text-muted-foreground',
-                    )}
-                  />
-                )}
-                <span className="max-w-[120px] truncate text-foreground">{u.file.name}</span>
-                {u.status === 'uploading' && (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
-                )}
-                {u.status === 'failed' && (
-                  <span className="text-body-xs text-destructive" title={u.error}>
-                    {u.error || 'Failed'}
-                  </span>
-                )}
-                <button
-                  type="button"
-                  onClick={() => removeUpload(u.localId)}
-                  className="p-0.5 hover:bg-destructive/20 rounded-full transition-colors"
-                  aria-label={t('chatRemoveFile')}
-                >
-                  <X className="w-3.5 h-3.5 text-muted-foreground hover:text-destructive" />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <div
+      <div
+        className="max-w-2xl mx-auto relative pointer-events-auto flex items-end gap-content-gap-xs"
+        dir="ltr"
+        data-math-controls
+      >
+        <button
+          type="button"
+          onClick={() => setIsFolded((v) => !v)}
+          aria-label={isFolded ? t('chatExpandInput') : t('chatCollapseInput')}
+          aria-expanded={!isFolded}
+          title={isFolded ? t('chatExpandInput') : t('chatCollapseInput')}
           className={cn(
-            'flex items-center gap-content-gap-xs px-3 py-1.5 rounded-full',
-            'bg-card/95 backdrop-blur-md border border-border shadow-card',
+            'shrink-0 w-9 h-9 rounded-full border border-border bg-card/95 backdrop-blur-md',
+            'text-foreground flex items-center justify-center shadow-elevation-1 transition-colors',
+            'hover:bg-muted',
           )}
         >
-          {/* Unified + menu: math atoms + image upload. Lives at the pill's
-              right edge (dir=rtl, first flex child) opposite the Send button. */}
-          {!disabled && (
-            <button
-              type="button"
-              onClick={() => setToolbarOpen((v) => !v)}
-              aria-label={t('insertFormula')}
-              title={t('insertFormula')}
-              className={cn(
-                'w-8 h-8 rounded-full shrink-0 flex items-center justify-center transition-all active:scale-90',
-                toolbarOpen
-                  ? 'bg-primary text-primary-foreground border border-primary'
-                  : 'bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20',
-              )}
-            >
-              <Plus className="w-4 h-4" />
-            </button>
+          {isFolded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+        </button>
+
+        <div className={cn('flex-1 min-w-0', isFolded && 'hidden')} dir="rtl">
+          {uploads.length > 0 && (
+            <div className="flex flex-wrap gap-content-gap-xs mb-2">
+              {uploads.map((u) => (
+                <div
+                  key={u.localId}
+                  className={cn(
+                    'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-body-sm border',
+                    u.status === 'complete' && 'border-success/30 bg-success/10',
+                    u.status === 'failed' && 'border-destructive/30 bg-destructive/10',
+                    u.status === 'uploading' && 'border-border bg-muted',
+                  )}
+                >
+                  {u.file.type.startsWith('image/') ? (
+                    <ImageIcon
+                      className={cn(
+                        'w-4 h-4',
+                        u.status === 'failed' ? 'text-destructive' : 'text-muted-foreground',
+                      )}
+                    />
+                  ) : (
+                    <FileUp
+                      className={cn(
+                        'w-4 h-4',
+                        u.status === 'failed' ? 'text-destructive' : 'text-muted-foreground',
+                      )}
+                    />
+                  )}
+                  <span className="max-w-[120px] truncate text-foreground">{u.file.name}</span>
+                  {u.status === 'uploading' && (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
+                  )}
+                  {u.status === 'failed' && (
+                    <span className="text-body-xs text-destructive" title={u.error}>
+                      {u.error || 'Failed'}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => removeUpload(u.localId)}
+                    className="p-0.5 hover:bg-destructive/20 rounded-full transition-colors"
+                    aria-label={t('chatRemoveFile')}
+                  >
+                    <X className="w-3.5 h-3.5 text-muted-foreground hover:text-destructive" />
+                  </button>
+                </div>
+              ))}
+            </div>
           )}
 
-          <MixedMathInput
-            ref={mathInputRef}
-            value={value}
-            onChange={setValue}
-            onEnterKey={submit}
-            disabled={disabled || isSending}
-            placeholder={placeholder}
-            className="flex-1 min-w-0 py-2 px-1"
-          />
-
-          {/* Hidden file input the picker's Image action triggers. */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={ACCEPT}
-            multiple
-            className="hidden"
-            onChange={(e) => {
-              addFiles(e.target.files)
-              e.target.value = ''
-            }}
-          />
-
-          <button
-            type="submit"
-            disabled={disabled || isSending || isUploading || hasFailedUpload || !value.trim()}
-            aria-label={sendLabel}
+          <div
             className={cn(
-              'w-8 h-8 rounded-full shrink-0 flex items-center justify-center transition-all active:scale-90',
-              'bg-primary text-primary-foreground hover:bg-primary/90 shadow-elevation-1',
-              'disabled:opacity-50 disabled:cursor-not-allowed',
+              'flex items-center gap-content-gap-xs px-3 py-1.5 rounded-full',
+              'bg-card/95 backdrop-blur-md border border-border shadow-card',
             )}
           >
-            {isSending ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <ArrowUp className="w-4 h-4" />
+            {/* Unified + menu: math atoms + image upload. Lives at the pill's
+              right edge (dir=rtl, first flex child) opposite the Send button. */}
+            {!disabled && (
+              <button
+                type="button"
+                onClick={() => setToolbarOpen((v) => !v)}
+                aria-label={t('insertFormula')}
+                title={t('insertFormula')}
+                className={cn(
+                  'w-8 h-8 rounded-full shrink-0 flex items-center justify-center transition-all active:scale-90',
+                  toolbarOpen
+                    ? 'bg-primary text-primary-foreground border border-primary'
+                    : 'bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20',
+                )}
+              >
+                <Plus className="w-4 h-4" />
+              </button>
             )}
-          </button>
-        </div>
 
-        <AnimatePresence>
-          {toolbarOpen && !disabled && (
-            <motion.div
-              initial={{ opacity: 0, y: 6, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 6, scale: 0.97 }}
-              transition={{ duration: 0.18 }}
-              className="absolute bottom-full inset-x-0 mb-2 rounded-lg border border-border bg-card/95 backdrop-blur-md shadow-card p-2"
-              data-math-controls
+            <MixedMathInput
+              ref={mathInputRef}
+              value={value}
+              onChange={setValue}
+              onEnterKey={submit}
+              disabled={disabled || isSending}
+              placeholder={placeholder}
+              className="flex-1 min-w-0 py-2 px-1"
+            />
+
+            {/* Hidden file input the picker's Image action triggers. */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={ACCEPT}
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                addFiles(e.target.files)
+                e.target.value = ''
+              }}
+            />
+
+            <button
+              type="submit"
+              disabled={disabled || isSending || isUploading || hasFailedUpload || !value.trim()}
+              aria-label={sendLabel}
+              className={cn(
+                'w-8 h-8 rounded-full shrink-0 flex items-center justify-center transition-all active:scale-90',
+                'bg-primary text-primary-foreground hover:bg-primary/90 shadow-elevation-1',
+                'disabled:opacity-50 disabled:cursor-not-allowed',
+              )}
             >
-              <MathPicker
-                onInsert={handleInsertMath}
-                onClose={() => setToolbarOpen(false)}
-                onImageUpload={uploads.length < MAX_ATTACHMENTS ? openFilePicker : undefined}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+              {isSending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <ArrowUp className="w-4 h-4" />
+              )}
+            </button>
+          </div>
+
+          <AnimatePresence>
+            {toolbarOpen && !disabled && (
+              <motion.div
+                initial={{ opacity: 0, y: 6, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 6, scale: 0.97 }}
+                transition={{ duration: 0.18 }}
+                className="absolute bottom-full inset-x-0 mb-2 rounded-lg border border-border bg-card/95 backdrop-blur-md shadow-card p-2"
+                data-math-controls
+              >
+                <MathPicker
+                  onInsert={handleInsertMath}
+                  onClose={() => setToolbarOpen(false)}
+                  onImageUpload={uploads.length < MAX_ATTACHMENTS ? openFilePicker : undefined}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </form>
   )
