@@ -5020,6 +5020,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat(tiers): Remove daily AI-question cap for paid tiers ([#1450](https://github.com/A-Guy-educ/A-Guy-Web/pull/1450)) — @aguyshayb
 - fix(subscriptions): Friendly toast on bootstrap 409 (active or recent-pending sub) ([#1449](https://github.com/A-Guy-educ/A-Guy-Web/pull/1449)) — @aguyshayb
 - fix(upsell): Recommend advanced tier badge instead of basic ([#1448](https://github.com/A-Guy-educ/A-Guy-Web/pull/1448)) — @aguyshayb
 - fix(chatview): Visible mobile margin + swap fold arrow to left/right ([#1447](https://github.com/A-Guy-educ/A-Guy-Web/pull/1447)) — @aguyshayb
