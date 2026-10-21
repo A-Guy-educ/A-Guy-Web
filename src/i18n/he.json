@@ -1174,7 +1174,6 @@
     "mostPopular": "מומלץ",
     "cancelButton": "ביטול מנוי",
     "currentTill": "פעיל עד {date}",
-    "downgradeComingSoon": "הורדת מסלול בקרוב",
     "cancelDialogTitle": "לבטל את המנוי?",
     "cancelDialogDescription": "הגישה שלך תישאר עד {date}. לאחר מכן החשבון יחזור למסלול חינם.",
     "cancelDialogDescriptionNoDate": "הגישה שלך תישאר עד סוף התקופה הנוכחית. לאחר מכן החשבון יחזור למסלול חינם.",

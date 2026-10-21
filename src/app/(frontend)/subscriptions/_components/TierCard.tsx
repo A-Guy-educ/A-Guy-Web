@@ -107,8 +107,8 @@ export function TierCard({ tier, isConsented = true }: TierCardProps) {
   // Downgrade = clicking a tier BELOW the user's current one while subscribed.
   // Admin's change-tier endpoint rejects downgrades with a 400 (M2 part 2 is
   // the follow-up cycle-boundary cron). Rather than let the user click and
-  // eat an error toast, grey the button out at the source and show the
-  // "coming soon" hint next to the price.
+  // eat an error toast, render no CTA at all so the lower tier reads as
+  // informational-only while the user is on a higher plan.
   const isDowngrade = hasExistingSub && !isCurrent && TIER_RANK[tier] < TIER_RANK[currentTier]
   const canChangeTier = hasExistingSub && !isCurrent && !isDowngrade
 
@@ -265,17 +265,10 @@ export function TierCard({ tier, isConsented = true }: TierCardProps) {
             )
           }
           // Downgrade attempt — admin hasn't shipped the cycle-boundary
-          // downgrade flow yet, so render a disabled "coming soon" CTA
-          // instead of a live button that would just error on click.
-          if (isDowngrade) {
-            return (
-              <div className="mt-auto border-t border-border/40 p-card-padding-sm">
-                <Button disabled variant="outline" className="w-full h-12 font-bold">
-                  {t('downgradeComingSoon')}
-                </Button>
-              </div>
-            )
-          }
+          // downgrade flow yet. Render no CTA footer: the card still shows
+          // tier name, price, and features, but has no button, which reads
+          // as informational while the user is on a higher plan.
+          if (isDowngrade) return null
           const cta = renderCta({
             isFree,
             isAuthLoading,
