@@ -33,6 +33,9 @@ export function ChatQuotaBar({ questionsUsed, maxQuestions, resetAt }: ChatQuota
     return () => clearInterval(interval)
   }, [resetAt])
 
+  // Server uses Number.MAX_SAFE_INTEGER as the "no cap" sentinel for unlimited tiers.
+  if (maxQuestions >= Number.MAX_SAFE_INTEGER) return null
+
   const isExhausted = questionsUsed >= maxQuestions
   const percentage = Math.min((questionsUsed / maxQuestions) * 100, 100)
   // Approaching the daily cap — plan calls for a user-visible nudge at 80%.
