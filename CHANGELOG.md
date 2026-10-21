@@ -5020,6 +5020,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix(subscriptions): Upgrade-confirm dialog + reload + change-tier routing ([#1441](https://github.com/A-Guy-educ/A-Guy-Web/pull/1441)) — @aguyshayb
 - fix(subscriptions): Route existing subs to change-tier instead of bootstrap ([#1440](https://github.com/A-Guy-educ/A-Guy-Web/pull/1440)) — @aguyshayb
 ## [v0.52.0] - 2026-10-20
 
