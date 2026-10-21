@@ -1,6 +1,5 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -32,7 +31,6 @@ interface CurrentPlanCtaProps {
 export function CurrentPlanCta({ activeSubscription }: CurrentPlanCtaProps) {
   const t = useTranslations('subscriptions')
   const locale = useLocale()
-  const router = useRouter()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
 
@@ -72,9 +70,11 @@ export function CurrentPlanCta({ activeSubscription }: CurrentPlanCtaProps) {
       toast.success(t('cancelSuccess'))
       setIsDialogOpen(false)
       setIsCancelling(false)
-      // Refresh so /api/users/me re-reads activeSubscription.cancelAtPeriodEnd
-      // and the card flips to "Cancels on <date>".
-      router.refresh()
+      // Full reload after a short delay (long enough for the toast to show).
+      // router.refresh() only re-runs server components; useCurrentUser keeps
+      // its stale client-cached user doc, so the card wouldn't flip to
+      // "Cancels on <date>" until a hard refresh.
+      setTimeout(() => window.location.reload(), 1200)
     } catch {
       toast.error(t('errors.cancelFailed'))
       setIsCancelling(false)
@@ -86,7 +86,7 @@ export function CurrentPlanCta({ activeSubscription }: CurrentPlanCtaProps) {
       <div className="flex flex-col gap-content-gap-xs">
         <Button disabled variant="outline" className="w-full h-12 font-bold">
           {isCancelled && formattedPeriodEnd
-            ? t('cancelsOn').replace('{date}', formattedPeriodEnd)
+            ? t('currentTill').replace('{date}', formattedPeriodEnd)
             : t('currentPlan')}
         </Button>
         {canCancel ? (

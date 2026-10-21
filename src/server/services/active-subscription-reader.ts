@@ -41,7 +41,11 @@ export async function readActiveSubscription(userId: string): Promise<ActiveSubs
   const sub = (await db.collection('subscriptions').findOne(
     {
       user: new ObjectId(userId),
-      status: { $in: ['pending', 'active', 'past_due'] },
+      // Include 'cancelled' so the current-plan card can render "Current
+      // till {date}" between the cancel click and the end of the paid
+      // period. Admin's own hook includes cancelled subs for the same
+      // reason — see A-Guy-Admin attachActiveSubscription-hook.ts.
+      status: { $in: ['pending', 'active', 'past_due', 'cancelled'] },
     },
     {
       sort: { createdAt: -1 },

@@ -142,5 +142,8 @@ export function useCourseComposerDropToAsk({ courseId, invalidTypeLabel, failure
       onDragOver: handleDragOver,
       onDrop: handleDrop,
     },
+    // Same path as drop, exposed for the mobile `+` file-picker button
+    // where drag-and-drop isn't available.
+    uploadFile: uploadAndNavigate,
   }
 }

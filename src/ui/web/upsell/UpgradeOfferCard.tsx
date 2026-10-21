@@ -36,8 +36,9 @@ const DEFAULT_RECOMMENDED_TIER: TierSlug = 'advanced'
 /**
  * Only tiers strictly above the student's current one — no "upgrade" to the
  * plan they already pay for, no sideways free→free promo, no premium→nothing
- * loop. Recommended tier is always the lowest of the eligible options so the
- * cheapest upgrade is the one highlighted.
+ * loop. Recommended tier prefers `advanced` when it's one of the eligible
+ * options; otherwise falls back to the first option (e.g., `premium` when the
+ * student is already on advanced).
  */
 const TIER_ORDER: readonly TierSlug[] = ['free', 'basic', 'advanced', 'premium']
 
@@ -50,7 +51,8 @@ function resolveOfferTiers(currentTier: TierSlug | undefined): {
   }
   const currentIdx = TIER_ORDER.indexOf(currentTier)
   const higher = currentIdx >= 0 ? TIER_ORDER.slice(currentIdx + 1) : DEFAULT_OFFER_TIERS
-  return { offerTiers: higher, recommended: higher[0] ?? null }
+  const recommended = higher.includes('advanced') ? 'advanced' : (higher[0] ?? null)
+  return { offerTiers: higher, recommended }
 }
 
 const CURRENCY_FORMAT = new Intl.NumberFormat('he-IL', {

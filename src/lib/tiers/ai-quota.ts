@@ -18,8 +18,8 @@ import { getUserTierSlug, type UserWithTier } from './user-tier'
 
 export const TIER_DAILY_AI_QUESTIONS: Record<TierSlug, number | null> = {
   free: 10,
-  basic: 50,
-  advanced: 150,
+  basic: null,
+  advanced: null,
   premium: null,
 }
 
