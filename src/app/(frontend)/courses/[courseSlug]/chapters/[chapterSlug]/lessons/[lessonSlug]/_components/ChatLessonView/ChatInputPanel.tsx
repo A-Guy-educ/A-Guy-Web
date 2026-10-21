@@ -9,8 +9,8 @@ import { MixedMathInput, type MixedMathInputRef } from '@/ui/web/shared/MathInpu
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   ArrowUp,
-  ChevronDown,
-  ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   FileUp,
   Image as ImageIcon,
   Loader2,
@@ -164,7 +164,7 @@ export function ChatInputPanel({
             'hover:bg-muted',
           )}
         >
-          {isFolded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          {isFolded ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>
 
         <div className={cn('flex-1 min-w-0', isFolded && 'hidden')} dir="rtl">

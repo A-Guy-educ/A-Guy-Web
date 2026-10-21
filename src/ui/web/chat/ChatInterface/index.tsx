@@ -8,8 +8,8 @@ import {
   ArrowUp,
   BookOpen,
   CheckCircle,
-  ChevronDown,
-  ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   FileText,
   FileUp,
   Image as ImageIcon,
@@ -831,9 +831,9 @@ export function ChatInterface({
             title={isInputFolded ? tCourses('chatExpandInput') : tCourses('chatCollapseInput')}
           >
             {isInputFolded ? (
-              <ChevronUp className="w-4 h-4" />
+              <ChevronRight className="w-4 h-4" />
             ) : (
-              <ChevronDown className="w-4 h-4" />
+              <ChevronLeft className="w-4 h-4" />
             )}
           </button>
 

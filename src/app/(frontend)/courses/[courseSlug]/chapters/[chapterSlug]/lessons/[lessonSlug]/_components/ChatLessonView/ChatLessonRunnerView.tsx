@@ -782,9 +782,9 @@ function ActiveChat({
 
   return (
     <>
-      <main className="flex-1 overflow-y-auto bg-muted px-1 pt-14 pb-24 md:px-6 md:pt-20 md:pb-32">
+      <main className="flex-1 overflow-y-auto bg-muted px-2 pt-14 pb-24 md:px-6 md:pt-20 md:pb-32">
         <div
-          className="w-full md:w-[80%] max-w-5xl mx-auto flex flex-col gap-content-gap"
+          className="w-full md:w-[80%] max-w-5xl mx-auto flex flex-col gap-content-gap px-1 md:px-0"
           dir="rtl"
         >
           <TeacherBubble
