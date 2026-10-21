@@ -532,6 +532,8 @@
     "chatResetError": "Failed to reset conversation",
     "chatAttachFile": "Attach file",
     "chatRemoveFile": "Remove file",
+    "chatExpandInput": "Show chat input",
+    "chatCollapseInput": "Hide chat input",
     "chatUnsupportedFileType": "Unsupported file type. Use JPG, PNG, WebP, or PDF.",
     "chatFileTooLarge": "File too large (max 10MB)",
     "chatMaxFiles": "Maximum 5 files allowed",
@@ -818,7 +820,8 @@
       "dropHint": "Drop an image or PDF to open it in Ask",
       "dropUploading": "Uploading your file…",
       "dropInvalidType": "Only images and PDFs can be dropped here",
-      "dropFailed": "Upload failed. Please try again."
+      "dropFailed": "Upload failed. Please try again.",
+      "attachFile": "Attach an image or PDF"
     },
     "moreCourses": "More courses",
     "loading": "Loading...",

@@ -142,22 +142,37 @@ export const DoodleCanvas = forwardRef<DoodleCanvasHandle, DoodleCanvasProps>(fu
     }
   }, [initOrResize])
 
-  const getPos = (e: React.MouseEvent | React.TouchEvent) => {
+  // Single active pointer at a time so a resting palm on a tablet doesn't
+  // start a parallel touch stroke while the student is writing with a pen.
+  const activePointerIdRef = useRef<number | null>(null)
+
+  const getPos = (e: React.PointerEvent) => {
     const rect = canvasRef.current?.getBoundingClientRect()
     if (!rect) return { x: 0, y: 0 }
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
-    return { x: clientX - rect.left, y: clientY - rect.top }
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top }
   }
 
-  const startDraw = (e: React.MouseEvent | React.TouchEvent) => {
+  const startDraw = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    // Only primary button (left mouse, pen tip, finger). Right/middle/eraser
+    // tip buttons are left alone so the pen's physical eraser can be handled
+    // separately later without hijacking the stroke.
+    if (e.button !== 0) return
+    if (activePointerIdRef.current !== null) return
+    activePointerIdRef.current = e.pointerId
     isDrawing.current = true
     lastPos.current = getPos(e)
     applyStroke()
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId)
+    } catch {
+      // Capture is best-effort — some pointer types / older browsers reject
+      // it, in which case we fall back to onPointerLeave to end the stroke.
+    }
   }
 
-  const draw = (e: React.MouseEvent | React.TouchEvent) => {
+  const draw = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!isDrawing.current || !ctxRef.current) return
+    if (activePointerIdRef.current !== e.pointerId) return
     const pos = getPos(e)
     ctxRef.current.beginPath()
     ctxRef.current.moveTo(lastPos.current.x, lastPos.current.y)
@@ -166,8 +181,17 @@ export const DoodleCanvas = forwardRef<DoodleCanvasHandle, DoodleCanvasProps>(fu
     lastPos.current = pos
   }
 
-  const stopDraw = () => {
+  const stopDraw = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (activePointerIdRef.current !== e.pointerId) return
+    activePointerIdRef.current = null
     isDrawing.current = false
+    try {
+      if (e.currentTarget.hasPointerCapture?.(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId)
+      }
+    } catch {
+      // ignore — capture may have already been lost
+    }
   }
 
   const clearAll = () => {
@@ -270,13 +294,11 @@ export const DoodleCanvas = forwardRef<DoodleCanvasHandle, DoodleCanvasProps>(fu
       </div>
       <canvas
         ref={canvasRef}
-        onMouseDown={startDraw}
-        onMouseMove={draw}
-        onMouseUp={stopDraw}
-        onMouseLeave={stopDraw}
-        onTouchStart={startDraw}
-        onTouchMove={draw}
-        onTouchEnd={stopDraw}
+        onPointerDown={startDraw}
+        onPointerMove={draw}
+        onPointerUp={stopDraw}
+        onPointerCancel={stopDraw}
+        onPointerLeave={stopDraw}
         className={cn(
           'flex-1 min-h-0 w-full touch-none bg-background',
           isErasing ? 'cursor-cell' : 'cursor-crosshair',

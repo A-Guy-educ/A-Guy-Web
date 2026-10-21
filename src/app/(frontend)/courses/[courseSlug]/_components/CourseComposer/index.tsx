@@ -10,7 +10,7 @@
  */
 'use client'
 
-import { ArrowUp, Loader2, Search, Sparkles, Upload } from 'lucide-react'
+import { ArrowUp, Loader2, Plus, Search, Sparkles, Upload } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { cn } from '@/infra/utils/ui'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
@@ -64,6 +64,7 @@ export function CourseComposer({
   const locale = useLocale() as 'en' | 'he'
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const itemRefs = useRef<Array<HTMLAnchorElement | null>>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { query, setQuery, filtered, aiMessage, aiLoading, aiError, selectedIdx, setSelectedIdx } =
     useCourseComposerState({
@@ -78,6 +79,7 @@ export function CourseComposer({
     isUploading: isDropUploading,
     isDragOver,
     dropHandlers,
+    uploadFile,
   } = useCourseComposerDropToAsk({
     courseId,
     invalidTypeLabel: t('dropInvalidType'),
@@ -167,21 +169,46 @@ export function CourseComposer({
         />
 
         <div className="mt-2 flex items-center justify-between gap-content-gap-xs">
-          <div className="flex flex-wrap items-center gap-1.5 min-h-[28px] overflow-hidden">
-            {chips.map((chip) => (
-              <button
-                key={`${chip.lessonType}-${chip.lesson.id}`}
-                type="button"
-                onClick={() => {
-                  setQuery(chip.lesson.title ?? '')
-                  textareaRef.current?.focus()
-                }}
-                className="text-body-xs text-muted-foreground bg-muted/60 hover:bg-muted rounded-full px-2.5 py-1 max-w-[220px] truncate"
-                title={chip.lesson.title ?? ''}
-              >
-                {chip.lesson.title}
-              </button>
-            ))}
+          <div className="flex items-center gap-1.5 min-w-0 flex-1">
+            {/* Hidden file input triggered by the `+` button below.
+                Mirrors the drop target: images and PDFs are routed to Ask. */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              accept="image/*,application/pdf,.pdf"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) void uploadFile(file)
+                e.target.value = ''
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isDropUploading}
+              aria-label={t('attachFile')}
+              title={t('attachFile')}
+              className="shrink-0 w-9 h-9 rounded-full border border-border bg-muted hover:bg-muted/80 text-muted-foreground flex items-center justify-center transition-colors disabled:opacity-disabled disabled:cursor-not-allowed"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+            <div className="flex flex-wrap items-center gap-1.5 min-h-[28px] overflow-hidden min-w-0">
+              {chips.map((chip) => (
+                <button
+                  key={`${chip.lessonType}-${chip.lesson.id}`}
+                  type="button"
+                  onClick={() => {
+                    setQuery(chip.lesson.title ?? '')
+                    textareaRef.current?.focus()
+                  }}
+                  className="text-body-xs text-muted-foreground bg-muted/60 hover:bg-muted rounded-full px-2.5 py-1 max-w-[220px] truncate"
+                  title={chip.lesson.title ?? ''}
+                >
+                  {chip.lesson.title}
+                </button>
+              ))}
+            </div>
           </div>
 
           <button

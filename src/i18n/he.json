@@ -532,6 +532,8 @@
     "chatResetError": "נכשל איפוס השיחה",
     "chatAttachFile": "צרף קובץ",
     "chatRemoveFile": "הסר קובץ",
+    "chatExpandInput": "הצג שדה הודעה",
+    "chatCollapseInput": "הסתר שדה הודעה",
     "chatUnsupportedFileType": "סוג קובץ לא נתמך. השתמש ב-JPG, PNG, WebP או PDF.",
     "chatFileTooLarge": "הקובץ גדול מדי (מקסימום 10MB)",
     "chatMaxFiles": "מותר עד 5 קבצים",
@@ -818,7 +820,8 @@
       "dropHint": "שחרר כאן תמונה או PDF כדי לפתוח ב-Ask",
       "dropUploading": "מעלה את הקובץ…",
       "dropInvalidType": "אפשר לגרור רק תמונות או קובצי PDF",
-      "dropFailed": "ההעלאה נכשלה. נסה שוב."
+      "dropFailed": "ההעלאה נכשלה. נסה שוב.",
+      "attachFile": "צרף תמונה או PDF"
     },
     "moreCourses": "קורסים נוספים",
     "loading": "טוען...",
