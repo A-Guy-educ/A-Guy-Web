@@ -55,6 +55,37 @@ async function users() {
   return (await getContentDb()).collection<UserDoc>('users')
 }
 
+/**
+ * Resolve the default tenant's `_id` so new users created via raw Mongo inserts
+ * (both password and Google signup bypass Payload's `defaultValue` on the
+ * tenant field) still land in the right tenant. Without this, downstream
+ * tenant-scoped queries (checkout, dashboard, access-code redemption) treat
+ * the user as orphaned.
+ *
+ * Falls back to `'AGuy'` when `DEFAULT_TENANT_SLUG` is unset — matches
+ * `server/web-api/progress.ts` and `server/services/upload-sessions.ts`.
+ * Returns `null` (not throws) when the tenant row doesn't exist so signup
+ * stays available in environments without a seeded tenant (local, tests).
+ */
+let defaultTenantIdPromise: Promise<ObjectId | null> | null = null
+async function resolveDefaultTenantId(): Promise<ObjectId | null> {
+  if (!defaultTenantIdPromise) {
+    defaultTenantIdPromise = (async () => {
+      const slug = process.env.DEFAULT_TENANT_SLUG || 'AGuy'
+      const tenant = await (
+        await getContentDb()
+      )
+        .collection('tenants')
+        .findOne({ slug }, { projection: { _id: 1 } })
+      return tenant?._id ?? null
+    })().catch(() => {
+      defaultTenantIdPromise = null
+      return null
+    })
+  }
+  return defaultTenantIdPromise
+}
+
 function secretKey() {
   const secret = process.env.PAYLOAD_SECRET
   if (!secret) throw new Error('PAYLOAD_SECRET is required')
@@ -245,6 +276,7 @@ export async function createPasswordUser(input: { name: string; email: string; p
   const password = await hashPassword(input.password)
   const now = new Date()
   const collection = await users()
+  const tenantId = await resolveDefaultTenantId()
   let insertedId: ObjectId
   try {
     const result = await collection.insertOne({
@@ -262,6 +294,11 @@ export async function createPasswordUser(input: { name: string; email: string; p
       // signups would land with `llmTokensLimit: undefined` and only get
       // seeded on their first authed call (via reconcileUserLlmLimit).
       llmTokensLimit: TIER_LLM_TOKEN_CAP_MONTHLY.free,
+      // Same rationale as llmTokensLimit — Payload's defaultValue on the
+      // tenant field doesn't fire for raw inserts, which left new users
+      // orphaned from the default tenant and broke tenant-scoped flows
+      // downstream (checkout, dashboard).
+      ...(tenantId ? { tenant: tenantId } : {}),
       createdAt: now,
       updatedAt: now,
     })
@@ -316,6 +353,7 @@ export async function createGoogleUser(
   const secret = generateSecret()
   const password = await hashPassword(secret)
   const now = new Date()
+  const tenantId = await resolveDefaultTenantId()
   const result = await (
     await users()
   ).insertOne({
@@ -328,8 +366,12 @@ export async function createGoogleUser(
     registrationMethod: 'google',
     registeredAt: now,
     // See createPasswordUser for the rationale — raw Mongo insert bypasses
-    // Payload's `defaultValue`, so seed the free-tier cap explicitly.
+    // Payload's `defaultValue`, so seed the free-tier cap and default tenant
+    // explicitly. Without `tenant`, Google signups land orphaned from the
+    // default tenant and downstream tenant-scoped flows (checkout, dashboard)
+    // misroute them.
     llmTokensLimit: TIER_LLM_TOKEN_CAP_MONTHLY.free,
+    ...(tenantId ? { tenant: tenantId } : {}),
     ...(attribution
       ? {
           signupSource: attribution.signupSource,
