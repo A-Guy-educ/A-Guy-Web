@@ -3,8 +3,9 @@
 import { Loader2, X } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { useTranslations } from '@/ui/web/providers/I18n'
-import { TIER_PRICE_ILS, type TierSlug } from '@/lib/tiers'
+import { TIER_PRICE_ILS, type ActiveSubscription, type TierSlug } from '@/lib/tiers'
 import { PurchaseConsentCheckbox } from './PurchaseConsentCheckbox'
 
 export interface UpgradeCheckoutDialogProps {
@@ -24,20 +25,35 @@ const CURRENCY_FORMAT = new Intl.NumberFormat('he-IL', {
 })
 
 /**
- * Floating checkout overlay mirroring the chat-payment demo. Opens on top of
- * the lesson chat when the student picks an upgrade tier from the quota offer.
- * Submits to `/api/subscriptions/checkout` — the exact same endpoint the
- * `/subscriptions` page uses — and redirects to Tranzilla's hosted checkout
- * on success. Keeps the UI "floating" even though the final hop still
- * leaves the chat; iframe embedding of Tranzilla's `iframenew.php` can
- * replace this redirect later without changing the API contract.
+ * Floating checkout overlay rendered from the ChatView quota-exhaustion card.
+ *
+ * Two code paths based on the user's existing subscription state:
+ *
+ *   - **No active sub** → POST `/api/subscriptions/checkout` (bootstrap) and
+ *     redirect to Tranzilla for the initial payment. Original flow.
+ *   - **Has active sub** → PATCH `/api/subscriptions/[id]/change-tier`.
+ *     Admin's change-tier endpoint doesn't charge in the moment; it just
+ *     flips the tier and swaps the next-cycle recurring price. No Tranzilla
+ *     redirect — we just close the dialog and hard-reload so useCurrentUser
+ *     picks up the new tier.
+ *
+ * The quota card lives behind the chat and almost always fires for users
+ * who already have a sub (free users hit a different gate). Pre-rewrite,
+ * this dialog always hit bootstrap, so every chat upgrade attempt returned
+ * admin's 409 "sub exists" and the user was stuck.
  */
 export function UpgradeCheckoutDialog({ tier, onClose }: UpgradeCheckoutDialogProps) {
   const t = useTranslations('upgradeDialog')
   const tSubs = useTranslations('subscriptions')
+  const { user } = useCurrentUser()
   const [state, setState] = useState<DialogState>({ kind: 'ready' })
   const [consent, setConsent] = useState(false)
   const closeRef = useRef<HTMLButtonElement>(null)
+
+  const activeSubscription = (user as { activeSubscription?: ActiveSubscription | null } | null)
+    ?.activeSubscription
+  const existingSubId = activeSubscription?.id
+  const isTierChange = !!existingSubId && activeSubscription?.tierSlug !== tier
 
   useEffect(() => {
     closeRef.current?.focus()
@@ -52,17 +68,56 @@ export function UpgradeCheckoutDialog({ tier, onClose }: UpgradeCheckoutDialogPr
   const tierName = tSubs(`tiers.${tier}.name`)
 
   const handlePay = useCallback(async () => {
-    if (!consent) return
+    // Tier change doesn't require the age/T&C consent re-check — the user
+    // already consented at their original subscribe time. Keep the gate on
+    // fresh signups only.
+    if (!isTierChange && !consent) return
     setState({ kind: 'loading' })
     try {
-      const res = await fetch('/api/subscriptions/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ tier, offerSlug: 'default' }),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok || !data?.success || !data?.checkoutUrl) {
+      let res: Response
+      if (isTierChange && existingSubId) {
+        res = await fetch(`/api/subscriptions/${encodeURIComponent(existingSubId)}/change-tier`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ tierSlug: tier }),
+        })
+      } else {
+        res = await fetch('/api/subscriptions/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ tier, offerSlug: 'default' }),
+        })
+      }
+      const data = (await res.json().catch(() => ({}))) as {
+        success?: boolean
+        error?: string
+        checkoutUrl?: string
+      }
+
+      // Admin returns 409 on bootstrap when a sub already exists or a very
+      // recent attempt is still pending. Surface the specific toast copy.
+      if (res.status === 409) {
+        setState({ kind: 'error', message: tSubs('errors.subscriptionConflict') })
+        return
+      }
+
+      if (!res.ok || !data?.success) {
+        setState({ kind: 'error', message: t('error') })
+        return
+      }
+
+      if (isTierChange) {
+        // Change-tier returns no checkoutUrl — admin just flipped the tier.
+        // Close the dialog and reload after a short delay so useCurrentUser
+        // picks up the new tier and the chat's quota check re-evaluates.
+        onClose()
+        setTimeout(() => window.location.reload(), 1200)
+        return
+      }
+
+      if (!data.checkoutUrl) {
         setState({ kind: 'error', message: t('error') })
         return
       }
@@ -70,9 +125,19 @@ export function UpgradeCheckoutDialog({ tier, onClose }: UpgradeCheckoutDialogPr
     } catch {
       setState({ kind: 'error', message: t('error') })
     }
-  }, [tier, t, consent])
+  }, [tier, t, tSubs, consent, isTierChange, existingSubId, onClose])
 
   const isLoading = state.kind === 'loading'
+  // Copy switches with the mode. Fresh signup keeps the original "Complete
+  // payment" wording; tier change uses the warmer "Yes, upgrade me" set that
+  // the /subscriptions dialog uses.
+  const headerTitle = isTierChange
+    ? tSubs('upgradeDialogTitle').replace('{tier}', tierName)
+    : t('title')
+  const bodyText = isTierChange ? tSubs('upgradeDialogDescription') : t('description')
+  const ctaText = isTierChange ? tSubs('upgradeConfirm') : t('payButton')
+  const loadingText = isTierChange ? tSubs('redirecting') : t('loading')
+  const canSubmit = !isLoading && (isTierChange || consent)
 
   return (
     <div
@@ -89,7 +154,7 @@ export function UpgradeCheckoutDialog({ tier, onClose }: UpgradeCheckoutDialogPr
       >
         <header className="flex items-center justify-between">
           <h2 id="upgrade-dialog-title" className="text-heading-sm font-black text-card-foreground">
-            {t('title')}
+            {headerTitle}
           </h2>
           <button
             ref={closeRef}
@@ -103,7 +168,7 @@ export function UpgradeCheckoutDialog({ tier, onClose }: UpgradeCheckoutDialogPr
           </button>
         </header>
 
-        <p className="mt-2 text-body-sm text-muted-foreground">{t('description')}</p>
+        <p className="mt-2 text-body-sm text-muted-foreground">{bodyText}</p>
 
         <div className="mt-4 flex items-center justify-between rounded-xl border border-border bg-muted/30 p-card-padding-sm">
           <div>
@@ -121,27 +186,29 @@ export function UpgradeCheckoutDialog({ tier, onClose }: UpgradeCheckoutDialogPr
           </p>
         ) : null}
 
-        <PurchaseConsentCheckbox
-          id="upgrade-dialog-consent"
-          checked={consent}
-          onCheckedChange={setConsent}
-          disabled={isLoading}
-          className="mt-4"
-        />
+        {isTierChange ? null : (
+          <PurchaseConsentCheckbox
+            id="upgrade-dialog-consent"
+            checked={consent}
+            onCheckedChange={setConsent}
+            disabled={isLoading}
+            className="mt-4"
+          />
+        )}
 
         <button
           type="button"
           onClick={handlePay}
-          disabled={isLoading || !consent}
+          disabled={!canSubmit}
           className="mt-4 flex w-full items-center justify-center gap-content-gap-xs rounded-xl bg-primary py-3 text-body-md font-bold text-primary-foreground shadow-elevation-2 transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isLoading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              {t('loading')}
+              {loadingText}
             </>
           ) : (
-            t('payButton')
+            ctaText
           )}
         </button>
 

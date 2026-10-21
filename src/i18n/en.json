@@ -1173,7 +1173,7 @@
     "redirecting": "Redirecting to checkout...",
     "mostPopular": "Recommended",
     "cancelButton": "Cancel subscription",
-    "cancelsOn": "Cancels on {date}",
+    "currentTill": "Current till {date}",
     "cancelDialogTitle": "Cancel your subscription?",
     "cancelDialogDescription": "You'll keep access until {date}. After that your account moves back to Free.",
     "cancelDialogDescriptionNoDate": "You'll keep access until the end of the current period. After that your account moves back to Free.",

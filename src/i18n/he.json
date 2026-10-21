@@ -1173,7 +1173,7 @@
     "redirecting": "מעביר לתשלום...",
     "mostPopular": "מומלץ",
     "cancelButton": "ביטול מנוי",
-    "cancelsOn": "מתבטל בתאריך {date}",
+    "currentTill": "פעיל עד {date}",
     "cancelDialogTitle": "לבטל את המנוי?",
     "cancelDialogDescription": "הגישה שלך תישאר עד {date}. לאחר מכן החשבון יחזור למסלול חינם.",
     "cancelDialogDescriptionNoDate": "הגישה שלך תישאר עד סוף התקופה הנוכחית. לאחר מכן החשבון יחזור למסלול חינם.",
