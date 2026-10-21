@@ -5044,6 +5044,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- promote: dev -> main (v0.53.0) ([#1456](https://github.com/A-Guy-educ/A-Guy-Web/pull/1456)) — @aguyshayb
 - chore: Release v0.53.0 ([#1455](https://github.com/A-Guy-educ/A-Guy-Web/pull/1455)) — @aguyshayb
 - fix(subscriptions): Don't treat pending bootstrap subs as current tier ([#1454](https://github.com/A-Guy-educ/A-Guy-Web/pull/1454)) — @aguyshayb
 - fix(auth): Stamp default tenant on password and Google signups ([#1453](https://github.com/A-Guy-educ/A-Guy-Web/pull/1453)) — @aguyshayb
