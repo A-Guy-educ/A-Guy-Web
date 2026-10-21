@@ -1255,6 +1255,7 @@
       "invalidTier": "That plan is not available.",
       "checkoutFailed": "Unable to start checkout. Please try again.",
       "providerNotConfigured": "Payment is not configured. Please contact support.",
+      "subscriptionConflict": "Looks like you're mid-payment. Please wait a few minutes and try again.",
       "cancelFailed": "Could not cancel subscription. Please try again.",
       "cancelHandoff": "Subscription setup is still in progress — please try again in a moment.",
       "cancelProvider": "Payment provider refused the cancel request. Please try again.",
