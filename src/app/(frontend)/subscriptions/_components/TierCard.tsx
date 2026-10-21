@@ -160,8 +160,12 @@ export function TierCard({ tier, isConsented = true }: TierCardProps) {
       return
     }
     toast.success(t('changeTierSuccess').replace('{tier}', tierName))
-    setIsCheckingOut(false)
-    router.refresh()
+    // router.refresh() alone only re-runs server components — useCurrentUser
+    // keeps its stale client-cached user doc, so the "current plan" footer
+    // doesn't move to the new tier until a hard refresh. A full reload after
+    // a short delay (long enough for the success toast to show) gives us the
+    // whole post-mutation UI in one shot without any custom bus plumbing.
+    setTimeout(() => window.location.reload(), 1200)
   }
 
   return (
