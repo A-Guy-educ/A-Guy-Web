@@ -7,6 +7,13 @@ import { toast } from 'sonner'
 
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { Button } from '@/ui/web/components/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/ui/web/components/dialog'
 import { useI18n, useTranslations } from '@/ui/web/providers/I18n'
 import {
   TIER_PRICE_ILS,
@@ -61,6 +68,7 @@ export function TierCard({ tier, isConsented = true }: TierCardProps) {
   const searchParams = useSearchParams()
   const { user, isLoading: isAuthLoading } = useCurrentUser()
   const [isCheckingOut, setIsCheckingOut] = useState(false)
+  const [isUpgradeDialogOpen, setIsUpgradeDialogOpen] = useState(false)
 
   const price = TIER_PRICE_ILS[tier]
   const isFree = tier === 'free'
@@ -107,13 +115,29 @@ export function TierCard({ tier, isConsented = true }: TierCardProps) {
       toast.error(tConsent('requiredToast'))
       return
     }
+    // Fresh signup → straight to Tranzilla checkout, no local confirmation
+    // needed (the hosted iframe is itself the confirmation step). Tier change
+    // on an existing sub → open the confirm dialog first so a mis-click
+    // doesn't accidentally swap the recurring price.
+    if (canChangeTier) {
+      setIsUpgradeDialogOpen(true)
+      return
+    }
     setIsCheckingOut(true)
     try {
-      if (canChangeTier && activeSubscription?.id) {
-        await submitChangeTier(activeSubscription.id, tier)
-      } else {
-        await submitBootstrap(tier, offerSlug)
-      }
+      await submitBootstrap(tier, offerSlug)
+    } catch {
+      toast.error(t('errors.checkoutFailed'))
+      setIsCheckingOut(false)
+    }
+  }
+
+  const handleConfirmUpgrade = async () => {
+    if (!activeSubscription?.id) return
+    setIsCheckingOut(true)
+    try {
+      await submitChangeTier(activeSubscription.id, tier)
+      setIsUpgradeDialogOpen(false)
     } catch {
       toast.error(t('errors.checkoutFailed'))
       setIsCheckingOut(false)
@@ -169,79 +193,116 @@ export function TierCard({ tier, isConsented = true }: TierCardProps) {
   }
 
   return (
-    <article
-      className="relative flex flex-col overflow-hidden rounded-lg border border-border bg-card shadow-elevation-1 transition-all duration-normal hover:-translate-y-0.5 hover:shadow-card-hover"
-      style={{ borderTopWidth: '4px', borderTopColor: accent }}
-    >
-      {isHighlighted ? (
-        <span
-          className="absolute end-4 top-4 rounded-full bg-primary px-3 py-1 text-label font-bold text-primary-foreground"
-          aria-label={t('mostPopular')}
-        >
-          {t('mostPopular')}
-        </span>
-      ) : null}
+    <>
+      <article
+        className="relative flex flex-col overflow-hidden rounded-lg border border-border bg-card shadow-elevation-1 transition-all duration-normal hover:-translate-y-0.5 hover:shadow-card-hover"
+        style={{ borderTopWidth: '4px', borderTopColor: accent }}
+      >
+        {isHighlighted ? (
+          <span
+            className="absolute end-4 top-4 rounded-full bg-primary px-3 py-1 text-label font-bold text-primary-foreground"
+            aria-label={t('mostPopular')}
+          >
+            {t('mostPopular')}
+          </span>
+        ) : null}
 
-      <div className="flex flex-col gap-content-gap-sm p-card-padding">
-        <div>
-          <h2 className="text-heading-md font-black text-card-foreground">{tierName}</h2>
-          <p className="mt-1 text-body-sm text-muted-foreground">{tagline}</p>
+        <div className="flex flex-col gap-content-gap-sm p-card-padding">
+          <div>
+            <h2 className="text-heading-md font-black text-card-foreground">{tierName}</h2>
+            <p className="mt-1 text-body-sm text-muted-foreground">{tagline}</p>
+          </div>
+
+          <div className="flex items-baseline gap-content-gap-xs">
+            <span className="text-display-sm font-black text-foreground">{priceLabel}</span>
+            {!isFree ? (
+              <span className="text-body-sm text-muted-foreground">{t('perMonth')}</span>
+            ) : null}
+          </div>
+
+          <ul className="mt-2 flex flex-col gap-content-gap-xs">
+            {features.map((feature, i) => (
+              <li
+                key={i}
+                className="flex items-start gap-content-gap-xs text-body-sm text-foreground"
+              >
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" aria-hidden />
+                <span>{feature}</span>
+              </li>
+            ))}
+          </ul>
+
+          {footnote ? <p className="mt-1 text-body-xs text-muted-foreground">{footnote}</p> : null}
         </div>
 
-        <div className="flex items-baseline gap-content-gap-xs">
-          <span className="text-display-sm font-black text-foreground">{priceLabel}</span>
-          {!isFree ? (
-            <span className="text-body-sm text-muted-foreground">{t('perMonth')}</span>
-          ) : null}
-        </div>
+        {(() => {
+          // Current plan gets a dedicated footer that owns its own cancel flow.
+          // We hand it the full activeSubscription so it can derive the right
+          // state (active with cancel link, cancelled-and-counting-down, etc.).
+          if (isCurrent) {
+            return (
+              <div className="mt-auto border-t border-border/40 p-card-padding-sm">
+                <CurrentPlanCta activeSubscription={activeSubscription} />
+              </div>
+            )
+          }
+          const cta = renderCta({
+            isFree,
+            isAuthLoading,
+            isCheckingOut,
+            hasUser: !!user,
+            isChangingTier: canChangeTier,
+            onSubscribe: handleSubscribe,
+            labels: {
+              continue: canChangeTier
+                ? t('changeTierButton').replace('{tier}', tierName)
+                : t('continueButton'),
+              login: t('loginToSubscribe'),
+              redirecting: t('redirecting'),
+            },
+          })
+          // No CTA for the free-tier baseline when the user is on a paid plan —
+          // skip the footer entirely so there's no empty bordered strip.
+          if (cta === null) return null
+          return <div className="mt-auto border-t border-border/40 p-card-padding-sm">{cta}</div>
+        })()}
+      </article>
 
-        <ul className="mt-2 flex flex-col gap-content-gap-xs">
-          {features.map((feature, i) => (
-            <li
-              key={i}
-              className="flex items-start gap-content-gap-xs text-body-sm text-foreground"
+      <Dialog open={isUpgradeDialogOpen} onOpenChange={setIsUpgradeDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t('upgradeDialogTitle').replace('{tier}', tierName)}</DialogTitle>
+            <DialogDescription>{t('upgradeDialogDescription')}</DialogDescription>
+          </DialogHeader>
+          <div className="mt-4 flex flex-col gap-content-gap-xs sm:flex-row-reverse">
+            <Button
+              type="button"
+              onClick={handleConfirmUpgrade}
+              disabled={isCheckingOut}
+              className="w-full font-bold sm:w-auto"
             >
-              <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" aria-hidden />
-              <span>{feature}</span>
-            </li>
-          ))}
-        </ul>
-
-        {footnote ? <p className="mt-1 text-body-xs text-muted-foreground">{footnote}</p> : null}
-      </div>
-
-      {(() => {
-        // Current plan gets a dedicated footer that owns its own cancel flow.
-        // We hand it the full activeSubscription so it can derive the right
-        // state (active with cancel link, cancelled-and-counting-down, etc.).
-        if (isCurrent) {
-          return (
-            <div className="mt-auto border-t border-border/40 p-card-padding-sm">
-              <CurrentPlanCta activeSubscription={activeSubscription} />
-            </div>
-          )
-        }
-        const cta = renderCta({
-          isFree,
-          isAuthLoading,
-          isCheckingOut,
-          hasUser: !!user,
-          isChangingTier: canChangeTier,
-          onSubscribe: handleSubscribe,
-          labels: {
-            continue: canChangeTier
-              ? t('changeTierButton').replace('{tier}', tierName)
-              : t('continueButton'),
-            login: t('loginToSubscribe'),
-            redirecting: t('redirecting'),
-          },
-        })
-        // No CTA for the free-tier baseline when the user is on a paid plan —
-        // skip the footer entirely so there's no empty bordered strip.
-        if (cta === null) return null
-        return <div className="mt-auto border-t border-border/40 p-card-padding-sm">{cta}</div>
-      })()}
-    </article>
+              {isCheckingOut ? (
+                <>
+                  <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                  {t('redirecting')}
+                </>
+              ) : (
+                t('upgradeConfirm')
+              )}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsUpgradeDialogOpen(false)}
+              disabled={isCheckingOut}
+              className="w-full font-bold sm:w-auto"
+            >
+              {t('upgradeKeep')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
 

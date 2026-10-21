@@ -1180,6 +1180,10 @@
     "cancelSuccess": "המנוי בוטל",
     "changeTierButton": "החלפה ל-{tier}",
     "changeTierSuccess": "המסלול שונה ל-{tier}",
+    "upgradeDialogTitle": "יאללה — עוברים ל{tier}?",
+    "upgradeDialogDescription": "המסלול החדש נכנס לתוקף מיד, והחיוב הבא יהיה במחיר החדש. ניתן לחזור בכל רגע.",
+    "upgradeConfirm": "כן, שדרגו אותי",
+    "upgradeKeep": "לא, שיניתי את דעתי",
     "tiers": {
       "free": {
         "name": "חינם",

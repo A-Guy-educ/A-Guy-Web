@@ -1180,6 +1180,10 @@
     "cancelSuccess": "Subscription cancelled",
     "changeTierButton": "Switch to {tier}",
     "changeTierSuccess": "Tier changed to {tier}",
+    "upgradeDialogTitle": "Nice — switching to {tier}?",
+    "upgradeDialogDescription": "Your new tier takes effect right away, and your next renewal will bill the new price. You can switch back any time.",
+    "upgradeConfirm": "Yes, upgrade me",
+    "upgradeKeep": "No, I changed my mind",
     "tiers": {
       "free": {
         "name": "Free",
