@@ -1,5 +1,29 @@
 # Changelog
 
+## v0.53.0 — 2026-10-21
+
+### Features
+- Remove daily AI-question cap for paid tiers (#1450)
+- Chat-upgrade dialog uses change-tier, downgrades greyed, cancelled copy swapped (#1452)
+- Add warm confirmation dialog before tier upgrade (#1443)
+- Tighten chat on mobile and widen pen support (#1443)
+
+### Bug Fixes
+- Don't treat pending bootstrap subs as current tier (#1454)
+- Stamp default tenant on password and Google signups (#1453)
+- Drop downgrade CTA copy and expose cancelled subs (#1452)
+- Drop you-can-switch-back promise from upgrade dialog (#1451)
+- Friendly toast on bootstrap 409 (active or recent-pending sub) (#1449)
+- Recommend advanced tier badge instead of basic (#1448)
+- Visible mobile margin and swap chatview fold arrow to left/right (#1447)
+- Apply mobile margin and fold to the right chatview component (#1446)
+- Hard-reload after subscription upgrade or cancel so the UI reflects state (#1443)
+- Route existing subs to change-tier instead of bootstrap (#1441)
+
+### Chores
+- Stop auto-running Kody on every PR (#1444)
+- Bump vite override to 7.3.7 to clear high-severity audit (#1443)
+
 ## v0.52.0 — 2026-10-20
 
 ### Features
