@@ -1184,7 +1184,7 @@
     "changeTierButton": "החלפה ל-{tier}",
     "changeTierSuccess": "המסלול שונה ל-{tier}",
     "upgradeDialogTitle": "יאללה — עוברים ל{tier}?",
-    "upgradeDialogDescription": "המסלול החדש נכנס לתוקף מיד, והחיוב הבא יהיה במחיר החדש. ניתן לחזור בכל רגע.",
+    "upgradeDialogDescription": "המסלול החדש נכנס לתוקף מיד, והחיוב הבא יהיה במחיר החדש.",
     "upgradeConfirm": "כן, שדרגו אותי",
     "upgradeKeep": "לא, שיניתי את דעתי",
     "tiers": {
