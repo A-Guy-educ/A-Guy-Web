@@ -153,6 +153,17 @@ export function TierCard({ tier, isConsented = true }: TierCardProps) {
     })
     const data = await res.json()
     if (!res.ok || !data.success) {
+      // Admin's bootstrap returns 409 when the user already has an
+      // active-or-pending sub. Covers two real cases: (a) they ARE still
+      // active and should manage their sub, and (b) they just paid and
+      // the webhook hasn't settled yet. Admin's suggestion is to default
+      // to the "mid-payment" copy which reads fine for both — avoids an
+      // extra GET to disambiguate on a path the user is already stuck in.
+      if (res.status === 409) {
+        toast.error(t('errors.subscriptionConflict'))
+        setIsCheckingOut(false)
+        return
+      }
       const errorKey = data.error ?? 'checkoutFailed'
       const errorMap: Record<string, string> = {
         authentication_required: t('errors.authRequired'),
