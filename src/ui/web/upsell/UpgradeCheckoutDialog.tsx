@@ -52,8 +52,14 @@ export function UpgradeCheckoutDialog({ tier, onClose }: UpgradeCheckoutDialogPr
 
   const activeSubscription = (user as { activeSubscription?: ActiveSubscription | null } | null)
     ?.activeSubscription
-  const existingSubId = activeSubscription?.id
-  const isTierChange = !!existingSubId && activeSubscription?.tierSlug !== tier
+  // Only treat the sub as change-tier-eligible once admin has settled the
+  // bootstrap row. A pending sub means the user clicked Continue elsewhere
+  // and never finished paying — PATCH /change-tier would reject it, and
+  // we'd rather route to bootstrap and surface the "mid-payment" toast.
+  const settledSubscription =
+    activeSubscription && activeSubscription.status !== 'pending' ? activeSubscription : null
+  const existingSubId = settledSubscription?.id
+  const isTierChange = !!existingSubId && settledSubscription?.tierSlug !== tier
 
   useEffect(() => {
     closeRef.current?.focus()
