@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.54.0 — 2026-10-22
+
+### Features
+- Add student registration page from the product demo (#1462)
+- Gate free lessons by opened-lesson counter (#1458)
+
+### Bug Fixes
+- Honor SVG display size and drop fixed-height frame (#1461)
+- Attach and persist Ask page media on mobile and refresh (#1459)
+- Remove fold toggle from ChatInterface (#1457)
+
 ## v0.53.0 — 2026-10-21
 
 ### Features
