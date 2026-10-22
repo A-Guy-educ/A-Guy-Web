@@ -1162,6 +1162,88 @@
       "cancelProvider": "Payment provider refused the cancel request. Please try again."
     }
   },
+  "schoolSignup": {
+    "badge": "For schools",
+    "title": "A-Guy through your school",
+    "description": "Your school partners with A-Guy. Fill in your details, add your school code, and start learning.",
+    "demoBanner": "Demo page: nothing is saved or charged. Codes to try:",
+    "optional": "(optional)",
+    "sections": {
+      "student": "Student details",
+      "school": "School",
+      "parent": "Parent or guardian",
+      "plan": "Plan"
+    },
+    "fields": {
+      "fullName": "Full name",
+      "email": "Email",
+      "phone": "Mobile phone",
+      "grade": "Grade",
+      "mathUnits": "Math level",
+      "school": "School",
+      "otherSchool": "School name and city",
+      "teacherName": "Math teacher's name",
+      "parentName": "Parent's full name",
+      "parentPhone": "Parent's mobile phone"
+    },
+    "placeholders": {
+      "grade": "Pick a grade",
+      "mathUnits": "Pick a level",
+      "otherSchool": "e.g. Herzog High School, Ashkelon"
+    },
+    "grades": {
+      "7": "Grade 7",
+      "8": "Grade 8",
+      "9": "Grade 9",
+      "10": "Grade 10",
+      "11": "Grade 11",
+      "12": "Grade 12"
+    },
+    "mathUnitsOption": "{units} units",
+    "parentHint": "Students under 18 need a parent or guardian on file. We'll only contact them about the account.",
+    "schoolPlaceholder": "Search for your school",
+    "schoolSearchPlaceholder": "School name or city",
+    "schoolNoResults": "No matching school",
+    "schoolNotListed": "My school isn't listed",
+    "coupon": {
+      "label": "School code",
+      "hint": "You got this from your school or teacher.",
+      "placeholder": "SCHOOL-CODE",
+      "apply": "Apply",
+      "remove": "Remove",
+      "applied": "{percent}% off with {code}",
+      "invalid": "That code isn't valid",
+      "wrongSchool": "This code belongs to a different school"
+    },
+    "summary": {
+      "title": "Summary",
+      "plan": "{tier} plan",
+      "discount": "School discount ({code})",
+      "total": "Total",
+      "free": "Free",
+      "billedMonthly": "Billed monthly. Cancel any time.",
+      "noPayment": "Covered by your school. No payment needed."
+    },
+    "marketingConsent": "Send me tips, updates and offers from A-Guy by email and SMS.",
+    "submit": "Continue to payment",
+    "submitFree": "Activate my account",
+    "submitting": "Signing you up…",
+    "errors": {
+      "required": "Required",
+      "fullName": "Enter first and last name",
+      "email": "Enter a valid email",
+      "phone": "Enter a valid mobile number (05X-XXXXXXX)",
+      "school": "Pick your school",
+      "consent": "Please confirm to continue",
+      "fixFields": "Some details are missing. Check the highlighted fields."
+    },
+    "success": {
+      "title": "You're in, {name}!",
+      "description": "We've sent the details to {email}.",
+      "cta": "Start learning",
+      "demoNote": "Demo: nothing was saved and no payment was taken."
+    }
+  },
   "subscriptions": {
     "title": "Choose your plan",
     "description": "Full access to lessons, practice, exams, and an AI tutor — pick what fits.",
