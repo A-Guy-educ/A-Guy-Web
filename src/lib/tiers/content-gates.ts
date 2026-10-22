@@ -1,15 +1,21 @@
 /**
  * Content gating helpers per TIERS.md "Content gating rules".
  *
- * All inputs are 1-based sortOrder within the course (first lesson is 1,
- * first exercise is 1). When the kill switch is off, every gate returns
- * permissive — nothing is tier-locked.
+ * Lesson-level gates count the **distinct lessons the user has opened**, per
+ * lesson type, not the lesson's position in the course: a free user can open
+ * lessons 3, 17 and 29 and hits the paywall on the 4th distinct one. The
+ * opened lists come from `user-progresses` (server-side, see
+ * `@/server/services/tier-lesson-access`) and are passed in as plain data so
+ * these helpers stay pure and client-safe. When the kill switch is off, every
+ * gate returns permissive — nothing is tier-locked.
  *
  * Rules (reduced form after rank comparison):
- *   learning lesson:    free locks nothing (exercise gate handles it); basic+ unlocks everything.
- *   learning exercise:  free unlocks first 3 exercises in lessons past #3; basic+ unlocks everything.
- *   practice lesson:    free unlocks first 3; basic+ unlocks everything.
- *   exam:               free + basic unlock first 3; advanced+ unlocks everything.
+ *   learning lesson:    always opens; the first 3 opened are fully open, the
+ *                       rest are capped by the exercise gate. basic+ unlocks everything.
+ *   learning exercise:  free unlocks the first 3 exercises in a learning lesson
+ *                       outside the user's first 3 opened; basic+ unlocks everything.
+ *   practice lesson:    free unlocks the first 3 opened; basic+ unlocks everything.
+ *   exam:               free + basic unlock the first 3 opened; advanced+ unlocks everything.
  *
  * @fileType helper
  * @domain billing
@@ -23,32 +29,66 @@ const FREE_UNLOCK_COUNT = 3
 
 type User = UserWithTier | null | undefined
 
-export function canAccessLearningLesson(_user: User, _lessonSortOrder: number): boolean {
-  // Learning lessons are always visible to free; the exercise gate past #3
-  // handles the lock. Kept as a function so callers can switch to a stricter
-  // rule later without hunting every call site.
+/** Lesson ids the user has opened, per lesson type, in first-opened order. */
+export type OpenedLessonIds = {
+  learning: string[]
+  practice: string[]
+  exam: string[]
+}
+
+export const EMPTY_OPENED_LESSONS: OpenedLessonIds = { learning: [], practice: [], exam: [] }
+
+function isWithinOpenedAllowance(lessonId: string, opened: readonly string[]): boolean {
+  return opened.includes(lessonId) || opened.length < FREE_UNLOCK_COUNT
+}
+
+export function canAccessLearningLesson(_user: User, _lessonId: string): boolean {
+  // Learning lessons always open for free; the exercise gate handles the cap.
+  // Kept as a function so callers can switch to a stricter rule later without
+  // hunting every call site.
   return true
+}
+
+/**
+ * 1-based position of a learning lesson in the user's opened order — the
+ * `lessonOpenOrdinal` fed to `canAccessLearningExercise`. A lesson not opened
+ * yet takes the next slot (it is recorded on this visit).
+ */
+export function getLearningLessonOpenOrdinal(
+  lessonId: string,
+  openedLearning: readonly string[],
+): number {
+  const idx = openedLearning.indexOf(lessonId)
+  return idx >= 0 ? idx + 1 : openedLearning.length + 1
 }
 
 export function canAccessLearningExercise(
   user: User,
-  lessonSortOrder: number,
+  lessonOpenOrdinal: number,
   exerciseSortOrder: number,
 ): boolean {
   if (!isTierEnforcementEnabled()) return true
   if (getUserTierRank(user) >= TIER_RANK.basic) return true
-  if (lessonSortOrder <= FREE_UNLOCK_COUNT) return true
+  if (lessonOpenOrdinal <= FREE_UNLOCK_COUNT) return true
   return exerciseSortOrder <= FREE_UNLOCK_COUNT
 }
 
-export function canAccessPracticeLesson(user: User, lessonSortOrder: number): boolean {
+export function canAccessPracticeLesson(
+  user: User,
+  lessonId: string,
+  openedPractice: readonly string[],
+): boolean {
   if (!isTierEnforcementEnabled()) return true
   if (getUserTierRank(user) >= TIER_RANK.basic) return true
-  return lessonSortOrder <= FREE_UNLOCK_COUNT
+  return isWithinOpenedAllowance(lessonId, openedPractice)
 }
 
-export function canAccessExam(user: User, examSortOrder: number): boolean {
+export function canAccessExam(
+  user: User,
+  lessonId: string,
+  openedExams: readonly string[],
+): boolean {
   if (!isTierEnforcementEnabled()) return true
   if (getUserTierRank(user) >= TIER_RANK.advanced) return true
-  return examSortOrder <= FREE_UNLOCK_COUNT
+  return isWithinOpenedAllowance(lessonId, openedExams)
 }

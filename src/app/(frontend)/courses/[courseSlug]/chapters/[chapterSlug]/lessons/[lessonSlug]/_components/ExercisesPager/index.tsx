@@ -64,9 +64,9 @@ interface ExercisesPagerProps {
   initialExerciseIndex?: number
   nextLesson?: { title?: string | null; slug?: string | null } | null
   /**
-   * 1-based learning-lesson index within the course. When set and the user's
-   * tier doesn't allow the current exercise (free users past lesson 3 are
-   * capped at exercise 3), the pager renders a tier-locked card instead of
+   * 1-based position in the user's opened learning lessons. When set and the
+   * user's tier doesn't allow the current exercise (free users outside their
+   * first 3 opened lessons are capped at exercise 3), the pager renders a tier-locked card instead of
    * the exercise. `null` disables the gate entirely (practice/exam lessons —
    * their row is already gated upstream).
    */

@@ -130,9 +130,10 @@ interface ChatLessonRunnerViewProps {
    *  state can also drive the LessonMenu's mute item. */
   tts: ReturnType<typeof useBrowserTTS>
   /**
-   * 1-based learning-lesson index within the course. Drives the free-tier
-   * exercise clamp — `canAccessLearningExercise` unlocks the first 3
-   * exercises in lessons past #3, and the walker emits a `tier-lock`
+   * 1-based position of this lesson in the order the user first opened
+   * learning lessons (not course order). Drives the free-tier exercise clamp —
+   * `canAccessLearningExercise` unlocks the first 3 exercises in lessons
+   * outside the user's first 3 opened, and the walker emits a `tier-lock`
    * terminator at that cutoff. `null` disables the cap.
    */
   lessonLearningIndex?: number | null

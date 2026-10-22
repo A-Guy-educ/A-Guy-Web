@@ -5,7 +5,7 @@
  * @ai-summary Unit coverage for the pure `computeLessonGroups` + helpers behind the LessonListTab redesign (#873). Locks: chapter/lesson ordering, chapter completion tallies, "featured next up" assignment across chapters, and the precedence between `soon` (with expiry), paywall-locked, and progress-driven statuses.
  */
 
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Chapter, Lesson } from '@/infra/types/content'
 import {
   computeLessonGroups,
@@ -257,5 +257,26 @@ describe('computeLessonGroups — degenerate inputs', () => {
     })
     expect(groups).toHaveLength(1)
     expect(groups[0].lessons.map((n) => n.lesson.id)).toEqual(['kept'])
+  })
+})
+
+describe('computeLessonGroups — tier counter', () => {
+  afterEach(() => vi.unstubAllEnvs())
+
+  it('locks practice rows outside the 3 opened ones, regardless of position', () => {
+    vi.stubEnv('NEXT_PUBLIC_TIER_ENFORCEMENT_ENABLED', 'on')
+    const lessons = ['p1', 'p2', 'p3', 'p4', 'p5'].map((id, i) =>
+      lesson(id, 'c1', i + 1, { type: 'practice' }),
+    )
+    const groups = computeLessonGroups({
+      chapters: [chapter('c1', 1)],
+      lessons,
+      progressByLessonId: {},
+      ...noPaywallDefaults,
+      tierSlug: 'free',
+      openedLessons: { learning: [], practice: ['p2', 'p4', 'p5'], exam: [] },
+    })
+    const locked = groups[0].lessons.filter((n) => n.isTierLocked).map((n) => n.lesson.id)
+    expect(locked).toEqual(['p1', 'p3'])
   })
 })
