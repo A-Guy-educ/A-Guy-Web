@@ -16,6 +16,7 @@ import { useTranslations } from '@/ui/web/providers/I18n'
 import { useProgressMap } from '@/client/hooks/useProgressMap'
 import { useChatProgressMap } from '@/client/hooks/useChatProgressMap'
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
+import { useOpenedLessons } from '@/client/hooks/useOpenedLessons'
 import { getUserTierSlug } from '@/lib/tiers'
 import { ChapterAccordion } from './ChapterAccordion'
 import { CourseLessonsFilterBar } from './CourseLessonsFilterBar'
@@ -108,6 +109,7 @@ export function LessonListTab({
 
   const { user } = useCurrentUser()
   const tierSlug = getUserTierSlug(user as { currentTier?: string | null } | null)
+  const openedLessons = useOpenedLessons(gradeLevel)
 
   const progressByLessonId = useMemo(() => {
     const map: Record<string, number> = {}
@@ -127,6 +129,7 @@ export function LessonListTab({
     courseAccessType,
     hasPaidAccess,
     tierSlug,
+    openedLessons,
   })
 
   const featured = findFeaturedNode(groups)

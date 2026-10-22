@@ -80,9 +80,9 @@ interface LessonIntroPageProps {
   prerequisites?: LessonPrerequisite[]
   isLocaleFallback?: boolean
   /**
-   * 1-based position of this lesson among the course's learning lessons.
-   * `null` when the lesson isn't type=learning (practice/exam gating lives
-   * on the lesson row, not inside the exercise player). Used by the free-tier
+   * 1-based position of this lesson in the order the user first opened
+   * learning lessons. `null` when the lesson isn't type=learning (practice/exam
+   * are gated on the lesson row and the page server-side). Used by the free-tier
    * per-exercise lock in ExercisesPager.
    */
   lessonLearningIndex?: number | null

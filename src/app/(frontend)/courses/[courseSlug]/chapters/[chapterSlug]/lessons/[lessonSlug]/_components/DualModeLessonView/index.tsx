@@ -69,7 +69,7 @@ interface DualModeLessonViewProps {
     title: string | null
     chapterSlug: string | null
   } | null
-  /** 1-based learning-lesson position within the course (see page.tsx comment). */
+  /** 1-based position in the user's opened learning lessons (see page.tsx comment). */
   lessonLearningIndex?: number | null
 }
 

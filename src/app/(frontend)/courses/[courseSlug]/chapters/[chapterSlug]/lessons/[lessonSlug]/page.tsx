@@ -1,6 +1,6 @@
 import '@/infra/config/server-init'
 
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 
 import { getSystemLocale } from '@/i18n/server-locale'
 import { resolveAccessType } from '@/infra/auth/access-types'
@@ -14,6 +14,7 @@ import { queryMediaByIds } from '@/server/repos/queries/media'
 import { relationId } from '@/server/repos/mongo'
 import { getAuthenticatedUserServer } from '@/server/utils/access-gate-server'
 import { checkPaidAccess } from '@/server/utils/check-paid-access'
+import { resolveLessonTierAccess } from '@/server/services/tier-lesson-access'
 import type {
   Chapter,
   ContentPage,
@@ -216,6 +217,17 @@ export default async function LessonPage({ params }: LessonPageProps) {
     }
   }
 
+  // Free-tier counter (TIERS.md): practice/exam past the user's 3 opened
+  // lessons of that type go to the plan store. No-op when the kill switch is off.
+  const { user: tierUser } = await getAuthenticatedUserServer()
+  const tierAccess = await resolveLessonTierAccess({
+    user: tierUser,
+    lessonId: lesson.id,
+    lessonType: lesson.type,
+    gradeLevel: course.courseLabel,
+  })
+  if (tierAccess.isLocked) redirect('/subscriptions')
+
   const [exercises, mediaFiles, formulaSheetResult] = await Promise.all([
     queryExercisesByLesson({ lessonId: lesson.id }).then((exercises) =>
       (exercises ?? []).filter(
@@ -285,21 +297,11 @@ export default async function LessonPage({ params }: LessonPageProps) {
             : null,
       }
     : null
-  // Learning-type position of this lesson within its course (1-based) so the
-  // exercise-level tier gate can know whether this is "lesson 1/2/3" (free
-  // users get all exercises) vs. "lesson 4+" (free users capped at exercise 3).
-  // null when this lesson isn't a learning lesson (practice/exam are gated at
-  // the row level, not here).
-  //
-  // `queryLessonsByCourse` already sorts by (chapterIndex, lesson.order), which
-  // matches what students see on the course page (useLessonGrouping groups by
-  // chapter order, then lesson order within chapter). We MUST NOT re-sort by
-  // `lesson.order` alone — that key resets per chapter, so a flat sort
-  // interleaves lessons from different chapters and shifts the index by
-  // (chapter count - 1) per lesson past chapter 1.
-  const learningLessons = courseLessons.filter((l) => getEffectiveLessonType(l.type) === 'learning')
-  const learningIdx = learningLessons.findIndex((l) => l.id === lesson.id)
-  const lessonLearningIndex = learningIdx >= 0 ? learningIdx + 1 : null
+  // Position of this lesson in the order the user first opened learning
+  // lessons (1-based), so the exercise-level tier gate knows whether it is
+  // one of their first 3 (all exercises) or a later one (capped at exercise
+  // 3). null for practice/exam, which are gated above.
+  const lessonLearningIndex = tierAccess.learningOpenOrdinal
   const backUrl = `/courses/${courseSlug}`
   const formulaSheet = formulaSheetResult?.sheet ?? null
   const showChat = exercises.length > 0 || Boolean(lesson.lessonContextText?.trim())

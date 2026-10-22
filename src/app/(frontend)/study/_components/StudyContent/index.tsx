@@ -29,6 +29,7 @@ import { motion } from 'framer-motion'
 import { useEffect, useMemo, useState } from 'react'
 import { useProgressMap } from '@/client/hooks/useProgressMap'
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
+import { useOpenedLessons } from '@/client/hooks/useOpenedLessons'
 import { canAccessExam, canAccessPracticeLesson, getUserTierSlug } from '@/lib/tiers'
 import { CourseLessonCard } from '@/app/(frontend)/courses/[courseSlug]/_components/CourseLessonCard'
 
@@ -118,6 +119,9 @@ export function StudyContent({
     () => ({ currentTier: getUserTierSlug(user as { currentTier?: string | null } | null) }),
     [user],
   )
+  // Free-tier counter: progress is keyed on the course's label (same key the
+  // lesson page writes under), not the user's profile grade.
+  const openedLessons = useOpenedLessons(courseInfo?.courseLabel)
 
   const tabForLessonType: CourseTab =
     lessonType === 'practice' ? 'practice' : lessonType === 'exam' ? 'exams' : 'learn'
@@ -401,14 +405,12 @@ export function StudyContent({
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-content-gap">
                       {group.lessons.map((lesson, idx) => {
-                        // 1-based display position within the lesson type the user
-                        // is viewing — "1st exam", "2nd exam", ... — not `lesson.order`.
-                        const displayIndex = startIndex + idx + 1
+                        // Tier lock follows the opened-lesson counter, not position.
                         const tierLocked =
                           lessonType === 'practice'
-                            ? !canAccessPracticeLesson(tierUser, displayIndex)
+                            ? !canAccessPracticeLesson(tierUser, lesson.id, openedLessons.practice)
                             : lessonType === 'exam'
-                              ? !canAccessExam(tierUser, displayIndex)
+                              ? !canAccessExam(tierUser, lesson.id, openedLessons.exam)
                               : false
                         return (
                           <motion.div
