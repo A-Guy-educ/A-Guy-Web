@@ -8,7 +8,12 @@
 import { useMemo } from 'react'
 import type { Chapter, Lesson } from '@/infra/types/content'
 import { resolveAccessType } from '@/infra/auth/access-types'
-import { canAccessExam, canAccessPracticeLesson, type TierSlug } from '@/lib/tiers'
+import {
+  canAccessExam,
+  canAccessPracticeLesson,
+  type OpenedLessonIds,
+  type TierSlug,
+} from '@/lib/tiers'
 import { getEffectiveLessonType } from '@/server/constants/lesson-types'
 import type {
   ChapterRoadmapGroup,
@@ -36,6 +41,11 @@ interface GroupingInput {
    * `NEXT_PUBLIC_TIER_ENFORCEMENT_ENABLED` switch is off (the gate helpers short-circuit).
    */
   tierSlug?: TierSlug | null
+  /**
+   * Lessons the user has already opened, per type — the free-tier counter
+   * (TIERS.md). Omitted = nothing opened yet.
+   */
+  openedLessons?: OpenedLessonIds
 }
 
 function chapterIdOf(lesson: Lesson): string | null {
@@ -62,7 +72,7 @@ function resolveLessonLock(
   courseAccessType: string | null | undefined,
   hasPaidAccess: boolean,
   tierSlug: TierSlug | null | undefined,
-  displayIndex: number,
+  openedLessons: OpenedLessonIds | undefined,
 ): { status: LessonRoadmapStatus; isTierLocked: boolean } {
   if (isSoonActive(lesson)) return { status: 'soon', isTierLocked: false }
   const access = resolveAccessType(lesson.accessType, courseAccessType)
@@ -70,16 +80,18 @@ function resolveLessonLock(
 
   // Tier-based gates — the helpers themselves short-circuit when the
   // `NEXT_PUBLIC_TIER_ENFORCEMENT_ENABLED` env flag is off, so this is a no-op until
-  // the kill switch is flipped. Learning rows stay visible even for free
-  // past lesson 3; the per-exercise gate inside a lesson handles that.
-  // `displayIndex` is 1-based within the filtered lesson type (what the
-  // user actually sees as "1st exam", "2nd exam", etc.), not the raw
-  // course-wide `lesson.order` which may be arbitrary across types.
+  // the kill switch is flipped. Learning rows stay visible for every tier;
+  // the per-exercise gate inside a lesson handles the cap. Practice/exam
+  // rows lock once the user has opened 3 distinct lessons of that type and
+  // this one isn't among them — position in the course doesn't matter.
   const effectiveType = getEffectiveLessonType(lesson.type)
   const userShape = { currentTier: tierSlug ?? null }
-  if (effectiveType === 'practice' && !canAccessPracticeLesson(userShape, displayIndex))
+  if (
+    effectiveType === 'practice' &&
+    !canAccessPracticeLesson(userShape, lesson.id, openedLessons?.practice ?? [])
+  )
     return { status: 'locked', isTierLocked: true }
-  if (effectiveType === 'exam' && !canAccessExam(userShape, displayIndex))
+  if (effectiveType === 'exam' && !canAccessExam(userShape, lesson.id, openedLessons?.exam ?? []))
     return { status: 'locked', isTierLocked: true }
 
   if (percent >= 100) return { status: 'completed', isTierLocked: false }
@@ -99,6 +111,7 @@ export function computeLessonGroups({
   courseAccessType,
   hasPaidAccess,
   tierSlug,
+  openedLessons,
 }: GroupingInput): ChapterRoadmapGroup[] {
   const orderedChapters = [...chapters].sort(
     (a, b) => (a.order ?? Infinity) - (b.order ?? Infinity),
@@ -141,7 +154,7 @@ export function computeLessonGroups({
         courseAccessType,
         hasPaidAccess,
         tierSlug,
-        displayIndex,
+        openedLessons,
       )
       if (status === 'completed') completedCount += 1
 
@@ -213,6 +226,7 @@ export function useLessonGrouping(input: GroupingInput): ChapterRoadmapGroup[] {
       input.courseAccessType,
       input.hasPaidAccess,
       input.tierSlug,
+      input.openedLessons,
     ],
   )
 }

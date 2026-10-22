@@ -35,6 +35,9 @@ export {
   canAccessLearningExercise,
   canAccessPracticeLesson,
   canAccessExam,
+  getLearningLessonOpenOrdinal,
+  EMPTY_OPENED_LESSONS,
+  type OpenedLessonIds,
 } from './content-gates'
 export { TIER_DAILY_AI_QUESTIONS, getUserDailyAiQuota } from './ai-quota'
 export { selectGeminiModel } from './model-selection'

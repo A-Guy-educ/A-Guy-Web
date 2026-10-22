@@ -33,6 +33,16 @@ function dispatchMediaAttach(detail: AskMediaAttachEvent) {
   window.dispatchEvent(new CustomEvent(ASK_MEDIA_ATTACH_EVENT, { detail }))
 }
 
+/** Park the room's current media so refresh / re-entry restores it, even before it's sent. */
+function savePendingMedia(contextKey: string | undefined, payload: AskPendingMediaPayload) {
+  if (!contextKey) return
+  window.sessionStorage.setItem(getAskPendingMediaKey(contextKey), JSON.stringify(payload))
+}
+
+function hasPendingMedia(contextKey: string | undefined): boolean {
+  return !!contextKey && window.sessionStorage.getItem(getAskPendingMediaKey(contextKey)) !== null
+}
+
 interface AskPrimaryContentProps {
   /**
    * Conversation contextKey — scopes the sessionStorage pending-media
@@ -77,8 +87,11 @@ export function AskPrimaryContent({ contextKey }: AskPrimaryContentProps) {
   }, [currentFile, contextKey])
 
   // Restore image from conversation history (or from a composer drop handoff).
+  // A room-scoped sessionStorage entry wins: it's this tab's latest upload,
+  // which may not have been sent (and so isn't in history) yet.
   useEffect(() => {
     const handler = (e: Event) => {
+      if (hasPendingMedia(contextKey)) return
       const { mediaId, filename, url, mimeType } = (e as CustomEvent<AskMediaRestoreEvent>).detail
       setCurrentFile({
         id: Date.now(),
@@ -94,7 +107,7 @@ export function AskPrimaryContent({ contextKey }: AskPrimaryContentProps) {
     }
     window.addEventListener(ASK_MEDIA_RESTORE_EVENT, handler)
     return () => window.removeEventListener(ASK_MEDIA_RESTORE_EVENT, handler)
-  }, [])
+  }, [contextKey])
 
   // Pending-media handoff from the course search composer: a dropped file was
   // uploaded + a conversation was spun up before navigation, and the media
@@ -177,7 +190,10 @@ export function AskPrimaryContent({ contextKey }: AskPrimaryContentProps) {
           ? { ...prev, mediaId, isUploading: false, url: uploadedUrl ?? prev.url, filename }
           : prev,
       )
-      if (uploadedUrl) URL.revokeObjectURL(previewUrl)
+      if (uploadedUrl) {
+        URL.revokeObjectURL(previewUrl)
+        savePendingMedia(contextKey, { mediaId, filename, mimeType: file.type, url: uploadedUrl })
+      }
       dispatchMediaAttach({ mediaId, filename })
     } catch {
       toast.error(t('uploadFailed'))

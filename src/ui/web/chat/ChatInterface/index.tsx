@@ -8,8 +8,6 @@ import {
   ArrowUp,
   BookOpen,
   CheckCircle,
-  ChevronLeft,
-  ChevronRight,
   FileText,
   FileUp,
   Image as ImageIcon,
@@ -425,9 +423,6 @@ export function ChatInterface({
 
   const [toolbarOpen, setToolbarOpen] = useState(false)
   const [formulaSheetOpen, setFormulaSheetOpen] = useState(false)
-  // Input pill starts folded so the chat area has more vertical room; the
-  // student taps the chevron on the left margin to reveal the textbox.
-  const [isInputFolded, setIsInputFolded] = useState(true)
   const mathInputRef = useRef<MixedMathInputRef>(null)
   const formRef = useRef<HTMLFormElement>(null)
 
@@ -538,26 +533,9 @@ export function ChatInterface({
                   isCurrentlyPlaying && 'ring-2 ring-primary/30',
                 )}
               >
-                {msg.media && msg.media.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mb-2">
-                    {msg.media.map((mediaItem) => (
-                      <div
-                        key={mediaItem.mediaId}
-                        className={cn(
-                          'inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-body-xs',
-                          msg.role === ChatMessageRole.User
-                            ? 'bg-primary-foreground/20'
-                            : 'bg-muted',
-                        )}
-                      >
-                        <ImageIcon className="w-3 h-3" />
-                        <span className="max-w-[120px] truncate">
-                          {mediaItem.filename || mediaItem.mediaId}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                {/* Ask-page exercise media (`msg.media`) is sent with every message
+                    silently — no chip in the bubble. It stays on the message so
+                    history restore can re-attach it. */}
                 {msg.chatAssets && msg.chatAssets.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mb-2">
                     {msg.chatAssets.map((asset) => (
@@ -716,7 +694,7 @@ export function ChatInterface({
         data-math-controls
       >
         {/* Math quick-insert toolbar */}
-        {!isInputFolded && showMathTools && toolbarOpen && (
+        {showMathTools && toolbarOpen && (
           <div className="mb-2.5 max-w-chat mx-auto rounded-lg border border-border bg-card shadow-card p-2">
             <MathPicker
               onInsert={handleInsertMath}
@@ -726,8 +704,7 @@ export function ChatInterface({
           </div>
         )}
 
-        {/* Mobile Toggle — kept visible even when input is folded so the
-            student can still swap between PDF and Chat views. */}
+        {/* Mobile Toggle */}
         {isMobile && viewMode && onModeToggle && (
           <div className="flex mb-2.5 px-1.5 justify-end max-w-chat mx-auto">
             <button
@@ -752,7 +729,7 @@ export function ChatInterface({
         )}
 
         {/* Direct Upload Previews */}
-        {!isInputFolded && directUploads.length > 0 && (
+        {directUploads.length > 0 && (
           <div className="flex flex-wrap gap-content-gap-xs mb-2.5 max-w-chat mx-auto">
             {directUploads.map((file) => (
               <div
@@ -818,99 +795,77 @@ export function ChatInterface({
           </div>
         )}
 
-        {/* Fold toggle + input row. The chevron sits on the physical left
-            edge regardless of RTL so it stays at a predictable spot on
-            mobile; the form fills the remaining width when expanded. */}
-        <div dir="ltr" className="max-w-chat mx-auto flex items-end gap-content-gap-xs">
-          <button
-            type="button"
-            onClick={() => setIsInputFolded((v) => !v)}
-            className="shrink-0 w-9 h-9 rounded-full border border-border bg-muted hover:bg-muted/80 text-foreground flex items-center justify-center transition-colors"
-            aria-label={isInputFolded ? tCourses('chatExpandInput') : tCourses('chatCollapseInput')}
-            aria-expanded={!isInputFolded}
-            title={isInputFolded ? tCourses('chatExpandInput') : tCourses('chatCollapseInput')}
+        {/* Input Wrapper */}
+        <form ref={formRef} onSubmit={handleFormSubmit}>
+          <div
+            dir="rtl"
+            className="max-w-chat mx-auto bg-muted rounded-chat-2xl flex items-center px-4 py-1.5 border border-input gap-3 relative"
           >
-            {isInputFolded ? (
-              <ChevronRight className="w-4 h-4" />
-            ) : (
-              <ChevronLeft className="w-4 h-4" />
-            )}
-          </button>
-
-          {/* Hidden file input stays mounted even when folded so queued
-              uploads can finish/retry via the direct-upload hook. */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="hidden"
-            accept="image/jpeg,image/png,image/webp,application/pdf"
-            multiple
-            onChange={(e) => {
-              if (e.target.files) addDirectUploads(e.target.files)
-              e.target.value = ''
-            }}
-          />
-
-          {!isInputFolded && (
-            <form ref={formRef} onSubmit={handleFormSubmit} className="flex-1 min-w-0">
-              <div
-                dir="rtl"
-                className="bg-muted rounded-chat-2xl flex items-center px-4 py-1.5 border border-input gap-3 relative"
-              >
-                {/* Unified + menu: math atoms + image upload. Lives at the pill's
-                    right edge (dir=rtl, first flex child) opposite the Send button. */}
-                {showMathTools && (
-                  <button
-                    type="button"
-                    onClick={() => setToolbarOpen((v) => !v)}
-                    className={cn(
-                      'p-1.5 rounded-lg border transition-colors',
-                      toolbarOpen
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20',
-                    )}
-                    title={tCourses('insertFormula')}
-                  >
-                    <Plus className="w-5 h-5" />
-                  </button>
+            {/* Unified + menu: math atoms + image upload. Lives at the pill's
+                right edge (dir=rtl, first flex child) opposite the Send button. */}
+            {showMathTools && (
+              <button
+                type="button"
+                onClick={() => setToolbarOpen((v) => !v)}
+                className={cn(
+                  'p-1.5 rounded-lg border transition-colors',
+                  toolbarOpen
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20',
                 )}
+                title={tCourses('insertFormula')}
+              >
+                <Plus className="w-5 h-5" />
+              </button>
+            )}
 
-                {/* Mixed-mode math input — WYSIWYG, math atoms render inline */}
-                <MixedMathInput
-                  ref={mathInputRef}
-                  value={inputValue}
-                  onChange={setInputValue}
-                  onEnterKey={triggerSubmit}
-                  onReady={(el) => {
-                    inputRef.current = el
-                  }}
-                  disabled={isLoading}
-                  placeholder={t('chatInputPlaceholder')}
-                  className="flex-1 py-2.5"
-                />
+            {/* Mixed-mode math input — WYSIWYG, math atoms render inline */}
+            <MixedMathInput
+              ref={mathInputRef}
+              value={inputValue}
+              onChange={setInputValue}
+              onEnterKey={triggerSubmit}
+              onReady={(el) => {
+                inputRef.current = el
+              }}
+              disabled={isLoading}
+              placeholder={t('chatInputPlaceholder')}
+              className="flex-1 py-2.5"
+            />
 
-                {/* Send Button */}
-                <button
-                  type="submit"
-                  className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-input hover:bg-primary/90 transition-all hover:scale-105 disabled:opacity-disabled disabled:cursor-not-allowed"
-                  disabled={
-                    isLoading ||
-                    isDirectUploading ||
-                    (!inputValue.trim() && completedChatAssetIds.length === 0) ||
-                    !!(currentUser && !isAdmin && quota.isLimitReached)
-                  }
-                  aria-label={tCourses('sendMessage')}
-                >
-                  {isDirectUploading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <ArrowUp className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
+            {/* Hidden file input the picker's Image action triggers. */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              accept="image/jpeg,image/png,image/webp,application/pdf"
+              multiple
+              onChange={(e) => {
+                if (e.target.files) addDirectUploads(e.target.files)
+                e.target.value = ''
+              }}
+            />
+
+            {/* Send Button */}
+            <button
+              type="submit"
+              className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-input hover:bg-primary/90 transition-all hover:scale-105 disabled:opacity-disabled disabled:cursor-not-allowed"
+              disabled={
+                isLoading ||
+                isDirectUploading ||
+                (!inputValue.trim() && completedChatAssetIds.length === 0) ||
+                !!(currentUser && !isAdmin && quota.isLimitReached)
+              }
+              aria-label={tCourses('sendMessage')}
+            >
+              {isDirectUploading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <ArrowUp className="w-5 h-5" />
+              )}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   )

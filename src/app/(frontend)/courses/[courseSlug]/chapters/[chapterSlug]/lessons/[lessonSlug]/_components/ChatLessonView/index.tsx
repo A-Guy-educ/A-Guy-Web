@@ -38,8 +38,9 @@ interface ChatLessonViewProps {
   formulaSheet?: FormulaSheet | null
   headerSlot?: ReactNode
   /**
-   * 1-based learning-lesson index within the course. Forwarded to the walker so
-   * free-tier students on lessons past #3 see at most 3 exercises before the
+   * 1-based position in the user's opened learning lessons. Forwarded to the
+   * walker so free-tier students past their 3rd opened lesson see at most 3
+   * exercises before the
    * tier-lock terminator bubble. `null` disables the gate (same contract as
    * ExercisesPager — practice/exam lessons bypass the gate entirely).
    */

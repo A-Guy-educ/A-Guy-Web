@@ -101,12 +101,12 @@ describe('ChatInterface static analysis - React keys', () => {
         expect(sourceCode).not.toMatch(pattern)
       }
 
-      // Should use proper keys like key={mediaItem.mediaId} or key={asset.chatAssetId}
-      const goodMediaKeyPattern = /key=\{\s*\w+\.mediaId\s*\}/
+      // Chat assets use a stable key. Ask-page media (`msg.media`) is sent
+      // silently and must not render a chip in the bubble at all.
       const goodAssetKeyPattern = /key=\{\s*\w+\.chatAssetId\s*\}/
 
-      expect(sourceCode).toMatch(goodMediaKeyPattern)
       expect(sourceCode).toMatch(goodAssetKeyPattern)
+      expect(sourceCode).not.toMatch(/msg\.media\.map\s*\(/)
     })
   })
 })

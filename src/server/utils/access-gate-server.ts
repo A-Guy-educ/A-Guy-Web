@@ -14,7 +14,12 @@ import { cookies } from 'next/headers'
 import { AUTH_COOKIE_NAME, getSessionFromToken } from '@/infra/auth/web-auth'
 
 interface AuthResult {
-  user: { id: string; role?: string | null; roles?: string[] | null } | null
+  user: {
+    id: string
+    role?: string | null
+    roles?: string[] | null
+    currentTier?: string | null
+  } | null
   payload: null
 }
 

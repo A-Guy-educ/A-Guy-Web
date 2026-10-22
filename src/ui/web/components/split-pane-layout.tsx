@@ -310,31 +310,36 @@ export function SplitPaneLayout({
         </div>
       ) : (
         <div className="relative h-full overflow-hidden">
-          {activeMobileMode === 'exercise' && (
-            <div
-              key="exercise"
-              className={cn(
-                'absolute inset-0 overflow-hidden',
-                transitionDirection === 'to-exercise' &&
-                  'animate-in slide-in-from-right-8 duration-slow',
-              )}
-            >
-              {primaryContent}
-            </div>
-          )}
+          {/* Both panes stay mounted and the inactive one is hidden. Unmounting
+              would drop window-event listeners (e.g. the Ask page's
+              `ask-media-attach` fired while the chat is off-screen) and lose
+              per-pane state (uploaded image, pending chat media). */}
+          <div
+            key="exercise"
+            className={cn(
+              'absolute inset-0 overflow-hidden',
+              activeMobileMode !== 'exercise' && 'hidden',
+              transitionDirection === 'to-exercise' &&
+                'animate-in slide-in-from-right-8 duration-slow',
+            )}
+          >
+            {primaryContent}
+          </div>
 
-          {activeMobileMode === 'chat' && (
-            <div
-              key="chat"
-              className="absolute inset-0 overflow-hidden bg-background animate-in slide-in-from-left-8 duration-slow"
-              role="region"
-              aria-label="Chat"
-            >
-              {renderMobileChat({
-                onChatInteraction: openChat,
-              })}
-            </div>
-          )}
+          <div
+            key="chat"
+            className={cn(
+              'absolute inset-0 overflow-hidden bg-background animate-in slide-in-from-left-8 duration-slow',
+              activeMobileMode !== 'chat' && 'hidden',
+            )}
+            role="region"
+            aria-label="Chat"
+            aria-hidden={activeMobileMode !== 'chat'}
+          >
+            {renderMobileChat({
+              onChatInteraction: openChat,
+            })}
+          </div>
 
           {activeMobileMode === 'exercise' && (
             <MobileChatFAB
@@ -343,7 +348,7 @@ export function SplitPaneLayout({
               onClose={returnToExercise}
               panelMode="button-only"
             >
-              {renderMobileChat()}
+              {null}
             </MobileChatFAB>
           )}
         </div>

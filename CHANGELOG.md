@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.54.0 — 2026-10-22
+
+### Features
+- Add student registration page from the product demo (#1462)
+- Gate free lessons by opened-lesson counter (#1458)
+
+### Bug Fixes
+- Honor SVG display size and drop fixed-height frame (#1461)
+- Attach and persist Ask page media on mobile and refresh (#1459)
+- Remove fold toggle from ChatInterface (#1457)
+
 ## v0.53.0 — 2026-10-21
 
 ### Features
@@ -5044,6 +5055,15 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.54.0 ([#1463](https://github.com/A-Guy-educ/A-Guy-Web/pull/1463)) — @aguyshayb
+- feat(join): Add student registration page from the product demo ([#1462](https://github.com/A-Guy-educ/A-Guy-Web/pull/1462)) — @aguyshayb
+- fix(svg): Honor display size and drop fixed-height frame ([#1461](https://github.com/A-Guy-educ/A-Guy-Web/pull/1461)) — @aguyshayb
+- fix(ask): Attach and persist Ask page media on mobile and refresh ([#1459](https://github.com/A-Guy-educ/A-Guy-Web/pull/1459)) — @aguyshayb
+- feat(tiers): Gate free lessons by opened-lesson counter ([#1458](https://github.com/A-Guy-educ/A-Guy-Web/pull/1458)) — @aguyshayb
+- fix(chat): Remove fold toggle from ChatInterface ([#1457](https://github.com/A-Guy-educ/A-Guy-Web/pull/1457)) — @aguyshayb
+## [v0.53.0] - 2026-10-21
+
+- promote: dev -> main (v0.53.0) ([#1456](https://github.com/A-Guy-educ/A-Guy-Web/pull/1456)) — @aguyshayb
 - chore: Release v0.53.0 ([#1455](https://github.com/A-Guy-educ/A-Guy-Web/pull/1455)) — @aguyshayb
 - fix(subscriptions): Don't treat pending bootstrap subs as current tier ([#1454](https://github.com/A-Guy-educ/A-Guy-Web/pull/1454)) — @aguyshayb
 - fix(auth): Stamp default tenant on password and Google signups ([#1453](https://github.com/A-Guy-educ/A-Guy-Web/pull/1453)) — @aguyshayb
