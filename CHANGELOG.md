@@ -5055,6 +5055,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.54.0 ([#1463](https://github.com/A-Guy-educ/A-Guy-Web/pull/1463)) — @aguyshayb
 - feat(join): Add student registration page from the product demo ([#1462](https://github.com/A-Guy-educ/A-Guy-Web/pull/1462)) — @aguyshayb
 - fix(svg): Honor display size and drop fixed-height frame ([#1461](https://github.com/A-Guy-educ/A-Guy-Web/pull/1461)) — @aguyshayb
 - fix(ask): Attach and persist Ask page media on mobile and refresh ([#1459](https://github.com/A-Guy-educ/A-Guy-Web/pull/1459)) — @aguyshayb
