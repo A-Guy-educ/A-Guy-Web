@@ -7,11 +7,13 @@ import { RichTextRenderer } from '../RichTextRenderer'
 import { sanitizeSvg } from '../../utils/svgSanitize'
 import { expandViewBoxWhenReady } from '@/ui/web/media/SVGMedia/expandViewBoxToContent'
 import { ensureSvgViewBox } from '@/ui/web/media/SVGMedia/ensureSvgViewBox'
+import { useMediaQuery } from '@/client/hooks/useMediaQuery'
+import { getSvgAspectRatio, getSvgCardStyle, type DisplaySize } from './svgSizing'
 
-// Legacy display-size enum kept for prop compatibility; sizing is now driven
-// by the CSS version of the shared sketch rules (height 330px, max-width
-// 75% of parent, min-width 280px). `xsmall` matches Admin's expanded enum.
-export type DisplaySize = 'xsmall' | 'small' | 'medium' | 'large' | 'full'
+export type { DisplaySize }
+
+// Tailwind `md` breakpoint, same as useEffectiveDisplaySize.
+const MOBILE_QUERY = '(max-width: 767px)'
 
 interface SvgRendererProps {
   block: SvgBlock
@@ -20,7 +22,7 @@ interface SvgRendererProps {
   disabled?: boolean
   checkResult?: CheckResult | null
   correctHotspotIds?: string[]
-  /** Legacy — see note on `DisplaySize` above. Unused in sizing math. */
+  /** Authored size; scales the whole sketch (card + SVG). Defaults to `full`. */
   displaySize?: DisplaySize
 }
 
@@ -31,6 +33,7 @@ export function SvgRenderer({
   disabled,
   checkResult,
   correctHotspotIds,
+  displaySize,
 }: SvgRendererProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   // Bake the viewBox into the markup BEFORE it hits the DOM so the SVG is
@@ -45,9 +48,15 @@ export function SvgRenderer({
 
   const isInteractive = block.interactive && block.hotspots && block.hotspots.length > 0
 
+  const isMobile = useMediaQuery(MOBILE_QUERY)
+  const cardStyle = useMemo(
+    () => getSvgCardStyle(getSvgAspectRatio(sanitizedSvg), displaySize, isMobile),
+    [sanitizedSvg, displaySize, isMobile],
+  )
+
   // Ensure every direct <svg> child has a viewBox and a preserveAspectRatio
-  // so the shared CSS rules below (`[&>svg]:w-auto [&>svg]:h-full`) can scale
-  // the diagram to the fixed 330px frame without clipping or distortion.
+  // so the CSS rules below (`[&>svg]:w-full [&>svg]:h-auto`) can scale the
+  // diagram to the card width without clipping or distortion.
   //
   // IMPORTANT: iterate over EVERY direct <svg> child, not just the first.
   // Admin occasionally stores two sibling <svg> blocks in a single field
@@ -174,21 +183,14 @@ export function SvgRenderer({
     ? { ...block.caption, id: `${block.id}-caption`, mediaIds: block.caption.mediaIds || [] }
     : null
 
-  // Sizing follows the shared sketch rules (height 330, max 75% of parent,
-  // min 280). The outer wrapper owns the width constraints so the whole
-  // card including caption tracks the sketch width; the inner frame fixes
-  // the 330px height and lets each <svg> fit by aspect ratio.
-  //
-  // `displaySize` is intentionally no longer consulted — the spec uses a
-  // single container-relative max rather than per-block percentage scales.
-  // The prop stays in the interface for backwards compatibility.
+  // The outer wrapper owns the width (see svgSizing.ts) so the whole card,
+  // caption included, tracks the sketch width. There is deliberately no fixed
+  // height: each <svg> fills the width and takes its height from the viewBox,
+  // so the card hugs the drawing instead of letterboxing it on mobile.
   return (
     <div
-      className="rounded-xl border border-border/20 overflow-hidden bg-card shadow-elevation-1 mx-auto"
-      style={{
-        maxWidth: 'min(75%, 100%)',
-        minWidth: 'min(280px, 100%)',
-      }}
+      className="rounded-xl border border-border/20 overflow-hidden bg-card shadow-elevation-1 mx-auto max-w-full"
+      style={cardStyle}
     >
       <div
         ref={containerRef}
@@ -201,10 +203,9 @@ export function SvgRenderer({
         // "= 2 · 3 + 4".
         dir="ltr"
         className={cn(
-          'overflow-hidden [&>svg]:w-auto [&>svg]:h-full [&>svg]:max-w-full [&>svg]:mx-auto',
+          'overflow-hidden [&>svg]:block [&>svg]:w-full [&>svg]:h-auto',
           isInteractive && 'select-none',
         )}
-        style={{ height: '330px' }}
         dangerouslySetInnerHTML={{ __html: sanitizedSvg }}
       />
       {captionBlock && (
