@@ -1162,6 +1162,36 @@
       "cancelProvider": "Payment provider refused the cancel request. Please try again."
     }
   },
+  "studentJoin": {
+    "title": "Nice to meet you!",
+    "subtitle": "A few quick details and you're in",
+    "fields": {
+      "school": "School",
+      "class": "Class",
+      "name": "Full name",
+      "phone": "Mobile number"
+    },
+    "placeholders": {
+      "school": "Choose a school",
+      "class": "Choose a class",
+      "classNeedsSchool": "Choose a school first",
+      "name": "What's your name?"
+    },
+    "errors": {
+      "school": "Please choose a school",
+      "class": "Please choose a class",
+      "name": "Please enter a name (at least 2 characters)",
+      "phone": "Enter a 10-digit mobile number starting with 05"
+    },
+    "submit": "Let's go",
+    "submitting": "One moment...",
+    "result": {
+      "ok": "You're registered! Taking you to your lesson...",
+      "alreadyRegistered": "This number is already registered. You can just log in.",
+      "failed": "Something went wrong. Try again in a moment."
+    },
+    "footnote": "Your details are only used to link you to your class and teacher"
+  },
   "subscriptions": {
     "title": "Choose your plan",
     "description": "Full access to lessons, practice, exams, and an AI tutor — pick what fits.",
