@@ -533,26 +533,9 @@ export function ChatInterface({
                   isCurrentlyPlaying && 'ring-2 ring-primary/30',
                 )}
               >
-                {msg.media && msg.media.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mb-2">
-                    {msg.media.map((mediaItem) => (
-                      <div
-                        key={mediaItem.mediaId}
-                        className={cn(
-                          'inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-body-xs',
-                          msg.role === ChatMessageRole.User
-                            ? 'bg-primary-foreground/20'
-                            : 'bg-muted',
-                        )}
-                      >
-                        <ImageIcon className="w-3 h-3" />
-                        <span className="max-w-[120px] truncate">
-                          {mediaItem.filename || mediaItem.mediaId}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                {/* Ask-page exercise media (`msg.media`) is sent with every message
+                    silently — no chip in the bubble. It stays on the message so
+                    history restore can re-attach it. */}
                 {msg.chatAssets && msg.chatAssets.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mb-2">
                     {msg.chatAssets.map((asset) => (

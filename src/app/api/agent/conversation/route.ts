@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
 import { requireUser } from '@/server/auth/api-auth'
-import { findConversation, formatConversationResponse } from '@/server/web-api/chat'
+import { getConversationWithMedia } from '@/server/web-api/conversation-media'
 
 const BodySchema = z.object({ contextKey: z.string().min(1).max(200) })
 
@@ -13,6 +13,5 @@ export async function POST(request: NextRequest) {
   const auth = await requireUser(request)
   if (!auth.ok) return auth.response
 
-  const conversation = await findConversation(auth.value.id, parsed.data.contextKey)
-  return NextResponse.json(formatConversationResponse(conversation, parsed.data.contextKey))
+  return NextResponse.json(await getConversationWithMedia(auth.value.id, parsed.data.contextKey))
 }

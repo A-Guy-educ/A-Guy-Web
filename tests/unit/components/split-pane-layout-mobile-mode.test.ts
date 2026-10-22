@@ -23,6 +23,14 @@ describe('SplitPaneLayout mobile exercise mode contract', () => {
     expect(splitPaneSource).toContain("'exercise-incorrect-answer'")
   })
 
+  it('keeps both mobile panes mounted so off-screen chat still receives window events', () => {
+    // Ask page uploads fire `ask-media-attach` while the exercise pane is
+    // showing; an unmounted chat would silently drop the image attachment.
+    expect(splitPaneSource).not.toContain("activeMobileMode === 'chat' && (")
+    expect(splitPaneSource).toContain("activeMobileMode !== 'chat' && 'hidden'")
+    expect(splitPaneSource).toContain("activeMobileMode !== 'exercise' && 'hidden'")
+  })
+
   it('supports full-screen chat without rendering the legacy bottom sheet', () => {
     expect(fabSource).toContain("panelMode?: 'sheet' | 'button-only'")
     expect(fabSource).toContain("panelMode === 'sheet' && isOpen")

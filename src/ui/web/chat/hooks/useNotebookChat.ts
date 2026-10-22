@@ -31,7 +31,7 @@ export interface ChatMessage {
   id: string
   role: ChatRole
   content: string
-  media?: Array<{ mediaId: string; filename?: string; url?: string }>
+  media?: Array<{ mediaId: string; filename?: string; url?: string; mimeType?: string }>
   chatAssets?: Array<{ chatAssetId: string; filename?: string }>
   /** Populated for user messages sent while the lesson player was on a step. */
   stepContext?: ChatStepContext
@@ -326,7 +326,12 @@ export function useNotebookChat({
               const loadedMessages: ChatMessage[] = validMessages.map((msg) => {
                 const raw = msg as {
                   id?: string
-                  media?: Array<{ mediaId: string; filename?: string; url?: string }>
+                  media?: Array<{
+                    mediaId: string
+                    filename?: string
+                    url?: string
+                    mimeType?: string
+                  }>
                   chatAssets?: Array<{ chatAssetId: string; filename?: string }>
                   createdAt?: string
                 }
@@ -352,19 +357,23 @@ export function useNotebookChat({
                 }
               })
 
-              // Restore Ask-page media panel from first user message with media
-              const firstMediaMsg = loadedMessages.find(
-                (m) => m.role === ChatRole.User && m.media && m.media.length > 0,
-              )
-              if (firstMediaMsg?.media?.[0]) {
-                const m = firstMediaMsg.media[0]
-                if (m.mediaId && m.url) {
-                  window.dispatchEvent(
-                    new CustomEvent('ask-media-restore', {
-                      detail: { mediaId: m.mediaId, filename: m.filename || '', url: m.url },
-                    }),
-                  )
-                }
+              // Restore Ask-page media panel from the latest user message with
+              // media — a student may swap the exercise image mid-conversation.
+              const latestMediaMsg = [...loadedMessages]
+                .reverse()
+                .find((m) => m.role === ChatRole.User && m.media && m.media.length > 0)
+              const m = latestMediaMsg?.media?.[0]
+              if (m?.mediaId && m.url) {
+                window.dispatchEvent(
+                  new CustomEvent('ask-media-restore', {
+                    detail: {
+                      mediaId: m.mediaId,
+                      filename: m.filename || '',
+                      url: m.url,
+                      mimeType: m.mimeType,
+                    },
+                  }),
+                )
               }
 
               logger.debug(
