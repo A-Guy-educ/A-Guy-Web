@@ -5044,6 +5044,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix(chat): Remove fold toggle from ChatInterface ([#1457](https://github.com/A-Guy-educ/A-Guy-Web/pull/1457)) — @aguyshayb
 ## [v0.53.0] - 2026-10-21
 
 - promote: dev -> main (v0.53.0) ([#1456](https://github.com/A-Guy-educ/A-Guy-Web/pull/1456)) — @aguyshayb
