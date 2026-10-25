@@ -17,7 +17,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import { parseGuestLanding } from '@/infra/analytics/guest-landing'
 import { isValidGuestSessionId } from '@/infra/analytics/guest-session-cookie'
-import { verifySignedLoopback } from '@/infra/analytics/guest-session-loopback'
+import { verifySignedLoopbackWebhook } from '@/infra/analytics/guest-session-loopback'
 import { logger } from '@/infra/utils/logger/logger'
 import { recordGuestSession } from '@/server/services/guest-sessions/guest-session-writer'
 
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return new NextResponse(null, { status: 500 })
   }
 
-  const result = await verifySignedLoopback(request, secret)
+  const result = await verifySignedLoopbackWebhook(request, secret)
   if (!result.ok) return new NextResponse(null, { status: result.status })
 
   const body = result.body as { sessionId?: unknown; landing?: unknown } | null

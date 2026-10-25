@@ -12,7 +12,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { isBotCategory } from '@/infra/analytics/bot-user-agent'
-import { verifySignedLoopback } from '@/infra/analytics/guest-session-loopback'
+import { verifySignedLoopbackWebhook } from '@/infra/analytics/guest-session-loopback'
 import { logger } from '@/infra/utils/logger/logger'
 import { incrementBotHit } from '@/server/services/guest-sessions/bot-hits-writer'
 
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return new NextResponse(null, { status: 500 })
   }
 
-  const result = await verifySignedLoopback(request, secret)
+  const result = await verifySignedLoopbackWebhook(request, secret)
   if (!result.ok) return new NextResponse(null, { status: result.status })
 
   const category = (result.body as { category?: unknown } | null)?.category

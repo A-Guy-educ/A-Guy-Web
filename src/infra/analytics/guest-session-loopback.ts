@@ -11,7 +11,7 @@ import { signGuestPayload, timingSafeEqualHex } from './guest-session-signing'
 
 export type SignedLoopbackResult = { ok: true; body: unknown } | { ok: false; status: 400 | 401 }
 
-export async function verifySignedLoopback(
+export async function verifySignedLoopbackWebhook(
   request: Request,
   secret: string,
 ): Promise<SignedLoopbackResult> {

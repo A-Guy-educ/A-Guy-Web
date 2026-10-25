@@ -26,6 +26,8 @@ export const dynamic = 'force-dynamic'
 const NOT_RECORDED = { recorded: false } as const
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  // public endpoint — anonymous visitors only; the httpOnly guest cookie scopes
+  // every write to the caller's own guest-session row (see header comment).
   const sessionId = request.cookies.get(GUEST_SESSION_COOKIE)?.value
   if (!isValidGuestSessionId(sessionId)) return NextResponse.json(NOT_RECORDED)
 
