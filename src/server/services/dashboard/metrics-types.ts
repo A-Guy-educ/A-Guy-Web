@@ -179,6 +179,11 @@ export interface DashboardMetricsResponse {
   revenueMetrics: RevenueMetrics
   tokenMetrics: TokenMetrics
   /**
+   * Landing attribution, onboarding funnel and bot share for anonymous
+   * visitors. Shape lives with the service in `./guest-insights-types.ts`.
+   */
+  guestInsights: import('./guest-insights-types').GuestInsights
+  /**
    * Optional Product Health tab payload. Gated behind
    * `PRODUCT_HEALTH_ENABLED`; the field is omitted (undefined) when off so
    * Dash's optional-field degradation path stays exercised until launch.

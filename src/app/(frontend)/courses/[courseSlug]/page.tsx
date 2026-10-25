@@ -73,6 +73,7 @@ export default async function CoursePage({ params }: CoursePageProps) {
       courseSlug={courseSlug}
       gatedDelayMs={gatedDelayMs}
       gatedWarningMs={gatedWarningMs}
+      onboardingTrigger={{ type: 'course', id: course.id }}
     >
       <CoursePageContent
         course={course}

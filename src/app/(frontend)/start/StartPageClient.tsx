@@ -4,6 +4,7 @@ import { BookOpen, Bot, Crosshair, GraduationCap, Sparkles, type LucideIcon } fr
 import { useCallback, useEffect, useState } from 'react'
 
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
+import { trackOnboardingStep } from '@/client/utils/guest-session-beacon'
 import { selectCourse, setUserProfile } from '@/client/state/localStorage/userProfile'
 import type { Course } from '@/infra/types/content'
 import { cn } from '@/infra/utils/ui'
@@ -124,6 +125,13 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
   const [selectedTeacherProfile, setSelectedTeacherProfile] = useState<TeacherProfile | null>(null)
   const [showLoginModal, setShowLoginModal] = useState(false)
   const { user, isLoading: isAuthLoading } = useCurrentUser()
+  const isAnonymous = !user && !isAuthLoading
+
+  // Guest funnel: the wizard is the persona → grade → sign-up onboarding.
+  // Signed-in users run it too (course re-pick), so only anonymous visits count.
+  useEffect(() => {
+    if (isAnonymous) trackOnboardingStep('started')
+  }, [isAnonymous])
 
   useEffect(() => {
     document.body.classList.add('landing-page')
@@ -220,12 +228,13 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
   const selectTeacher = useCallback(
     async (teacher: TeacherProfile) => {
       setSelectedTeacherProfile(teacher)
+      if (isAnonymous) trackOnboardingStep('personaSelected')
       playTone(580, 120)
       showText(copy.moodQuestion)
       setInteraction('mood')
       await saveTeacherProfile(teacher.slug)
     },
-    [copy.moodQuestion, playTone, saveTeacherProfile, showText],
+    [copy.moodQuestion, isAnonymous, playTone, saveTeacherProfile, showText],
   )
 
   const selectCourseHandler = useCallback(
@@ -249,8 +258,9 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
       playTone(580, 120)
       showText(copy.selected)
 
-      const isAnonymous = !user && !isAuthLoading
       if (isAnonymous) {
+        trackOnboardingStep('gradeSelected')
+        trackOnboardingStep('signupPromptShown')
         setPane('redirecting')
         setShowLoginModal(true)
         return
@@ -261,7 +271,7 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
         window.location.assign(getCourseHref(course))
       }, 800)
     },
-    [copy.selected, isAuthLoading, playTone, showText, user],
+    [copy.selected, isAnonymous, playTone, showText],
   )
 
   return (

@@ -22,6 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/ui/web/components/dialog'
+import { trackOnboardingStep } from '@/client/utils/guest-session-beacon'
 import { GoogleLoginButton } from '@/ui/web/auth/GoogleLoginButton'
 import { Progress } from '@/ui/web/components/progress'
 import { useTranslations } from '@/ui/web/providers/I18n'
@@ -172,6 +173,10 @@ export function LessonIntroPage({
   const requestStart = (index: number) => {
     if (isAnonymous) {
       setShowLoginPrompt(true)
+      trackOnboardingStep(
+        'signupPromptShown',
+        lessonId ? { type: 'lesson', id: lessonId } : undefined,
+      )
       return
     }
     handleStart(index)
@@ -511,7 +516,7 @@ export function LessonIntroPage({
             </DialogDescription>
           </DialogHeader>
           <div className="mt-4 flex justify-center">
-            <GoogleLoginButton returnTo={pathname} className="w-full" />
+            <GoogleLoginButton returnTo={pathname} className="w-full" trackAsOnboarding />
           </div>
         </DialogContent>
       </Dialog>

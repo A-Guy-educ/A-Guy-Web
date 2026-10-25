@@ -72,6 +72,7 @@ export default async function ChapterPage({ params }: ChapterPageProps) {
       courseSlug={courseSlug}
       gatedDelayMs={gatedDelayMs}
       gatedWarningMs={gatedWarningMs}
+      onboardingTrigger={{ type: 'course', id: course.id }}
     >
       <div className="container mx-auto px-4 py-section-md max-w-5xl">
         {/* Enhanced breadcrumb area */}
