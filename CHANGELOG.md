@@ -5055,6 +5055,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix(deps): Patch Next.js RCE and other new audit advisories ([#1466](https://github.com/A-Guy-educ/A-Guy-Web/pull/1466)) — @aguyshayb
 ## [v0.54.0] - 2026-10-22
 
 - promote: dev -> main (v0.54.0) ([#1464](https://github.com/A-Guy-educ/A-Guy-Web/pull/1464)) — @aguyshayb
