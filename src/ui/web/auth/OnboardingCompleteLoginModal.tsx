@@ -47,6 +47,7 @@ export function OnboardingCompleteLoginModal({
           <GoogleLoginButton
             returnTo={returnTo}
             label={t('primaryCta')}
+            trackAsOnboarding
             className="h-12 w-full rounded-xl border-2 text-body-md font-semibold"
           />
         </div>

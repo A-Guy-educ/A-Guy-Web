@@ -35,6 +35,23 @@ async function createIndexes(db: Db): Promise<void> {
     db
       .collection('guest-sessions')
       .createIndex({ claimedByUser: 1 }, { name: 'guest_sessions_claimed_by_user' }),
+    // guestInsights: 30-day landing breakdown / top paths / referrers / bots
+    // all open with `createdAt >= since AND landingType IN [...]`.
+    db
+      .collection('guest-sessions')
+      .createIndex(
+        { createdAt: 1, landingType: 1 },
+        { name: 'guest_sessions_created_at_landing_type' },
+      ),
+    // guestInsights onboarding funnel: cohort by onboarding start. Partial so
+    // only sessions that entered onboarding are indexed.
+    db.collection('guest-sessions').createIndex(
+      { 'onboarding.startedAt': 1, createdAt: 1 },
+      {
+        name: 'guest_sessions_onboarding_started_at',
+        partialFilterExpression: { 'onboarding.startedAt': { $exists: true } },
+      },
+    ),
     // Backs aggregateUsersPerCurrentCourse — partial so it only indexes
     // users who have picked a course, matching the pipeline's $match
     // predicate exactly. Keeps the index small while `currentCourse`

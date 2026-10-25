@@ -13,6 +13,7 @@ import { createHash, randomBytes } from 'crypto'
 
 import { ObjectId, type Collection, type Document } from 'mongodb'
 
+import type { GuestLanding } from '@/infra/analytics/guest-landing'
 import { getContentDb } from '@/infra/db/content-db'
 import { logger } from '@/infra/utils/logger/logger'
 
@@ -32,7 +33,12 @@ const DUPLICATE_KEY_ERROR = 11000
  */
 const GUEST_SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000
 
-function buildGuestSessionDoc(sessionId: string): Document {
+/**
+ * `suspectedBot` starts true and flips to false when the client-side beacon
+ * lands (`confirmGuestSessionJs`). Sessions that never run JS keep the flag —
+ * reported as "unconfirmed", not as certain bots.
+ */
+export function buildGuestSessionDoc(sessionId: string, landing: GuestLanding | null): Document {
   const now = new Date()
   const expiresAt = new Date(now.getTime() + GUEST_SESSION_TTL_MS)
   // tokenHash is a UNIQUE index in Admin's collection, so it has to differ
@@ -50,12 +56,14 @@ function buildGuestSessionDoc(sessionId: string): Document {
     status: 'active',
     messageCount: 0,
     updatedAt: now,
+    suspectedBot: true,
+    ...(landing ?? {}),
   }
 }
 
 let indexEnsured: Promise<void> | null = null
 
-async function collection(): Promise<Collection<Document>> {
+export async function guestSessionsCollection(): Promise<Collection<Document>> {
   return (await getContentDb()).collection<Document>(COLLECTION)
 }
 
@@ -67,7 +75,7 @@ async function collection(): Promise<Collection<Document>> {
 async function ensureSessionIdIndex(): Promise<void> {
   if (indexEnsured) return indexEnsured
   indexEnsured = (async () => {
-    const col = await collection()
+    const col = await guestSessionsCollection()
     await col.createIndex(
       { sessionId: 1 },
       {
@@ -92,11 +100,14 @@ async function ensureSessionIdIndex(): Promise<void> {
  * conversions with `$exists: true`, so the field must only appear on rows
  * that were actually claimed.
  */
-export async function recordGuestSession(sessionId: string): Promise<void> {
+export async function recordGuestSession(
+  sessionId: string,
+  landing: GuestLanding | null,
+): Promise<void> {
   try {
     await ensureSessionIdIndex()
-    const col = await collection()
-    await col.insertOne(buildGuestSessionDoc(sessionId))
+    const col = await guestSessionsCollection()
+    await col.insertOne(buildGuestSessionDoc(sessionId, landing))
   } catch (err) {
     if ((err as { code?: number })?.code === DUPLICATE_KEY_ERROR) return
     logger.warn({ err, sessionId }, 'guest-sessions: insert failed')
@@ -110,7 +121,7 @@ export async function recordGuestSession(sessionId: string): Promise<void> {
  */
 export async function claimGuestSession(sessionId: string, userId: string): Promise<void> {
   try {
-    const col = await collection()
+    const col = await guestSessionsCollection()
     await col.updateOne(
       { sessionId },
       {

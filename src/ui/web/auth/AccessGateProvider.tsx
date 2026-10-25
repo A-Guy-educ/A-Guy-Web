@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from 'react'
 import { useAccessGate } from '@/client/hooks/useAccessGate'
+import { trackOnboardingStep } from '@/client/utils/guest-session-beacon'
+import type { OnboardingTrigger } from '@/infra/analytics/guest-session-event-contract'
 import { SYSTEM_EVENTS, systemEventBus } from '@/infra/system-events'
 import type { AccessType } from '@/server/constants/access-types'
 import {
@@ -37,6 +39,11 @@ interface AccessGateProviderProps {
    * server returned (usually an empty shell).
    */
   allowAnonymousPreview?: boolean
+  /**
+   * Content that put the sign-up prompt in front of the visitor. Recorded on
+   * the guest-session doc so the dashboard can tie landings to onboarding.
+   */
+  onboardingTrigger?: OnboardingTrigger
   children: React.ReactNode
 }
 
@@ -48,6 +55,7 @@ export function AccessGateProvider({
   requiresEntitlement,
   isAuthenticated,
   allowAnonymousPreview = false,
+  onboardingTrigger,
   children,
 }: AccessGateProviderProps) {
   const t = useTranslations('accessControl')
@@ -101,13 +109,27 @@ export function AccessGateProvider({
           course_slug: courseSlug,
         })
       }
+
+      // Guest funnel: any modal offering Google sign-up to an anonymous visitor.
+      if (triggerType !== 'paid' || !isAuthenticated) {
+        trackOnboardingStep('signupPromptShown', onboardingTrigger)
+      }
     }
 
     // Reset when all modals close so it fires again on next appearance
     if (!triggerType) {
       hasFiredRef.current = null
     }
-  }, [showPaidModal, showMandatoryModal, showGatedModal, showWarningModal, courseSlug, pathname])
+  }, [
+    showPaidModal,
+    showMandatoryModal,
+    showGatedModal,
+    showWarningModal,
+    courseSlug,
+    pathname,
+    isAuthenticated,
+    onboardingTrigger,
+  ])
 
   return (
     <>
@@ -132,7 +154,7 @@ export function AccessGateProvider({
             </DialogDescription>
           </DialogHeader>
           <div className="mt-4 flex justify-center">
-            <GoogleLoginButton returnTo={pathname} className="w-full" />
+            <GoogleLoginButton returnTo={pathname} className="w-full" trackAsOnboarding />
           </div>
         </DialogContent>
       </Dialog>
@@ -201,7 +223,7 @@ function PaidContentModal({
         </DialogHeader>
         <div className="mt-4 flex flex-col items-center gap-content-gap">
           {!isAuthenticated ? (
-            <GoogleLoginButton returnTo={pathname} className="w-full" />
+            <GoogleLoginButton returnTo={pathname} className="w-full" trackAsOnboarding />
           ) : (
             <Button onClick={() => (window.location.href = '/products')} className="w-full">
               {t('goToStore')}

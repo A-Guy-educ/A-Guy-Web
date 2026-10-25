@@ -210,6 +210,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
           gatedWarningMs={gatedWarningMs}
           requiresEntitlement={true}
           isAuthenticated={isAuthenticated}
+          onboardingTrigger={{ type: 'lesson', id: lesson.id }}
         >
           <div className="min-h-screen" />
         </AccessGateProvider>
@@ -315,6 +316,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
       gatedDelayMs={gatedDelayMs}
       gatedWarningMs={gatedWarningMs}
       allowAnonymousPreview={true}
+      onboardingTrigger={{ type: 'lesson', id: lesson.id }}
     >
       <LessonAnalytics
         lessonId={lesson.id}

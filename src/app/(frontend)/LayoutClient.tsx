@@ -19,12 +19,14 @@ import { useEffect, useState } from 'react'
 // import { AgentChatWindow } from '@/ui/web/learning-agent/AgentChatWindow'
 
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
+import { useGuestJsBeacon } from '@/client/hooks/useGuestJsBeacon'
 import { FloatingBugReportButton } from '@/ui/web/bug-report/FloatingBugReportButton'
 import { BugReportForm } from '@/ui/web/bug-report/BugReportForm'
 
 export function LayoutClient() {
   const [isBugReportOpen, setIsBugReportOpen] = useState(false)
   const { user, isLoading: isAuthLoading } = useCurrentUser()
+  useGuestJsBeacon()
 
   // Emit SITE_INIT once on mount
   // Other services (like analytics) subscribe to this event

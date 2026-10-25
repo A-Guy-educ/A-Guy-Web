@@ -1,5 +1,6 @@
 'use client'
 
+import { trackOnboardingStep } from '@/client/utils/guest-session-beacon'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { cn } from '@/infra/utils/ui'
 
@@ -12,15 +13,27 @@ interface GoogleLoginButtonProps {
    * Use this when the surrounding surface owns its own copy namespace.
    */
   label?: string
+  /**
+   * Record the click as the guest funnel's `googleClicked` step. Set only on
+   * onboarding/sign-up prompts so plain /login clicks don't count as funnel
+   * entries. No-op server-side for visitors without a guest session.
+   */
+  trackAsOnboarding?: boolean
 }
 
-export function GoogleLoginButton({ returnTo = '/', className, label }: GoogleLoginButtonProps) {
+export function GoogleLoginButton({
+  returnTo = '/',
+  className,
+  label,
+  trackAsOnboarding = false,
+}: GoogleLoginButtonProps) {
   const t = useTranslations('auth.oauth')
   const href = `/api/oauth/google?returnTo=${encodeURIComponent(returnTo)}`
 
   return (
     <a
       href={href}
+      onClick={trackAsOnboarding ? () => trackOnboardingStep('googleClicked') : undefined}
       className={cn(
         'inline-flex items-center justify-center rounded text-body-sm font-medium no-underline',
         'bg-card text-card-foreground border border-border cursor-pointer',

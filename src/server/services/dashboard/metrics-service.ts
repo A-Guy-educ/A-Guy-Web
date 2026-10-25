@@ -28,6 +28,7 @@ import {
 } from './aggregations'
 import { computeDateBuckets } from './date-buckets'
 import { ensureDashboardIndexes } from './ensure-indexes'
+import { aggregateGuestInsights } from './guest-insights'
 import type { DashboardMetricsResponse, Period } from './metrics-types'
 
 export async function computeDashboardMetrics(period: Period): Promise<DashboardMetricsResponse> {
@@ -56,6 +57,7 @@ export async function computeDashboardMetrics(period: Period): Promise<Dashboard
     tokenMetrics,
     usersPerCourse,
     signupSourceBreakdown,
+    guestInsights,
   ] = await Promise.all([
     aggregateUserStats(db, buckets, adminUserRefs),
     aggregateUsers(db, buckets),
@@ -70,6 +72,7 @@ export async function computeDashboardMetrics(period: Period): Promise<Dashboard
     aggregateTokenMetrics(db, adminUserRefs),
     aggregateUsersPerCurrentCourse(db),
     aggregateSignupSources(db, buckets),
+    aggregateGuestInsights(db, buckets, adminUserRefs),
   ])
 
   return {
@@ -100,5 +103,6 @@ export async function computeDashboardMetrics(period: Period): Promise<Dashboard
     },
     revenueMetrics,
     tokenMetrics,
+    guestInsights,
   }
 }

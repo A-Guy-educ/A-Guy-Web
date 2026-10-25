@@ -38,7 +38,7 @@ export function AuthGateModal({ isOpen, title, description, returnTo }: AuthGate
           <DialogDescription className="mt-2">{description}</DialogDescription>
         </DialogHeader>
         <div className="mt-4 flex flex-col items-center gap-3">
-          <GoogleLoginButton returnTo={returnTo} className="w-full" />
+          <GoogleLoginButton returnTo={returnTo} className="w-full" trackAsOnboarding />
           <Link
             href="/courses"
             onClick={handleBrowseCoursesClick}
