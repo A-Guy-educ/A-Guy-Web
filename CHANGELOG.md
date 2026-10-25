@@ -5055,6 +5055,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Stack prompt, sketch, answer on mobile chat view ([#1469](https://github.com/A-Guy-educ/A-Guy-Web/pull/1469)) — @aguyshayb
 - feat: Add per-period guest sessions and conversions to dashboard metrics ([#1468](https://github.com/A-Guy-educ/A-Guy-Web/pull/1468)) — @aguyshayb
 - refactor: Split tier enforcement into spending and content-lock switches ([#1467](https://github.com/A-Guy-educ/A-Guy-Web/pull/1467)) — @aguyshayb
 - feat: Add guest landing, onboarding funnel and bot insights ([#1465](https://github.com/A-Guy-educ/A-Guy-Web/pull/1465)) — @aguyshayb
