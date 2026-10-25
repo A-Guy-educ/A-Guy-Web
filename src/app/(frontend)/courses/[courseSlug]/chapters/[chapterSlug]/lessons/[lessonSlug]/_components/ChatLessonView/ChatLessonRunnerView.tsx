@@ -12,6 +12,7 @@ import { formatAuthoredChatContent } from '@/infra/utils/formatAuthoredChatConte
 import { uploadDataUrlAsMedia } from '@/infra/media/uploadDataUrl'
 import { ExerciseRenderer } from '@/ui/web/exerciserenderer'
 import { clearExerciseState } from '@/ui/web/exerciserenderer/utils/exerciseStateStorage'
+import { reportQuestionAttempt } from '@/ui/web/exerciserenderer/utils/questionAttemptReporter'
 import { logger } from '@/infra/utils/logger'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -89,6 +90,15 @@ type HelpStage = 'idle' | 'field-shown' | 'ai-asked'
  * Returns an empty string when nothing is authored, which the caller treats
  * as "go straight to Gemini on the first tap and lock the chip."
  */
+function isHelpQuestionBlock(block: { type: string }): boolean {
+  return (
+    block.type === 'question_select' ||
+    block.type === 'question_free_response' ||
+    block.type === 'question_table' ||
+    block.type === 'question_matching'
+  )
+}
+
 function collectSectionHelpContent(
   blocks: Array<{ type: string; hint?: { value?: string }; fullSolution?: { value?: string } }>,
   action: 'hint' | 'explain',
@@ -96,14 +106,7 @@ function collectSectionHelpContent(
   const field = action === 'hint' ? 'hint' : 'fullSolution'
   const parts: string[] = []
   for (const block of blocks) {
-    if (
-      block.type !== 'question_select' &&
-      block.type !== 'question_free_response' &&
-      block.type !== 'question_table' &&
-      block.type !== 'question_matching'
-    ) {
-      continue
-    }
+    if (!isHelpQuestionBlock(block)) continue
     const raw = block[field]?.value?.trim()
     if (raw) parts.push(raw)
   }
@@ -203,7 +206,11 @@ function ActiveChat({
   // (which inserts feedback mid-stream) doesn't yank the viewport away from
   // where the student is reading.
   const [appendTick, setAppendTick] = useState(0)
+  // Most recently appended entry — lets the scroll effect treat a freshly
+  // emitted section differently from feedback / chat replies.
+  const lastAppendedRef = useRef<StreamEntry | null>(null)
   const append = useCallback((entry: StreamEntry) => {
+    lastAppendedRef.current = entry
     setEntries((prev) => [...prev, entry])
     setAppendTick((t) => t + 1)
   }, [])
@@ -472,6 +479,17 @@ function ActiveChat({
       const stage = action === 'hint' ? current.hintStage : current.explainStage
       if (stage === 'ai-asked') return // chip already locked
 
+      // Teacher dashboard: chips act on the whole section, so attribute the
+      // press to its first question (sections are almost always single-question).
+      const sectionQuestion = step.group.blocks.find(isHelpQuestionBlock)
+      if (sectionQuestion?.id) {
+        reportQuestionAttempt(
+          { lessonId, exerciseId: step.exercise.id },
+          sectionQuestion.id,
+          action === 'hint' ? 'hint' : 'explanation',
+        )
+      }
+
       const fieldContent = collectSectionHelpContent(step.group.blocks, action)
       const updateStage = (nextStage: HelpStage) =>
         setSectionHelp((prev) => ({
@@ -516,6 +534,7 @@ function ActiveChat({
       explainPrompt,
       hintFollowUpTemplate,
       hintPrompt,
+      lessonId,
       sectionHelp,
       walker,
     ],
@@ -684,6 +703,20 @@ function ActiveChat({
   // recordings stay available on demand.
 
   useEffect(() => {
+    // A new section (after Next / skip) scrolls its TOP into view so the
+    // student sees the prompt and its sketch first. Bottom-aligning a tall
+    // section — prompt + sketch + options — cut the question text off above
+    // the fold on mobile. When the section is short the browser clamps the
+    // scroll, so this lands at the bottom exactly like before. Everything
+    // else (feedback, chat replies) keeps scrolling to the end.
+    const last = lastAppendedRef.current
+    if (last?.kind === 'exercise-section') {
+      const sectionEl = document.querySelector(`[data-section-key="${CSS.escape(last.key)}"]`)
+      if (sectionEl) {
+        sectionEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        return
+      }
+    }
     scrollRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [appendTick])
 
@@ -1015,36 +1048,41 @@ function StreamEntryView({
       )
     }
     case 'exercise-section':
+      // `data-section-key` is the runner's scroll anchor for a newly emitted
+      // section; scroll-mt matches <main>'s top padding so the prompt clears
+      // the floating progress pill.
       return (
-        <ExerciseSectionBubble
-          exercise={entry.exercise}
-          ordinal={entry.ordinal}
-          group={entry.group}
-          questionLabels={entry.questionLabels}
-          questionCount={entry.questionCount}
-          lessonId={lessonId}
-          mediaMap={mediaMap}
-          speaking={tts.speaking}
-          muted={tts.muted}
-          ttsSupported={tts.supported}
-          isActive={isActive}
-          sectionKey={entry.key}
-          storageIdOverride={entry.storageIdOverride}
-          onOutcome={onOutcome}
-          onQuickAction={onQuickAction}
-          onHintRequest={onHintRequest}
-          retryHintLabel={retryHintLabel}
-          quickActionLabels={quickActionLabels}
-          quickActionsDisabled={quickActionsDisabled}
-          hintDisabled={isActive ? hintDisabled : false}
-          explainDisabled={isActive ? explainDisabled : false}
-          freeResponsePlaceholder={freeResponsePlaceholder}
-          freeResponseSendLabel={freeResponseSendLabel}
-          freeResponsePendingLabel={freeResponsePendingLabel}
-          freeResponseNotCheckedLabel={freeResponseNotCheckedLabel}
-          freeResponseValidationErrors={freeResponseValidationErrors}
-          isQuotaExhausted={isQuotaExhausted}
-        />
+        <div data-section-key={entry.key} className="scroll-mt-14 md:scroll-mt-20">
+          <ExerciseSectionBubble
+            exercise={entry.exercise}
+            ordinal={entry.ordinal}
+            group={entry.group}
+            questionLabels={entry.questionLabels}
+            questionCount={entry.questionCount}
+            lessonId={lessonId}
+            mediaMap={mediaMap}
+            speaking={tts.speaking}
+            muted={tts.muted}
+            ttsSupported={tts.supported}
+            isActive={isActive}
+            sectionKey={entry.key}
+            storageIdOverride={entry.storageIdOverride}
+            onOutcome={onOutcome}
+            onQuickAction={onQuickAction}
+            onHintRequest={onHintRequest}
+            retryHintLabel={retryHintLabel}
+            quickActionLabels={quickActionLabels}
+            quickActionsDisabled={quickActionsDisabled}
+            hintDisabled={isActive ? hintDisabled : false}
+            explainDisabled={isActive ? explainDisabled : false}
+            freeResponsePlaceholder={freeResponsePlaceholder}
+            freeResponseSendLabel={freeResponseSendLabel}
+            freeResponsePendingLabel={freeResponsePendingLabel}
+            freeResponseNotCheckedLabel={freeResponseNotCheckedLabel}
+            freeResponseValidationErrors={freeResponseValidationErrors}
+            isQuotaExhausted={isQuotaExhausted}
+          />
+        </div>
       )
     case 'chat-user':
       return <StudentBubble text={entry.text} isCorrect={entry.isCorrect} />

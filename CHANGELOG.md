@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.55.0 — 2026-10-25
+
+### Features
+- Split content locks into learning and practice/exam switches (#1472)
+- Capture question attempts and add teacher class progress API (#1470)
+- Stack prompt, sketch, answer on mobile chat view (#1469)
+- Add per-period guest sessions and conversions to dashboard metrics (#1468)
+- Add guest landing, onboarding funnel and bot insights (#1465)
+
+### Bug Fixes
+- Patch Next.js RCE and other new audit advisories (#1466)
+- Satisfy require-auth-endpoints on guest tracking routes (#1465)
+
+### Refactor
+- Split tier enforcement into spending and content-lock switches (#1467)
+
 ## v0.54.0 — 2026-10-22
 
 ### Features
@@ -5055,6 +5071,18 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.55.0 ([#1473](https://github.com/A-Guy-educ/A-Guy-Web/pull/1473)) — @aguyshayb
+- feat: Split content locks into learning and practice/exam switches ([#1472](https://github.com/A-Guy-educ/A-Guy-Web/pull/1472)) — @aguyshayb
+- test: Make CI-audit and prompt-file specs tolerate CRLF checkouts ([#1471](https://github.com/A-Guy-educ/A-Guy-Web/pull/1471)) — @aguyshayb
+- feat: Capture question attempts and add teacher class progress API ([#1470](https://github.com/A-Guy-educ/A-Guy-Web/pull/1470)) — @aguyshayb
+- feat: Stack prompt, sketch, answer on mobile chat view ([#1469](https://github.com/A-Guy-educ/A-Guy-Web/pull/1469)) — @aguyshayb
+- feat: Add per-period guest sessions and conversions to dashboard metrics ([#1468](https://github.com/A-Guy-educ/A-Guy-Web/pull/1468)) — @aguyshayb
+- refactor: Split tier enforcement into spending and content-lock switches ([#1467](https://github.com/A-Guy-educ/A-Guy-Web/pull/1467)) — @aguyshayb
+- feat: Add guest landing, onboarding funnel and bot insights ([#1465](https://github.com/A-Guy-educ/A-Guy-Web/pull/1465)) — @aguyshayb
+- fix(deps): Patch Next.js RCE and other new audit advisories ([#1466](https://github.com/A-Guy-educ/A-Guy-Web/pull/1466)) — @aguyshayb
+## [v0.54.0] - 2026-10-22
+
+- promote: dev -> main (v0.54.0) ([#1464](https://github.com/A-Guy-educ/A-Guy-Web/pull/1464)) — @aguyshayb
 - chore: Release v0.54.0 ([#1463](https://github.com/A-Guy-educ/A-Guy-Web/pull/1463)) — @aguyshayb
 - feat(join): Add student registration page from the product demo ([#1462](https://github.com/A-Guy-educ/A-Guy-Web/pull/1462)) — @aguyshayb
 - fix(svg): Honor display size and drop fixed-height frame ([#1461](https://github.com/A-Guy-educ/A-Guy-Web/pull/1461)) — @aguyshayb

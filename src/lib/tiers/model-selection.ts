@@ -18,7 +18,7 @@
 
 import { PROVIDER_MODEL_NAMES, type AIModelKey } from '@/infra/llm/models'
 import { LLMProviderType } from '@/infra/llm/providers/types'
-import { isTierEnforcementEnabled } from './enforcement'
+import { isTierSpendingLimitsEnabled } from './enforcement'
 import { getUserTierSlug, type UserWithTier } from './user-tier'
 
 export function selectGeminiModel(
@@ -26,7 +26,7 @@ export function selectGeminiModel(
   modelKey: AIModelKey,
 ): string {
   const topModel = PROVIDER_MODEL_NAMES[LLMProviderType.GEMINI][modelKey]
-  if (!isTierEnforcementEnabled()) return topModel
+  if (!isTierSpendingLimitsEnabled()) return topModel
   if (getUserTierSlug(user) !== 'premium') return topModel
 
   // TODO: premium fair-use downgrade.

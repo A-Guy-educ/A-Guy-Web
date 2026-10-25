@@ -7,11 +7,17 @@ import {
   getLocaleFromSubdomain,
 } from './i18n/config'
 import {
+  type BotCategory,
+  categorizeBotUserAgent,
+  isBotUserAgent,
+} from './infra/analytics/bot-user-agent'
+import { buildGuestLanding, type GuestLanding } from './infra/analytics/guest-landing'
+import {
   GUEST_SESSION_COOKIE,
   GUEST_SESSION_MAX_AGE_SECONDS,
   NEW_GUEST_SESSION_HEADER,
 } from './infra/analytics/guest-session-cookie'
-import { signGuestSessionId } from './infra/analytics/guest-session-signing'
+import { signGuestPayload } from './infra/analytics/guest-session-signing'
 import { AUTH_COOKIE_NAME } from './infra/auth/shared-login/auth-cookie'
 import { toCookieDomain } from './infra/auth/shared-login/policy'
 import { getSharedLoginPolicy } from './infra/auth/shared-login/policy.env'
@@ -21,20 +27,6 @@ import {
   applyPreflightHeaders,
   resolveAllowedApiOrigin,
 } from './infra/security/cors'
-
-/**
- * User-Agent substrings we treat as automated traffic. Kept as a coarse
- * denylist — the goal is to avoid inflating the "landed but didn't sign up"
- * count with obvious scrapers, previews, and monitoring, not to detect every
- * bot in the wild.
- */
-const BOT_UA_RE =
-  /bot|crawler|spider|slurp|facebookexternalhit|whatsapp|telegrambot|prerender|lighthouse|headlesschrome|pingdom|uptimerobot|axios|curl|wget|python-requests|node-fetch|go-http-client/i
-
-function isBotUserAgent(userAgent: string | null): boolean {
-  if (!userAgent) return true
-  return BOT_UA_RE.test(userAgent)
-}
 
 /**
  * Check if a path is a protected learning route that requires authentication.
@@ -145,19 +137,31 @@ function resolveLocaleCookieDomain(host: string): string | undefined {
 // Media CDN redirects are handled by next.config.js redirects (baked in at build time).
 // This avoids Edge middleware env var availability issues.
 
+type AnonymousTouch =
+  | { kind: 'guest'; sessionId: string; landing: GuestLanding }
+  | { kind: 'bot'; category: BotCategory }
+
 /**
- * Decide whether the request is a fresh anonymous landing worth tracking, and
- * return a new session id if so. Returns null when the caller is signed in,
- * already has a guest cookie, is a bot, or is on a non-page path.
+ * Classify an anonymous page load for the guest funnel:
+ * - `guest` → fresh human landing; mint a session id and capture attribution.
+ * - `bot`   → UA-detected bot; counted in daily buckets, never a session.
+ * Returns null when the caller is signed in, already has a guest cookie, or
+ * is on a non-page path.
  */
-function resolveNewGuestSessionId(request: NextRequest, pathname: string): string | null {
+function classifyAnonymousTouch(request: NextRequest, pathname: string): AnonymousTouch | null {
   if (pathname.startsWith('/api') || pathname.startsWith('/_next') || pathname.startsWith('/admin'))
     return null
   if (pathname.includes('.')) return null
   if (request.cookies.get(AUTH_COOKIE_NAME)) return null
+  const userAgent = request.headers.get('user-agent')
+  if (isBotUserAgent(userAgent)) return { kind: 'bot', category: categorizeBotUserAgent(userAgent) }
   if (request.cookies.get(GUEST_SESSION_COOKIE)) return null
-  if (isBotUserAgent(request.headers.get('user-agent'))) return null
-  return crypto.randomUUID()
+  const host = request.headers.get('host') || request.nextUrl.host
+  return {
+    kind: 'guest',
+    sessionId: crypto.randomUUID(),
+    landing: buildGuestLanding(request.nextUrl, request.headers.get('referer'), host),
+  }
 }
 
 interface GuestCookieAttrs {
@@ -181,26 +185,48 @@ function buildGuestSessionCookieAttrs(request: NextRequest): GuestCookieAttrs {
 }
 
 /**
- * Fire the DB insert via a signed POST to the Node route. Middleware runs
- * on Edge so it can't call Mongo directly; the loopback fetch keeps the
+ * Fire a DB write via a signed POST to an internal Node route. Middleware
+ * runs on Edge so it can't call Mongo directly; the loopback fetch keeps the
  * write path off the layout, which was proving unreliable in production.
+ * The signature covers the whole body so the payload can't be tampered with.
  */
-async function triggerGuestSessionInsert(request: NextRequest, sessionId: string): Promise<void> {
+async function postSignedLoopback(
+  request: NextRequest,
+  path: string,
+  payload: Record<string, unknown>,
+): Promise<void> {
   const secret = process.env.PAYLOAD_SECRET
   if (!secret) return
   try {
-    const signature = await signGuestSessionId(sessionId, secret)
-    const url = new URL('/api/internal/guest-session/create', request.url)
-    await fetch(url, {
+    const body = JSON.stringify(payload)
+    const signature = await signGuestPayload(body, secret)
+    await fetch(new URL(path, request.url), {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
         'x-signature': signature,
       },
-      body: JSON.stringify({ sessionId }),
+      body,
     })
   } catch {
-    // Fire-and-forget analytics; a failed insert must never break the request.
+    // Fire-and-forget analytics; a failed write must never break the request.
+  }
+}
+
+/**
+ * Schedule an analytics loopback after the response. `after()` throws outside
+ * a request scope (unit tests, unexpected runtimes); analytics must never
+ * break the page load, so a scheduling failure just drops the event.
+ */
+function scheduleLoopback(
+  request: NextRequest,
+  path: string,
+  payload: Record<string, unknown>,
+): void {
+  try {
+    after(() => postSignedLoopback(request, path, payload))
+  } catch {
+    // Dropped analytics event — see above.
   }
 }
 
@@ -237,8 +263,11 @@ export function middleware(request: NextRequest) {
   //
   // Skipped on the API host: those responses never carry the Set-Cookie
   // header, so the row would be orphaned and unclaimable.
+  //
+  // UA-detected bots get no cookie; they bump a daily per-category counter.
   const trackingHost = !isPublicApiHost(host)
-  const newGuestSessionId = trackingHost ? resolveNewGuestSessionId(request, pathname) : null
+  const anonymousTouch = trackingHost ? classifyAnonymousTouch(request, pathname) : null
+  const newGuestSessionId = anonymousTouch?.kind === 'guest' ? anonymousTouch.sessionId : null
 
   const response = NextResponse.next({
     request: {
@@ -247,9 +276,14 @@ export function middleware(request: NextRequest) {
   })
 
   const guestCookie = newGuestSessionId ? buildGuestSessionCookieAttrs(request) : null
-  if (newGuestSessionId && guestCookie) {
-    response.cookies.set(GUEST_SESSION_COOKIE, newGuestSessionId, guestCookie)
-    after(() => triggerGuestSessionInsert(request, newGuestSessionId))
+  if (anonymousTouch?.kind === 'guest' && guestCookie) {
+    response.cookies.set(GUEST_SESSION_COOKIE, anonymousTouch.sessionId, guestCookie)
+    const { sessionId, landing } = anonymousTouch
+    scheduleLoopback(request, '/api/internal/guest-session/create', { sessionId, landing })
+  } else if (anonymousTouch?.kind === 'bot') {
+    scheduleLoopback(request, '/api/internal/bot-hits/record', {
+      category: anonymousTouch.category,
+    })
   }
 
   if (!pathname.startsWith('/api/pdfjs-viewer')) {

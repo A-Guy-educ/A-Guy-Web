@@ -1,9 +1,7 @@
 'use client'
 
 import { cn } from '@/infra/utils/ui'
-import { QuestionWithAttachment } from '@/ui/web/exerciserenderer/blocks/QuestionWithAttachment'
 import { RichTextRenderer } from '@/ui/web/exerciserenderer/blocks/RichTextRenderer'
-import { renderQuestionAttachment } from '@/ui/web/exerciserenderer/blocks/renderQuestionAttachment'
 import { QuestionNotebook } from '@/ui/web/exerciserenderer/components/QuestionNotebook'
 import type {
   InlineRichText,
@@ -16,9 +14,11 @@ import {
   patchExerciseStateBlockMeta,
   readExerciseState,
 } from '@/ui/web/exerciserenderer/utils/exerciseStateStorage'
+import { reportQuestionAttempt } from '@/ui/web/exerciserenderer/utils/questionAttemptReporter'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { ArrowLeft, Check, Lightbulb } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { ChatQuestionLayout } from './ChatQuestionLayout'
 import { QuestionHeaderBadges } from './QuestionHeaderBadges'
 
 /**
@@ -46,6 +46,8 @@ interface ChatQuestionSelectBubbleProps {
    * green/red look on re-entry. Falsy = don't persist (unit tests, previews).
    */
   exerciseId?: string
+  /** Lesson id for teacher-dashboard attempt capture. Falsy = not recorded. */
+  lessonId?: string
   onSubmit: (blockId: string, optionText: string, isCorrect: boolean) => void
   /**
    * Task-3 retry hint CTA (3+ option MCQ only). Fires once per block when the
@@ -58,6 +60,11 @@ interface ChatQuestionSelectBubbleProps {
   onHintRequest?: (blockId: string, wrongChoiceText: string, correctChoiceText: string) => void
   /** Label shown on the retry hint CTA. Provided by the parent from i18n. */
   retryHintLabel?: string
+  /**
+   * Mobile chat layout: render the attachment sketch between the prompt and
+   * the answer area instead of the authored side-by-side / stacked layout.
+   */
+  attachmentAfterPrompt?: boolean
 }
 
 interface Choice {
@@ -100,9 +107,11 @@ function SingleSelectBubble({
   questionLabel,
   disabled,
   exerciseId,
+  lessonId,
   onSubmit,
   onHintRequest,
   retryHintLabel,
+  attachmentAfterPrompt,
 }: ChatQuestionSelectBubbleProps) {
   const choices = useMemo(() => getChoices(block), [block])
   const correctIds = useMemo(() => getCorrectIds(block), [block])
@@ -149,6 +158,8 @@ function SingleSelectBubble({
     // and the hint CTA becomes available. Hint and retry are only offered on
     // the first miss — a second miss drops through to the normal onSubmit path
     // below so Task 2's teacher-AI correction fires.
+    reportQuestionAttempt({ lessonId, exerciseId }, block.id, isCorrect ? 'correct' : 'wrong')
+
     if (isRetryEligible && !isCorrect && wrongOptionIds.size === 0) {
       const nextWrong = new Set(wrongOptionIds)
       nextWrong.add(choice.id)
@@ -192,6 +203,7 @@ function SingleSelectBubble({
     const correctChoice = choices.find((c) => c.id === correctId)
     if (!wrongChoice || !correctChoice) return
     setHintShown(true)
+    reportQuestionAttempt({ lessonId, exerciseId }, block.id, 'hint')
     if (exerciseId) {
       patchExerciseStateBlockMeta(exerciseId, block.id, { hintShown: true })
     }
@@ -211,14 +223,16 @@ function SingleSelectBubble({
     typeof retryHintLabel === 'string' &&
     retryHintLabel.length > 0
 
-  const questionContent = (
-    <div className="flex flex-col gap-content-gap">
-      <QuestionHeaderBadges sectionLabel={questionLabel}>
-        <div className="text-body-md font-medium text-foreground leading-relaxed">
-          <RichTextRenderer block={block.prompt} />
-        </div>
-      </QuestionHeaderBadges>
+  const promptNode = (
+    <QuestionHeaderBadges sectionLabel={questionLabel}>
+      <div className="text-body-md font-medium text-foreground leading-relaxed">
+        <RichTextRenderer block={block.prompt} />
+      </div>
+    </QuestionHeaderBadges>
+  )
 
+  const answerNode = (
+    <>
       <div className="grid grid-cols-1 gap-content-gap-xs mt-2">
         {choices.map((choice) => {
           const isPicked = pickedId === choice.id
@@ -291,25 +305,18 @@ function SingleSelectBubble({
       {block.showNotebook === true && (
         <QuestionNotebook contextTitle={questionLabel ?? block.id} disabled={disabled} />
       )}
-    </div>
+    </>
   )
 
-  // Admin-authored sketch attachment (svg / geometry / axis) rendered in the
-  // same slot as Interactive, so the same `textLeft/textRight/textAbove/
-  // textBelow` layout decisions carry over inside the chat bubble. The outer
-  // ExerciseSectionBubble already installs MediaMapProvider, so SvgRenderer
-  // can resolve any mediaIds the attachment references.
-  if (block.attachment) {
-    return (
-      <QuestionWithAttachment
-        layout={block.attachment.layout}
-        question={questionContent}
-        attachment={renderQuestionAttachment(block.id, block.attachment)}
-      />
-    )
-  }
-
-  return questionContent
+  return (
+    <ChatQuestionLayout
+      blockId={block.id}
+      attachment={block.attachment}
+      attachmentAfterPrompt={attachmentAfterPrompt}
+      prompt={promptNode}
+      answer={answerNode}
+    />
+  )
 }
 
 /**
@@ -325,7 +332,9 @@ function MultiSelectBubble({
   questionLabel,
   disabled,
   exerciseId,
+  lessonId,
   onSubmit,
+  attachmentAfterPrompt,
 }: ChatQuestionSelectBubbleProps) {
   const t = useTranslations('courses')
   const choices = useMemo(() => getChoices(block), [block])
@@ -372,17 +381,20 @@ function MultiSelectBubble({
       .filter((c) => pickedIds.has(c.id))
       .map((c) => c.labelValue)
       .join(', ')
+    reportQuestionAttempt({ lessonId, exerciseId }, block.id, isCorrect ? 'correct' : 'wrong')
     onSubmit(block.id, text, isCorrect)
   }
 
-  const questionContent = (
-    <div className="flex flex-col gap-content-gap">
-      <QuestionHeaderBadges sectionLabel={questionLabel}>
-        <div className="text-body-md font-medium text-foreground leading-relaxed">
-          <RichTextRenderer block={block.prompt} />
-        </div>
-      </QuestionHeaderBadges>
+  const promptNode = (
+    <QuestionHeaderBadges sectionLabel={questionLabel}>
+      <div className="text-body-md font-medium text-foreground leading-relaxed">
+        <RichTextRenderer block={block.prompt} />
+      </div>
+    </QuestionHeaderBadges>
+  )
 
+  const answerNode = (
+    <>
       <div className="grid grid-cols-1 gap-content-gap-xs mt-2">
         {choices.map((choice) => {
           const isPicked = pickedIds.has(choice.id)
@@ -462,20 +474,18 @@ function MultiSelectBubble({
           disabled={disabled || submitted}
         />
       )}
-    </div>
+    </>
   )
 
-  if (block.attachment) {
-    return (
-      <QuestionWithAttachment
-        layout={block.attachment.layout}
-        question={questionContent}
-        attachment={renderQuestionAttachment(block.id, block.attachment)}
-      />
-    )
-  }
-
-  return questionContent
+  return (
+    <ChatQuestionLayout
+      blockId={block.id}
+      attachment={block.attachment}
+      attachmentAfterPrompt={attachmentAfterPrompt}
+      prompt={promptNode}
+      answer={answerNode}
+    />
+  )
 }
 
 function getChoices(block: QuestionSelectBlock): Choice[] {

@@ -22,7 +22,12 @@ export {
   isTierSlug,
   type TierSlug,
 } from './constants'
-export { isTierEnforcementEnabled } from './enforcement'
+export {
+  isTierContentLocksEnabled,
+  isTierLearningLocksEnabled,
+  isTierPracticeExamLocksEnabled,
+  isTierSpendingLimitsEnabled,
+} from './enforcement'
 export { getUserTierSlug, getUserTierRank, userMeetsTier, type UserWithTier } from './user-tier'
 export {
   type ActiveSubscription,

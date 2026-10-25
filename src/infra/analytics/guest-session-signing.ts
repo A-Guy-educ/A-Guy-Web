@@ -1,11 +1,12 @@
 /**
  * HMAC helpers for the internal guest-session write endpoint.
  *
- * Middleware (Edge) mints a signature over the sessionId, and the Node-runtime
- * route verifies it before touching Mongo. Prevents anonymous callers from
- * inflating the funnel by POSTing arbitrary UUIDs to the internal path — the
- * route is on the public /api surface, so signature verification is what
- * makes it internal.
+ * Middleware (Edge) signs the raw JSON body of each internal loopback (new
+ * guest session, bot hit), and the Node-runtime route verifies it before
+ * touching Mongo. Signing the whole body — not just the sessionId — means the
+ * landing attribution and bot category can't be tampered with either. The
+ * routes are on the public /api surface, so signature verification is what
+ * makes them internal.
  */
 
 const encoder = new TextEncoder()
@@ -17,7 +18,7 @@ function toHex(bytes: ArrayBuffer): string {
   return out
 }
 
-export async function signGuestSessionId(sessionId: string, secret: string): Promise<string> {
+export async function signGuestPayload(body: string, secret: string): Promise<string> {
   const key = await crypto.subtle.importKey(
     'raw',
     encoder.encode(secret),
@@ -25,7 +26,7 @@ export async function signGuestSessionId(sessionId: string, secret: string): Pro
     false,
     ['sign'],
   )
-  const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(sessionId))
+  const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(body))
   return toHex(sig)
 }
 

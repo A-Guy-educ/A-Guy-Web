@@ -46,6 +46,13 @@ export interface UserMetrics {
   guestSessionsLastMonth: number
   guestToRegisteredCount: number
   guestToRegisteredPercentage: number
+  /** Guest sessions created on/after `periodStart` (the Users-tab period). */
+  guestSessionsInPeriod: number
+  /**
+   * Of `guestSessionsInPeriod`, how many were claimed by a non-admin signup.
+   * Cohort-based, so guestConvertedInPeriod ≤ guestSessionsInPeriod.
+   */
+  guestConvertedInPeriod: number
   returnedOnceCount: number
   returnedOncePercentage: number
   returnedMultipleCount: number
@@ -178,6 +185,11 @@ export interface DashboardMetricsResponse {
   engagement: EngagementMetrics
   revenueMetrics: RevenueMetrics
   tokenMetrics: TokenMetrics
+  /**
+   * Landing attribution, onboarding funnel and bot share for anonymous
+   * visitors. Shape lives with the service in `./guest-insights-types.ts`.
+   */
+  guestInsights: import('./guest-insights-types').GuestInsights
   /**
    * Optional Product Health tab payload. Gated behind
    * `PRODUCT_HEALTH_ENABLED`; the field is omitted (undefined) when off so

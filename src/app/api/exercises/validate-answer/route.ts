@@ -2,7 +2,9 @@ import { NextRequest } from 'next/server'
 import { z } from 'zod'
 
 import { rateLimit, rateLimitExceededResponse } from '@/infra/security/rate-limit'
+import { logger } from '@/infra/utils/logger/logger'
 import { enforceUserChatQuota, requireUser } from '@/server/auth/api-auth'
+import { recordQuestionAttempt } from '@/server/services/question-attempts/question-attempt-recorder'
 
 const VALIDATE_ANSWER_RATE_LIMIT_MAX = 30
 const VALIDATE_ANSWER_RATE_LIMIT_WINDOW_MS = 60_000 // 1 minute
@@ -14,7 +16,33 @@ const BodySchema = z.object({
   studentAnswer: z.string(),
   questionType: z.string().optional(),
   questionVariant: z.string().optional(),
+  // Optional so older clients keep working; without both, nothing is recorded.
+  exerciseId: z.string().min(1).optional(),
+  lessonId: z.string().min(1).optional(),
 })
+
+/**
+ * Persist the verdict for the teacher dashboard. Never fails the response —
+ * the student's feedback matters more than the analytics row.
+ */
+async function recordVerdict(
+  userId: string,
+  input: z.infer<typeof BodySchema>,
+  isCorrect: boolean,
+): Promise<void> {
+  if (!input.exerciseId || !input.lessonId) return
+  try {
+    await recordQuestionAttempt({
+      userId,
+      lessonId: input.lessonId,
+      exerciseId: input.exerciseId,
+      blockId: input.questionId,
+      event: isCorrect ? 'correct' : 'wrong',
+    })
+  } catch (err) {
+    logger.warn({ err, userId }, 'validate-answer: failed to record question attempt')
+  }
+}
 
 function normalize(input: string) {
   return input.toLowerCase().trim().replace(/\s+/g, ' ')
@@ -163,6 +191,7 @@ export async function POST(request: NextRequest) {
 
   const exact = localMatch(parsed.data.studentAnswer, parsed.data.acceptedAnswers)
   if (exact.matched) {
+    await recordVerdict(auth.value.id, parsed.data, true)
     return Response.json({
       success: true,
       data: { isCorrect: true, matchType: exact.matchType },
@@ -170,6 +199,7 @@ export async function POST(request: NextRequest) {
   }
 
   const semantic = await semanticMatch(parsed.data).catch(() => null)
+  await recordVerdict(auth.value.id, parsed.data, semantic?.isCorrect ?? false)
   return Response.json({
     success: true,
     data: {

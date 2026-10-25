@@ -452,6 +452,55 @@ interface GuestsFacetResult {
   lastWeek: Array<{ n: number }>
   lastMonth: Array<{ n: number }>
   converted: Array<{ n: number }>
+  inPeriod: Array<{ n: number }>
+  convertedInPeriod: Array<{ n: number }>
+}
+
+/**
+ * Single-scan $facet over guest-sessions. Exported so the bucket filters can
+ * be unit-tested without Mongo.
+ *
+ * `inPeriod` / `convertedInPeriod` are a cohort: guests created on/after
+ * periodStart, and how many of *those* were later claimed. A claim made in
+ * the period on an older guest doesn't count, so the rate stays ≤ 100%.
+ */
+export function buildGuestSessionsFacet(
+  buckets: DateBuckets,
+  adminUserRefs: AdminUserRefs,
+): Record<string, Document[]> {
+  const notAdminClaim = { $exists: true, $nin: adminUserRefs.refs }
+  return {
+    total: [{ $count: 'n' }],
+    today: [{ $match: { createdAt: { $gte: buckets.todayStart } } }, { $count: 'n' }],
+    lastWeek: [
+      {
+        $match: {
+          createdAt: { $gte: buckets.lastWeekStart, $lt: buckets.thisWeekStart },
+        },
+      },
+      { $count: 'n' },
+    ],
+    lastMonth: [
+      {
+        $match: {
+          createdAt: { $gte: buckets.lastMonthStart, $lt: buckets.lastWeekStart },
+        },
+      },
+      { $count: 'n' },
+    ],
+    // Only the converted branches carry a user reference
+    // (`claimedByUser`); the other buckets count anonymous sessions and
+    // can't be filtered by role. Exclude admin claims so the
+    // guest→user conversion rate reflects real signups only.
+    converted: [{ $match: { claimedByUser: notAdminClaim } }, { $count: 'n' }],
+    inPeriod: [{ $match: { createdAt: { $gte: buckets.periodStart } } }, { $count: 'n' }],
+    convertedInPeriod: [
+      {
+        $match: { createdAt: { $gte: buckets.periodStart }, claimedByUser: notAdminClaim },
+      },
+      { $count: 'n' },
+    ],
+  }
 }
 
 export async function aggregateGuestSessions(
@@ -464,41 +513,12 @@ export async function aggregateGuestSessions(
   lastWeek: number
   lastMonth: number
   converted: number
+  inPeriod: number
+  convertedInPeriod: number
 }> {
   const [result] = (await db
     .collection('guest-sessions')
-    .aggregate<GuestsFacetResult>([
-      {
-        $facet: {
-          total: [{ $count: 'n' }],
-          today: [{ $match: { createdAt: { $gte: buckets.todayStart } } }, { $count: 'n' }],
-          lastWeek: [
-            {
-              $match: {
-                createdAt: { $gte: buckets.lastWeekStart, $lt: buckets.thisWeekStart },
-              },
-            },
-            { $count: 'n' },
-          ],
-          lastMonth: [
-            {
-              $match: {
-                createdAt: { $gte: buckets.lastMonthStart, $lt: buckets.lastWeekStart },
-              },
-            },
-            { $count: 'n' },
-          ],
-          // Only `converted` carries a user reference (`claimedByUser`);
-          // total/today/lastWeek/lastMonth count anonymous sessions and
-          // can't be filtered by role. Exclude admin claims so the
-          // guest→user conversion rate reflects real signups only.
-          converted: [
-            { $match: { claimedByUser: { $exists: true, $nin: adminUserRefs.refs } } },
-            { $count: 'n' },
-          ],
-        },
-      },
-    ])
+    .aggregate<GuestsFacetResult>([{ $facet: buildGuestSessionsFacet(buckets, adminUserRefs) }])
     .toArray()) as [GuestsFacetResult]
 
   return {
@@ -507,6 +527,8 @@ export async function aggregateGuestSessions(
     lastWeek: firstCount(result.lastWeek),
     lastMonth: firstCount(result.lastMonth),
     converted: firstCount(result.converted),
+    inPeriod: firstCount(result.inPeriod),
+    convertedInPeriod: firstCount(result.convertedInPeriod),
   }
 }
 
@@ -956,6 +978,8 @@ export function buildUserMetrics(input: {
     guestSessionsLastMonth: guests.lastMonth,
     guestToRegisteredCount: guests.converted,
     guestToRegisteredPercentage,
+    guestSessionsInPeriod: guests.inPeriod,
+    guestConvertedInPeriod: guests.convertedInPeriod,
     returnedOnceCount: userStats.returnedOnceCount,
     returnedOncePercentage,
     returnedMultipleCount: userStats.returnedMultipleCount,

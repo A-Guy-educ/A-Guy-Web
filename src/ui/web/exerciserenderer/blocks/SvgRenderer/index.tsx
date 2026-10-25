@@ -8,6 +8,7 @@ import { sanitizeSvg } from '../../utils/svgSanitize'
 import { expandViewBoxWhenReady } from '@/ui/web/media/SVGMedia/expandViewBoxToContent'
 import { ensureSvgViewBox } from '@/ui/web/media/SVGMedia/ensureSvgViewBox'
 import { useMediaQuery } from '@/client/hooks/useMediaQuery'
+import { useSketchMaxHeight } from '../../context/SketchMaxHeightContext'
 import { getSvgAspectRatio, getSvgCardStyle, type DisplaySize } from './svgSizing'
 
 export type { DisplaySize }
@@ -49,9 +50,10 @@ export function SvgRenderer({
   const isInteractive = block.interactive && block.hotspots && block.hotspots.length > 0
 
   const isMobile = useMediaQuery(MOBILE_QUERY)
+  const maxHeight = useSketchMaxHeight()
   const cardStyle = useMemo(
-    () => getSvgCardStyle(getSvgAspectRatio(sanitizedSvg), displaySize, isMobile),
-    [sanitizedSvg, displaySize, isMobile],
+    () => getSvgCardStyle(getSvgAspectRatio(sanitizedSvg), displaySize, isMobile, maxHeight),
+    [sanitizedSvg, displaySize, isMobile, maxHeight],
   )
 
   // Ensure every direct <svg> child has a viewBox and a preserveAspectRatio

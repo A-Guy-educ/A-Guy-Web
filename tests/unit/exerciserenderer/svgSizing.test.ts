@@ -58,4 +58,16 @@ describe('getSvgCardStyle', () => {
       minWidth: 'min(210px, 100%)',
     })
   })
+
+  it('derives the width from a height cap and skips the min-width floor', () => {
+    expect(getSvgCardStyle(2, 'full', true, 275)).toEqual({ width: 'min(550px, 100%)' })
+    expect(getSvgCardStyle(0.5, 'full', true, 275)).toEqual({ width: 'min(138px, 100%)' })
+  })
+
+  it('keeps the percentage fallback under a height cap when the aspect is unknown', () => {
+    expect(getSvgCardStyle(null, 'full', true, 275)).toEqual({
+      width: '100%',
+      minWidth: 'min(280px, 100%)',
+    })
+  })
 })

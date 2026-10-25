@@ -1,23 +1,37 @@
 /**
- * Tier enforcement kill switch.
+ * Tier enforcement kill switches — one per restriction family, so token
+ * spending caps and each kind of content lock can be turned on independently.
  *
- * Reads `NEXT_PUBLIC_TIER_ENFORCEMENT_ENABLED` from env. When off (default),
- * every gate helper in this folder short-circuits to permissive — no content
- * is locked by tier, no AI cost cap is applied, no daily quota is enforced,
- * no premium downgrade kicks in.
+ * 1. `TIER_SPENDING_LIMITS_ENABLED` — AI spending restrictions: daily/monthly
+ *    LLM token caps (`checkTokenLimit`, `reconcileUserLlmLimit`), the per-tier
+ *    daily AI-question quota (chat-quota, `getUserDailyAiQuota`) and the
+ *    premium fair-use model downgrade. Every caller is server-side, so this
+ *    is a plain (non-`NEXT_PUBLIC_`) var read at runtime — a Vercel env edit
+ *    takes effect without a rebuild. Don't read it from client code: it
+ *    resolves to `undefined` in the browser.
  *
- * Must use the `NEXT_PUBLIC_` prefix because most tier gates run inside
- * `'use client'` components (lesson/exam row lists, ExercisesPager lock card,
- * ChatLessonRunnerView clamp). Non-prefixed env vars are stripped from the
- * client bundle at build time, so a server-only name silently resolves to
- * `undefined` in the browser and every gate stays permissive. Server-side
- * callers (chat-quota, checkTokenLimit, login reconciler) read the same
- * variable at runtime from Node, so a single prefixed name works for both.
+ * 2. `NEXT_PUBLIC_TIER_LEARNING_LOCKS_ENABLED` — the learning-lesson exercise
+ *    cap (`canAccessLearningExercise`): from the 4th opened learning lesson on,
+ *    free users get only the first 3 exercises. Drives the ChatLessonRunnerView
+ *    exercise clamp.
  *
- * The default is OFF because we don't expect subscriptions yet; flip it on
- * when we open paid tiers to real traffic. Note: NEXT_PUBLIC_* changes are
- * inlined at build time, so flipping the var requires a redeploy — not just
- * a Vercel env edit.
+ * 3. `NEXT_PUBLIC_TIER_PRACTICE_EXAM_LOCKS_ENABLED` — the practice-lesson and
+ *    exam gates (`canAccessPracticeLesson`, `canAccessExam`): only the first 3
+ *    opened of each are unlocked on the lower tiers.
+ *
+ * The content-lock switches (2, 3) must keep the `NEXT_PUBLIC_` prefix because
+ * most of their gates run inside `'use client'` components. NEXT_PUBLIC_*
+ * values are inlined at build time, so flipping them requires a redeploy — not
+ * just a Vercel env edit. The opened-lessons ledger is fetched when either is
+ * on (`isTierContentLocksEnabled`).
+ *
+ * All default OFF (permissive). Older combined switches are honoured as
+ * fallbacks when a new var is unset, so existing deployments keep their
+ * behaviour until the new vars are configured:
+ *   - content locks fall back to `NEXT_PUBLIC_TIER_CONTENT_LOCKS_ENABLED`,
+ *   - everything falls back to `NEXT_PUBLIC_TIER_ENFORCEMENT_ENABLED`.
+ * An explicit new value (including `false`) overrides the fallbacks. Remove
+ * them once every environment has been migrated.
  *
  * @fileType helper
  * @domain billing
@@ -25,8 +39,37 @@
 
 const TRUE_LITERALS = new Set(['1', 'true', 'on', 'yes'])
 
-export function isTierEnforcementEnabled(): boolean {
-  const raw = process.env.NEXT_PUBLIC_TIER_ENFORCEMENT_ENABLED
+function parseFlag(raw: string | undefined): boolean {
   if (!raw) return false
   return TRUE_LITERALS.has(raw.trim().toLowerCase())
+}
+
+export function isTierSpendingLimitsEnabled(): boolean {
+  return parseFlag(
+    process.env.TIER_SPENDING_LIMITS_ENABLED || process.env.NEXT_PUBLIC_TIER_ENFORCEMENT_ENABLED,
+  )
+}
+
+// Each `process.env.NEXT_PUBLIC_*` access below must stay a literal member
+// expression so Next.js can inline it into the client bundle.
+
+export function isTierLearningLocksEnabled(): boolean {
+  return parseFlag(
+    process.env.NEXT_PUBLIC_TIER_LEARNING_LOCKS_ENABLED ||
+      process.env.NEXT_PUBLIC_TIER_CONTENT_LOCKS_ENABLED ||
+      process.env.NEXT_PUBLIC_TIER_ENFORCEMENT_ENABLED,
+  )
+}
+
+export function isTierPracticeExamLocksEnabled(): boolean {
+  return parseFlag(
+    process.env.NEXT_PUBLIC_TIER_PRACTICE_EXAM_LOCKS_ENABLED ||
+      process.env.NEXT_PUBLIC_TIER_CONTENT_LOCKS_ENABLED ||
+      process.env.NEXT_PUBLIC_TIER_ENFORCEMENT_ENABLED,
+  )
+}
+
+/** True when any content lock is on — gates fetching the opened-lessons ledger. */
+export function isTierContentLocksEnabled(): boolean {
+  return isTierLearningLocksEnabled() || isTierPracticeExamLocksEnabled()
 }

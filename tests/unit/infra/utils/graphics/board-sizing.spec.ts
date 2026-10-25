@@ -80,3 +80,28 @@ describe('computeBoardSize (existing sketch spec)', () => {
     expect(r.height).toBe(400)
   })
 })
+
+describe('computeBoardSize (maxHeight cap)', () => {
+  it('caps the height and derives the width from the aspect ratio', () => {
+    const r = computeBoardSize({ xRange: 10, yRange: 10, availableWidth: 1000, maxHeight: 275 })
+    expect(r.height).toBe(275)
+    expect(r.width).toBe(275)
+  })
+
+  it('lets a tall board go below the 280px min width to keep its ratio', () => {
+    const r = computeBoardSize({ xRange: 5, yRange: 10, availableWidth: 1000, maxHeight: 275 })
+    expect(r.height).toBe(275)
+    expect(r.width).toBe(137.5)
+  })
+
+  it('shrinks both sides together when the width overflows the container', () => {
+    const r = computeBoardSize({ xRange: 20, yRange: 10, availableWidth: 300, maxHeight: 275 })
+    expect(r.width).toBe(300)
+    expect(r.height).toBe(150)
+  })
+
+  it('never raises the height above the uncapped spec', () => {
+    const r = computeBoardSize({ xRange: 10, yRange: 10, availableWidth: 1000, maxHeight: 500 })
+    expect(r.height).toBe(330)
+  })
+})

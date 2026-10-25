@@ -9,7 +9,7 @@
  * even if the user's tier changes later. (A tier change that should
  * also adjust the limit is an admin action, not an automatic one.)
  *
- * Short-circuits when the kill switch is off so admin-set values aren't
+ * Short-circuits when the spending-limits switch is off so admin-set values aren't
  * touched during the subscriptions-not-live phase either.
  *
  * Writes go through the raw Mongo driver because Payload's
@@ -24,7 +24,7 @@ import { ObjectId } from 'mongodb'
 import { getContentDb } from '@/infra/db/content-db'
 import { logger } from '@/infra/utils/logger/logger'
 import { TIER_LLM_TOKEN_CAP_DAILY, TIER_LLM_TOKEN_CAP_MONTHLY } from './constants'
-import { isTierEnforcementEnabled } from './enforcement'
+import { isTierSpendingLimitsEnabled } from './enforcement'
 import { getUserTierSlug, type UserWithTier } from './user-tier'
 
 interface ReconcileArgs {
@@ -44,7 +44,7 @@ export function tierLlmLimitDaily(user: UserWithTier | null | undefined): number
 }
 
 export async function reconcileUserLlmLimit({ userId, user }: ReconcileArgs): Promise<void> {
-  if (!isTierEnforcementEnabled()) return
+  if (!isTierSpendingLimitsEnabled()) return
   if (!ObjectId.isValid(userId)) return
 
   // Seed only — never overwrite an existing (admin-set) value. Monthly and

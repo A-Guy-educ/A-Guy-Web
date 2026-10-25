@@ -1,12 +1,11 @@
 'use client'
 
 import { cn } from '@/infra/utils/ui'
-import { QuestionWithAttachment } from '@/ui/web/exerciserenderer/blocks/QuestionWithAttachment'
 import { RichTextRenderer } from '@/ui/web/exerciserenderer/blocks/RichTextRenderer'
-import { renderQuestionAttachment } from '@/ui/web/exerciserenderer/blocks/renderQuestionAttachment'
 import { QuestionNotebook } from '@/ui/web/exerciserenderer/components/QuestionNotebook'
 import type { QuestionFreeResponseBlock } from '@/ui/web/exerciserenderer/types'
 import { validateFreeResponseOnServer } from '@/ui/web/exerciserenderer/utils/answerChecking'
+import { reportQuestionAttempt } from '@/ui/web/exerciserenderer/utils/questionAttemptReporter'
 import {
   patchExerciseStateBlock,
   patchExerciseStateBlockMeta,
@@ -18,6 +17,7 @@ import { useTranslations } from '@/ui/web/providers/I18n'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import { useCallback, useMemo, useRef, useState } from 'react'
+import { ChatQuestionLayout } from './ChatQuestionLayout'
 import { QuestionHeaderBadges } from './QuestionHeaderBadges'
 
 interface ChatFreeResponseBubbleProps {
@@ -39,6 +39,8 @@ interface ChatFreeResponseBubbleProps {
    * ExerciseRenderer so Reset wipes everything together. Falsy = no persist.
    */
   exerciseId?: string
+  /** Lesson id for teacher-dashboard attempt capture. Falsy = not recorded. */
+  lessonId?: string
   onSubmit: (blockId: string, text: string, isCorrect: boolean) => void
   /**
    * Task-7 quota flag. When true, local-miss paths skip the server AI check
@@ -57,6 +59,11 @@ interface ChatFreeResponseBubbleProps {
   pendingLabel?: string
   notCheckedLabel?: string
   validationErrorMessages?: ValidationErrorMessages
+  /**
+   * Mobile chat layout: render the attachment sketch between the prompt and
+   * the answer area instead of the authored side-by-side / stacked layout.
+   */
+  attachmentAfterPrompt?: boolean
 }
 
 export interface ValidationErrorMessages {
@@ -91,11 +98,13 @@ export function ChatFreeResponseBubble({
   sendLabel,
   disabled,
   exerciseId,
+  lessonId,
   onSubmit,
   isQuotaExhausted,
   pendingLabel,
   notCheckedLabel,
   validationErrorMessages,
+  attachmentAfterPrompt,
 }: ChatFreeResponseBubbleProps) {
   const t = useTranslations('courses')
   // Hydrate typed text + locked state from the shared answer bundle on mount.
@@ -169,6 +178,9 @@ export function ChatFreeResponseBubble({
         })
       }
       recordSubmission(trimmed, true, false)
+      // Graded locally, so the server never sees it — report it. The server
+      // path below records its own verdict via the attempt context.
+      reportQuestionAttempt({ lessonId, exerciseId }, block.id, 'correct')
       onSubmit(block.id, trimmed, true)
       return
     }
@@ -202,7 +214,10 @@ export function ChatFreeResponseBubble({
     setStatus('pending')
     try {
       const result = validationErrorMessages
-        ? await validateFreeResponseOnServer(block, trimmed, validationErrorMessages)
+        ? await validateFreeResponseOnServer(block, trimmed, validationErrorMessages, {
+            lessonId,
+            exerciseId,
+          })
         : { isCorrect: false }
       setStatus('submitted')
       if (exerciseId) {
@@ -231,14 +246,16 @@ export function ChatFreeResponseBubble({
     formRef.current?.requestSubmit()
   }, [])
 
-  const questionContent = (
-    <div className="flex flex-col gap-content-gap">
-      <QuestionHeaderBadges sectionLabel={questionLabel}>
-        <div className="text-body-md font-medium text-foreground leading-relaxed">
-          <RichTextRenderer block={block.prompt} />
-        </div>
-      </QuestionHeaderBadges>
+  const promptNode = (
+    <QuestionHeaderBadges sectionLabel={questionLabel}>
+      <div className="text-body-md font-medium text-foreground leading-relaxed">
+        <RichTextRenderer block={block.prompt} />
+      </div>
+    </QuestionHeaderBadges>
+  )
 
+  const answerNode = (
+    <>
       <div className="relative mt-2" data-math-controls>
         <form
           ref={formRef}
@@ -349,25 +366,18 @@ export function ChatFreeResponseBubble({
       {block.showNotebook === true && notebookOpen && (
         <QuestionNotebook contextTitle={questionLabel ?? block.id} disabled={isDisabled} />
       )}
-    </div>
+    </>
   )
 
-  // Admin-authored sketch attachment (svg / geometry / axis) rendered in the
-  // same slot as Interactive, so the same `textLeft/textRight/textAbove/
-  // textBelow` layout decisions carry over inside the chat bubble. The outer
-  // ExerciseSectionBubble already installs MediaMapProvider, so SvgRenderer
-  // can resolve any mediaIds the attachment references.
-  if (block.attachment) {
-    return (
-      <QuestionWithAttachment
-        layout={block.attachment.layout}
-        question={questionContent}
-        attachment={renderQuestionAttachment(block.id, block.attachment)}
-      />
-    )
-  }
-
-  return questionContent
+  return (
+    <ChatQuestionLayout
+      blockId={block.id}
+      attachment={block.attachment}
+      attachmentAfterPrompt={attachmentAfterPrompt}
+      prompt={promptNode}
+      answer={answerNode}
+    />
+  )
 }
 
 /** Whitespace-collapsed, lowercased equality against any accepted answer. */
