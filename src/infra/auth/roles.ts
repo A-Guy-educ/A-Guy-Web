@@ -9,6 +9,8 @@
  *
  * Values:
  * - admin: Platform administrator with full access
+ * - advanced-content-editor: Edits course content in the CMS
+ * - teacher: Classroom teacher; reads progress for the classes they teach
  * - student: Learner with standard access (default role)
  *
  * @ai-summary User permission levels — `parseAccountRole` throws on invalid values; if a bad role string is persisted to the DB, every auth check that calls it will crash rather than falling back to a default.
@@ -17,6 +19,7 @@
 export enum AccountRole {
   Admin = 'admin',
   AdvancedContentEditor = 'advanced-content-editor',
+  Teacher = 'teacher',
   Student = 'student',
 }
 
@@ -43,6 +46,7 @@ export const ALL_ACCOUNT_ROLES: AccountRole[] = Object.values(AccountRole)
 export const ACCOUNT_ROLE_LABEL: Record<AccountRole, string> = {
   [AccountRole.Admin]: 'Admin',
   [AccountRole.AdvancedContentEditor]: 'Advanced Content Editor',
+  [AccountRole.Teacher]: 'Teacher',
   [AccountRole.Student]: 'Student',
 }
 
@@ -53,6 +57,10 @@ export function isAdmin(role: AccountRole): boolean {
 
 export function isAdvancedContentEditor(role: AccountRole): boolean {
   return role === AccountRole.AdvancedContentEditor
+}
+
+export function isTeacher(role: AccountRole): boolean {
+  return role === AccountRole.Teacher
 }
 
 export function isStudent(role: AccountRole): boolean {

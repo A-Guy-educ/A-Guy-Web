@@ -14,6 +14,7 @@ import {
   patchExerciseStateBlockMeta,
   readExerciseState,
 } from '@/ui/web/exerciserenderer/utils/exerciseStateStorage'
+import { reportQuestionAttempt } from '@/ui/web/exerciserenderer/utils/questionAttemptReporter'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { ArrowLeft, Check, Lightbulb } from 'lucide-react'
 import { useMemo, useState } from 'react'
@@ -45,6 +46,8 @@ interface ChatQuestionSelectBubbleProps {
    * green/red look on re-entry. Falsy = don't persist (unit tests, previews).
    */
   exerciseId?: string
+  /** Lesson id for teacher-dashboard attempt capture. Falsy = not recorded. */
+  lessonId?: string
   onSubmit: (blockId: string, optionText: string, isCorrect: boolean) => void
   /**
    * Task-3 retry hint CTA (3+ option MCQ only). Fires once per block when the
@@ -104,6 +107,7 @@ function SingleSelectBubble({
   questionLabel,
   disabled,
   exerciseId,
+  lessonId,
   onSubmit,
   onHintRequest,
   retryHintLabel,
@@ -154,6 +158,8 @@ function SingleSelectBubble({
     // and the hint CTA becomes available. Hint and retry are only offered on
     // the first miss — a second miss drops through to the normal onSubmit path
     // below so Task 2's teacher-AI correction fires.
+    reportQuestionAttempt({ lessonId, exerciseId }, block.id, isCorrect ? 'correct' : 'wrong')
+
     if (isRetryEligible && !isCorrect && wrongOptionIds.size === 0) {
       const nextWrong = new Set(wrongOptionIds)
       nextWrong.add(choice.id)
@@ -197,6 +203,7 @@ function SingleSelectBubble({
     const correctChoice = choices.find((c) => c.id === correctId)
     if (!wrongChoice || !correctChoice) return
     setHintShown(true)
+    reportQuestionAttempt({ lessonId, exerciseId }, block.id, 'hint')
     if (exerciseId) {
       patchExerciseStateBlockMeta(exerciseId, block.id, { hintShown: true })
     }
@@ -325,6 +332,7 @@ function MultiSelectBubble({
   questionLabel,
   disabled,
   exerciseId,
+  lessonId,
   onSubmit,
   attachmentAfterPrompt,
 }: ChatQuestionSelectBubbleProps) {
@@ -373,6 +381,7 @@ function MultiSelectBubble({
       .filter((c) => pickedIds.has(c.id))
       .map((c) => c.labelValue)
       .join(', ')
+    reportQuestionAttempt({ lessonId, exerciseId }, block.id, isCorrect ? 'correct' : 'wrong')
     onSubmit(block.id, text, isCorrect)
   }
 

@@ -12,6 +12,7 @@ import { formatAuthoredChatContent } from '@/infra/utils/formatAuthoredChatConte
 import { uploadDataUrlAsMedia } from '@/infra/media/uploadDataUrl'
 import { ExerciseRenderer } from '@/ui/web/exerciserenderer'
 import { clearExerciseState } from '@/ui/web/exerciserenderer/utils/exerciseStateStorage'
+import { reportQuestionAttempt } from '@/ui/web/exerciserenderer/utils/questionAttemptReporter'
 import { logger } from '@/infra/utils/logger'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -89,6 +90,15 @@ type HelpStage = 'idle' | 'field-shown' | 'ai-asked'
  * Returns an empty string when nothing is authored, which the caller treats
  * as "go straight to Gemini on the first tap and lock the chip."
  */
+function isHelpQuestionBlock(block: { type: string }): boolean {
+  return (
+    block.type === 'question_select' ||
+    block.type === 'question_free_response' ||
+    block.type === 'question_table' ||
+    block.type === 'question_matching'
+  )
+}
+
 function collectSectionHelpContent(
   blocks: Array<{ type: string; hint?: { value?: string }; fullSolution?: { value?: string } }>,
   action: 'hint' | 'explain',
@@ -96,14 +106,7 @@ function collectSectionHelpContent(
   const field = action === 'hint' ? 'hint' : 'fullSolution'
   const parts: string[] = []
   for (const block of blocks) {
-    if (
-      block.type !== 'question_select' &&
-      block.type !== 'question_free_response' &&
-      block.type !== 'question_table' &&
-      block.type !== 'question_matching'
-    ) {
-      continue
-    }
+    if (!isHelpQuestionBlock(block)) continue
     const raw = block[field]?.value?.trim()
     if (raw) parts.push(raw)
   }
@@ -476,6 +479,17 @@ function ActiveChat({
       const stage = action === 'hint' ? current.hintStage : current.explainStage
       if (stage === 'ai-asked') return // chip already locked
 
+      // Teacher dashboard: chips act on the whole section, so attribute the
+      // press to its first question (sections are almost always single-question).
+      const sectionQuestion = step.group.blocks.find(isHelpQuestionBlock)
+      if (sectionQuestion?.id) {
+        reportQuestionAttempt(
+          { lessonId, exerciseId: step.exercise.id },
+          sectionQuestion.id,
+          action === 'hint' ? 'hint' : 'explanation',
+        )
+      }
+
       const fieldContent = collectSectionHelpContent(step.group.blocks, action)
       const updateStage = (nextStage: HelpStage) =>
         setSectionHelp((prev) => ({
@@ -520,6 +534,7 @@ function ActiveChat({
       explainPrompt,
       hintFollowUpTemplate,
       hintPrompt,
+      lessonId,
       sectionHelp,
       walker,
     ],

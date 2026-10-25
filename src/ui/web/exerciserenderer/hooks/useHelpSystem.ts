@@ -18,6 +18,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { systemEventBus, SYSTEM_EVENTS } from '@/infra/system-events'
 import type { HelpUsageState, QuestionBlock } from '../types'
+import { reportQuestionAttempt } from '../utils/questionAttemptReporter'
 
 interface UseHelpSystemProps {
   questionBlocks: QuestionBlock[]
@@ -114,6 +115,8 @@ export function useHelpSystem({
       const questionContent = question.prompt?.value
 
       setActiveHelp((prev) => ({ ...prev, [questionId]: 'hint' }))
+      // Teacher dashboard: every hint-button press that reveals something.
+      reportQuestionAttempt({ lessonId, exerciseId }, questionId, 'hint')
 
       if (!current.hintShown) {
         // First click: show pre-written hint if we have one, otherwise call AI.
@@ -225,6 +228,8 @@ export function useHelpSystem({
       const questionContent = question.prompt?.value
 
       setActiveHelp((prev) => ({ ...prev, [questionId]: 'solution' }))
+      // Teacher dashboard: the show-solution action counts as an explanation.
+      reportQuestionAttempt({ lessonId, exerciseId }, questionId, 'explanation')
 
       systemEventBus.emit(SYSTEM_EVENTS.SOLUTION_CLICKED, {
         ...basePayload(questionId),

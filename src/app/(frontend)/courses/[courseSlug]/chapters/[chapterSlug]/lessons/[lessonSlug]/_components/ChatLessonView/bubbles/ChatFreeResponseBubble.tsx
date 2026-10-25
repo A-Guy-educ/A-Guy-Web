@@ -5,6 +5,7 @@ import { RichTextRenderer } from '@/ui/web/exerciserenderer/blocks/RichTextRende
 import { QuestionNotebook } from '@/ui/web/exerciserenderer/components/QuestionNotebook'
 import type { QuestionFreeResponseBlock } from '@/ui/web/exerciserenderer/types'
 import { validateFreeResponseOnServer } from '@/ui/web/exerciserenderer/utils/answerChecking'
+import { reportQuestionAttempt } from '@/ui/web/exerciserenderer/utils/questionAttemptReporter'
 import {
   patchExerciseStateBlock,
   patchExerciseStateBlockMeta,
@@ -38,6 +39,8 @@ interface ChatFreeResponseBubbleProps {
    * ExerciseRenderer so Reset wipes everything together. Falsy = no persist.
    */
   exerciseId?: string
+  /** Lesson id for teacher-dashboard attempt capture. Falsy = not recorded. */
+  lessonId?: string
   onSubmit: (blockId: string, text: string, isCorrect: boolean) => void
   /**
    * Task-7 quota flag. When true, local-miss paths skip the server AI check
@@ -95,6 +98,7 @@ export function ChatFreeResponseBubble({
   sendLabel,
   disabled,
   exerciseId,
+  lessonId,
   onSubmit,
   isQuotaExhausted,
   pendingLabel,
@@ -174,6 +178,9 @@ export function ChatFreeResponseBubble({
         })
       }
       recordSubmission(trimmed, true, false)
+      // Graded locally, so the server never sees it — report it. The server
+      // path below records its own verdict via the attempt context.
+      reportQuestionAttempt({ lessonId, exerciseId }, block.id, 'correct')
       onSubmit(block.id, trimmed, true)
       return
     }
@@ -207,7 +214,10 @@ export function ChatFreeResponseBubble({
     setStatus('pending')
     try {
       const result = validationErrorMessages
-        ? await validateFreeResponseOnServer(block, trimmed, validationErrorMessages)
+        ? await validateFreeResponseOnServer(block, trimmed, validationErrorMessages, {
+            lessonId,
+            exerciseId,
+          })
         : { isCorrect: false }
       setStatus('submitted')
       if (exerciseId) {

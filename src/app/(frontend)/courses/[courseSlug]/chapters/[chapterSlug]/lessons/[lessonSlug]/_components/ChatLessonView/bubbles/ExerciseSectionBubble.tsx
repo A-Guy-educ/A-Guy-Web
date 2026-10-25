@@ -383,6 +383,7 @@ export function ExerciseSectionBubble({
                     // student can go back and finish anything they skipped.
                     disabled={quickActionsDisabled}
                     exerciseId={storageIdOverride ?? exercise.id}
+                    lessonId={lessonId}
                     onSubmit={handleChatNativeSubmit}
                     onHintRequest={isActive ? onHintRequest : undefined}
                     retryHintLabel={retryHintLabel}
@@ -400,6 +401,7 @@ export function ExerciseSectionBubble({
                     sendLabel={freeResponseSendLabel ?? ''}
                     disabled={quickActionsDisabled}
                     exerciseId={storageIdOverride ?? exercise.id}
+                    lessonId={lessonId}
                     onSubmit={handleChatNativeSubmit}
                     isQuotaExhausted={isQuotaExhausted}
                     pendingLabel={freeResponsePendingLabel}
