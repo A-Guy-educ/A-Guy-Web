@@ -6,8 +6,9 @@
  * lessons 3, 17 and 29 and hits the paywall on the 4th distinct one. The
  * opened lists come from `user-progresses` (server-side, see
  * `@/server/services/tier-lesson-access`) and are passed in as plain data so
- * these helpers stay pure and client-safe. When the content-locks switch is off, every
- * gate returns permissive — nothing is tier-locked.
+ * these helpers stay pure and client-safe. Each gate short-circuits to permissive
+ * when its switch is off: the learning exercise cap on the learning-locks switch,
+ * the practice/exam gates on the practice-exam-locks switch (see `enforcement.ts`).
  *
  * Rules (reduced form after rank comparison):
  *   learning lesson:    always opens; the first 3 opened are fully open, the
@@ -22,7 +23,7 @@
  */
 
 import { TIER_RANK } from './constants'
-import { isTierContentLocksEnabled } from './enforcement'
+import { isTierLearningLocksEnabled, isTierPracticeExamLocksEnabled } from './enforcement'
 import { getUserTierRank, type UserWithTier } from './user-tier'
 
 const FREE_UNLOCK_COUNT = 3
@@ -67,7 +68,7 @@ export function canAccessLearningExercise(
   lessonOpenOrdinal: number,
   exerciseSortOrder: number,
 ): boolean {
-  if (!isTierContentLocksEnabled()) return true
+  if (!isTierLearningLocksEnabled()) return true
   if (getUserTierRank(user) >= TIER_RANK.basic) return true
   if (lessonOpenOrdinal <= FREE_UNLOCK_COUNT) return true
   return exerciseSortOrder <= FREE_UNLOCK_COUNT
@@ -78,7 +79,7 @@ export function canAccessPracticeLesson(
   lessonId: string,
   openedPractice: readonly string[],
 ): boolean {
-  if (!isTierContentLocksEnabled()) return true
+  if (!isTierPracticeExamLocksEnabled()) return true
   if (getUserTierRank(user) >= TIER_RANK.basic) return true
   return isWithinOpenedAllowance(lessonId, openedPractice)
 }
@@ -88,7 +89,7 @@ export function canAccessExam(
   lessonId: string,
   openedExams: readonly string[],
 ): boolean {
-  if (!isTierContentLocksEnabled()) return true
+  if (!isTierPracticeExamLocksEnabled()) return true
   if (getUserTierRank(user) >= TIER_RANK.advanced) return true
   return isWithinOpenedAllowance(lessonId, openedExams)
 }
