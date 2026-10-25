@@ -29,7 +29,7 @@
 import { ObjectId, type Collection, type Document } from 'mongodb'
 
 import { getContentDb } from '@/infra/db/content-db'
-import { isTierEnforcementEnabled } from '@/lib/tiers/enforcement'
+import { isTierSpendingLimitsEnabled } from '@/lib/tiers/enforcement'
 import { logger } from '@/infra/utils/logger/logger'
 
 const USAGE_COLLECTION = 'llm-usage'
@@ -268,8 +268,8 @@ function readWindow(
  * long before the monthly wall in normal usage.
  */
 export async function checkTokenLimit(userId: string): Promise<TokenLimitStatus> {
-  // Kill switch — tier enforcement off means no cost cap for anyone.
-  if (!isTierEnforcementEnabled()) {
+  // Kill switch — spending limits off means no cost cap for anyone.
+  if (!isTierSpendingLimitsEnabled()) {
     return {
       withinLimit: true,
       used: 0,

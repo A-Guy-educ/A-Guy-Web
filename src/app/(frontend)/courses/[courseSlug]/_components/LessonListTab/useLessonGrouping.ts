@@ -38,7 +38,7 @@ interface GroupingInput {
   /**
    * Current user's tier slug. When omitted, no tier gating is applied — only
    * the legacy access-type path. Also unused in practice when the global
-   * `NEXT_PUBLIC_TIER_ENFORCEMENT_ENABLED` switch is off (the gate helpers short-circuit).
+   * `NEXT_PUBLIC_TIER_CONTENT_LOCKS_ENABLED` switch is off (the gate helpers short-circuit).
    */
   tierSlug?: TierSlug | null
   /**
@@ -79,7 +79,7 @@ function resolveLessonLock(
   if (access === 'paid' && !hasPaidAccess) return { status: 'locked', isTierLocked: false }
 
   // Tier-based gates — the helpers themselves short-circuit when the
-  // `NEXT_PUBLIC_TIER_ENFORCEMENT_ENABLED` env flag is off, so this is a no-op until
+  // `NEXT_PUBLIC_TIER_CONTENT_LOCKS_ENABLED` env flag is off, so this is a no-op until
   // the kill switch is flipped. Learning rows stay visible for every tier;
   // the per-exercise gate inside a lesson handles the cap. Practice/exam
   // rows lock once the user has opened 3 distinct lessons of that type and

@@ -5,7 +5,7 @@
  * `null` = no hard daily cap (premium → fair use, see model-selection.ts
  * for soft-cap downgrade).
  *
- * When the kill switch is off, `getUserDailyAiQuota` returns `null`
+ * When the spending-limits switch is off, `getUserDailyAiQuota` returns `null`
  * (unlimited) for every tier.
  *
  * @fileType helper
@@ -13,7 +13,7 @@
  */
 
 import type { TierSlug } from './constants'
-import { isTierEnforcementEnabled } from './enforcement'
+import { isTierSpendingLimitsEnabled } from './enforcement'
 import { getUserTierSlug, type UserWithTier } from './user-tier'
 
 export const TIER_DAILY_AI_QUESTIONS: Record<TierSlug, number | null> = {
@@ -24,6 +24,6 @@ export const TIER_DAILY_AI_QUESTIONS: Record<TierSlug, number | null> = {
 }
 
 export function getUserDailyAiQuota(user: UserWithTier | null | undefined): number | null {
-  if (!isTierEnforcementEnabled()) return null
+  if (!isTierSpendingLimitsEnabled()) return null
   return TIER_DAILY_AI_QUESTIONS[getUserTierSlug(user)]
 }

@@ -9,7 +9,7 @@
 import { ObjectId, type Collection, type Document } from 'mongodb'
 import { getContentDb } from '@/infra/db/content-db'
 import { getChatConfig } from '@/infra/llm/providers/shared/chat-config'
-import { TIER_DAILY_AI_QUESTIONS, getUserTierSlug, isTierEnforcementEnabled } from '@/lib/tiers'
+import { TIER_DAILY_AI_QUESTIONS, getUserTierSlug, isTierSpendingLimitsEnabled } from '@/lib/tiers'
 import { hoursToMs } from '@/infra/utils/time'
 
 const QUOTA_DEFAULTS = { maxQuestions: 15, windowHours: 12 }
@@ -30,7 +30,7 @@ async function getUsersCollection(): Promise<Collection<Document>> {
 }
 
 /**
- * Resolve the quota that applies to this user. When the tier kill switch is
+ * Resolve the quota that applies to this user. When the tier spending-limits switch is
  * on, uses `TIER_DAILY_AI_QUESTIONS` with a 24h rolling window; otherwise
  * falls back to the global ConfigValues chat quota (12h legacy window).
  * Returns `maxQuestions = UNLIMITED` for premium users; callers must treat
@@ -39,7 +39,7 @@ async function getUsersCollection(): Promise<Collection<Document>> {
 async function resolveQuotaFor(
   userId: string,
 ): Promise<{ maxQuestions: number; windowHours: number }> {
-  if (!isTierEnforcementEnabled()) {
+  if (!isTierSpendingLimitsEnabled()) {
     try {
       const config = await getChatConfig()
       return { ...QUOTA_DEFAULTS, ...config.quota }

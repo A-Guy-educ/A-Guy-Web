@@ -10,13 +10,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { EMPTY_OPENED_LESSONS, isTierEnforcementEnabled, type OpenedLessonIds } from '@/lib/tiers'
+import { EMPTY_OPENED_LESSONS, isTierContentLocksEnabled, type OpenedLessonIds } from '@/lib/tiers'
 
 export function useOpenedLessons(gradeLevel: string | null | undefined): OpenedLessonIds {
   const [opened, setOpened] = useState<OpenedLessonIds>(EMPTY_OPENED_LESSONS)
 
   useEffect(() => {
-    if (!isTierEnforcementEnabled() || !gradeLevel) return
+    if (!isTierContentLocksEnabled() || !gradeLevel) return
 
     const controller = new AbortController()
     fetch(`/api/tiers/opened-lessons?gradeLevel=${encodeURIComponent(gradeLevel)}`, {
