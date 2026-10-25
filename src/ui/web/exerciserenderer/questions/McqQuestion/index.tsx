@@ -10,7 +10,7 @@
 
 'use client'
 
-import React from 'react'
+import React, { type ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/infra/utils/ui'
 import { Checkbox } from '@/ui/web/components/checkbox'
@@ -34,6 +34,12 @@ interface McqQuestionProps {
    * this prop and keep the explicit Check Answer flow.
    */
   onAutoSubmit?: (answer: UserAnswer) => void
+  /**
+   * Rendered directly under the prompt container. The chat view uses it on
+   * mobile to slot the question's sketch attachment between the prompt and
+   * the answer area.
+   */
+  afterPrompt?: ReactNode
 }
 
 /**
@@ -54,6 +60,7 @@ export function McqQuestion({
   checkResult: _checkResult,
   t,
   onAutoSubmit,
+  afterPrompt,
 }: McqQuestionProps) {
   const selectedIds = answer.type === 'mcq' ? answer.selectedIds : []
 
@@ -117,6 +124,8 @@ export function McqQuestion({
           <RichTextRenderer block={promptBlock} />
         </div>
       </div>
+
+      {afterPrompt}
 
       <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted text-muted-foreground text-body-xs border border-border/20 w-fit">
         <AlertCircle className="w-3.5 h-3.5" />

@@ -203,7 +203,11 @@ function ActiveChat({
   // (which inserts feedback mid-stream) doesn't yank the viewport away from
   // where the student is reading.
   const [appendTick, setAppendTick] = useState(0)
+  // Most recently appended entry — lets the scroll effect treat a freshly
+  // emitted section differently from feedback / chat replies.
+  const lastAppendedRef = useRef<StreamEntry | null>(null)
   const append = useCallback((entry: StreamEntry) => {
+    lastAppendedRef.current = entry
     setEntries((prev) => [...prev, entry])
     setAppendTick((t) => t + 1)
   }, [])
@@ -684,6 +688,20 @@ function ActiveChat({
   // recordings stay available on demand.
 
   useEffect(() => {
+    // A new section (after Next / skip) scrolls its TOP into view so the
+    // student sees the prompt and its sketch first. Bottom-aligning a tall
+    // section — prompt + sketch + options — cut the question text off above
+    // the fold on mobile. When the section is short the browser clamps the
+    // scroll, so this lands at the bottom exactly like before. Everything
+    // else (feedback, chat replies) keeps scrolling to the end.
+    const last = lastAppendedRef.current
+    if (last?.kind === 'exercise-section') {
+      const sectionEl = document.querySelector(`[data-section-key="${CSS.escape(last.key)}"]`)
+      if (sectionEl) {
+        sectionEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        return
+      }
+    }
     scrollRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [appendTick])
 
@@ -1015,36 +1033,41 @@ function StreamEntryView({
       )
     }
     case 'exercise-section':
+      // `data-section-key` is the runner's scroll anchor for a newly emitted
+      // section; scroll-mt matches <main>'s top padding so the prompt clears
+      // the floating progress pill.
       return (
-        <ExerciseSectionBubble
-          exercise={entry.exercise}
-          ordinal={entry.ordinal}
-          group={entry.group}
-          questionLabels={entry.questionLabels}
-          questionCount={entry.questionCount}
-          lessonId={lessonId}
-          mediaMap={mediaMap}
-          speaking={tts.speaking}
-          muted={tts.muted}
-          ttsSupported={tts.supported}
-          isActive={isActive}
-          sectionKey={entry.key}
-          storageIdOverride={entry.storageIdOverride}
-          onOutcome={onOutcome}
-          onQuickAction={onQuickAction}
-          onHintRequest={onHintRequest}
-          retryHintLabel={retryHintLabel}
-          quickActionLabels={quickActionLabels}
-          quickActionsDisabled={quickActionsDisabled}
-          hintDisabled={isActive ? hintDisabled : false}
-          explainDisabled={isActive ? explainDisabled : false}
-          freeResponsePlaceholder={freeResponsePlaceholder}
-          freeResponseSendLabel={freeResponseSendLabel}
-          freeResponsePendingLabel={freeResponsePendingLabel}
-          freeResponseNotCheckedLabel={freeResponseNotCheckedLabel}
-          freeResponseValidationErrors={freeResponseValidationErrors}
-          isQuotaExhausted={isQuotaExhausted}
-        />
+        <div data-section-key={entry.key} className="scroll-mt-14 md:scroll-mt-20">
+          <ExerciseSectionBubble
+            exercise={entry.exercise}
+            ordinal={entry.ordinal}
+            group={entry.group}
+            questionLabels={entry.questionLabels}
+            questionCount={entry.questionCount}
+            lessonId={lessonId}
+            mediaMap={mediaMap}
+            speaking={tts.speaking}
+            muted={tts.muted}
+            ttsSupported={tts.supported}
+            isActive={isActive}
+            sectionKey={entry.key}
+            storageIdOverride={entry.storageIdOverride}
+            onOutcome={onOutcome}
+            onQuickAction={onQuickAction}
+            onHintRequest={onHintRequest}
+            retryHintLabel={retryHintLabel}
+            quickActionLabels={quickActionLabels}
+            quickActionsDisabled={quickActionsDisabled}
+            hintDisabled={isActive ? hintDisabled : false}
+            explainDisabled={isActive ? explainDisabled : false}
+            freeResponsePlaceholder={freeResponsePlaceholder}
+            freeResponseSendLabel={freeResponseSendLabel}
+            freeResponsePendingLabel={freeResponsePendingLabel}
+            freeResponseNotCheckedLabel={freeResponseNotCheckedLabel}
+            freeResponseValidationErrors={freeResponseValidationErrors}
+            isQuotaExhausted={isQuotaExhausted}
+          />
+        </div>
       )
     case 'chat-user':
       return <StudentBubble text={entry.text} isCorrect={entry.isCorrect} />

@@ -1,5 +1,6 @@
 'use client'
 
+import { useMediaQuery } from '@/client/hooks/useMediaQuery'
 import type { AxisSpecV1 } from '@/infra/contracts/graphics/axis.v1'
 import type { GeometrySpecV1 } from '@/infra/contracts/graphics/geometry.v1'
 import type { Exercise, Media } from '@/infra/types/content'
@@ -23,6 +24,7 @@ import { GraphWithPrompt } from '@/ui/web/exerciserenderer/blocks/GraphWithPromp
 import { RichTextRenderer } from '@/ui/web/exerciserenderer/blocks/RichTextRenderer'
 import { SvgRenderer } from '@/ui/web/exerciserenderer/blocks/SvgRenderer'
 import { MediaMapProvider } from '@/ui/web/exerciserenderer/context/MediaMapContext'
+import { SketchMaxHeightProvider } from '@/ui/web/exerciserenderer/context/SketchMaxHeightContext'
 import { readExerciseState } from '@/ui/web/exerciserenderer/utils/exerciseStateStorage'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import type { SectionOutcome } from '../types'
@@ -31,6 +33,12 @@ import { ChatQuestionSelectBubble } from './ChatQuestionSelectBubble'
 import { QuickActionChips, type QuickAction } from './QuickActionChips'
 
 const EMPTY_MEDIA_MAP: Record<string, Media> = {}
+
+// Tailwind `md` breakpoint — same mobile query SvgRenderer sizes against.
+const MOBILE_QUERY = '(max-width: 767px)'
+// Mobile cap on sketch height (svg / geometry / axis). Width follows the
+// sketch's aspect ratio so the prompt, sketch and answer area fit together.
+const MOBILE_SKETCH_MAX_HEIGHT_PX = 275
 
 interface ExerciseSectionBubbleProps {
   exercise: Exercise
@@ -183,6 +191,10 @@ export function ExerciseSectionBubble({
   sectionKey,
 }: ExerciseSectionBubbleProps) {
   const isChatNativePath = useMemo(() => isChatNativeSection(group), [group])
+  // On mobile, question attachments stack prompt → sketch → answer area and
+  // sketches are height-capped, so the student reads the question and sees
+  // the drawing before reaching the options / input / table.
+  const isMobile = useMediaQuery(MOBILE_QUERY)
 
   // Correct-answer text for the FALLBACK path (no per-question outcome
   // signal there — we can only echo the whole section's correct answers).
@@ -343,182 +355,195 @@ export function ExerciseSectionBubble({
   // full opacity and remain answerable: the runner routes their feedback
   // under the correct section via `sectionKey`.
   return (
-    <div className="flex flex-col gap-content-gap">
-      {isChatNativePath ? (
-        // MediaMapProvider is required so RichTextRenderer's MediaAttachments
-        // (used inside prompts, option labels, and inline rich_text) can look
-        // up media by id. The standard ExerciseRenderer path installs this
-        // provider itself; the chat-native path has to do it here.
-        <MediaMapProvider value={mediaMap ?? EMPTY_MEDIA_MAP}>
-          {group.blocks.map((block) => {
-            // Section letter badges render only on the first gradable question
-            // of each section (the only id in `questionLabelById`), so a multi-
-            // question section's leading card is clearly labelled while
-            // subsequent cards stay unlabelled. The exercise ordinal lives
-            // separately on the exercise-intro's given-data card, not here —
-            // repeating it on every section would just add noise.
-            const sectionLabel = questionLabelById?.get(block.id)
-            if (block.type === 'question_select') {
-              return (
-                <ChatQuestionSelectBubble
-                  key={block.id}
-                  block={block as QuestionSelectBlock}
-                  questionLabel={sectionLabel}
-                  // Freeze only while a chat request is in flight (otherwise
-                  // the resulting requestCorrection would be silently
-                  // dropped). Past-section bubbles stay answerable so a
-                  // student can go back and finish anything they skipped.
-                  disabled={quickActionsDisabled}
-                  exerciseId={storageIdOverride ?? exercise.id}
-                  onSubmit={handleChatNativeSubmit}
-                  onHintRequest={isActive ? onHintRequest : undefined}
-                  retryHintLabel={retryHintLabel}
-                />
-              )
-            }
-            if (block.type === 'question_free_response') {
-              return (
-                <ChatFreeResponseBubble
-                  key={block.id}
-                  block={block as QuestionFreeResponseBlock}
-                  questionLabel={sectionLabel}
-                  placeholder={freeResponsePlaceholder ?? ''}
-                  sendLabel={freeResponseSendLabel ?? ''}
-                  disabled={quickActionsDisabled}
-                  exerciseId={storageIdOverride ?? exercise.id}
-                  onSubmit={handleChatNativeSubmit}
-                  isQuotaExhausted={isQuotaExhausted}
-                  pendingLabel={freeResponsePendingLabel}
-                  notCheckedLabel={freeResponseNotCheckedLabel}
-                  validationErrorMessages={freeResponseValidationErrors}
-                />
-              )
-            }
-            if (block.type === 'rich_text') {
-              const rt = block as RichTextBlock
-              // Rich text at the top of a section is typically the exercise's
-              // "given data" — statement + figures. Amber-tint it so the
-              // student can visually distinguish problem context from
-              // question prompts. Matches the mockup's amber given-data card.
-              return (
-                <div
-                  key={block.id}
-                  className="rounded-2xl border border-warning/30 bg-warning/8 p-card-padding-sm text-body-md font-medium text-foreground leading-relaxed"
-                >
-                  <RichTextRenderer block={rt} />
-                </div>
-              )
-            }
-            // Decorative sibling sketches (non-interactive svg, display-only
-            // geometry/axis). The allowlist in `isChatNativeSection` lets these
-            // through so a section like `[question_geometry, question_select]`
-            // keeps the chat-native treatment on the question instead of
-            // dumping the whole group into the ExerciseRenderer fallback. Each
-            // uses the same renderer the Interactive tab does so the sketch
-            // looks identical across views.
-            if (block.type === 'svg') {
-              const svg = block as SvgBlock
-              return <SvgRenderer key={svg.id} block={svg} displaySize={svg.displaySize} />
-            }
-            if (block.type === 'question_geometry') {
-              const g = block as {
-                id: string
-                geometry: GeometrySpecV1
-                layout?: GraphLayout
-                prompt?: InlineRichText
-                displaySize?: 'small' | 'medium' | 'large' | 'full'
+    <SketchMaxHeightProvider value={isMobile ? MOBILE_SKETCH_MAX_HEIGHT_PX : undefined}>
+      <div className="flex flex-col gap-content-gap">
+        {isChatNativePath ? (
+          // MediaMapProvider is required so RichTextRenderer's MediaAttachments
+          // (used inside prompts, option labels, and inline rich_text) can look
+          // up media by id. The standard ExerciseRenderer path installs this
+          // provider itself; the chat-native path has to do it here.
+          <MediaMapProvider value={mediaMap ?? EMPTY_MEDIA_MAP}>
+            {group.blocks.map((block) => {
+              // Section letter badges render only on the first gradable question
+              // of each section (the only id in `questionLabelById`), so a multi-
+              // question section's leading card is clearly labelled while
+              // subsequent cards stay unlabelled. The exercise ordinal lives
+              // separately on the exercise-intro's given-data card, not here —
+              // repeating it on every section would just add noise.
+              const sectionLabel = questionLabelById?.get(block.id)
+              if (block.type === 'question_select') {
+                return (
+                  <ChatQuestionSelectBubble
+                    key={block.id}
+                    block={block as QuestionSelectBlock}
+                    questionLabel={sectionLabel}
+                    // Freeze only while a chat request is in flight (otherwise
+                    // the resulting requestCorrection would be silently
+                    // dropped). Past-section bubbles stay answerable so a
+                    // student can go back and finish anything they skipped.
+                    disabled={quickActionsDisabled}
+                    exerciseId={storageIdOverride ?? exercise.id}
+                    onSubmit={handleChatNativeSubmit}
+                    onHintRequest={isActive ? onHintRequest : undefined}
+                    retryHintLabel={retryHintLabel}
+                    attachmentAfterPrompt={isMobile}
+                  />
+                )
               }
-              return (
-                <GraphWithPrompt
-                  key={g.id}
-                  blockId={g.id}
-                  layout={g.layout ?? 'textRight'}
-                  prompt={g.prompt}
-                >
-                  <GeometryRenderer blockId={g.id} spec={g.geometry} displaySize={g.displaySize} />
-                </GraphWithPrompt>
-              )
-            }
-            if (block.type === 'question_axis') {
-              const a = block as {
-                id: string
-                axis: AxisSpecV1
-                layout?: GraphLayout
-                prompt?: InlineRichText
-                displaySize?: 'small' | 'medium' | 'large' | 'full'
+              if (block.type === 'question_free_response') {
+                return (
+                  <ChatFreeResponseBubble
+                    key={block.id}
+                    block={block as QuestionFreeResponseBlock}
+                    questionLabel={sectionLabel}
+                    placeholder={freeResponsePlaceholder ?? ''}
+                    sendLabel={freeResponseSendLabel ?? ''}
+                    disabled={quickActionsDisabled}
+                    exerciseId={storageIdOverride ?? exercise.id}
+                    onSubmit={handleChatNativeSubmit}
+                    isQuotaExhausted={isQuotaExhausted}
+                    pendingLabel={freeResponsePendingLabel}
+                    notCheckedLabel={freeResponseNotCheckedLabel}
+                    validationErrorMessages={freeResponseValidationErrors}
+                    attachmentAfterPrompt={isMobile}
+                  />
+                )
               }
-              return (
-                <GraphWithPrompt
-                  key={a.id}
-                  blockId={a.id}
-                  layout={a.layout ?? 'textRight'}
-                  prompt={a.prompt}
-                >
-                  <AxisRenderer blockId={a.id} spec={a.axis} displaySize={a.displaySize} />
-                </GraphWithPrompt>
-              )
-            }
-            return null
-          })}
+              if (block.type === 'rich_text') {
+                const rt = block as RichTextBlock
+                // Rich text at the top of a section is typically the exercise's
+                // "given data" — statement + figures. Amber-tint it so the
+                // student can visually distinguish problem context from
+                // question prompts. Matches the mockup's amber given-data card.
+                return (
+                  <div
+                    key={block.id}
+                    className="rounded-2xl border border-warning/30 bg-warning/8 p-card-padding-sm text-body-md font-medium text-foreground leading-relaxed"
+                  >
+                    <RichTextRenderer block={rt} />
+                  </div>
+                )
+              }
+              // Decorative sibling sketches (non-interactive svg, display-only
+              // geometry/axis). The allowlist in `isChatNativeSection` lets these
+              // through so a section like `[question_geometry, question_select]`
+              // keeps the chat-native treatment on the question instead of
+              // dumping the whole group into the ExerciseRenderer fallback. Each
+              // uses the same renderer the Interactive tab does so the sketch
+              // looks identical across views.
+              if (block.type === 'svg') {
+                const svg = block as SvgBlock
+                return <SvgRenderer key={svg.id} block={svg} displaySize={svg.displaySize} />
+              }
+              if (block.type === 'question_geometry') {
+                const g = block as {
+                  id: string
+                  geometry: GeometrySpecV1
+                  layout?: GraphLayout
+                  prompt?: InlineRichText
+                  displaySize?: 'small' | 'medium' | 'large' | 'full'
+                }
+                return (
+                  <GraphWithPrompt
+                    key={g.id}
+                    blockId={g.id}
+                    layout={g.layout ?? 'textRight'}
+                    prompt={g.prompt}
+                  >
+                    <GeometryRenderer
+                      blockId={g.id}
+                      spec={g.geometry}
+                      displaySize={g.displaySize}
+                    />
+                  </GraphWithPrompt>
+                )
+              }
+              if (block.type === 'question_axis') {
+                const a = block as {
+                  id: string
+                  axis: AxisSpecV1
+                  layout?: GraphLayout
+                  prompt?: InlineRichText
+                  displaySize?: 'small' | 'medium' | 'large' | 'full'
+                }
+                return (
+                  <GraphWithPrompt
+                    key={a.id}
+                    blockId={a.id}
+                    layout={a.layout ?? 'textRight'}
+                    prompt={a.prompt}
+                  >
+                    <AxisRenderer blockId={a.id} spec={a.axis} displaySize={a.displaySize} />
+                  </GraphWithPrompt>
+                )
+              }
+              return null
+            })}
 
-          {isActive &&
-            !hasAnyAnswer &&
-            onQuickAction &&
-            quickActionLabels &&
-            chatNativeQuestionCount > 0 && (
-              <QuickActionChips
-                disabled={quickActionsDisabled}
-                hintDisabled={hintDisabled}
-                explainDisabled={explainDisabled}
-                hintLabel={quickActionLabels.hint}
-                explainLabel={quickActionLabels.explain}
-                skipLabel={quickActionLabels.skip}
-                skipExerciseLabel={quickActionLabels.skipExercise}
-                onAction={handleChipAction}
-              />
-            )}
-        </MediaMapProvider>
-      ) : (
-        <>
-          <ExerciseRenderer
-            groups={[group]}
-            questionLabelsOverride={questionLabels}
-            mediaMap={mediaMap}
-            exerciseNumber={ordinal}
-            showExerciseNumber={false}
-            lessonId={lessonId}
-            exerciseId={storageIdOverride ?? exercise.id}
-            hideLatexBlocks
-            questionCardVariant="flat"
-            // Only enable on the walker's current step — scroll-back
-            // (historical) bubbles keep the notebook hidden so a stray
-            // Check-solution click can't dispatch a drawing that
-            // ChatLessonRunnerView would then attribute to whatever
-            // section the walker is on RIGHT NOW.
-            showNotebook={isActive}
-            onResultsChange={questionCount > 0 ? handleAggregateResults : undefined}
-            // Suppress the inline amber/purple HelpSystem — we render
-            // QuickActionChips below instead so tables, matching, and the
-            // other fallback block types share the chat view's button
-            // styling (hint/explain in primary color plus skip + skip-
-            // exercise) with the chat-native path above.
-            hideHelpSystem
-          />
-          {isActive && !hasAnyAnswer && onQuickAction && quickActionLabels && questionCount > 0 && (
-            <QuickActionChips
-              disabled={quickActionsDisabled}
-              hintDisabled={hintDisabled}
-              explainDisabled={explainDisabled}
-              hintLabel={quickActionLabels.hint}
-              explainLabel={quickActionLabels.explain}
-              skipLabel={quickActionLabels.skip}
-              skipExerciseLabel={quickActionLabels.skipExercise}
-              onAction={handleChipAction}
+            {isActive &&
+              !hasAnyAnswer &&
+              onQuickAction &&
+              quickActionLabels &&
+              chatNativeQuestionCount > 0 && (
+                <QuickActionChips
+                  disabled={quickActionsDisabled}
+                  hintDisabled={hintDisabled}
+                  explainDisabled={explainDisabled}
+                  hintLabel={quickActionLabels.hint}
+                  explainLabel={quickActionLabels.explain}
+                  skipLabel={quickActionLabels.skip}
+                  skipExerciseLabel={quickActionLabels.skipExercise}
+                  onAction={handleChipAction}
+                />
+              )}
+          </MediaMapProvider>
+        ) : (
+          <>
+            <ExerciseRenderer
+              groups={[group]}
+              questionLabelsOverride={questionLabels}
+              mediaMap={mediaMap}
+              exerciseNumber={ordinal}
+              showExerciseNumber={false}
+              lessonId={lessonId}
+              exerciseId={storageIdOverride ?? exercise.id}
+              hideLatexBlocks
+              questionCardVariant="flat"
+              // Only enable on the walker's current step — scroll-back
+              // (historical) bubbles keep the notebook hidden so a stray
+              // Check-solution click can't dispatch a drawing that
+              // ChatLessonRunnerView would then attribute to whatever
+              // section the walker is on RIGHT NOW.
+              showNotebook={isActive}
+              onResultsChange={questionCount > 0 ? handleAggregateResults : undefined}
+              // Suppress the inline amber/purple HelpSystem — we render
+              // QuickActionChips below instead so tables, matching, and the
+              // other fallback block types share the chat view's button
+              // styling (hint/explain in primary color plus skip + skip-
+              // exercise) with the chat-native path above.
+              hideHelpSystem
+              attachmentAfterPrompt={isMobile}
             />
-          )}
-        </>
-      )}
-    </div>
+            {isActive &&
+              !hasAnyAnswer &&
+              onQuickAction &&
+              quickActionLabels &&
+              questionCount > 0 && (
+                <QuickActionChips
+                  disabled={quickActionsDisabled}
+                  hintDisabled={hintDisabled}
+                  explainDisabled={explainDisabled}
+                  hintLabel={quickActionLabels.hint}
+                  explainLabel={quickActionLabels.explain}
+                  skipLabel={quickActionLabels.skip}
+                  skipExerciseLabel={quickActionLabels.skipExercise}
+                  onAction={handleChipAction}
+                />
+              )}
+          </>
+        )}
+      </div>
+    </SketchMaxHeightProvider>
   )
 }
 
@@ -534,9 +559,9 @@ export function ExerciseSectionBubble({
  *
  * Questions carrying an `attachment` (sketch shown side-by-side with the
  * question) stay on the chat-native path — ChatQuestionSelectBubble and
- * ChatFreeResponseBubble wrap their content in QuestionWithAttachment when
- * the field is set, reusing the Interactive-tab renderer so the authored
- * `textLeft/textRight/textAbove/textBelow` layout is honored.
+ * ChatFreeResponseBubble render through ChatQuestionLayout, which honors the
+ * authored `textLeft/textRight/textAbove/textBelow` layout on desktop and
+ * stacks prompt → sketch → answer area on mobile.
  *
  * Kept as an explicit allowlist (rather than a growing rejectlist) so
  * adding new block types can't accidentally slip through.

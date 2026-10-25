@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Info } from 'lucide-react'
 import type { QuestionMatchingBlock, UserAnswer, CheckResult, RichTextBlock } from '../../types'
 import { RichTextRenderer } from '../../blocks/RichTextRenderer'
@@ -15,6 +15,12 @@ interface MatchingQuestionProps {
   disabled: boolean
   checkResult: CheckResult | null
   t: (key: string) => string
+  /**
+   * Rendered directly under the prompt container. The chat view uses it on
+   * mobile to slot the question's sketch attachment between the prompt and
+   * the answer area.
+   */
+  afterPrompt?: ReactNode
 }
 
 export function MatchingQuestion({
@@ -24,6 +30,7 @@ export function MatchingQuestion({
   disabled,
   checkResult,
   t,
+  afterPrompt,
 }: MatchingQuestionProps) {
   const connections = useMemo(
     () => (answer.type === 'matching' ? answer.connections : []),
@@ -150,6 +157,8 @@ export function MatchingQuestion({
           <RichTextRenderer block={promptBlock} />
         </div>
       </div>
+
+      {afterPrompt}
 
       <div className="flex items-center gap-content-gap-xs px-4 py-3 rounded-xl bg-[hsl(var(--tab-exams)/0.07)] border border-[hsl(var(--tab-exams)/0.2)] text-body-sm text-foreground">
         <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[hsl(var(--tab-exams)/0.15)] shrink-0">

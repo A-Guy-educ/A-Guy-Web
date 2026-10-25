@@ -5,7 +5,7 @@
 
 'use client'
 
-import React from 'react'
+import React, { type ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/infra/utils/ui'
 import { CheckCircle2, XCircle } from 'lucide-react'
@@ -23,6 +23,12 @@ interface TrueFalseQuestionProps {
   onChange: (answer: UserAnswer) => void
   disabled: boolean
   checkResult: CheckResult | null
+  /**
+   * Rendered directly under the prompt container. The chat view uses it on
+   * mobile to slot the question's sketch attachment between the prompt and
+   * the answer area.
+   */
+  afterPrompt?: ReactNode
 }
 
 export function TrueFalseQuestion({
@@ -31,6 +37,7 @@ export function TrueFalseQuestion({
   onChange,
   disabled,
   checkResult,
+  afterPrompt,
 }: TrueFalseQuestionProps) {
   const value = answer.type === 'true_false' ? answer.value : null
 
@@ -77,6 +84,8 @@ export function TrueFalseQuestion({
           <RichTextRenderer block={promptBlock} />
         </div>
       </div>
+
+      {afterPrompt}
 
       <div className="grid grid-cols-2 gap-content-gap">
         {options.map((option, index) => {

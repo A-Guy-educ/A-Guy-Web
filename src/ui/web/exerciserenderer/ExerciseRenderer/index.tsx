@@ -113,6 +113,7 @@ export function ExerciseRenderer({
   showNotebook = false,
   questionLabelsOverride,
   hideHelpSystem = false,
+  attachmentAfterPrompt = false,
 }: ExerciseRendererProps) {
   const t = useTranslations('courses')
   const locale = useLocale()
@@ -765,6 +766,12 @@ export function ExerciseRenderer({
         />
       )
 
+    const attachment = (question as QuestionBlock & { attachment?: QuestionAttachment }).attachment
+    const afterPrompt =
+      attachment && attachmentAfterPrompt
+        ? renderQuestionAttachment(question.id, attachment)
+        : undefined
+
     const cardNode = (
       <QuestionCard
         key={question.id}
@@ -800,6 +807,7 @@ export function ExerciseRenderer({
         {/* Render appropriate question component based on type */}
         {question.type === 'question_select' && question.variant === 'true_false' && (
           <TrueFalseQuestion
+            afterPrompt={afterPrompt}
             question={question as QuestionSelectTrueFalseBlock}
             answer={answer}
             onChange={(ans) => handleAnswerChange(question.id, ans)}
@@ -809,6 +817,7 @@ export function ExerciseRenderer({
         )}
         {question.type === 'question_select' && question.variant === 'mcq' && (
           <McqQuestion
+            afterPrompt={afterPrompt}
             question={question as QuestionSelectMcqBlock}
             answer={answer}
             onChange={(ans) => handleAnswerChange(question.id, ans)}
@@ -822,6 +831,7 @@ export function ExerciseRenderer({
         )}
         {question.type === 'question_free_response' && (
           <FreeResponseQuestion
+            afterPrompt={afterPrompt}
             question={question as QuestionFreeResponseBlock}
             answer={answer}
             onChange={(ans) => handleAnswerChange(question.id, ans)}
@@ -832,6 +842,7 @@ export function ExerciseRenderer({
         )}
         {question.type === 'question_table' && (
           <TableQuestion
+            afterPrompt={afterPrompt}
             question={question as QuestionTableBlock}
             answer={answer}
             onChange={(ans) => handleAnswerChange(question.id, ans)}
@@ -844,6 +855,7 @@ export function ExerciseRenderer({
         )}
         {question.type === 'question_matching' && (
           <MatchingQuestion
+            afterPrompt={afterPrompt}
             question={question as QuestionMatchingBlock}
             answer={answer}
             onChange={(ans) => handleAnswerChange(question.id, ans)}
@@ -855,17 +867,17 @@ export function ExerciseRenderer({
       </QuestionCard>
     )
 
-    const attachment = (question as QuestionBlock & { attachment?: QuestionAttachment }).attachment
-    const node = attachment ? (
-      <QuestionWithAttachment
-        key={question.id}
-        layout={attachment.layout}
-        question={cardNode}
-        attachment={renderQuestionAttachment(question.id, attachment)}
-      />
-    ) : (
-      cardNode
-    )
+    const node =
+      attachment && !attachmentAfterPrompt ? (
+        <QuestionWithAttachment
+          key={question.id}
+          layout={attachment.layout}
+          question={cardNode}
+          attachment={renderQuestionAttachment(question.id, attachment)}
+        />
+      ) : (
+        cardNode
+      )
 
     return { node, nextIndex }
   }
