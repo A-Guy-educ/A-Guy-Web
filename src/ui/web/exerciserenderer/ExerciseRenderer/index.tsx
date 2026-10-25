@@ -59,6 +59,7 @@ import {
   type AnswerErrorMessages,
 } from '../utils/answerChecking'
 import { readExerciseState, writeExerciseState } from '../utils/exerciseStateStorage'
+import { isClientGradedSubmission, reportQuestionAttempt } from '../utils/questionAttemptReporter'
 import { MediaMapProvider } from '../context/MediaMapContext'
 import { VideoPlayer } from '../components/VideoPlayer'
 import { getMediaUrl } from '@/infra/utils/getMediaUrl'
@@ -175,6 +176,18 @@ export function ExerciseRenderer({
       exerciseId,
       locale: locale ?? undefined,
     })
+
+  // Teacher-dashboard capture. Free-response verdicts are recorded by the
+  // validate-answer endpoint (via attemptContext); everything graded here in
+  // the browser is reported through recordClientVerdict.
+  const attemptContext = useMemo(() => ({ lessonId, exerciseId }), [lessonId, exerciseId])
+  const recordClientVerdict = useCallback(
+    (question: QuestionBlock, answer: UserAnswer, result: CheckResult) => {
+      if (!isClientGradedSubmission(question, answer)) return
+      reportQuestionAttempt(attemptContext, question.id, result.isCorrect ? 'correct' : 'wrong')
+    },
+    [attemptContext],
+  )
 
   // Hydrate the full working-state bundle (answers + outcome visuals + svg)
   // once at mount so a return visit shows typed text, picked options AND the
@@ -295,7 +308,8 @@ export function ExerciseRenderer({
       answer.type === 'true_false' &&
       answer.value !== null
     ) {
-      const result = await checkQuestionAnswer(question, answer, errorMessages)
+      const result = await checkQuestionAnswer(question, answer, errorMessages, attemptContext)
+      recordClientVerdict(question, answer, result)
       setCheckResults((prev) => ({ ...prev, [questionId]: result }))
       setHasChecked((prev) => ({ ...prev, [questionId]: true }))
       if (!result.isCorrect && !chatTriggeredRef.current.has(questionId)) {
@@ -335,7 +349,8 @@ export function ExerciseRenderer({
 
       setIsChecking((prev) => ({ ...prev, [questionId]: true }))
       try {
-        const result = await checkQuestionAnswer(question, ans, errorMessages)
+        const result = await checkQuestionAnswer(question, ans, errorMessages, attemptContext)
+        recordClientVerdict(question, ans, result)
         setCheckResults((prev) => ({ ...prev, [questionId]: result }))
         setHasChecked((prev) => ({ ...prev, [questionId]: true }))
         if (!result.isCorrect && !chatTriggeredRef.current.has(questionId)) {
@@ -353,7 +368,7 @@ export function ExerciseRenderer({
         setIsChecking((prev) => ({ ...prev, [questionId]: false }))
       }
     },
-    [questionBlocks, errorMessages],
+    [questionBlocks, errorMessages, attemptContext, recordClientVerdict],
   )
 
   const handleCheckAnswer = useCallback(
@@ -377,6 +392,7 @@ export function ExerciseRenderer({
   )
 
   const handleTableCheckResult = (questionId: string, isCorrect: boolean) => {
+    reportQuestionAttempt(attemptContext, questionId, isCorrect ? 'correct' : 'wrong')
     setCheckResults((prev) => ({ ...prev, [questionId]: { isCorrect } }))
     setHasChecked((prev) => ({ ...prev, [questionId]: true }))
     if (!isCorrect && !chatTriggeredRef.current.has(questionId)) {
@@ -401,7 +417,8 @@ export function ExerciseRenderer({
       const newHasChecked: Record<string, boolean> = {}
       for (const question of questionBlocks) {
         const answer = answers[question.id] ?? getInitialAnswer(question)
-        const result = await checkQuestionAnswer(question, answer, errorMessages)
+        const result = await checkQuestionAnswer(question, answer, errorMessages, attemptContext)
+        recordClientVerdict(question, answer, result)
         newResults[question.id] = result
         newHasChecked[question.id] = true
         if (!result.isCorrect && !chatTriggeredRef.current.has(question.id)) {

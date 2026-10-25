@@ -11,6 +11,7 @@ import type {
   UserAnswer,
   CheckResult,
 } from '../types'
+import type { QuestionAttemptContext } from './questionAttemptReporter'
 
 export interface AnswerErrorMessages {
   invalidAnswerType: string
@@ -31,6 +32,7 @@ export async function checkQuestionAnswer(
   question: QuestionBlock,
   answer: UserAnswer,
   messages: AnswerErrorMessages,
+  attemptContext?: QuestionAttemptContext,
 ): Promise<CheckResult> {
   switch (question.type) {
     case 'question_select': {
@@ -73,7 +75,7 @@ export async function checkQuestionAnswer(
         return { isCorrect: false, message: messages.enterAnAnswer }
       }
 
-      return validateFreeResponseOnServer(question, userValue, messages)
+      return validateFreeResponseOnServer(question, userValue, messages, attemptContext)
     }
 
     case 'question_table':
@@ -134,11 +136,15 @@ function validateMatchingAnswer(
  * quota before the LLM call — a quota-exhausted student triggers a 429 and
  * the caller is expected to fall back to self-compare (Task 4) rather than
  * surface a raw error.
+ *
+ * `attemptContext` (lesson + exercise ids) lets the server record the verdict
+ * for the teacher dashboard; without it the answer is graded but not stored.
  */
 export async function validateFreeResponseOnServer(
   question: QuestionFreeResponseBlock,
   studentAnswer: string,
   messages: AnswerErrorMessages,
+  attemptContext?: QuestionAttemptContext,
 ): Promise<CheckResult> {
   try {
     const response = await fetch('/api/exercises/validate-answer', {
@@ -150,6 +156,8 @@ export async function validateFreeResponseOnServer(
         acceptedAnswers: question.answer.acceptedAnswers,
         studentAnswer,
         questionType: question.type,
+        lessonId: attemptContext?.lessonId || undefined,
+        exerciseId: attemptContext?.exerciseId || undefined,
       }),
     })
 
