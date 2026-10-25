@@ -6,7 +6,7 @@
 
 'use client'
 
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useState, useCallback, useMemo, type ReactNode } from 'react'
 import type { QuestionTableBlock, UserAnswer, RichTextBlock, TableCellResult } from '../../types'
 import { RichTextRenderer } from '../../blocks/RichTextRenderer'
 import { ExerciseTable } from './ExerciseTable'
@@ -24,6 +24,12 @@ interface TableQuestionProps {
   allCorrect: boolean
   onCheckResult: (isCorrect: boolean) => void
   t: (key: string) => string
+  /**
+   * Rendered directly under the prompt container. The chat view uses it on
+   * mobile to slot the question's sketch attachment between the prompt and
+   * the answer area.
+   */
+  afterPrompt?: ReactNode
 }
 
 export function TableQuestion({
@@ -35,6 +41,7 @@ export function TableQuestion({
   allCorrect,
   onCheckResult,
   t,
+  afterPrompt,
 }: TableQuestionProps) {
   const [cellResults, setCellResults] = useState<TableCellResult[]>([])
   const EMPTY_CELLS: Record<string, string> = useMemo(() => ({}), [])
@@ -77,6 +84,8 @@ export function TableQuestion({
           <RichTextRenderer block={promptBlock} />
         </div>
       </div>
+
+      {afterPrompt}
 
       <ExerciseTable
         table={question.table}

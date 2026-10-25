@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import type { GeometrySpecV1 } from '@/infra/contracts'
 import { renderGeometrySpec } from '../../graphics/geometryElements'
 import { computeBoardSize } from '@/infra/utils/graphics/board-sizing'
+import { useSketchMaxHeight } from '../../context/SketchMaxHeightContext'
 
 const JSXGraphBoard = dynamic(
   () => import('../../graphics/JSXGraphBoard').then((m) => ({ default: m.JSXGraphBoard })),
@@ -52,6 +53,7 @@ export function GeometryRenderer({ blockId, spec }: GeometryRendererProps) {
 
   const containerRef = useRef<HTMLDivElement>(null)
   const [dimensions, setDimensions] = useState({ width: canvas.width, height: canvas.height })
+  const maxHeight = useSketchMaxHeight()
 
   useEffect(() => {
     const container = containerRef.current
@@ -63,6 +65,7 @@ export function GeometryRenderer({ blockId, spec }: GeometryRendererProps) {
         xRange,
         yRange,
         availableWidth: container.clientWidth,
+        maxHeight,
       })
       setDimensions(size)
     }
@@ -87,7 +90,7 @@ export function GeometryRenderer({ blockId, spec }: GeometryRendererProps) {
       observer.disconnect()
       if (rafId !== null) cancelAnimationFrame(rafId)
     }
-  }, [xRange, yRange])
+  }, [xRange, yRange, maxHeight])
 
   // When the board shrinks below the container width, center the fixed-
   // pixel JSXGraph child so it doesn't sit flush against the inline-start

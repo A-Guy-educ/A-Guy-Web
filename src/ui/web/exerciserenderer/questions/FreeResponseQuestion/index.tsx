@@ -8,7 +8,7 @@
 
 'use client'
 
-import React, { useCallback, useRef, useState } from 'react'
+import React, { useCallback, useRef, useState, type ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MathPicker } from '@/ui/web/shared/MathInput/MathPicker'
 import { MixedMathInput, type MixedMathInputRef } from '@/ui/web/shared/MathInput/MixedMathInput'
@@ -24,6 +24,12 @@ interface FreeResponseQuestionProps {
   checkResult: CheckResult | null
   t: (key: string) => string
   showMathTools?: boolean
+  /**
+   * Rendered directly under the prompt container. The chat view uses it on
+   * mobile to slot the question's sketch attachment between the prompt and
+   * the answer area.
+   */
+  afterPrompt?: ReactNode
 }
 
 export function FreeResponseQuestion({
@@ -34,6 +40,7 @@ export function FreeResponseQuestion({
   checkResult: _checkResult,
   t,
   showMathTools = true,
+  afterPrompt,
 }: FreeResponseQuestionProps) {
   const value = answer?.type === 'free_response' ? answer.value : ''
   const mathInputRef = useRef<MixedMathInputRef>(null)
@@ -64,6 +71,8 @@ export function FreeResponseQuestion({
           <RichTextRenderer block={promptBlock} />
         </div>
       </div>
+
+      {afterPrompt}
 
       <div className="relative" data-math-controls>
         <div className="relative rounded-xl border-2 border-[hsl(var(--tab-ask)/0.3)] bg-[hsl(var(--tab-ask)/0.04)] dark:border-[hsl(var(--tab-ask)/0.4)] dark:shadow-card min-h-[76px] px-3 py-2 pe-14">

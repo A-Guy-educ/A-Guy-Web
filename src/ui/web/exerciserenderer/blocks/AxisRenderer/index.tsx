@@ -6,6 +6,7 @@ import type { AxisSpecV1 } from '@/infra/contracts'
 import { renderAxisSpec } from '../../graphics/axisElements'
 import { resolveViewport } from '@/infra/utils/graphics/viewport-utils'
 import { computeBoardSize } from '@/infra/utils/graphics/board-sizing'
+import { useSketchMaxHeight } from '../../context/SketchMaxHeightContext'
 
 const JSXGraphBoard = dynamic(
   () => import('../../graphics/JSXGraphBoard').then((m) => ({ default: m.JSXGraphBoard })),
@@ -46,6 +47,7 @@ export function AxisRenderer({ blockId, spec }: AxisRendererProps) {
   // Container ref for responsive sizing
   const containerRef = useRef<HTMLDivElement>(null)
   const [dimensions, setDimensions] = useState({ width: 400, height: 400 })
+  const maxHeight = useSketchMaxHeight()
 
   // Derive the board's aspect ratio from the mathematical viewport (times
   // the optional x/y proportion) instead of a fixed 3:2 container. Without
@@ -71,6 +73,7 @@ export function AxisRenderer({ blockId, spec }: AxisRendererProps) {
         yRange: viewportSize.yRange,
         availableWidth: container.clientWidth,
         proportion,
+        maxHeight,
       })
       setDimensions(size)
     }
@@ -96,7 +99,7 @@ export function AxisRenderer({ blockId, spec }: AxisRendererProps) {
       resizeObserver.disconnect()
       if (rafId !== null) cancelAnimationFrame(rafId)
     }
-  }, [viewportSize.xRange, viewportSize.yRange, proportion])
+  }, [viewportSize.xRange, viewportSize.yRange, proportion, maxHeight])
 
   // See GeometryRenderer for the centering rationale — shrunk boards
   // sit flush left inside `w-full` unless we center the fixed-pixel
