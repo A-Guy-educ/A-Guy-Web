@@ -187,8 +187,8 @@ describe('Lesson Duplication Prompt Files', () => {
         const content = readFileSync(filePath, 'utf-8')
 
         // Extract all Input JSON blocks and Output JSON blocks
-        // Match blocks between ```json and ``` markers
-        const jsonBlockRegex = /```json\n([\s\S]*?)```/g
+        // Match blocks between ```json and ``` markers (\r? for CRLF checkouts)
+        const jsonBlockRegex = /```json\r?\n([\s\S]*?)```/g
         const blocks: string[] = []
         let match
 
