@@ -13,7 +13,9 @@ const CI_WORKFLOW_PATH = resolve(process.cwd(), '.github/workflows/ci.yml')
 const ciWorkflow = readFileSync(CI_WORKFLOW_PATH, 'utf8')
 
 function findStep(workflow: string, stepName: string): string | undefined {
-  const lines = workflow.split('\n')
+  // \r?\n: Windows checkouts (core.autocrlf) are CRLF; a trailing \r on each
+  // line would defeat the `$` anchor below.
+  const lines = workflow.split(/\r?\n/)
   let inStep = false
   const current: string[] = []
 
