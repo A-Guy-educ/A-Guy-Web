@@ -43,15 +43,25 @@ export function getSvgAspectRatio(svgMarkup: string): number | null {
  *
  * On mobile the authored size is ignored and the 75% cap lifted, matching
  * geometry boards, which sit at their 280px floor and so fill a phone screen.
+ *
+ * `maxHeightPx` (chat view on mobile) caps the drawing's height: the width is
+ * derived from the capped height and the aspect ratio, with no min-width
+ * floor so a tall drawing can't grow past the cap.
  */
 export function getSvgCardStyle(
   aspectRatio: number | null,
   displaySize: DisplaySize | undefined,
   isMobile = false,
+  maxHeightPx?: number,
 ): CSSProperties {
   const scale = isMobile ? 1 : (DISPLAY_SIZE_SCALE[displaySize ?? 'full'] ?? 1)
   const maxPercent = isMobile ? '100%' : `${SKETCH_MAX_WIDTH_PERCENT * scale}%`
   const minWidthPx = Math.round(SKETCH_MIN_WIDTH_PX * scale)
+
+  if (maxHeightPx !== undefined && maxHeightPx > 0 && aspectRatio !== null) {
+    const heightPx = Math.min(SKETCH_HEIGHT_PX * scale, maxHeightPx)
+    return { width: `min(${Math.round(heightPx * aspectRatio)}px, ${maxPercent})` }
+  }
 
   if (aspectRatio === null) {
     return { width: maxPercent, minWidth: `min(${minWidthPx}px, 100%)` }

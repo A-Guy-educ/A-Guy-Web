@@ -324,4 +324,12 @@ export interface ExerciseRendererProps {
    * the full help system.
    */
   hideHelpSystem?: boolean
+  /**
+   * When true, a question's sketch `attachment` renders between the prompt
+   * and the answer area (prompt → sketch → options / input / table) instead
+   * of the authored side-by-side / stacked layout. The chat view turns it on
+   * for mobile, where side-by-side collapses to a column and would push the
+   * sketch above or below the whole question. Defaults to `false`.
+   */
+  attachmentAfterPrompt?: boolean
 }
