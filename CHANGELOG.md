@@ -5055,6 +5055,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Add guest landing, onboarding funnel and bot insights ([#1465](https://github.com/A-Guy-educ/A-Guy-Web/pull/1465)) — @aguyshayb
 - fix(deps): Patch Next.js RCE and other new audit advisories ([#1466](https://github.com/A-Guy-educ/A-Guy-Web/pull/1466)) — @aguyshayb
 ## [v0.54.0] - 2026-10-22
 
