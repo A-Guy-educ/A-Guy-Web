@@ -2,7 +2,7 @@
  * @fileType unit-test
  * @domain billing
  * @pattern tier-content-gates
- * @ai-summary Locks the free-tier "first 3 opened lessons per type" counter (TIERS.md): lessons 3/17/29 open, the 4th distinct one locks, already-opened lessons stay open, exams lock basic too, and the kill switch makes everything permissive.
+ * @ai-summary Locks the free-tier "first 3 opened lessons per type" counter (TIERS.md): lessons 3/17/29 open, the 4th distinct one locks, already-opened lessons stay open, exams lock basic too, and each kill switch (learning vs practice/exam) makes its gates permissive.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -76,5 +76,37 @@ describe('content gates — kill switch off', () => {
     expect(canAccessPracticeLesson(free, 'x4', opened)).toBe(true)
     expect(canAccessExam(free, 'x4', opened)).toBe(true)
     expect(canAccessLearningExercise(free, 99, 99)).toBe(true)
+  })
+})
+
+describe('content gates — learning locks on, practice/exam locks off', () => {
+  beforeEach(() => {
+    vi.stubEnv('NEXT_PUBLIC_TIER_LEARNING_LOCKS_ENABLED', 'true')
+    vi.stubEnv('NEXT_PUBLIC_TIER_PRACTICE_EXAM_LOCKS_ENABLED', 'false')
+  })
+  afterEach(() => vi.unstubAllEnvs())
+
+  it('caps learning exercises from the 4th opened lesson but leaves practice and exams open', () => {
+    const opened = ['x1', 'x2', 'x3']
+    expect(canAccessLearningExercise(free, 3, 4)).toBe(true)
+    expect(canAccessLearningExercise(free, 4, 3)).toBe(true)
+    expect(canAccessLearningExercise(free, 4, 4)).toBe(false)
+    expect(canAccessPracticeLesson(free, 'x4', opened)).toBe(true)
+    expect(canAccessExam(free, 'x4', opened)).toBe(true)
+  })
+})
+
+describe('content gates — practice/exam locks on, learning locks off', () => {
+  beforeEach(() => {
+    vi.stubEnv('NEXT_PUBLIC_TIER_LEARNING_LOCKS_ENABLED', 'false')
+    vi.stubEnv('NEXT_PUBLIC_TIER_PRACTICE_EXAM_LOCKS_ENABLED', 'true')
+  })
+  afterEach(() => vi.unstubAllEnvs())
+
+  it('locks the 4th practice lesson and exam but not learning exercises', () => {
+    const opened = ['x1', 'x2', 'x3']
+    expect(canAccessLearningExercise(free, 4, 4)).toBe(true)
+    expect(canAccessPracticeLesson(free, 'x4', opened)).toBe(false)
+    expect(canAccessExam(free, 'x4', opened)).toBe(false)
   })
 })
