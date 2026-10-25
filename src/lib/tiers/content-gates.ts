@@ -6,7 +6,7 @@
  * lessons 3, 17 and 29 and hits the paywall on the 4th distinct one. The
  * opened lists come from `user-progresses` (server-side, see
  * `@/server/services/tier-lesson-access`) and are passed in as plain data so
- * these helpers stay pure and client-safe. When the kill switch is off, every
+ * these helpers stay pure and client-safe. When the content-locks switch is off, every
  * gate returns permissive — nothing is tier-locked.
  *
  * Rules (reduced form after rank comparison):
@@ -22,7 +22,7 @@
  */
 
 import { TIER_RANK } from './constants'
-import { isTierEnforcementEnabled } from './enforcement'
+import { isTierContentLocksEnabled } from './enforcement'
 import { getUserTierRank, type UserWithTier } from './user-tier'
 
 const FREE_UNLOCK_COUNT = 3
@@ -67,7 +67,7 @@ export function canAccessLearningExercise(
   lessonOpenOrdinal: number,
   exerciseSortOrder: number,
 ): boolean {
-  if (!isTierEnforcementEnabled()) return true
+  if (!isTierContentLocksEnabled()) return true
   if (getUserTierRank(user) >= TIER_RANK.basic) return true
   if (lessonOpenOrdinal <= FREE_UNLOCK_COUNT) return true
   return exerciseSortOrder <= FREE_UNLOCK_COUNT
@@ -78,7 +78,7 @@ export function canAccessPracticeLesson(
   lessonId: string,
   openedPractice: readonly string[],
 ): boolean {
-  if (!isTierEnforcementEnabled()) return true
+  if (!isTierContentLocksEnabled()) return true
   if (getUserTierRank(user) >= TIER_RANK.basic) return true
   return isWithinOpenedAllowance(lessonId, openedPractice)
 }
@@ -88,7 +88,7 @@ export function canAccessExam(
   lessonId: string,
   openedExams: readonly string[],
 ): boolean {
-  if (!isTierEnforcementEnabled()) return true
+  if (!isTierContentLocksEnabled()) return true
   if (getUserTierRank(user) >= TIER_RANK.advanced) return true
   return isWithinOpenedAllowance(lessonId, openedExams)
 }

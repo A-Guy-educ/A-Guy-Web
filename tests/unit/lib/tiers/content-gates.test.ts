@@ -18,7 +18,7 @@ const basic = { currentTier: 'basic' }
 const advanced = { currentTier: 'advanced' }
 
 describe('content gates — enforcement on', () => {
-  beforeEach(() => vi.stubEnv('NEXT_PUBLIC_TIER_ENFORCEMENT_ENABLED', 'on'))
+  beforeEach(() => vi.stubEnv('NEXT_PUBLIC_TIER_CONTENT_LOCKS_ENABLED', 'on'))
   afterEach(() => vi.unstubAllEnvs())
 
   it('lets a free user open any 3 practice lessons regardless of course position', () => {
@@ -71,7 +71,7 @@ describe('content gates — kill switch off', () => {
   afterEach(() => vi.unstubAllEnvs())
 
   it('allows everything', () => {
-    vi.stubEnv('NEXT_PUBLIC_TIER_ENFORCEMENT_ENABLED', '')
+    vi.stubEnv('NEXT_PUBLIC_TIER_CONTENT_LOCKS_ENABLED', '')
     const opened = ['x1', 'x2', 'x3']
     expect(canAccessPracticeLesson(free, 'x4', opened)).toBe(true)
     expect(canAccessExam(free, 'x4', opened)).toBe(true)

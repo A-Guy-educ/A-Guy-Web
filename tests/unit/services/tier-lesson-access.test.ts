@@ -41,7 +41,7 @@ function mockRecords(ids: string[]) {
 describe('getOpenedLessonIds', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.stubEnv('NEXT_PUBLIC_TIER_ENFORCEMENT_ENABLED', 'on')
+    vi.stubEnv('NEXT_PUBLIC_TIER_CONTENT_LOCKS_ENABLED', 'on')
   })
   afterEach(() => vi.unstubAllEnvs())
 
@@ -72,7 +72,7 @@ describe('getOpenedLessonIds', () => {
   })
 
   it('skips Mongo entirely when the kill switch is off', async () => {
-    vi.stubEnv('NEXT_PUBLIC_TIER_ENFORCEMENT_ENABLED', '')
+    vi.stubEnv('NEXT_PUBLIC_TIER_CONTENT_LOCKS_ENABLED', '')
     const opened = await getOpenedLessonIds('u1', 'grade-7')
     expect(opened).toEqual({ learning: [], practice: [], exam: [] })
     expect(findUserProgressMock).not.toHaveBeenCalled()
@@ -91,7 +91,7 @@ describe('getOpenedLessonIds', () => {
 describe('resolveLessonTierAccess', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.stubEnv('NEXT_PUBLIC_TIER_ENFORCEMENT_ENABLED', 'on')
+    vi.stubEnv('NEXT_PUBLIC_TIER_CONTENT_LOCKS_ENABLED', 'on')
     mockRecords(['p3', 'p17', 'p29', 'l5'])
     mockLessons([
       { _id: 'p3', type: 'practice' },

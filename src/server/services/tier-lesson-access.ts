@@ -7,7 +7,7 @@
  * place, so array order is first-opened order. Each record is bucketed into
  * learning / practice / exam by joining `recordId` → `lessons.type`.
  *
- * Returns empty lists when the tier kill switch is off (no Mongo reads), so
+ * Returns empty lists when the tier content-locks switch is off (no Mongo reads), so
  * the gates in `@/lib/tiers/content-gates` stay permissive.
  *
  * @fileType service
@@ -21,7 +21,7 @@ import {
   canAccessExam,
   canAccessPracticeLesson,
   getLearningLessonOpenOrdinal,
-  isTierEnforcementEnabled,
+  isTierContentLocksEnabled,
   type OpenedLessonIds,
   type UserWithTier,
 } from '@/lib/tiers'
@@ -51,7 +51,7 @@ export async function getOpenedLessonIds(
   userId: string | null | undefined,
   gradeLevel: string | null | undefined,
 ): Promise<OpenedLessonIds> {
-  if (!isTierEnforcementEnabled() || !userId || !gradeLevel) return EMPTY_OPENED_LESSONS
+  if (!isTierContentLocksEnabled() || !userId || !gradeLevel) return EMPTY_OPENED_LESSONS
 
   const progress = await findUserProgress(userId, gradeLevel)
   const lessonIds = openedLessonIdsInOrder(progress?.progressRecords ?? [])

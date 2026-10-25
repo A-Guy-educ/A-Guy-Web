@@ -264,7 +264,7 @@ describe('computeLessonGroups — tier counter', () => {
   afterEach(() => vi.unstubAllEnvs())
 
   it('locks practice rows outside the 3 opened ones, regardless of position', () => {
-    vi.stubEnv('NEXT_PUBLIC_TIER_ENFORCEMENT_ENABLED', 'on')
+    vi.stubEnv('NEXT_PUBLIC_TIER_CONTENT_LOCKS_ENABLED', 'on')
     const lessons = ['p1', 'p2', 'p3', 'p4', 'p5'].map((id, i) =>
       lesson(id, 'c1', i + 1, { type: 'practice' }),
     )
