@@ -5055,6 +5055,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Split content locks into learning and practice/exam switches ([#1472](https://github.com/A-Guy-educ/A-Guy-Web/pull/1472)) — @aguyshayb
 - test: Make CI-audit and prompt-file specs tolerate CRLF checkouts ([#1471](https://github.com/A-Guy-educ/A-Guy-Web/pull/1471)) — @aguyshayb
 - feat: Capture question attempts and add teacher class progress API ([#1470](https://github.com/A-Guy-educ/A-Guy-Web/pull/1470)) — @aguyshayb
 - feat: Stack prompt, sketch, answer on mobile chat view ([#1469](https://github.com/A-Guy-educ/A-Guy-Web/pull/1469)) — @aguyshayb
