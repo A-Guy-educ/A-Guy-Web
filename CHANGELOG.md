@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.55.0 — 2026-10-25
+
+### Features
+- Split content locks into learning and practice/exam switches (#1472)
+- Capture question attempts and add teacher class progress API (#1470)
+- Stack prompt, sketch, answer on mobile chat view (#1469)
+- Add per-period guest sessions and conversions to dashboard metrics (#1468)
+- Add guest landing, onboarding funnel and bot insights (#1465)
+
+### Bug Fixes
+- Patch Next.js RCE and other new audit advisories (#1466)
+- Satisfy require-auth-endpoints on guest tracking routes (#1465)
+
+### Refactor
+- Split tier enforcement into spending and content-lock switches (#1467)
+
 ## v0.54.0 — 2026-10-22
 
 ### Features
