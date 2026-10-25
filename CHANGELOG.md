@@ -5071,6 +5071,8 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+## [v0.55.0] - 2026-10-25
+
 - promote: dev -> main (v0.55.0) ([#1474](https://github.com/A-Guy-educ/A-Guy-Web/pull/1474)) — @aguyshayb
 - chore: Release v0.55.0 ([#1473](https://github.com/A-Guy-educ/A-Guy-Web/pull/1473)) — @aguyshayb
 - feat: Split content locks into learning and practice/exam switches ([#1472](https://github.com/A-Guy-educ/A-Guy-Web/pull/1472)) — @aguyshayb
