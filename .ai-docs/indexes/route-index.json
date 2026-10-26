@@ -133,6 +133,12 @@
       "segmentGroup": null
     },
     {
+      "routePath": "/api/attempts",
+      "filePath": "src/app/api/attempts/route.ts",
+      "kind": "route",
+      "segmentGroup": null
+    },
+    {
       "routePath": "/api/auth/logout",
       "filePath": "src/app/api/auth/logout/route.ts",
       "kind": "route",
@@ -229,8 +235,20 @@
       "segmentGroup": null
     },
     {
+      "routePath": "/api/guest-session/event",
+      "filePath": "src/app/api/guest-session/event/route.ts",
+      "kind": "route",
+      "segmentGroup": null
+    },
+    {
       "routePath": "/api/health",
       "filePath": "src/app/api/health/route.ts",
+      "kind": "route",
+      "segmentGroup": null
+    },
+    {
+      "routePath": "/api/internal/bot-hits/record",
+      "filePath": "src/app/api/internal/bot-hits/record/route.ts",
       "kind": "route",
       "segmentGroup": null
     },
@@ -325,6 +343,12 @@
       "segmentGroup": null
     },
     {
+      "routePath": "/api/subscriptions/:id/change-tier",
+      "filePath": "src/app/api/subscriptions/[id]/change-tier/route.ts",
+      "kind": "route",
+      "segmentGroup": null
+    },
+    {
       "routePath": "/api/subscriptions/checkout",
       "filePath": "src/app/api/subscriptions/checkout/route.ts",
       "kind": "route",
@@ -343,8 +367,26 @@
       "segmentGroup": null
     },
     {
+      "routePath": "/api/teacher/classes",
+      "filePath": "src/app/api/teacher/classes/route.ts",
+      "kind": "route",
+      "segmentGroup": null
+    },
+    {
+      "routePath": "/api/teacher/classes/:id/progress",
+      "filePath": "src/app/api/teacher/classes/[id]/progress/route.ts",
+      "kind": "route",
+      "segmentGroup": null
+    },
+    {
       "routePath": "/api/teacher/courses",
       "filePath": "src/app/api/teacher/courses/route.ts",
+      "kind": "route",
+      "segmentGroup": null
+    },
+    {
+      "routePath": "/api/tiers/opened-lessons",
+      "filePath": "src/app/api/tiers/opened-lessons/route.ts",
       "kind": "route",
       "segmentGroup": null
     },
@@ -489,6 +531,12 @@
     {
       "routePath": "/home",
       "filePath": "src/app/(frontend)/home/page.tsx",
+      "kind": "page",
+      "segmentGroup": "(frontend)"
+    },
+    {
+      "routePath": "/join",
+      "filePath": "src/app/(frontend)/join/page.tsx",
       "kind": "page",
       "segmentGroup": "(frontend)"
     },
@@ -691,6 +739,12 @@
       "segmentGroup": "(frontend)"
     },
     {
+      "routePath": "/terms-of-service",
+      "filePath": "src/app/(frontend)/terms-of-service/page.tsx",
+      "kind": "page",
+      "segmentGroup": "(frontend)"
+    },
+    {
       "routePath": "/test",
       "filePath": "src/app/(frontend)/test/loading.tsx",
       "kind": "loading",
@@ -710,7 +764,7 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-10-19T06:09:32.663Z",
-    "totalRoutes": 118
+    "generatedAt": "2026-10-26T06:08:01.307Z",
+    "totalRoutes": 127
   }
 }
