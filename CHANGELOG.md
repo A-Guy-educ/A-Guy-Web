@@ -5085,6 +5085,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- promote: dev -> main (v0.56.0) ([#1497](https://github.com/A-Guy-educ/A-Guy-Web/pull/1497)) — @aguyshayb
 - chore: Release v0.56.0 ([#1496](https://github.com/A-Guy-educ/A-Guy-Web/pull/1496)) — @aguyshayb
 - chore(deps-dev): Bump @commitlint/config-conventional from 20.5.0 to 21.2.4 ([#1487](https://github.com/A-Guy-educ/A-Guy-Web/pull/1487)) — @dependabot[bot]
 - chore(deps-dev): Bump @commitlint/cli from 20.5.0 to 21.2.4 ([#1489](https://github.com/A-Guy-educ/A-Guy-Web/pull/1489)) — @dependabot[bot]
