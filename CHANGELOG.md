@@ -5071,6 +5071,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- revert: Undo angle label fix pushed directly to dev ([#1480](https://github.com/A-Guy-educ/A-Guy-Web/pull/1480)) — @aguyshayb
 - fix: Flip sketches and graphs for dark mode ([#1479](https://github.com/A-Guy-educ/A-Guy-Web/pull/1479)) — @aguyshayb
 - fix: Legible accent colors in dark mode ([#1478](https://github.com/A-Guy-educ/A-Guy-Web/pull/1478)) — @aguyshayb
 - feat: Tier-lock upgrade card, scroll-view gate, OG preview and angle markers ([#1477](https://github.com/A-Guy-educ/A-Guy-Web/pull/1477)) — @aguyshayb
