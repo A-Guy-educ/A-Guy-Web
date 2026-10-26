@@ -107,7 +107,7 @@
   },
   "dependencies": {
     "@a-guy/ui": "https://github.com/A-Guy-educ/A-Guy-Shared/releases/download/v0.1.1/a-guy-ui-0.1.1.tgz",
-    "@anthropic-ai/sdk": "0.131.0",
+    "@anthropic-ai/sdk": "1.1.0",
     "@genkit-ai/googleai": "^1.28.0",
     "@google/generative-ai": "^0.24.1",
     "@kody-ade/engine": "^0.7.15",
