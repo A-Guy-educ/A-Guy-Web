@@ -121,6 +121,7 @@ const config = {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
           soft: 'hsl(var(--primary-soft))',
+          text: 'hsl(var(--primary-text))',
         },
         ring: 'hsl(var(--ring))',
         secondary: {

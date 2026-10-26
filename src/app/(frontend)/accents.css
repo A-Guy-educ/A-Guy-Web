@@ -1,0 +1,67 @@
+/* Accent color presets, picked in /account?section=preferences.
+   AccentPicker sets `data-accent` on <html>; no attribute = Burgundy, whose
+   values live in the theme blocks of globals.css.
+
+   Each preset sets --primary/--ring (fills, buttons, focus rings) and
+   --primary-text (math, question badges, hint chips). In dark mode the fill
+   colors stay saturated for white-on-primary buttons, while --primary-text
+   uses a lighter tone that stays legible on the charcoal card (>= 4.5:1).
+
+   The dark selectors repeat `[data-accent]` so they outrank the light ones. */
+@layer base {
+  :root[data-accent='ocean'] {
+    --primary: 217 91% 40%;
+    --ring: 217 91% 40%;
+    --primary-text: 217 91% 40%;
+  }
+  :root[data-accent='ocean'][data-theme='dark'] {
+    --primary: 217 91% 60%;
+    --ring: 217 91% 60%;
+    --primary-text: 217 91% 68%; /* --text-highlight-5 (dark) */
+  }
+
+  :root[data-accent='forest'] {
+    --primary: 142 71% 35%;
+    --ring: 142 71% 35%;
+    --primary-text: 142 71% 30%;
+  }
+  :root[data-accent='forest'][data-theme='dark'] {
+    --primary: 142 71% 45%;
+    --ring: 142 71% 45%;
+    /* Neon green reads as "correct answer"; a muted sage keeps it calm. */
+    --primary-text: 113 20% 60%;
+  }
+
+  :root[data-accent='sunset'] {
+    --primary: 25 95% 43%;
+    --ring: 25 95% 43%;
+    --primary-text: 25 95% 35%;
+  }
+  :root[data-accent='sunset'][data-theme='dark'] {
+    --primary: 25 95% 53%;
+    --ring: 25 95% 53%;
+    --primary-text: 25 95% 62%; /* --text-highlight-2 (dark) */
+  }
+
+  :root[data-accent='violet'] {
+    --primary: 271 91% 45%;
+    --ring: 271 91% 45%;
+    --primary-text: 271 91% 45%;
+  }
+  :root[data-accent='violet'][data-theme='dark'] {
+    --primary: 271 91% 65%;
+    --ring: 271 91% 65%;
+    --primary-text: 271 91% 72%; /* --text-highlight-6 (dark) */
+  }
+
+  :root[data-accent='rose'] {
+    --primary: 330 81% 40%;
+    --ring: 330 81% 40%;
+    --primary-text: 330 81% 40%;
+  }
+  :root[data-accent='rose'][data-theme='dark'] {
+    --primary: 330 81% 60%;
+    --ring: 330 81% 60%;
+    --primary-text: 330 81% 68%; /* --text-highlight-7 (dark) */
+  }
+}
