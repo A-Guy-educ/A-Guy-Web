@@ -613,6 +613,20 @@ math-field:focus-within {
   display: none;
 }
 
+/* Author-drawn diagrams (sketch SVGs, JSXGraph boards) are drawn for a white
+   page. The element also carries data-theme="light" so currentColor and CSS
+   vars inside resolve to light values; in dark mode the whole drawing is then
+   flipped: invert(0.9) lands white on ~#1a1a1a (the dark card) and black on
+   ~#e6e6e6, and hue-rotate(180deg) turns the inverted hues back, so an
+   author's red stays red. */
+.diagram-invert {
+  background-image: none; /* drop the [data-theme='light'] page glow */
+}
+
+[data-theme='dark'] .diagram-invert {
+  filter: invert(0.9) hue-rotate(180deg);
+}
+
 /* RTL/LTR Isolation for Math - must be flat selectors */
 .math-inline {
   direction: ltr;

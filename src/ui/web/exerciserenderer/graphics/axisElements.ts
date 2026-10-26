@@ -1,7 +1,7 @@
 import { parse as parseMath } from 'mathjs'
 
 import type { AxisSpecV1 } from '@/infra/contracts'
-import { getDefaultTextColor } from '@/infra/contracts/graphics/textColors'
+import { getDefaultCanvasElementColor } from '@/infra/contracts/graphics/textColors'
 import { parseMathExpression } from '../utils/safeMathEval'
 
 // JSXGraph silently drops `fontFamily` on label/text attrs; only `cssStyle`
@@ -79,7 +79,7 @@ function renderAxisPoints(board: JXG.Board, points: PointSpec[]) {
         attrs.strokeColor = p.color
         attrs.fillColor = p.type === 'hole' ? '#ffffff' : p.color
       } else {
-        attrs.fillColor = p.type === 'hole' ? '#ffffff' : getDefaultTextColor()
+        attrs.fillColor = p.type === 'hole' ? '#ffffff' : getDefaultCanvasElementColor()
       }
       if (p.type === 'hole') {
         attrs.strokeWidth = 2

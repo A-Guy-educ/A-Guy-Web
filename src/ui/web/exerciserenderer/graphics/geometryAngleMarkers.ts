@@ -2,7 +2,7 @@
 import type { GeometrySpecV1 } from '@/infra/contracts'
 import {
   getAdminCanvasBackground,
-  getDefaultTextColor,
+  getDefaultCanvasElementColor,
 } from '@/infra/contracts/graphics/textColors'
 
 type AngleSpec = GeometrySpecV1['elements']['angles'][number]
@@ -134,7 +134,7 @@ export function renderAngles(
     const ray2 = pointMap.get(a.ray2)
     if (!center || !ray1 || !ray2) continue
 
-    const color = a.color ?? getDefaultTextColor()
+    const color = a.color ?? getDefaultCanvasElementColor()
     const label = a.label?.value
     const fontSize = a.label?.fontSize ?? 10
     const marker = computeAngleMarker({
@@ -176,7 +176,7 @@ export function renderAngles(
         fixed: true,
         highlight: false,
         layer: LABEL_LAYER,
-        strokeColor: getDefaultTextColor(),
+        strokeColor: getDefaultCanvasElementColor(),
         cssStyle: `${TIMES_NEW_ROMAN_CSS} font-weight: bold; text-shadow: 0 0 2px ${halo}, 0 0 3px ${halo}, 0 0 4px ${halo};`,
       })
     }

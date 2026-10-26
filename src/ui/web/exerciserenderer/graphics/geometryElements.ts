@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { GeometrySpecV1 } from '@/infra/contracts'
-import { getDefaultTextColor, sizeScaleToPixels } from '@/infra/contracts/graphics/textColors'
+import {
+  getDefaultCanvasElementColor,
+  sizeScaleToPixels,
+} from '@/infra/contracts/graphics/textColors'
 import { renderAngles } from './geometryAngleMarkers'
 
 type PointSpec = GeometrySpecV1['elements']['points'][number]
@@ -28,7 +31,7 @@ const TIMES_NEW_ROMAN_CSS = "font-family: 'Times New Roman', Times, serif;"
 function renderPoints(board: JXG.Board, points: PointSpec[]): Map<string, any> {
   const pointMap = new Map<string, any>()
   for (const p of points) {
-    const pointColor = p.color ?? getDefaultTextColor()
+    const pointColor = p.color ?? getDefaultCanvasElementColor()
     // Both `withLabel` and `label.visible` are set — JSXGraph honors one or the
     // other depending on the render path, and setting only one leaks the letter
     // in some paths (see Admin PR #465).
@@ -217,7 +220,7 @@ export function renderGeometrySpec(board: JXG.Board, spec: GeometrySpecV1): void
         }
       }
 
-      const color = text.color ?? getDefaultTextColor()
+      const color = text.color ?? getDefaultCanvasElementColor()
       board.create('text', [x, y, text.value], {
         fontSize:
           text.sizeScale !== undefined ? sizeScaleToPixels(text.sizeScale) : (text.fontSize ?? 14),
