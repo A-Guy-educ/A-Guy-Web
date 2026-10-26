@@ -44,6 +44,8 @@ export interface RecordLlmUsageInput {
   outputTokens: number
   model?: string
   callType?: LlmCallType
+  /** Attachments (e.g. the lesson PDF) the model should have seen but didn't. */
+  attachmentsMissing?: number
 }
 
 export interface TokenLimitStatus {
@@ -215,6 +217,7 @@ export async function recordLlmUsage(input: RecordLlmUsageInput): Promise<void> 
       totalTokens,
       model: input.model ?? null,
       callType: input.callType ?? 'other',
+      ...(input.attachmentsMissing ? { attachmentsMissing: input.attachmentsMissing } : {}),
       createdAt: now,
     })
     await bumpUserCounter(input.userId, totalTokens)

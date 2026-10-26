@@ -21,6 +21,8 @@ export type TutorTurnInput = {
   hidePromptOnly?: boolean
   media?: Array<{ mediaId: string }>
   chatAssets?: Array<{ chatAssetId: string }>
+  /** Count of expected attachments that failed to load; stamped on the reply. */
+  attachmentsMissing?: number
   signal?: AbortSignal
   beforeGenerate?: () => Promise<void>
 }
@@ -121,6 +123,7 @@ export class TutorChatOrchestrator {
         role: 'assistant',
         content: message,
         hidden: Boolean(input.hidden && !input.hidePromptOnly),
+        attachmentsMissing: input.attachmentsMissing,
       })
       completed = true
       await this.dependencies.repository.compact(input.ownerId, prepared.conversation.id)
@@ -181,6 +184,7 @@ export class TutorChatOrchestrator {
         role: 'assistant',
         content: finalMessage,
         hidden: Boolean(input.hidden && !input.hidePromptOnly),
+        attachmentsMissing: input.attachmentsMissing,
       })
       completed = true
       await this.dependencies.repository.compact(input.ownerId, prepared.conversation.id)

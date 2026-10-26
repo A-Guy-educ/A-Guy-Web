@@ -59,6 +59,7 @@ export async function POST(request: NextRequest) {
             hidePromptOnly: body.hidePromptOnly,
             media: body.mediaIds?.map((mediaId) => ({ mediaId })),
             chatAssets: body.chatAssetIds?.map((chatAssetId) => ({ chatAssetId })),
+            attachmentsMissing: resources.missingAttachments.length,
             signal: request.signal,
             beforeGenerate: () =>
               enforceTutorTurnPolicy({
@@ -86,6 +87,7 @@ export async function POST(request: NextRequest) {
               outputTokens: result.outputTokens,
               model: result.model,
               callType: 'chat_stream',
+              attachmentsMissing: resources.missingAttachments.length,
             })
           }
           controller.enqueue(
