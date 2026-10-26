@@ -6,7 +6,7 @@
  * 2. Per-field overrides are respected
  * 3. Brand strings do not appear in the output when overrides are provided
  */
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { pageMetadata } from '@/infra/seo/pageMetadata'
 
@@ -22,6 +22,7 @@ vi.mock('@/brands', () => ({
       titleTemplate: '%s | A-Guy',
       description: 'Brand default description',
       shortDescription: 'Brand short description',
+      shareTagline: 'Brand tagline',
       keywords: ['math', 'practice'],
       author: { name: 'A-Guy', url: 'https://www.aguy.co.il' },
       themeColor: { light: '#91262C', dark: '#0f172a' },
@@ -101,7 +102,7 @@ describe('pageMetadata', () => {
 
     it('uses override description in openGraph description', () => {
       const meta = pageMetadata({ description: 'Custom description' })
-      expect(meta.openGraph?.description).toBe('Custom description')
+      expect(meta.openGraph?.description).toBe('Brand tagline · Custom description')
     })
 
     it('uses override title in twitter title', () => {
@@ -111,7 +112,7 @@ describe('pageMetadata', () => {
 
     it('uses override description in twitter description', () => {
       const meta = pageMetadata({ description: 'Custom description' })
-      expect(meta.twitter?.description).toBe('Custom description')
+      expect(meta.twitter?.description).toBe('Brand tagline · Custom description')
     })
 
     it('uses override ogImage in twitter images', () => {

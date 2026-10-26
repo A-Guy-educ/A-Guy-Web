@@ -21,12 +21,13 @@ export const aguyConfig: BrandConfig = {
     'פלטפורמה לתרגול מתמטיקה עם שיעורים מסודרים, תרגילים ממוקדים, משוב מיידי והסברים ברורים שלב אחר שלב – בנויה להתקדמות עקבית ואמיתית.',
   shortDescription:
     'פלטפורמה לתרגול מתמטיקה עם שיעורים מסודרים, תרגילים ממוקדים, משוב מיידי והסברים ברורים שלב אחר שלב.',
+  shareTagline: 'Aguy מורה פרטי AI',
   keywords: [],
   author: { name: 'A-Guy', url: 'https://www.aguy.co.il' },
   themeColor: { light: '#91262C', dark: '#0f172a' },
   social: { twitterHandle: '@aguy' },
   // ?v=N busts the WhatsApp / Facebook link-preview caches, which key on the
   // image URL. Bump N whenever the OG image changes.
-  ogImage: '/og-image.png?v=3',
+  ogImage: '/og-image.png?v=4',
   appleWebApp: { title: 'A-Guy' },
 }
