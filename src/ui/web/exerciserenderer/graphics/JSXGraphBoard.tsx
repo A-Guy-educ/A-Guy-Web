@@ -185,7 +185,9 @@ export function JSXGraphBoard({
     <div
       ref={containerRef}
       id={containerId}
-      className={cn('w-full border rounded-lg overflow-hidden bg-white', className)}
+      // The board is drawn on white in light-theme colors; see `.diagram-invert`.
+      data-theme="light"
+      className={cn('diagram-invert w-full border rounded-lg overflow-hidden bg-white', className)}
       style={{ width, height, maxWidth: '100%' }}
     />
   )

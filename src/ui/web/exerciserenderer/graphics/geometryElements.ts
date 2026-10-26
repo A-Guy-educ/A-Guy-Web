@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { GeometrySpecV1 } from '@/infra/contracts'
-import { getDefaultTextColor, sizeScaleToPixels } from '@/infra/contracts/graphics/textColors'
+import {
+  getDefaultCanvasElementColor,
+  sizeScaleToPixels,
+} from '@/infra/contracts/graphics/textColors'
 
 type PointSpec = GeometrySpecV1['elements']['points'][number]
 type LineSpec = GeometrySpecV1['elements']['lines'][number]
@@ -28,7 +31,7 @@ const TIMES_NEW_ROMAN_CSS = "font-family: 'Times New Roman', Times, serif;"
 function renderPoints(board: JXG.Board, points: PointSpec[]): Map<string, any> {
   const pointMap = new Map<string, any>()
   for (const p of points) {
-    const pointColor = p.color ?? getDefaultTextColor()
+    const pointColor = p.color ?? getDefaultCanvasElementColor()
     // Both `withLabel` and `label.visible` are set — JSXGraph honors one or the
     // other depending on the render path, and setting only one leaks the letter
     // in some paths (see Admin PR #465).
@@ -129,7 +132,7 @@ function renderAngles(board: JXG.Board, angles: AngleSpec[], pointMap: Map<strin
     const ray2 = pointMap.get(a.ray2)
     if (!center || !ray1 || !ray2) continue
 
-    const color = a.color ?? getDefaultTextColor()
+    const color = a.color ?? getDefaultCanvasElementColor()
     const isSquare = a.style === 'square'
     // `orthoType` only wins when the measured angle is within JSXGraph's
     // `orthoSensitivity` (default 1°) of 90°. Anything drawn at, say,
@@ -281,7 +284,7 @@ export function renderGeometrySpec(board: JXG.Board, spec: GeometrySpecV1): void
         }
       }
 
-      const color = text.color ?? getDefaultTextColor()
+      const color = text.color ?? getDefaultCanvasElementColor()
       board.create('text', [x, y, text.value], {
         fontSize:
           text.sizeScale !== undefined ? sizeScaleToPixels(text.sizeScale) : (text.fontSize ?? 14),
