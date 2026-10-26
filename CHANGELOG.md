@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.56.0 — 2026-10-26
+
+### Features
+- Brand tagline on every link preview and bolder OG logo (#1490)
+- Tier-lock upgrade card, scroll-view gate, OG preview and angle markers (#1477)
+
+### Bug Fixes
+- Restore production OG image (#1495)
+- Fit OG logo inside WhatsApp square crop (#1482)
+- Respect inside position for angle labels (#1481)
+- Flip sketches and graphs for dark mode (#1479)
+- Legible accent colors in dark mode (#1478)
+- Bump prod dependencies (28 minor/patch updates incl. react 19.3.1, jsxgraph 1.14, openai 7.43) (#1484)
+
 ## v0.55.0 — 2026-10-25
 
 ### Features
