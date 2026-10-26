@@ -99,7 +99,7 @@ function Chip({ icon, label, disabled, onClick, variant = 'default' }: ChipProps
           'gap-1.5 rounded-full px-3 py-1 text-body-xs font-semibold border',
         variant === 'default' &&
           !disabled &&
-          'border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 hover:border-primary/50',
+          'border-primary-text/30 bg-primary-text/5 text-primary-text hover:bg-primary-text/10 hover:border-primary-text/50',
         variant === 'ghost' &&
           !disabled &&
           'border-border/40 bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground',
