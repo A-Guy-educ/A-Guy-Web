@@ -31,6 +31,7 @@
         "src/app/(frontend)/courses/[courseSlug]/_components/ConversationCard/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/CourseAnalytics.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/index.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/useCourseComposerDropToAsk.ts",
         "src/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/useCourseComposerState.ts",
         "src/app/(frontend)/courses/[courseSlug]/_components/CoursePageContent/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/CourseTabs/index.tsx",
@@ -47,6 +48,7 @@
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonRunnerView.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/GivenDataFloating.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatFreeResponseBubble.tsx",
+        "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatQuestionLayout.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatQuestionSelectBubble.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ContinueButton.tsx",
         "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ExerciseSectionBubble.tsx",
@@ -111,6 +113,8 @@
         "src/app/(frontend)/courses/_components/MembershipPlans/index.tsx",
         "src/app/(frontend)/courses/_components/PlanCard/index.tsx",
         "src/app/(frontend)/error.tsx",
+        "src/app/(frontend)/join/_components/StudentJoinForm.tsx",
+        "src/app/(frontend)/join/_components/StudentJoinHeader.tsx",
         "src/app/(frontend)/login/LoginForm.tsx",
         "src/app/(frontend)/login/LoginPageContent.tsx",
         "src/app/(frontend)/not-found.tsx",
@@ -146,9 +150,12 @@
         "src/app/(frontend)/study-plan/_components/useStudyPlan.ts",
         "src/app/(frontend)/study/_components/StudyContent/index.tsx",
         "src/app/(frontend)/subscriptions/_components/ComingSoonSection.tsx",
+        "src/app/(frontend)/subscriptions/_components/CurrentPlanCta.tsx",
+        "src/app/(frontend)/subscriptions/_components/SubscriptionsCatalog.tsx",
         "src/app/(frontend)/subscriptions/_components/SubscriptionsHeader.tsx",
         "src/app/(frontend)/subscriptions/_components/TierCard.tsx",
         "src/app/(frontend)/subtest/_components/SubTestCard.tsx",
+        "src/app/(frontend)/terms-of-service/TermsOfServiceContent.tsx",
         "src/app/global-error.tsx",
         "src/client/hooks/useAccessGate.ts",
         "src/client/hooks/useActiveTimeTracker.ts",
@@ -156,7 +163,9 @@
         "src/client/hooks/useCurrentUser.ts",
         "src/client/hooks/useDebounce.ts",
         "src/client/hooks/useExamCountdown.ts",
+        "src/client/hooks/useGuestJsBeacon.ts",
         "src/client/hooks/useMediaQuery.ts",
+        "src/client/hooks/useOpenedLessons.ts",
         "src/client/hooks/useProgressMap.ts",
         "src/client/providers/ActiveTimeProvider.tsx",
         "src/infra/analytics/adapters/ga4/adapter.ts",
@@ -260,6 +269,7 @@
         "src/ui/web/exerciserenderer/components/QuestionNotebook/index.tsx",
         "src/ui/web/exerciserenderer/components/VideoPlayer/index.tsx",
         "src/ui/web/exerciserenderer/context/MediaMapContext.tsx",
+        "src/ui/web/exerciserenderer/context/SketchMaxHeightContext.tsx",
         "src/ui/web/exerciserenderer/graphics/JSXGraphBoard.tsx",
         "src/ui/web/exerciserenderer/hooks/useEffectiveDisplaySize.ts",
         "src/ui/web/exerciserenderer/hooks/useHelpSystem.ts",
@@ -273,7 +283,6 @@
         "src/ui/web/exerciserenderer/questions/TableQuestion/index.tsx",
         "src/ui/web/exerciserenderer/questions/TrueFalseQuestion/index.tsx",
         "src/ui/web/footer/FooterClient.tsx",
-        "src/ui/web/footer/FooterLegalModal.tsx",
         "src/ui/web/guards/RequireCourseSelection.tsx",
         "src/ui/web/header/Component.client.tsx",
         "src/ui/web/header/MobileMenu/MobileMenuAuthSection.tsx",
@@ -324,6 +333,7 @@
         "src/ui/web/shared/ProgressCircle/index.tsx",
         "src/ui/web/shared/ShareButton/index.tsx",
         "src/ui/web/shared/TypingAnimation/index.tsx",
+        "src/ui/web/upsell/PurchaseConsentCheckbox.tsx",
         "src/ui/web/upsell/UpgradeCheckoutDialog.tsx",
         "src/ui/web/upsell/UpgradeOfferCard.tsx"
       ]
@@ -400,6 +410,8 @@
         "src/app/(frontend)/courses/_components/LessonsSectionTitle/index.tsx",
         "src/app/(frontend)/courses/_components/LocaleFallbackBanner/index.tsx",
         "src/app/(frontend)/courses/_components/MembershipPlans/index.tsx",
+        "src/app/(frontend)/join/_components/StudentJoinForm.tsx",
+        "src/app/(frontend)/join/_components/StudentJoinHeader.tsx",
         "src/app/(frontend)/login/LoginForm.tsx",
         "src/app/(frontend)/login/LoginPageContent.tsx",
         "src/app/(frontend)/not-found.tsx",
@@ -427,6 +439,7 @@
         "src/app/(frontend)/study-plan/_components/StudyPlanPage.tsx",
         "src/app/(frontend)/study/_components/StudyContent/index.tsx",
         "src/app/(frontend)/subscriptions/_components/ComingSoonSection.tsx",
+        "src/app/(frontend)/subscriptions/_components/CurrentPlanCta.tsx",
         "src/app/(frontend)/subscriptions/_components/SubscriptionsHeader.tsx",
         "src/app/(frontend)/subscriptions/_components/TierCard.tsx",
         "src/app/(frontend)/subtest/_components/SubTestCard.tsx",
@@ -471,6 +484,7 @@
         "src/ui/web/shared/FormulaSheetViewer/FormulaSheetContent.tsx",
         "src/ui/web/shared/LatexDocumentViewer/index.tsx",
         "src/ui/web/shared/ShareButton/index.tsx",
+        "src/ui/web/upsell/PurchaseConsentCheckbox.tsx",
         "src/ui/web/upsell/UpgradeCheckoutDialog.tsx",
         "src/ui/web/upsell/UpgradeOfferCard.tsx"
       ]
@@ -485,7 +499,6 @@
         "src/app/(frontend)/ask/_components/AskConversationGrid/index.tsx",
         "src/app/(frontend)/ask/_components/AskDrawingCanvas/index.tsx",
         "src/app/(frontend)/ask/_components/AskExerciseCard/index.tsx",
-        "src/app/(frontend)/ask/_components/AskPrimaryContent/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/AskTab/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/ConversationCard/index.tsx",
         "src/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/index.tsx",
@@ -521,6 +534,7 @@
         "src/app/(frontend)/courses/_components/EmptyState/index.tsx",
         "src/app/(frontend)/courses/_components/LessonHeader/index.tsx",
         "src/app/(frontend)/courses/_components/PlanCard/index.tsx",
+        "src/app/(frontend)/join/_components/StudentJoinForm.tsx",
         "src/app/(frontend)/layout.tsx",
         "src/app/(frontend)/onboarding/persona/PersonaSelectionStep.tsx",
         "src/app/(frontend)/prep7/page.tsx",
@@ -607,7 +621,6 @@
         "src/ui/web/exerciserenderer/questions/TableQuestion/ExerciseTable.tsx",
         "src/ui/web/exerciserenderer/questions/TableQuestion/index.tsx",
         "src/ui/web/exerciserenderer/questions/TrueFalseQuestion/index.tsx",
-        "src/ui/web/footer/FooterClient.tsx",
         "src/ui/web/header/Component.client.tsx",
         "src/ui/web/header/MobileMenu/index.tsx",
         "src/ui/web/homepage/LandingPage/index.tsx",
@@ -647,7 +660,8 @@
         "src/ui/web/shared/ShareButton/index.tsx",
         "src/ui/web/shared/TypingAnimation/index.tsx",
         "src/ui/web/shared/Typography/Heading.tsx",
-        "src/ui/web/shared/Typography/Text.tsx"
+        "src/ui/web/shared/Typography/Text.tsx",
+        "src/ui/web/upsell/PurchaseConsentCheckbox.tsx"
       ]
     },
     "lesson-roadmap-chapter": {
@@ -773,6 +787,8 @@
         "src/app/api/entitlements/redeem/route.ts",
         "src/app/api/example/route.ts",
         "src/app/api/exercises/import/route.ts",
+        "src/app/api/guest-session/event/route.ts",
+        "src/app/api/internal/bot-hits/record/route.ts",
         "src/app/api/internal/guest-session/create/route.ts",
         "src/app/api/media/file/[filename]/route.ts",
         "src/app/api/media/route.ts",
@@ -786,10 +802,14 @@
         "src/app/api/stats/streak/route.ts",
         "src/app/api/study-plan/route.ts",
         "src/app/api/subscriptions/[id]/cancel/route.ts",
+        "src/app/api/subscriptions/[id]/change-tier/route.ts",
         "src/app/api/subscriptions/checkout/route.ts",
         "src/app/api/subscriptions/test-checkout/route.ts",
         "src/app/api/teacher-profiles/route.ts",
+        "src/app/api/teacher/classes/[id]/progress/route.ts",
+        "src/app/api/teacher/classes/route.ts",
         "src/app/api/teacher/courses/route.ts",
+        "src/app/api/tiers/opened-lessons/route.ts",
         "src/app/api/tts/synthesize/route.ts",
         "src/app/api/users/me/course-state/route.ts",
         "src/app/api/users/me/route.ts",
@@ -817,6 +837,7 @@
         "src/app/api/agent/lesson-suggest/route.ts",
         "src/app/api/agent/message/persist/route.ts",
         "src/app/api/agent/reset-chat/route.ts",
+        "src/app/api/attempts/route.ts",
         "src/app/api/blob/upload-token/route.ts",
         "src/app/api/bug-report/route.ts",
         "src/app/api/conversations/by-context/route.ts",
@@ -830,7 +851,9 @@
         "src/app/api/stats/streak/route.ts",
         "src/app/api/stats/track-activity/route.ts",
         "src/app/api/study-plan/route.ts",
+        "src/app/api/subscriptions/[id]/change-tier/route.ts",
         "src/app/api/subscriptions/checkout/route.ts",
+        "src/app/api/subscriptions/test-checkout/route.ts",
         "src/app/api/user-settings/route.ts",
         "src/infra/llm/schemas/lesson-duplication-output.ts",
         "src/server/services/dashboard/product-health/params.ts",
@@ -935,10 +958,25 @@
       "description": "No description available",
       "files": ["src/client/hooks/useExamCountdown.ts"]
     },
+    "anonymous-tracking": {
+      "pattern": "anonymous-tracking",
+      "description": "No description available",
+      "files": [
+        "src/client/hooks/useGuestJsBeacon.ts",
+        "src/server/services/guest-sessions/bot-hits-writer.ts",
+        "src/server/services/guest-sessions/guest-session-events.ts",
+        "src/server/services/guest-sessions/guest-session-writer.ts"
+      ]
+    },
     "media-query": {
       "pattern": "media-query",
       "description": "No description available",
       "files": ["src/client/hooks/useMediaQuery.ts"]
+    },
+    "tier-gate-data": {
+      "pattern": "tier-gate-data",
+      "description": "No description available",
+      "files": ["src/client/hooks/useOpenedLessons.ts"]
     },
     "progress-map": {
       "pattern": "progress-map",
@@ -1316,11 +1354,6 @@
       "description": "No description available",
       "files": ["src/infra/utils/deepMerge.ts"]
     },
-    "server-component-data": {
-      "pattern": "server-component-data",
-      "description": "No description available",
-      "files": ["src/infra/utils/footer-data.ts"]
-    },
     "datetime-format": {
       "pattern": "datetime-format",
       "description": "No description available",
@@ -1611,11 +1644,6 @@
       "description": "No description available",
       "files": ["src/server/services/exercise-conversion/v3/transform.ts"]
     },
-    "anonymous-tracking": {
-      "pattern": "anonymous-tracking",
-      "description": "No description available",
-      "files": ["src/server/services/guest-sessions/guest-session-writer.ts"]
-    },
     "lesson-export": {
       "pattern": "lesson-export",
       "description": "No description available",
@@ -1663,6 +1691,29 @@
       "pattern": "blob-fetching",
       "description": "No description available",
       "files": ["src/server/services/pdf-fetcher.ts"]
+    },
+    "atomic-upsert": {
+      "pattern": "atomic-upsert",
+      "description": "No description available",
+      "files": [
+        "src/server/services/question-attempts/question-attempt-recorder.ts",
+        "src/server/services/question-attempts/question-attempt-write.ts"
+      ]
+    },
+    "response-shaping": {
+      "pattern": "response-shaping",
+      "description": "No description available",
+      "files": ["src/server/services/teacher-dashboard/class-progress-shape.ts"]
+    },
+    "authorization": {
+      "pattern": "authorization",
+      "description": "No description available",
+      "files": ["src/server/services/teacher-dashboard/teacher-class-access.ts"]
+    },
+    "service": {
+      "pattern": "service",
+      "description": "No description available",
+      "files": ["src/server/services/teacher-dashboard/teacher-classes.ts"]
     },
     "context-aggregation": {
       "pattern": "context-aggregation",
@@ -1759,16 +1810,6 @@
       "pattern": "footer-client",
       "description": "No description available",
       "files": ["src/ui/web/footer/FooterClient.tsx"]
-    },
-    "legal-modal": {
-      "pattern": "legal-modal",
-      "description": "No description available",
-      "files": ["src/ui/web/footer/FooterLegalModal.tsx"]
-    },
-    "footer-data": {
-      "pattern": "footer-data",
-      "description": "No description available",
-      "files": ["src/ui/web/footer/footer-data.ts"]
     },
     "svg-normalization": {
       "pattern": "svg-normalization",
@@ -1978,7 +2019,7 @@
       "path": "src/app/(frontend)/ask/_components/AskPrimaryContent/index.tsx",
       "type": "unknown",
       "domain": "general",
-      "patterns": ["tailwind-component", "i18n-component", "client-component"],
+      "patterns": ["i18n-component", "client-component"],
       "aiSummary": "",
       "dependencies": ["react", "sonner"]
     },
@@ -2045,6 +2086,14 @@
       "patterns": ["tailwind-component", "i18n-component", "client-component"],
       "aiSummary": "",
       "dependencies": ["lucide-react", "react"]
+    },
+    "src/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/useCourseComposerDropToAsk.ts": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/useCourseComposerDropToAsk.ts",
+      "type": "hook",
+      "domain": "frontend",
+      "patterns": ["client-component"],
+      "aiSummary": "",
+      "dependencies": ["next/navigation", "react", "sonner"]
     },
     "src/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/useCourseComposerState.ts": {
       "path": "src/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/useCourseComposerState.ts",
@@ -2187,7 +2236,7 @@
       "domain": "general",
       "patterns": ["tailwind-component", "i18n-component", "client-component"],
       "aiSummary": "",
-      "dependencies": ["framer-motion", "lucide-react", "react"]
+      "dependencies": ["framer-motion", "react"]
     },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonProgress.tsx": {
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/ChatLessonProgress.tsx",
@@ -2220,6 +2269,14 @@
       "patterns": ["tailwind-component", "i18n-component", "client-component"],
       "aiSummary": "",
       "dependencies": ["framer-motion", "lucide-react", "react"]
+    },
+    "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatQuestionLayout.tsx": {
+      "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatQuestionLayout.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["client-component"],
+      "aiSummary": "",
+      "dependencies": ["react"]
     },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatQuestionSelectBubble.tsx": {
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/ChatQuestionSelectBubble.tsx",
@@ -2741,6 +2798,22 @@
       "aiSummary": "",
       "dependencies": ["@sentry/nextjs", "react"]
     },
+    "src/app/(frontend)/join/_components/StudentJoinForm.tsx": {
+      "path": "src/app/(frontend)/join/_components/StudentJoinForm.tsx",
+      "type": "component",
+      "domain": "schools",
+      "patterns": ["tailwind-component", "i18n-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["lucide-react", "react"]
+    },
+    "src/app/(frontend)/join/_components/StudentJoinHeader.tsx": {
+      "path": "src/app/(frontend)/join/_components/StudentJoinHeader.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["i18n-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["lucide-react"]
+    },
     "src/app/(frontend)/layout.tsx": {
       "path": "src/app/(frontend)/layout.tsx",
       "type": "unknown",
@@ -3037,6 +3110,22 @@
       "aiSummary": "",
       "dependencies": ["lucide-react"]
     },
+    "src/app/(frontend)/subscriptions/_components/CurrentPlanCta.tsx": {
+      "path": "src/app/(frontend)/subscriptions/_components/CurrentPlanCta.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["i18n-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": ["react", "lucide-react", "sonner"]
+    },
+    "src/app/(frontend)/subscriptions/_components/SubscriptionsCatalog.tsx": {
+      "path": "src/app/(frontend)/subscriptions/_components/SubscriptionsCatalog.tsx",
+      "type": "component",
+      "domain": "subscriptions",
+      "patterns": ["client-component"],
+      "aiSummary": "",
+      "dependencies": ["react"]
+    },
     "src/app/(frontend)/subscriptions/_components/SubscriptionsHeader.tsx": {
       "path": "src/app/(frontend)/subscriptions/_components/SubscriptionsHeader.tsx",
       "type": "unknown",
@@ -3060,6 +3149,14 @@
       "patterns": ["i18n-component", "client-component"],
       "aiSummary": "",
       "dependencies": ["next/navigation", "react", "lucide-react", "sonner"]
+    },
+    "src/app/(frontend)/terms-of-service/TermsOfServiceContent.tsx": {
+      "path": "src/app/(frontend)/terms-of-service/TermsOfServiceContent.tsx",
+      "type": "component",
+      "domain": "legal",
+      "patterns": ["client-component"],
+      "aiSummary": "Client renderer for the terms-of-service markdown. Same renderer",
+      "dependencies": ["react-markdown", "remark-gfm"]
     },
     "src/app/api/account/transactions/[id]/route.ts": {
       "path": "src/app/api/account/transactions/[id]/route.ts",
@@ -3138,6 +3235,14 @@
       "type": "unknown",
       "domain": "general",
       "patterns": ["api-endpoint", "validated-endpoint"],
+      "aiSummary": "",
+      "dependencies": ["next/server", "zod"]
+    },
+    "src/app/api/attempts/route.ts": {
+      "path": "src/app/api/attempts/route.ts",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["validated-endpoint"],
       "aiSummary": "",
       "dependencies": ["next/server", "zod"]
     },
@@ -3285,6 +3390,22 @@
       "aiSummary": "",
       "dependencies": ["next/server", "zod"]
     },
+    "src/app/api/guest-session/event/route.ts": {
+      "path": "src/app/api/guest-session/event/route.ts",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["api-endpoint"],
+      "aiSummary": "",
+      "dependencies": ["next/server"]
+    },
+    "src/app/api/internal/bot-hits/record/route.ts": {
+      "path": "src/app/api/internal/bot-hits/record/route.ts",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["api-endpoint"],
+      "aiSummary": "",
+      "dependencies": ["next/server"]
+    },
     "src/app/api/internal/guest-session/create/route.ts": {
       "path": "src/app/api/internal/guest-session/create/route.ts",
       "type": "unknown",
@@ -3405,6 +3526,14 @@
       "aiSummary": "",
       "dependencies": ["next/server"]
     },
+    "src/app/api/subscriptions/[id]/change-tier/route.ts": {
+      "path": "src/app/api/subscriptions/[id]/change-tier/route.ts",
+      "type": "route",
+      "domain": "billing",
+      "patterns": ["api-endpoint", "validated-endpoint"],
+      "aiSummary": "",
+      "dependencies": ["next/server", "zod"]
+    },
     "src/app/api/subscriptions/checkout/route.ts": {
       "path": "src/app/api/subscriptions/checkout/route.ts",
       "type": "route",
@@ -3417,6 +3546,22 @@
       "path": "src/app/api/subscriptions/test-checkout/route.ts",
       "type": "route",
       "domain": "billing",
+      "patterns": ["api-endpoint", "validated-endpoint"],
+      "aiSummary": "",
+      "dependencies": ["next/server", "zod"]
+    },
+    "src/app/api/teacher/classes/[id]/progress/route.ts": {
+      "path": "src/app/api/teacher/classes/[id]/progress/route.ts",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["api-endpoint"],
+      "aiSummary": "",
+      "dependencies": ["next/server"]
+    },
+    "src/app/api/teacher/classes/route.ts": {
+      "path": "src/app/api/teacher/classes/route.ts",
+      "type": "unknown",
+      "domain": "general",
       "patterns": ["api-endpoint"],
       "aiSummary": "",
       "dependencies": ["next/server"]
@@ -3431,6 +3576,14 @@
     },
     "src/app/api/teacher-profiles/route.ts": {
       "path": "src/app/api/teacher-profiles/route.ts",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["api-endpoint"],
+      "aiSummary": "",
+      "dependencies": ["next/server"]
+    },
+    "src/app/api/tiers/opened-lessons/route.ts": {
+      "path": "src/app/api/tiers/opened-lessons/route.ts",
       "type": "unknown",
       "domain": "general",
       "patterns": ["api-endpoint"],
@@ -3541,12 +3694,28 @@
       "aiSummary": "Manages exam countdown state backed by localStorage — polls every 60 s to keep `daysUntil` accurate across page refreshes; dates are local-only and not synced to the server.",
       "dependencies": ["react"]
     },
+    "src/client/hooks/useGuestJsBeacon.ts": {
+      "path": "src/client/hooks/useGuestJsBeacon.ts",
+      "type": "hook",
+      "domain": "analytics",
+      "patterns": ["anonymous-tracking", "client-component"],
+      "aiSummary": "Fires one \"this visitor runs JS\" beacon per tab session for",
+      "dependencies": ["react"]
+    },
     "src/client/hooks/useMediaQuery.ts": {
       "path": "src/client/hooks/useMediaQuery.ts",
       "type": "hook",
       "domain": "utility",
       "patterns": ["media-query", "client-component"],
       "aiSummary": "Responsive breakpoint hook — tracks `window.matchMedia` reactively; returns null on first render (SSR-safe), then the actual match state once the client hydrates.",
+      "dependencies": ["react"]
+    },
+    "src/client/hooks/useOpenedLessons.ts": {
+      "path": "src/client/hooks/useOpenedLessons.ts",
+      "type": "hook",
+      "domain": "billing",
+      "patterns": ["tier-gate-data", "client-component"],
+      "aiSummary": "Fetches the current user's opened-lesson ids per lesson type (the free-tier counter) for one gradeLevel, so lesson lists can render tier-locked rows. No-op when the tier kill switch is off.",
       "dependencies": ["react"]
     },
     "src/client/hooks/useProgressMap.ts": {
@@ -4309,14 +4478,6 @@
       "aiSummary": "Shallow copy of target + recursive merge of source; does not clone nested objects, so source object references are retained in the output.",
       "dependencies": []
     },
-    "src/infra/utils/footer-data.ts": {
-      "path": "src/infra/utils/footer-data.ts",
-      "type": "data-loader",
-      "domain": "infra",
-      "patterns": ["server-component-data"],
-      "aiSummary": "Server-side loader for the footer global. Picks the nav items",
-      "dependencies": ["react", "mongodb"]
-    },
     "src/infra/utils/formatDateTime.ts": {
       "path": "src/infra/utils/formatDateTime.ts",
       "type": "utility",
@@ -4869,6 +5030,22 @@
       "aiSummary": "Lookups behind the exercise-import compatibility probe. The web-only build performs no conversion, so this only reports what already exists.",
       "dependencies": ["mongodb"]
     },
+    "src/server/services/guest-sessions/bot-hits-writer.ts": {
+      "path": "src/server/services/guest-sessions/bot-hits-writer.ts",
+      "type": "service",
+      "domain": "analytics",
+      "patterns": ["anonymous-tracking"],
+      "aiSummary": "Daily per-category counters for UA-detected bot page loads.",
+      "dependencies": []
+    },
+    "src/server/services/guest-sessions/guest-session-events.ts": {
+      "path": "src/server/services/guest-sessions/guest-session-events.ts",
+      "type": "service",
+      "domain": "analytics",
+      "patterns": ["anonymous-tracking"],
+      "aiSummary": "Stamps client-reported milestones (JS confirmation, onboarding",
+      "dependencies": ["mongodb"]
+    },
     "src/server/services/guest-sessions/guest-session-writer.ts": {
       "path": "src/server/services/guest-sessions/guest-session-writer.ts",
       "type": "service",
@@ -4970,7 +5147,7 @@
       "type": "service",
       "domain": "llm",
       "patterns": ["counter-collection + user-schema-counter"],
-      "aiSummary": "Per-call token event log + per-user monthly counter with rate-limit check",
+      "aiSummary": "Per-call token event log + per-user daily+monthly counters with rate-limit check",
       "dependencies": ["mongodb"]
     },
     "src/server/services/media.ts": {
@@ -4989,6 +5166,22 @@
       "aiSummary": "Fetches and validates PDF buffers from storage with size/mime/magic-byte checks",
       "dependencies": []
     },
+    "src/server/services/question-attempts/question-attempt-recorder.ts": {
+      "path": "src/server/services/question-attempts/question-attempt-recorder.ts",
+      "type": "service",
+      "domain": "teacher-dashboard",
+      "patterns": ["atomic-upsert"],
+      "aiSummary": "Upserts one question-attempts doc per (user, exercise, block); dup-key = already solved",
+      "dependencies": []
+    },
+    "src/server/services/question-attempts/question-attempt-write.ts": {
+      "path": "src/server/services/question-attempts/question-attempt-write.ts",
+      "type": "service",
+      "domain": "teacher-dashboard",
+      "patterns": ["atomic-upsert"],
+      "aiSummary": "Pure builder for the question-attempts upsert filter/update ($inc/$set/$setOnInsert)",
+      "dependencies": ["mongodb"]
+    },
     "src/server/services/rate-limit.ts": {
       "path": "src/server/services/rate-limit.ts",
       "type": "service",
@@ -4996,6 +5189,30 @@
       "patterns": ["sliding-window-quota"],
       "aiSummary": "In-memory rate limiting with sliding window per IP/User-Agent (guest) or userId (auth)",
       "dependencies": []
+    },
+    "src/server/services/teacher-dashboard/class-progress-shape.ts": {
+      "path": "src/server/services/teacher-dashboard/class-progress-shape.ts",
+      "type": "service",
+      "domain": "teacher-dashboard",
+      "patterns": ["response-shaping"],
+      "aiSummary": "Builds the /api/teacher/classes/:id/progress payload from lessons, progress docs and attempts",
+      "dependencies": []
+    },
+    "src/server/services/teacher-dashboard/teacher-class-access.ts": {
+      "path": "src/server/services/teacher-dashboard/teacher-class-access.ts",
+      "type": "service",
+      "domain": "teacher-dashboard",
+      "patterns": ["authorization"],
+      "aiSummary": "Pure role + class-membership checks for teacher dashboard endpoints",
+      "dependencies": []
+    },
+    "src/server/services/teacher-dashboard/teacher-classes.ts": {
+      "path": "src/server/services/teacher-dashboard/teacher-classes.ts",
+      "type": "service",
+      "domain": "teacher-dashboard",
+      "patterns": ["service"],
+      "aiSummary": "Lists a teacher's classes and assembles class progress from lessons, user-progresses and question-attempts",
+      "dependencies": ["mongodb"]
     },
     "src/server/services/teacher-profile-resolver.ts": {
       "path": "src/server/services/teacher-profile-resolver.ts",
@@ -5938,6 +6155,14 @@
       "aiSummary": "",
       "dependencies": ["react"]
     },
+    "src/ui/web/exerciserenderer/context/SketchMaxHeightContext.tsx": {
+      "path": "src/ui/web/exerciserenderer/context/SketchMaxHeightContext.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["client-component"],
+      "aiSummary": "",
+      "dependencies": ["react"]
+    },
     "src/ui/web/exerciserenderer/graphics/JSXGraphBoard.tsx": {
       "path": "src/ui/web/exerciserenderer/graphics/JSXGraphBoard.tsx",
       "type": "unknown",
@@ -6046,24 +6271,8 @@
       "path": "src/ui/web/footer/FooterClient.tsx",
       "type": "component",
       "domain": "frontend",
-      "patterns": ["footer-client", "tailwind-component", "i18n-component", "client-component"],
-      "aiSummary": "Client wrapper that renders the dynamic footer and owns the",
-      "dependencies": ["next/image", "react"]
-    },
-    "src/ui/web/footer/FooterLegalModal.tsx": {
-      "path": "src/ui/web/footer/FooterLegalModal.tsx",
-      "type": "component",
-      "domain": "frontend",
-      "patterns": ["legal-modal", "client-component"],
-      "aiSummary": "Renders the content of a CMS legal page inside a Dialog. The page",
-      "dependencies": ["react"]
-    },
-    "src/ui/web/footer/footer-data.ts": {
-      "path": "src/ui/web/footer/footer-data.ts",
-      "type": "types",
-      "domain": "frontend",
-      "patterns": ["footer-data"],
-      "aiSummary": "Type-only re-export from the infra loader. The loader itself",
+      "patterns": ["footer-client", "i18n-component", "client-component"],
+      "aiSummary": "Static footer: brand logo, Terms + Privacy links, version, theme",
       "dependencies": []
     },
     "src/ui/web/guards/RequireCourseSelection.tsx": {
@@ -6626,6 +6835,14 @@
       "aiSummary": "",
       "dependencies": ["react", "class-variance-authority"]
     },
+    "src/ui/web/upsell/PurchaseConsentCheckbox.tsx": {
+      "path": "src/ui/web/upsell/PurchaseConsentCheckbox.tsx",
+      "type": "component",
+      "domain": "subscriptions",
+      "patterns": ["tailwind-component", "i18n-component", "client-component"],
+      "aiSummary": "",
+      "dependencies": []
+    },
     "src/ui/web/upsell/UpgradeCheckoutDialog.tsx": {
       "path": "src/ui/web/upsell/UpgradeCheckoutDialog.tsx",
       "type": "unknown",
@@ -6652,8 +6869,8 @@
     }
   },
   "metadata": {
-    "generatedAt": "2026-10-19T06:09:29.768Z",
-    "totalFiles": 600,
-    "totalPatterns": 194
+    "generatedAt": "2026-10-26T06:07:59.171Z",
+    "totalFiles": 622,
+    "totalPatterns": 196
   }
 }
