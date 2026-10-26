@@ -5071,6 +5071,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore(deps): Bump the prod-dependencies group with 28 updates ([#1484](https://github.com/A-Guy-educ/A-Guy-Web/pull/1484)) — @dependabot[bot]
 - chore(docs): fix broken internal links ([#1476](https://github.com/A-Guy-educ/A-Guy-Web/pull/1476)) — @github-actions[bot]
 - revert: Restore production OG image ([#1495](https://github.com/A-Guy-educ/A-Guy-Web/pull/1495)) — @aguyshayb
 - feat: Brand tagline on every link preview and bolder OG logo ([#1490](https://github.com/A-Guy-educ/A-Guy-Web/pull/1490)) — @aguyshayb
