@@ -11,12 +11,13 @@ export interface UpgradeOfferCardProps {
   title: string
   /** Short explanation under the headline. */
   intro: string
-  /** Label for the "continue without AI" skip link. */
-  continueLabel: string
+  /** Label for the "continue without AI" skip link. Omit for a hard wall
+   *  (e.g. the tier exercise gate) where there is nothing to continue to. */
+  continueLabel?: string
   /** Called when the student skips the offer. */
-  onContinue: () => void
+  onContinue?: () => void
   /** Label describing restricted mode after the student skipped. */
-  restrictedLabel: string
+  restrictedLabel?: string
   /** Student's current tier. Offers only strictly-higher tiers:
    *   - `free`   → basic + advanced
    *   - `basic`  → advanced + premium
@@ -134,16 +135,18 @@ export function UpgradeOfferCard({
           </div>
         ) : null}
 
-        <button
-          type="button"
-          onClick={() => {
-            setSkipped(true)
-            onContinue()
-          }}
-          className="mt-3 text-body-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors"
-        >
-          {continueLabel}
-        </button>
+        {continueLabel ? (
+          <button
+            type="button"
+            onClick={() => {
+              setSkipped(true)
+              onContinue?.()
+            }}
+            className="mt-3 text-body-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors"
+          >
+            {continueLabel}
+          </button>
+        ) : null}
       </article>
 
       {selectedTier ? (

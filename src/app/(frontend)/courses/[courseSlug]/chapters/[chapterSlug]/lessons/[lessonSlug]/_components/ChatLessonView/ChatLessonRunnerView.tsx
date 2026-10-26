@@ -3,7 +3,7 @@
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { useRouterWithLoading } from '@/infra/loading/hooks/useRouterWithLoading'
 import { useParams } from 'next/navigation'
-import { canAccessLearningExercise, getUserTierSlug } from '@/lib/tiers'
+import { clampToLearningExerciseGate, getUserTierSlug } from '@/lib/tiers'
 import type { Exercise, Media } from '@/infra/types/content'
 import type { ContentBlock } from '@/infra/types/exercise'
 import { getExerciseBlockGroups } from '@/lib/exercises/getExerciseBlocks'
@@ -181,24 +181,18 @@ function ActiveChat({
   const isHebrew = locale?.toLowerCase().startsWith('he') ?? false
   const scrollRef = useRef<HTMLDivElement | null>(null)
 
-  // Clamp the walker's exercise list to the student's tier gate. The gate is
-  // `canAccessLearningExercise(user, lessonLearningIndex, exerciseOrdinal)`;
-  // we take the longest prefix that passes. When the clamp cuts something off
-  // the walker's terminator becomes a `tier-lock` entry (see useExerciseWalker).
+  // Clamp the walker's exercise list to the student's tier gate (longest
+  // prefix passing `canAccessLearningExercise`). When the clamp cuts something
+  // off the walker's terminator becomes a `tier-lock` entry (see useExerciseWalker).
   const { user } = useCurrentUser()
   const tierUser = useMemo(
     () => ({ currentTier: getUserTierSlug(user as { currentTier?: string | null } | null) }),
     [user],
   )
-  const cappedExercises = useMemo(() => {
-    if (lessonLearningIndex === null) return exercises
-    const out: Exercise[] = []
-    for (let i = 0; i < exercises.length; i++) {
-      if (!canAccessLearningExercise(tierUser, lessonLearningIndex, i + 1)) break
-      out.push(exercises[i])
-    }
-    return out
-  }, [exercises, lessonLearningIndex, tierUser])
+  const cappedExercises = useMemo(
+    () => clampToLearningExerciseGate(tierUser, lessonLearningIndex, exercises),
+    [exercises, lessonLearningIndex, tierUser],
+  )
 
   const [entries, setEntries] = useState<StreamEntry[]>([])
   // Separate tick for "stream grew at the end" — the scroll-to-bottom effect
@@ -1115,7 +1109,7 @@ function StreamEntryView({
         />
       )
     case 'tier-lock':
-      return <TierLockBubble lockedCount={entry.lockedCount} />
+      return <TierLockBubble />
     case 'skipped-marker':
       return <SkippedMarker />
     case 'quota-exhausted': {

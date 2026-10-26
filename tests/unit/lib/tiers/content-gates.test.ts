@@ -10,6 +10,7 @@ import {
   canAccessExam,
   canAccessLearningExercise,
   canAccessPracticeLesson,
+  clampToLearningExerciseGate,
   getLearningLessonOpenOrdinal,
 } from '@/lib/tiers'
 
@@ -56,6 +57,14 @@ describe('content gates — enforcement on', () => {
     expect(canAccessLearningExercise(free, ordinal('l2'), 3)).toBe(true)
     expect(canAccessLearningExercise(free, ordinal('l2'), 4)).toBe(false)
     expect(canAccessLearningExercise(basic, ordinal('l2'), 4)).toBe(true)
+  })
+
+  it('clamps a learning lesson to its first 3 exercises from the 4th opened lesson', () => {
+    const exercises = ['e1', 'e2', 'e3', 'e4', 'e5']
+    expect(clampToLearningExerciseGate(free, 4, exercises)).toEqual(['e1', 'e2', 'e3'])
+    expect(clampToLearningExerciseGate(free, 3, exercises)).toBe(exercises)
+    expect(clampToLearningExerciseGate(basic, 4, exercises)).toBe(exercises)
+    expect(clampToLearningExerciseGate(free, null, exercises)).toBe(exercises)
   })
 })
 

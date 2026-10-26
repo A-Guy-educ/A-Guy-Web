@@ -62,7 +62,7 @@ describe('diagrams in dark mode', () => {
   })
 
   it('graph elements default to the white-canvas ink, not the theme foreground', () => {
-    for (const file of ['axisElements.ts', 'geometryElements.ts']) {
+    for (const file of ['axisElements.ts', 'geometryElements.ts', 'geometryAngleMarkers.ts']) {
       const source = read(`src/ui/web/exerciserenderer/graphics/${file}`)
       expect(source).not.toMatch(/getDefaultTextColor/)
       expect(source).toMatch(/getDefaultCanvasElementColor/)

@@ -4,13 +4,16 @@ import { useState, useEffect } from 'react'
 import { cn } from '@/infra/utils/ui'
 import { Check } from 'lucide-react'
 
-const ACCENT_PRESETS = [
-  { name: 'Burgundy', hue: '353 73%', light: '29%', dark: '56%' }, // default
-  { name: 'Ocean', hue: '217 91%', light: '40%', dark: '60%' },
-  { name: 'Forest', hue: '142 71%', light: '35%', dark: '45%' },
-  { name: 'Sunset', hue: '25 95%', light: '43%', dark: '53%' },
-  { name: 'Violet', hue: '271 91%', light: '45%', dark: '65%' },
-  { name: 'Rose', hue: '330 81%', light: '40%', dark: '60%' },
+// Theme values for each preset live in `src/app/(frontend)/accents.css`,
+// keyed by `id`. `swatch` is only the circle shown in the picker.
+// Order matters: the saved preference is the preset's index.
+export const ACCENT_PRESETS = [
+  { id: 'burgundy', name: 'Burgundy', swatch: 'hsl(353 73% 29%)' }, // default
+  { id: 'ocean', name: 'Ocean', swatch: 'hsl(217 91% 40%)' },
+  { id: 'forest', name: 'Forest', swatch: 'hsl(142 71% 35%)' },
+  { id: 'sunset', name: 'Sunset', swatch: 'hsl(25 95% 43%)' },
+  { id: 'violet', name: 'Violet', swatch: 'hsl(271 91% 45%)' },
+  { id: 'rose', name: 'Rose', swatch: 'hsl(330 81% 40%)' },
 ] as const
 
 const STORAGE_KEY = 'aguy-accent-color'
@@ -25,11 +28,14 @@ function applyAccent(index: number) {
   const preset = ACCENT_PRESETS[index]
   if (!preset) return
 
+  // A data attribute instead of inline custom properties, so the CSS can pick
+  // the light or dark value for the current theme.
   const root = document.documentElement
-  // Apply to both themes by setting the CSS variable directly
-  root.style.setProperty('--primary', `${preset.hue} ${preset.light}`)
-  // Also set ring to match
-  root.style.setProperty('--ring', `${preset.hue} ${preset.light}`)
+  if (index === 0) {
+    delete root.dataset.accent
+  } else {
+    root.dataset.accent = preset.id
+  }
 
   localStorage.setItem(STORAGE_KEY, String(index))
 }
@@ -51,7 +57,7 @@ export function AccentPicker({ className }: { className?: string }) {
   }
 
   return (
-    <div className={cn('flex items-center gap-2', className)}>
+    <div className={cn('flex items-center gap-content-gap-xs', className)}>
       {ACCENT_PRESETS.map((preset, i) => (
         <button
           key={preset.name}
@@ -61,7 +67,7 @@ export function AccentPicker({ className }: { className?: string }) {
             'hover:scale-110 active:scale-95',
             selected === i ? 'border-foreground scale-110' : 'border-transparent',
           )}
-          style={{ backgroundColor: `hsl(${preset.hue} ${preset.light})` }}
+          style={{ backgroundColor: preset.swatch }}
           title={preset.name}
           aria-label={`${preset.name} accent color`}
         >

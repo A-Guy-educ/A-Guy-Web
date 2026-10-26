@@ -25,6 +25,9 @@ import type { QuestionBlock, InlineRichText, RichTextBlock } from '@/ui/web/exer
 import { ExerciseWorkspace } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseWorkspace'
 import { getExerciseBlockGroups } from '@/lib/exercises/getExerciseBlocks'
 import { computeQuestionLabels } from '@/lib/exercises/computeSectionLabels'
+import { useCurrentUser } from '@/client/hooks/useCurrentUser'
+import { clampToLearningExerciseGate, getUserTierSlug } from '@/lib/tiers'
+import { TierLockBubble } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/TierLockBubble'
 
 type WorksheetGroups = React.ComponentProps<typeof ExerciseWorksheet>['groups']
 
@@ -36,6 +39,13 @@ interface BlocksDocumentLessonViewProps {
   /** Optional element rendered at the top of the primary pane (e.g. tab bar). */
   headerSlot?: React.ReactNode
   chatContent?: React.ReactNode
+  /**
+   * 1-based position in the user's opened learning lessons — same free-tier
+   * exercise gate as the chat view. Exercises past the gate (and their
+   * solutions) are not rendered; a tier-lock card takes their place.
+   * `null` disables the cap.
+   */
+  lessonLearningIndex?: number | null
 }
 
 function getGroups(exercise: Exercise): WorksheetGroups {
@@ -187,15 +197,21 @@ export function BlocksDocumentLessonView({
   mediaMap,
   headerSlot,
   chatContent,
+  lessonLearningIndex = null,
 }: BlocksDocumentLessonViewProps) {
   const locale = useLocale()
   const dir: 'ltr' | 'rtl' = locale?.toLowerCase().startsWith('he') ? 'rtl' : 'ltr'
 
-  const renderable = exercises
+  const { user } = useCurrentUser()
+  const tierUser = { currentTier: getUserTierSlug(user as { currentTier?: string | null } | null) }
+  const visibleExercises = clampToLearningExerciseGate(tierUser, lessonLearningIndex, exercises)
+  const isTierLocked = visibleExercises.length < exercises.length
+
+  const renderable = visibleExercises
     .map((exercise) => ({ exercise, groups: getGroups(exercise) }))
     .filter((entry) => entry.groups.some((group) => group.blocks.length > 0))
 
-  const solutionEntries = getSolutionsByExercise(exercises, locale)
+  const solutionEntries = getSolutionsByExercise(visibleExercises, locale)
 
   return (
     <ExerciseWorkspace
@@ -242,6 +258,12 @@ export function BlocksDocumentLessonView({
                     </section>
                   ))}
                 </div>
+
+                {isTierLocked && (
+                  <div className="mt-section-md flex justify-center font-sans">
+                    <TierLockBubble />
+                  </div>
+                )}
 
                 {/* Solutions section — rendered AFTER all exercises */}
                 <SolutionsSection entries={solutionEntries} dir={dir} />

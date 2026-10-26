@@ -45,8 +45,8 @@ function Badge({ children }: { children: ReactNode }) {
     <span
       className={cn(
         'w-7 h-7 rounded-lg flex items-center justify-center shrink-0',
-        'bg-primary/10 border border-primary/20',
-        'font-extrabold text-body-sm text-primary',
+        'bg-primary-text/10 border border-primary-text/20',
+        'font-extrabold text-body-sm text-primary-text',
       )}
     >
       {children}
