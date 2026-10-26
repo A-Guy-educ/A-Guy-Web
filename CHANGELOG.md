@@ -5071,6 +5071,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Fit OG logo inside WhatsApp square crop ([#1482](https://github.com/A-Guy-educ/A-Guy-Web/pull/1482)) — @aguyshayb
 - fix: Respect inside position for angle labels ([#1481](https://github.com/A-Guy-educ/A-Guy-Web/pull/1481)) — @aguyshayb
 - revert: Undo angle label fix pushed directly to dev ([#1480](https://github.com/A-Guy-educ/A-Guy-Web/pull/1480)) — @aguyshayb
 - fix: Flip sketches and graphs for dark mode ([#1479](https://github.com/A-Guy-educ/A-Guy-Web/pull/1479)) — @aguyshayb
