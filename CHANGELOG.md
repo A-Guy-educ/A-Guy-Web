@@ -5071,6 +5071,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- revert: Restore production OG image ([#1495](https://github.com/A-Guy-educ/A-Guy-Web/pull/1495)) — @aguyshayb
 - feat: Brand tagline on every link preview and bolder OG logo ([#1490](https://github.com/A-Guy-educ/A-Guy-Web/pull/1490)) — @aguyshayb
 - fix: Fit OG logo inside WhatsApp square crop ([#1482](https://github.com/A-Guy-educ/A-Guy-Web/pull/1482)) — @aguyshayb
 - fix: Respect inside position for angle labels ([#1481](https://github.com/A-Guy-educ/A-Guy-Web/pull/1481)) — @aguyshayb
