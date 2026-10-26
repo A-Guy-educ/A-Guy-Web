@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @config "../../../tailwind.config.mjs";
 @import 'katex/dist/katex.min.css';
+@import './accents.css';
 
 @layer base {
   h1,
@@ -30,6 +31,9 @@
     --primary: 353 73% 29%; /* #91262C */
     --primary-soft: 0 45% 98%; /* #fdf2f2 - light wash for hover states */
     --primary-foreground: 0 0% 100%;
+    /* Primary as text on a surface (math, question badges, hint chips).
+       Accent presets in accents.css override it alongside --primary. */
+    --primary-text: 345 60% 30%;
 
     /* Secondary: muted sage green (accent) */
     --secondary: 113 12% 41%; /* #5D725B */
@@ -140,6 +144,9 @@
     --primary: 353 73% 56%;
     --primary-soft: 353 73% 15%;
     --primary-foreground: 0 0% 100%;
+    /* Saturated red blurs on charcoal (thin KaTeX glyphs especially), so text
+       uses a lighter rose of the same hue: 6.6:1 on --card. */
+    --primary-text: 345 60% 70%;
 
     /* Secondary: medium warm gray */
     --secondary: 30 8% 16%;
@@ -606,6 +613,20 @@ math-field:focus-within {
   display: none;
 }
 
+/* Author-drawn diagrams (sketch SVGs, JSXGraph boards) are drawn for a white
+   page. The element also carries data-theme="light" so currentColor and CSS
+   vars inside resolve to light values; in dark mode the whole drawing is then
+   flipped: invert(0.9) lands white on ~#1a1a1a (the dark card) and black on
+   ~#e6e6e6, and hue-rotate(180deg) turns the inverted hues back, so an
+   author's red stays red. */
+.diagram-invert {
+  background-image: none; /* drop the [data-theme='light'] page glow */
+}
+
+[data-theme='dark'] .diagram-invert {
+  filter: invert(0.9) hue-rotate(180deg);
+}
+
 /* RTL/LTR Isolation for Math - must be flat selectors */
 .math-inline {
   direction: ltr;
@@ -624,7 +645,7 @@ math-field:focus-within {
 }
 
 /* KaTeX math expression styling in chat.
-   Short atoms ("AB", "x", "\pi") render inline in wine-red so they read as
+   Short atoms ("AB", "x", "\pi") render inline in the accent text color so they read as
    part of the sentence. Longer expressions break onto their own line with a
    soft blue tint so equations stand out at a glance. Classification happens
    in rehype-math-wrapper.ts, which always uses a <span> wrapper for inline
@@ -632,7 +653,7 @@ math-field:focus-within {
    `display:block` here via `.math-long` when the visual promotion is wanted. */
 .chat-message-content .math-short .katex {
   @apply bg-transparent p-0 m-0 rounded-none inline-block;
-  color: hsl(var(--text-wine-red));
+  color: hsl(var(--primary-text));
   font-size: 1em;
 }
 
@@ -670,16 +691,11 @@ math-field:focus-within {
 
 .chat-message-content .chat-table .math-short .katex,
 .chat-message-content .chat-table .math-long .katex {
-  @apply bg-transparent p-0 m-0 rounded-none text-primary;
+  @apply bg-transparent p-0 m-0 rounded-none text-primary-text;
   font-size: 1em;
 }
 
-[data-theme='dark'] .chat-message-content .chat-table .math-short .katex,
-[data-theme='dark'] .chat-message-content .chat-table .math-long .katex {
-  @apply bg-transparent text-primary;
-}
-
-/* Exercise math: every algebraic expression renders in wine-red so students
+/* Exercise math: every algebraic expression renders in the accent text color so students
    can pick out variables/equations at a glance. Applies to both inline atoms
    (`.math-short`) and block equations (`.math-long`) — no soft-blue block
    treatment here (unlike chat) because the boss wanted a uniform tint across
@@ -687,7 +703,7 @@ math-field:focus-within {
    viewer (used in the lesson worksheet path) keeps its neutral math color. */
 .rich-text-content:not(.latex-document) .math-short .katex,
 .rich-text-content:not(.latex-document) .math-long .katex {
-  color: hsl(var(--text-wine-red));
+  color: hsl(var(--primary-text));
 }
 
 /* Chat callouts — paragraphs tagged by remarkChatCallouts and rendered via

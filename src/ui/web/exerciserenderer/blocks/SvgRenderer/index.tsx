@@ -204,8 +204,10 @@ export function SvgRenderer({
         // CSS `direction`, and no author expects "4 + 3 · 2 =" to render as
         // "= 2 · 3 + 4".
         dir="ltr"
+        // Sketches are authored for a white page; see `.diagram-invert`.
+        data-theme="light"
         className={cn(
-          'overflow-hidden [&>svg]:block [&>svg]:w-full [&>svg]:h-auto',
+          'diagram-invert text-foreground overflow-hidden [&>svg]:block [&>svg]:w-full [&>svg]:h-auto',
           isInteractive && 'select-none',
         )}
         dangerouslySetInnerHTML={{ __html: sanitizedSvg }}

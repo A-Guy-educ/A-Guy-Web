@@ -201,6 +201,7 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
           backUrl={backUrl}
           exercises={exercises}
           mediaMap={mediaMap}
+          lessonLearningIndex={lessonLearningIndex}
           chatContent={
             showChat ? (
               <ChatInterface

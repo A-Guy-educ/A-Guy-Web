@@ -1,39 +1,27 @@
 'use client'
 
-import { Button } from '@/ui/web/components/button'
-import { SystemLink } from '@/infra/loading/components/SystemLink'
-import { Lock } from 'lucide-react'
+import { useCurrentUser } from '@/client/hooks/useCurrentUser'
+import { getUserTierSlug } from '@/lib/tiers'
 import { useTranslations } from '@/ui/web/providers/I18n'
-
-interface TierLockBubbleProps {
-  /** Number of exercises still gated behind an upgrade. Rendered into the
-   *  body copy via the `{count}` placeholder. */
-  lockedCount: number
-}
+import { UpgradeOfferCard } from '@/ui/web/upsell/UpgradeOfferCard'
 
 /**
- * Terminal bubble shown in place of the lesson-complete card when the chat
- * stream was clamped by the free-tier exercise gate. Mirrors the lock card
- * used by ExercisesPager (`tierLocked*` strings there) but speaks in the
- * chat-view namespace since the copy is tuned for the "preview done" moment
- * at the end of a stream, not an in-exercise lock.
+ * Terminal card shown where a lesson was clamped by the free-tier exercise
+ * gate — at the end of the chat stream and after the 3rd exercise in the
+ * scroll view. Reuses the quota-exhausted `UpgradeOfferCard` layout (headline
+ * + intro + tier buttons opening the checkout dialog) so both upgrade walls
+ * look the same, minus the "continue" link: past the gate there is nothing
+ * left to continue to.
  */
-export function TierLockBubble({ lockedCount }: TierLockBubbleProps) {
+export function TierLockBubble() {
   const t = useTranslations('courses')
+  const { user } = useCurrentUser()
+  const currentTier = getUserTierSlug(user as { currentTier?: string | null } | null)
   return (
-    <div className="rounded-2xl border border-warning/30 bg-warning/10 p-card-padding shadow-elevation-1 flex flex-col items-center text-center gap-content-gap">
-      <div className="w-12 h-12 rounded-2xl bg-warning/20 flex items-center justify-center">
-        <Lock className="w-6 h-6 text-warning" />
-      </div>
-      <div className="space-y-2 max-w-md">
-        <h2 className="text-heading-sm font-bold text-foreground">{t('chatViewTierLockTitle')}</h2>
-        <p className="text-body-md text-muted-foreground">
-          {t('chatViewTierLockBody').replace('{count}', String(lockedCount))}
-        </p>
-      </div>
-      <Button asChild size="lg" className="min-h-[44px]">
-        <SystemLink href="/subscriptions">{t('chatViewTierLockCta')}</SystemLink>
-      </Button>
-    </div>
+    <UpgradeOfferCard
+      title={t('chatViewTierLockTitle')}
+      intro={t('chatViewTierLockBody')}
+      currentTier={currentTier}
+    />
   )
 }

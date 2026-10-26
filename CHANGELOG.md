@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.56.0 — 2026-10-26
+
+### Features
+- Brand tagline on every link preview and bolder OG logo (#1490)
+- Tier-lock upgrade card, scroll-view gate, OG preview and angle markers (#1477)
+
+### Bug Fixes
+- Restore production OG image (#1495)
+- Fit OG logo inside WhatsApp square crop (#1482)
+- Respect inside position for angle labels (#1481)
+- Flip sketches and graphs for dark mode (#1479)
+- Legible accent colors in dark mode (#1478)
+- Bump prod dependencies (28 minor/patch updates incl. react 19.3.1, jsxgraph 1.14, openai 7.43) (#1484)
+
 ## v0.55.0 — 2026-10-25
 
 ### Features
@@ -5071,6 +5085,24 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.56.0 ([#1496](https://github.com/A-Guy-educ/A-Guy-Web/pull/1496)) — @aguyshayb
+- chore(deps-dev): Bump @commitlint/config-conventional from 20.5.0 to 21.2.4 ([#1487](https://github.com/A-Guy-educ/A-Guy-Web/pull/1487)) — @dependabot[bot]
+- chore(deps-dev): Bump @commitlint/cli from 20.5.0 to 21.2.4 ([#1489](https://github.com/A-Guy-educ/A-Guy-Web/pull/1489)) — @dependabot[bot]
+- chore(deps-dev): Bump the dev-dependencies group across 1 directory with 2 updates ([#1483](https://github.com/A-Guy-educ/A-Guy-Web/pull/1483)) — @dependabot[bot]
+- chore(ai-docs): Refresh indexes ([#1475](https://github.com/A-Guy-educ/A-Guy-Web/pull/1475)) — @github-actions[bot]
+- chore(deps): Bump the prod-dependencies group with 28 updates ([#1484](https://github.com/A-Guy-educ/A-Guy-Web/pull/1484)) — @dependabot[bot]
+- chore(docs): fix broken internal links ([#1476](https://github.com/A-Guy-educ/A-Guy-Web/pull/1476)) — @github-actions[bot]
+- revert: Restore production OG image ([#1495](https://github.com/A-Guy-educ/A-Guy-Web/pull/1495)) — @aguyshayb
+- feat: Brand tagline on every link preview and bolder OG logo ([#1490](https://github.com/A-Guy-educ/A-Guy-Web/pull/1490)) — @aguyshayb
+- fix: Fit OG logo inside WhatsApp square crop ([#1482](https://github.com/A-Guy-educ/A-Guy-Web/pull/1482)) — @aguyshayb
+- fix: Respect inside position for angle labels ([#1481](https://github.com/A-Guy-educ/A-Guy-Web/pull/1481)) — @aguyshayb
+- revert: Undo angle label fix pushed directly to dev ([#1480](https://github.com/A-Guy-educ/A-Guy-Web/pull/1480)) — @aguyshayb
+- fix: Flip sketches and graphs for dark mode ([#1479](https://github.com/A-Guy-educ/A-Guy-Web/pull/1479)) — @aguyshayb
+- fix: Legible accent colors in dark mode ([#1478](https://github.com/A-Guy-educ/A-Guy-Web/pull/1478)) — @aguyshayb
+- feat: Tier-lock upgrade card, scroll-view gate, OG preview and angle markers ([#1477](https://github.com/A-Guy-educ/A-Guy-Web/pull/1477)) — @aguyshayb
+## [v0.55.0] - 2026-10-25
+
+- promote: dev -> main (v0.55.0) ([#1474](https://github.com/A-Guy-educ/A-Guy-Web/pull/1474)) — @aguyshayb
 - chore: Release v0.55.0 ([#1473](https://github.com/A-Guy-educ/A-Guy-Web/pull/1473)) — @aguyshayb
 - feat: Split content locks into learning and practice/exam switches ([#1472](https://github.com/A-Guy-educ/A-Guy-Web/pull/1472)) — @aguyshayb
 - test: Make CI-audit and prompt-file specs tolerate CRLF checkouts ([#1471](https://github.com/A-Guy-educ/A-Guy-Web/pull/1471)) — @aguyshayb

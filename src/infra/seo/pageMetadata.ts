@@ -7,6 +7,7 @@
  */
 
 import type { Metadata } from 'next'
+import { withShareTagline } from './shareDescription'
 
 import { getBrand } from '@/brands'
 
@@ -45,6 +46,11 @@ export interface PageSeoInput {
 export function pageMetadata(input: PageSeoInput = {}): Metadata {
   const b = getBrand().config
   const title = input.title ?? b.defaultTitle
+  const shareDescription = withShareTagline(
+    b.shareTagline,
+    input.description ?? b.description,
+    title,
+  )
 
   return {
     title,
@@ -52,7 +58,7 @@ export function pageMetadata(input: PageSeoInput = {}): Metadata {
     openGraph: {
       siteName: b.name,
       title,
-      description: input.description ?? b.description,
+      description: shareDescription,
       images: [{ url: input.ogImage ?? b.ogImage }],
       locale: b.locale,
     },
@@ -61,7 +67,7 @@ export function pageMetadata(input: PageSeoInput = {}): Metadata {
       site: b.social.twitterHandle,
       creator: b.social.twitterHandle,
       title,
-      description: input.description ?? b.description,
+      description: shareDescription,
       images: [{ url: input.ogImage ?? b.ogImage }],
     },
     robots: input.noIndex ? { index: false, follow: false } : undefined,

@@ -8,6 +8,7 @@
 import type { Metadata } from 'next'
 
 import { getBrand } from '@/brands'
+import { withShareTagline } from '@/infra/seo/shareDescription'
 
 function getDefaultOpenGraph(): Metadata['openGraph'] {
   const b = getBrand().config
@@ -41,9 +42,13 @@ const fallbackOpenGraph: Metadata['openGraph'] = {
  */
 export const mergeOpenGraph = (og?: Metadata['openGraph']): Metadata['openGraph'] => {
   const defaults = getDefaultOpenGraph() ?? fallbackOpenGraph
-  return {
+  const merged = {
     ...defaults,
     ...og,
     images: og?.images ? og.images : defaults.images,
+  }
+  return {
+    ...merged,
+    description: withShareTagline(getBrand().config.shareTagline, merged.description, merged.title),
   }
 }
