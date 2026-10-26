@@ -2,11 +2,9 @@
  * Open Graph image route — 1200x630 PNG rendered via next/og.
  *
  * Tuned for WhatsApp's compact card, which centre-crops the image to a square
- * and shrinks it to ~110px with crude resampling. Two things keep the logo
- * legible there (verified by simulating that thumbnail):
- *   - 1x source: a 2x source is downscaled twice as hard and came out grainier.
- *   - Bolder strokes: the logo's paths get a same-colour stroke (OG image
- *     only, ~1.5 viewBox units each side) so the thin tripod "A" survives.
+ * and shrinks it to ~110px. A 1x source keeps that downscale gentler than a 2x
+ * one. The logo keeps its true stroke weight — a thickened OG-only variant was
+ * tried and rejected as not matching the brand mark.
  *
  * Renders the full brand logo (telescope + red square accent + "guy" wordmark;
  * the capital "A" is the telescope's own tripod, read as "Aguy") on the brand's
@@ -29,13 +27,12 @@ export const size = { width: 1200, height: 630 }
 // own `A` tripod + red `guy` wordmark reading as "Aguy". Inlined because
 // `src/brands/` is blocked for new files by `.husky/check-no-new-src-folders`
 // and this SVG currently has only one consumer.
-const LOGO_SVG = `<svg version="1.1" viewBox="35 30 160 155" xmlns="http://www.w3.org/2000/svg"><path transform="translate(50, 35) scale(0.6)" fill="#91262C" stroke="#91262C" stroke-width="5" stroke-linejoin="round" d="M198.867,58.948h-30.566c-0.686,0-1.24-0.557-1.24-1.24v-30.57c0-0.686,0.558-1.24,1.24-1.24h30.566 c0.688,0,1.24,0.558,1.24,1.24v30.567C200.107,58.392,199.553,58.948,198.867,58.948"/><path fill="#5D725B" fill-rule="evenodd" stroke="#5D725B" stroke-width="3" stroke-linejoin="round" d="M147.166,88.743l-7.594,6.373c-0.486,0.407-1.217,0.346-1.627-0.145l-14.447-17.219c-0.408-0.488-0.348-1.216,0.143-1.627l7.596-6.373c0.486-0.408,1.216-0.348,1.627,0.143l14.449,17.22C147.719,87.603,147.656,88.332,147.166,88.743 M80.648,119.769l8.48,10.104c0.438,0.523,0.371,1.308-0.154,1.746l-22.109,18.555c-0.521,0.439-1.307,0.373-1.748-0.151l-8.479-10.104c-0.441-0.524-0.371-1.309,0.152-1.748l22.11-18.554C79.428,119.179,80.207,119.243,80.648,119.769 M41.061,154.111l12.012,-10.078c0.525,-0.439,1.309,-0.371,1.746,0.15l5.779,6.887c0.439,0.527,0.373,1.311,-0.152,1.748l-11.664,9.787Z M79.409,179.709l14.145,-51.029l-10.994,-13.1c-0.439,-0.527,-0.371,-1.311,0.152,-1.748l37.562,-31.521c0.524-0.438,1.307,-0.37,1.746,0.154l11.035,13.146c0.438,0.525,0.37,1.311,-0.152,1.747L97.82,126.796c0.025,0.035,0.053,0.066,0.074,0.104c0.051,0.086,0.086,0.182,0.125,0.27c0.016,0.037,0.039,0.068,0.053,0.107l0.008,0.027c0,0.002,0.002,0.004,0.006,0.008l18.502,52.668L112.31,181.011l-7.971,-22.688H89.871V158.321l-6.215,22.424Z M96.25,135.3l-5.17,18.648h11.725Z"/><g id="guy-custom" fill="#91262C" stroke="#91262C" stroke-width="7.5" stroke-linejoin="round" transform="translate(120 150) scale(0.4)"><path d="M0 18 Q0 0 18 0 H48 V13 H20 Q13 13 13 20 V42 Q13 49 20 49 H35 V36 H35 V10 H48 V58 Q48 76 30 76 H8 V63 H28 Q35 63 35 56 V53 H18 Q0 53 0 40 Z"/><path d="M62 0 H75 V40 Q75 49 84 49 H96 V0 H109 V62 H84 Q62 62 62 40 Z"/><path d="M123 0 H137 L153 43 L169 0 H183 L160 60 Q154 76 137 76 H125 V63 H136 Q144 63 147 55 Z"/></g></svg>`
+const LOGO_SVG = `<svg version="1.1" viewBox="35 30 160 155" xmlns="http://www.w3.org/2000/svg"><path transform="translate(50, 35) scale(0.6)" fill="#91262C" d="M198.867,58.948h-30.566c-0.686,0-1.24-0.557-1.24-1.24v-30.57c0-0.686,0.558-1.24,1.24-1.24h30.566 c0.688,0,1.24,0.558,1.24,1.24v30.567C200.107,58.392,199.553,58.948,198.867,58.948"/><path fill="#5D725B" fill-rule="evenodd" d="M147.166,88.743l-7.594,6.373c-0.486,0.407-1.217,0.346-1.627-0.145l-14.447-17.219c-0.408-0.488-0.348-1.216,0.143-1.627l7.596-6.373c0.486-0.408,1.216-0.348,1.627,0.143l14.449,17.22C147.719,87.603,147.656,88.332,147.166,88.743 M80.648,119.769l8.48,10.104c0.438,0.523,0.371,1.308-0.154,1.746l-22.109,18.555c-0.521,0.439-1.307,0.373-1.748-0.151l-8.479-10.104c-0.441-0.524-0.371-1.309,0.152-1.748l22.11-18.554C79.428,119.179,80.207,119.243,80.648,119.769 M41.061,154.111l12.012,-10.078c0.525,-0.439,1.309,-0.371,1.746,0.15l5.779,6.887c0.439,0.527,0.373,1.311,-0.152,1.748l-11.664,9.787Z M79.409,179.709l14.145,-51.029l-10.994,-13.1c-0.439,-0.527,-0.371,-1.311,0.152,-1.748l37.562,-31.521c0.524-0.438,1.307,-0.37,1.746,0.154l11.035,13.146c0.438,0.525,0.37,1.311,-0.152,1.747L97.82,126.796c0.025,0.035,0.053,0.066,0.074,0.104c0.051,0.086,0.086,0.182,0.125,0.27c0.016,0.037,0.039,0.068,0.053,0.107l0.008,0.027c0,0.002,0.002,0.004,0.006,0.008l18.502,52.668L112.31,181.011l-7.971,-22.688H89.871V158.321l-6.215,22.424Z M96.25,135.3l-5.17,18.648h11.725Z"/><g id="guy-custom" fill="#91262C" transform="translate(120 150) scale(0.4)"><path d="M0 18 Q0 0 18 0 H48 V13 H20 Q13 13 13 20 V42 Q13 49 20 49 H35 V36 H35 V10 H48 V58 Q48 76 30 76 H8 V63 H28 Q35 63 35 56 V53 H18 Q0 53 0 40 Z"/><path d="M62 0 H75 V40 Q75 49 84 49 H96 V0 H109 V62 H84 Q62 62 62 40 Z"/><path d="M123 0 H137 L153 43 L169 0 H183 L160 60 Q154 76 137 76 H125 V63 H136 Q144 63 147 55 Z"/></g></svg>`
 
 // The visible artwork fills ~70% of WhatsApp's centre square crop (630x630),
 // with padding so nothing touches the thumbnail edge. The SVG viewBox has more
 // empty space top-left than bottom-right, so the nudge moves the visible
-// artwork onto the true centre. Stroke widths in LOGO_SVG are in each path's
-// local units (scaled by 1/0.6 and 1/0.4 for the transformed parts).
+// artwork onto the true centre.
 const LOGO_WIDTH = 540
 const LOGO_HEIGHT = 523
 const LOGO_NUDGE = { x: -8, y: -27 }

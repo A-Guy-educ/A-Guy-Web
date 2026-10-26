@@ -28,6 +28,6 @@ export const aguyConfig: BrandConfig = {
   social: { twitterHandle: '@aguy' },
   // ?v=N busts the WhatsApp / Facebook link-preview caches, which key on the
   // image URL. Bump N whenever the OG image changes.
-  ogImage: '/og-image.png?v=4',
+  ogImage: '/og-image.png?v=5',
   appleWebApp: { title: 'A-Guy' },
 }
