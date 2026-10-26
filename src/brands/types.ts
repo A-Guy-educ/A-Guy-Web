@@ -21,6 +21,7 @@ export interface BrandConfig {
   titleTemplate: string // e.g. "%s | A-Guy"
   description: string
   shortDescription: string // for twitter/og
+  shareTagline: string // leads every link-preview description (see withShareTagline)
   keywords: string[]
   author: { name: string; url: string }
   themeColor: { light: string; dark: string }
