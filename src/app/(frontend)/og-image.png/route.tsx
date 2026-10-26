@@ -1,5 +1,7 @@
 /**
- * Open Graph image route — 1200x630 PNG rendered via next/og.
+ * Open Graph image route — 2400x1260 PNG (2x the 1200x630 OG ratio) rendered
+ * via next/og. WhatsApp and Facebook re-encode and downscale the preview, so a
+ * 1x source came out soft in the share card; the 2x source keeps the logo crisp.
  *
  * Renders the full brand logo (telescope + red square accent + "guy" wordmark;
  * the capital "A" is the telescope's own tripod, read as "Aguy") on the brand's
@@ -15,7 +17,7 @@ import { ImageResponse } from 'next/og'
 
 export const dynamic = 'force-static'
 export const contentType = 'image/png'
-export const size = { width: 1200, height: 630 }
+export const size = { width: 2400, height: 1260 }
 
 // Full brand mark inlined (same paths that `src/brands/aguy/components/Logo.tsx`
 // renders in the header + footer): red square accent + green telescope with its
@@ -39,7 +41,7 @@ export async function GET() {
       }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={logoDataUri} width={520} height={504} alt="" />
+      <img src={logoDataUri} width={1040} height={1008} alt="" />
     </div>,
     { ...size },
   )

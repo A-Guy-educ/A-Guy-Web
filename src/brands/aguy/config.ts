@@ -25,6 +25,8 @@ export const aguyConfig: BrandConfig = {
   author: { name: 'A-Guy', url: 'https://www.aguy.co.il' },
   themeColor: { light: '#91262C', dark: '#0f172a' },
   social: { twitterHandle: '@aguy' },
-  ogImage: '/og-image.png',
+  // ?v=N busts the WhatsApp / Facebook link-preview caches, which key on the
+  // image URL. Bump N whenever the OG image changes.
+  ogImage: '/og-image.png?v=2',
   appleWebApp: { title: 'A-Guy' },
 }

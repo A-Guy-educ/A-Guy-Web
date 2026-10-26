@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { GeometrySpecV1 } from '@/infra/contracts'
 import { getDefaultTextColor, sizeScaleToPixels } from '@/infra/contracts/graphics/textColors'
+import { renderAngles } from './geometryAngleMarkers'
 
 type PointSpec = GeometrySpecV1['elements']['points'][number]
 type LineSpec = GeometrySpecV1['elements']['lines'][number]
 type CircleSpec = GeometrySpecV1['elements']['circles'][number]
-type AngleSpec = GeometrySpecV1['elements']['angles'][number]
 
 /** Map compass direction to a pixel [x, y] offset for JSXGraph labels. */
 function mapLabelOffset(pos?: string): [number, number] {
@@ -119,70 +119,6 @@ function renderCircles(board: JXG.Board, circles: CircleSpec[], pointMap: Map<st
     } else if (c.radius) {
       board.create('circle', [center, c.radius], attrs)
     }
-  }
-}
-
-function renderAngles(board: JXG.Board, angles: AngleSpec[], pointMap: Map<string, any>) {
-  for (const a of angles) {
-    const center = pointMap.get(a.center)
-    const ray1 = pointMap.get(a.ray1)
-    const ray2 = pointMap.get(a.ray2)
-    if (!center || !ray1 || !ray2) continue
-
-    const color = a.color ?? getDefaultTextColor()
-    const isSquare = a.style === 'square'
-    // `orthoType` only wins when the measured angle is within JSXGraph's
-    // `orthoSensitivity` (default 1°) of 90°. Anything drawn at, say,
-    // 88° with `style: 'square'` silently falls back to `type` — which
-    // defaults to 'sector' — and the square marker never appears. Set
-    // both fields to the same shape so the authored style always wins,
-    // no matter what the measured angle is.
-    const shape = isSquare ? 'square' : 'sector'
-    const attrs: Record<string, unknown> = {
-      // `radius: 1` (or undefined) draws an invisible arc at this canvas
-      // scale; 30 matches what admin renders and is what the reader
-      // actually sees.
-      radius: a.arcRadius ?? 30,
-      type: shape,
-      orthoType: shape,
-      strokeColor: color,
-      fillColor: color,
-      fillOpacity: 0.15,
-      strokeWidth: 2,
-      fixed: true,
-    }
-    if (a.label?.value) {
-      attrs.name = a.label.value
-      attrs.withLabel = true
-      attrs.label = {
-        fontSize: a.label.fontSize ?? 10,
-        cssStyle: TIMES_NEW_ROMAN_CSS,
-      }
-    } else {
-      // JSXGraph auto-assigns Greek letters (α, β, γ, …) via the `name`
-      // default whenever an angle element is created — `withLabel: false`
-      // alone doesn't suppress it. Force-blanking `name`, disabling the
-      // label, and hiding it via the label attrs is what actually
-      // prevents the phantom α.
-      attrs.name = ''
-      attrs.withLabel = false
-      attrs.label = { visible: false }
-    }
-
-    // JSXGraph draws the sector CCW from the first ray to the second. When
-    // the CCW sweep exceeds 180° (reflex) the reader actually wants the
-    // 360°−θ complement — e.g. ∠ABC on a shape the admin authored as
-    // (A,B,C) in a direction that happens to sweep 330° should visually
-    // read as 30°. Swap the rays whenever the signed cross product is
-    // negative so we always render the non-reflex side.
-    const v1x = ray1.X() - center.X()
-    const v1y = ray1.Y() - center.Y()
-    const v2x = ray2.X() - center.X()
-    const v2y = ray2.Y() - center.Y()
-    const cross = v1x * v2y - v1y * v2x
-    const [first, second] = cross >= 0 ? [ray1, ray2] : [ray2, ray1]
-
-    board.create('angle', [first, center, second], attrs)
   }
 }
 

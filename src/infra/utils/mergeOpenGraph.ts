@@ -20,8 +20,8 @@ function getDefaultOpenGraph(): Metadata['openGraph'] {
     images: [
       {
         url: b.ogImage,
-        width: 1200,
-        height: 630,
+        width: 2400,
+        height: 1260,
         alt: `${b.name} - ${b.shortDescription}`,
       },
     ],
