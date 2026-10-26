@@ -5071,6 +5071,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore(deps-dev): Bump @commitlint/cli from 20.5.0 to 21.2.4 ([#1489](https://github.com/A-Guy-educ/A-Guy-Web/pull/1489)) — @dependabot[bot]
 - chore(deps-dev): Bump the dev-dependencies group across 1 directory with 2 updates ([#1483](https://github.com/A-Guy-educ/A-Guy-Web/pull/1483)) — @dependabot[bot]
 - chore(ai-docs): Refresh indexes ([#1475](https://github.com/A-Guy-educ/A-Guy-Web/pull/1475)) — @github-actions[bot]
 - chore(deps): Bump the prod-dependencies group with 28 updates ([#1484](https://github.com/A-Guy-educ/A-Guy-Web/pull/1484)) — @dependabot[bot]
