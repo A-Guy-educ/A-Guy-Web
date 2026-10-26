@@ -144,7 +144,7 @@
     "jose": "^6.2.12",
     "jsxgraph": "^1.13.3",
     "katex": "^0.16.0",
-    "lucide-react": "^0.562.0",
+    "lucide-react": "^1.61.0",
     "mathjs": "^13.2.3",
     "mathlive": "^0.111.0",
     "mongodb": "^6.12.0",
