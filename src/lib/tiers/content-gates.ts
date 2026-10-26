@@ -74,6 +74,24 @@ export function canAccessLearningExercise(
   return exerciseSortOrder <= FREE_UNLOCK_COUNT
 }
 
+/**
+ * Longest prefix of a learning lesson's exercises the user may open — the
+ * list form of `canAccessLearningExercise`, shared by the chat and scroll
+ * views so both stop at the same exercise. A `null` ordinal disables the cap.
+ * Returns the input array itself when nothing is cut.
+ */
+export function clampToLearningExerciseGate<T>(
+  user: User,
+  lessonOpenOrdinal: number | null,
+  exercises: T[],
+): T[] {
+  if (lessonOpenOrdinal === null) return exercises
+  const firstLocked = exercises.findIndex(
+    (_, i) => !canAccessLearningExercise(user, lessonOpenOrdinal, i + 1),
+  )
+  return firstLocked === -1 ? exercises : exercises.slice(0, firstLocked)
+}
+
 export function canAccessPracticeLesson(
   user: User,
   lessonId: string,

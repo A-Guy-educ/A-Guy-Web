@@ -16,13 +16,16 @@ export default async function HomepagePage() {
   return <DemoLandingPage />
 }
 
+// Title shown in the browser tab and in WhatsApp / Facebook link previews.
+const SHARE_TITLE = 'Aguy מורה פרטי AI'
+
 export function generateMetadata(): Metadata {
   return {
-    title: 'Aguy - הדור הבא של הלמידה',
+    title: { absolute: SHARE_TITLE },
     description:
       'פלטפורמת למידה אישית למתמטיקה עם שיעורים, תרגול, מורה דיגיטלי, תוכנית אישית וזמינות מלאה.',
     openGraph: mergeOpenGraph({
-      title: 'Aguy - הדור הבא של הלמידה',
+      title: SHARE_TITLE,
       description: 'ממש כמו מורה פרטי, רק זמין יותר, משתלם יותר ומותאם בדיוק בשבילך.',
     }),
   }

@@ -38,6 +38,7 @@ export {
 export {
   canAccessLearningLesson,
   canAccessLearningExercise,
+  clampToLearningExerciseGate,
   canAccessPracticeLesson,
   canAccessExam,
   getLearningLessonOpenOrdinal,
