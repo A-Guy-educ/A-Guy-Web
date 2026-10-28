@@ -114,7 +114,7 @@ export function ExerciseWorksheet({
 
   return (
     <MediaMapProvider value={mediaMap}>
-      <div className={cn('flex flex-col gap-content-gap-lg', className)}>
+      <div className={cn('flex flex-col gap-content-gap-xl', className)}>
         {groups.map((group, groupIdx) => {
           const groupNodes: React.ReactNode[] = []
           group.blocks.forEach((block, blockIdx) => {
