@@ -1,17 +1,18 @@
-import fs from 'fs/promises'
-
 import { ObjectId, type Document } from 'mongodb'
 
-import { resolveMediaFilePath } from '@/infra/config/storage'
 import { getContentDb, objectIdFromString, relationId, serializeDoc } from '@/infra/db/content-db'
-import { resolveMediaSourceUrl } from '@/infra/media/resolveMediaSourceUrl'
-import {
-  CHAT_ASSET_ALLOWED_MIME_TYPES,
-  CHAT_ASSET_MAX_ATTACHMENTS,
-  CHAT_ASSET_MAX_BYTES,
-} from '@/server/chat-assets/constants'
+import { CHAT_ASSET_MAX_ATTACHMENTS } from '@/server/chat-assets/constants'
 import { findCourseAccessGrants, grantsAccess } from '@/server/services/course-access'
 import type { TutorModelPart } from '@/server/services/tutor-chat/model-gateway'
+
+import {
+  attachmentName,
+  loadAttachmentPart,
+  logAttachmentFailures,
+  missingAttachmentNotice,
+  type AttachmentDoc,
+  type AttachmentFailure,
+} from './chat-attachments'
 
 export type ChatContext = {
   exerciseId?: string
@@ -162,21 +163,19 @@ export function formatConversationResponse(
 
 type GeminiPart = TutorModelPart
 
-type AttachmentDoc = Record<string, unknown> & {
-  filename?: unknown
-  originalFilename?: unknown
-  mimeType?: unknown
-  filesize?: unknown
-  url?: unknown
-}
-
 type LessonContext = {
   text: string
   attachmentText: string
   parts: GeminiPart[]
+  failures: AttachmentFailure[]
 }
 
-const EMPTY_LESSON_CONTEXT: LessonContext = { text: '', attachmentText: '', parts: [] }
+const EMPTY_LESSON_CONTEXT: LessonContext = {
+  text: '',
+  attachmentText: '',
+  parts: [],
+  failures: [],
+}
 
 /**
  * Load lesson-scoped context (summary text + inline attachments) into the
@@ -230,7 +229,7 @@ async function loadLessonContext(ownerId: string, lessonId?: string): Promise<Le
   const text = typeof lesson.lessonContextText === 'string' ? lesson.lessonContextText.trim() : ''
   const files = Array.isArray(lesson.contentFiles) ? lesson.contentFiles : []
   if (files.length === 0) {
-    return { text, attachmentText: '', parts: [] }
+    return { ...EMPTY_LESSON_CONTEXT, text }
   }
 
   // Payload stores a single-relation value as a bare ObjectId in Mongo
@@ -244,7 +243,7 @@ async function loadLessonContext(ownerId: string, lessonId?: string): Promise<Le
     .map((file: unknown) => relationId(file))
     .filter((id: string | null): id is string => Boolean(id && ObjectId.isValid(id)))
 
-  if (mediaIds.length === 0) return { text, attachmentText: '', parts: [] }
+  if (mediaIds.length === 0) return { ...EMPTY_LESSON_CONTEXT, text }
 
   const media = await db
     .collection('media')
@@ -253,76 +252,23 @@ async function loadLessonContext(ownerId: string, lessonId?: string): Promise<Le
     .toArray()
   const attachmentText: string[] = []
   const parts: GeminiPart[] = []
+  const failures: AttachmentFailure[] = []
 
   for (const item of media as AttachmentDoc[]) {
     attachmentText.push(`Lesson attachment: ${attachmentName(item)}`)
-    try {
-      const part = await attachmentToInlinePart(item)
-      if (part) parts.push(part)
-    } catch {
-      attachmentText.push(`Lesson attachment data unavailable: ${attachmentName(item)}`)
-    }
+    const result = await loadAttachmentPart(item)
+    if (result.kind === 'part') parts.push(result.part)
+    if (result.kind === 'failure') failures.push(result.failure)
   }
 
-  return { text, attachmentText: attachmentText.join('\n'), parts }
-}
-
-const SUPPORTED_INLINE_MIME_TYPES = new Set<string>(CHAT_ASSET_ALLOWED_MIME_TYPES)
-
-function cleanMimeType(mimeType: unknown) {
-  return String(mimeType || '')
-    .split(';')[0]
-    ?.trim()
-    .toLowerCase()
-}
-
-function attachmentName(attachment: AttachmentDoc) {
-  return String(
-    attachment.originalFilename || attachment.filename || attachment.url || 'attachment',
-  )
-}
-
-async function fetchAttachmentBuffer(attachment: AttachmentDoc) {
-  // Media docs uploaded via Admin store a relative proxy URL; a bare fetch of
-  // that path from the server has no origin to resolve against.
-  const fetchUrl = typeof attachment.url === 'string' ? resolveMediaSourceUrl(attachment.url) : null
-
-  if (fetchUrl) {
-    const response = await fetch(fetchUrl, { signal: AbortSignal.timeout(30_000) })
-    if (!response.ok) throw new Error(`Attachment fetch failed: ${response.status}`)
-
-    return {
-      buffer: Buffer.from(await response.arrayBuffer()),
-      mimeType: cleanMimeType(attachment.mimeType || response.headers.get('content-type')),
-    }
-  }
-
-  if (typeof attachment.filename === 'string' && attachment.filename) {
-    return {
-      buffer: await fs.readFile(resolveMediaFilePath(attachment.filename)),
-      mimeType: cleanMimeType(attachment.mimeType),
-    }
-  }
-
-  return null
-}
-
-async function attachmentToInlinePart(attachment: AttachmentDoc): Promise<GeminiPart | null> {
-  const mimeType = cleanMimeType(attachment.mimeType)
-  if (!SUPPORTED_INLINE_MIME_TYPES.has(mimeType)) return null
-  if (Number(attachment.filesize || 0) > CHAT_ASSET_MAX_BYTES) return null
-
-  const loaded = await fetchAttachmentBuffer(attachment)
-  if (!loaded || !SUPPORTED_INLINE_MIME_TYPES.has(loaded.mimeType)) return null
-  if (loaded.buffer.length > CHAT_ASSET_MAX_BYTES) return null
-
-  return { inlineData: { mimeType: loaded.mimeType, data: loaded.buffer.toString('base64') } }
+  return { text, attachmentText: attachmentText.join('\n'), parts, failures }
 }
 
 async function loadAttachments(ownerId: string, chatAssetIds?: string[], mediaIds?: string[]) {
   const db = await getContentDb()
   const lines: string[] = []
   const parts: GeminiPart[] = []
+  const failures: AttachmentFailure[] = []
   let attemptedCount = 0
 
   async function addAttachment(attachment: AttachmentDoc, label: string) {
@@ -333,12 +279,9 @@ async function loadAttachments(ownerId: string, chatAssetIds?: string[], mediaId
     if (attemptedCount >= CHAT_ASSET_MAX_ATTACHMENTS) return
     attemptedCount += 1
 
-    try {
-      const part = await attachmentToInlinePart(attachment)
-      if (part) parts.push(part)
-    } catch {
-      lines.push(`Attachment vision data unavailable: ${attachmentName(attachment)}`)
-    }
+    const result = await loadAttachmentPart(attachment)
+    if (result.kind === 'part') parts.push(result.part)
+    if (result.kind === 'failure') failures.push(result.failure)
   }
 
   const ids = (values: string[]) => ({
@@ -376,7 +319,7 @@ async function loadAttachments(ownerId: string, chatAssetIds?: string[], mediaId
     }
   }
 
-  return { text: lines.join('\n'), parts }
+  return { text: lines.join('\n'), parts, failures }
 }
 
 export async function loadTutorResources(args: {
@@ -389,11 +332,21 @@ export async function loadTutorResources(args: {
     loadLessonContext(args.ownerId, args.lessonId),
     loadAttachments(args.ownerId, args.chatAssetIds, args.mediaIds),
   ])
+  const missingAttachments = [...lesson.failures, ...attachments.failures]
+  logAttachmentFailures(missingAttachments, { ownerId: args.ownerId, lessonId: args.lessonId })
 
   return {
     lessonText: lesson.text,
-    attachmentText: [lesson.attachmentText, attachments.text].filter(Boolean).join('\n'),
+    // Notice goes first so the context builder's length cap can never cut it.
+    attachmentText: [
+      missingAttachmentNotice(missingAttachments),
+      lesson.attachmentText,
+      attachments.text,
+    ]
+      .filter(Boolean)
+      .join('\n'),
     parts: [...lesson.parts, ...attachments.parts],
+    missingAttachments,
   }
 }
 
