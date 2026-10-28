@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.57.0 — 2026-10-28
+
+### Features
+- Ship Product Health spec v0.4 on a per-visit dwell log (#1504)
+- Hide notebook on phones, tighten mobile course page, widen scroll view (#1501)
+
+### Bug Fixes
+- Match exercise graph rendering to admin editor (#1503)
+- Increase scroll view line spacing instead of block gap (#1502)
+- Detect and guard tutor replies when the lesson PDF fails to load (#1498)
+
 ## v0.56.0 — 2026-10-26
 
 ### Features
