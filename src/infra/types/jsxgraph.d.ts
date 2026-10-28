@@ -10,7 +10,7 @@ declare module 'jsxgraph' {
   export interface JXGBoardOptions {
     boundingbox?: [number, number, number, number]
     axis?: boolean
-    grid?: boolean
+    grid?: boolean | { majorStep?: number[]; minorElements?: number }
     showNavigation?: boolean
     showCopyright?: boolean
     keepAspectRatio?: boolean
@@ -22,6 +22,8 @@ declare module 'jsxgraph' {
         ticks?: {
           visible?: boolean
           ticksDistance?: number
+          insertTicks?: boolean
+          minorTicks?: number
           label?: { offset?: [number, number] }
         }
         name?: string
@@ -32,6 +34,8 @@ declare module 'jsxgraph' {
         ticks?: {
           visible?: boolean
           ticksDistance?: number
+          insertTicks?: boolean
+          minorTicks?: number
           label?: { offset?: [number, number] }
         }
         name?: string

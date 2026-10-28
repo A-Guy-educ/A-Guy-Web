@@ -65,7 +65,8 @@ describe('diagrams in dark mode', () => {
     for (const file of ['axisElements.ts', 'geometryElements.ts', 'geometryAngleMarkers.ts']) {
       const source = read(`src/ui/web/exerciserenderer/graphics/${file}`)
       expect(source).not.toMatch(/getDefaultTextColor/)
-      expect(source).toMatch(/getDefaultCanvasElementColor/)
+      // Axis points default to the hardcoded blue fallback, also theme-independent
+      expect(source).toMatch(/getDefaultCanvasElementColor|getDefaultAxisPointColor/)
     }
   })
 })
