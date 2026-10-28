@@ -5085,6 +5085,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Ship Product Health spec v0.4 on a per-visit dwell log ([#1504](https://github.com/A-Guy-educ/A-Guy-Web/pull/1504)) — @aguyshayb
 - fix: Match exercise graph rendering to admin editor ([#1503](https://github.com/A-Guy-educ/A-Guy-Web/pull/1503)) — @aguyshayb
 - fix: Increase scroll view line spacing instead of block gap ([#1502](https://github.com/A-Guy-educ/A-Guy-Web/pull/1502)) — @aguyshayb
 - feat: Hide notebook on phones, tighten mobile course page, widen scroll view ([#1501](https://github.com/A-Guy-educ/A-Guy-Web/pull/1501)) — @aguyshayb
