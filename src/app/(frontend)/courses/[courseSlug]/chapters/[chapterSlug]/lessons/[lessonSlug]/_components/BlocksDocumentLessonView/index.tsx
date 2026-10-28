@@ -17,7 +17,10 @@
 
 import React from 'react'
 import { cn } from '@/infra/utils/ui'
-import { ExerciseWorksheet } from '@/ui/web/exerciserenderer/ExerciseWorksheet'
+import {
+  ExerciseWorksheet,
+  WORKSHEET_LINE_HEIGHT,
+} from '@/ui/web/exerciserenderer/ExerciseWorksheet'
 import { RichTextRenderer } from '@/ui/web/exerciserenderer/blocks/RichTextRenderer'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import type { Exercise, Media as MediaType } from '@/infra/types/content'
@@ -177,7 +180,7 @@ function SolutionsSection({
                       </span>
                     )}
                     <div className="prose prose-slate dark:prose-invert max-w-none text-foreground leading-relaxed flex-1">
-                      <RichTextRenderer block={block} />
+                      <RichTextRenderer block={block} lineHeightClassName={WORKSHEET_LINE_HEIGHT} />
                     </div>
                   </div>
                 )

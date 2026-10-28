@@ -9,6 +9,7 @@ import { MathMarkdown } from '@/ui/web/shared/MathMarkdown'
 import { SvgAwareImage } from '@/ui/web/shared/MathMarkdown/svgAwareImage'
 import { preprocessNewlines } from '@/infra/utils/textPreprocessing'
 import { MediaAttachments } from '../../components/MediaAttachments'
+import { cn } from '@/infra/utils/ui'
 
 interface RichTextRendererProps {
   block: {
@@ -17,6 +18,8 @@ interface RichTextRendererProps {
     value: string
     mediaIds?: string[]
   }
+  /** Overrides the default `leading-[1.5]` (the scroll view uses roomier lines). */
+  lineHeightClassName?: string
 }
 
 /**
@@ -30,14 +33,14 @@ const richTextMarkdownComponents: Components = {
   img: SvgAwareImage,
 }
 
-export function RichTextRenderer({ block }: RichTextRendererProps) {
+export function RichTextRenderer({ block, lineHeightClassName }: RichTextRendererProps) {
   const processedValue = preprocessNewlines(block.value)
 
   return (
     <>
       <MathMarkdown
         content={processedValue}
-        className="rich-text-content leading-[1.5] text-foreground"
+        className={cn('rich-text-content text-foreground', lineHeightClassName ?? 'leading-[1.5]')}
         components={richTextMarkdownComponents}
       />
       <MediaAttachments mediaIds={block.mediaIds} />
