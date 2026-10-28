@@ -87,6 +87,9 @@ interface ExerciseWorksheetProps {
 
 const EMPTY_MEDIA_MAP: Record<string, Media> = {}
 
+/** Scroll view line spacing: 1.5x the default rich-text line height (1.5). */
+export const WORKSHEET_LINE_HEIGHT = 'leading-[2.25]'
+
 export function ExerciseWorksheet({
   groups,
   mediaMap = EMPTY_MEDIA_MAP,
@@ -114,7 +117,7 @@ export function ExerciseWorksheet({
 
   return (
     <MediaMapProvider value={mediaMap}>
-      <div className={cn('flex flex-col gap-content-gap-xl', className)}>
+      <div className={cn('flex flex-col gap-content-gap-lg', className)}>
         {groups.map((group, groupIdx) => {
           const groupNodes: React.ReactNode[] = []
           group.blocks.forEach((block, blockIdx) => {
@@ -240,7 +243,10 @@ function renderBlockContent({
   if (block.type === 'rich_text') {
     return (
       <div className="prose prose-slate dark:prose-invert max-w-none text-foreground leading-relaxed">
-        <RichTextRenderer block={block as RichTextBlock} />
+        <RichTextRenderer
+          block={block as RichTextBlock}
+          lineHeightClassName={WORKSHEET_LINE_HEIGHT}
+        />
       </div>
     )
   }
@@ -422,7 +428,7 @@ function PromptText({ prompt }: { prompt: InlineRichText | undefined }) {
   }
   return (
     <div className="prose prose-slate dark:prose-invert max-w-none text-foreground leading-relaxed">
-      <RichTextRenderer block={block} />
+      <RichTextRenderer block={block} lineHeightClassName={WORKSHEET_LINE_HEIGHT} />
     </div>
   )
 }
@@ -437,7 +443,7 @@ function ChoiceLabel({ content }: { content: InlineRichText }) {
   }
   return (
     <div className="prose prose-slate dark:prose-invert max-w-none flex-1 text-foreground leading-relaxed prose-p:my-0">
-      <RichTextRenderer block={block} />
+      <RichTextRenderer block={block} lineHeightClassName={WORKSHEET_LINE_HEIGHT} />
     </div>
   )
 }
