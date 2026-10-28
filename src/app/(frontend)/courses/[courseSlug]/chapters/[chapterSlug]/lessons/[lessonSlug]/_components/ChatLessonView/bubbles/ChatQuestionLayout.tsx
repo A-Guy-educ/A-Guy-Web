@@ -38,7 +38,7 @@ export function ChatQuestionLayout({
 }: ChatQuestionLayoutProps) {
   if (attachment && attachmentAfterPrompt) {
     return (
-      <div className="flex flex-col gap-content-gap">
+      <div className="flex flex-col gap-content-gap-lg">
         {prompt}
         {renderQuestionAttachment(blockId, attachment)}
         {answer}
@@ -47,7 +47,7 @@ export function ChatQuestionLayout({
   }
 
   const questionContent = (
-    <div className="flex flex-col gap-content-gap">
+    <div className="flex flex-col gap-content-gap-lg">
       {prompt}
       {answer}
     </div>

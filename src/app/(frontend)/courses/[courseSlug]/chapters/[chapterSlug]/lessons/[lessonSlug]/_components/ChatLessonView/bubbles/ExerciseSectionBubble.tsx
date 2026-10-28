@@ -356,7 +356,7 @@ export function ExerciseSectionBubble({
   // under the correct section via `sectionKey`.
   return (
     <SketchMaxHeightProvider value={isMobile ? MOBILE_SKETCH_MAX_HEIGHT_PX : undefined}>
-      <div className="flex flex-col gap-content-gap-lg">
+      <div className="flex flex-col gap-content-gap-xl">
         {isChatNativePath ? (
           // MediaMapProvider is required so RichTextRenderer's MediaAttachments
           // (used inside prompts, option labels, and inline rich_text) can look
