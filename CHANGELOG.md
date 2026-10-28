@@ -5107,6 +5107,8 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+## [v0.58.0] - 2026-10-28
+
 - promote: dev -> main (v0.58.0) ([#1512](https://github.com/A-Guy-educ/A-Guy-Web/pull/1512)) — @aguyshayb
 - chore: Release v0.58.0 ([#1511](https://github.com/A-Guy-educ/A-Guy-Web/pull/1511)) — @aguyshayb
 - fix: Stop JSXGraph event handling on non-interactive boards ([#1510](https://github.com/A-Guy-educ/A-Guy-Web/pull/1510)) — @aguyshayb
