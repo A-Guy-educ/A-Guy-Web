@@ -5085,6 +5085,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Hide notebook on phones, tighten mobile course page, widen scroll view ([#1501](https://github.com/A-Guy-educ/A-Guy-Web/pull/1501)) — @aguyshayb
 - fix: Detect and guard tutor replies when the lesson PDF fails to load ([#1498](https://github.com/A-Guy-educ/A-Guy-Web/pull/1498)) — @aguyshayb
 - promote: dev -> main (v0.56.0) ([#1497](https://github.com/A-Guy-educ/A-Guy-Web/pull/1497)) — @aguyshayb
 - chore: Release v0.56.0 ([#1496](https://github.com/A-Guy-educ/A-Guy-Web/pull/1496)) — @aguyshayb
