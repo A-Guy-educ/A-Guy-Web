@@ -29,6 +29,8 @@ interface QuestionCardProps {
   correctText: string
   incorrectText: string
   questionLabel?: string
+  /** Fill the label badge with the accent color (active chat section). */
+  questionLabelHighlighted?: boolean
   dir?: 'ltr' | 'rtl'
   /** Optional help system UI (hint/guiding/solution buttons) */
   helpSystem?: React.ReactNode
@@ -67,6 +69,7 @@ export function QuestionCard({
   correctText,
   incorrectText,
   questionLabel,
+  questionLabelHighlighted = false,
   dir = 'ltr',
   helpSystem,
   notebookContextTitle,
@@ -114,9 +117,20 @@ export function QuestionCard({
                 damping: 20,
                 delay: animationDelay + 0.2,
               }}
-              className="w-8 h-8 rounded-xl flex items-center justify-center bg-primary/10 border-2 border-primary/20 shadow-card"
+              className={cn(
+                'w-8 h-8 rounded-xl flex items-center justify-center border-2 shadow-card',
+                'transition-colors duration-normal',
+                questionLabelHighlighted
+                  ? 'bg-primary border-primary'
+                  : 'bg-primary/10 border-primary/20',
+              )}
             >
-              <span className="font-extrabold text-body-sm text-primary tracking-tight">
+              <span
+                className={cn(
+                  'font-extrabold text-body-sm tracking-tight',
+                  questionLabelHighlighted ? 'text-primary-foreground' : 'text-primary',
+                )}
+              >
                 {questionLabel}
               </span>
             </motion.div>
