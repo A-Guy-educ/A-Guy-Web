@@ -5107,6 +5107,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.58.0 ([#1511](https://github.com/A-Guy-educ/A-Guy-Web/pull/1511)) — @aguyshayb
 - fix: Stop JSXGraph event handling on non-interactive boards ([#1510](https://github.com/A-Guy-educ/A-Guy-Web/pull/1510)) — @aguyshayb
 - feat: Widen spacing around chat view sections ([#1509](https://github.com/A-Guy-educ/A-Guy-Web/pull/1509)) — @aguyshayb
 - feat: Highlight the active section badge in chat view ([#1508](https://github.com/A-Guy-educ/A-Guy-Web/pull/1508)) — @aguyshayb
