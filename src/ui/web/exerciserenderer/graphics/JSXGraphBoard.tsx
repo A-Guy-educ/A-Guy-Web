@@ -21,9 +21,9 @@ interface JSXGraphBoardProps {
   }
   onBoardReady: (board: JXG.Board) => void
   /**
-   * `false` makes the board a static picture: pointer events are blocked at
-   * the container, which kills hover, drag and Shift+drag pan, and lets touch
-   * scroll pass through to the page.
+   * `false` makes the board a static picture: JSXGraph registers no event
+   * handlers (no hover, drag, infobox or Shift+drag pan), and the container
+   * gets pointer-events-none so touch scroll passes through to the page.
    */
   interactive?: boolean
   className?: string
@@ -119,6 +119,10 @@ export function JSXGraphBoard({
         keepAspectRatio: false,
         pan: { needShift: true },
         zoom: { factorX: 1, factorY: 1 },
+        // JSXGraph tracks the pointer itself and sets pointer-events on its own
+        // SVG nodes, so CSS on the container can't stop hover/drag/infobox.
+        // Not registering its event handlers is what makes the board static.
+        ...(interactive ? {} : { registerEvents: false }),
       } as JXG.BoardAttributes)
 
       // When origin is outside viewport, create axes manually at viewport edge
@@ -184,9 +188,10 @@ export function JSXGraphBoard({
     // and `boardRef` is often still null when the first dimension change
     // fires — so we tear the board down and rebuild it, matching the
     // page-refresh path which is the one we've confirmed always renders
-    // correctly.
+    // correctly. `interactive` is included because event registration is
+    // fixed at initBoard time.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [containerId, width, height])
+  }, [containerId, width, height, interactive])
 
   return (
     <div
@@ -196,6 +201,8 @@ export function JSXGraphBoard({
       data-theme="light"
       className={cn(
         'diagram-invert w-full border rounded-lg overflow-hidden bg-white',
+        // Static boards let touch scroll pass through to the page on mobile.
+        // Interaction itself is disabled via `registerEvents: false` above.
         !interactive && 'pointer-events-none',
         className,
       )}
