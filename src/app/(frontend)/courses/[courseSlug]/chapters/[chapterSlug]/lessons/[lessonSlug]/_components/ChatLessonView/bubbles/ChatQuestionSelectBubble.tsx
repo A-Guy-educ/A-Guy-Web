@@ -236,7 +236,7 @@ function SingleSelectBubble({
 
   const answerNode = (
     <>
-      <div className="grid grid-cols-1 gap-content-gap-xs mt-2">
+      <div className="grid grid-cols-1 gap-content-gap-xs">
         {choices.map((choice) => {
           const isPicked = pickedId === choice.id
           const isWronglyAttempted = wrongOptionIds.has(choice.id)
@@ -399,7 +399,7 @@ function MultiSelectBubble({
 
   const answerNode = (
     <>
-      <div className="grid grid-cols-1 gap-content-gap-xs mt-2">
+      <div className="grid grid-cols-1 gap-content-gap-xs">
         {choices.map((choice) => {
           const isPicked = pickedIds.has(choice.id)
           const isCorrectOption = correctIds.has(choice.id)
