@@ -24,6 +24,7 @@ import {
   trackPdfPage,
 } from '@/ui/web/media/PDFMedia/pdfViewerBridge'
 import { FloatingNotebook } from '@/ui/web/notebook/FloatingNotebook'
+import { useMediaQuery } from '@/client/hooks/useMediaQuery'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { AskActionEvent, ExerciseFile } from '../ask-types'
 import { ASK_ACTION_EVENT } from '../ask-types'
@@ -98,6 +99,8 @@ export function AskPdfWorkspace({ file }: AskPdfWorkspaceProps) {
     [file.title, file.mediaId],
   )
 
+  const isTabletUp = useMediaQuery('(min-width: 768px)')
+
   if (!viewerUrl) return null
 
   return (
@@ -108,13 +111,16 @@ export function AskPdfWorkspace({ file }: AskPdfWorkspaceProps) {
         title={file.title}
         className="absolute inset-0 w-full h-full border-0"
       />
-      <FloatingNotebook
-        containerRef={containerRef}
-        onCheck={handleCheck}
-        checkDisabled={isChecking}
-        initialMode="pen"
-        initialSize={{ w: 360, h: 320 }}
-      />
+      {/* Notebook is for tablet/desktop only — too cramped on phones */}
+      {isTabletUp && (
+        <FloatingNotebook
+          containerRef={containerRef}
+          onCheck={handleCheck}
+          checkDisabled={isChecking}
+          initialMode="pen"
+          initialSize={{ w: 360, h: 320 }}
+        />
+      )}
     </div>
   )
 }

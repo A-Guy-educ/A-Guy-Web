@@ -58,7 +58,7 @@ export function ChapterAccordion({
       <AccordionPrimitive.Header className="flex">
         <AccordionPrimitive.Trigger
           className={cn(
-            'group flex flex-1 flex-col md:flex-row justify-between items-start md:items-center gap-content-gap p-card-padding cursor-pointer select-none bg-muted/30 hover:bg-muted/50 transition-colors duration-normal',
+            'group flex flex-1 flex-col md:flex-row justify-between items-start md:items-center gap-content-gap p-card-padding-sm sm:p-card-padding cursor-pointer select-none bg-muted/30 hover:bg-muted/50 transition-colors duration-normal',
           )}
         >
           <div className="flex items-center gap-content-gap-sm">
@@ -115,9 +115,9 @@ export function ChapterAccordion({
       </AccordionPrimitive.Header>
 
       <AccordionPrimitive.Content className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
-        <div className="border-t border-border p-card-padding relative">
+        <div className="border-t border-border p-2 sm:p-card-padding relative">
           {chapter.description && (
-            <p className="text-body-xs text-muted-foreground mb-content-gap-sm ms-12">
+            <p className="text-body-xs text-muted-foreground mb-content-gap-sm ms-2 sm:ms-12">
               {chapter.description}
             </p>
           )}
