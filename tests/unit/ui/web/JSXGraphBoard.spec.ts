@@ -5,6 +5,7 @@
  * tick numbers appear on correct sides of axis lines.
  */
 import { describe, expect, it } from 'vitest'
+import { AXIS_TICK_OPTIONS } from '@/infra/utils/graphics/axis-ticks'
 
 // We need to test the axisConfig construction logic
 // Since JSXGraphBoard is a client component that dynamically imports jsxgraph,
@@ -36,7 +37,7 @@ describe('JSXGraphBoard axisConfig tickPosition', () => {
         x: {
           ticks: {
             visible: axisConfig?.showNumbers ?? true,
-            ticksDistance: axisConfig?.ticks ?? 1,
+            ...AXIS_TICK_OPTIONS,
             label: { offset: [0, xOffset] },
           },
           name: axisConfig?.labels?.x ?? 'x',
@@ -46,7 +47,7 @@ describe('JSXGraphBoard axisConfig tickPosition', () => {
         y: {
           ticks: {
             visible: axisConfig?.showNumbers ?? true,
-            ticksDistance: axisConfig?.ticks ?? 1,
+            ...AXIS_TICK_OPTIONS,
             label: { offset: [yOffset, 0] },
           },
           name: axisConfig?.labels?.y ?? 'y',
@@ -137,11 +138,14 @@ describe('JSXGraphBoard axisConfig tickPosition', () => {
     expect(configWithoutLabels.defaultAxes?.x?.withLabel).toBe(true)
   })
 
-  it('passes through ticks correctly', () => {
+  it('pins ticks to 1-unit spacing regardless of stored ticks', () => {
     const config = buildAxisConfig({ ticks: 2 })
 
-    expect(config.defaultAxes?.x?.ticks?.ticksDistance).toBe(2)
-    expect(config.defaultAxes?.y?.ticks?.ticksDistance).toBe(2)
+    for (const axis of [config.defaultAxes?.x, config.defaultAxes?.y]) {
+      expect(axis?.ticks?.ticksDistance).toBe(1)
+      expect(axis?.ticks?.insertTicks).toBe(false)
+      expect(axis?.ticks?.minorTicks).toBe(0)
+    }
   })
 
   it('passes through labels correctly', () => {

@@ -89,6 +89,15 @@ export function getDefaultCanvasElementColor(): string {
 }
 
 /**
+ * Default color for axis points with no stored color: design-system blue
+ * (--text-highlight-5). Uses the hardcoded fallback so it matches the admin
+ * editor regardless of the host page's theme.
+ */
+export function getDefaultAxisPointColor(): string {
+  return CSS_VAR_FALLBACKS['--text-highlight-5']
+}
+
+/**
  * Color palette using hardcoded fallback values instead of CSS variable resolution.
  * Use this in the Payload admin panel where :root CSS variables belong to the
  * admin theme (e.g. --foreground is white in dark mode) and don't match the

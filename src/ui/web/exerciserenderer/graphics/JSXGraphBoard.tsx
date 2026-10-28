@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useId, useRef } from 'react'
+import { AXIS_GRID_OPTIONS, AXIS_TICK_OPTIONS } from '@/infra/utils/graphics/axis-ticks'
 import { cn } from '@/infra/utils/ui'
 
 interface JSXGraphBoardProps {
@@ -64,7 +65,6 @@ export function JSXGraphBoard({
       const [bbXMin, bbYMax, bbXMax, bbYMin] = boundingBox
       const originOutside = showAxis && (ox < bbXMin || ox > bbXMax || oy < bbYMin || oy > bbYMax)
 
-      const tickDist = axisConfig?.ticks ?? 1
       const showNumbers = axisConfig?.showNumbers ?? true
       const showLabels = axisConfig?.showLabels ?? true
 
@@ -76,7 +76,7 @@ export function JSXGraphBoard({
                 x: {
                   ticks: {
                     visible: showNumbers,
-                    ticksDistance: tickDist,
+                    ...AXIS_TICK_OPTIONS,
                     label: {
                       offset: [0, axisConfig?.tickPosition?.x === 'inverted' ? 10 : -10],
                     },
@@ -89,7 +89,7 @@ export function JSXGraphBoard({
                 y: {
                   ticks: {
                     visible: showNumbers,
-                    ticksDistance: tickDist,
+                    ...AXIS_TICK_OPTIONS,
                     label: {
                       offset: [axisConfig?.tickPosition?.y === 'inverted' ? 10 : -10, 0],
                     },
@@ -106,7 +106,7 @@ export function JSXGraphBoard({
       const board = JXGLib.JSXGraph.initBoard(containerId, {
         boundingbox: boundingBox,
         ...axisOpts,
-        grid: showGrid,
+        grid: showGrid && axisConfig ? AXIS_GRID_OPTIONS : showGrid,
         showNavigation: false,
         showCopyright: false,
         keepAspectRatio: false,
@@ -120,7 +120,7 @@ export function JSXGraphBoard({
         const axOriginY = Math.max(bbYMin, Math.min(oy, bbYMax))
         const tickOpts = {
           visible: showNumbers,
-          ticksDistance: tickDist,
+          ...AXIS_TICK_OPTIONS,
           label: { fontSize: 12 },
           drawZero: true,
         }
