@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.58.0 — 2026-10-28
+
+### Features
+- Widen spacing around chat view sections (#1509)
+- Highlight the active section badge in chat view (#1508)
+- Honor the interactive flag on axis and geometry specs (#1507)
+
+### Bug Fixes
+- Stop JSXGraph event handling on non-interactive boards (#1510)
+- Tighten prompt-to-answer gap so chat sections read as groups (#1509)
+
 ## v0.57.0 — 2026-10-28
 
 ### Features
@@ -5096,6 +5107,12 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.58.0 ([#1511](https://github.com/A-Guy-educ/A-Guy-Web/pull/1511)) — @aguyshayb
+- fix: Stop JSXGraph event handling on non-interactive boards ([#1510](https://github.com/A-Guy-educ/A-Guy-Web/pull/1510)) — @aguyshayb
+- feat: Widen spacing around chat view sections ([#1509](https://github.com/A-Guy-educ/A-Guy-Web/pull/1509)) — @aguyshayb
+- feat: Highlight the active section badge in chat view ([#1508](https://github.com/A-Guy-educ/A-Guy-Web/pull/1508)) — @aguyshayb
+- feat: Honor the interactive flag on axis and geometry specs ([#1507](https://github.com/A-Guy-educ/A-Guy-Web/pull/1507)) — @aguyshayb
+- promote: dev -> main (v0.57.0) ([#1506](https://github.com/A-Guy-educ/A-Guy-Web/pull/1506)) — @aguyshayb
 - feat: Ship Product Health spec v0.4 on a per-visit dwell log ([#1504](https://github.com/A-Guy-educ/A-Guy-Web/pull/1504)) — @aguyshayb
 - fix: Match exercise graph rendering to admin editor ([#1503](https://github.com/A-Guy-educ/A-Guy-Web/pull/1503)) — @aguyshayb
 - fix: Increase scroll view line spacing instead of block gap ([#1502](https://github.com/A-Guy-educ/A-Guy-Web/pull/1502)) — @aguyshayb

@@ -325,6 +325,12 @@ export interface ExerciseRendererProps {
    */
   hideHelpSystem?: boolean
   /**
+   * When true, question label badges render filled with the accent color
+   * (`--primary`) instead of the soft tint. The chat view sets it on the
+   * walker's current section so the student can see which one is active.
+   */
+  highlightQuestionLabels?: boolean
+  /**
    * When true, a question's sketch `attachment` renders between the prompt
    * and the answer area (prompt → sketch → options / input / table) instead
    * of the authored side-by-side / stacked layout. The chat view turns it on

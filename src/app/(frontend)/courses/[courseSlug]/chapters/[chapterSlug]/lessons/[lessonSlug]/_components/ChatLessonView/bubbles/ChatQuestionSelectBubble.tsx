@@ -31,6 +31,8 @@ const RETRY_MIN_OPTIONS = 3
 interface ChatQuestionSelectBubbleProps {
   block: QuestionSelectBlock
   questionLabel?: string
+  /** Highlights the section badge — true only on the walker's current step. */
+  questionLabelActive?: boolean
   /**
    * When true, the option buttons are locked regardless of local pick state.
    * Used to freeze historical (scroll-back) bubbles + to prevent answering
@@ -105,6 +107,7 @@ export function ChatQuestionSelectBubble(props: ChatQuestionSelectBubbleProps) {
 function SingleSelectBubble({
   block,
   questionLabel,
+  questionLabelActive,
   disabled,
   exerciseId,
   lessonId,
@@ -224,7 +227,7 @@ function SingleSelectBubble({
     retryHintLabel.length > 0
 
   const promptNode = (
-    <QuestionHeaderBadges sectionLabel={questionLabel}>
+    <QuestionHeaderBadges sectionLabel={questionLabel} sectionActive={questionLabelActive}>
       <div className="text-body-md font-medium text-foreground leading-relaxed">
         <RichTextRenderer block={block.prompt} />
       </div>
@@ -233,7 +236,7 @@ function SingleSelectBubble({
 
   const answerNode = (
     <>
-      <div className="grid grid-cols-1 gap-content-gap-xs mt-2">
+      <div className="grid grid-cols-1 gap-content-gap-xs">
         {choices.map((choice) => {
           const isPicked = pickedId === choice.id
           const isWronglyAttempted = wrongOptionIds.has(choice.id)
@@ -330,6 +333,7 @@ function SingleSelectBubble({
 function MultiSelectBubble({
   block,
   questionLabel,
+  questionLabelActive,
   disabled,
   exerciseId,
   lessonId,
@@ -386,7 +390,7 @@ function MultiSelectBubble({
   }
 
   const promptNode = (
-    <QuestionHeaderBadges sectionLabel={questionLabel}>
+    <QuestionHeaderBadges sectionLabel={questionLabel} sectionActive={questionLabelActive}>
       <div className="text-body-md font-medium text-foreground leading-relaxed">
         <RichTextRenderer block={block.prompt} />
       </div>
@@ -395,7 +399,7 @@ function MultiSelectBubble({
 
   const answerNode = (
     <>
-      <div className="grid grid-cols-1 gap-content-gap-xs mt-2">
+      <div className="grid grid-cols-1 gap-content-gap-xs">
         {choices.map((choice) => {
           const isPicked = pickedIds.has(choice.id)
           const isCorrectOption = correctIds.has(choice.id)

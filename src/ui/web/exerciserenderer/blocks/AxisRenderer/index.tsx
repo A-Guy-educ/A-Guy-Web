@@ -122,6 +122,7 @@ export function AxisRenderer({ blockId, spec }: AxisRendererProps) {
           origin: spec.axes.origin,
         }}
         onBoardReady={handleBoardReady}
+        interactive={spec.interactive !== false}
         className="border-border"
       />
     </div>

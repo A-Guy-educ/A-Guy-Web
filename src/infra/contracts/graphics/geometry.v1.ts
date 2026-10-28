@@ -196,6 +196,8 @@ export const GeometrySpecV1Schema = z
     kind: z.literal('euclidean'),
     canvas: CanvasSchema,
     elements: GeometryElementsSchema,
+    // `false` renders a static picture (no hover, drag or pan). Absent = interactive.
+    interactive: z.boolean().optional(),
     interactionSpec: GeometryInteractionSpecSchema,
   })
   .strict()

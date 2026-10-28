@@ -812,7 +812,7 @@ function ActiveChat({
     <>
       <main className="flex-1 overflow-y-auto bg-muted px-2 pt-14 pb-24 md:px-6 md:pt-20 md:pb-32">
         <div
-          className="w-full md:w-[80%] max-w-5xl mx-auto flex flex-col gap-content-gap px-1 md:px-0"
+          className="w-full md:w-[80%] max-w-5xl mx-auto flex flex-col gap-content-gap-lg px-1 md:px-0"
           dir="rtl"
         >
           <TeacherBubble
@@ -1044,9 +1044,10 @@ function StreamEntryView({
     case 'exercise-section':
       // `data-section-key` is the runner's scroll anchor for a newly emitted
       // section; scroll-mt matches <main>'s top padding so the prompt clears
-      // the floating progress pill.
+      // the floating progress pill. The extra top margin sets each section
+      // apart from the feedback bubbles of the one before it.
       return (
-        <div data-section-key={entry.key} className="scroll-mt-14 md:scroll-mt-20">
+        <div data-section-key={entry.key} className="mt-content-gap scroll-mt-14 md:scroll-mt-20">
           <ExerciseSectionBubble
             exercise={entry.exercise}
             ordinal={entry.ordinal}
