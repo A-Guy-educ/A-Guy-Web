@@ -5096,6 +5096,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Highlight the active section badge in chat view ([#1508](https://github.com/A-Guy-educ/A-Guy-Web/pull/1508)) — @aguyshayb
 - feat: Honor the interactive flag on axis and geometry specs ([#1507](https://github.com/A-Guy-educ/A-Guy-Web/pull/1507)) — @aguyshayb
 - promote: dev -> main (v0.57.0) ([#1506](https://github.com/A-Guy-educ/A-Guy-Web/pull/1506)) — @aguyshayb
 - feat: Ship Product Health spec v0.4 on a per-visit dwell log ([#1504](https://github.com/A-Guy-educ/A-Guy-Web/pull/1504)) — @aguyshayb
