@@ -5,14 +5,15 @@ import {
   buildKpiContext,
   engagementRate,
   inactiveChurnRate,
-  lessonCompletionRate,
+  newRegistrations,
+  pdfScrollUsabilityRate,
   retentionRate,
   type KpiContext,
 } from '@/server/services/dashboard/product-health/kpi-calculators'
 import type {
   AllSignals,
-  LessonAttempt,
   UserDay,
+  VisitDay,
 } from '@/server/services/dashboard/product-health/signal-types'
 import type { Window } from '@/server/services/dashboard/product-health/windows'
 
@@ -21,100 +22,172 @@ const window: Window = {
   end: new Date('2026-03-08T00:00:00.000Z'),
 }
 
-function context(overrides: Partial<AllSignals> = {}, lookbackDays = 30): KpiContext {
+/** Active visit day: one PDF visit with plenty of dwell. */
+function active(userId: string, date: string): VisitDay {
+  return { userId, date, maxPdfDwellSeconds: 600 }
+}
+
+function context(
+  overrides: Partial<AllSignals> = {},
+  { lookbackDays = 7, dwell = 60 }: { lookbackDays?: number; dwell?: number } = {},
+): KpiContext {
   const signals: AllSignals = {
-    lessonActiveDays: [],
+    visitDays: [],
     chatDays: [],
-    lessonAttempts: [],
-    presentUserDays: [],
+    pdfVisitDays: [],
+    registrationDays: [],
+    visitLogCoverageStart: '2026-01-01',
     ...overrides,
   }
-  return buildKpiContext(signals, lookbackDays)
+  return buildKpiContext(signals, {
+    retentionLookbackDays: lookbackDays,
+    activeDwellSeconds: dwell,
+  })
 }
 
 describe('activeUserRate', () => {
-  it('counts distinct active users over distinct users present in the same window', () => {
-    // Active = lesson dwell ≥60s (numerator source).
-    const lessonActiveDays: UserDay[] = [
-      { userId: 'u1', date: '2026-03-02' },
-      { userId: 'u1', date: '2026-03-04' }, // deduped
-      { userId: 'u2', date: '2026-03-07' },
-      { userId: 'u3', date: '2026-02-28' }, // before window → excluded
+  it('counts users with a ≥threshold PDF visit over users with any visit', () => {
+    const visitDays: VisitDay[] = [
+      active('u1', '2026-03-02'),
+      active('u1', '2026-03-04'), // deduped
+      active('u2', '2026-03-07'),
+      active('u3', '2026-02-28'), // before window → excluded
+      { userId: 'u4', date: '2026-03-05', maxPdfDwellSeconds: 59 }, // present, not active
+      { userId: 'u5', date: '2026-03-05', maxPdfDwellSeconds: 0 }, // non-PDF visit only
     ]
-    // Present = any progressRecord touched in the window (superset of active).
-    // u4 opened a lesson but never crossed 60s → present, not active.
-    // u5 was present outside the window only → excluded.
-    // u6 registered but never touched any record → not present.
-    const presentUserDays: UserDay[] = [
-      { userId: 'u1', date: '2026-03-02' },
-      { userId: 'u2', date: '2026-03-07' },
-      { userId: 'u4', date: '2026-03-05' },
-      { userId: 'u5', date: '2026-02-20' },
+    expect(activeUserRate(context({ visitDays }), window)).toEqual({
+      numerator: 2,
+      denominator: 4,
+    })
+  })
+
+  it('applies the dwell threshold from the request, not a fixed 60s', () => {
+    const visitDays: VisitDay[] = [
+      { userId: 'u1', date: '2026-03-02', maxPdfDwellSeconds: 90 },
+      { userId: 'u2', date: '2026-03-02', maxPdfDwellSeconds: 400 },
     ]
-    const ctx = context({ lessonActiveDays, presentUserDays })
-    expect(activeUserRate(ctx, window)).toEqual({ numerator: 2, denominator: 3 })
+    expect(activeUserRate(context({ visitDays }, { dwell: 300 }), window)).toEqual({
+      numerator: 1,
+      denominator: 2,
+    })
   })
 
   it('returns denominator=0 when no user was present in the window', () => {
     expect(activeUserRate(context(), window)).toEqual({ numerator: 0, denominator: 0 })
   })
+
+  it('reports no data for a window that starts before the visit log covers it', () => {
+    const visitDays = [active('u1', '2026-03-05')]
+    const ctx = context({ visitDays, visitLogCoverageStart: '2026-03-03' })
+    expect(activeUserRate(ctx, window)).toEqual({ numerator: 0, denominator: 0 })
+  })
+
+  it('reports no data when the visit log is empty', () => {
+    const ctx = context({ visitLogCoverageStart: null })
+    expect(activeUserRate(ctx, window)).toEqual({ numerator: 0, denominator: 0 })
+  })
 })
 
 describe('engagementRate', () => {
   it('only counts chatting users who are also active', () => {
-    const lessonActiveDays: UserDay[] = [
-      { userId: 'u1', date: '2026-03-02' },
-      { userId: 'u2', date: '2026-03-03' },
-    ]
+    const visitDays = [active('u1', '2026-03-02'), active('u2', '2026-03-03')]
     const chatDays: UserDay[] = [
       { userId: 'u1', date: '2026-03-02' },
       { userId: 'u9', date: '2026-03-04' }, // chatted but not active — excluded
     ]
-    const ctx = context({ lessonActiveDays, chatDays })
-    expect(engagementRate(ctx, window)).toEqual({ numerator: 1, denominator: 2 })
+    expect(engagementRate(context({ visitDays, chatDays }), window)).toEqual({
+      numerator: 1,
+      denominator: 2,
+    })
   })
 })
 
 describe('retentionRate', () => {
-  it('measures users active in the prior 30d lookback who are also active in the current window', () => {
-    const lessonActiveDays: UserDay[] = [
-      // u1 active in prior AND current
-      { userId: 'u1', date: '2026-02-10' },
-      { userId: 'u1', date: '2026-03-03' },
+  it('uses a prior window as long as the lookback (7d → days 14–7 ago)', () => {
+    const visitDays: VisitDay[] = [
+      // u1 active in prior (2026-02-22..03-01) AND current
+      active('u1', '2026-02-25'),
+      active('u1', '2026-03-03'),
       // u2 active in prior only
-      { userId: 'u2', date: '2026-02-01' },
-      // u3 active in current only
-      { userId: 'u3', date: '2026-03-05' },
+      active('u2', '2026-02-28'),
+      // u3 active only before the 7d prior window → not in denominator
+      active('u3', '2026-02-10'),
+      active('u3', '2026-03-04'),
+      // u4 active in current only
+      active('u4', '2026-03-05'),
     ]
-    const ctx = context({ lessonActiveDays }, 30)
-    expect(retentionRate(ctx, window)).toEqual({ numerator: 1, denominator: 2 })
+    expect(retentionRate(context({ visitDays }, { lookbackDays: 7 }), window)).toEqual({
+      numerator: 1,
+      denominator: 2,
+    })
+  })
+
+  it('keeps an earlier visit to a lesson the user revisits later', () => {
+    // Same lesson, two visits: per-visit days survive the revisit (the
+    // lastAccessedAt overwrite used to drop the 02-25 activity).
+    const visitDays = [active('u1', '2026-02-25'), active('u1', '2026-03-06')]
+    expect(retentionRate(context({ visitDays }), window)).toEqual({
+      numerator: 1,
+      denominator: 1,
+    })
+  })
+
+  it('reports no data when the prior window predates the visit log', () => {
+    const visitDays = [active('u1', '2026-02-25'), active('u1', '2026-03-03')]
+    const ctx = context({ visitDays, visitLogCoverageStart: '2026-02-24' })
+    expect(retentionRate(ctx, window)).toEqual({ numerator: 0, denominator: 0 })
   })
 })
 
 describe('inactiveChurnRate', () => {
-  it('measures users active in the equal-length prior window who are NOT active in the current window', () => {
-    // Prior window is 7d immediately before the current one → 2026-02-22..2026-03-01
-    const lessonActiveDays: UserDay[] = [
-      { userId: 'u1', date: '2026-02-25' }, // prior only → churned
-      { userId: 'u2', date: '2026-02-27' }, // prior + current → retained
-      { userId: 'u2', date: '2026-03-02' },
-      { userId: 'u3', date: '2026-03-04' }, // current only → not counted
+  it('measures users active in the equal-length prior window who are NOT active now', () => {
+    const visitDays: VisitDay[] = [
+      active('u1', '2026-02-25'), // prior only → churned
+      active('u2', '2026-02-27'), // prior + current → retained
+      active('u2', '2026-03-02'),
+      active('u3', '2026-03-04'), // current only → not counted
     ]
-    const ctx = context({ lessonActiveDays })
-    expect(inactiveChurnRate(ctx, window)).toEqual({ numerator: 1, denominator: 2 })
+    expect(inactiveChurnRate(context({ visitDays }), window)).toEqual({
+      numerator: 1,
+      denominator: 2,
+    })
+  })
+
+  it('does not count a sub-threshold return as staying active', () => {
+    const visitDays: VisitDay[] = [
+      active('u1', '2026-02-25'),
+      { userId: 'u1', date: '2026-03-02', maxPdfDwellSeconds: 5 },
+    ]
+    expect(inactiveChurnRate(context({ visitDays }), window)).toEqual({
+      numerator: 1,
+      denominator: 1,
+    })
   })
 })
 
-describe('lessonCompletionRate', () => {
-  it('counts completed lesson records over all lesson records touched in the window', () => {
-    const lessonAttempts: LessonAttempt[] = [
-      { date: '2026-03-01', completed: true },
-      { date: '2026-03-02', completed: false },
-      { date: '2026-03-02', completed: true },
-      { date: '2026-02-28', completed: true }, // before window → excluded
-      { date: '2026-03-08', completed: true }, // on the exclusive boundary → excluded
+describe('pdfScrollUsabilityRate', () => {
+  it('sums scrolled PDF visits over all PDF visits inside the window', () => {
+    const pdfVisitDays = [
+      { date: '2026-03-01', visits: 4, scrolled: 3 },
+      { date: '2026-03-07', visits: 6, scrolled: 1 },
+      { date: '2026-02-28', visits: 9, scrolled: 9 }, // before window
+      { date: '2026-03-08', visits: 9, scrolled: 0 }, // exclusive end
     ]
-    const ctx = context({ lessonAttempts })
-    expect(lessonCompletionRate(ctx, window)).toEqual({ numerator: 2, denominator: 3 })
+    expect(pdfScrollUsabilityRate(context({ pdfVisitDays }), window)).toEqual({
+      numerator: 4,
+      denominator: 10,
+    })
+  })
+})
+
+describe('newRegistrations', () => {
+  it('counts registration days inside the half-open window', () => {
+    const registrationDays = ['2026-02-28', '2026-03-01', '2026-03-01', '2026-03-07', '2026-03-08']
+    expect(newRegistrations(context({ registrationDays }), window)).toBe(3)
+  })
+
+  it('ignores visit-log coverage — registrations have full history', () => {
+    const ctx = context({ registrationDays: ['2026-03-02'], visitLogCoverageStart: null })
+    expect(newRegistrations(ctx, window)).toBe(1)
   })
 })

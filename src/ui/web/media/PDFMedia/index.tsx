@@ -4,6 +4,7 @@ import { SYSTEM_EVENTS, systemEventBus } from '@/infra/system-events'
 import { cn } from '@/infra/utils/ui'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import type { Props as MediaProps } from '../types'
+import { trackPdfScroll } from './pdfScrollTracker'
 import { trackPdfPage } from './pdfViewerBridge'
 
 /** Timeout (ms) to detect PDF iframe that never loads */
@@ -69,15 +70,20 @@ export const PDFMedia: React.FC<MediaProps> = (props) => {
   }, [resource])
 
   const detachPageTrackerRef = useRef<(() => void) | null>(null)
+  const detachScrollTrackerRef = useRef<(() => void) | null>(null)
 
   const handleIframeLoad = useCallback(() => {
     loadedRef.current = true
     setHasError(false)
     setErrorMessage(null)
     detachPageTrackerRef.current?.()
+    detachScrollTrackerRef.current?.()
     const iframe = iframeRef.current
     if (iframe) {
       detachPageTrackerRef.current = trackPdfPage(iframe, pdfFilename)
+      // Feeds the lesson visit's "scrolled" flag; ActiveTimeProvider ignores
+      // the event when no lesson visit is open (e.g. /ask).
+      detachScrollTrackerRef.current = trackPdfScroll(iframe)
     }
   }, [pdfFilename])
 
@@ -87,6 +93,8 @@ export const PDFMedia: React.FC<MediaProps> = (props) => {
     return () => {
       detachPageTrackerRef.current?.()
       detachPageTrackerRef.current = null
+      detachScrollTrackerRef.current?.()
+      detachScrollTrackerRef.current = null
     }
   }, [pdfUrl, retryKey])
 

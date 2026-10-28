@@ -16,7 +16,9 @@ describe('parseProductHealthParams', () => {
         start: null,
         end: null,
         courseId: null,
+        grade: null,
         granularity: 'daily',
+        activeDwellSeconds: 60,
       },
     })
   })
@@ -52,5 +54,24 @@ describe('parseProductHealthParams', () => {
     const result = parseProductHealthParams(search({ courseId: id }))
     expect(result.ok).toBe(true)
     if (result.ok) expect(result.params.courseId).toBe(id)
+  })
+
+  it('passes a grade label through trimmed', () => {
+    const result = parseProductHealthParams(search({ grade: ' 5 יח"ל ' }))
+    expect(result.ok && result.params.grade).toBe('5 יח"ל')
+  })
+
+  it('rejects an empty or overlong grade', () => {
+    expect(parseProductHealthParams(search({ grade: '  ' })).ok).toBe(false)
+    expect(parseProductHealthParams(search({ grade: 'x'.repeat(33) })).ok).toBe(false)
+  })
+
+  it('accepts an activeDwellSeconds override', () => {
+    const result = parseProductHealthParams(search({ activeDwellSeconds: '300' }))
+    expect(result.ok && result.params.activeDwellSeconds).toBe(300)
+  })
+
+  it.each(['0', '3601', '1.5', 'ten', '-60'])('rejects activeDwellSeconds=%s', (value) => {
+    expect(parseProductHealthParams(search({ activeDwellSeconds: value })).ok).toBe(false)
   })
 })

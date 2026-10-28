@@ -23,7 +23,6 @@ export interface ResolvedPeriod {
 }
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000
-const RETENTION_LOOKBACK_DAYS = 30
 
 function utcMidnight(ymd: string): Date {
   return new Date(`${ymd}T00:00:00.000Z`)
@@ -52,7 +51,10 @@ export function resolvePeriod(
     period,
     comparison,
     buckets: buildBuckets(period, params.granularity),
-    retentionLookbackDays: RETENTION_LOOKBACK_DAYS,
+    // Retention looks back over a window as long as the selected period
+    // (7d → active 14–7 days ago, back again in the last 7 days), for the
+    // headline, the comparison point, and every trend bucket alike.
+    retentionLookbackDays: length,
   }
 }
 
@@ -103,8 +105,8 @@ export function isoDate(date: Date): string {
 
 /**
  * The earliest boundary we need Mongo data for. Trend + comparison already
- * cover most of it; the extra 30d lookback funds the retention denominator
- * on the first trend bucket.
+ * cover most of it; the extra period-length lookback funds the retention
+ * denominator of the comparison window and the first trend bucket.
  */
 export function signalWindowStart(resolved: ResolvedPeriod): Date {
   const earliestBucketStart = resolved.buckets[0]?.start ?? resolved.period.start

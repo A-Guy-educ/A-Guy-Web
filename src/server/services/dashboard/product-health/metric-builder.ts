@@ -5,7 +5,7 @@
  */
 
 import type { NumDenom } from './kpi-calculators'
-import type { Metric, TrendBucket } from './types'
+import type { CountMetric, Metric, TrendBucket } from './types'
 import { isoDate, type Window } from './windows'
 
 export type KpiCalculator = (window: Window) => NumDenom
@@ -56,5 +56,39 @@ export function buildMetric({
     comparisonValue,
     deltaPp: pp(value, comparisonValue),
     trend,
+  }
+}
+
+export type CountCalculator = (window: Window) => number
+
+export interface BuildCountMetricInputs {
+  counter: CountCalculator
+  period: Window
+  comparison: Window
+  buckets: Window[]
+}
+
+/**
+ * Count-shaped metric (Total New Registered Users). A count of zero is a
+ * real zero, not "no data", so values are never null here; `deltaAbs` is
+ * the absolute difference against the equal-length prior window.
+ */
+export function buildCountMetric({
+  counter,
+  period,
+  comparison,
+  buckets,
+}: BuildCountMetricInputs): CountMetric {
+  const value = counter(period)
+  const comparisonValue = counter(comparison)
+  return {
+    value,
+    comparisonValue,
+    deltaAbs: value - comparisonValue,
+    trend: buckets.map((bucket) => ({
+      bucketStart: isoDate(bucket.start),
+      bucketEnd: isoDate(bucket.end),
+      value: counter(bucket),
+    })),
   }
 }

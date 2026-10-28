@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildMetric, computeRate } from '@/server/services/dashboard/product-health/metric-builder'
+import {
+  buildCountMetric,
+  buildMetric,
+  computeRate,
+} from '@/server/services/dashboard/product-health/metric-builder'
 import type { NumDenom } from '@/server/services/dashboard/product-health/kpi-calculators'
 import type { Window } from '@/server/services/dashboard/product-health/windows'
 
@@ -102,5 +106,27 @@ describe('buildMetric', () => {
     expect(metric.value).toBe(40)
     expect(metric.comparisonValue).toBe(20)
     expect(metric.deltaPp).toBe(20)
+  })
+})
+
+describe('buildCountMetric', () => {
+  it('reports the period count, prior count, absolute delta and per-bucket counts', () => {
+    const days = ['2026-02-23', '2026-03-01', '2026-03-01', '2026-03-04']
+    const counter = (w: Window) => {
+      const start = w.start.toISOString().slice(0, 10)
+      const end = w.end.toISOString().slice(0, 10)
+      return days.filter((d) => d >= start && d < end).length
+    }
+    const metric = buildCountMetric({ counter, period, comparison, buckets: dailyBuckets })
+    expect(metric.value).toBe(3)
+    expect(metric.comparisonValue).toBe(1)
+    expect(metric.deltaAbs).toBe(2)
+    expect(metric.trend).toHaveLength(7)
+    expect(metric.trend[0]).toEqual({
+      bucketStart: '2026-03-01',
+      bucketEnd: '2026-03-02',
+      value: 2,
+    })
+    expect(metric.trend[1].value).toBe(0)
   })
 })
