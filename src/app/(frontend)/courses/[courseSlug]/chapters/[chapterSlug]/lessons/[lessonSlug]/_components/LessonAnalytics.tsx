@@ -2,11 +2,12 @@
 
 import { consumeLessonOpenTimestamp } from '@/infra/analytics/utils/lesson-load-timing'
 import { SYSTEM_EVENTS, systemEventBus } from '@/infra/system-events'
+import type { LessonVisitContentType } from '@/client/hooks/lesson-visit-heartbeat'
 import { useSetCurrentLesson } from '@/client/providers/ActiveTimeProvider'
 import { syncCurrentCourse } from '@/infra/analytics/utils/currentCourseSync'
 import { useEffect, useRef } from 'react'
 
-export type LessonContentType = 'pdf' | 'exercises' | 'blocks'
+export type LessonContentType = LessonVisitContentType
 
 interface LessonAnalyticsProps {
   lessonId: string
@@ -25,7 +26,7 @@ export function LessonAnalytics({
   const hasEmittedEndedRef = useRef<boolean>(false)
 
   // Register current lesson for per-lesson time tracking
-  useSetCurrentLesson(lessonId)
+  useSetCurrentLesson({ lessonId, courseId, contentType })
 
   useEffect(() => {
     // Track lesson started

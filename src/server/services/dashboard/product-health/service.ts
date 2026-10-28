@@ -2,24 +2,25 @@
  * Product Health orchestrator. Ties params → periods → signals → metrics
  * → response payload.
  *
- * One Mongo round-trip pool (four parallel queries via signal-repository)
- * feeds all five KPIs. All bucket math is in-memory after that so
- * granularity/course-filter changes don't multiply DB load.
+ * One Mongo round-trip pool (parallel queries via signal-repository) feeds
+ * every KPI. All bucket math is in-memory after that so granularity /
+ * threshold changes don't multiply DB load.
  */
 
 import { getContentDb } from '@/infra/db/content-db'
 
-import { fetchAvailableCourses } from './available-courses'
+import { fetchAvailableCourses, fetchAvailableGrades } from './available-courses'
 import {
   activeUserRate,
   buildKpiContext,
   engagementRate,
   inactiveChurnRate,
-  lessonCompletionRate,
+  newRegistrations,
+  pdfScrollUsabilityRate,
   retentionRate,
   type KpiContext,
 } from './kpi-calculators'
-import { buildMetric, type KpiCalculator } from './metric-builder'
+import { buildCountMetric, buildMetric, type KpiCalculator } from './metric-builder'
 import type { ParsedProductHealthParams } from './params'
 import { fetchAllSignals } from './signal-repository'
 import type { Metric, ProductHealthKpi, ProductHealthPayload } from './types'
@@ -31,7 +32,7 @@ const CALCULATOR_MAP: Record<ProductHealthKpi, (ctx: KpiContext) => KpiCalculato
   engagementRate: (ctx) => (window) => engagementRate(ctx, window),
   retentionRate: (ctx) => (window) => retentionRate(ctx, window),
   inactiveChurnRate: (ctx) => (window) => inactiveChurnRate(ctx, window),
-  lessonCompletionRate: (ctx) => (window) => lessonCompletionRate(ctx, window),
+  pdfScrollUsabilityRate: (ctx) => (window) => pdfScrollUsabilityRate(ctx, window),
 }
 
 export async function computeProductHealth(
@@ -41,18 +42,32 @@ export async function computeProductHealth(
   const db = await getContentDb()
   const resolved = resolvePeriod(params, now)
   const span = { start: signalWindowStart(resolved), end: resolved.period.end }
-  const [signals, availableCourses] = await Promise.all([
-    fetchAllSignals(db, span, params.courseId),
+  const [signals, availableCourses, availableGrades] = await Promise.all([
+    fetchAllSignals(db, span, { courseId: params.courseId, grade: params.grade }),
     fetchAvailableCourses(db),
+    fetchAvailableGrades(db),
   ])
-  const ctx = buildKpiContext(signals, resolved.retentionLookbackDays)
+  const ctx = buildKpiContext(signals, {
+    retentionLookbackDays: resolved.retentionLookbackDays,
+    activeDwellSeconds: params.activeDwellSeconds,
+  })
   return {
     periodStart: isoDate(resolved.period.start),
     periodEnd: isoDate(resolved.period.end),
     courseId: params.courseId,
+    grade: params.grade,
     granularity: params.granularity,
+    activeDwellSeconds: params.activeDwellSeconds,
+    activityDataSince: signals.visitLogCoverageStart,
+    totalNewRegisteredUsers: buildCountMetric({
+      counter: (window) => newRegistrations(ctx, window),
+      period: resolved.period,
+      comparison: resolved.comparison,
+      buckets: resolved.buckets,
+    }),
     metrics: buildAllMetrics(ctx, resolved),
     availableCourses,
+    availableGrades,
   }
 }
 

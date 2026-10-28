@@ -7,6 +7,8 @@
  *   &start=YYYY-MM-DD          (required when range=custom)
  *   &end=YYYY-MM-DD            (required when range=custom)
  *   &courseId=<24-hex>         (omit = All Courses)
+ *   &grade=<courseLabel>       (omit = All Grades)
+ *   &activeDwellSeconds=<int>  (1-3600, default 60 — Active threshold)
  *   &granularity=daily|weekly|monthly  (default daily)
  *
  * `start`/`end` are anchored to UTC midnight. `end` is treated as exclusive
@@ -16,6 +18,7 @@
 
 import { z } from 'zod'
 
+import { DEFAULT_ACTIVE_DWELL_SECONDS } from './config'
 import type { Granularity, PeriodRange } from './types'
 
 const HEX24 = /^[a-f0-9]{24}$/i
@@ -27,6 +30,13 @@ const rawSchema = z.object({
   end: z.string().regex(YMD, 'end must be YYYY-MM-DD').optional(),
   courseId: z.string().regex(HEX24, 'courseId must be a 24-char hex id').optional(),
   granularity: z.enum(['daily', 'weekly', 'monthly']).optional(),
+  grade: z.string().trim().min(1).max(32, 'grade must be at most 32 chars').optional(),
+  activeDwellSeconds: z
+    .string()
+    .regex(/^\d+$/, 'activeDwellSeconds must be a whole number')
+    .transform(Number)
+    .pipe(z.number().int().min(1).max(3600, 'activeDwellSeconds must be 1-3600'))
+    .optional(),
 })
 
 export interface ParsedProductHealthParams {
@@ -34,7 +44,9 @@ export interface ParsedProductHealthParams {
   start: string | null
   end: string | null
   courseId: string | null
+  grade: string | null
   granularity: Granularity
+  activeDwellSeconds: number
 }
 
 export type ProductHealthParamsResult =
@@ -47,6 +59,8 @@ export function parseProductHealthParams(search: URLSearchParams): ProductHealth
     end: search.get('end') ?? undefined,
     courseId: search.get('courseId') ?? undefined,
     granularity: search.get('granularity') ?? undefined,
+    grade: search.get('grade') ?? undefined,
+    activeDwellSeconds: search.get('activeDwellSeconds') ?? undefined,
   })
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? 'Invalid params' }
@@ -71,7 +85,9 @@ export function parseProductHealthParams(search: URLSearchParams): ProductHealth
       start: parsed.data.start ?? null,
       end: parsed.data.end ?? null,
       courseId: parsed.data.courseId ?? null,
+      grade: parsed.data.grade ?? null,
       granularity,
+      activeDwellSeconds: parsed.data.activeDwellSeconds ?? DEFAULT_ACTIVE_DWELL_SECONDS,
     },
   }
 }

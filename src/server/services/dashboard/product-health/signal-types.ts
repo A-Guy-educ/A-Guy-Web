@@ -16,17 +16,34 @@ export interface UserDay {
   date: string
 }
 
-/** One lesson attempt (record) with a completed flag. */
-export interface LessonAttempt {
+/**
+ * One user's lesson visits on one calendar day (by visit start). Every row
+ * means "present"; `maxPdfDwellSeconds` decides "active" against the
+ * request's dwell threshold.
+ */
+export interface VisitDay extends UserDay {
+  maxPdfDwellSeconds: number
+}
+
+/** PDF lesson visits started on one calendar day, and how many scrolled. */
+export interface PdfVisitDay {
   date: string
-  completed: boolean
+  visits: number
+  scrolled: number
 }
 
 export interface AllSignals {
-  lessonActiveDays: UserDay[]
+  visitDays: VisitDay[]
   chatDays: UserDay[]
-  lessonAttempts: LessonAttempt[]
-  presentUserDays: UserDay[]
+  pdfVisitDays: PdfVisitDay[]
+  /** YYYY-MM-DD registration day of each eligible user registered in the span. */
+  registrationDays: string[]
+  /**
+   * First UTC midnight fully covered by the `lesson-visits` log, or null
+   * when the log is empty. Visit-based KPIs return "no data" for any
+   * window that reaches back before it.
+   */
+  visitLogCoverageStart: string | null
 }
 
 export type WindowSpec = Window

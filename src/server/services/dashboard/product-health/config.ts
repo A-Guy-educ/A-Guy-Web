@@ -12,3 +12,14 @@ export function isProductHealthEnabled(): boolean {
   if (!raw) return false
   return TRUTHY.has(raw.trim().toLowerCase())
 }
+
+/**
+ * Active User threshold: one lesson visit with at least this much visible
+ * dwell (spec v0.4 §2). Kept as a single default that the `activeDwellSeconds`
+ * query param can override, so 1 / 5 / 10 minute thresholds can be compared
+ * as retention predictors without a deploy.
+ */
+export const DEFAULT_ACTIVE_DWELL_SECONDS = 60
+
+/** Only visits to lessons rendered as a PDF can make a user Active. */
+export const ACTIVE_CONTENT_TYPE = 'pdf'
