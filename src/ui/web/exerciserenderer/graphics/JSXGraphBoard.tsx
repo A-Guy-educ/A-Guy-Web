@@ -20,6 +20,12 @@ interface JSXGraphBoardProps {
     origin?: { x: number; y: number }
   }
   onBoardReady: (board: JXG.Board) => void
+  /**
+   * `false` makes the board a static picture: pointer events are blocked at
+   * the container, which kills hover, drag and Shift+drag pan, and lets touch
+   * scroll pass through to the page.
+   */
+  interactive?: boolean
   className?: string
 }
 
@@ -32,6 +38,7 @@ export function JSXGraphBoard({
   showAxis = false,
   axisConfig,
   onBoardReady,
+  interactive = true,
   className,
 }: JSXGraphBoardProps) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -187,7 +194,11 @@ export function JSXGraphBoard({
       id={containerId}
       // The board is drawn on white in light-theme colors; see `.diagram-invert`.
       data-theme="light"
-      className={cn('diagram-invert w-full border rounded-lg overflow-hidden bg-white', className)}
+      className={cn(
+        'diagram-invert w-full border rounded-lg overflow-hidden bg-white',
+        !interactive && 'pointer-events-none',
+        className,
+      )}
       style={{ width, height, maxWidth: '100%' }}
     />
   )

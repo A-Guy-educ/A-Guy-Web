@@ -180,6 +180,8 @@ export const AxisSpecV1Schema = z
     viewportMode: ViewportModeSchema,
     viewport: ViewportSchema,
     elements: ElementsSchema,
+    // `false` renders a static picture (no hover, drag or pan). Absent = interactive.
+    interactive: z.boolean().optional(),
     interactionSpec: InteractionSpecSchema,
   })
   .strict()
