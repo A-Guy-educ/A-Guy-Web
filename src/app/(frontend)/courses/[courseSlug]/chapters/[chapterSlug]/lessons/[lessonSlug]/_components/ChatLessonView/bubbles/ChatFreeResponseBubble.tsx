@@ -23,6 +23,8 @@ import { QuestionHeaderBadges } from './QuestionHeaderBadges'
 interface ChatFreeResponseBubbleProps {
   block: QuestionFreeResponseBlock
   questionLabel?: string
+  /** Highlights the section badge — true only on the walker's current step. */
+  questionLabelActive?: boolean
   placeholder: string
   sendLabel: string
   /**
@@ -94,6 +96,7 @@ type SubmitStatus = 'idle' | 'pending' | 'submitted' | 'not_checked'
 export function ChatFreeResponseBubble({
   block,
   questionLabel,
+  questionLabelActive,
   placeholder,
   sendLabel,
   disabled,
@@ -247,7 +250,7 @@ export function ChatFreeResponseBubble({
   }, [])
 
   const promptNode = (
-    <QuestionHeaderBadges sectionLabel={questionLabel}>
+    <QuestionHeaderBadges sectionLabel={questionLabel} sectionActive={questionLabelActive}>
       <div className="text-body-md font-medium text-foreground leading-relaxed">
         <RichTextRenderer block={block.prompt} />
       </div>

@@ -8,6 +8,11 @@ interface QuestionHeaderBadgesProps {
   exerciseOrdinal?: number
   /** Section letter (e.g. `א`, `ד3`) rendered as the second badge. */
   sectionLabel?: string
+  /**
+   * Fills the section badge with the student's accent color (`--primary`)
+   * to mark the section the walker is on right now.
+   */
+  sectionActive?: boolean
   /** Prompt / first-row content that the badges sit inline with. */
   children: ReactNode
 }
@@ -25,6 +30,7 @@ interface QuestionHeaderBadgesProps {
 export function QuestionHeaderBadges({
   exerciseOrdinal,
   sectionLabel,
+  sectionActive = false,
   children,
 }: QuestionHeaderBadgesProps) {
   const hasBadge = typeof exerciseOrdinal === 'number' || Boolean(sectionLabel)
@@ -33,20 +39,22 @@ export function QuestionHeaderBadges({
     <div className="flex items-start gap-content-gap-xs">
       <div className="flex items-center gap-1 shrink-0">
         {typeof exerciseOrdinal === 'number' && <Badge>{String(exerciseOrdinal)}</Badge>}
-        {sectionLabel && <Badge>{sectionLabel}</Badge>}
+        {sectionLabel && <Badge active={sectionActive}>{sectionLabel}</Badge>}
       </div>
       <div className="flex-1 min-w-0">{children}</div>
     </div>
   )
 }
 
-function Badge({ children }: { children: ReactNode }) {
+function Badge({ children, active = false }: { children: ReactNode; active?: boolean }) {
   return (
     <span
       className={cn(
         'w-7 h-7 rounded-lg flex items-center justify-center shrink-0',
-        'bg-primary-text/10 border border-primary-text/20',
-        'font-extrabold text-body-sm text-primary-text',
+        'font-extrabold text-body-sm transition-colors duration-normal',
+        active
+          ? 'bg-primary border border-primary text-primary-foreground shadow-card'
+          : 'bg-primary-text/10 border border-primary-text/20 text-primary-text',
       )}
     >
       {children}

@@ -356,7 +356,7 @@ export function ExerciseSectionBubble({
   // under the correct section via `sectionKey`.
   return (
     <SketchMaxHeightProvider value={isMobile ? MOBILE_SKETCH_MAX_HEIGHT_PX : undefined}>
-      <div className="flex flex-col gap-content-gap">
+      <div className="flex flex-col gap-content-gap-lg">
         {isChatNativePath ? (
           // MediaMapProvider is required so RichTextRenderer's MediaAttachments
           // (used inside prompts, option labels, and inline rich_text) can look
@@ -377,6 +377,7 @@ export function ExerciseSectionBubble({
                     key={block.id}
                     block={block as QuestionSelectBlock}
                     questionLabel={sectionLabel}
+                    questionLabelActive={isActive}
                     // Freeze only while a chat request is in flight (otherwise
                     // the resulting requestCorrection would be silently
                     // dropped). Past-section bubbles stay answerable so a
@@ -397,6 +398,7 @@ export function ExerciseSectionBubble({
                     key={block.id}
                     block={block as QuestionFreeResponseBlock}
                     questionLabel={sectionLabel}
+                    questionLabelActive={isActive}
                     placeholder={freeResponsePlaceholder ?? ''}
                     sendLabel={freeResponseSendLabel ?? ''}
                     disabled={quickActionsDisabled}
@@ -504,6 +506,7 @@ export function ExerciseSectionBubble({
             <ExerciseRenderer
               groups={[group]}
               questionLabelsOverride={questionLabels}
+              highlightQuestionLabels={isActive}
               mediaMap={mediaMap}
               exerciseNumber={ordinal}
               showExerciseNumber={false}

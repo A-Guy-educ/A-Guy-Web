@@ -114,6 +114,7 @@ export function ExerciseRenderer({
   showNotebook = false,
   questionLabelsOverride,
   hideHelpSystem = false,
+  highlightQuestionLabels = false,
   attachmentAfterPrompt = false,
 }: ExerciseRendererProps) {
   const t = useTranslations('courses')
@@ -802,6 +803,7 @@ export function ExerciseRenderer({
         correctText={t('correct')}
         incorrectText={t('incorrect')}
         questionLabel={questionLabel}
+        questionLabelHighlighted={highlightQuestionLabels}
         dir={dir}
         helpSystem={helpSystemNode}
         // Per-block notebook requires two opt-ins:
