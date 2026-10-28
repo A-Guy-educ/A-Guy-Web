@@ -94,7 +94,7 @@ export function LessonRow({ node, courseSlug, purchaseHref }: LessonRowProps) {
       data-lesson-id={lesson.id}
       data-lesson-status={status}
       className={cn(
-        'group flex items-center gap-content-gap-xs rounded-xl border p-card-padding-sm min-h-[60px]',
+        'group flex items-center gap-content-gap-xs rounded-xl border p-3 sm:p-card-padding-sm min-h-[60px]',
         'transition-all duration-normal',
         cardTone,
         isInteractive && 'hover:-translate-y-0.5 hover:shadow-elevation-1',
@@ -110,7 +110,7 @@ export function LessonRow({ node, courseSlug, purchaseHref }: LessonRowProps) {
       </div>
 
       <div className="min-w-0 flex-1">
-        <h4 className="text-body-sm font-bold text-foreground tracking-tight line-clamp-2 leading-tight">
+        <h4 className="text-body-sm font-bold text-foreground tracking-tight leading-tight break-words">
           {lesson.title}
         </h4>
         <LessonMeta node={node} t={t} />

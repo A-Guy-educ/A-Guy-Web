@@ -15,7 +15,9 @@ function make(overrides: Partial<ParsedProductHealthParams> = {}): ParsedProduct
     start: null,
     end: null,
     courseId: null,
+    grade: null,
     granularity: 'daily',
+    activeDwellSeconds: 60,
     ...overrides,
   }
 }
@@ -63,14 +65,50 @@ describe('resolvePeriod', () => {
     expect(isoDate(resolved.period.end)).toBe('2026-03-08')
     expect(resolved.buckets).toHaveLength(7)
   })
+
+  it('reaches back 14 days before the 7d period (comparison + its lookback)', () => {
+    const resolved = resolvePeriod(make({ range: '7d' }), NOW)
+    // period 2026-03-09..16 → comparison 2026-03-02 → lookback 7d → 2026-02-23
+    expect(isoDate(signalWindowStart(resolved))).toBe('2026-02-23')
+  })
+})
+
+describe('retention lookback', () => {
+  it.each([
+    ['7d', 7],
+    ['30d', 30],
+    ['90d', 90],
+  ] as const)('follows the selected %s period length', (range, days) => {
+    expect(resolvePeriod(make({ range }), NOW).retentionLookbackDays).toBe(days)
+  })
+
+  it('follows a custom range length', () => {
+    const resolved = resolvePeriod(
+      make({ range: 'custom', start: '2026-03-01', end: '2026-03-10' }),
+      NOW,
+    )
+    expect(resolved.retentionLookbackDays).toBe(10)
+  })
+
+  it('reaches back 14 days before the 7d period (comparison + its lookback)', () => {
+    const resolved = resolvePeriod(make({ range: '7d' }), NOW)
+    // period 2026-03-09..16 → comparison 2026-03-02 → lookback 7d → 2026-02-23
+    expect(isoDate(signalWindowStart(resolved))).toBe('2026-02-23')
+  })
 })
 
 describe('signalWindowStart', () => {
-  it('is 30 days before the earliest window we need', () => {
+  it('is one period-length before the earliest window we need', () => {
     const resolved = resolvePeriod(make({ range: '30d' }), NOW)
     const signalStart = signalWindowStart(resolved)
     // earliest of comparison.start / bucket[0].start is comparison.start = 2026-01-15
     // → signalWindowStart = 2025-12-16
     expect(isoDate(signalStart)).toBe('2025-12-16')
+  })
+
+  it('reaches back 14 days before the 7d period (comparison + its lookback)', () => {
+    const resolved = resolvePeriod(make({ range: '7d' }), NOW)
+    // period 2026-03-09..16 → comparison 2026-03-02 → lookback 7d → 2026-02-23
+    expect(isoDate(signalWindowStart(resolved))).toBe('2026-02-23')
   })
 })

@@ -104,6 +104,8 @@ export function MediaTabContent({
   const locale = useLocale()
   const rtl = isRTL(locale as 'en' | 'he')
   const isDesktop = useMediaQuery('(min-width: 1024px)')
+  // Notebook is for tablet/desktop only — too cramped on phones
+  const isTabletUp = useMediaQuery('(min-width: 768px)')
   const [currentFileIndex, setCurrentFileIndex] = useState(0)
   const [touchStart, setTouchStart] = useState<number | null>(null)
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
@@ -296,7 +298,9 @@ export function MediaTabContent({
               </div>
             </div>
           )}
-          <FloatingNotebook containerRef={primaryAreaRef} onCheck={handleNotebookCheck} />
+          {isTabletUp && (
+            <FloatingNotebook containerRef={primaryAreaRef} onCheck={handleNotebookCheck} />
+          )}
           {isDesktop && isChatCollapsed && (
             <button
               type="button"

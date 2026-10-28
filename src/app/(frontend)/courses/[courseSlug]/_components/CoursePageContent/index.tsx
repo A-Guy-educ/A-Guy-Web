@@ -88,13 +88,13 @@ export function CoursePageContent({
 
       {/* Locale fallback notice */}
       {isLocaleFallback && (
-        <div className="container mx-auto px-6 pt-section-sm max-w-5xl">
+        <div className="container mx-auto px-3 sm:px-6 pt-section-sm max-w-5xl">
           <LocaleFallbackBanner isLocaleFallback={isLocaleFallback} />
         </div>
       )}
 
       {/* Course title area with gradient accent */}
-      <div className="w-full py-section-sm px-6 relative overflow-hidden">
+      <div className="w-full py-section-sm px-3 sm:px-6 relative overflow-hidden">
         {/* Subtle gradient accent behind the title */}
         <div
           className="absolute inset-0 opacity-[0.04] pointer-events-none"
@@ -116,7 +116,7 @@ export function CoursePageContent({
       <CourseTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
       {searchNodes.length > 0 && (
-        <div className="container mx-auto px-6 max-w-5xl mb-content-gap">
+        <div className="container mx-auto px-3 sm:px-6 max-w-5xl mb-content-gap">
           <CourseComposer
             nodes={searchNodes}
             courseId={course.id}
@@ -129,7 +129,7 @@ export function CoursePageContent({
       )}
 
       {/* Main content with AnimatePresence for smooth tab transitions */}
-      <main className="container mx-auto px-6 py-section-sm max-w-5xl">
+      <main className="container mx-auto px-3 sm:px-6 py-section-sm max-w-5xl">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}

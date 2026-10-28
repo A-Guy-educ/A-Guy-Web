@@ -69,6 +69,34 @@ describe('TutorChatOrchestrator', () => {
     expect(beforeGenerate).toHaveBeenCalledOnce()
   })
 
+  it('stamps the assistant reply when expected attachments were missing', async () => {
+    const { repository, appended } = createRepository()
+    const gateway: TutorModelGateway = {
+      generate: vi.fn(async () => ({
+        text: 'Tutor answer',
+        inputTokens: 4,
+        outputTokens: 2,
+        model: 'test-model',
+      })),
+      stream: vi.fn(),
+    }
+    const orchestrator = new TutorChatOrchestrator({ repository, gateway })
+
+    await orchestrator.run({
+      ownerId: 'user-1',
+      contextKey: 'lessons:lesson-1',
+      turnId: '9f1c2d3e-4b5a-4c6d-8e7f-0a1b2c3d4e5f',
+      message: 'Help me with exercise 6',
+      acknowledgment: 'Sure',
+      attachmentText: '',
+      parts: [],
+      attachmentsMissing: 1,
+    })
+
+    const assistant = appended.find((message) => message.role === 'assistant')
+    expect(assistant?.attachmentsMissing).toBe(1)
+  })
+
   it('returns a completed turn without calling the model again', async () => {
     const { repository, conversation } = createRepository()
     conversation.messages.push({

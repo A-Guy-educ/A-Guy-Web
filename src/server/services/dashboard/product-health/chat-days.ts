@@ -10,7 +10,7 @@
  * Restricted to the eligible-user pool so admin/test-domain accounts
  * never enter the numerator or denominator.
  *
- * courseId filter is applied *upstream* via the eligible-user pool
+ * courseId / grade filters are applied *upstream* via the eligible-user pool
  * (users whose currentCourse matches). We deliberately do NOT filter on
  * `contextRef.value` here — a course-scoped user's chats about other
  * things still count as engagement for that user.

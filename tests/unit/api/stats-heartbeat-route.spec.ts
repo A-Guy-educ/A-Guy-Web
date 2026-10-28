@@ -16,6 +16,7 @@ const mockGetWebUser = vi.hoisted(() => vi.fn())
 const mockGetOrCreateUserStats = vi.hoisted(() => vi.fn())
 const mockFindUserProgress = vi.hoisted(() => vi.fn())
 const mockUpsertUserProgress = vi.hoisted(() => vi.fn())
+const mockRecordLessonVisitPing = vi.hoisted(() => vi.fn())
 
 vi.mock('@/infra/db/content-db', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/infra/db/content-db')>()
@@ -23,6 +24,11 @@ vi.mock('@/infra/db/content-db', async (importOriginal) => {
 })
 
 vi.mock('@/infra/web-api/mongo-payload', () => ({ getWebUser: mockGetWebUser }))
+
+vi.mock('@/server/services/lesson-visits', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/server/services/lesson-visits')>()
+  return { ...actual, recordLessonVisitPing: mockRecordLessonVisitPing }
+})
 
 vi.mock('@/server/web-api/progress', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/server/web-api/progress')>()
@@ -36,6 +42,8 @@ vi.mock('@/server/web-api/progress', async (importOriginal) => {
 
 const USER_ID = 'user-1'
 const LESSON_ID = 'lesson-1'
+const VISIT_ID = '3f2a9c4e-1b7d-4c55-9a0e-6d2f8b1c7e90'
+const COURSE_ID = '507f1f77bcf86cd799439011'
 
 function seed(seedData: Record<string, Doc[]> = {}) {
   db.current = mockContentDb(seedData)
@@ -64,6 +72,7 @@ describe('POST /api/stats/heartbeat', () => {
     })
     mockFindUserProgress.mockReset().mockResolvedValue({ progressRecords: [] })
     mockUpsertUserProgress.mockReset().mockResolvedValue(undefined)
+    mockRecordLessonVisitPing.mockReset().mockResolvedValue(undefined)
   })
 
   it('refuses an anonymous caller', async () => {
@@ -77,7 +86,10 @@ describe('POST /api/stats/heartbeat', () => {
 
   it.each([
     ['no body at all', undefined],
-    ['zero seconds', { seconds: 0 }],
+    ['zero seconds without a visit', { seconds: 0 }],
+    ['zero seconds with a visit but no lesson', { seconds: 0, visitId: VISIT_ID }],
+    ['a malformed visitId', { seconds: 30, lessonId: LESSON_ID, visitId: 'x y' }],
+    ['an unknown content type', { seconds: 30, lessonId: LESSON_ID, contentType: 'video' }],
     ['more seconds than a heartbeat can cover', { seconds: 121 }],
     ['a non-numeric duration', { seconds: 'thirty' }],
   ])('rejects %s', async (_label, body) => {
@@ -163,5 +175,50 @@ describe('POST /api/stats/heartbeat', () => {
     const [, , update] = mockUpsertUserProgress.mock.calls[0]
     expect(update.progressRecords).toHaveLength(2)
     expect(update.progressRecords[0]).toMatchObject({ recordId: 'other', timeSpentSeconds: 5 })
+  })
+
+  it('logs the visit alongside the legacy counters when a visitId is sent', async () => {
+    const { status } = await heartbeat({
+      seconds: 30,
+      lessonId: LESSON_ID,
+      visitId: VISIT_ID,
+      courseId: COURSE_ID,
+      contentType: 'pdf',
+    })
+
+    expect(status).toBe(200)
+    expect(mockRecordLessonVisitPing).toHaveBeenCalledWith({
+      userId: USER_ID,
+      visitId: VISIT_ID,
+      lessonId: LESSON_ID,
+      courseId: COURSE_ID,
+      contentType: 'pdf',
+      seconds: 30,
+      scrolled: false,
+    })
+    expect(mockUpsertUserProgress).toHaveBeenCalled()
+  })
+
+  it('treats a zero-second visit ping as dwell-log only', async () => {
+    const { status, body } = await heartbeat({
+      seconds: 0,
+      lessonId: LESSON_ID,
+      visitId: VISIT_ID,
+      scrolled: true,
+    })
+
+    expect(status).toBe(200)
+    expect(body).toEqual({ success: true })
+    expect(mockRecordLessonVisitPing).toHaveBeenCalledWith(
+      expect.objectContaining({ seconds: 0, scrolled: true }),
+    )
+    expect(mockGetOrCreateUserStats).not.toHaveBeenCalled()
+    expect(mockUpsertUserProgress).not.toHaveBeenCalled()
+  })
+
+  it('skips the visit log for clients that send no visitId', async () => {
+    await heartbeat({ seconds: 30, lessonId: LESSON_ID })
+
+    expect(mockRecordLessonVisitPing).not.toHaveBeenCalled()
   })
 })

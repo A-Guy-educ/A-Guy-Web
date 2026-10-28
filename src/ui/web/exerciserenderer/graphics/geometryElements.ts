@@ -4,6 +4,7 @@ import {
   getDefaultCanvasElementColor,
   sizeScaleToPixels,
 } from '@/infra/contracts/graphics/textColors'
+import { LINE_LABEL_OFFSET_RATIO, lineLabelFontSize } from '@/infra/utils/graphics/line-label'
 import { renderAngles } from './geometryAngleMarkers'
 
 type PointSpec = GeometrySpecV1['elements']['points'][number]
@@ -85,7 +86,7 @@ function renderLines(
       const dx = to.X() - from.X()
       const dy = to.Y() - from.Y()
       const len = Math.sqrt(dx * dx + dy * dy) || 1
-      const baseOffset = canvasHeight * 0.03
+      const baseOffset = canvasHeight * LINE_LABEL_OFFSET_RATIO
       const offsetDist =
         line.label.position === 'b' ? -baseOffset : line.label.position === 'm' ? 0 : baseOffset
       const midX = (from.X() + to.X()) / 2 + (-dy / len) * offsetDist
@@ -94,7 +95,7 @@ function renderLines(
       if (deg > 90) deg -= 180
       if (deg < -90) deg += 180
       board.create('text', [midX, midY, line.label.value], {
-        fontSize: line.label.fontSize ?? 10,
+        fontSize: lineLabelFontSize(line.label.fontSize),
         anchorX: 'middle',
         anchorY: 'middle',
         display: 'internal',

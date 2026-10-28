@@ -10,7 +10,8 @@
  * `productHealth` slice (Dash PR #16 wireframe) is attached when
  * PRODUCT_HEALTH_ENABLED is truthy and driven by the following query
  * params (all optional; validated in product-health/params.ts):
- *   range=7d|30d|90d|custom, start, end, courseId, granularity
+ *   range=7d|30d|90d|custom, start, end, courseId, grade, granularity,
+ *   activeDwellSeconds
  */
 
 import { NextResponse } from 'next/server'
