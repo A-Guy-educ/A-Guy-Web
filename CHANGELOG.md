@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.58.0 — 2026-10-28
+
+### Features
+- Widen spacing around chat view sections (#1509)
+- Highlight the active section badge in chat view (#1508)
+- Honor the interactive flag on axis and geometry specs (#1507)
+
+### Bug Fixes
+- Stop JSXGraph event handling on non-interactive boards (#1510)
+- Tighten prompt-to-answer gap so chat sections read as groups (#1509)
+
 ## v0.57.0 — 2026-10-28
 
 ### Features
