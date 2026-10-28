@@ -259,7 +259,7 @@ export function ChatFreeResponseBubble({
 
   const answerNode = (
     <>
-      <div className="relative mt-2" data-math-controls>
+      <div className="relative" data-math-controls>
         <form
           ref={formRef}
           onSubmit={handleSubmit}
