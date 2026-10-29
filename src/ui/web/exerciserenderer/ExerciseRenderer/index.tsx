@@ -476,6 +476,11 @@ export function ExerciseRenderer({
       layout?: string
       prompt?: unknown
     }
+    // With attachmentAfterPrompt (chat view on mobile) a side-by-side sketch is
+    // too narrow to read, so stack it below its prompt text instead.
+    const graphLayout: 'textAbove' | 'textBelow' | 'textLeft' | 'textRight' = attachmentAfterPrompt
+      ? 'textAbove'
+      : (b.layout as 'textAbove' | 'textBelow' | 'textLeft' | 'textRight') || 'textRight'
     if (b.type === ('question_geometry' as string)) {
       const geometryBlock = b as ContentBlock & {
         geometry?: GeometrySpecV1
@@ -486,9 +491,7 @@ export function ExerciseRenderer({
           <GraphWithPrompt
             key={b.id}
             blockId={b.id}
-            layout={
-              (b.layout as 'textAbove' | 'textBelow' | 'textLeft' | 'textRight') || 'textRight'
-            }
+            layout={graphLayout}
             prompt={b.prompt as import('@/infra/types/exercise').InlineRichText | undefined}
           >
             <GeometryRenderer
@@ -511,9 +514,7 @@ export function ExerciseRenderer({
           <GraphWithPrompt
             key={b.id}
             blockId={b.id}
-            layout={
-              (b.layout as 'textAbove' | 'textBelow' | 'textLeft' | 'textRight') || 'textRight'
-            }
+            layout={graphLayout}
             prompt={b.prompt as import('@/infra/types/exercise').InlineRichText | undefined}
           >
             <AxisRenderer
