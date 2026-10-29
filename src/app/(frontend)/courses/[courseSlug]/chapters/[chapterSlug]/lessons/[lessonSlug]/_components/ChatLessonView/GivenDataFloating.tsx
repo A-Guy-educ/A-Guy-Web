@@ -1,5 +1,6 @@
 'use client'
 
+import { useMediaQuery } from '@/client/hooks/useMediaQuery'
 import type { Media } from '@/infra/types/content'
 import type { ContentBlock } from '@/infra/types/exercise'
 import { cn } from '@/infra/utils/ui'
@@ -7,6 +8,7 @@ import { ExerciseRenderer } from '@/ui/web/exerciserenderer'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Shapes, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { MOBILE_QUERY } from './bubbles/ExerciseSectionBubble'
 
 const EMPTY_MEDIA_MAP: Record<string, Media> = {}
 
@@ -46,6 +48,8 @@ export function GivenDataFloating({
   emptyLabel,
 }: GivenDataFloatingProps) {
   const [open, setOpen] = useState(false)
+  // Geometry / axis sketches stack below their text on mobile.
+  const isMobile = useMediaQuery(MOBILE_QUERY)
 
   // Collapse whenever the student advances to a new exercise so a stale
   // given-data card never overlays a different exercise's chrome.
@@ -104,6 +108,7 @@ export function GivenDataFloating({
                   showCheckAnswer={false}
                   showExerciseNumber={false}
                   questionCardVariant="flat"
+                  attachmentAfterPrompt={isMobile}
                 />
               ) : emptyLabel ? (
                 <p className="text-body-sm text-muted-foreground text-center py-3">{emptyLabel}</p>

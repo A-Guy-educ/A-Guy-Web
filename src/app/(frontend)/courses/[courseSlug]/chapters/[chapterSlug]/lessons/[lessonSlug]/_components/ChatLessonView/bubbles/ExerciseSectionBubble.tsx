@@ -35,7 +35,7 @@ import { QuickActionChips, type QuickAction } from './QuickActionChips'
 const EMPTY_MEDIA_MAP: Record<string, Media> = {}
 
 // Tailwind `md` breakpoint — same mobile query SvgRenderer sizes against.
-const MOBILE_QUERY = '(max-width: 767px)'
+export const MOBILE_QUERY = '(max-width: 767px)'
 // Mobile cap on sketch height (svg / geometry / axis). Width follows the
 // sketch's aspect ratio so the prompt, sketch and answer area fit together.
 const MOBILE_SKETCH_MAX_HEIGHT_PX = 275
