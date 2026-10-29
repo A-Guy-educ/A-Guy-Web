@@ -434,7 +434,8 @@ export function ExerciseSectionBubble({
               // keeps the chat-native treatment on the question instead of
               // dumping the whole group into the ExerciseRenderer fallback. Each
               // uses the same renderer the Interactive tab does so the sketch
-              // looks identical across views.
+              // looks identical across views. On mobile, geometry/axis stack the
+              // sketch below its prompt — side-by-side squeezes both unreadably.
               if (block.type === 'svg') {
                 const svg = block as SvgBlock
                 return <SvgRenderer key={svg.id} block={svg} displaySize={svg.displaySize} />
@@ -451,7 +452,7 @@ export function ExerciseSectionBubble({
                   <GraphWithPrompt
                     key={g.id}
                     blockId={g.id}
-                    layout={g.layout ?? 'textRight'}
+                    layout={isMobile ? 'textAbove' : (g.layout ?? 'textRight')}
                     prompt={g.prompt}
                   >
                     <GeometryRenderer
@@ -474,7 +475,7 @@ export function ExerciseSectionBubble({
                   <GraphWithPrompt
                     key={a.id}
                     blockId={a.id}
-                    layout={a.layout ?? 'textRight'}
+                    layout={isMobile ? 'textAbove' : (a.layout ?? 'textRight')}
                     prompt={a.prompt}
                   >
                     <AxisRenderer blockId={a.id} spec={a.axis} displaySize={a.displaySize} />
