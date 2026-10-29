@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.58.1 — 2026-10-29
+
+### Bug Fixes
+- Stack given-data sketches below their text on mobile (#1514)
+- Stack geometry/axis sketches below their text on mobile (#1513)
+
 ## v0.58.0 — 2026-10-28
 
 ### Features
