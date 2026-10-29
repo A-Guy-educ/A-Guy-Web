@@ -5107,6 +5107,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix(chat): Stack given-data sketches below their text on mobile ([#1514](https://github.com/A-Guy-educ/A-Guy-Web/pull/1514)) — @aguyshayb
 - fix(chat): Stack geometry/axis sketches below their text on mobile ([#1513](https://github.com/A-Guy-educ/A-Guy-Web/pull/1513)) — @aguyshayb
 ## [v0.58.0] - 2026-10-28
 
