@@ -5113,6 +5113,8 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+## [v0.58.1] - 2026-10-29
+
 - promote: dev -> main (v0.58.1) ([#1516](https://github.com/A-Guy-educ/A-Guy-Web/pull/1516)) — @aguyshayb
 - chore: Release v0.58.1 ([#1515](https://github.com/A-Guy-educ/A-Guy-Web/pull/1515)) — @aguyshayb
 - fix(chat): Stack given-data sketches below their text on mobile ([#1514](https://github.com/A-Guy-educ/A-Guy-Web/pull/1514)) — @aguyshayb
