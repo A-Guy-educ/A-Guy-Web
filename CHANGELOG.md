@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.58.1 — 2026-10-29
+
+### Bug Fixes
+- Stack given-data sketches below their text on mobile (#1514)
+- Stack geometry/axis sketches below their text on mobile (#1513)
+
 ## v0.58.0 — 2026-10-28
 
 ### Features
@@ -5107,6 +5113,12 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.58.1 ([#1515](https://github.com/A-Guy-educ/A-Guy-Web/pull/1515)) — @aguyshayb
+- fix(chat): Stack given-data sketches below their text on mobile ([#1514](https://github.com/A-Guy-educ/A-Guy-Web/pull/1514)) — @aguyshayb
+- fix(chat): Stack geometry/axis sketches below their text on mobile ([#1513](https://github.com/A-Guy-educ/A-Guy-Web/pull/1513)) — @aguyshayb
+## [v0.58.0] - 2026-10-28
+
+- promote: dev -> main (v0.58.0) ([#1512](https://github.com/A-Guy-educ/A-Guy-Web/pull/1512)) — @aguyshayb
 - chore: Release v0.58.0 ([#1511](https://github.com/A-Guy-educ/A-Guy-Web/pull/1511)) — @aguyshayb
 - fix: Stop JSXGraph event handling on non-interactive boards ([#1510](https://github.com/A-Guy-educ/A-Guy-Web/pull/1510)) — @aguyshayb
 - feat: Widen spacing around chat view sections ([#1509](https://github.com/A-Guy-educ/A-Guy-Web/pull/1509)) — @aguyshayb

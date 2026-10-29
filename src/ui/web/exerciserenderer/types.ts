@@ -335,7 +335,8 @@ export interface ExerciseRendererProps {
    * and the answer area (prompt → sketch → options / input / table) instead
    * of the authored side-by-side / stacked layout. The chat view turns it on
    * for mobile, where side-by-side collapses to a column and would push the
-   * sketch above or below the whole question. Defaults to `false`.
+   * sketch above or below the whole question. Standalone geometry/axis blocks
+   * also stack their sketch below the prompt text. Defaults to `false`.
    */
   attachmentAfterPrompt?: boolean
 }

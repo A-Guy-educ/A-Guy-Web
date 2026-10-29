@@ -1,6 +1,7 @@
 'use client'
 
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
+import { useMediaQuery } from '@/client/hooks/useMediaQuery'
 import { useRouterWithLoading } from '@/infra/loading/hooks/useRouterWithLoading'
 import { useParams } from 'next/navigation'
 import { clampToLearningExerciseGate, getUserTierSlug } from '@/lib/tiers'
@@ -20,7 +21,7 @@ import { ChatInputPanel } from './ChatInputPanel'
 import { ChatLessonProgress } from './ChatLessonProgress'
 import { GivenDataFloating } from './GivenDataFloating'
 import { ContinueButton } from './bubbles/ContinueButton'
-import { ExerciseSectionBubble } from './bubbles/ExerciseSectionBubble'
+import { ExerciseSectionBubble, MOBILE_QUERY } from './bubbles/ExerciseSectionBubble'
 import { QuestionHeaderBadges } from './bubbles/QuestionHeaderBadges'
 import type { ValidationErrorMessages } from './bubbles/ChatFreeResponseBubble'
 import { PendingBubble } from './bubbles/PendingBubble'
@@ -1009,6 +1010,8 @@ function StreamEntryView({
   isQuotaExhausted,
   summaryProps,
 }: StreamEntryViewProps) {
+  // Given-data sketches (geometry / axis) stack below their text on mobile.
+  const isMobile = useMediaQuery(MOBILE_QUERY)
   switch (entry.kind) {
     case 'exercise-intro': {
       const label = entry.title
@@ -1034,6 +1037,7 @@ function StreamEntryView({
                   showCheckAnswer={false}
                   showExerciseNumber={false}
                   questionCardVariant="flat"
+                  attachmentAfterPrompt={isMobile}
                 />
               </QuestionHeaderBadges>
             </div>
