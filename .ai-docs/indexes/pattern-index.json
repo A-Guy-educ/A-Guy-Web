@@ -308,6 +308,7 @@
         "src/ui/web/media/LatexMedia/index.tsx",
         "src/ui/web/media/OtherMedia/index.tsx",
         "src/ui/web/media/PDFMedia/index.tsx",
+        "src/ui/web/media/PDFMedia/pdfScrollTracker.ts",
         "src/ui/web/media/PDFMedia/pdfViewerBridge.ts",
         "src/ui/web/media/SVGMedia/index.tsx",
         "src/ui/web/media/VideoMedia/index.tsx",
@@ -607,6 +608,7 @@
         "src/ui/web/exerciserenderer/blocks/GraphWithPrompt/index.tsx",
         "src/ui/web/exerciserenderer/blocks/MultiAxisRenderer/index.tsx",
         "src/ui/web/exerciserenderer/blocks/QuestionWithAttachment/index.tsx",
+        "src/ui/web/exerciserenderer/blocks/RichTextRenderer/index.tsx",
         "src/ui/web/exerciserenderer/blocks/SvgRenderer/index.tsx",
         "src/ui/web/exerciserenderer/components/FeedbackDisplay/index.tsx",
         "src/ui/web/exerciserenderer/components/HelpSystem/HelpSystemButtons.tsx",
@@ -847,7 +849,6 @@
         "src/app/api/oauth/google/callback/route.ts",
         "src/app/api/payments/checkout/route.ts",
         "src/app/api/progress/route.ts",
-        "src/app/api/stats/heartbeat/route.ts",
         "src/app/api/stats/streak/route.ts",
         "src/app/api/stats/track-activity/route.ts",
         "src/app/api/study-plan/route.ts",
@@ -928,15 +929,18 @@
         "src/server/api/with-api-handler.ts"
       ]
     },
+    "heartbeat": {
+      "pattern": "heartbeat",
+      "description": "No description available",
+      "files": [
+        "src/client/hooks/lesson-visit-heartbeat.ts",
+        "src/client/hooks/useActiveTimeTracker.ts"
+      ]
+    },
     "access-gate": {
       "pattern": "access-gate",
       "description": "No description available",
       "files": ["src/client/hooks/useAccessGate.ts"]
-    },
-    "heartbeat": {
-      "pattern": "heartbeat",
-      "description": "No description available",
-      "files": ["src/client/hooks/useActiveTimeTracker.ts"]
     },
     "chat-progress-map": {
       "pattern": "chat-progress-map",
@@ -1299,6 +1303,11 @@
       "description": "No description available",
       "files": ["src/infra/security/rate-limit.ts", "src/server/services/rate-limit.ts"]
     },
+    "share-description": {
+      "pattern": "share-description",
+      "description": "No description available",
+      "files": ["src/infra/seo/shareDescription.ts"]
+    },
     "backend-types": {
       "pattern": "backend-types",
       "description": "No description available",
@@ -1374,10 +1383,20 @@
       "description": "No description available",
       "files": ["src/infra/utils/getURL.ts"]
     },
+    "jsxgraph-config": {
+      "pattern": "jsxgraph-config",
+      "description": "No description available",
+      "files": ["src/infra/utils/graphics/axis-ticks.ts"]
+    },
     "board-sizing": {
       "pattern": "board-sizing",
       "description": "No description available",
       "files": ["src/infra/utils/graphics/board-sizing.ts"]
+    },
+    "geometry-label": {
+      "pattern": "geometry-label",
+      "description": "No description available",
+      "files": ["src/infra/utils/graphics/line-label.ts"]
     },
     "viewport-calculation": {
       "pattern": "viewport-calculation",
@@ -1681,6 +1700,11 @@
       "pattern": "counter-collection",
       "description": "No description available",
       "files": ["src/server/services/lesson-stats.ts"]
+    },
+    "event-log": {
+      "pattern": "event-log",
+      "description": "No description available",
+      "files": ["src/server/services/lesson-visits.ts"]
     },
     "counter-collection + user-schema-counter": {
       "pattern": "counter-collection + user-schema-counter",
@@ -2380,7 +2404,7 @@
       "domain": "general",
       "patterns": ["i18n-component", "client-component"],
       "aiSummary": "",
-      "dependencies": ["lucide-react"]
+      "dependencies": []
     },
     "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/index.tsx": {
       "path": "src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/index.tsx",
@@ -3486,14 +3510,6 @@
       "aiSummary": "",
       "dependencies": ["next/server"]
     },
-    "src/app/api/stats/heartbeat/route.ts": {
-      "path": "src/app/api/stats/heartbeat/route.ts",
-      "type": "unknown",
-      "domain": "general",
-      "patterns": ["validated-endpoint"],
-      "aiSummary": "",
-      "dependencies": ["next/server", "zod"]
-    },
     "src/app/api/stats/streak/route.ts": {
       "path": "src/app/api/stats/streak/route.ts",
       "type": "unknown",
@@ -3645,6 +3661,14 @@
       "patterns": ["tailwind-component"],
       "aiSummary": "A-Guy brand logo component rendering the bilingual mark (Ǎ-guy + גאי wordmark) inline.",
       "dependencies": ["react"]
+    },
+    "src/client/hooks/lesson-visit-heartbeat.ts": {
+      "path": "src/client/hooks/lesson-visit-heartbeat.ts",
+      "type": "utility",
+      "domain": "analytics",
+      "patterns": ["heartbeat"],
+      "aiSummary": "Visit id minting, heartbeat body builder, and the PDF-scroll window event name",
+      "dependencies": []
     },
     "src/client/hooks/useAccessGate.ts": {
       "path": "src/client/hooks/useAccessGate.ts",
@@ -4390,6 +4414,14 @@
       "aiSummary": "Durable, serverless-safe rate limiter using a Mongo TTL collection with atomic upserts.",
       "dependencies": ["next/server", "mongodb"]
     },
+    "src/infra/seo/shareDescription.ts": {
+      "path": "src/infra/seo/shareDescription.ts",
+      "type": "utility",
+      "domain": "seo",
+      "patterns": ["share-description"],
+      "aiSummary": "Builds the og/twitter description so every link preview carries the brand tagline under the page title: tagline alone when the page has no description, \"tagline · description\" otherwise, untouched when the title already is the tagline.",
+      "dependencies": []
+    },
     "src/infra/types/backend.ts": {
       "path": "src/infra/types/backend.ts",
       "type": "utility",
@@ -4510,12 +4542,28 @@
       "aiSummary": "Resolves server URL from env with Vercel/specific fallback order; getClientSideURL reads window.location which is only available in the browser.",
       "dependencies": []
     },
+    "src/infra/utils/graphics/axis-ticks.ts": {
+      "path": "src/infra/utils/graphics/axis-ticks.ts",
+      "type": "utility",
+      "domain": "graphics",
+      "patterns": ["jsxgraph-config"],
+      "aiSummary": "Fixed 1-unit tick and grid spacing for axis boards, shared with the admin editor",
+      "dependencies": []
+    },
     "src/infra/utils/graphics/board-sizing.ts": {
       "path": "src/infra/utils/graphics/board-sizing.ts",
       "type": "utility",
       "domain": "graphics",
       "patterns": ["board-sizing"],
       "aiSummary": "Compute JSXGraph board pixel dimensions for existing sketch",
+      "dependencies": []
+    },
+    "src/infra/utils/graphics/line-label.ts": {
+      "path": "src/infra/utils/graphics/line-label.ts",
+      "type": "utility",
+      "domain": "graphics",
+      "patterns": ["geometry-label"],
+      "aiSummary": "Size and offset of geometry segment labels, shared with the admin editor",
       "dependencies": []
     },
     "src/infra/utils/graphics/viewport-utils.ts": {
@@ -5133,6 +5181,14 @@
       "patterns": ["counter-collection"],
       "aiSummary": "Per-lesson $inc counters for open count + future duration totals",
       "dependencies": []
+    },
+    "src/server/services/lesson-visits.ts": {
+      "path": "src/server/services/lesson-visits.ts",
+      "type": "service",
+      "domain": "dashboard",
+      "patterns": ["event-log"],
+      "aiSummary": "Upserts one row per lesson visit (dwell seconds, content type, scrolled flag)",
+      "dependencies": ["mongodb"]
     },
     "src/server/services/lessons.ts": {
       "path": "src/server/services/lessons.ts",
@@ -6067,6 +6123,14 @@
       "aiSummary": "",
       "dependencies": ["react"]
     },
+    "src/ui/web/exerciserenderer/blocks/RichTextRenderer/index.tsx": {
+      "path": "src/ui/web/exerciserenderer/blocks/RichTextRenderer/index.tsx",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["tailwind-component"],
+      "aiSummary": "",
+      "dependencies": ["react-markdown"]
+    },
     "src/ui/web/exerciserenderer/blocks/SvgRenderer/index.tsx": {
       "path": "src/ui/web/exerciserenderer/blocks/SvgRenderer/index.tsx",
       "type": "unknown",
@@ -6475,6 +6539,14 @@
       "aiSummary": "",
       "dependencies": ["react"]
     },
+    "src/ui/web/media/PDFMedia/pdfScrollTracker.ts": {
+      "path": "src/ui/web/media/PDFMedia/pdfScrollTracker.ts",
+      "type": "unknown",
+      "domain": "general",
+      "patterns": ["client-component"],
+      "aiSummary": "",
+      "dependencies": []
+    },
     "src/ui/web/media/PDFMedia/pdfViewerBridge.ts": {
       "path": "src/ui/web/media/PDFMedia/pdfViewerBridge.ts",
       "type": "unknown",
@@ -6869,8 +6941,8 @@
     }
   },
   "metadata": {
-    "generatedAt": "2026-10-26T06:07:59.171Z",
-    "totalFiles": 622,
-    "totalPatterns": 196
+    "generatedAt": "2026-10-31T06:57:19.438Z",
+    "totalFiles": 628,
+    "totalPatterns": 200
   }
 }
