@@ -5113,6 +5113,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Return to lesson after subscribing + 50%/90% token usage alerts ([#1518](https://github.com/A-Guy-educ/A-Guy-Web/pull/1518)) — @aguyshayb
 - fix(csp): Allow Blob store hosts in media-src for uploaded video ([#1519](https://github.com/A-Guy-educ/A-Guy-Web/pull/1519)) — @aguyshayb
 - fix: Read lesson PDFs from Blob and never answer without them ([#1517](https://github.com/A-Guy-educ/A-Guy-Web/pull/1517)) — @aguyshayb
 - chore(deps): Pin node-forge to 1.4.1 or later to clear high audit advisories ([#1520](https://github.com/A-Guy-educ/A-Guy-Web/pull/1520)) — @aguyshayb
