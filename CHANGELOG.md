@@ -5113,6 +5113,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat(teacher): Share the section independence classifier with the dashboard ([#1527](https://github.com/A-Guy-educ/A-Guy-Web/pull/1527)) — @aguyshayb
 - fix(chat): Land on the first block after continue or skip ([#1526](https://github.com/A-Guy-educ/A-Guy-Web/pull/1526)) — @aguyshayb
 - fix: Token usage alert never visible during chat ([#1525](https://github.com/A-Guy-educ/A-Guy-Web/pull/1525)) — @aguyshayb
 - feat: Join a class from the CMS with Google sign-in ([#1524](https://github.com/A-Guy-educ/A-Guy-Web/pull/1524)) — @aguyshayb
