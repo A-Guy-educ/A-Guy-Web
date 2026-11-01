@@ -5113,6 +5113,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix(chat): Land on the first block after continue or skip ([#1526](https://github.com/A-Guy-educ/A-Guy-Web/pull/1526)) — @aguyshayb
 - fix: Token usage alert never visible during chat ([#1525](https://github.com/A-Guy-educ/A-Guy-Web/pull/1525)) — @aguyshayb
 - feat: Join a class from the CMS with Google sign-in ([#1524](https://github.com/A-Guy-educ/A-Guy-Web/pull/1524)) — @aguyshayb
 - fix: Re-arm token usage alerts when the cap changes ([#1523](https://github.com/A-Guy-educ/A-Guy-Web/pull/1523)) — @aguyshayb
