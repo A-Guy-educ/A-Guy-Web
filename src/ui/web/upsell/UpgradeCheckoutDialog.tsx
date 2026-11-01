@@ -93,7 +93,12 @@ export function UpgradeCheckoutDialog({ tier, onClose }: UpgradeCheckoutDialogPr
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ tier, offerSlug: 'default' }),
+          // The page the student is on — checkout success sends them back here.
+          body: JSON.stringify({
+            tier,
+            offerSlug: 'default',
+            returnTo: `${window.location.pathname}${window.location.search}`,
+          }),
         })
       }
       const data = (await res.json().catch(() => ({}))) as {

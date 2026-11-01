@@ -1,5 +1,6 @@
 'use client'
 
+import { useSubscriptionsHref } from '@/client/hooks/useSubscriptionsHref'
 import { cn } from '@/infra/utils/ui'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
 import { useTranslations } from '@/ui/web/providers/I18n'
@@ -22,6 +23,7 @@ function formatTimeRemaining(resetAt: string): string {
 
 export function ChatQuotaBar({ questionsUsed, maxQuestions, resetAt }: ChatQuotaBarProps) {
   const t = useTranslations('courses')
+  const subscribeHref = useSubscriptionsHref()
   const [timeLeft, setTimeLeft] = useState(() => (resetAt ? formatTimeRemaining(resetAt) : ''))
 
   useEffect(() => {
@@ -72,7 +74,7 @@ export function ChatQuotaBar({ questionsUsed, maxQuestions, resetAt }: ChatQuota
       )}
       {isExhausted && (
         <SystemLink
-          href="/subscriptions"
+          href={subscribeHref}
           className="text-warning font-medium underline underline-offset-2"
         >
           {t('chatQuotaUpgradeCta')}

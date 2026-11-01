@@ -1325,6 +1325,7 @@
       "paymentFailedDescription": "לא ניתן היה לעבד את התשלום. אנא נסה שוב או צור קשר עם התמיכה.",
       "backToProducts": "עיין במוצרים",
       "goHome": "לעמוד הבית",
+      "backToWhereYouWere": "חזרה למקום שבו עצרת",
       "goToCourse": "מעבר ל{course}",
       "grantingAccess": "מגדיר גישה…",
       "subscriptionConfirming": "מאשר את המנוי שלך…",

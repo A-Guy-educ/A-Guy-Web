@@ -1325,6 +1325,7 @@
       "paymentFailedDescription": "Your payment could not be processed. Please try again or contact support.",
       "backToProducts": "Browse Products",
       "goHome": "Go to Home",
+      "backToWhereYouWere": "Back to where you left off",
       "goToCourse": "Go to {course}",
       "grantingAccess": "Granting access…",
       "subscriptionConfirming": "Confirming your subscription…",

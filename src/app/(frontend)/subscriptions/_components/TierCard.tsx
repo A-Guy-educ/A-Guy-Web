@@ -22,6 +22,7 @@ import {
   type ActiveSubscription,
   type TierSlug,
 } from '@/lib/tiers'
+import { RETURN_TO_PARAM, sanitizeSubscribeReturnTo, subscriptionsHref } from '@/lib/tiers'
 import { CurrentPlanCta } from './CurrentPlanCta'
 
 type OfferSlug = 'default' | 'intro3mo'
@@ -97,6 +98,8 @@ export function TierCard({ tier, isConsented = true }: TierCardProps) {
   const isCurrent = currentTier === tier
 
   const offerSlug = resolveOfferSlug(searchParams?.get('offer') ?? null)
+  // Where the student hit the upsell wall — sent back there after subscribing.
+  const returnTo = sanitizeSubscribeReturnTo(searchParams?.get(RETURN_TO_PARAM))
 
   // Features are an array in the i18n JSON — pulled directly from the raw
   // messages tree because the typed `t()` helper only resolves string leaves.
@@ -124,8 +127,7 @@ export function TierCard({ tier, isConsented = true }: TierCardProps) {
 
   const handleSubscribe = async () => {
     if (!user) {
-      const returnTo = encodeURIComponent('/subscriptions')
-      router.push(`/login?returnTo=${returnTo}`)
+      router.push(`/login?returnTo=${encodeURIComponent(subscriptionsHref(returnTo))}`)
       return
     }
     if (!isConsented) {
@@ -166,7 +168,7 @@ export function TierCard({ tier, isConsented = true }: TierCardProps) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ tier: targetTier, offerSlug: slug }),
+      body: JSON.stringify({ tier: targetTier, offerSlug: slug, returnTo: returnTo ?? undefined }),
     })
     const data = await res.json()
     if (!res.ok || !data.success) {
@@ -217,7 +219,12 @@ export function TierCard({ tier, isConsented = true }: TierCardProps) {
     // doesn't move to the new tier until a hard refresh. A full reload after
     // a short delay (long enough for the success toast to show) gives us the
     // whole post-mutation UI in one shot without any custom bus plumbing.
-    setTimeout(() => window.location.reload(), 1200)
+    // When the student came from an upsell wall, that full load goes back
+    // to the page they were on instead.
+    setTimeout(() => {
+      if (returnTo) window.location.href = returnTo
+      else window.location.reload()
+    }, 1200)
   }
 
   return (

@@ -14,6 +14,7 @@ import { getDirection } from '@/i18n/config'
 import { getSystemLocale } from '@/i18n/server-locale'
 import { pageMetadata } from '@/infra/seo/pageMetadata'
 import { capturePayPalOrder } from '@/lib/payment/paypal'
+import { sanitizeSubscribeReturnTo } from '@/lib/tiers/subscribe-return'
 import {
   queryTransactionById,
   queryTransactionByProviderId,
@@ -33,6 +34,7 @@ type Props = {
     ba_token?: string
     provider?: string
     tranzilla_tx?: string
+    returnTo?: string
   }>
 }
 
@@ -59,7 +61,7 @@ export default async function CheckoutSuccessPage({ searchParams: searchParamsPr
   // like ?subscription_id=I-...&token=61R... would be looked up by the token,
   // hit no row, and leave the buyer stuck on the pending screen forever even
   // though the sub is already Active in Mongo.
-  const { session_id, token, subscription_id, tranzilla_tx } = await searchParamsPromise
+  const { session_id, token, subscription_id, tranzilla_tx, returnTo } = await searchParamsPromise
   // Tranzilla's real `index` is not on the row until Admin's webhook replaces
   // the placeholder, so for that provider we look up by the Payload row _id
   // that we baked into the success URL at checkout-create time.
@@ -129,6 +131,7 @@ export default async function CheckoutSuccessPage({ searchParams: searchParamsPr
         }
         productName={transaction?.productName ?? ''}
         firstCourse={transaction?.firstCourse ?? null}
+        returnTo={sanitizeSubscribeReturnTo(returnTo)}
       />
     </div>
   )
