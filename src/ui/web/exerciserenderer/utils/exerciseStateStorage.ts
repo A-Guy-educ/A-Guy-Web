@@ -39,6 +39,11 @@ export interface BlockMeta {
    */
   hintShown?: boolean
   /**
+   * True once the student asked for an explanation on this block's section.
+   * The lesson summary counts it as help, same as a hint.
+   */
+  explanationShown?: boolean
+  /**
    * Task-4 free-response submission history. Each entry is one attempt (text
    * the student typed + whether the pipeline accepted it). Preserved so a
    * future "end of lesson review" can surface what was tried without losing

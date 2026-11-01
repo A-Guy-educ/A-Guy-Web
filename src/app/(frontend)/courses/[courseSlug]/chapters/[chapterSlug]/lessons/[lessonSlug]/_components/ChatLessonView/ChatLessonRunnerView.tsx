@@ -12,7 +12,10 @@ import { formatExerciseContextMessage } from '@/infra/llm/exercise-context'
 import { formatAuthoredChatContent } from '@/infra/utils/formatAuthoredChatContent'
 import { uploadDataUrlAsMedia } from '@/infra/media/uploadDataUrl'
 import { ExerciseRenderer } from '@/ui/web/exerciserenderer'
-import { clearExerciseState } from '@/ui/web/exerciserenderer/utils/exerciseStateStorage'
+import {
+  clearExerciseState,
+  patchExerciseStateBlockMeta,
+} from '@/ui/web/exerciserenderer/utils/exerciseStateStorage'
 import { reportQuestionAttempt } from '@/ui/web/exerciserenderer/utils/questionAttemptReporter'
 import { logger } from '@/infra/utils/logger'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
@@ -496,6 +499,12 @@ function ActiveChat({
           sectionQuestion.id,
           action === 'hint' ? 'hint' : 'explanation',
         )
+        // Lesson summary counts an explanation as help.
+        if (action === 'explain') {
+          patchExerciseStateBlockMeta(step.exercise.id, sectionQuestion.id, {
+            explanationShown: true,
+          })
+        }
       }
 
       const fieldContent = collectSectionHelpContent(step.group.blocks, action)

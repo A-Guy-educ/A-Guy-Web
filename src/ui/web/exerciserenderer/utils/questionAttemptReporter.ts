@@ -1,13 +1,14 @@
 /**
  * Question Attempt Reporter
  * Fire-and-forget POST to /api/attempts for per-question events the server
- * can't see: client-graded answers (select / matching / table) and hint /
- * explanation clicks. Free-response verdicts are recorded by validate-answer.
+ * can't see: client-graded answers (select / matching / table), hint /
+ * explanation clicks and self-compare fallbacks. Free-response verdicts are
+ * recorded by validate-answer.
  */
 
 import type { QuestionBlock, UserAnswer } from '../types'
 
-export type QuestionAttemptEvent = 'wrong' | 'correct' | 'hint' | 'explanation'
+export type QuestionAttemptEvent = 'wrong' | 'correct' | 'hint' | 'explanation' | 'self_checked'
 
 export interface QuestionAttemptContext {
   lessonId?: string
