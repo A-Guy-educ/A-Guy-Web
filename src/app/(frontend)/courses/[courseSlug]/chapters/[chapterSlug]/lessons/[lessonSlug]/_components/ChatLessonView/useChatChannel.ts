@@ -19,6 +19,7 @@
 
 'use client'
 
+import { signalTokenUsageChanged } from '@/client/utils/token-usage-signal'
 import { useCallback, useRef, useState } from 'react'
 import { buildPromptWithExerciseContext } from '@/ui/web/chat/hooks/exercise-context-prompt'
 import type { StreamEntry } from './types'
@@ -225,6 +226,7 @@ export function useChatChannel({
       } finally {
         sendingRef.current = false
         setIsSending(false)
+        signalTokenUsageChanged()
       }
     },
     [

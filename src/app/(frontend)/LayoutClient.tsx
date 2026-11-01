@@ -22,6 +22,7 @@ import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { useGuestJsBeacon } from '@/client/hooks/useGuestJsBeacon'
 import { FloatingBugReportButton } from '@/ui/web/bug-report/FloatingBugReportButton'
 import { BugReportForm } from '@/ui/web/bug-report/BugReportForm'
+import { TokenUsageAlert } from '@/ui/web/upsell/TokenUsageAlert'
 
 export function LayoutClient() {
   const [isBugReportOpen, setIsBugReportOpen] = useState(false)
@@ -64,6 +65,8 @@ export function LayoutClient() {
           <BugReportForm isOpen={isBugReportOpen} onClose={() => setIsBugReportOpen(false)} />
         </>
       ) : null}
+      {/* Keyed by user so switching accounts resets the alert state. */}
+      {user?.id ? <TokenUsageAlert key={String(user.id)} userId={String(user.id)} /> : null}
     </>
   )
 }

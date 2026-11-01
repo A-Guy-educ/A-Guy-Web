@@ -1296,6 +1296,20 @@
       "downgradeNotSupported": "Downgrades aren't supported yet."
     }
   },
+  "tokenUsageAlert": {
+    "title": {
+      "daily": "You've used {percent}% of today's AI help",
+      "monthly": "You've used {percent}% of this month's AI help"
+    },
+    "bodyHalf": "You're halfway through your AI tutor budget. Keep going — just a heads-up.",
+    "bodyHigh": "You're almost out of AI tutor help. Upgrade your plan to keep learning without interruptions.",
+    "resets": {
+      "daily": "It resets at {time}.",
+      "monthly": "It resets on {time}."
+    },
+    "upgradeCta": "View plans",
+    "dismiss": "Got it"
+  },
   "upgradeOffer": {
     "recommended": "Recommended"
   },

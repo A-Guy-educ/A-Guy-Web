@@ -336,3 +336,55 @@ export async function checkTokenLimit(userId: string): Promise<TokenLimitStatus>
     daily: { used: daily.used, limit: daily.limit, resetAt: daily.resetAt },
   }
 }
+
+export interface TokenUsageWindow {
+  used: number
+  limit: number | null
+  resetAt: string | null
+}
+
+export interface TokenUsageSnapshot {
+  daily: TokenUsageWindow
+  monthly: TokenUsageWindow
+}
+
+const UNCAPPED_WINDOW: TokenUsageWindow = { used: 0, limit: null, resetAt: null }
+
+/**
+ * Both token windows for one user, for the client-side "you've used X% of
+ * your tokens" alerts. Read-only, same projection as `checkTokenLimit`. A
+ * `null` limit means that window has no cap (or spending limits are off), so
+ * the client shows nothing for it.
+ */
+export async function getTokenUsageSnapshot(userId: string): Promise<TokenUsageSnapshot> {
+  if (!isTierSpendingLimitsEnabled() || !ObjectId.isValid(userId)) {
+    return { daily: UNCAPPED_WINDOW, monthly: UNCAPPED_WINDOW }
+  }
+  const users = await usersCollection()
+  const user = await users.findOne(
+    { _id: new ObjectId(userId) },
+    {
+      projection: {
+        llmTokensUsed: 1,
+        llmTokensLimit: 1,
+        llmTokensResetAt: 1,
+        llmTokensUsedToday: 1,
+        llmTokensDailyLimit: 1,
+        llmTokensDailyResetAt: 1,
+      },
+    },
+  )
+  const now = new Date()
+  const monthly = readWindow(user, now, 'llmTokensUsed', 'llmTokensLimit', 'llmTokensResetAt')
+  const daily = readWindow(
+    user,
+    now,
+    'llmTokensUsedToday',
+    'llmTokensDailyLimit',
+    'llmTokensDailyResetAt',
+  )
+  return {
+    daily: { used: daily.used, limit: daily.limit, resetAt: daily.resetAt },
+    monthly: { used: monthly.used, limit: monthly.limit, resetAt: monthly.resetAt },
+  }
+}
