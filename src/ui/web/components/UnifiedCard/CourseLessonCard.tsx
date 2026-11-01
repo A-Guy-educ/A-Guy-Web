@@ -7,6 +7,7 @@ import { useTranslations } from '@/ui/web/providers/I18n'
 import { UnifiedCard } from '@/ui/web/components/UnifiedCard'
 import type { LessonType } from '@/server/constants/lesson-types'
 import { resolveAccessType } from '@/infra/auth/access-types'
+import { subscriptionsHref } from '@/lib/tiers/subscribe-return'
 import { toast } from 'sonner'
 
 interface CourseLessonCardProps {
@@ -107,10 +108,11 @@ export function CourseLessonCard({
       locked={isLocked}
       lockedPurchaseLabel={tc('lockedPurchaseCta')}
       lockedHint={tc('lockedPurchaseHint')}
-      // Tier-locked rows route to the subscription store; per-course paid
+      // Tier-locked rows route to the subscription store (returning to this
+      // lesson after subscribing); per-course paid
       // paywalls stay on the resolved per-course purchase URL (/products/<slug>
       // or the generic /products index).
-      lockedPurchaseHref={tierLocked ? '/subscriptions' : purchaseHref}
+      lockedPurchaseHref={tierLocked ? subscriptionsHref(chapterSlug ? href : null) : purchaseHref}
     />
   )
 }

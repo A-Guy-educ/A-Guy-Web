@@ -1,5 +1,6 @@
 'use client'
 
+import { signalTokenUsageChanged } from '@/client/utils/token-usage-signal'
 import { ChatRole } from '@/infra/llm/chat-message-role'
 import {
   formatExerciseContextMessage,
@@ -696,6 +697,7 @@ export function useNotebookChat({
           isLoadingRef.current = false
           setIsLoading(false)
         }
+        signalTokenUsageChanged()
         inputRef.current?.focus()
       }
     },
@@ -800,6 +802,7 @@ export function useNotebookChat({
         isLoadingRef.current = false
         setIsLoading(false)
       }
+      signalTokenUsageChanged()
       inputRef.current?.focus()
     }
   }
