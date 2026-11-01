@@ -177,6 +177,8 @@ export function ChatInterface({
     initialMessage: t('chatWelcome'),
     authRequiredMessage: t('chatAuthRequired'),
     errorMessage: tCourses('chatError'),
+    attachmentUnavailableMessage: tCourses('chatAttachmentUnavailable'),
+    retryLabel: tCourses('chatRetry'),
     hintPrompt: tCourses('chatHintPrompt'),
     solutionPrompt: tCourses('chatSolutionPrompt'),
     fullSolutionPrompt: tCourses('chatFullSolutionPrompt'),

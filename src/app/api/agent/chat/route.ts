@@ -39,6 +39,11 @@ export async function POST(request: NextRequest) {
       mediaIds: body.mediaIds,
       chatAssetIds: body.chatAssetIds,
     })
+    // Never answer without a file the student is asking about; the client
+    // offers a retry and nothing is written to the conversation.
+    if (resources.missingAttachments.length > 0) {
+      return tutorChatErrorResponse('attachment_unavailable', { traceId })
+    }
     const turnId = body.turnId || randomUUID()
     const result = await createTutorChatOrchestrator().run({
       ownerId,
@@ -53,7 +58,6 @@ export async function POST(request: NextRequest) {
       hidePromptOnly: body.hidePromptOnly,
       media: body.mediaIds?.map((mediaId) => ({ mediaId })),
       chatAssets: body.chatAssetIds?.map((chatAssetId) => ({ chatAssetId })),
-      attachmentsMissing: resources.missingAttachments.length,
       signal: request.signal,
       beforeGenerate: () =>
         enforceTutorTurnPolicy({
@@ -73,7 +77,6 @@ export async function POST(request: NextRequest) {
           outputTokens: result.outputTokens,
           model: result.model,
           callType: 'chat',
-          attachmentsMissing: resources.missingAttachments.length,
         })
       try {
         after(record)

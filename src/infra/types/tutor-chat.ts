@@ -5,6 +5,7 @@ export const CHAT_ERROR_CODES = [
   'token_limit_exceeded',
   'conversation_busy',
   'provider_error',
+  'attachment_unavailable',
   'invalid_request',
   'internal_error',
 ] as const
@@ -38,6 +39,7 @@ const CHAT_ERROR_STATUS: Record<ChatErrorCode, number> = {
   token_limit_exceeded: 429,
   conversation_busy: 409,
   provider_error: 502,
+  attachment_unavailable: 503,
   invalid_request: 400,
   internal_error: 500,
 }
@@ -49,6 +51,7 @@ const DEFAULT_MESSAGES: Record<ChatErrorCode, string> = {
   token_limit_exceeded: 'Chat token limit reached.',
   conversation_busy: 'Another message is still being processed.',
   provider_error: 'The tutor is temporarily unavailable.',
+  attachment_unavailable: 'The lesson file could not be loaded. Please try again.',
   invalid_request: 'Invalid request',
   internal_error: 'Chat failed',
 }

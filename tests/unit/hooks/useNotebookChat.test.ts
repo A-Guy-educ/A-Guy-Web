@@ -133,6 +133,50 @@ describe('useNotebookChat', () => {
     expect(result.current.chatError).toBeNull()
   })
 
+  it('offers a retry when the lesson file could not be loaded, without a second user bubble', async () => {
+    async function* mockAttachmentErrorStream() {
+      yield { type: 'error', error: 'server copy', errorCode: 'attachment_unavailable' }
+    }
+    async function* mockRetryStream() {
+      yield { type: 'chunk', text: 'Exercise 6 says...' }
+      yield { type: 'done' }
+    }
+    ;(apiService.chatStream as ReturnType<typeof vi.fn>)
+      .mockReturnValueOnce(mockAttachmentErrorStream())
+      .mockReturnValueOnce(mockRetryStream())
+
+    const { result } = renderHook(() =>
+      useNotebookChat({
+        ...defaultProps,
+        attachmentUnavailableMessage: 'Lesson file failed',
+        retryLabel: 'Retry',
+      }),
+    )
+    await waitFor(() => expect(result.current.isLoadingHistory).toBe(false))
+
+    act(() => {
+      result.current.setInputValue('Help with exercise 6')
+    })
+    await act(async () => {
+      result.current.handleSubmit({ preventDefault: () => undefined } as React.FormEvent)
+    })
+
+    const toastError = toast.error as ReturnType<typeof vi.fn>
+    expect(toastError).toHaveBeenCalledWith('Lesson file failed', {
+      action: expect.objectContaining({ label: 'Retry' }),
+    })
+
+    const [, options] = toastError.mock.calls[0] as [string, { action: { onClick: () => void } }]
+    await act(async () => {
+      options.action.onClick()
+    })
+
+    await waitFor(() => expect(result.current.messages.at(-1)?.content).toBe('Exercise 6 says...'))
+    expect(apiService.chatStream).toHaveBeenCalledTimes(2)
+    const userBubbles = result.current.messages.filter((m) => m.role === ChatRole.User)
+    expect(userBubbles).toHaveLength(1)
+  })
+
   it('sends quick action prompts', async () => {
     const { result } = renderHook(() => useNotebookChat(defaultProps))
     await waitFor(() => expect(result.current.isLoadingHistory).toBe(false))

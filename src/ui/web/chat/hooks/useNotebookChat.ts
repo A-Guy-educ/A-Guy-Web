@@ -54,6 +54,10 @@ interface UseNotebookChatProps {
   initialMessage: string
   authRequiredMessage: string
   errorMessage: string
+  // Shown when the server rejects a turn because a lesson file couldn't be loaded
+  attachmentUnavailableMessage?: string
+  // Label for the toast action that re-sends that turn
+  retryLabel?: string
   hintPrompt: string
   solutionPrompt: string
   fullSolutionPrompt: string
@@ -80,6 +84,8 @@ export function useNotebookChat({
   initialMessage,
   authRequiredMessage,
   errorMessage,
+  attachmentUnavailableMessage,
+  retryLabel,
   hintPrompt,
   solutionPrompt,
   fullSolutionPrompt,
@@ -550,6 +556,29 @@ export function useNotebookChat({
   }
 
   /**
+   * The server rejects a turn (and stores nothing) when a lesson file couldn't
+   * be loaded. Offer a retry that re-sends the same prompt, so no second user
+   * bubble appears.
+   */
+  const showAttachmentRetry = useCallback(
+    (retry: () => Promise<void>) => {
+      const action = retryLabel
+        ? {
+            label: retryLabel,
+            onClick: () => {
+              if (isLoadingRef.current) return
+              isLoadingRef.current = true
+              setIsLoading(true)
+              void retry()
+            },
+          }
+        : undefined
+      toast.error(attachmentUnavailableMessage || errorMessage, { action })
+    },
+    [attachmentUnavailableMessage, errorMessage, retryLabel],
+  )
+
+  /**
    * Send message using streaming (SSE)
    */
   const streamMessage = useCallback(
@@ -628,6 +657,12 @@ export function useNotebookChat({
               })
             } else if (event.errorCode === 'rate_limited') {
               setChatError({ type: 'limit' as const, message: errMsg })
+            } else if (event.errorCode === 'attachment_unavailable') {
+              if (!options?.silent) {
+                showAttachmentRetry(() =>
+                  streamMessageRef.current(message, acknowledgment, context, options),
+                )
+              }
             } else if (!options?.silent) {
               toast.error(errMsg || errorMessage)
             }
@@ -664,8 +699,11 @@ export function useNotebookChat({
         inputRef.current?.focus()
       }
     },
-    [errorMessage, authRequiredMessage, scrollToBottom, onConversationCreated],
+    [errorMessage, authRequiredMessage, scrollToBottom, onConversationCreated, showAttachmentRetry],
   )
+  // Lets the retry action call the latest `streamMessage` from inside itself.
+  const streamMessageRef = useRef(streamMessage)
+  streamMessageRef.current = streamMessage
 
   /**
    * Send message synchronously (with media or admin mode)
@@ -683,7 +721,7 @@ export function useNotebookChat({
     mediaIds?: string[],
     chatAssetIds?: string[],
     contextKeyOverrideParam?: string,
-  ) => {
+  ): Promise<void> => {
     const requestController = new AbortController()
     activeRequestRef.current?.abort()
     activeRequestRef.current = requestController
@@ -710,6 +748,17 @@ export function useNotebookChat({
           })
         } else if (result.errorType === 'limit') {
           setChatError({ type: 'limit' as const, message: result.error || errorMessage })
+        } else if (result.errorCode === 'attachment_unavailable') {
+          showAttachmentRetry(() =>
+            sendMessageSync(
+              message,
+              acknowledgment,
+              context,
+              mediaIds,
+              chatAssetIds,
+              contextKeyOverrideParam,
+            ),
+          )
         } else {
           toast.error(result.error || errorMessage)
         }

@@ -524,6 +524,8 @@
     "chatFullSolutionPrompt": "האם תוכל לספק את הפתרון המלא עם כל השלבים?",
     "chatAIAcknowledgment": "הבנתי. אני אעזור להדריך תלמידים דרך התרגילים שלהם.",
     "chatError": "שליחת ההודעה נכשלה. אנא נסה שוב.",
+    "chatAttachmentUnavailable": "לא הצלחנו לטעון את קובץ השיעור. נסו שוב.",
+    "chatRetry": "נסה שוב",
     "chatThinking": "חושב...",
     "chatLoadingHistory": "טוען שיחה...",
     "chatReset": "איפוס",
