@@ -5130,6 +5130,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- promote: dev -> main (v0.59.0) ([#1529](https://github.com/A-Guy-educ/A-Guy-Web/pull/1529)) — @aguyshayb
 - chore: Release v0.59.0 ([#1528](https://github.com/A-Guy-educ/A-Guy-Web/pull/1528)) — @aguyshayb
 - feat(teacher): Share the section independence classifier with the dashboard ([#1527](https://github.com/A-Guy-educ/A-Guy-Web/pull/1527)) — @aguyshayb
 - fix(chat): Land on the first block after continue or skip ([#1526](https://github.com/A-Guy-educ/A-Guy-Web/pull/1526)) — @aguyshayb
