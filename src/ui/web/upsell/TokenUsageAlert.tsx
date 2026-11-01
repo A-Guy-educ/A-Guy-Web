@@ -128,7 +128,10 @@ export function TokenUsageAlert({ userId }: { userId: string }) {
 
   return (
     <Dialog open onOpenChange={(open) => (open ? undefined : dismiss())}>
-      <DialogContent className="sm:max-w-md">
+      {/* The chat refocuses its input when a turn ends (Tiptap defers that a
+          frame) — right as this opens. Radix treats focus leaving as a
+          dismiss, which closed the alert before it painted. */}
+      <DialogContent className="sm:max-w-md" onFocusOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <div
             className={cn(
