@@ -524,6 +524,8 @@
     "chatFullSolutionPrompt": "Can you provide the complete solution with all steps?",
     "chatAIAcknowledgment": "I understand. I will help guide students through their exercises.",
     "chatError": "Failed to send message. Please try again.",
+    "chatAttachmentUnavailable": "We couldn't load the lesson file. Please try again.",
+    "chatRetry": "Try again",
     "chatThinking": "Thinking...",
     "chatLoadingHistory": "Loading conversation...",
     "chatReset": "Reset",
