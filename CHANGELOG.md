@@ -5113,6 +5113,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Join a class from the CMS with Google sign-in ([#1524](https://github.com/A-Guy-educ/A-Guy-Web/pull/1524)) — @aguyshayb
 - fix: Re-arm token usage alerts when the cap changes ([#1523](https://github.com/A-Guy-educ/A-Guy-Web/pull/1523)) — @aguyshayb
 - fix: Record chat token usage before responding ([#1521](https://github.com/A-Guy-educ/A-Guy-Web/pull/1521)) — @aguyshayb
 - feat: Return to lesson after subscribing + 50%/90% token usage alerts ([#1518](https://github.com/A-Guy-educ/A-Guy-Web/pull/1518)) — @aguyshayb
