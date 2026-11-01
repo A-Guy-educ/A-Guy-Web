@@ -469,7 +469,6 @@
     "notFound": "Not Found",
     "backToLesson": "back to lesson",
     "backToCourse": "back to home page",
-    "back": "back",
     "backToExercise": "back to exercise",
     "exerciseTitle": "Exercise",
     "submitAnswer": "Submit Answer",
@@ -1166,30 +1165,24 @@
   },
   "studentJoin": {
     "title": "Nice to meet you!",
-    "subtitle": "A few quick details and you're in",
+    "subtitle": "Pick your class, sign in with Google and start learning",
     "fields": {
       "school": "School",
-      "class": "Class",
-      "name": "Full name",
-      "phone": "Mobile number"
+      "class": "Class"
     },
     "placeholders": {
       "school": "Choose a school",
       "class": "Choose a class",
-      "classNeedsSchool": "Choose a school first",
-      "name": "What's your name?"
+      "classNeedsSchool": "Choose a school first"
     },
     "errors": {
       "school": "Please choose a school",
-      "class": "Please choose a class",
-      "name": "Please enter a name (at least 2 characters)",
-      "phone": "Enter a 10-digit mobile number starting with 05"
+      "class": "Please choose a class"
     },
     "submit": "Let's go",
     "submitting": "One moment...",
     "result": {
-      "ok": "You're registered! Taking you to your lesson...",
-      "alreadyRegistered": "This number is already registered. You can just log in.",
+      "classNotFound": "That class is no longer available. Pick another or ask your teacher.",
       "failed": "Something went wrong. Try again in a moment."
     },
     "footnote": "Your details are only used to link you to your class and teacher"
