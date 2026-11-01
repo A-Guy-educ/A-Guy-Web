@@ -59,7 +59,7 @@ function formatReset(resetAt: string, window: TokenUsageAlertData['window'], loc
 /**
  * Popup shown when the signed-in student crosses 50% or 90% of their daily
  * or monthly AI token budget. Checks once on mount and again whenever a chat
- * surface fires `TOKEN_USAGE_CHANGED_EVENT`. Each alert shows once per
+ * surface fires `TOKEN_USAGE_CHANGED_EVENT`, and after each dismiss. Each alert shows once per
  * window (see `pickTokenUsageAlert`); "seen" lives in localStorage per user.
  */
 export function TokenUsageAlert({ userId }: { userId: string }) {
@@ -106,6 +106,15 @@ export function TokenUsageAlert({ userId }: { userId: string }) {
     setAlert(null)
   }, [])
 
+  // Only one alert shows at a time, so another window that crossed a threshold
+  // in the same turn (or while this was open) is queued behind it. Re-check on
+  // dismiss, or it waits for the next turn — which may already be at 100% and
+  // skip it. Not on "View plans": they're leaving for the plans page.
+  const dismiss = useCallback(() => {
+    close()
+    void check()
+  }, [close, check])
+
   if (!alert) return null
 
   const isHigh = alert.threshold >= 90
@@ -118,8 +127,11 @@ export function TokenUsageAlert({ userId }: { userId: string }) {
     : null
 
   return (
-    <Dialog open onOpenChange={(open) => (open ? undefined : close())}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open onOpenChange={(open) => (open ? undefined : dismiss())}>
+      {/* The chat refocuses its input when a turn ends (Tiptap defers that a
+          frame) — right as this opens. Radix treats focus leaving as a
+          dismiss, which closed the alert before it painted. */}
+      <DialogContent className="sm:max-w-md" onFocusOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <div
             className={cn(
@@ -148,7 +160,7 @@ export function TokenUsageAlert({ userId }: { userId: string }) {
           <Button
             type="button"
             variant={canUpgrade ? 'outline' : 'default'}
-            onClick={close}
+            onClick={dismiss}
             className="w-full font-bold sm:w-auto"
           >
             {t('dismiss')}
