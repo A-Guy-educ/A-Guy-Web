@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.59.0 — 2026-11-01
+
+### Features
+- Share the section independence classifier with the teacher dashboard (#1527)
+- Join a class from the CMS with Google sign-in (#1524)
+- Return to the lesson after subscribing, plus 50%/90% token usage alerts (#1518)
+
+### Bug Fixes
+- Land on the first block after continue or skip (#1526)
+- Keep the token usage alert visible during chat and re-check it after dismissal (#1525)
+- Re-arm token usage alerts when the cap changes (#1523)
+- Accept answers that omit or add the variable label (#1522)
+- Record chat token usage before responding (#1521)
+- Pin node-forge to 1.4.1 or later to clear high audit advisories (#1520)
+- Allow Blob store hosts in media-src for uploaded video (#1519)
+- Read lesson PDFs from Blob and never answer without them (#1517)
+
 ## v0.58.1 — 2026-10-29
 
 ### Bug Fixes
