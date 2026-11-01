@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto'
 
-import { after, type NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 
 import { logger } from '@/infra/utils/logger'
 import { requireUser } from '@/server/auth/api-auth'
@@ -68,21 +68,18 @@ export async function POST(request: NextRequest) {
         }),
     })
 
+    // Awaited, not deferred with `after()`: the client re-reads token usage
+    // as soon as this response lands (TokenUsageAlert), so the counters must
+    // already include this turn. recordLlmUsage swallows its own errors.
     if (!result.cached && result.inputTokens + result.outputTokens > 0) {
-      const record = () =>
-        recordLlmUsage({
-          userId: ownerId,
-          lessonId: body.lessonId ?? null,
-          inputTokens: result.inputTokens,
-          outputTokens: result.outputTokens,
-          model: result.model,
-          callType: 'chat',
-        })
-      try {
-        after(record)
-      } catch {
-        void record()
-      }
+      await recordLlmUsage({
+        userId: ownerId,
+        lessonId: body.lessonId ?? null,
+        inputTokens: result.inputTokens,
+        outputTokens: result.outputTokens,
+        model: result.model,
+        callType: 'chat',
+      })
     }
 
     return NextResponse.json({
