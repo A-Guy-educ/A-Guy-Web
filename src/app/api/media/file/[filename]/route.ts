@@ -2,10 +2,11 @@ import fs from 'fs/promises'
 
 import { NextRequest, NextResponse } from 'next/server'
 
-import { isVercelBlobUrl, VercelBlobAdapter } from '@/infra/blob/vercel-blob-adapter'
+import { isVercelBlobUrl } from '@/infra/blob/vercel-blob-adapter'
 import { resolveMediaFilePath } from '@/infra/config/storage'
 import { resolveMediaSourceUrl } from '@/infra/media/resolveMediaSourceUrl'
 import { findMediaByFilename } from '@/server/services/media'
+import { findBlobUrl } from '@/server/services/media-blob-lookup'
 
 type MediaFileRecord = {
   filename?: unknown
@@ -26,10 +27,6 @@ function hasPathSeparators(filename: string): boolean {
   return filename.includes('/') || filename.includes('\\')
 }
 
-function withoutGeneratedSuffix(filename: string): string {
-  return filename.replace(/-[a-zA-Z0-9]{20,}(\.[^.]+)$/, '$1')
-}
-
 function resolveRedirectUrl(url: unknown, request: NextRequest): string | null {
   if (typeof url !== 'string' || !url.trim()) return null
 
@@ -46,23 +43,6 @@ function resolveRedirectUrl(url: unknown, request: NextRequest): string | null {
   } catch {
     return null
   }
-}
-
-function getBlobLookupPrefixes(filename: string, media: MediaFileRecord | null): string[] {
-  const originalFilename = withoutGeneratedSuffix(filename)
-  const prefixes = [
-    typeof media?.pathname === 'string' ? media.pathname.replace(/^\/+/, '') : null,
-    `media/${filename}`,
-    `media/pdfs/${filename}`,
-    filename,
-    `media/${originalFilename}`,
-    `media/pdfs/${originalFilename}`,
-    originalFilename,
-  ]
-
-  return prefixes.filter((prefix, index): prefix is string => {
-    return Boolean(prefix) && prefixes.indexOf(prefix) === index
-  })
 }
 
 async function streamUpstream(
@@ -87,39 +67,6 @@ async function streamUpstream(
   } catch {
     return null
   }
-}
-
-async function findBlobUrl(
-  filename: string,
-  media: MediaFileRecord | null,
-): Promise<string | null> {
-  try {
-    const blob = new VercelBlobAdapter({ directory: '' })
-    const prefixes = getBlobLookupPrefixes(filename, media)
-    const originalFilename = withoutGeneratedSuffix(filename)
-    const knownPathnames = new Set([
-      filename,
-      originalFilename,
-      `media/${filename}`,
-      `media/${originalFilename}`,
-      `media/pdfs/${filename}`,
-      `media/pdfs/${originalFilename}`,
-    ])
-
-    for (const prefix of prefixes) {
-      const result = await blob.list(prefix, 5)
-      const match =
-        result.blobs.find((item) => item.pathname === prefix) ||
-        result.blobs.find((item) => knownPathnames.has(item.pathname)) ||
-        result.blobs.find((item) => item.pathname.startsWith(prefix))
-
-      if (match?.url) return match.url
-    }
-  } catch {
-    return null
-  }
-
-  return null
 }
 
 export async function GET(

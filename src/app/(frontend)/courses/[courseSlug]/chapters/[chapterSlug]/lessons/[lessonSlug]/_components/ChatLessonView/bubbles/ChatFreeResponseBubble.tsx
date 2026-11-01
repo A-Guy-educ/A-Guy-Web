@@ -202,6 +202,7 @@ export function ChatFreeResponseBubble({
         patchExerciseStateBlockMeta(exerciseId, block.id, { notChecked: true })
       }
       recordSubmission(trimmed, false, true)
+      reportQuestionAttempt({ lessonId, exerciseId }, block.id, 'self_checked')
       // Report as `isCorrect: false` so the section outcome doesn't
       // mis-advance; the self-compare bubble lives inside this component
       // and the student taps the top-level Continue when they're ready.
@@ -241,6 +242,7 @@ export function ChatFreeResponseBubble({
         patchExerciseStateBlockMeta(exerciseId, block.id, { notChecked: true })
       }
       recordSubmission(trimmed, false, true)
+      reportQuestionAttempt({ lessonId, exerciseId }, block.id, 'self_checked')
       onSubmit(block.id, trimmed, false)
     }
   }

@@ -469,7 +469,6 @@
     "notFound": "לא נמצא",
     "backToLesson": "חזור לשיעור",
     "backToCourse": "חזרה לדף הבית",
-    "back": "חזור",
     "backToExercise": "חזור לתרגיל",
     "exerciseTitle": "תרגיל",
     "submitAnswer": "שלח תשובה",
@@ -524,6 +523,8 @@
     "chatFullSolutionPrompt": "האם תוכל לספק את הפתרון המלא עם כל השלבים?",
     "chatAIAcknowledgment": "הבנתי. אני אעזור להדריך תלמידים דרך התרגילים שלהם.",
     "chatError": "שליחת ההודעה נכשלה. אנא נסה שוב.",
+    "chatAttachmentUnavailable": "לא הצלחנו לטעון את קובץ השיעור. נסו שוב.",
+    "chatRetry": "נסה שוב",
     "chatThinking": "חושב...",
     "chatLoadingHistory": "טוען שיחה...",
     "chatReset": "איפוס",
@@ -1164,30 +1165,24 @@
   },
   "studentJoin": {
     "title": "נעים להכיר!",
-    "subtitle": "כמה פרטים קצרים ומתחילים ללמוד",
+    "subtitle": "בוחרים כיתה, מתחברים עם Google ומתחילים ללמוד",
     "fields": {
       "school": "בית ספר",
-      "class": "כיתה",
-      "name": "שם מלא",
-      "phone": "מספר נייד"
+      "class": "כיתה"
     },
     "placeholders": {
       "school": "בחר בית ספר",
       "class": "בחר כיתה",
-      "classNeedsSchool": "קודם בחר בית ספר",
-      "name": "איך קוראים לך?"
+      "classNeedsSchool": "קודם בחר בית ספר"
     },
     "errors": {
       "school": "צריך לבחור בית ספר",
-      "class": "צריך לבחור כיתה",
-      "name": "צריך לכתוב שם (לפחות 2 תווים)",
-      "phone": "צריך מספר נייד של 10 ספרות שמתחיל ב-05"
+      "class": "צריך לבחור כיתה"
     },
-    "submit": "יאללה, מתחילים",
+    "submit": "קדימה",
     "submitting": "רגע...",
     "result": {
-      "ok": "נרשמת בהצלחה! מעבירים אותך לשיעור...",
-      "alreadyRegistered": "המספר הזה כבר רשום. אפשר פשוט להתחבר.",
+      "classNotFound": "הכיתה הזאת כבר לא זמינה. בחר כיתה אחרת או פנה למורה.",
       "failed": "משהו השתבש. נסה שוב בעוד רגע."
     },
     "footnote": "הפרטים משמשים רק לשיוך שלך לכיתה ולמורה"
@@ -1296,6 +1291,20 @@
       "downgradeNotSupported": "הורדת מסלול עדיין אינה נתמכת."
     }
   },
+  "tokenUsageAlert": {
+    "title": {
+      "daily": "ניצלת {percent}% מהעזרה של ה-AI להיום",
+      "monthly": "ניצלת {percent}% מהעזרה של ה-AI לחודש הזה"
+    },
+    "bodyHalf": "עברת את חצי ממכסת המורה הפרטי של ה-AI. אפשר להמשיך — רק לידיעתך.",
+    "bodyHigh": "המכסה של המורה הפרטי של ה-AI כמעט נגמרה. כדאי לשדרג את המסלול כדי להמשיך ללמוד בלי הפסקות.",
+    "resets": {
+      "daily": "המכסה מתחדשת בשעה {time}.",
+      "monthly": "המכסה מתחדשת ב-{time}."
+    },
+    "upgradeCta": "לצפייה במסלולים",
+    "dismiss": "הבנתי"
+  },
   "upgradeOffer": {
     "recommended": "מומלץ"
   },
@@ -1325,6 +1334,7 @@
       "paymentFailedDescription": "לא ניתן היה לעבד את התשלום. אנא נסה שוב או צור קשר עם התמיכה.",
       "backToProducts": "עיין במוצרים",
       "goHome": "לעמוד הבית",
+      "backToWhereYouWere": "חזרה למקום שבו עצרת",
       "goToCourse": "מעבר ל{course}",
       "grantingAccess": "מגדיר גישה…",
       "subscriptionConfirming": "מאשר את המנוי שלך…",

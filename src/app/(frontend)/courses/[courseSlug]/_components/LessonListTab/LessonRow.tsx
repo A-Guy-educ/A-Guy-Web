@@ -13,6 +13,7 @@ import { cn } from '@/infra/utils/ui'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
 import { storeLessonOpenTimestamp } from '@/infra/analytics/utils/lesson-load-timing'
 import { SYSTEM_EVENTS, systemEventBus } from '@/infra/system-events'
+import { subscriptionsHref } from '@/lib/tiers/subscribe-return'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import type { LessonRoadmapNode } from './lessonRoadmapTypes'
 
@@ -34,9 +35,12 @@ export function LessonRow({ node, courseSlug, purchaseHref }: LessonRowProps) {
   const href = chapterSlug
     ? `/courses/${courseSlug}/chapters/${chapterSlug}/lessons/${lesson.slug}`
     : '#'
-  // Tier-locked rows route to the subscription store (plan upgrade); legacy
+  // Tier-locked rows route to the subscription store (plan upgrade), carrying
+  // the lesson so the student lands in it once subscribed; legacy
   // per-course paywalls stay on the resolved per-course purchase URL.
-  const buyHref = node.isTierLocked ? '/subscriptions' : (purchaseHref ?? '/products')
+  const buyHref = node.isTierLocked
+    ? subscriptionsHref(chapterSlug ? href : null)
+    : (purchaseHref ?? '/products')
 
   const isInteractive = status !== 'soon' && status !== 'locked'
   const targetHref = status === 'soon' ? '#' : status === 'locked' ? buyHref : href

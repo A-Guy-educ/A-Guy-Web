@@ -12,8 +12,6 @@ export type TutorStoredMessage = {
   hidden?: boolean
   media?: Array<{ mediaId: string; filename?: string; url?: string }>
   chatAssets?: Array<{ chatAssetId: string; filename?: string }>
-  /** Set on assistant replies generated without some expected attachments. */
-  attachmentsMissing?: number
 }
 
 export type TutorConversation = {
@@ -214,7 +212,6 @@ export class MongoTutorConversationRepository implements TutorConversationReposi
       ...(message.hidden !== undefined ? { hidden: message.hidden } : {}),
       ...(message.media ? { media: message.media } : {}),
       ...(message.chatAssets ? { chatAssets: message.chatAssets } : {}),
-      ...(message.attachmentsMissing ? { attachmentsMissing: message.attachmentsMissing } : {}),
     }
     const duplicateFilter = message.turnId
       ? {

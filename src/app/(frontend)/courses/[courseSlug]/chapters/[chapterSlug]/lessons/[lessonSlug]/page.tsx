@@ -15,6 +15,7 @@ import { relationId } from '@/server/repos/mongo'
 import { getAuthenticatedUserServer } from '@/server/utils/access-gate-server'
 import { checkPaidAccess } from '@/server/utils/check-paid-access'
 import { resolveLessonTierAccess } from '@/server/services/tier-lesson-access'
+import { subscriptionsHref } from '@/lib/tiers/subscribe-return'
 import type {
   Chapter,
   ContentPage,
@@ -227,7 +228,11 @@ export default async function LessonPage({ params }: LessonPageProps) {
     lessonType: lesson.type,
     gradeLevel: course.courseLabel,
   })
-  if (tierAccess.isLocked) redirect('/subscriptions')
+  if (tierAccess.isLocked) {
+    redirect(
+      subscriptionsHref(`/courses/${courseSlug}/chapters/${chapterSlug}/lessons/${lessonSlug}`),
+    )
+  }
 
   const [exercises, mediaFiles, formulaSheetResult] = await Promise.all([
     queryExercisesByLesson({ lessonId: lesson.id }).then((exercises) =>

@@ -8,8 +8,8 @@ import type { TutorModelPart } from '@/server/services/tutor-chat/model-gateway'
 import {
   attachmentName,
   loadAttachmentPart,
+  loadedAttachmentNotice,
   logAttachmentFailures,
-  missingAttachmentNotice,
   type AttachmentDoc,
   type AttachmentFailure,
 } from './chat-attachments'
@@ -168,6 +168,7 @@ type LessonContext = {
   attachmentText: string
   parts: GeminiPart[]
   failures: AttachmentFailure[]
+  loadedNames: string[]
 }
 
 const EMPTY_LESSON_CONTEXT: LessonContext = {
@@ -175,6 +176,7 @@ const EMPTY_LESSON_CONTEXT: LessonContext = {
   attachmentText: '',
   parts: [],
   failures: [],
+  loadedNames: [],
 }
 
 /**
@@ -253,15 +255,19 @@ async function loadLessonContext(ownerId: string, lessonId?: string): Promise<Le
   const attachmentText: string[] = []
   const parts: GeminiPart[] = []
   const failures: AttachmentFailure[] = []
+  const loadedNames: string[] = []
 
   for (const item of media as AttachmentDoc[]) {
     attachmentText.push(`Lesson attachment: ${attachmentName(item)}`)
     const result = await loadAttachmentPart(item)
-    if (result.kind === 'part') parts.push(result.part)
+    if (result.kind === 'part') {
+      parts.push(result.part)
+      loadedNames.push(result.name)
+    }
     if (result.kind === 'failure') failures.push(result.failure)
   }
 
-  return { text, attachmentText: attachmentText.join('\n'), parts, failures }
+  return { text, attachmentText: attachmentText.join('\n'), parts, failures, loadedNames }
 }
 
 async function loadAttachments(ownerId: string, chatAssetIds?: string[], mediaIds?: string[]) {
@@ -269,6 +275,7 @@ async function loadAttachments(ownerId: string, chatAssetIds?: string[], mediaId
   const lines: string[] = []
   const parts: GeminiPart[] = []
   const failures: AttachmentFailure[] = []
+  const loadedNames: string[] = []
   let attemptedCount = 0
 
   async function addAttachment(attachment: AttachmentDoc, label: string) {
@@ -280,7 +287,10 @@ async function loadAttachments(ownerId: string, chatAssetIds?: string[], mediaId
     attemptedCount += 1
 
     const result = await loadAttachmentPart(attachment)
-    if (result.kind === 'part') parts.push(result.part)
+    if (result.kind === 'part') {
+      parts.push(result.part)
+      loadedNames.push(result.name)
+    }
     if (result.kind === 'failure') failures.push(result.failure)
   }
 
@@ -319,7 +329,7 @@ async function loadAttachments(ownerId: string, chatAssetIds?: string[], mediaId
     }
   }
 
-  return { text: lines.join('\n'), parts, failures }
+  return { text: lines.join('\n'), parts, failures, loadedNames }
 }
 
 export async function loadTutorResources(args: {
@@ -335,11 +345,14 @@ export async function loadTutorResources(args: {
   const missingAttachments = [...lesson.failures, ...attachments.failures]
   logAttachmentFailures(missingAttachments, { ownerId: args.ownerId, lessonId: args.lessonId })
 
+  // Callers must reject the turn when `missingAttachments` is non-empty:
+  // answering without the file either invents content or plants an
+  // "I can't see the file" reply that poisons every later turn.
   return {
     lessonText: lesson.text,
     // Notice goes first so the context builder's length cap can never cut it.
     attachmentText: [
-      missingAttachmentNotice(missingAttachments),
+      loadedAttachmentNotice([...lesson.loadedNames, ...attachments.loadedNames]),
       lesson.attachmentText,
       attachments.text,
     ]

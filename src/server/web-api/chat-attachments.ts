@@ -4,6 +4,7 @@ import { resolveMediaFilePath } from '@/infra/config/storage'
 import { resolveMediaSourceUrl } from '@/infra/media/resolveMediaSourceUrl'
 import { logger } from '@/infra/utils/logger'
 import { CHAT_ASSET_ALLOWED_MIME_TYPES, CHAT_ASSET_MAX_BYTES } from '@/server/chat-assets/constants'
+import { findBlobUrl } from '@/server/services/media-blob-lookup'
 import type { TutorModelPart } from '@/server/services/tutor-chat/model-gateway'
 
 export type AttachmentDoc = Record<string, unknown> & {
@@ -27,13 +28,19 @@ export type AttachmentFailure = {
  * - `failure`: a supported file that could not be loaded this turn.
  */
 export type AttachmentLoadResult =
-  | { kind: 'part'; part: TutorModelPart }
+  | { kind: 'part'; part: TutorModelPart; name: string }
   | { kind: 'skipped' }
   | { kind: 'failure'; failure: AttachmentFailure }
 
 const SUPPORTED_INLINE_MIME_TYPES = new Set<string>(CHAT_ASSET_ALLOWED_MIME_TYPES)
 const FETCH_TIMEOUT_MS = 30_000
 const RETRY_DELAY_MS = 500
+const MEDIA_PROXY_PREFIX = '/api/media/'
+const BLOB_URL_CACHE_MAX = 500
+
+// Blob URLs are stable per file name; caching skips a Blob `list` call on
+// every chat turn while an instance stays warm.
+const blobUrlCache = new Map<string, string>()
 
 class AttachmentFetchError extends Error {
   constructor(
@@ -88,18 +95,65 @@ async function fetchWithRetry(url: string) {
   }
 }
 
-async function fetchAttachmentBuffer(attachment: AttachmentDoc) {
-  // Media docs uploaded via Admin store a relative proxy URL; a bare fetch of
-  // that path from the server has no origin to resolve against.
-  const fetchUrl = typeof attachment.url === 'string' ? resolveMediaSourceUrl(attachment.url) : null
+async function blobUrlFor(filename: string, attachment: AttachmentDoc) {
+  const cached = blobUrlCache.get(filename)
+  if (cached) return cached
 
-  if (fetchUrl) {
-    const response = await fetchWithRetry(fetchUrl)
-    return {
-      buffer: Buffer.from(await response.arrayBuffer()),
-      mimeType: cleanMimeType(attachment.mimeType || response.headers.get('content-type')),
+  const url = await findBlobUrl(filename, { pathname: attachment.pathname })
+  if (url) {
+    if (blobUrlCache.size >= BLOB_URL_CACHE_MAX) {
+      const oldest = blobUrlCache.keys().next().value
+      if (oldest !== undefined) blobUrlCache.delete(oldest)
+    }
+    blobUrlCache.set(filename, url)
+  }
+  return url
+}
+
+/**
+ * Where to download an attachment from, best source first.
+ *
+ * Admin-owned media docs store a relative proxy path (`/api/media/file/x.pdf`).
+ * We read those straight from Blob storage (a CDN with no cold start) and keep
+ * Admin's proxy only as a fallback: Admin cold starts used to drop the lesson
+ * PDF from the first chat turn after an idle period.
+ */
+async function sourceUrls(attachment: AttachmentDoc): Promise<string[]> {
+  const url = typeof attachment.url === 'string' ? attachment.url : ''
+  const filename = typeof attachment.filename === 'string' ? attachment.filename : ''
+  const blobUrl =
+    url.startsWith(MEDIA_PROXY_PREFIX) && filename ? await blobUrlFor(filename, attachment) : null
+  const proxyUrl = resolveMediaSourceUrl(url)
+
+  return [blobUrl, proxyUrl].filter(
+    (candidate, index, all): candidate is string =>
+      Boolean(candidate) && all.indexOf(candidate) === index,
+  )
+}
+
+async function fetchAttachmentBuffer(attachment: AttachmentDoc) {
+  const urls = await sourceUrls(attachment)
+  let lastError: unknown = null
+
+  for (const url of urls) {
+    try {
+      const response = await fetchWithRetry(url)
+      return {
+        buffer: Buffer.from(await response.arrayBuffer()),
+        mimeType: cleanMimeType(attachment.mimeType || response.headers.get('content-type')),
+      }
+    } catch (error) {
+      // A stale cached Blob URL must not keep failing every later turn.
+      if (
+        typeof attachment.filename === 'string' &&
+        blobUrlCache.get(attachment.filename) === url
+      ) {
+        blobUrlCache.delete(attachment.filename)
+      }
+      lastError = error
     }
   }
+  if (lastError) throw lastError
 
   if (typeof attachment.filename === 'string' && attachment.filename) {
     return {
@@ -140,25 +194,24 @@ export async function loadAttachmentPart(attachment: AttachmentDoc): Promise<Att
     const result = await loadAttachmentData(attachment)
     if (!result) return { kind: 'skipped' }
     if ('reason' in result) return failure(result.reason)
-    return { kind: 'part', part: result.part }
+    return { kind: 'part', part: result.part, name: attachmentName(attachment) }
   } catch (error) {
     return failure(errorMessage(error))
   }
 }
 
 /**
- * Prompt text telling the model which files it cannot see. Without this the
- * model answers from the filename alone and invents a plausible exercise —
- * the "asked about exercise 6, got an unrelated function" bug.
+ * Prompt text stating which files the model can see this turn. Without it the
+ * model can't tell an attached PDF from a filename label, and after one failed
+ * turn it keeps repeating "I can't read the file" from its own history.
  */
-export function missingAttachmentNotice(failures: AttachmentFailure[]) {
-  if (failures.length === 0) return ''
-  const names = failures.map((failure) => `"${failure.name}"`).join(', ')
+export function loadedAttachmentNotice(names: string[]) {
+  if (names.length === 0) return ''
+  const quoted = names.map((name) => `"${name}"`).join(', ')
   return [
-    `IMPORTANT: These files could not be loaded for this turn and you cannot see their contents: ${names}.`,
-    'Do not quote, reconstruct, or guess any question, exercise, function, or figure from them.',
-    'If the student asks about their contents, say the file could not be loaded right now and ask',
-    'them to try again in a moment, or to paste or photograph the exercise.',
+    `These files are attached to this message and you can see their full contents, every page: ${quoted}.`,
+    'Read questions, exercises, and figures directly from them.',
+    'Ignore any earlier message in this conversation that said a file could not be loaded or read.',
   ].join(' ')
 }
 
@@ -167,8 +220,5 @@ export function logAttachmentFailures(
   context: { ownerId: string; lessonId?: string },
 ) {
   if (failures.length === 0) return
-  logger.warn(
-    { ...context, failures },
-    'Tutor chat attachments could not be loaded; model will not see them',
-  )
+  logger.warn({ ...context, failures }, 'Tutor chat attachments could not be loaded; turn rejected')
 }

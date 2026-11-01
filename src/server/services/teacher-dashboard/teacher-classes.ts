@@ -18,6 +18,7 @@ import { AccountRole } from '@/infra/auth/roles'
 import { getContentDb, objectIdFromString, relationId } from '@/infra/db/content-db'
 import type { Exercise } from '@/infra/types/content'
 import { getExerciseBlocks } from '@/lib/exercises/getExerciseBlocks'
+import { getCountedSections, sectionKey } from '@/lib/exercises/sectionOutcome'
 import { aggregateManySerialized } from '@/server/repos/mongo'
 import { sectionsLookupStage } from '@/server/repos/queries/exercises-with-sections'
 import { queryLessonsByCourse } from '@/server/repos/queries/lessons'
@@ -86,18 +87,28 @@ async function loadLessonQuestions(courseId: string): Promise<LessonQuestions[]>
     (typeof a.order === 'number' ? a.order : Infinity) -
     (typeof b.order === 'number' ? b.order : Infinity)
 
-  return lessons.map((lesson) => ({
-    id: lesson.id,
-    title: lesson.title ?? '',
-    questions: exercises
+  return lessons.map((lesson) => {
+    const lessonExercises = exercises
       .filter((exercise) => relationId(exercise.lesson) === lesson.id)
       .sort(byOrder)
-      .flatMap((exercise) =>
+    return {
+      id: lesson.id,
+      title: lesson.title ?? '',
+      questions: lessonExercises.flatMap((exercise) =>
         getExerciseBlocks(exercise)
           .filter((block) => QUESTION_BLOCK_TYPES.has(block.type) && Boolean(block.id))
           .map((block) => ({ exerciseId: exercise.id, blockId: String(block.id) })),
       ),
-  }))
+      // Same sections the student's end-of-lesson summary counts.
+      sections: lessonExercises.flatMap((exercise) =>
+        getCountedSections(exercise).map(({ groupIndex, answerBlocks }) => ({
+          id: sectionKey(exercise.id, groupIndex),
+          exerciseId: exercise.id,
+          blockIds: answerBlocks.map((block) => String(block.id ?? '')),
+        })),
+      ),
+    }
+  })
 }
 
 async function loadStudents(studentIds: string[]): Promise<Array<{ id: string; name: string }>> {
@@ -147,6 +158,7 @@ async function loadAttempts(studentIds: string[], lessonIds: string[]): Promise<
           wrongCount: 1,
           hintCount: 1,
           explanationCount: 1,
+          selfChecked: 1,
         },
       },
     )
@@ -160,6 +172,7 @@ async function loadAttempts(studentIds: string[], lessonIds: string[]): Promise<
     wrongCount: Number(doc.wrongCount) || 0,
     hintCount: Number(doc.hintCount) || 0,
     explanationCount: Number(doc.explanationCount) || 0,
+    selfChecked: doc.selfChecked === true,
   }))
 }
 

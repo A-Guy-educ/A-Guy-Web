@@ -29,6 +29,11 @@ interface CheckoutSuccessContentProps {
   transaction: TransactionData | null
   productName: string
   firstCourse?: FirstCourse | null
+  /**
+   * Page the student subscribed from (an upsell wall mid-lesson). Already
+   * sanitized to a same-site path by the server component.
+   */
+  returnTo?: string | null
 }
 
 // Poll cadence for the two "waiting for admin webhook" states.
@@ -54,6 +59,9 @@ const PENDING_STATUS_REFRESH_MAX_MS = 5 * 60 * 1000
 // same intent (close the "pending → active" race before the buyer gives up).
 const SUBSCRIPTION_POLL_INTERVAL_MS = 3000
 const SUBSCRIPTION_POLL_TIMEOUT_MS = 45000
+// Pause on the confirmed card long enough to read it before sending the
+// student back to the page they subscribed from.
+const RETURN_TO_REDIRECT_DELAY_MS = 2500
 
 type SubscriptionReturnStatus = 'polling' | 'confirmed' | 'timedout'
 
@@ -66,6 +74,7 @@ export function CheckoutSuccessContent({
   transaction,
   productName,
   firstCourse,
+  returnTo,
 }: CheckoutSuccessContentProps) {
   const t = useTranslations('checkout')
   const router = useRouter()
@@ -247,6 +256,19 @@ export function CheckoutSuccessContent({
     }
   }, [sessionId, router])
 
+  // Subscribed from an upsell wall — return there once the tier is live. A
+  // full navigation (not router.push) so useCurrentUser re-reads the new tier.
+  useEffect(() => {
+    if (subscriptionReturnStatus !== 'confirmed' || !returnTo) return
+    const id = window.setTimeout(() => {
+      window.location.href = returnTo
+    }, RETURN_TO_REDIRECT_DELAY_MS)
+    return () => window.clearTimeout(id)
+  }, [subscriptionReturnStatus, returnTo])
+
+  const subscriptionExitHref = returnTo ?? '/'
+  const subscriptionExitLabel = returnTo ? t('success.backToWhereYouWere') : t('success.goHome')
+
   if (!sessionId) {
     if (subscriptionReturnStatus === 'polling') {
       return (
@@ -276,11 +298,11 @@ export function CheckoutSuccessContent({
               {t('success.subscriptionConfirmedDescription')}
             </p>
             <Button
-              onClick={() => (window.location.href = '/')}
+              onClick={() => (window.location.href = subscriptionExitHref)}
               className="w-full"
               aria-label={confirmedSubscription?.tierSlug ?? undefined}
             >
-              {t('success.goHome')}
+              {subscriptionExitLabel}
             </Button>
           </CardContent>
         </Card>
@@ -298,8 +320,8 @@ export function CheckoutSuccessContent({
           <p className="text-body-md text-muted-foreground mb-6">
             {t('success.noSessionDescription')}
           </p>
-          <Button onClick={() => (window.location.href = '/')} className="w-full">
-            {t('success.goHome')}
+          <Button onClick={() => (window.location.href = subscriptionExitHref)} className="w-full">
+            {subscriptionExitLabel}
           </Button>
         </CardContent>
       </Card>

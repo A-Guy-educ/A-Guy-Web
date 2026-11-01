@@ -1,21 +1,18 @@
 'use client'
 
 /**
- * Four-field student registration: school → class → full name → phone.
- * Class options depend on the school, and changing school resets the class.
- * Errors show per field on submit and clear as soon as that field changes.
+ * Student join form: school → class, then "קדימה". Signed-out students go
+ * through Google sign-in and come back here to finish; the class is then added
+ * to their account and they land on the class's course.
  *
  * @fileType component
- * @domain schools
+ * @domain classroom
  */
 
 import { ArrowRight, Loader2 } from 'lucide-react'
-import { useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 
-import { cn } from '@/infra/utils/ui'
 import { Button } from '@/ui/web/components/button'
-import { Input } from '@/ui/web/components/input'
-import { Label } from '@/ui/web/components/label'
 import {
   Select,
   SelectContent,
@@ -24,74 +21,76 @@ import {
   SelectValue,
 } from '@/ui/web/components/select'
 import { useTranslations } from '@/ui/web/providers/I18n'
+import type { JoinableSchool } from '@/server/services/classroom/class-enrollment'
 
 import {
-  SCHOOLS,
-  isValidMobile,
-  normalizePhone,
-  registerStudent,
-  type RegisterResult,
-} from '../_lib/student-registration'
+  GOOGLE_SIGN_IN_HREF,
+  RESUME_PARAM,
+  requestEnroll,
+  savePendingClass,
+  takePendingClass,
+} from '../_lib/join-enrollment'
+import { JoinField, fieldClass, fieldId } from './JoinField'
 
-type FieldKey = 'school' | 'class' | 'name' | 'phone'
+type Problem = 'classNotFound' | 'failed'
 
-/** DOM order, so the first error we focus is the topmost one. */
-const FIELD_ORDER: readonly FieldKey[] = ['school', 'class', 'name', 'phone']
-
-const fieldId = (key: FieldKey) => `join-${key}`
-
-export function StudentJoinForm() {
+export function StudentJoinForm({ schools }: { schools: JoinableSchool[] }) {
   const t = useTranslations('studentJoin')
 
   const [schoolId, setSchoolId] = useState('')
   const [classId, setClassId] = useState('')
-  const [fullName, setFullName] = useState('')
-  const [phone, setPhone] = useState('')
-  const [errors, setErrors] = useState<ReadonlySet<FieldKey>>(new Set())
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [result, setResult] = useState<RegisterResult | null>(null)
+  const [missing, setMissing] = useState<'school' | 'class' | null>(null)
+  const [isBusy, setIsBusy] = useState(false)
+  const [problem, setProblem] = useState<Problem | null>(null)
 
-  const school = SCHOOLS.find((s) => s.id === schoolId)
+  const school = schools.find((s) => s.id === schoolId)
 
-  const clearError = (key: FieldKey) => {
-    if (!errors.has(key)) return
-    const next = new Set(errors)
-    next.delete(key)
-    setErrors(next)
+  const join = async (id: string, afterSignIn: boolean) => {
+    setIsBusy(true)
+    setProblem(null)
+    try {
+      const outcome = await requestEnroll(id)
+      // Leaving the page: keep the spinner up until the navigation lands.
+      if (outcome.kind === 'enrolled') {
+        window.location.assign(outcome.courseHref)
+        return
+      }
+      if (outcome.kind === 'signInRequired' && !afterSignIn) {
+        savePendingClass(id)
+        window.location.assign(GOOGLE_SIGN_IN_HREF)
+        return
+      }
+      setProblem(outcome.kind === 'classNotFound' ? 'classNotFound' : 'failed')
+    } catch {
+      setProblem('failed')
+    }
+    setIsBusy(false)
   }
 
-  const handleSubmit = async (e: FormEvent) => {
+  // Back from Google sign-in: finish the join the student started.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (!params.has(RESUME_PARAM)) return
+    window.history.replaceState(null, '', window.location.pathname)
+    const pending = takePendingClass()
+    const owner = pending && schools.find((s) => s.classes.some((c) => c.id === pending))
+    if (!pending || !owner) return
+    setSchoolId(owner.id)
+    setClassId(pending)
+    void join(pending, true)
+    // Runs once on mount; `join` and `schools` are stable for this purpose.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
-    setResult(null)
-
-    const invalid = new Set<FieldKey>()
-    if (!schoolId) invalid.add('school')
-    if (!classId) invalid.add('class')
-    if (fullName.trim().length < 2) invalid.add('name')
-    if (!isValidMobile(phone)) invalid.add('phone')
-    setErrors(invalid)
-
-    const firstInvalid = FIELD_ORDER.find((key) => invalid.has(key))
-    if (firstInvalid) {
-      document.getElementById(fieldId(firstInvalid))?.focus()
+    const firstMissing = !schoolId ? 'school' : !classId ? 'class' : null
+    setMissing(firstMissing)
+    if (firstMissing) {
+      document.getElementById(fieldId(firstMissing))?.focus()
       return
     }
-
-    setIsSubmitting(true)
-    try {
-      setResult(
-        await registerStudent({
-          school_id: schoolId,
-          class_id: classId,
-          full_name: fullName.trim(),
-          phone: normalizePhone(phone),
-        }),
-      )
-    } catch {
-      setResult('failed')
-    } finally {
-      setIsSubmitting(false)
-    }
+    void join(classId, false)
   }
 
   return (
@@ -100,46 +99,46 @@ export function StudentJoinForm() {
       onSubmit={handleSubmit}
       className="flex flex-col gap-content-gap rounded-2xl bg-card p-card-padding shadow-elevation-1"
     >
-      <Field
+      <JoinField
         fieldKey="school"
         label={t('fields.school')}
-        error={errors.has('school') && t('errors.school')}
+        error={missing === 'school' && t('errors.school')}
       >
         <Select
           value={schoolId}
           onValueChange={(v) => {
             setSchoolId(v)
             setClassId('')
-            clearError('school')
+            setMissing(null)
           }}
         >
-          <SelectTrigger id={fieldId('school')} className={fieldClass(errors.has('school'))}>
+          <SelectTrigger id={fieldId('school')} className={fieldClass(missing === 'school')}>
             <SelectValue placeholder={t('placeholders.school')} />
           </SelectTrigger>
           <SelectContent>
-            {SCHOOLS.map((s) => (
+            {schools.map((s) => (
               <SelectItem key={s.id} value={s.id}>
                 {s.name}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-      </Field>
+      </JoinField>
 
-      <Field
+      <JoinField
         fieldKey="class"
         label={t('fields.class')}
-        error={errors.has('class') && t('errors.class')}
+        error={missing === 'class' && t('errors.class')}
       >
         <Select
           value={classId}
           disabled={!school}
           onValueChange={(v) => {
             setClassId(v)
-            clearError('class')
+            setMissing(null)
           }}
         >
-          <SelectTrigger id={fieldId('class')} className={fieldClass(errors.has('class'))}>
+          <SelectTrigger id={fieldId('class')} className={fieldClass(missing === 'class')}>
             <SelectValue
               placeholder={school ? t('placeholders.class') : t('placeholders.classNeedsSchool')}
             />
@@ -152,55 +151,14 @@ export function StudentJoinForm() {
             ))}
           </SelectContent>
         </Select>
-      </Field>
-
-      <Field
-        fieldKey="name"
-        label={t('fields.name')}
-        error={errors.has('name') && t('errors.name')}
-      >
-        <Input
-          id={fieldId('name')}
-          value={fullName}
-          onChange={(e) => {
-            setFullName(e.target.value)
-            clearError('name')
-          }}
-          placeholder={t('placeholders.name')}
-          autoComplete="name"
-          aria-invalid={errors.has('name') || undefined}
-          className={fieldClass(errors.has('name'))}
-        />
-      </Field>
-
-      <Field
-        fieldKey="phone"
-        label={t('fields.phone')}
-        error={errors.has('phone') && t('errors.phone')}
-      >
-        <Input
-          id={fieldId('phone')}
-          type="tel"
-          inputMode="numeric"
-          dir="ltr"
-          value={phone}
-          onChange={(e) => {
-            setPhone(e.target.value)
-            clearError('phone')
-          }}
-          placeholder="050-0000000"
-          autoComplete="tel"
-          aria-invalid={errors.has('phone') || undefined}
-          className={cn(fieldClass(errors.has('phone')), 'text-end')}
-        />
-      </Field>
+      </JoinField>
 
       <Button
         type="submit"
-        disabled={isSubmitting}
+        disabled={isBusy}
         className="mt-1 h-14 w-full gap-content-gap-xs rounded-xl text-heading-md font-bold"
       >
-        {isSubmitting ? (
+        {isBusy ? (
           <>
             <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
             {t('submitting')}
@@ -213,44 +171,11 @@ export function StudentJoinForm() {
         )}
       </Button>
 
-      {result ? (
-        <p
-          role="status"
-          className={cn(
-            'text-center text-body-sm',
-            result === 'ok' ? 'text-success' : 'text-destructive',
-          )}
-        >
-          {t(`result.${result}`)}
+      {problem ? (
+        <p role="status" className="text-center text-body-sm text-destructive">
+          {t(`result.${problem}`)}
         </p>
       ) : null}
     </form>
-  )
-}
-
-// 16px text keeps iOS Safari from zooming into the field on focus.
-function fieldClass(invalid: boolean) {
-  return cn('h-12 rounded-xl text-body-md', invalid && 'border-destructive')
-}
-
-function Field({
-  fieldKey,
-  label,
-  error,
-  children,
-}: {
-  fieldKey: FieldKey
-  label: string
-  error: string | false
-  children: ReactNode
-}) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <Label htmlFor={fieldId(fieldKey)} className="text-body-md font-bold">
-        {label}
-      </Label>
-      {children}
-      {error ? <p className="text-body-xs text-destructive">{error}</p> : null}
-    </div>
   )
 }

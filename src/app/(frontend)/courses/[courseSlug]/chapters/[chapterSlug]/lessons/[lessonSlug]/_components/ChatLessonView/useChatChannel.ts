@@ -19,6 +19,7 @@
 
 'use client'
 
+import { signalTokenUsageChanged } from '@/client/utils/token-usage-signal'
 import { useCallback, useRef, useState } from 'react'
 import { buildPromptWithExerciseContext } from '@/ui/web/chat/hooks/exercise-context-prompt'
 import type { StreamEntry } from './types'
@@ -225,6 +226,7 @@ export function useChatChannel({
       } finally {
         sendingRef.current = false
         setIsSending(false)
+        signalTokenUsageChanged()
       }
     },
     [
@@ -354,6 +356,11 @@ async function resolveErrorText(
         ? body.exceededWindow
         : null
     return { text: labels.quotaExceededMessage, quotaExceeded: true, exceededWindow: window }
+  }
+  // Server copy for this code is English-only; the localized generic message
+  // already tells the student to try again.
+  if (body.error === 'attachment_unavailable') {
+    return { text: labels.errorMessage, quotaExceeded: false, exceededWindow: null }
   }
   return { text: body.message ?? labels.errorMessage, quotaExceeded: false, exceededWindow: null }
 }

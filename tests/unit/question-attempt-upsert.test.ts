@@ -91,6 +91,24 @@ describe('buildQuestionAttemptWrite', () => {
     expect(update.$setOnInsert).not.toHaveProperty(field)
     expect(update.$setOnInsert.solved).toBe(false)
   })
+
+  it('self_checked: $set selfChecked true, even after solving, no counters touched', () => {
+    const { filter, update } = write('self_checked')
+    expect(filter).not.toHaveProperty('solved')
+    expect(update.$inc).toBeUndefined()
+    expect(update.$set).toEqual({ updatedAt: NOW, selfChecked: true })
+    expect(update.$setOnInsert).not.toHaveProperty('selfChecked')
+    expect(update.$setOnInsert).toMatchObject({ solved: false, wrongCount: 0, hintCount: 0 })
+  })
+
+  it.each(['wrong', 'correct', 'hint', 'explanation'] as const)(
+    '%s: seeds selfChecked false on insert only',
+    (event) => {
+      const { update } = write(event)
+      expect(update.$setOnInsert.selfChecked).toBe(false)
+      expect(update.$set).not.toHaveProperty('selfChecked')
+    },
+  )
 })
 
 describe('recordQuestionAttempt', () => {

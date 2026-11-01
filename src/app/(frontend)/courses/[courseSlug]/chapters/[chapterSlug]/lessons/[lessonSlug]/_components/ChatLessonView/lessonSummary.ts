@@ -10,16 +10,13 @@
  */
 
 import type { Exercise } from '@/infra/types/content'
-import type { ExerciseBlockGroup } from '@/infra/types/exercise'
-import { getExerciseBlockGroups } from '@/lib/exercises/getExerciseBlocks'
+import type { ContentBlock } from '@/infra/types/exercise'
+import {
+  classifySectionOutcome,
+  getCountedSections,
+  type AnswerBlockFacts,
+} from '@/lib/exercises/sectionOutcome'
 import { readExerciseState } from '@/ui/web/exerciserenderer/utils/exerciseStateStorage'
-import { isAnswerRequired } from './useExerciseWalker'
-
-/**
- * Section-level outcome. Mirrors the four buckets in the summary mockup's
- * breakdown row: "נכון ללא עזרה / נכון עם רמז או הסבר / דילגת / הסתיימו בטעות".
- */
-export type SectionOutcomeKind = 'alone-correct' | 'with-help' | 'skipped' | 'wrong'
 
 export interface LessonStats {
   totalSections: number
@@ -39,37 +36,23 @@ export type LessonOutcome =
   'high-independent' | 'good-with-difficulty' | 'lots-of-help' | 'many-mistakes' | 'many-skips'
 
 /**
- * Reduce one section (one ExerciseBlockGroup) into a single outcome kind by
- * inspecting its answer-required blocks. If any block is wrong, the whole
- * section is wrong. If none were submitted, skipped. Otherwise help-usage
- * (hint / retry wrong / notChecked) demotes the section from alone to with-help.
+ * Facts for one answer-required block from the chat-native localStorage
+ * bundle. `null` state = the exercise was never touched (skipped whole).
  */
-function classifySection(exerciseId: string, group: ExerciseBlockGroup): SectionOutcomeKind {
-  const answerBlocks = group.blocks.filter(isAnswerRequired)
-  if (answerBlocks.length === 0) return 'alone-correct' // intro-only groups don't drag down counts
-  const saved = readExerciseState(exerciseId)
-  if (!saved) return 'skipped'
-  let anyWrong = false
-  let anyAnswered = false
-  let anyHelp = false
-  for (const block of answerBlocks) {
-    const result = saved.checkResults[block.id]
-    const meta = saved.blockMeta?.[block.id]
-    if (result) anyAnswered = true
-    if (result?.isCorrect === false) anyWrong = true
-    // Help usage covers all three Task-2/3/4/7 signals: retry miss, hint
-    // tapped, or AI validation skipped via self-compare.
-    if (
-      (meta?.wrongOptionIds?.length ?? 0) > 0 ||
-      meta?.hintShown === true ||
-      meta?.notChecked === true
-    ) {
-      anyHelp = true
-    }
+function blockFactsFromStorage(
+  saved: ReturnType<typeof readExerciseState>,
+  block: ContentBlock,
+): AnswerBlockFacts {
+  const result = saved?.checkResults[block.id]
+  const meta = saved?.blockMeta?.[block.id]
+  return {
+    answered: Boolean(result),
+    finalCorrect: result?.isCorrect !== false,
+    hadWrongAttempt: (meta?.wrongOptionIds?.length ?? 0) > 0,
+    hintUsed: meta?.hintShown === true,
+    explanationUsed: meta?.explanationShown === true,
+    selfChecked: meta?.notChecked === true,
   }
-  if (anyWrong) return 'wrong'
-  if (!anyAnswered) return 'skipped'
-  return anyHelp ? 'with-help' : 'alone-correct'
 }
 
 /**
@@ -85,18 +68,16 @@ export function computeLessonStats(exercises: Exercise[]): LessonStats {
     wrong: 0,
   }
   for (const exercise of exercises) {
-    const groups = getExerciseBlockGroups(exercise)
-    for (const group of groups) {
-      // Mirror the walker's filter: skip top-level groups that are display-
-      // only and only kept for layout. If the group has no answer-required
-      // blocks and the exercise has sections, the group doesn't count as a
-      // "סעיף" the student engaged with.
-      const answerBlocks = group.blocks.filter(isAnswerRequired)
-      if (answerBlocks.length === 0 && group.sectionIndex === null) continue
+    const sections = getCountedSections(exercise)
+    if (sections.length === 0) continue
+    const saved = readExerciseState(exercise.id)
+    for (const { answerBlocks } of sections) {
       stats.totalSections += 1
-      const outcome = classifySection(exercise.id, group)
+      const outcome = classifySectionOutcome(
+        answerBlocks.map((block) => blockFactsFromStorage(saved, block)),
+      )
       switch (outcome) {
-        case 'alone-correct':
+        case 'alone':
           stats.alone += 1
           break
         case 'with-help':
@@ -120,7 +101,7 @@ export function computeLessonStats(exercises: Exercise[]): LessonStats {
  *      regardless of how the attempted half went. Skipping dominates.
  *   2. 30%+ wrong → `many-mistakes` — the topic needs reinforcement.
  *   3. 40%+ with-help → `lots-of-help` — the student got there but leaned
- *      on hints / notChecked / retry.
+ *      on hints / explanations / notChecked / retry.
  *   4. 85%+ alone → `high-independent` — clean run.
  *   5. Default → `good-with-difficulty`.
  *

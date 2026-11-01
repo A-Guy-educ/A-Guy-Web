@@ -12,7 +12,10 @@ import { formatExerciseContextMessage } from '@/infra/llm/exercise-context'
 import { formatAuthoredChatContent } from '@/infra/utils/formatAuthoredChatContent'
 import { uploadDataUrlAsMedia } from '@/infra/media/uploadDataUrl'
 import { ExerciseRenderer } from '@/ui/web/exerciserenderer'
-import { clearExerciseState } from '@/ui/web/exerciserenderer/utils/exerciseStateStorage'
+import {
+  clearExerciseState,
+  patchExerciseStateBlockMeta,
+} from '@/ui/web/exerciserenderer/utils/exerciseStateStorage'
 import { reportQuestionAttempt } from '@/ui/web/exerciserenderer/utils/questionAttemptReporter'
 import { logger } from '@/infra/utils/logger'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
@@ -39,6 +42,7 @@ import {
   type LessonOutcome,
   type LessonStats,
 } from './lessonSummary'
+import { pinScrollAnchor } from './pinScrollAnchor'
 import { isSectionEligibleForReview } from './reviewEligibility'
 import { TIER_PRICE_ILS, type TierSlug } from '@/lib/tiers'
 import type { SectionOutcome, StreamEntry } from './types'
@@ -181,6 +185,8 @@ function ActiveChat({
   const locale = useLocale()
   const isHebrew = locale?.toLowerCase().startsWith('he') ?? false
   const scrollRef = useRef<HTMLDivElement | null>(null)
+  const scrollerRef = useRef<HTMLElement | null>(null)
+  const streamRef = useRef<HTMLDivElement | null>(null)
 
   // Clamp the walker's exercise list to the student's tier gate (longest
   // prefix passing `canAccessLearningExercise`). When the clamp cuts something
@@ -201,11 +207,21 @@ function ActiveChat({
   // (which inserts feedback mid-stream) doesn't yank the viewport away from
   // where the student is reading.
   const [appendTick, setAppendTick] = useState(0)
-  // Most recently appended entry — lets the scroll effect treat a freshly
-  // emitted section differently from feedback / chat replies.
-  const lastAppendedRef = useRef<StreamEntry | null>(null)
+  // First block of the newest walker step appended since the last scroll
+  // pass: its intro when the step opens a new exercise (intro + section land
+  // in one batch), otherwise the section itself. The resume seed replays many
+  // steps in one batch, so "newest step" keeps it landing on the current one.
+  // `awaitingSection` marks an intro whose own first section hasn't arrived.
+  const scrollAnchorRef = useRef<{ key: string; awaitingSection: boolean } | null>(null)
   const append = useCallback((entry: StreamEntry) => {
-    lastAppendedRef.current = entry
+    if (entry.kind === 'exercise-intro') {
+      scrollAnchorRef.current = { key: entry.key, awaitingSection: true }
+    } else if (entry.kind === 'exercise-section') {
+      const anchor = scrollAnchorRef.current
+      scrollAnchorRef.current = anchor?.awaitingSection
+        ? { key: anchor.key, awaitingSection: false }
+        : { key: entry.key, awaitingSection: false }
+    }
     setEntries((prev) => [...prev, entry])
     setAppendTick((t) => t + 1)
   }, [])
@@ -483,6 +499,12 @@ function ActiveChat({
           sectionQuestion.id,
           action === 'hint' ? 'hint' : 'explanation',
         )
+        // Lesson summary counts an explanation as help.
+        if (action === 'explain') {
+          patchExerciseStateBlockMeta(step.exercise.id, sectionQuestion.id, {
+            explanationShown: true,
+          })
+        }
       }
 
       const fieldContent = collectSectionHelpContent(step.group.blocks, action)
@@ -698,20 +720,16 @@ function ActiveChat({
   // recordings stay available on demand.
 
   useEffect(() => {
-    // A new section (after Next / skip) scrolls its TOP into view so the
-    // student sees the prompt and its sketch first. Bottom-aligning a tall
-    // section — prompt + sketch + options — cut the question text off above
-    // the fold on mobile. When the section is short the browser clamps the
-    // scroll, so this lands at the bottom exactly like before. Everything
+    // A new exercise / section (after Continue / skip) pins its first block
+    // to the top so the student sees the intro or prompt first — see
+    // pinScrollAnchor for why a single scrollIntoView overshoots. Everything
     // else (feedback, chat replies) keeps scrolling to the end.
-    const last = lastAppendedRef.current
-    if (last?.kind === 'exercise-section') {
-      const sectionEl = document.querySelector(`[data-section-key="${CSS.escape(last.key)}"]`)
-      if (sectionEl) {
-        sectionEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        return
-      }
-    }
+    const anchorKey = scrollAnchorRef.current?.key
+    scrollAnchorRef.current = null
+    const anchorEl = anchorKey
+      ? document.querySelector(`[data-scroll-anchor="${CSS.escape(anchorKey)}"]`)
+      : null
+    if (anchorEl) return pinScrollAnchor(anchorEl, streamRef.current, scrollerRef.current)
     scrollRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [appendTick])
 
@@ -811,8 +829,12 @@ function ActiveChat({
 
   return (
     <>
-      <main className="flex-1 overflow-y-auto bg-muted px-2 pt-14 pb-24 md:px-6 md:pt-20 md:pb-32">
+      <main
+        ref={scrollerRef}
+        className="flex-1 overflow-y-auto bg-muted px-2 pt-14 pb-24 md:px-6 md:pt-20 md:pb-32"
+      >
         <div
+          ref={streamRef}
           className="w-full md:w-[80%] max-w-5xl mx-auto flex flex-col gap-content-gap-lg px-1 md:px-0"
           dir="rtl"
         >
@@ -1018,8 +1040,12 @@ function StreamEntryView({
         ? `${introPrefix} ${entry.ordinal}: ${entry.title}`
         : `${introPrefix} ${entry.ordinal}`
       const givenDataBlocks = entry.givenDataBlocks ?? []
+      // Scroll anchor for a new exercise — same contract as the section's.
       return (
-        <div className="flex flex-col gap-content-gap">
+        <div
+          data-scroll-anchor={entry.key}
+          className="flex flex-col gap-content-gap scroll-mt-14 md:scroll-mt-20"
+        >
           <TeacherBubble
             text={label}
             onSpeak={() => tts.speak(label)}
@@ -1046,12 +1072,12 @@ function StreamEntryView({
       )
     }
     case 'exercise-section':
-      // `data-section-key` is the runner's scroll anchor for a newly emitted
+      // `data-scroll-anchor` is the runner's scroll anchor for a newly emitted
       // section; scroll-mt matches <main>'s top padding so the prompt clears
       // the floating progress pill. The extra top margin sets each section
       // apart from the feedback bubbles of the one before it.
       return (
-        <div data-section-key={entry.key} className="mt-content-gap scroll-mt-14 md:scroll-mt-20">
+        <div data-scroll-anchor={entry.key} className="mt-content-gap scroll-mt-14 md:scroll-mt-20">
           <ExerciseSectionBubble
             exercise={entry.exercise}
             ordinal={entry.ordinal}

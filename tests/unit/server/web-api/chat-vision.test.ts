@@ -102,7 +102,9 @@ describe('web chat vision attachments', () => {
         chatAssetIds: ['65f000000000000000000001'],
       }),
     ).resolves.toMatchObject({
-      attachmentText: 'Attached file: triangle.png',
+      attachmentText: expect.stringMatching(
+        /^These files are attached[^\n]*"triangle\.png"[^\n]*\nAttached file: triangle\.png$/,
+      ),
       parts: [{ inlineData: { mimeType: 'image/png', data: imageBase64 } }],
     })
 

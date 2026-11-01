@@ -4,16 +4,21 @@ import { z } from 'zod'
 import { rateLimit, rateLimitExceededResponse } from '@/infra/security/rate-limit'
 import { logger } from '@/infra/utils/logger/logger'
 import { enforceUserChatQuota, requireUser } from '@/server/auth/api-auth'
+import { localMatch } from '@/server/services/answer-validation/local-match'
 import { recordQuestionAttempt } from '@/server/services/question-attempts/question-attempt-recorder'
 
 const VALIDATE_ANSWER_RATE_LIMIT_MAX = 30
 const VALIDATE_ANSWER_RATE_LIMIT_WINDOW_MS = 60_000 // 1 minute
+// Caps prompt size; a long worked solution is truncated, never rejected.
+const MAX_SOLUTION_CHARS = 4000
 
 const BodySchema = z.object({
   questionId: z.string().min(1),
   questionText: z.string().min(1),
   acceptedAnswers: z.array(z.string().min(1)).min(1),
   studentAnswer: z.string(),
+  // The block's worked solution, when authored — context for the LLM fallback.
+  solution: z.string().optional(),
   questionType: z.string().optional(),
   questionVariant: z.string().optional(),
   // Optional so older clients keep working; without both, nothing is recorded.
@@ -44,96 +49,25 @@ async function recordVerdict(
   }
 }
 
-function normalize(input: string) {
-  return input.toLowerCase().trim().replace(/\s+/g, ' ')
-}
-
-/**
- * Convert LaTeX-flavored math the chat/answer inputs produce (`$\frac{1}{2}$`,
- * `$x^{2}$`, `$\sqrt{9}$`) into a plain-text form comparable to a manually-
- * typed accepted answer like `1/2`, `x^2`, `sqrt(9)`.
- *
- * The transform is intentionally conservative — no CAS-level equivalence,
- * no operator reordering. It just strips display chrome so a student who
- * used the math keyboard doesn't get marked wrong for producing the same
- * expression the teacher wrote by hand. Semantic equivalence still falls
- * through to the LLM in `semanticMatch()`.
- *
- * Applied iteratively so nested `\frac{\frac{a}{b}}{c}` collapses fully.
- */
-function latexToPlain(input: string) {
-  let out = input
-    .replace(/\$\$([\s\S]*?)\$\$/g, '$1')
-    .replace(/\$([^$]*)\$/g, '$1')
-    .replace(/\\left|\\right/g, '')
-    .replace(/\\,|\\;|\\!|\\ /g, ' ')
-  // Repeatedly expand \frac / \sqrt / ^{}/ _{} until stable so nested forms
-  // collapse. Cap iterations to prevent pathological input from looping.
-  for (let i = 0; i < 6; i++) {
-    const next = out
-      .replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, '($1)/($2)')
-      .replace(/\\sqrt\s*\{([^{}]*)\}/g, 'sqrt($1)')
-      .replace(/\^\{([^{}]*)\}/g, '^$1')
-      .replace(/_\{([^{}]*)\}/g, '_$1')
-    if (next === out) break
-    out = next
-  }
-  return out
-    .replace(/\\cdot|\\times/g, '*')
-    .replace(/\\div/g, '/')
-    .replace(/\\pm/g, '±')
-    .replace(/\\leq\b/g, '≤')
-    .replace(/\\geq\b/g, '≥')
-    .replace(/\\neq\b/g, '≠')
-    .replace(/\\pi\b/g, 'π')
-    .replace(/\\theta\b/g, 'θ')
-    .replace(/\\alpha\b/g, 'α')
-    .replace(/\\beta\b/g, 'β')
-    .replace(/\s+/g, '')
-}
-
-function numeric(input: string) {
-  // Strip `$` delimiters too so a student's `$5$` compares against `5`.
-  const stripped = input.replace(/[$,%\s]/g, '').trim()
-  if (!stripped) return null
-  const value = Number(stripped)
-  return Number.isFinite(value) ? value : null
-}
-
-function localMatch(studentAnswer: string, acceptedAnswers: string[]) {
-  const studentNorm = normalize(studentAnswer)
-  const studentPlain = normalize(latexToPlain(studentAnswer))
-  const studentNum = numeric(latexToPlain(studentAnswer))
-
-  for (const accepted of acceptedAnswers) {
-    if (studentNorm === normalize(accepted)) return { matched: true, matchType: 'exact' }
-
-    const acceptedPlain = normalize(latexToPlain(accepted))
-    if (studentPlain && acceptedPlain && studentPlain === acceptedPlain) {
-      return { matched: true, matchType: 'latex-plain' }
-    }
-
-    const acceptedNum = numeric(latexToPlain(accepted))
-    if (
-      studentNum !== null &&
-      acceptedNum !== null &&
-      Math.abs(studentNum - acceptedNum) < 0.0001
-    ) {
-      return { matched: true, matchType: 'numeric' }
-    }
-  }
-
-  return { matched: false }
-}
-
 async function semanticMatch(input: z.infer<typeof BodySchema>) {
   if (!process.env.GEMINI_API_KEY) return null
 
   const prompt = [
     'Return strict JSON: {"isCorrect": boolean, "reasoning": string}.',
     'Decide whether the student answer is semantically equivalent to one accepted answer.',
+    'Grade the mathematical content, not the notation. The student answer is correct when it',
+    'gives the same value or expression as an accepted answer, even if it:',
+    '- omits or adds the variable name (e.g. "4" for "d=4", or "x=3" for "3"),',
+    '- omits units or adds them correctly,',
+    '- uses an equivalent form (1/2 = 0.5, 2x = x+x, LaTeX vs plain text),',
+    '- is written in Hebrew or English.',
+    'Mark it wrong only when the value/expression itself differs, a required part of a',
+    'multi-part answer is missing, or it names a different variable than the one asked for.',
     `Question: ${input.questionText}`,
     `Accepted answers: ${JSON.stringify(input.acceptedAnswers)}`,
+    ...(input.solution
+      ? [`Reference solution: ${input.solution.slice(0, MAX_SOLUTION_CHARS)}`]
+      : []),
     `Student answer: ${input.studentAnswer}`,
   ].join('\n')
 

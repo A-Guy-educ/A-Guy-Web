@@ -1,31 +1,32 @@
 /**
  * Student Registration Page — /join
  *
- * First-time registration for students arriving through their school: pick
- * school and class, enter name and phone, start learning. Built from the
- * product demo. Not linked from anywhere yet, and submit is stubbed until the
- * phone-signup backend exists (see `_lib/student-registration.ts`).
+ * Students arriving through their school pick school and class (from the
+ * Admin-owned `schools` / `classes` collections), sign in with Google, get
+ * added to the class roster and land on the class's course. Not linked from
+ * anywhere yet.
  *
  * @fileType page
- * @domain schools
+ * @domain classroom
  */
 
 import { getDirection } from '@/i18n/config'
 import { getSystemLocale } from '@/i18n/server-locale'
 import { pageMetadata } from '@/infra/seo/pageMetadata'
+import { listJoinableSchools } from '@/server/services/classroom/class-enrollment'
 import { StudentJoinForm } from './_components/StudentJoinForm'
 import { StudentJoinFootnote, StudentJoinHeader } from './_components/StudentJoinHeader'
 
 export const dynamic = 'force-dynamic'
 
 export default async function JoinPage() {
-  const locale = await getSystemLocale()
+  const [locale, schools] = await Promise.all([getSystemLocale(), listJoinableSchools()])
 
   return (
     <div className="flex min-h-screen justify-center bg-background" dir={getDirection(locale)}>
       <main className="flex w-full max-w-[420px] flex-col gap-content-gap px-5 pb-6 pt-7">
         <StudentJoinHeader />
-        <StudentJoinForm />
+        <StudentJoinForm schools={schools} />
         <StudentJoinFootnote />
       </main>
     </div>
@@ -38,7 +39,7 @@ export async function generateMetadata() {
 
   return pageMetadata({
     title: isHebrew ? 'רישום תלמיד' : 'Student registration',
-    description: isHebrew ? 'כמה פרטים קצרים ומתחילים ללמוד' : 'A few quick details and you’re in',
+    description: isHebrew ? 'בוחרים כיתה ומתחילים ללמוד' : 'Pick your class and start learning',
     noIndex: true,
   })
 }

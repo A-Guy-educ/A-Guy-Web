@@ -14,6 +14,7 @@ export const ANSWER_VALIDATION_PROMPT = `You are an expert grader for educationa
 2. Accept correct answers in different formats or phrasing
 3. Accept answers in different languages if meaning matches (Hebrew / English)
 4. Reject answers that are incomplete, contain incorrect information, or are fundamentally wrong
+5. Grade the math, not the notation: a correct value without the variable name ("4" for "d=4") or with it ("x=3" for "3") is correct. Omitting a label is NOT incomplete. Only reject a label that names a different variable
 
 **Type-Specific Rules**:
 - Numeric answers: Accept equivalent forms (3.14 ≈ π, 1/2 = 0.5, 2 = 2.0)

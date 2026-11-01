@@ -9,7 +9,11 @@
  * the buyer to.
  *
  * Request body:
- *   { tier: 'basic'|'advanced'|'premium', offerSlug?: 'default'|'intro3mo' }
+ *   { tier: 'basic'|'advanced'|'premium', offerSlug?: 'default'|'intro3mo', returnTo?: string }
+ *
+ * `returnTo` is the page the student was on when they hit the upsell wall. It
+ * rides on both the success and cancel URLs so either outcome lands them back
+ * in context. Unsafe values are dropped, never rejected.
  * Response: { success, checkoutUrl, subscriptionId, transactionId }
  *
  * The browser calls this web route instead of hitting Admin directly because
@@ -25,11 +29,13 @@ import { z } from 'zod'
 
 import { getWebUser } from '@/infra/web-api/mongo-payload'
 import { logger } from '@/infra/utils/logger/logger'
+import { subscriptionsHref, withSubscribeReturnTo } from '@/lib/tiers/subscribe-return'
 import { fetchAdminApi } from '@/server/services/admin-api'
 
 const BodySchema = z.object({
   tier: z.enum(['basic', 'advanced', 'premium']),
   offerSlug: z.enum(['default', 'intro3mo']).default('default'),
+  returnTo: z.string().max(512).optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -58,8 +64,8 @@ export async function POST(request: NextRequest) {
       body: {
         tierSlug: parsed.data.tier,
         offerSlug: parsed.data.offerSlug,
-        successUrl: `${baseUrl}/checkout/success`,
-        cancelUrl: `${baseUrl}/subscriptions`,
+        successUrl: withSubscribeReturnTo(`${baseUrl}/checkout/success`, parsed.data.returnTo),
+        cancelUrl: `${baseUrl}${subscriptionsHref(parsed.data.returnTo)}`,
       },
     })
     // Pass Admin's status + body through verbatim so the client sees the

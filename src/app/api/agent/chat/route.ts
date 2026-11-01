@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto'
 
-import { after, type NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 
 import { logger } from '@/infra/utils/logger'
 import { requireUser } from '@/server/auth/api-auth'
@@ -39,6 +39,11 @@ export async function POST(request: NextRequest) {
       mediaIds: body.mediaIds,
       chatAssetIds: body.chatAssetIds,
     })
+    // Never answer without a file the student is asking about; the client
+    // offers a retry and nothing is written to the conversation.
+    if (resources.missingAttachments.length > 0) {
+      return tutorChatErrorResponse('attachment_unavailable', { traceId })
+    }
     const turnId = body.turnId || randomUUID()
     const result = await createTutorChatOrchestrator().run({
       ownerId,
@@ -53,7 +58,6 @@ export async function POST(request: NextRequest) {
       hidePromptOnly: body.hidePromptOnly,
       media: body.mediaIds?.map((mediaId) => ({ mediaId })),
       chatAssets: body.chatAssetIds?.map((chatAssetId) => ({ chatAssetId })),
-      attachmentsMissing: resources.missingAttachments.length,
       signal: request.signal,
       beforeGenerate: () =>
         enforceTutorTurnPolicy({
@@ -64,22 +68,18 @@ export async function POST(request: NextRequest) {
         }),
     })
 
+    // Awaited, not deferred with `after()`: the client re-reads token usage
+    // as soon as this response lands (TokenUsageAlert), so the counters must
+    // already include this turn. recordLlmUsage swallows its own errors.
     if (!result.cached && result.inputTokens + result.outputTokens > 0) {
-      const record = () =>
-        recordLlmUsage({
-          userId: ownerId,
-          lessonId: body.lessonId ?? null,
-          inputTokens: result.inputTokens,
-          outputTokens: result.outputTokens,
-          model: result.model,
-          callType: 'chat',
-          attachmentsMissing: resources.missingAttachments.length,
-        })
-      try {
-        after(record)
-      } catch {
-        void record()
-      }
+      await recordLlmUsage({
+        userId: ownerId,
+        lessonId: body.lessonId ?? null,
+        inputTokens: result.inputTokens,
+        outputTokens: result.outputTokens,
+        model: result.model,
+        callType: 'chat',
+      })
     }
 
     return NextResponse.json({

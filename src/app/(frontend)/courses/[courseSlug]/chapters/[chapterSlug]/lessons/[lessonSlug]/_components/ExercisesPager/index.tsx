@@ -7,6 +7,7 @@ import { Input } from '@/ui/web/components/input'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
 import { ExerciseRenderer } from '@/ui/web/exerciserenderer'
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
+import { useSubscriptionsHref } from '@/client/hooks/useSubscriptionsHref'
 import { canAccessLearningExercise, getUserTierSlug } from '@/lib/tiers'
 import {
   CheckCircle2,
@@ -95,6 +96,7 @@ export function ExercisesPager({
 }: ExercisesPagerProps) {
   const t = useTranslations('courses')
   const { user } = useCurrentUser()
+  const subscribeHref = useSubscriptionsHref()
   const tierUser = useMemo(
     () => ({ currentTier: getUserTierSlug(user as { currentTier?: string | null } | null) }),
     [user],
@@ -346,7 +348,7 @@ export function ExercisesPager({
                           </p>
                         </div>
                         <Button asChild size="lg" className="min-h-[48px]">
-                          <SystemLink href="/subscriptions">{t('tierLockedUpgradeCta')}</SystemLink>
+                          <SystemLink href={subscribeHref}>{t('tierLockedUpgradeCta')}</SystemLink>
                         </Button>
                       </div>
                     ) : (

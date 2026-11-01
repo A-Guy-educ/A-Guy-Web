@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.59.0 — 2026-11-01
+
+### Features
+- Share the section independence classifier with the teacher dashboard (#1527)
+- Join a class from the CMS with Google sign-in (#1524)
+- Return to the lesson after subscribing, plus 50%/90% token usage alerts (#1518)
+
+### Bug Fixes
+- Land on the first block after continue or skip (#1526)
+- Keep the token usage alert visible during chat and re-check it after dismissal (#1525)
+- Re-arm token usage alerts when the cap changes (#1523)
+- Accept answers that omit or add the variable label (#1522)
+- Record chat token usage before responding (#1521)
+- Pin node-forge to 1.4.1 or later to clear high audit advisories (#1520)
+- Allow Blob store hosts in media-src for uploaded video (#1519)
+- Read lesson PDFs from Blob and never answer without them (#1517)
+
 ## v0.58.1 — 2026-10-29
 
 ### Bug Fixes
@@ -5113,6 +5130,20 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.59.0 ([#1528](https://github.com/A-Guy-educ/A-Guy-Web/pull/1528)) — @aguyshayb
+- feat(teacher): Share the section independence classifier with the dashboard ([#1527](https://github.com/A-Guy-educ/A-Guy-Web/pull/1527)) — @aguyshayb
+- fix(chat): Land on the first block after continue or skip ([#1526](https://github.com/A-Guy-educ/A-Guy-Web/pull/1526)) — @aguyshayb
+- fix: Token usage alert never visible during chat ([#1525](https://github.com/A-Guy-educ/A-Guy-Web/pull/1525)) — @aguyshayb
+- feat: Join a class from the CMS with Google sign-in ([#1524](https://github.com/A-Guy-educ/A-Guy-Web/pull/1524)) — @aguyshayb
+- fix: Re-arm token usage alerts when the cap changes ([#1523](https://github.com/A-Guy-educ/A-Guy-Web/pull/1523)) — @aguyshayb
+- fix: Record chat token usage before responding ([#1521](https://github.com/A-Guy-educ/A-Guy-Web/pull/1521)) — @aguyshayb
+- feat: Return to lesson after subscribing + 50%/90% token usage alerts ([#1518](https://github.com/A-Guy-educ/A-Guy-Web/pull/1518)) — @aguyshayb
+- fix(csp): Allow Blob store hosts in media-src for uploaded video ([#1519](https://github.com/A-Guy-educ/A-Guy-Web/pull/1519)) — @aguyshayb
+- fix: Read lesson PDFs from Blob and never answer without them ([#1517](https://github.com/A-Guy-educ/A-Guy-Web/pull/1517)) — @aguyshayb
+- chore(deps): Pin node-forge to 1.4.1 or later to clear high audit advisories ([#1520](https://github.com/A-Guy-educ/A-Guy-Web/pull/1520)) — @aguyshayb
+## [v0.58.1] - 2026-10-29
+
+- promote: dev -> main (v0.58.1) ([#1516](https://github.com/A-Guy-educ/A-Guy-Web/pull/1516)) — @aguyshayb
 - chore: Release v0.58.1 ([#1515](https://github.com/A-Guy-educ/A-Guy-Web/pull/1515)) — @aguyshayb
 - fix(chat): Stack given-data sketches below their text on mobile ([#1514](https://github.com/A-Guy-educ/A-Guy-Web/pull/1514)) — @aguyshayb
 - fix(chat): Stack geometry/axis sketches below their text on mobile ([#1513](https://github.com/A-Guy-educ/A-Guy-Web/pull/1513)) — @aguyshayb
