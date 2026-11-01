@@ -2,8 +2,9 @@
  * Which "you've used X% of your tokens" alert to show, if any.
  *
  * Each window (daily, monthly) alerts once at 50% and once at 90%. An alert
- * is identified by window + threshold + the window's `resetAt`, so it re-arms
- * when the window rolls over. Crossing straight past 50% to 90% shows only
+ * is identified by window + threshold + the window's cap + its `resetAt`, so
+ * it re-arms when the window rolls over or the cap changes (tier upgrade,
+ * admin override) — a new cap is a new budget to warn about. Crossing straight past 50% to 90% shows only
  * the 90% alert and retires the 50% one for that window.
  *
  * Exhausted windows (100%) are skipped: the quota-exhausted card already
@@ -45,9 +46,9 @@ const WINDOW_PRIORITY: readonly TokenUsageWindowName[] = ['monthly', 'daily']
 export function tokenUsageAlertKey(
   window: TokenUsageWindowName,
   threshold: TokenUsageAlertThreshold,
-  resetAt: string | null,
+  { limit, resetAt }: Pick<TokenUsageWindowSnapshot, 'limit' | 'resetAt'>,
 ): string {
-  return `${window}:${threshold}:${resetAt ?? 'none'}`
+  return `${window}:${threshold}:${limit ?? 'none'}:${resetAt ?? 'none'}`
 }
 
 function usagePercent({ used, limit }: TokenUsageWindowSnapshot): number | null {
@@ -65,11 +66,11 @@ export function pickTokenUsageAlert(
       const percent = usagePercent(snapshot)
       if (percent === null || percent < threshold || percent >= 100) continue
 
-      const key = tokenUsageAlertKey(window, threshold, snapshot.resetAt)
+      const key = tokenUsageAlertKey(window, threshold, snapshot)
       if (isSeen(key)) continue
 
       const lowerKeys = TOKEN_USAGE_ALERT_THRESHOLDS.filter((t) => t < threshold).map((t) =>
-        tokenUsageAlertKey(window, t, snapshot.resetAt),
+        tokenUsageAlertKey(window, t, snapshot),
       )
       return { window, threshold, resetAt: snapshot.resetAt, keys: [key, ...lowerKeys] }
     }

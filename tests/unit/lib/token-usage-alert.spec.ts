@@ -17,6 +17,8 @@ function usage(dailyUsed: number, monthlyUsed: number): TokenUsageSnapshot {
 }
 
 const nothingSeen = () => false
+const DAILY = { limit: 1000, resetAt: DAY_RESET }
+const MONTHLY = { limit: 10000, resetAt: MONTH_RESET }
 
 describe('pickTokenUsageAlert', () => {
   it('stays quiet below 50%', () => {
@@ -28,7 +30,7 @@ describe('pickTokenUsageAlert', () => {
       window: 'daily',
       threshold: 50,
       resetAt: DAY_RESET,
-      keys: [tokenUsageAlertKey('daily', 50, DAY_RESET)],
+      keys: [tokenUsageAlertKey('daily', 50, DAILY)],
     })
   })
 
@@ -36,8 +38,8 @@ describe('pickTokenUsageAlert', () => {
     const alert = pickTokenUsageAlert(usage(950, 0), nothingSeen)
     expect(alert?.threshold).toBe(90)
     expect(alert?.keys).toEqual([
-      tokenUsageAlertKey('daily', 90, DAY_RESET),
-      tokenUsageAlertKey('daily', 50, DAY_RESET),
+      tokenUsageAlertKey('daily', 90, DAILY),
+      tokenUsageAlertKey('daily', 50, DAILY),
     ])
   })
 
@@ -53,7 +55,7 @@ describe('pickTokenUsageAlert', () => {
   })
 
   it('skips seen alerts and moves on to the next one', () => {
-    const seen = new Set([tokenUsageAlertKey('monthly', 50, MONTH_RESET)])
+    const seen = new Set([tokenUsageAlertKey('monthly', 50, MONTHLY)])
     expect(pickTokenUsageAlert(usage(600, 6000), (k) => seen.has(k))).toMatchObject({
       window: 'daily',
       threshold: 50,
@@ -61,12 +63,29 @@ describe('pickTokenUsageAlert', () => {
   })
 
   it('re-arms when the window resets', () => {
-    const seen = new Set([tokenUsageAlertKey('daily', 50, DAY_RESET)])
+    const seen = new Set([tokenUsageAlertKey('daily', 50, DAILY)])
     const nextDay: TokenUsageSnapshot = {
       ...usage(0, 0),
       daily: { used: 500, limit: 1000, resetAt: '2026-11-03T00:00:00.000Z' },
     }
     expect(pickTokenUsageAlert(nextDay, (k) => seen.has(k))).toMatchObject({ window: 'daily' })
+  })
+
+  it('re-arms when the cap changes mid-window', () => {
+    // 92% of a 1000 cap burns both daily alerts; raising the cap to 20000
+    // and crossing 50% of that is a new budget and must alert again.
+    const seen = new Set([
+      tokenUsageAlertKey('daily', 90, DAILY),
+      tokenUsageAlertKey('daily', 50, DAILY),
+    ])
+    const raised: TokenUsageSnapshot = {
+      ...usage(0, 0),
+      daily: { used: 11000, limit: 20000, resetAt: DAY_RESET },
+    }
+    expect(pickTokenUsageAlert(raised, (k) => seen.has(k))).toMatchObject({
+      window: 'daily',
+      threshold: 50,
+    })
   })
 
   it('ignores uncapped and exhausted windows', () => {
