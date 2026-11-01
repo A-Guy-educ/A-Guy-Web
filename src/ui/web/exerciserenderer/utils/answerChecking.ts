@@ -155,6 +155,7 @@ export async function validateFreeResponseOnServer(
         questionText: question.prompt.value,
         acceptedAnswers: question.answer.acceptedAnswers,
         studentAnswer,
+        solution: question.solution?.value || undefined,
         questionType: question.type,
         lessonId: attemptContext?.lessonId || undefined,
         exerciseId: attemptContext?.exerciseId || undefined,
