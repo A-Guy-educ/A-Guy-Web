@@ -20,6 +20,7 @@ import type { Exercise } from '@/infra/types/content'
 import type { ContentBlock, ExerciseBlockGroup } from '@/infra/types/exercise'
 import { getExerciseBlockGroups } from '@/lib/exercises/getExerciseBlocks'
 import { computeQuestionLabels, computeSectionLabels } from '@/lib/exercises/computeSectionLabels'
+import { isAnswerRequired } from '@/lib/exercises/sectionOutcome'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { isSectionEligibleForReview } from './reviewEligibility'
 import type { StreamEntry } from './types'
@@ -32,45 +33,9 @@ import type { StreamEntry } from './types'
  */
 const REVIEW_STORAGE_PREFIX = 'review-'
 
-/**
- * Block types that always require the student to submit an answer. These
- * stay in their own section walker step so their answer UI renders.
- * Non-interactive display blocks (rich_text, static svg, latex, html,
- * media, display-only axis/geometry graphs) fall into "given data" and
- * move into the intro card.
- */
-const ALWAYS_ANSWER_REQUIRED_BLOCK_TYPES = new Set([
-  'question_select',
-  'question_free_response',
-  'question_table',
-  'question_matching',
-])
-
-/**
- * `svg` is a display type by default, but SVGBlock supports interactive
- * hotspots (`interactive: true` with a non-empty `hotspots` array + a
- * `correctHotspotIds` grading rule — see SvgBlock in `types.ts`). When
- * that's the case ExerciseRenderer renders it inside a graded
- * QuestionCard, so we must treat it as answer-required. Static SVG
- * figures (no `interactive` flag) stay in given data.
- */
-function isInteractiveSvg(block: { type: string; [key: string]: unknown }): boolean {
-  if (block.type !== 'svg') return false
-  const interactive = (block as { interactive?: boolean }).interactive === true
-  const hotspots = (block as { hotspots?: unknown[] }).hotspots
-  return interactive && Array.isArray(hotspots) && hotspots.length > 0
-}
-
-/**
- * Whether a block needs an answer input. Shared by the walker (to decide
- * which groups keep a walker step) and by ChatLessonRunnerView (to
- * derive the pill's given-data set). Kept in one place so the pill and
- * the intro card never drift apart on a future block-type addition.
- */
-export function isAnswerRequired(block: { type: string; [key: string]: unknown }): boolean {
-  if (ALWAYS_ANSWER_REQUIRED_BLOCK_TYPES.has(block.type)) return true
-  return isInteractiveSvg(block)
-}
+// Re-exported so existing chat-view imports keep working; the rule lives in lib
+// so the server-side teacher progress can share it.
+export { isAnswerRequired }
 
 /**
  * Pull the exercise's top-level (pre-section) non-answer-required blocks.

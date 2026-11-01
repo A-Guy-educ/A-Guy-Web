@@ -1,6 +1,9 @@
 /**
  * Builds the single atomic upsert that records one question-attempt event.
  *
+ * `self_checked` marks a free-response answer the student compared against the
+ * solution themselves (AI check unavailable) — `$set selfChecked: true`.
+ *
  * One `question-attempts` doc per (user, exercise, block). Payload defaults
  * don't run for raw Mongo writes, so every field Admin's schema expects is
  * seeded in `$setOnInsert` — except counters `$inc`'d in the same op (Mongo
@@ -22,7 +25,13 @@ import type { Document } from 'mongodb'
 
 import { objectIdFromString } from '@/infra/db/content-db'
 
-export const QUESTION_ATTEMPT_EVENTS = ['wrong', 'correct', 'hint', 'explanation'] as const
+export const QUESTION_ATTEMPT_EVENTS = [
+  'wrong',
+  'correct',
+  'hint',
+  'explanation',
+  'self_checked',
+] as const
 export type QuestionAttemptEvent = (typeof QUESTION_ATTEMPT_EVENTS)[number]
 
 export interface QuestionAttemptInput {
@@ -41,6 +50,7 @@ const COUNTER_BY_EVENT: Record<QuestionAttemptEvent, (typeof COUNTERS)[number] |
   correct: null,
   hint: 'hintCount',
   explanation: 'explanationCount',
+  self_checked: null,
 }
 
 /** Events that stop counting once the question is solved. */
@@ -57,6 +67,8 @@ export function buildQuestionAttemptWrite(
   }
   const incField = COUNTER_BY_EVENT[input.event]
   const solvesNow = input.event === 'correct'
+  // Self-compare (no checked verdict) is a help signal for the independence index.
+  const selfChecksNow = input.event === 'self_checked'
 
   const setOnInsert: Document = {
     lesson: objectIdFromString(input.lessonId),
@@ -64,11 +76,16 @@ export function buildQuestionAttemptWrite(
     createdAt: now,
     ...(input.tenantId ? { tenant: objectIdFromString(input.tenantId) } : {}),
     ...(solvesNow ? {} : { solved: false }),
+    ...(selfChecksNow ? {} : { selfChecked: false }),
     ...Object.fromEntries(COUNTERS.filter((c) => c !== incField).map((c) => [c, 0])),
   }
 
   const update: Document = {
-    $set: { updatedAt: now, ...(solvesNow ? { solved: true, solvedAt: now } : {}) },
+    $set: {
+      updatedAt: now,
+      ...(solvesNow ? { solved: true, solvedAt: now } : {}),
+      ...(selfChecksNow ? { selfChecked: true } : {}),
+    },
     $setOnInsert: setOnInsert,
     ...(incField ? { $inc: { [incField]: 1 } } : {}),
   }

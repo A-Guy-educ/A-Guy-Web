@@ -8,6 +8,11 @@
  * @ai-summary Builds the /api/teacher/classes/:id/progress payload from lessons, progress docs and attempts
  */
 
+import {
+  classifySectionOutcome,
+  type AnswerBlockFacts,
+  type SectionOutcome,
+} from '@/lib/exercises/sectionOutcome'
 import type { ProgressRecord } from '@/server/web-api/progress'
 
 /** Heartbeat writes per-lesson time into this gradeLevel bucket only. */
@@ -21,6 +26,15 @@ export interface LessonQuestions {
   title: string
   /** Question blocks in render order. */
   questions: Array<{ exerciseId: string; blockId: string }>
+  /** Sections the student summary counts, in lesson order. */
+  sections?: LessonSectionInput[]
+}
+
+export interface LessonSectionInput {
+  id: string
+  exerciseId: string
+  /** Answer-required block ids; empty for a display-only section. */
+  blockIds: string[]
 }
 
 export interface ProgressDocInput {
@@ -38,6 +52,7 @@ export interface AttemptInput {
   wrongCount?: number
   hintCount?: number
   explanationCount?: number
+  selfChecked?: boolean
 }
 
 export interface QuestionProgress {
@@ -52,6 +67,7 @@ export interface StudentLessonProgress {
   status: LessonStatus
   minutes: number
   questions: QuestionProgress[]
+  sections: Array<{ id: string; outcome: SectionOutcome }>
 }
 
 export interface ClassProgressResponse {
@@ -86,6 +102,23 @@ function questionProgress(id: string, attempt: AttemptInput | undefined): Questi
     mistakes,
     hints: attempt?.hintCount ?? 0,
     explanations: attempt?.explanationCount ?? 0,
+  }
+}
+
+/**
+ * Same facts the student summary reads from localStorage. A doc that only
+ * holds hint / explanation clicks wasn't answered — that's "unseen" above too.
+ */
+function attemptFacts(attempt: AttemptInput | undefined): AnswerBlockFacts {
+  const wrongCount = attempt?.wrongCount ?? 0
+  const selfChecked = attempt?.selfChecked === true
+  return {
+    answered: Boolean(attempt?.solved) || wrongCount > 0 || selfChecked,
+    finalCorrect: Boolean(attempt?.solved),
+    hadWrongAttempt: wrongCount > 0,
+    hintUsed: (attempt?.hintCount ?? 0) > 0,
+    explanationUsed: (attempt?.explanationCount ?? 0) > 0,
+    selfChecked,
   }
 }
 
@@ -141,6 +174,16 @@ export function buildClassProgress(input: {
           const key = questionKey(exerciseId, blockId)
           return questionProgress(key, attemptsByKey.get(`${student.id}|${key}`))
         }),
+        sections: (lesson.sections ?? []).map((section) => ({
+          id: section.id,
+          outcome: classifySectionOutcome(
+            section.blockIds.map((blockId) =>
+              attemptFacts(
+                attemptsByKey.get(`${student.id}|${questionKey(section.exerciseId, blockId)}`),
+              ),
+            ),
+          ),
+        })),
       }
     }
     return { id: student.id, name: student.name, lessons }

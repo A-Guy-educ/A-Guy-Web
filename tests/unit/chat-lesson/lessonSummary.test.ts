@@ -84,6 +84,7 @@ function savePerBlock(
       isCorrect?: boolean
       wrongOptionIds?: string[]
       hintShown?: boolean
+      explanationShown?: boolean
       notChecked?: boolean
     }
   >,
@@ -99,6 +100,7 @@ function savePerBlock(
     const meta: Record<string, unknown> = {}
     if (state.wrongOptionIds) meta.wrongOptionIds = state.wrongOptionIds
     if (state.hintShown) meta.hintShown = state.hintShown
+    if (state.explanationShown) meta.explanationShown = state.explanationShown
     if (state.notChecked) meta.notChecked = state.notChecked
     if (Object.keys(meta).length > 0) blockMeta[blockId] = meta
   }
@@ -110,7 +112,12 @@ function savePerBlock(
     svgCheckResults: {},
     blockMeta: blockMeta as Record<
       string,
-      { wrongOptionIds?: string[]; hintShown?: boolean; notChecked?: boolean }
+      {
+        wrongOptionIds?: string[]
+        hintShown?: boolean
+        explanationShown?: boolean
+        notChecked?: boolean
+      }
     >,
   })
 }
@@ -147,17 +154,18 @@ describe('computeLessonStats', () => {
     })
   })
 
-  it('demotes correct sections with wrong-option retries or hint usage to with-help', () => {
-    const ex = exerciseWithSections('ex1', ['s0', 's1', 's2'])
+  it('demotes correct sections with retries, hints, explanations or self-checks to with-help', () => {
+    const ex = exerciseWithSections('ex1', ['s0', 's1', 's2', 's3'])
     savePerBlock('ex1', {
       's0-q': { isCorrect: true, wrongOptionIds: ['s0-f'] },
       's1-q': { isCorrect: true, hintShown: true },
       's2-q': { isCorrect: true, notChecked: true },
+      's3-q': { isCorrect: true, explanationShown: true },
     })
     expect(computeLessonStats([ex])).toEqual({
-      totalSections: 3,
+      totalSections: 4,
       alone: 0,
-      withHelp: 3,
+      withHelp: 4,
       skipped: 0,
       wrong: 0,
     })
