@@ -5139,6 +5139,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- promote: dev -> main (v0.60.0) ([#1545](https://github.com/A-Guy-educ/A-Guy-Web/pull/1545)) — @aguyshayb
 - chore: Release v0.60.0 ([#1544](https://github.com/A-Guy-educ/A-Guy-Web/pull/1544)) — @aguyshayb
 - feat: Open purchase consent inside the chosen tier card ([#1543](https://github.com/A-Guy-educ/A-Guy-Web/pull/1543)) — @aguyshayb
 - feat: Grant school students the basic tier on /join ([#1542](https://github.com/A-Guy-educ/A-Guy-Web/pull/1542)) — @aguyshayb
