@@ -255,6 +255,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
   const mediaMap = await queryMediaByIds(
     extractAllMediaIds([
+      { content: lesson.content ?? null },
       ...exercises.map((exercise) => ({ content: exercise.content ?? null })),
       ...contentPagesInBlocks.map((page) => ({ content: page.body ?? null })),
     ]),
