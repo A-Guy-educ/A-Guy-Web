@@ -11,6 +11,43 @@ export type Period = 'day' | 'week' | 'month' | 'year'
 export const VALID_PERIODS: readonly Period[] = ['day', 'week', 'month', 'year']
 
 /**
+ * Users-tab cohort. B2B = the user id appears in any `classes` doc's
+ * `students[]` or `teachers[]`; B2C = everyone else. Derived per request from
+ * the class rosters — there is no stored segment field on users.
+ */
+export type UserSegment = 'all' | 'b2c' | 'b2b'
+
+export const VALID_SEGMENTS: readonly UserSegment[] = ['all', 'b2c', 'b2b']
+
+export interface B2bSchoolMetrics {
+  schoolId: string
+  schoolName: string
+  classes: number
+  students: number
+  activeStudentsInPeriod: number
+}
+
+/**
+ * School roll-up returned with `segment=b2b`. Admins are excluded from every
+ * count, like the rest of the dashboard. "Active" uses the same definition as
+ * `userMetrics.returningUsers`: user-stats `lastActiveDate` on/after
+ * periodStart. There is no `joinedInPeriod` — class rosters store bare user
+ * ids with no join timestamp.
+ */
+export interface B2bMetrics {
+  /** Schools referenced by at least one class. */
+  schools: number
+  classes: number
+  /** Distinct users in any `classes.students`. */
+  students: number
+  /** Distinct users in any `classes.teachers`. */
+  teachers: number
+  activeStudentsInPeriod: number
+  /** Sorted desc by students, top 20. */
+  perSchool: B2bSchoolMetrics[]
+}
+
+/**
  * Registration attribution counts for the selected `period`. Only Google OAuth
  * signups carry a `signupSource` — that's the only signup path we attribute.
  * `unknown` therefore covers three cases: users registered before the
@@ -179,6 +216,11 @@ export interface TokenMetrics {
 
 export interface DashboardMetricsResponse {
   period: Period
+  /**
+   * Cohort `userMetrics` and `monthlySignups` were computed over. Guest
+   * fields are pre-signup and every other block is always platform-wide.
+   */
+  segment: UserSegment
   userMetrics: UserMetrics
   monthlySignups: MonthlySignup[]
   contentCounts: ContentCounts
@@ -198,4 +240,6 @@ export interface DashboardMetricsResponse {
    * `src/server/services/dashboard/product-health/types.ts`.
    */
   productHealth?: import('./product-health/types').ProductHealthPayload
+  /** School roll-up; present only when `segment` is `b2b`. */
+  b2bMetrics?: B2bMetrics
 }
