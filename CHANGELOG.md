@@ -5130,6 +5130,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Open purchase consent inside the chosen tier card ([#1543](https://github.com/A-Guy-educ/A-Guy-Web/pull/1543)) — @aguyshayb
 - feat: Grant school students the basic tier on /join ([#1542](https://github.com/A-Guy-educ/A-Guy-Web/pull/1542)) — @aguyshayb
 - feat: Save name and phone from /join onto the student's user ([#1541](https://github.com/A-Guy-educ/A-Guy-Web/pull/1541)) — @aguyshayb
 - feat: Add B2B/B2C segment to dashboard metrics ([#1540](https://github.com/A-Guy-educ/A-Guy-Web/pull/1540)) — @aguyshayb
