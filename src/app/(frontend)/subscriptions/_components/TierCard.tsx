@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from '@/ui/web/components/dialog'
 import { useI18n, useTranslations } from '@/ui/web/providers/I18n'
+import { PurchaseConsentCheckbox } from '@/ui/web/upsell/PurchaseConsentCheckbox'
 import {
   TIER_PRICE_ILS,
   TIER_RANK,
@@ -55,14 +56,27 @@ function formatIls(amount: number): string {
 interface TierCardProps {
   tier: TierSlug
   /**
-   * Shared age / Terms / Privacy consent flag hoisted to the page-level
-   * `SubscriptionsCatalog`. False blocks `handleSubscribe` with a toast
-   * instead of advancing to Tranzilla.
+   * True when the student has chosen this tier in `SubscriptionsCatalog`.
+   * A selected card shows the consent checkbox and a "Pay" button instead
+   * of "Choose".
    */
-  isConsented?: boolean
+  isSelected: boolean
+  onSelect: () => void
+  /**
+   * Age / Terms / Privacy consent, owned by `SubscriptionsCatalog`. Only
+   * true for the selected card. False keeps the Pay button disabled.
+   */
+  isConsented: boolean
+  onConsentChange: (checked: boolean) => void
 }
 
-export function TierCard({ tier, isConsented = true }: TierCardProps) {
+export function TierCard({
+  tier,
+  isSelected,
+  onSelect,
+  isConsented,
+  onConsentChange,
+}: TierCardProps) {
   const t = useTranslations('subscriptions')
   const tConsent = useTranslations('purchaseConsent')
   const { messages } = useI18n()
@@ -291,12 +305,15 @@ export function TierCard({ tier, isConsented = true }: TierCardProps) {
             isAuthLoading,
             isCheckingOut,
             hasUser: !!user,
-            isChangingTier: canChangeTier,
+            isSelected,
+            isConsented,
+            onSelect,
             onSubscribe: handleSubscribe,
             labels: {
-              continue: canChangeTier
+              select: t('selectButton'),
+              pay: canChangeTier
                 ? t('changeTierButton').replace('{tier}', tierName)
-                : t('continueButton'),
+                : t('payButton'),
               login: t('loginToSubscribe'),
               redirecting: t('redirecting'),
             },
@@ -304,7 +321,22 @@ export function TierCard({ tier, isConsented = true }: TierCardProps) {
           // No CTA for the free-tier baseline when the user is on a paid plan —
           // skip the footer entirely so there's no empty bordered strip.
           if (cta === null) return null
-          return <div className="mt-auto border-t border-border/40 p-card-padding-sm">{cta}</div>
+          // Consent opens inside the chosen card, right above its Pay button,
+          // so on mobile it isn't stranded below the whole stacked grid.
+          const showConsent = isSelected && !!user && !isAuthLoading
+          return (
+            <div className="mt-auto flex flex-col gap-content-gap-sm border-t border-border/40 p-card-padding-sm">
+              {showConsent ? (
+                <PurchaseConsentCheckbox
+                  id={`subscriptions-consent-${tier}`}
+                  checked={isConsented}
+                  onCheckedChange={onConsentChange}
+                  disabled={isCheckingOut}
+                />
+              ) : null}
+              {cta}
+            </div>
+          )
         })()}
       </article>
 
@@ -351,14 +383,15 @@ interface CtaProps {
   isAuthLoading: boolean
   isCheckingOut: boolean
   hasUser: boolean
-  // True when the click will hit admin's change-tier endpoint instead of
-  // bootstrap. Doesn't change rendering today — kept as a hook for e.g. a
-  // different button variant on upgrade. The label switch is driven by
-  // the caller via `labels.continue`.
-  isChangingTier: boolean
+  // Two-step CTA: "Choose" until the tier is selected, then "Pay" (or
+  // "Switch to X" on an existing sub), enabled once consent is ticked.
+  isSelected: boolean
+  isConsented: boolean
+  onSelect: () => void
   onSubscribe: () => void
   labels: {
-    continue: string
+    select: string
+    pay: string
     login: string
     redirecting: string
   }
@@ -369,7 +402,9 @@ function renderCta({
   isAuthLoading,
   isCheckingOut,
   hasUser,
-  isChangingTier: _isChangingTier,
+  isSelected,
+  isConsented,
+  onSelect,
   onSubscribe,
   labels,
 }: CtaProps) {
@@ -396,15 +431,27 @@ function renderCta({
     )
   }
 
+  if (!isSelected) {
+    return (
+      <Button onClick={onSelect} variant="outline" className="w-full h-12 font-bold">
+        {labels.select}
+      </Button>
+    )
+  }
+
   return (
-    <Button onClick={onSubscribe} disabled={isCheckingOut} className="w-full h-12 font-bold">
+    <Button
+      onClick={onSubscribe}
+      disabled={isCheckingOut || !isConsented}
+      className="w-full h-12 font-bold"
+    >
       {isCheckingOut ? (
         <>
           <Loader2 className="me-2 h-4 w-4 animate-spin" />
           {labels.redirecting}
         </>
       ) : (
-        labels.continue
+        labels.pay
       )}
     </Button>
   )
