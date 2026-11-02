@@ -1,7 +1,7 @@
 /**
  * POST /api/join/enroll — adds the signed-in student to a class picked on
- * /join and returns the class's course page. 401 sends the client through
- * Google sign-in first.
+ * /join, saves the name and phone they typed there, and returns the class's
+ * course page. 401 sends the client through Google sign-in first.
  *
  * @fileType api-route
  * @domain classroom
@@ -14,11 +14,15 @@ import { z } from 'zod'
 import { createRequestLogger } from '@/infra/utils/logger/logger'
 import { getWebUser } from '@/infra/web-api/mongo-payload'
 import { enrollStudentInClass } from '@/server/services/classroom/class-enrollment'
+import { studentJoinProfileSchema } from '@/server/services/classroom/student-join-profile'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const bodySchema = z.object({ classId: z.string().min(1).max(64) })
+const bodySchema = z.object({
+  classId: z.string().min(1).max(64),
+  profile: studentJoinProfileSchema,
+})
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const requestId = request.headers.get('x-request-id') || crypto.randomUUID()
@@ -36,7 +40,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const result = await enrollStudentInClass(String(user.id), parsed.data.classId)
+    const { classId, profile } = parsed.data
+    const result = await enrollStudentInClass(String(user.id), classId, profile)
     if (result.status === 'not_found') {
       return NextResponse.json({ error: 'Class not found' }, { status: 404, headers })
     }

@@ -10,7 +10,7 @@ import type { ReactNode } from 'react'
 import { cn } from '@/infra/utils/ui'
 import { Label } from '@/ui/web/components/label'
 
-export type FieldKey = 'school' | 'class'
+export type FieldKey = 'firstName' | 'lastName' | 'phone' | 'school' | 'class'
 
 export const fieldId = (key: FieldKey) => `join-${key}`
 
