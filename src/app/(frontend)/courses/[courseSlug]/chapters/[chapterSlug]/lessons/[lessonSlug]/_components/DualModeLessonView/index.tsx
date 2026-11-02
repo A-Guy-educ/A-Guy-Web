@@ -15,6 +15,7 @@
 
 import React, { useEffect, useMemo } from 'react'
 import type { Exercise, FormulaSheet, Media as MediaType } from '@/infra/types/content'
+import type { ContentBlock } from '@/infra/types/exercise'
 import type { ResolvedLessonBlock } from '@/server/repos/queries/lesson-blocks'
 import { ChatInterface } from '@/ui/web/chat'
 import { LessonMenuProvider, type LessonMenuTab } from '@/ui/web/lesson-menu'
@@ -71,6 +72,11 @@ interface DualModeLessonViewProps {
   } | null
   /** 1-based position in the user's opened learning lessons (see page.tsx comment). */
   lessonLearningIndex?: number | null
+  /**
+   * The lesson's own content blocks (`lesson.content`). Shown at the top of
+   * the Scroll (pdf) and Chat tabs only — never on the Media tab.
+   */
+  lessonContentBlocks?: ContentBlock[]
 }
 
 /**
@@ -129,6 +135,7 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
     nextLesson,
     nextSameTypeLesson,
     lessonLearningIndex,
+    lessonContentBlocks,
   } = props
 
   const t = useTranslations('courses')
@@ -202,6 +209,7 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
           exercises={exercises}
           mediaMap={mediaMap}
           lessonLearningIndex={lessonLearningIndex}
+          lessonContentBlocks={lessonContentBlocks}
           chatContent={
             showChat ? (
               <ChatInterface
@@ -226,6 +234,7 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
           formulaSheet={formulaSheet}
           lessonLearningIndex={lessonLearningIndex}
           nextSameTypeLesson={nextSameTypeLesson}
+          lessonContentBlocks={lessonContentBlocks}
         />
       )
     }

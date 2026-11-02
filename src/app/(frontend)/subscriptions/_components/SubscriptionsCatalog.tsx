@@ -1,15 +1,16 @@
 'use client'
 
 /**
- * Owns the shared age / Terms / Privacy consent for the whole /subscriptions
- * grid. One checkbox below the cards gates every "Continue" button — picking
- * a tier before consenting shows a toast and does not advance to Tranzilla.
+ * Owns the selected tier and the age / Terms / Privacy consent for the whole
+ * /subscriptions grid. Each card starts with a "Choose" button; choosing a
+ * tier opens the consent checkbox inside that card, and the card's button
+ * turns into "Pay", disabled until the box is ticked.
  *
- * The server page used to map `TIER_SLUGS → <TierCard />` directly; now it
- * hands that same list to this client wrapper so we can hoist consent state
- * out of the individual card. Avoids three stacked identical checkboxes
- * (one per non-current tier card) and keeps the attestation legally
- * meaningful — the student actively ticks the box once per visit.
+ * The consent used to sit once below the grid. On mobile the cards stack, so
+ * it ended up far below the button the student had just tapped. Rendering it
+ * inside the chosen card keeps it next to the action it gates. Only one tier
+ * is selected at a time, and switching tiers clears the tick so the consent
+ * always belongs to the plan being paid for.
  *
  * @fileType component
  * @domain subscriptions
@@ -18,7 +19,6 @@
 import { useState } from 'react'
 
 import type { TierSlug } from '@/lib/tiers'
-import { PurchaseConsentCheckbox } from '@/ui/web/upsell/PurchaseConsentCheckbox'
 
 import { TierCard } from './TierCard'
 
@@ -27,23 +27,27 @@ interface SubscriptionsCatalogProps {
 }
 
 export function SubscriptionsCatalog({ tiers }: SubscriptionsCatalogProps) {
+  const [selectedTier, setSelectedTier] = useState<TierSlug | null>(null)
   const [consented, setConsented] = useState(false)
 
+  const handleSelect = (tier: TierSlug) => {
+    if (tier === selectedTier) return
+    setSelectedTier(tier)
+    setConsented(false)
+  }
+
   return (
-    <>
-      <div className="grid gap-content-gap md:grid-cols-2 xl:grid-cols-4">
-        {tiers.map((tier) => (
-          <TierCard key={tier} tier={tier} isConsented={consented} />
-        ))}
-      </div>
-      <div className="mt-section-sm flex justify-center">
-        <PurchaseConsentCheckbox
-          id="subscriptions-consent"
-          checked={consented}
-          onCheckedChange={setConsented}
-          className="max-w-2xl"
+    <div className="grid gap-content-gap md:grid-cols-2 xl:grid-cols-4">
+      {tiers.map((tier) => (
+        <TierCard
+          key={tier}
+          tier={tier}
+          isSelected={selectedTier === tier}
+          onSelect={() => handleSelect(tier)}
+          isConsented={selectedTier === tier && consented}
+          onConsentChange={setConsented}
         />
-      </div>
-    </>
+      ))}
+    </div>
   )
 }

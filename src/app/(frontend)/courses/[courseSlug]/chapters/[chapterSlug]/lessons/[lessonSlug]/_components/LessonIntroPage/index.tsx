@@ -8,6 +8,7 @@ import { ExerciseWorkspace } from '@/app/(frontend)/courses/[courseSlug]/chapter
 import type { Lesson, LessonPrerequisite, Media } from '@/infra/types/content'
 import type { ResolvedLessonBlock } from '@/server/repos/queries/lesson-blocks'
 import { getExerciseBlocks } from '@/lib/exercises/getExerciseBlocks'
+import { getLessonContentBlocks } from '@/lib/lessons/getLessonContentBlocks'
 import { getEffectiveLessonType } from '@/server/constants/lesson-types'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
@@ -155,6 +156,7 @@ export function LessonIntroPage({
       Array.isArray(blocks) ? blocks.filter((block) => block.type === 'contentPage').length : 0,
     [blocks],
   )
+  const lessonContentBlocks = useMemo(() => getLessonContentBlocks(lesson), [lesson])
   const { pageState, handleStart, handleFinishPreamble } = useLessonIntroPage({
     deepLinkedExerciseId,
     hasContentPagesPreamble: contentPageCount > 0,
@@ -337,6 +339,7 @@ export function LessonIntroPage({
         nextLesson={nextLesson}
         nextSameTypeLesson={nextSameTypeLesson}
         lessonLearningIndex={lessonLearningIndex}
+        lessonContentBlocks={lessonContentBlocks}
       />
     )
   }

@@ -24,6 +24,7 @@ import {
 import { RichTextRenderer } from '@/ui/web/exerciserenderer/blocks/RichTextRenderer'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import type { Exercise, Media as MediaType } from '@/infra/types/content'
+import type { ContentBlock } from '@/infra/types/exercise'
 import type { QuestionBlock, InlineRichText, RichTextBlock } from '@/ui/web/exerciserenderer/types'
 import { ExerciseWorkspace } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseWorkspace'
 import { getExerciseBlockGroups } from '@/lib/exercises/getExerciseBlocks'
@@ -49,6 +50,8 @@ interface BlocksDocumentLessonViewProps {
    * `null` disables the cap.
    */
   lessonLearningIndex?: number | null
+  /** The lesson's own content blocks (`lesson.content`), rendered under the title before the exercises. */
+  lessonContentBlocks?: ContentBlock[]
 }
 
 function getGroups(exercise: Exercise): WorksheetGroups {
@@ -201,6 +204,7 @@ export function BlocksDocumentLessonView({
   headerSlot,
   chatContent,
   lessonLearningIndex = null,
+  lessonContentBlocks = [],
 }: BlocksDocumentLessonViewProps) {
   const locale = useLocale()
   const dir: 'ltr' | 'rtl' = locale?.toLowerCase().startsWith('he') ? 'rtl' : 'ltr'
@@ -215,6 +219,8 @@ export function BlocksDocumentLessonView({
     .filter((entry) => entry.groups.some((group) => group.blocks.length > 0))
 
   const solutionEntries = getSolutionsByExercise(visibleExercises, locale)
+  const lessonContentGroups: WorksheetGroups =
+    lessonContentBlocks.length > 0 ? [{ blocks: lessonContentBlocks, sectionIndex: null }] : []
 
   return (
     <ExerciseWorkspace
@@ -238,6 +244,15 @@ export function BlocksDocumentLessonView({
                   >
                     {lessonTitle}
                   </h1>
+                )}
+                {lessonContentGroups.length > 0 && (
+                  <section className="mb-section-lg border-b-2 border-border pb-section-md">
+                    <ExerciseWorksheet
+                      groups={lessonContentGroups}
+                      mediaMap={mediaMap}
+                      hideLatexBlocks={false}
+                    />
+                  </section>
                 )}
                 <div className="flex flex-col">
                   {renderable.map(({ exercise, groups }, idx) => (

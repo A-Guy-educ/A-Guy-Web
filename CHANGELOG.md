@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.60.0 — 2026-11-02
+
+### Features
+- Open purchase consent inside the chosen tier card (#1543)
+- Grant school students the basic tier on /join (#1542)
+- Save name and phone from /join onto the student's user (#1541)
+- Add B2B/B2C segment to dashboard metrics (#1540)
+- Render lesson content blocks in chat and scroll views (#1530)
+
 ## v0.59.0 — 2026-11-01
 
 ### Features
@@ -5130,6 +5139,15 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.60.0 ([#1544](https://github.com/A-Guy-educ/A-Guy-Web/pull/1544)) — @aguyshayb
+- feat: Open purchase consent inside the chosen tier card ([#1543](https://github.com/A-Guy-educ/A-Guy-Web/pull/1543)) — @aguyshayb
+- feat: Grant school students the basic tier on /join ([#1542](https://github.com/A-Guy-educ/A-Guy-Web/pull/1542)) — @aguyshayb
+- feat: Save name and phone from /join onto the student's user ([#1541](https://github.com/A-Guy-educ/A-Guy-Web/pull/1541)) — @aguyshayb
+- feat: Add B2B/B2C segment to dashboard metrics ([#1540](https://github.com/A-Guy-educ/A-Guy-Web/pull/1540)) — @aguyshayb
+- feat: Render lesson content blocks in chat and scroll views ([#1530](https://github.com/A-Guy-educ/A-Guy-Web/pull/1530)) — @aguyshayb
+## [v0.59.0] - 2026-11-01
+
+- promote: dev -> main (v0.59.0) ([#1529](https://github.com/A-Guy-educ/A-Guy-Web/pull/1529)) — @aguyshayb
 - chore: Release v0.59.0 ([#1528](https://github.com/A-Guy-educ/A-Guy-Web/pull/1528)) — @aguyshayb
 - feat(teacher): Share the section independence classifier with the dashboard ([#1527](https://github.com/A-Guy-educ/A-Guy-Web/pull/1527)) — @aguyshayb
 - fix(chat): Land on the first block after continue or skip ([#1526](https://github.com/A-Guy-educ/A-Guy-Web/pull/1526)) — @aguyshayb
