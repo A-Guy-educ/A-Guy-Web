@@ -17,6 +17,7 @@
 'use client'
 
 import type { Exercise, FormulaSheet, Media } from '@/infra/types/content'
+import type { ContentBlock } from '@/infra/types/exercise'
 import type { ReactNode } from 'react'
 import { useMemo } from 'react'
 import { ExerciseWorkspace } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseWorkspace'
@@ -55,6 +56,8 @@ interface ChatLessonViewProps {
     title: string | null
     chapterSlug: string | null
   } | null
+  /** The lesson's own content blocks (`lesson.content`), shown above the welcome message. */
+  lessonContentBlocks?: ContentBlock[]
 }
 
 export function ChatLessonView({
@@ -67,6 +70,7 @@ export function ChatLessonView({
   headerSlot,
   lessonLearningIndex = null,
   nextSameTypeLesson = null,
+  lessonContentBlocks,
 }: ChatLessonViewProps) {
   const t = useTranslations('courses')
   // TTS lives here so its mute state can be piped to the workspace's
@@ -120,6 +124,7 @@ export function ChatLessonView({
             tts={tts}
             lessonLearningIndex={lessonLearningIndex}
             nextSameTypeLesson={nextSameTypeLesson}
+            lessonContentBlocks={lessonContentBlocks}
           />
         </div>
       }

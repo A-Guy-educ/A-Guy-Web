@@ -35,6 +35,7 @@ import { SkippedMarker } from './bubbles/SkippedMarker'
 import { QuotaExhaustedCard } from './bubbles/QuotaExhaustedCard'
 import { ReviewOfferCard } from './bubbles/ReviewOfferCard'
 import { LessonSummaryCard, type LessonSummaryCopy } from './bubbles/LessonSummaryCard'
+import { LessonContentBubble, lessonContentStorageId } from './bubbles/LessonContentBubble'
 import {
   classifyLessonOutcome,
   computeLessonStats,
@@ -156,6 +157,8 @@ interface ChatLessonRunnerViewProps {
     title: string | null
     chapterSlug: string | null
   } | null
+  /** The lesson's own content blocks (`lesson.content`), rendered above the welcome bubble. */
+  lessonContentBlocks?: ContentBlock[]
 }
 
 export function ChatLessonRunnerView(props: ChatLessonRunnerViewProps) {
@@ -180,6 +183,7 @@ function ActiveChat({
   onExit,
   lessonLearningIndex = null,
   nextSameTypeLesson = null,
+  lessonContentBlocks = [],
 }: ActiveChatProps) {
   const t = useTranslations('courses')
   const locale = useLocale()
@@ -788,8 +792,9 @@ function ActiveChat({
       // Reset wipes both so the next pass starts truly empty.
       clearExerciseState(`review-${ex.id}`)
     })
+    clearExerciseState(lessonContentStorageId(lessonId))
     onExit()
-  }, [cancelPendingAdvance, clearProgress, exercises, onExit, tts])
+  }, [cancelPendingAdvance, clearProgress, exercises, lessonId, onExit, tts])
 
   // The LessonMenu dropdown's restart entry (published from
   // ChatLessonView) fires `CHAT_LESSON_RESET_EVENT` instead of calling a
@@ -838,6 +843,13 @@ function ActiveChat({
           className="w-full md:w-[80%] max-w-5xl mx-auto flex flex-col gap-content-gap-lg px-1 md:px-0"
           dir="rtl"
         >
+          {lessonContentBlocks.length > 0 && (
+            <LessonContentBubble
+              lessonId={lessonId}
+              blocks={lessonContentBlocks}
+              mediaMap={mediaMap}
+            />
+          )}
           <TeacherBubble
             text={t('chatWelcome')}
             onSpeak={() => tts.speak(t('chatWelcome'))}
