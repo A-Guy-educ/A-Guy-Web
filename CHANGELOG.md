@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.60.0 — 2026-11-02
+
+### Features
+- Open purchase consent inside the chosen tier card (#1543)
+- Grant school students the basic tier on /join (#1542)
+- Save name and phone from /join onto the student's user (#1541)
+- Add B2B/B2C segment to dashboard metrics (#1540)
+- Render lesson content blocks in chat and scroll views (#1530)
+
 ## v0.59.0 — 2026-11-01
 
 ### Features
