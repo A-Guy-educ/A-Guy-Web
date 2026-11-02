@@ -37,6 +37,7 @@ import type {
   UsersPerCourse,
 } from './metrics-types'
 import type { DateBuckets } from './date-buckets'
+import { userRefPredicate, usersCohortMatch, type UserCohort } from './user-segment'
 
 function firstCount(bucket: Array<{ n?: number }> | undefined): number {
   return bucket?.[0]?.n ?? 0
@@ -73,6 +74,7 @@ export async function aggregateUserStats(
   db: Db,
   buckets: DateBuckets,
   adminUserRefs: AdminUserRefs,
+  cohort?: UserCohort | null,
 ): Promise<{
   active: {
     today: number
@@ -95,7 +97,8 @@ export async function aggregateUserStats(
       // the user relationship as either an ObjectId or its string form
       // (see progress.ts `userFilter`); adminUserRefs.refs carries both
       // encodings so $nin matches regardless of which shape the row used.
-      { $match: { user: { $nin: adminUserRefs.refs } } },
+      // `cohort` narrows to B2B / B2C on top (see user-segment.ts).
+      { $match: { user: userRefPredicate(adminUserRefs.refs, cohort) } },
       {
         $facet: {
           activeToday: [{ $match: { lastActiveDate: buckets.todayStr } }, { $count: 'n' }],
@@ -266,6 +269,7 @@ interface UsersFacetResult {
 export async function aggregateUsers(
   db: Db,
   buckets: DateBuckets,
+  cohort?: UserCohort | null,
 ): Promise<{
   total: number
   registeredToday: number
@@ -282,7 +286,7 @@ export async function aggregateUsers(
       // Admins are excluded from every dashboard metric. Filtering here
       // keeps every sub-bucket in the $facet (total, registered*, etc.)
       // consistent without having to repeat the predicate five times.
-      { $match: { role: { $ne: 'admin' } } },
+      { $match: { role: { $ne: 'admin' }, ...usersCohortMatch(cohort) } },
       {
         $facet: {
           total: [{ $count: 'n' }],
@@ -372,11 +376,18 @@ const SIGNUP_SOURCE_KEYS: readonly (keyof SignupSourceBreakdown)[] = [
 export async function aggregateSignupSources(
   db: Db,
   buckets: DateBuckets,
+  cohort?: UserCohort | null,
 ): Promise<SignupSourceBreakdown> {
   const rows = await db
     .collection('users')
     .aggregate<SignupSourceRow>([
-      { $match: { createdAt: { $gte: buckets.periodStart }, role: { $ne: 'admin' } } },
+      {
+        $match: {
+          createdAt: { $gte: buckets.periodStart },
+          role: { $ne: 'admin' },
+          ...usersCohortMatch(cohort),
+        },
+      },
       {
         $group: {
           _id: { $ifNull: ['$signupSource', 'unknown'] },
@@ -413,14 +424,19 @@ interface MonthlySignupRow {
   count: number
 }
 
-export async function aggregateMonthlySignups(db: Db): Promise<MonthlySignup[]> {
+export async function aggregateMonthlySignups(
+  db: Db,
+  cohort?: UserCohort | null,
+): Promise<MonthlySignup[]> {
   const now = new Date()
   const start = new Date(now.getFullYear(), now.getMonth() - 11, 1)
 
   const rows = await db
     .collection('users')
     .aggregate<MonthlySignupRow>([
-      { $match: { createdAt: { $gte: start }, role: { $ne: 'admin' } } },
+      {
+        $match: { createdAt: { $gte: start }, role: { $ne: 'admin' }, ...usersCohortMatch(cohort) },
+      },
       {
         $group: {
           _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },

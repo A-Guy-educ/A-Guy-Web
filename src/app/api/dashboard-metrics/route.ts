@@ -1,12 +1,14 @@
 /**
- * GET /api/dashboard-metrics?period=week|month|year
+ * GET /api/dashboard-metrics?period=day|week|month|year&segment=all|b2c|b2b
  *
  * Admin-only endpoint powering the /dashboard page. Ported from the Payload
  * admin's /api/admin/dashboard-metrics but rewritten as raw-MongoDB $facet
  * aggregations to hit the <500ms warm perf target (the original serialized
  * 40+ ORM calls and timed out on Vercel).
  *
- * Response shape is unchanged — see DashboardMetricsResponse. The optional
+ * Response shape is unchanged — see DashboardMetricsResponse. `segment`
+ * (default `all`) scopes userMetrics + monthlySignups to B2B (on a class
+ * roster) or B2C users, and `b2b` adds the `b2bMetrics` school roll-up. The optional
  * `productHealth` slice (Dash PR #16 wireframe) is attached when
  * PRODUCT_HEALTH_ENABLED is truthy and driven by the following query
  * params (all optional; validated in product-health/params.ts):
@@ -21,7 +23,12 @@ import { AccountRole } from '@/infra/auth/roles'
 import { getWebUser } from '@/infra/web-api/mongo-payload'
 import { logger } from '@/infra/utils/logger/logger'
 import { computeDashboardMetrics } from '@/server/services/dashboard/metrics-service'
-import { VALID_PERIODS, type Period } from '@/server/services/dashboard/metrics-types'
+import {
+  VALID_PERIODS,
+  VALID_SEGMENTS,
+  type Period,
+  type UserSegment,
+} from '@/server/services/dashboard/metrics-types'
 import { isProductHealthEnabled } from '@/server/services/dashboard/product-health/config'
 import { parseProductHealthParams } from '@/server/services/dashboard/product-health/params'
 import { computeProductHealth } from '@/server/services/dashboard/product-health/service'
@@ -32,6 +39,10 @@ export const dynamic = 'force-dynamic'
 
 function isValidPeriod(value: string | null): value is Period {
   return value !== null && (VALID_PERIODS as readonly string[]).includes(value)
+}
+
+function isValidSegment(value: string | null): value is UserSegment {
+  return value !== null && (VALID_SEGMENTS as readonly string[]).includes(value)
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -49,6 +60,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
   const period: Period = periodParam ?? 'month'
 
+  const segmentParam = request.nextUrl.searchParams.get('segment')
+  if (segmentParam !== null && !isValidSegment(segmentParam)) {
+    return NextResponse.json({ error: 'Invalid segment' }, { status: 400 })
+  }
+  const segment: UserSegment = segmentParam ?? 'all'
+
   const productHealthResult = isProductHealthEnabled()
     ? parseProductHealthParams(request.nextUrl.searchParams)
     : null
@@ -59,7 +76,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const startedAt = Date.now()
   try {
     const [data, productHealth] = await Promise.all([
-      computeDashboardMetrics(period),
+      computeDashboardMetrics(period, segment),
       productHealthResult?.ok
         ? computeProductHealth(productHealthResult.params).catch((err: unknown) => {
             logger.warn({ err }, 'dashboard-metrics: productHealth slice failed — omitting')
@@ -69,7 +86,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     ])
     const durationMs = Date.now() - startedAt
     logger.info(
-      { durationMs, period, userId: user.id, productHealth: Boolean(productHealth) },
+      { durationMs, period, segment, userId: user.id, productHealth: Boolean(productHealth) },
       'dashboard-metrics: computed successfully',
     )
     const body = productHealth ? { ...data, productHealth } : data
@@ -90,6 +107,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         err: error instanceof Error ? { message: error.message, stack: error.stack } : error,
         durationMs: Date.now() - startedAt,
         period,
+        segment,
       },
       'dashboard-metrics: aggregation failed',
     )
