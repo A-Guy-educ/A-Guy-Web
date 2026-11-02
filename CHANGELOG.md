@@ -5130,6 +5130,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Add B2B/B2C segment to dashboard metrics ([#1540](https://github.com/A-Guy-educ/A-Guy-Web/pull/1540)) — @aguyshayb
 - feat: Render lesson content blocks in chat and scroll views ([#1530](https://github.com/A-Guy-educ/A-Guy-Web/pull/1530)) — @aguyshayb
 ## [v0.59.0] - 2026-11-01
 
