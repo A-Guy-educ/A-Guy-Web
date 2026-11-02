@@ -22,6 +22,7 @@ const SCHOOL_B = new ObjectId()
 const CLASS_ID = new ObjectId()
 const COURSE_ID = new ObjectId()
 const USER_ID = new ObjectId().toString()
+const PROFILE = { firstName: 'נועה', lastName: 'כהן', phone: '0501234567' }
 
 function findReturning(docs: unknown[]) {
   return vi.fn(() => ({ toArray: async () => docs }))
@@ -53,33 +54,37 @@ describe('listJoinableSchools', () => {
 describe('enrollStudentInClass', () => {
   let findOne: ReturnType<typeof vi.fn>
   let updateOne: ReturnType<typeof vi.fn>
+  let usersUpdateOne: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
     findOne = vi.fn()
     updateOne = vi.fn()
+    usersUpdateOne = vi.fn()
     collections.set('classes', { findOne, updateOne })
+    collections.set('users', { updateOne: usersUpdateOne })
     queryCourseSlugById.mockReset()
   })
 
   it('rejects ids that are not ObjectIds without touching the db', async () => {
-    expect(await enrollStudentInClass(USER_ID, 'nope')).toEqual({ status: 'not_found' })
+    expect(await enrollStudentInClass(USER_ID, 'nope', PROFILE)).toEqual({ status: 'not_found' })
     expect(findOne).not.toHaveBeenCalled()
   })
 
-  it('returns not_found for a missing class', async () => {
+  it('returns not_found for a missing class and writes nothing', async () => {
     findOne.mockResolvedValue(null)
 
-    expect(await enrollStudentInClass(USER_ID, CLASS_ID.toString())).toEqual({
+    expect(await enrollStudentInClass(USER_ID, CLASS_ID.toString(), PROFILE)).toEqual({
       status: 'not_found',
     })
     expect(updateOne).not.toHaveBeenCalled()
+    expect(usersUpdateOne).not.toHaveBeenCalled()
   })
 
   it('returns not_found when the course no longer resolves', async () => {
     findOne.mockResolvedValue({ _id: CLASS_ID, course: COURSE_ID })
     queryCourseSlugById.mockResolvedValue(null)
 
-    expect(await enrollStudentInClass(USER_ID, CLASS_ID.toString())).toEqual({
+    expect(await enrollStudentInClass(USER_ID, CLASS_ID.toString(), PROFILE)).toEqual({
       status: 'not_found',
     })
     expect(updateOne).not.toHaveBeenCalled()
@@ -89,7 +94,7 @@ describe('enrollStudentInClass', () => {
     findOne.mockResolvedValue({ _id: CLASS_ID, course: COURSE_ID })
     queryCourseSlugById.mockResolvedValue('math-9')
 
-    const result = await enrollStudentInClass(USER_ID, CLASS_ID.toString())
+    const result = await enrollStudentInClass(USER_ID, CLASS_ID.toString(), PROFILE)
 
     expect(result).toEqual({ status: 'enrolled', courseSlug: 'math-9' })
     expect(queryCourseSlugById).toHaveBeenCalledWith(COURSE_ID.toString())
@@ -97,5 +102,23 @@ describe('enrollStudentInClass', () => {
     expect(filter._id).toEqual(CLASS_ID)
     expect(filter.students.$nin).toEqual([USER_ID, new ObjectId(USER_ID)])
     expect(update).toEqual({ $push: { students: new ObjectId(USER_ID) } })
+  })
+
+  it('saves the join profile and marks the user as B2B', async () => {
+    findOne.mockResolvedValue({ _id: CLASS_ID, course: COURSE_ID })
+    queryCourseSlugById.mockResolvedValue('math-9')
+
+    await enrollStudentInClass(USER_ID, CLASS_ID.toString(), PROFILE)
+
+    const [filter, update] = usersUpdateOne.mock.calls[0]
+    expect(filter).toEqual({ _id: new ObjectId(USER_ID) })
+    expect(update.$set).toMatchObject({
+      firstName: 'נועה',
+      lastName: 'כהן',
+      name: 'נועה כהן',
+      phone: '0501234567',
+      onboardingType: 'b2b',
+    })
+    expect(update.$set.updatedAt).toBeInstanceOf(Date)
   })
 })

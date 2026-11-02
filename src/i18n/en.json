@@ -1168,7 +1168,10 @@
     "subtitle": "Pick your class, sign in with Google and start learning",
     "fields": {
       "school": "School",
-      "class": "Class"
+      "class": "Class",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "phone": "Mobile number"
     },
     "placeholders": {
       "school": "Choose a school",
@@ -1177,7 +1180,10 @@
     },
     "errors": {
       "school": "Please choose a school",
-      "class": "Please choose a class"
+      "class": "Please choose a class",
+      "firstName": "Please enter your first name",
+      "lastName": "Please enter your last name",
+      "phone": "Please enter a 10-digit mobile number starting with 05"
     },
     "submit": "Let's go",
     "submitting": "One moment...",

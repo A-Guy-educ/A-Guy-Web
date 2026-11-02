@@ -18,6 +18,8 @@ import { getContentDb, objectIdFromString, relationId } from '@/infra/db/content
 import { queryCourseSlugById } from '@/server/repos/queries/courses'
 import { idCandidates } from '@/server/web-api/progress'
 
+import { saveStudentJoinProfile, type StudentJoinProfile } from './student-join-profile'
+
 const SCHOOLS_COLLECTION = 'schools'
 const CLASSES_COLLECTION = 'classes'
 
@@ -70,11 +72,16 @@ export async function listJoinableSchools(): Promise<JoinableSchool[]> {
 export type EnrollResult = { status: 'enrolled'; courseSlug: string } | { status: 'not_found' }
 
 /**
- * Adds the user to the class roster (idempotent) and returns the class's
- * course slug. `not_found` covers a bad id, a missing class, and a class whose
- * course is gone — the student has nowhere to land in any of those.
+ * Adds the user to the class roster (idempotent), saves the details they
+ * typed on /join, and returns the class's course slug. `not_found` covers a
+ * bad id, a missing class, and a class whose course is gone — the student has
+ * nowhere to land in any of those, so nothing is written.
  */
-export async function enrollStudentInClass(userId: string, classId: string): Promise<EnrollResult> {
+export async function enrollStudentInClass(
+  userId: string,
+  classId: string,
+  profile: StudentJoinProfile,
+): Promise<EnrollResult> {
   if (!HEX24.test(classId)) return { status: 'not_found' }
 
   const db = await getContentDb()
@@ -88,11 +95,14 @@ export async function enrollStudentInClass(userId: string, classId: string): Pro
 
   // $push guarded by $nin rather than $addToSet: the roster may hold the id as
   // a string or an ObjectId, and $addToSet only dedupes exact matches.
-  await db
-    .collection(CLASSES_COLLECTION)
-    .updateOne({ ...classFilter, students: { $nin: idCandidates(userId) } }, {
-      $push: { students: objectIdFromString(userId) },
-    } as Document)
+  await Promise.all([
+    db
+      .collection(CLASSES_COLLECTION)
+      .updateOne({ ...classFilter, students: { $nin: idCandidates(userId) } }, {
+        $push: { students: objectIdFromString(userId) },
+      } as Document),
+    saveStudentJoinProfile(userId, profile),
+  ])
 
   return { status: 'enrolled', courseSlug }
 }
