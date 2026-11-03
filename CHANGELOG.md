@@ -5139,6 +5139,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Widen scroll view page margins 50% on desktop ([#1546](https://github.com/A-Guy-educ/A-Guy-Web/pull/1546)) — @aguyshayb
 ## [v0.60.0] - 2026-11-02
 
 - promote: dev -> main (v0.60.0) ([#1545](https://github.com/A-Guy-educ/A-Guy-Web/pull/1545)) — @aguyshayb
