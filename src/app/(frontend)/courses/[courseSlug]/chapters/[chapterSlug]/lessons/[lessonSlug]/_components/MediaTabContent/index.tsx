@@ -30,6 +30,16 @@ import {
 import { cn } from '@/infra/utils/ui'
 import { FloatingNotebook } from '@/ui/web/notebook/FloatingNotebook'
 import { capturePdfPageImage, readPdfCurrentPage } from '@/ui/web/media/PDFMedia/pdfViewerBridge'
+import { useCurrentUser } from '@/client/hooks/useCurrentUser'
+import { LessonNotebookPane } from '@/ui/web/notebook/LessonNotebookPane'
+
+function isPdfFile(file: Media): boolean {
+  return (
+    file.mediaType === 'pdf' ||
+    file.mimeType === 'application/pdf' ||
+    /\.pdf$/i.test(file.filename ?? '')
+  )
+}
 
 interface MediaTabContentProps {
   lessonTitle: string
@@ -114,6 +124,9 @@ export function MediaTabContent({
   // would double-up affordances.
   const [isChatCollapsed, setIsChatCollapsed] = useState(false)
   const primaryAreaRef = useRef<HTMLDivElement>(null)
+  // Signed-in students get the saved lesson notebook; guests keep the
+  // unsaved floating scratchpad, since there is no account to save to.
+  const { user } = useCurrentUser()
 
   // Deep-link detection: read ?file=N from URL on mount
   useEffect(() => {
@@ -193,10 +206,7 @@ export function MediaTabContent({
       if (!currentFile) return
       const title = currentFile.filename ?? ''
       const mediaId = currentFile.id
-      const isPdf =
-        currentFile.mediaType === 'pdf' ||
-        currentFile.mimeType === 'application/pdf' ||
-        /\.pdf$/i.test(currentFile.filename ?? '')
+      const isPdf = isPdfFile(currentFile)
 
       let pdfPageImage: string | undefined
       let pdfPageNumber: number | undefined
@@ -224,6 +234,78 @@ export function MediaTabContent({
     [currentFile],
   )
 
+  const material = (
+    <>
+      <div className="flex-1 overflow-y-auto min-h-0">
+        <div
+          className="w-full h-full p-card-padding-sm md:p-card-padding flex flex-col gap-content-gap"
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+        >
+          {currentFile && (
+            <div className="w-full flex-1 min-h-0">
+              <div className="border rounded-lg overflow-hidden bg-card shadow-card h-full flex flex-col">
+                {hasMultipleFiles && (
+                  <div className="flex items-center justify-center gap-content-gap-xs py-2 px-4 bg-muted/50 border-b border-border/50 text-body-sm text-muted-foreground shrink-0">
+                    <span>
+                      {currentFileIndex + 1} / {validFiles.length}
+                    </span>
+                  </div>
+                )}
+                <div className="flex-1 min-h-0">
+                  <MediaComponent
+                    resource={currentFile}
+                    className="w-full h-full max-w-full"
+                    htmlElement={null}
+                    lessonId={lessonId}
+                    courseId={courseSlug}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {hasMultipleFiles && (
+        <div className="shrink-0 border-t border-border bg-card/80 backdrop-blur-xl px-6 py-3">
+          <div className="max-w-3xl mx-auto flex items-center justify-between">
+            <button
+              onClick={handleFilePrev}
+              disabled={!canGoPrev}
+              aria-label="Previous file"
+              className={cn(
+                'w-10 h-10 rounded-full flex items-center justify-center transition-all duration-normal cursor-pointer',
+                !canGoPrev
+                  ? 'text-muted-foreground/40'
+                  : 'bg-muted text-foreground hover:bg-muted/80',
+              )}
+            >
+              <ChevronRight className="w-5 h-5 rtl:rotate-0 ltr:rotate-180" />
+            </button>
+            <span className="text-body-xs text-muted-foreground">
+              {currentFileIndex + 1} / {validFiles.length}
+            </span>
+            <button
+              onClick={handleFileNext}
+              disabled={!canGoNext}
+              aria-label="Next file"
+              className={cn(
+                'w-10 h-10 rounded-full flex items-center justify-center transition-all duration-normal cursor-pointer',
+                !canGoNext
+                  ? 'text-muted-foreground/40'
+                  : 'bg-muted text-foreground hover:bg-muted/80',
+              )}
+            >
+              <ChevronLeft className="w-5 h-5 rtl:rotate-0 ltr:rotate-180" />
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  )
+
   return (
     <ExerciseWorkspace
       exerciseTitle={lessonTitle}
@@ -231,74 +313,25 @@ export function MediaTabContent({
       primaryContent={
         <div ref={primaryAreaRef} className="relative flex h-full flex-col min-h-0">
           {headerSlot}
-          <div className="flex-1 overflow-y-auto min-h-0">
-            <div
-              className="w-full h-full p-card-padding-sm md:p-card-padding flex flex-col gap-content-gap"
-              onTouchStart={onTouchStart}
-              onTouchMove={onTouchMove}
-              onTouchEnd={onTouchEnd}
+          {user ? (
+            <LessonNotebookPane
+              lessonId={lessonId}
+              cutSource={
+                currentFile && isPdfFile(currentFile)
+                  ? {
+                      kind: 'pdf',
+                      mediaId: currentFile.id,
+                      label: currentFile.filename ?? lessonTitle,
+                    }
+                  : null
+              }
             >
-              {currentFile && (
-                <div className="w-full flex-1 min-h-0">
-                  <div className="border rounded-lg overflow-hidden bg-card shadow-card h-full flex flex-col">
-                    {hasMultipleFiles && (
-                      <div className="flex items-center justify-center gap-content-gap-xs py-2 px-4 bg-muted/50 border-b border-border/50 text-body-sm text-muted-foreground shrink-0">
-                        <span>
-                          {currentFileIndex + 1} / {validFiles.length}
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex-1 min-h-0">
-                      <MediaComponent
-                        resource={currentFile}
-                        className="w-full h-full max-w-full"
-                        htmlElement={null}
-                        lessonId={lessonId}
-                        courseId={courseSlug}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {hasMultipleFiles && (
-            <div className="shrink-0 border-t border-border bg-card/80 backdrop-blur-xl px-6 py-3">
-              <div className="max-w-3xl mx-auto flex items-center justify-between">
-                <button
-                  onClick={handleFilePrev}
-                  disabled={!canGoPrev}
-                  aria-label="Previous file"
-                  className={cn(
-                    'w-10 h-10 rounded-full flex items-center justify-center transition-all duration-normal cursor-pointer',
-                    !canGoPrev
-                      ? 'text-muted-foreground/40'
-                      : 'bg-muted text-foreground hover:bg-muted/80',
-                  )}
-                >
-                  <ChevronRight className="w-5 h-5 rtl:rotate-0 ltr:rotate-180" />
-                </button>
-                <span className="text-body-xs text-muted-foreground">
-                  {currentFileIndex + 1} / {validFiles.length}
-                </span>
-                <button
-                  onClick={handleFileNext}
-                  disabled={!canGoNext}
-                  aria-label="Next file"
-                  className={cn(
-                    'w-10 h-10 rounded-full flex items-center justify-center transition-all duration-normal cursor-pointer',
-                    !canGoNext
-                      ? 'text-muted-foreground/40'
-                      : 'bg-muted text-foreground hover:bg-muted/80',
-                  )}
-                >
-                  <ChevronLeft className="w-5 h-5 rtl:rotate-0 ltr:rotate-180" />
-                </button>
-              </div>
-            </div>
+              {material}
+            </LessonNotebookPane>
+          ) : (
+            material
           )}
-          {isTabletUp && (
+          {!user && isTabletUp && (
             <FloatingNotebook containerRef={primaryAreaRef} onCheck={handleNotebookCheck} />
           )}
           {isDesktop && isChatCollapsed && (

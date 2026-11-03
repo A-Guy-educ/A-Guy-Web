@@ -206,6 +206,7 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
         <BlocksDocumentLessonView
           lessonTitle={lessonTitle}
           backUrl={backUrl}
+          lessonId={lessonId}
           exercises={exercises}
           mediaMap={mediaMap}
           lessonLearningIndex={lessonLearningIndex}
