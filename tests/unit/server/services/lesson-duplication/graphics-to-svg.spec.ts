@@ -479,6 +479,32 @@ describe('axisSpecToSvg', () => {
     const svg = axisSpecToSvg(spec)
     expect(svg).toContain('stroke-dasharray="5,5"')
   })
+
+  it('renders point label font size from fontSize, defaulting to 12', () => {
+    const spec: AxisSpecV1 = {
+      kind: 'cartesian',
+      units: 1,
+      grid: { enabled: false },
+      axes: {
+        showNumbers: false,
+        showLabels: false,
+        ticks: 1,
+        labels: { x: 'x', y: 'y' },
+        origin: { x: 0, y: 0 },
+      },
+      viewportMode: 'auto',
+      elements: {
+        points: [
+          { x: 1, y: 1, label: 'Big', type: 'point', fontSize: 22 },
+          { x: 2, y: 2, label: 'Default', type: 'point' },
+        ],
+        graphs: [],
+      },
+    }
+    const svg = axisSpecToSvg(spec)
+    expect(svg).toMatch(/<text[^>]*font-size="22"[^>]*>Big<\/text>/)
+    expect(svg).toMatch(/<text[^>]*font-size="12"[^>]*>Default<\/text>/)
+  })
 })
 
 describe('multiAxisToSvg', () => {
