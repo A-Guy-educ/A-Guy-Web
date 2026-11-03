@@ -70,6 +70,12 @@ export async function captureDomRegion(
   // them to the cloned node; `style` is applied after, so it restores the
   // node's real layout size and shifts it so the selection sits at the
   // origin. The output then holds exactly the selection, nothing else.
+  //
+  // The clone also copies every computed style, including `max-width: 100%`,
+  // which would cap the root at the selection's width while its children keep
+  // their real pixel widths. In RTL those children overflow to the left, so
+  // the content shifted sideways (dead space on the right, left side cut off).
+  // Lifting the caps keeps the root at its true size in every direction.
   const options: Parameters<typeof toCanvas>[1] = {
     width: box.width,
     height: box.height,
@@ -79,6 +85,9 @@ export async function captureDomRegion(
     style: {
       width: `${rect.width}px`,
       height: `${rect.height}px`,
+      minWidth: `${rect.width}px`,
+      maxWidth: 'none',
+      maxHeight: 'none',
       margin: '0',
       transform: `translate(${rect.left - box.left}px, ${rect.top - box.top}px)`,
       transformOrigin: '0 0',

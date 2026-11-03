@@ -38,7 +38,7 @@ export interface UploadedMedia {
   url: string
 }
 
-function dataUrlToFile(dataUrl: string, filename: string): File {
+export function dataUrlToFile(dataUrl: string, filename: string): File {
   const [header, data] = dataUrl.split(',')
   if (!header || data === undefined) {
     throw new Error('Malformed data URL')
