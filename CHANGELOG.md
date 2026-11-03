@@ -5139,6 +5139,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Stop Apple Pencil long-press selection in the lesson notebook ([#1549](https://github.com/A-Guy-educ/A-Guy-Web/pull/1549)) — @aguyshayb
 - feat: Add saved lesson notebook with cut-from-material ([#1548](https://github.com/A-Guy-educ/A-Guy-Web/pull/1548)) — @aguyshayb
 - feat(graphics): Honor authored font size on axis point labels ([#1547](https://github.com/A-Guy-educ/A-Guy-Web/pull/1547)) — @aguyshayb
 - feat: Widen scroll view page margins 50% on desktop ([#1546](https://github.com/A-Guy-educ/A-Guy-Web/pull/1546)) — @aguyshayb
