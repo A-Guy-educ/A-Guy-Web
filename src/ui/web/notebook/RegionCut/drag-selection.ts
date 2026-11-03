@@ -1,8 +1,9 @@
 /**
  * @fileType utility
  * @domain notebook
- * @ai-summary Wires mouse/stylus drag-to-select onto a document or element. Touch is ignored so fingers keep scrolling, and controls inside the surface keep working. Shared by the PDF iframe and the rendered worksheet.
+ * @ai-summary Wires mouse/stylus drag-to-select onto a document or element. Touch is ignored so fingers keep scrolling, and controls inside the surface keep working. Apple Pencil touches are claimed from Safari so they cut instead of panning or long-press selecting. Shared by the PDF iframe and the rendered worksheet.
  */
+import { isStylusTouch } from '@/ui/web/notebook/stylus-touch'
 import type { ViewportBox } from './CutSelection'
 
 /** Ignore clicks; a real selection is bigger than this in both directions. */
@@ -56,10 +57,15 @@ export function attachDragSelection(
   const previousTouchAction = touchSurface?.style.touchAction ?? ''
   if (touchSurface) touchSurface.style.touchAction = 'none'
 
+  const startsCut = (target: EventTarget | null): target is Element => {
+    const el = target as Element | null
+    return !!el?.closest && !el.closest(INTERACTIVE) && isSurface(el)
+  }
+
   const down = (e: PointerEvent) => {
     if ((e.pointerType === 'touch' && !touch) || e.button !== 0) return
-    const target = e.target as Element | null
-    if (!target?.closest || target.closest(INTERACTIVE) || !isSurface(target)) return
+    const target = e.target
+    if (!startsCut(target)) return
     e.preventDefault() // no text selection while cutting
     start = toViewport(e)
     pointerId = e.pointerId
@@ -76,12 +82,18 @@ export function attachDragSelection(
     pointerId = null
     handlers.onEnd(box.width >= MIN_SIDE_PX && box.height >= MIN_SIDE_PX ? box : null)
   }
+  // iPadOS pans and long-press selects for the Pencil too, and pointer
+  // preventDefault does not stop it — only a non-passive touchstart does.
+  const touchStart = (e: TouchEvent) => {
+    if (isStylusTouch(e) && startsCut(e.target)) e.preventDefault()
+  }
   // A finished selection is in screen coordinates, so it goes stale on scroll.
   const scroll = () => {
     if (!start) handlers.onScroll()
   }
 
   const listeners = [
+    ['touchstart', touchStart],
     ['pointerdown', down],
     ['pointermove', move],
     ['pointerup', up],
@@ -89,7 +101,7 @@ export function attachDragSelection(
     ['scroll', scroll],
   ] as const
   for (const [type, listener] of listeners) {
-    root.addEventListener(type, listener as EventListener, true)
+    root.addEventListener(type, listener as EventListener, { capture: true, passive: false })
   }
   return () => {
     for (const [type, listener] of listeners) {
