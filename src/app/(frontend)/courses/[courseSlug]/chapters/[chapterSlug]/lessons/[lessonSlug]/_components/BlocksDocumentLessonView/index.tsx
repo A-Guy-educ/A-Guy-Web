@@ -234,7 +234,7 @@ export function BlocksDocumentLessonView({
         className="mx-auto max-w-5xl rounded-xl border border-border bg-card shadow-elevation-1 overflow-hidden print:shadow-none print:border-0 print:rounded-none print:max-w-full"
       >
         <div
-          className="px-3 py-5 font-serif sm:px-6 sm:py-section-md max-w-full overflow-hidden"
+          className="px-3 py-5 font-serif sm:px-6 sm:py-section-md lg:px-9 max-w-full overflow-hidden"
           dir={dir}
         >
           {lessonTitle && (
