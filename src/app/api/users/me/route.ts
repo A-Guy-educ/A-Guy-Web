@@ -6,6 +6,7 @@ import {
   tokensFromHeaders,
 } from '@/infra/auth/web-auth'
 import { readActiveSubscription } from '@/server/services/active-subscription-reader'
+import { getCourseSelection, isClassMember } from '@/server/services/user-course-selection'
 
 export const runtime = 'nodejs'
 
@@ -28,9 +29,17 @@ export async function GET(request: NextRequest) {
   // see the active subscription even after admin's bootstrap webhook has
   // written the row. Service short-circuits on no-sub users with a single
   // indexed Mongo lookup, so the cost on free users is negligible.
-  const activeSubscription = await readActiveSubscription(session.user.id)
+  //
+  // `courseSelection` + `isClassMember` drive shared-device handling on the
+  // client (useUserStorageOwnership): the server course wins over whatever
+  // the browser holds, and class members never adopt unowned local data.
+  const [activeSubscription, courseSelection, classMember] = await Promise.all([
+    readActiveSubscription(session.user.id),
+    getCourseSelection(session.user.currentCourse),
+    isClassMember(session.user.id),
+  ])
 
   return NextResponse.json({
-    user: { ...session.user, activeSubscription },
+    user: { ...session.user, activeSubscription, courseSelection, isClassMember: classMember },
   })
 }

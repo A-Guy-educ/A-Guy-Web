@@ -1,6 +1,5 @@
-import { cookies, headers } from 'next/headers'
+import { headers } from 'next/headers'
 import { getSystemLocale } from '@/i18n/server-locale'
-import { COURSE_ID_COOKIE_NAME, GRADE_COOKIE_NAME } from '@/client/state/localStorage/userProfile'
 import { pageMetadata } from '@/infra/seo/pageMetadata'
 import { StudyContent } from './_components/StudyContent'
 import {
@@ -8,6 +7,7 @@ import {
   shouldUseEmbeddedLearningFallback,
   type LearningPageSearchParams,
 } from './learningPageSelection'
+import { readRequestCourseSelection } from './requestCourseSelection'
 import {
   prefetchEmbeddedLearningFallback,
   prefetchStudyData,
@@ -18,12 +18,12 @@ interface StudyPageProps {
 }
 
 export default async function StudyPage({ searchParams }: StudyPageProps) {
-  const cookieStore = await cookies()
   const headersList = await headers()
   const params = await searchParams
+  const stored = await readRequestCourseSelection()
   const selection = resolveLearningPageSelection({
-    cookieCourseId: cookieStore.get(COURSE_ID_COOKIE_NAME)?.value,
-    cookieGrade: cookieStore.get(GRADE_COOKIE_NAME)?.value,
+    cookieCourseId: stored.courseId,
+    cookieGrade: stored.grade,
     searchParams: params,
     systemLocale: await getSystemLocale(),
   })

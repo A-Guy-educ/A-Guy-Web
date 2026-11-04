@@ -13,6 +13,12 @@ vi.mock('@/infra/auth/web-auth', async (importOriginal) => {
   }
 })
 
+// Course selection + class membership hit Mongo; the route only forwards them.
+vi.mock('@/server/services/user-course-selection', () => ({
+  getCourseSelection: vi.fn().mockResolvedValue(null),
+  isClassMember: vi.fn().mockResolvedValue(false),
+}))
+
 const createRequest = (cookieHeader?: string) => {
   const headers = new Headers()
   if (cookieHeader) headers.set('cookie', cookieHeader)
@@ -44,7 +50,9 @@ describe('GET /api/users/me', () => {
     // The route attaches `activeSubscription` for the subscriptions UI (admin's
     // afterRead equivalent); readActiveSubscription short-circuits to null for
     // non-ObjectId ids like 'user-1', so the test shape stays deterministic.
-    expect(await res.json()).toEqual({ user: { ...user, activeSubscription: null } })
+    expect(await res.json()).toEqual({
+      user: { ...user, activeSubscription: null, courseSelection: null, isClassMember: false },
+    })
     expect(setCookieHeaders(res)).toHaveLength(0)
   })
 
@@ -99,7 +107,9 @@ describe('GET /api/users/me', () => {
     )
 
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ user: { ...user, activeSubscription: null } })
+    expect(await res.json()).toEqual({
+      user: { ...user, activeSubscription: null, courseSelection: null, isClassMember: false },
+    })
     expect(setCookieHeaders(res)).toHaveLength(0)
   })
 })

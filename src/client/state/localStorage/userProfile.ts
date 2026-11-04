@@ -10,7 +10,7 @@
  * or `document.cookie = 'a-guy:grade=...'` directly.
  */
 
-import { syncCurrentCourse } from '@/infra/analytics/utils/currentCourseSync'
+import { clearCurrentCourse, syncCurrentCourse } from '@/infra/analytics/utils/currentCourseSync'
 import { reportCourseSelection, type CourseSelectionSource } from './courseSelectionTracker'
 
 export interface LocalUserProfile {
@@ -122,13 +122,36 @@ export const selectCourse = ({
 }
 
 /**
+ * Business-level wrapper: align the local selection with the signed-in
+ * user's server record (`users.currentCourse`). Compares by course only —
+ * pickers derive the grade string differently for the same course. Not
+ * synced back or reported: the value came from the server.
+ * Returns true when the local selection changed.
+ */
+export const applyServerCourseSelection = ({
+  courseId,
+  gradeLevel,
+}: {
+  courseId: string
+  gradeLevel: string
+}): boolean => {
+  if (getUserProfile()?.courseId === courseId) return false
+  setUserProfile({ gradeLevel, courseId })
+  return true
+}
+
+/**
  * Business-level wrapper: drop the course selection only.
  * Clears `gradeLevel` and `courseId` and the two corresponding cookies;
  * keeps `teacherProfileSlug` if it was set, so a returning user does not
  * lose their teacher preference when they remove the course.
+ *
+ * Also clears the signed-in user's server record; otherwise the next page
+ * load would restore the course from `users.currentCourse`.
  */
 export const removeCourseSelection = (): void => {
   if (typeof window === 'undefined') return
+  clearCurrentCourse()
   try {
     const existing = getUserProfile()
     if (!existing) return

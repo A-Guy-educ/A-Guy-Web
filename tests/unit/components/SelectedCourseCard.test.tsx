@@ -36,7 +36,7 @@ Object.defineProperty(window, 'localStorage', {
 // Mock userProfile functions
 vi.mock('@/client/state/localStorage/userProfile', () => ({
   getUserProfile: vi.fn(),
-  clearUserProfile: vi.fn(),
+  removeCourseSelection: vi.fn(),
 }))
 
 // Mock getURL
@@ -46,7 +46,7 @@ vi.mock('@/infra/utils/getURL', () => ({
 
 // Now import the component after mocks
 import { SelectedCourseCard } from '@/app/(frontend)/account/_components/SelectedCourseCard'
-import { clearUserProfile, getUserProfile } from '@/client/state/localStorage/userProfile'
+import { removeCourseSelection, getUserProfile } from '@/client/state/localStorage/userProfile'
 import { I18nProvider } from '@/ui/web/providers/I18n'
 import enMessages from '../../../src/i18n/en.json'
 
@@ -54,7 +54,7 @@ import enMessages from '../../../src/i18n/en.json'
 import type { Course } from '@/infra/types/content'
 
 const mockGetUserProfile = getUserProfile as ReturnType<typeof vi.fn>
-const mockClearUserProfile = clearUserProfile as ReturnType<typeof vi.fn>
+const mockRemoveCourseSelection = removeCourseSelection as ReturnType<typeof vi.fn>
 
 const renderWithI18n = () => {
   return render(
@@ -353,7 +353,7 @@ describe('SelectedCourseCard AbortController', () => {
       removeButton.click()
 
       // Must clear stored profile and route to the courses store, not the landing page
-      expect(mockClearUserProfile).toHaveBeenCalledTimes(1)
+      expect(mockRemoveCourseSelection).toHaveBeenCalledTimes(1)
       expect(mockRouterReplace).toHaveBeenCalledWith('/courses')
       expect(mockRouterReplace).not.toHaveBeenCalledWith('/')
     })
