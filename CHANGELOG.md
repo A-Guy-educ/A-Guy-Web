@@ -5149,6 +5149,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- promote: dev -> main (v0.61.0) ([#1556](https://github.com/A-Guy-educ/A-Guy-Web/pull/1556)) — @aguyshayb
 - chore: Release v0.61.0 ([#1555](https://github.com/A-Guy-educ/A-Guy-Web/pull/1555)) — @aguyshayb
 - fix: Stop Apple Pencil long-press selection in the lesson notebook ([#1549](https://github.com/A-Guy-educ/A-Guy-Web/pull/1549)) — @aguyshayb
 - feat: Add saved lesson notebook with cut-from-material ([#1548](https://github.com/A-Guy-educ/A-Guy-Web/pull/1548)) — @aguyshayb
