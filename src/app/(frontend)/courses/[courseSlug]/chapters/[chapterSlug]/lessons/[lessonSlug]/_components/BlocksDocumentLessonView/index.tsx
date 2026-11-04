@@ -227,7 +227,7 @@ export function BlocksDocumentLessonView({
     lessonContentBlocks.length > 0 ? [{ blocks: lessonContentBlocks, sectionIndex: null }] : []
 
   const worksheet = (
-    <div className="flex-1 overflow-auto max-w-full bg-muted py-section-sm px-1 sm:px-2 print:bg-background print:overflow-visible print:p-0">
+    <div className="flex-1 overflow-auto max-w-full bg-muted py-section-sm px-1 sm:px-2 lg:px-6 print:bg-background print:overflow-visible print:p-0">
       {/* data-cut-surface: the worksheet card is what students cut exercises from. */}
       <div
         data-cut-surface=""
