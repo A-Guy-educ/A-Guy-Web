@@ -13,6 +13,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import enMessages from '../../../src/i18n/en.json'
 import { getBrand } from '@/brands'
 
+// Needs the app router; ownership is covered by its own tests.
+vi.mock('@/client/hooks/useUserStorageOwnership', () => ({
+  useUserStorageOwnership: vi.fn(),
+}))
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mergedEnMessages: any = { ...enMessages, ...getBrand().messages.en }
 

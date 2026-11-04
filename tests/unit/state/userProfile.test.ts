@@ -14,6 +14,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   COURSE_ID_COOKIE_NAME,
   GRADE_COOKIE_NAME,
+  applyServerCourseSelection,
   clearUserProfile,
   getUserProfile,
   removeCourseSelection,
@@ -485,6 +486,42 @@ describe('userProfile state module', () => {
       expect(courseSelectionsCall).toBeUndefined()
       // Local write still happens.
       expect(getUserProfile()?.courseId).toBe('course-1')
+    })
+  })
+
+  describe('server is the source of truth for signed-in users', () => {
+    const courseStateBodies = () =>
+      fetchMock.mock.calls
+        .filter(([url]) => url === '/api/users/me/course-state')
+        .map(([, init]) => JSON.parse((init as RequestInit).body as string))
+
+    it('applyServerCourseSelection replaces a different local course without syncing back', () => {
+      setUserProfile({ gradeLevel: '8', courseId: 'old-course', teacherProfileSlug: 'kind' })
+
+      expect(applyServerCourseSelection({ courseId: 'server-course', gradeLevel: '9' })).toBe(true)
+
+      expect(getUserProfile()).toMatchObject({
+        courseId: 'server-course',
+        gradeLevel: '9',
+        teacherProfileSlug: 'kind',
+      })
+      expect(readCookieValue(COURSE_ID_COOKIE_NAME)).toBe('server-course')
+      expect(courseStateBodies()).toEqual([])
+    })
+
+    it('applyServerCourseSelection is a no-op when the course already matches', () => {
+      setUserProfile({ gradeLevel: 'ח', courseId: 'server-course' })
+
+      expect(applyServerCourseSelection({ courseId: 'server-course', gradeLevel: '8' })).toBe(false)
+      expect(getUserProfile()?.gradeLevel).toBe('ח')
+    })
+
+    it('removeCourseSelection clears the server record with an explicit null', () => {
+      setUserProfile({ gradeLevel: '8', courseId: 'course-1' })
+
+      removeCourseSelection()
+
+      expect(courseStateBodies()).toEqual([{ currentCourse: null }])
     })
   })
 })

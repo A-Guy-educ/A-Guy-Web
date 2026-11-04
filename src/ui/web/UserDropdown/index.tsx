@@ -15,6 +15,7 @@ import {
 import { UserAvatar } from '@/ui/web/UserAvatar'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { logoutUser } from '@/client/auth/logout'
+import { releaseUserStorage } from '@/client/state/localStorage/userScopedStorage'
 import { analytics } from '@/infra/analytics'
 import type { User } from '@/infra/types/content'
 
@@ -28,6 +29,7 @@ export function UserDropdown({ user }: { user: User }) {
     try {
       analytics.reset()
       await logoutUser()
+      releaseUserStorage()
       window.dispatchEvent(new Event('auth:changed'))
       router.push('/login')
       router.refresh()

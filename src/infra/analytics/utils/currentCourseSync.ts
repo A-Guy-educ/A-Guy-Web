@@ -16,38 +16,21 @@
  * Lives under `infra/` (the leaf layer) so it can be called from client,
  * infra, and app layers alike.
  *
- * Called from three sites:
+ * Called from four sites:
  *   - `selectCourse` (explicit pick) — with the picked courseId
- *   - `UserIdentificationTracker` (first authenticated mount per session).
- *     Fires on both the fresh-fetch path (cache miss / >24 h stale) and
- *     the cached-warm path so daily-returning users still refresh their
- *     lastLoginAt. The fresh-fetch path can compare against the server
- *     value and safely propagate the localStorage courseId when the
- *     server has none; the cached path lacks the fetched user object, so
- *     it sends an empty body (lastLoginAt-only) rather than risk
- *     clobbering server state with an unverifiable cookie value.
+ *   - `useUserStorageOwnership` (signed-in page load) — pushes the local
+ *     course when the server has none, after the shared-device ownership
+ *     check has confirmed the local data belongs to this user
+ *   - `UserIdentificationTracker` (first authenticated mount per session) —
+ *     empty body, lastLoginAt-only heartbeat
  *   - `LessonAnalytics` (lesson open) — with the lesson's courseId, always
  *     overwriting server state (a live lesson open is the freshest signal)
+ *
+ * `clearCurrentCourse` is called from `removeCourseSelection`.
  */
 
-/**
- * Read the client's known courseId from the mirror cookie set by
- * `setUserProfile` in the client layer. Lives here (not in client) so the
- * infra-layer session-start sync can pull the value without violating the
- * infra-cannot-import-client layer rule. Cookie name is a stable contract
- * (`a-guy:course-id`) already relied on by server components.
- */
-export const readCourseIdFromCookie = (): string | null => {
-  if (typeof document === 'undefined') return null
-  const match = document.cookie.match(/(?:^|;\s*)a-guy:course-id=([^;]+)/)
-  return match ? decodeURIComponent(match[1]) : null
-}
-
-export const syncCurrentCourse = (courseId?: string | null): void => {
+const postCourseState = (body: { currentCourse?: string | null }): void => {
   if (typeof window === 'undefined') return
-
-  const body: Record<string, string> = {}
-  if (courseId) body.currentCourse = courseId
 
   try {
     void fetch('/api/users/me/course-state', {
@@ -62,4 +45,16 @@ export const syncCurrentCourse = (courseId?: string | null): void => {
   } catch {
     /* intentional: telemetry must never break UX */
   }
+}
+
+export const syncCurrentCourse = (courseId?: string | null): void => {
+  postCourseState(courseId ? { currentCourse: courseId } : {})
+}
+
+/**
+ * Clear the server's `currentCourse` (the student removed their course).
+ * Explicit `null` — an omitted field means "heartbeat only".
+ */
+export const clearCurrentCourse = (): void => {
+  postCourseState({ currentCourse: null })
 }

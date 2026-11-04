@@ -356,6 +356,12 @@ export interface User {
   role?: string | null
   roles?: string[] | null
   collection?: string
+  /** Raw `users.currentCourse` relation (id once serialized). */
+  currentCourse?: unknown
+  /** Resolved from `currentCourse` by `/api/users/me`; absent elsewhere. */
+  courseSelection?: { courseId: string; gradeLevel: string } | null
+  /** On any class roster (B2B). Set by `/api/users/me`; absent elsewhere. */
+  isClassMember?: boolean
 }
 
 export interface Header {
