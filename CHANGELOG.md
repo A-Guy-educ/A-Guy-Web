@@ -5149,6 +5149,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Scope browser storage to the signed-in user (shared school computers) ([#1554](https://github.com/A-Guy-educ/A-Guy-Web/pull/1554)) — @aguyshayb
 - fix: Keep RTL notebook cuts aligned and attach cuts to chat ([#1552](https://github.com/A-Guy-educ/A-Guy-Web/pull/1552)) — @aguyshayb
 - feat: Triple scroll view outer gutter on desktop ([#1551](https://github.com/A-Guy-educ/A-Guy-Web/pull/1551)) — @aguyshayb
 - feat: Snap held circles and ovals in the lesson notebook ([#1553](https://github.com/A-Guy-educ/A-Guy-Web/pull/1553)) — @aguyshayb
