@@ -22,6 +22,13 @@ export const STORAGE_OWNER_COOKIE_NAME = 'a-guy:owner'
 
 const OWNER_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365
 
+/**
+ * localStorage key bumped on every owner change. Cookies fire no events, so
+ * this is how other open tabs learn the account changed (`storage` event).
+ * Device-level: deliberately not in USER_SCOPED_KEY_PREFIXES.
+ */
+export const OWNER_CHANGED_KEY = 'a-guy:owner-changed'
+
 /** localStorage key prefixes (exact keys are prefixes of themselves). */
 export const USER_SCOPED_KEY_PREFIXES = [
   'a-guy:user-profile',
@@ -73,6 +80,21 @@ const writeStorageOwner = (userId: string | null): void => {
   document.cookie = userId
     ? `${STORAGE_OWNER_COOKIE_NAME}=${encodeURIComponent(userId)}; path=/; max-age=${OWNER_COOKIE_MAX_AGE_SECONDS}; SameSite=Lax`
     : `${STORAGE_OWNER_COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax`
+  try {
+    localStorage.setItem(OWNER_CHANGED_KEY, `${userId ?? ''}:${Date.now()}`)
+  } catch {
+    // Storage unavailable — other tabs fall back to the visibility check
+  }
+}
+
+/** Call `onChange` when another tab claims or releases this browser's storage. */
+export const subscribeToOwnerChanges = (onChange: () => void): (() => void) => {
+  if (typeof window === 'undefined') return () => {}
+  const handler = (event: StorageEvent) => {
+    if (event.key === OWNER_CHANGED_KEY) onChange()
+  }
+  window.addEventListener('storage', handler)
+  return () => window.removeEventListener('storage', handler)
 }
 
 const isUserScopedKey = (key: string): boolean =>

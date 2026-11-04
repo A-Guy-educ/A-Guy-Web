@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { renderHook } from '@testing-library/react'
+import { cleanup, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { User } from '@/infra/types/content'
@@ -11,8 +11,16 @@ const mockGetProfile = vi.hoisted(() => vi.fn())
 const mockSync = vi.hoisted(() => vi.fn())
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: mockRefresh }) }))
+const mockReadOwner = vi.hoisted(() => vi.fn())
+const ownerChangeListeners = vi.hoisted(() => new Set<() => void>())
+
 vi.mock('@/client/state/localStorage/userScopedStorage', () => ({
   claimUserStorage: mockClaim,
+  readStorageOwner: mockReadOwner,
+  subscribeToOwnerChanges: (onChange: () => void) => {
+    ownerChangeListeners.add(onChange)
+    return () => ownerChangeListeners.delete(onChange)
+  },
 }))
 vi.mock('@/client/state/localStorage/userProfile', () => ({
   applyServerCourseSelection: mockApply,
@@ -34,6 +42,7 @@ describe('useUserStorageOwnership', () => {
   })
 
   afterEach(() => {
+    cleanup()
     vi.unstubAllGlobals()
   })
 
@@ -89,5 +98,87 @@ describe('useUserStorageOwnership', () => {
     renderHook(() => useUserStorageOwnership(user({ courseSelection: null }), false))
 
     expect(mockSync).toHaveBeenCalledWith('local-course')
+  })
+
+  describe('another tab switches account', () => {
+    const emitOwnerChange = () => ownerChangeListeners.forEach((listener) => listener())
+
+    const focusTabWithServerUser = (serverUserId: string | null) => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: async () => ({ user: serverUserId ? { id: serverUserId } : null }),
+        }),
+      )
+      document.dispatchEvent(new Event('visibilitychange'))
+    }
+
+    beforeEach(() => {
+      ownerChangeListeners.clear()
+      mockClaim.mockReturnValue('kept')
+    })
+
+    it('reloads a stale tab when another tab claims storage for someone else', () => {
+      renderHook(() => useUserStorageOwnership(user(), false))
+      mockReadOwner.mockReturnValue('user-b')
+
+      emitOwnerChange()
+
+      expect(reload).toHaveBeenCalledTimes(1)
+    })
+
+    it('reloads a signed-in tab when another tab logs out', () => {
+      renderHook(() => useUserStorageOwnership(user(), false))
+      mockReadOwner.mockReturnValue(null)
+
+      emitOwnerChange()
+
+      expect(reload).toHaveBeenCalledTimes(1)
+    })
+
+    it('reloads a guest tab when another tab signs in', () => {
+      renderHook(() => useUserStorageOwnership(null, false))
+      mockReadOwner.mockReturnValue('user-b')
+
+      emitOwnerChange()
+
+      expect(reload).toHaveBeenCalledTimes(1)
+    })
+
+    it('ignores owner events that still name this tab user', () => {
+      renderHook(() => useUserStorageOwnership(user(), false))
+      mockReadOwner.mockReturnValue('user-a')
+
+      emitOwnerChange()
+
+      expect(reload).not.toHaveBeenCalled()
+    })
+
+    it('reloads on focus when the server reports a different signed-in user', async () => {
+      renderHook(() => useUserStorageOwnership(user(), false))
+
+      focusTabWithServerUser('user-b')
+
+      await waitFor(() => expect(reload).toHaveBeenCalledTimes(1))
+    })
+
+    it('stays put on focus when the server still reports this user', async () => {
+      renderHook(() => useUserStorageOwnership(user(), false))
+
+      focusTabWithServerUser('user-a')
+
+      await waitFor(() => expect(fetch).toHaveBeenCalled())
+      expect(reload).not.toHaveBeenCalled()
+    })
+
+    it('does not watch while auth is still loading', () => {
+      renderHook(() => useUserStorageOwnership(null, true))
+      mockReadOwner.mockReturnValue('user-b')
+
+      emitOwnerChange()
+
+      expect(reload).not.toHaveBeenCalled()
+    })
   })
 })
