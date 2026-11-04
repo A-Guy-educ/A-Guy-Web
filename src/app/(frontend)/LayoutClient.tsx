@@ -20,6 +20,7 @@ import { useEffect, useState } from 'react'
 
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { useGuestJsBeacon } from '@/client/hooks/useGuestJsBeacon'
+import { useUserStorageOwnership } from '@/client/hooks/useUserStorageOwnership'
 import { FloatingBugReportButton } from '@/ui/web/bug-report/FloatingBugReportButton'
 import { BugReportForm } from '@/ui/web/bug-report/BugReportForm'
 import { TokenUsageAlert } from '@/ui/web/upsell/TokenUsageAlert'
@@ -28,6 +29,7 @@ export function LayoutClient() {
   const [isBugReportOpen, setIsBugReportOpen] = useState(false)
   const { user, isLoading: isAuthLoading } = useCurrentUser()
   useGuestJsBeacon()
+  useUserStorageOwnership(user, isAuthLoading)
 
   // Emit SITE_INIT once on mount
   // Other services (like analytics) subscribe to this event

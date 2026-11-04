@@ -114,9 +114,13 @@ export function LessonListTab({
   const progressByLessonId = useMemo(() => {
     const map: Record<string, number> = {}
     for (const l of filteredLessons) {
-      const serverPct = lessonProgressMap[l.id]?.percent ?? progressMap[l.id] ?? 0
-      const chatPct = chatProgressMap[l.id] ?? 0
-      map[l.id] = Math.max(serverPct, chatPct)
+      // lessonProgressMap has an entry (possibly 0) for every lesson, so `??`
+      // would hide the lesson-level Progress API record — take the best of all.
+      map[l.id] = Math.max(
+        lessonProgressMap[l.id]?.percent ?? 0,
+        progressMap[l.id] ?? 0,
+        chatProgressMap[l.id] ?? 0,
+      )
     }
     return map
   }, [filteredLessons, lessonProgressMap, progressMap, chatProgressMap])

@@ -10,7 +10,15 @@
  */
 
 import { type ClassValue, clsx } from 'clsx'
-import { twMerge } from 'tailwind-merge'
+import { extendTailwindMerge } from 'tailwind-merge'
+
+import { zIndex } from '../../../tailwind.tokens.mjs'
+
+// tailwind-merge only knows numeric z-index classes; without this, `z-modal`
+// passed to a component with a default `z-50` keeps both and CSS order picks.
+const twMerge = extendTailwindMerge({
+  extend: { classGroups: { z: [{ z: Object.keys(zIndex) }] } },
+})
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))

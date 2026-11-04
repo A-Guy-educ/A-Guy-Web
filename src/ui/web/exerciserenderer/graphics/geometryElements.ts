@@ -49,6 +49,8 @@ function renderPoints(board: JXG.Board, points: PointSpec[]): Map<string, any> {
         offset: mapLabelOffset(p.position),
         fontSize: p.fontSize ?? 15,
         visible: labelVisible,
+        // JSXGraph colors label text with `strokeColor`; match the dot.
+        strokeColor: pointColor,
         // JSXGraph silently drops `fontFamily` on label attrs — the only
         // knob it honors is `cssStyle` (which becomes inline `style=` on
         // the label element). Without this the point labels fall back to

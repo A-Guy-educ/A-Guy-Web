@@ -3,8 +3,9 @@
  * @domain lessons
  * @ai-summary Persists the lesson chat view's walker position to localStorage
  *             so re-entering a lesson resumes on the student's current section
- *             instead of restarting from exercise 1. Scoped per-lesson, per-
- *             browser (no server round-trip). Chat Q&A messages are NOT
+ *             instead of restarting from exercise 1. Scoped per-lesson; every
+ *             write is queued for the server copy (learningStateSync), which
+ *             the lesson page seeds back on load. Chat Q&A messages are NOT
  *             persisted here — the backend conversation collection already
  *             stores them server-side; this hook only tracks walker progress.
  *
@@ -16,12 +17,18 @@
 
 import { useCallback, useRef, useState } from 'react'
 
-const STORAGE_KEY_PREFIX = 'aguy:lessonChatProgress:'
-const CORRECT_STATE_KEY_PREFIX = 'aguy:lessonChatCorrect:'
-const STARTED_AT_KEY_PREFIX = 'aguy:lessonChatStartedAt:'
+import { LESSON_CHAT_KEY_PREFIXES } from '@/client/state/learningState/learningStateKeys'
+import { queueLearningStateSync } from '@/client/state/learningState/learningStateSync'
+
+const STORAGE_KEY_PREFIX = LESSON_CHAT_KEY_PREFIXES.progress
+const CORRECT_STATE_KEY_PREFIX = LESSON_CHAT_KEY_PREFIXES.correct
+const STARTED_AT_KEY_PREFIX = LESSON_CHAT_KEY_PREFIXES.startedAt
 // Read on the course page by useChatProgressMap. If you rename this prefix,
 // rename it there too — the two must stay in lockstep.
-export const LESSON_PERCENT_KEY_PREFIX = 'aguy:lessonChatPercent:'
+export const LESSON_PERCENT_KEY_PREFIX = LESSON_CHAT_KEY_PREFIXES.percent
+
+const queueSync = (lessonId: string) =>
+  queueLearningStateSync({ kind: 'lesson-chat', key: lessonId })
 const STORAGE_VERSION = 1
 const CORRECT_STATE_VERSION = 1
 const STARTED_AT_VERSION = 1
@@ -130,6 +137,7 @@ function readOrInitStartedAt(lessonId: string): number {
     const now = Date.now()
     const payload: SavedStartedAt = { version: STARTED_AT_VERSION, startedAt: now }
     window.localStorage.setItem(key, JSON.stringify(payload))
+    queueSync(lessonId)
     return now
   } catch {
     // Private browsing / quota — return a session-only timestamp. The
@@ -206,6 +214,7 @@ export function useLessonChatProgress(lessonId: string): LessonChatProgress {
       try {
         const payload: SavedProgress = { version: STORAGE_VERSION, stepCursor }
         window.localStorage.setItem(storageKey(lessonId), JSON.stringify(payload))
+        queueSync(lessonId)
       } catch {
         // Private browsing / quota-exceeded — persistence is best-effort.
       }
@@ -224,6 +233,7 @@ export function useLessonChatProgress(lessonId: string): LessonChatProgress {
           updatedAt: Date.now(),
         }
         window.localStorage.setItem(lessonPercentKey(lessonId), JSON.stringify(payload))
+        queueSync(lessonId)
       } catch {
         // Private browsing / quota-exceeded — persistence is best-effort.
       }
@@ -245,6 +255,7 @@ export function useLessonChatProgress(lessonId: string): LessonChatProgress {
       try {
         const payload: SavedCorrectState = { version: CORRECT_STATE_VERSION, state: next }
         window.localStorage.setItem(correctStateKey(lessonId), JSON.stringify(payload))
+        queueSync(lessonId)
       } catch {
         // See saveStepCursor.
       }
@@ -264,6 +275,7 @@ export function useLessonChatProgress(lessonId: string): LessonChatProgress {
       window.localStorage.removeItem(correctStateKey(lessonId))
       window.localStorage.removeItem(startedAtKey(lessonId))
       window.localStorage.removeItem(lessonPercentKey(lessonId))
+      queueSync(lessonId)
     } catch {
       // See saveStepCursor.
     }

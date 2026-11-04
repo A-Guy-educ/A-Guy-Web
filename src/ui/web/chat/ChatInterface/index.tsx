@@ -37,6 +37,10 @@ import { FormulaSheetButton } from '@/ui/web/shared/FormulaSheetViewer/FormulaSh
 import { FormulaSheetContent } from '@/ui/web/shared/FormulaSheetViewer/FormulaSheetContent'
 import { uploadDataUrlAsMedia } from '@/infra/media/uploadDataUrl'
 import { logger } from '@/infra/utils/logger'
+import {
+  CHAT_ATTACH_FILES_EVENT,
+  type ChatAttachFilesDetail,
+} from '@/ui/web/chat/attach-files-event'
 
 export type ViewMode = 'PDF' | 'Chat'
 
@@ -238,6 +242,23 @@ export function ChatInterface({
     const handler = (e: Event) => askMediaAttachRef.current(e)
     window.addEventListener('ask-media-attach', handler)
     return () => window.removeEventListener('ask-media-attach', handler)
+  }, [])
+
+  // Notebook cuts (and any other feature) attaching files to the composer as
+  // regular attachment chips — opens the chat on mobile and focuses the input.
+  const attachFilesRef = useRef<(e: Event) => void>(() => {})
+  attachFilesRef.current = (e: Event) => {
+    const { files } = (e as CustomEvent<ChatAttachFilesDetail>).detail
+    if (!files?.length) return
+    onChatInteraction?.()
+    addDirectUploads(files)
+    inputRef.current?.focus()
+  }
+
+  useEffect(() => {
+    const handler = (e: Event) => attachFilesRef.current(e)
+    window.addEventListener(CHAT_ATTACH_FILES_EVENT, handler)
+    return () => window.removeEventListener(CHAT_ATTACH_FILES_EVENT, handler)
   }, [])
 
   // FloatingAskButton: focus the chat input when the floating button is clicked

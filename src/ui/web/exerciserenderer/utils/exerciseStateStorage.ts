@@ -15,11 +15,17 @@
  *             before the solved-visuals work) is read as a fallback on first
  *             hydration so an in-flight student doesn't lose their text on
  *             deploy day; the next save writes the new key.
+ *
+ *             Every write and clear is queued for the server copy
+ *             (learningStateSync), which follows the student across computers.
  */
+
+import { EXERCISE_STATE_PREFIX } from '@/client/state/learningState/learningStateKeys'
+import { queueLearningStateSync } from '@/client/state/learningState/learningStateSync'
 
 import type { UserAnswer, CheckResult } from '../types'
 
-const STORAGE_PREFIX = 'a-guy:exercise-state:v1:'
+const STORAGE_PREFIX = EXERCISE_STATE_PREFIX
 const LEGACY_ANSWERS_PREFIX = 'a-guy:answers:'
 const STATE_VERSION = 1
 
@@ -148,6 +154,7 @@ export function writeExerciseState(
   try {
     const payload: PersistedExerciseState = { version: STATE_VERSION, ...state }
     window.localStorage.setItem(storageKey(exerciseId), JSON.stringify(payload))
+    queueLearningStateSync({ kind: 'exercise', key: exerciseId })
   } catch {
     // Quota / private browsing — persistence is best-effort.
   }
@@ -210,6 +217,7 @@ export function clearExerciseState(exerciseId: string): void {
   try {
     window.localStorage.removeItem(storageKey(exerciseId))
     window.localStorage.removeItem(legacyAnswersKey(exerciseId))
+    queueLearningStateSync({ kind: 'exercise', key: exerciseId })
   } catch {
     // See writeExerciseState.
   }

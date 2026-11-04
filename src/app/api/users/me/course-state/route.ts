@@ -45,9 +45,12 @@ export async function POST(request: NextRequest) {
     // Empty body is valid (refresh lastLoginAt only) — carry on with defaults.
   }
 
-  const forwardBody: Record<string, string> = { userId: auth.value.id }
+  const forwardBody: Record<string, string | null> = { userId: auth.value.id }
   if (typeof clientBody.currentCourse === 'string' && clientBody.currentCourse.length > 0) {
     forwardBody.currentCourse = clientBody.currentCourse
+  } else if (clientBody.currentCourse === null) {
+    // Explicit null = the student removed their course; Admin clears the field.
+    forwardBody.currentCourse = null
   }
 
   try {

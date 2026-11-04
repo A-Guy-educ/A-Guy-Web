@@ -2,7 +2,7 @@
  * @fileType hook
  * @domain exam
  * @pattern countdown
- * @ai-summary Manages exam countdown state backed by localStorage — polls every 60 s to keep `daysUntil` accurate across page refreshes; dates are local-only and not synced to the server.
+ * @ai-summary Manages exam countdown state backed by localStorage — polls every 60 s to keep `daysUntil` accurate across page refreshes; dates are synced to the server per student and reloaded when the sign-in seed lands.
  *
  * Gotcha: The hook polls localStorage every 60 seconds, so `daysUntil` can be stale for up to 60 seconds after the user adds a new exam.
  */
@@ -11,6 +11,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import {
+  EXAM_DATES_CHANGED_EVENT,
   addExamDate as addExam,
   getExamDates,
   removeExamDate as removeExam,
@@ -35,7 +36,11 @@ export function useExamCountdown(courseId: string) {
   useEffect(() => {
     reload()
     const interval = setInterval(reload, 60_000)
-    return () => clearInterval(interval)
+    window.addEventListener(EXAM_DATES_CHANGED_EVENT, reload)
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener(EXAM_DATES_CHANGED_EVENT, reload)
+    }
   }, [reload])
 
   const upcomingExams = allExams

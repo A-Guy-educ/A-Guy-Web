@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.62.0 — 2026-11-04
+
+### Features
+- Color point labels to match their dot (#1564)
+- Lint rule keeping browser storage in the storage layer (#1561)
+- Save exam dates on the server per student (#1560)
+- Save lesson and exercise progress on the server per student (#1559)
+- Scope browser storage to the signed-in user and wipe it on logout (#1554)
+- Snap held circles and ovals in the lesson notebook (#1553)
+- Triple scroll view outer gutter on desktop (#1551)
+
+### Bug Fixes
+- Never let an account inherit browser data that is not its own (#1563)
+- Restore lesson-content answers from the server on lesson load (#1562)
+- Reload stale tabs when another tab switches account (#1558)
+- Show token usage alert above the lesson workspace (#1557)
+- Keep RTL notebook cuts aligned and attach cuts to chat (#1552)
+
 ## v0.61.0 — 2026-11-04
 
 ### Features
@@ -5149,6 +5167,20 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.62.0 ([#1565](https://github.com/A-Guy-educ/A-Guy-Web/pull/1565)) — @aguyshayb
+- feat(graphics): Color point labels to match their dot ([#1564](https://github.com/A-Guy-educ/A-Guy-Web/pull/1564)) — @aguyshayb
+- fix: Never let an account inherit browser data that is not its own ([#1563](https://github.com/A-Guy-educ/A-Guy-Web/pull/1563)) — @aguyshayb
+- fix: Restore lesson-content answers from the server on lesson load ([#1562](https://github.com/A-Guy-educ/A-Guy-Web/pull/1562)) — @aguyshayb
+- feat: Save exam dates on the server per student ([#1560](https://github.com/A-Guy-educ/A-Guy-Web/pull/1560)) — @aguyshayb
+- feat: Save lesson and exercise progress on the server per student ([#1559](https://github.com/A-Guy-educ/A-Guy-Web/pull/1559)) — @aguyshayb
+- fix: Show token usage alert above the lesson workspace ([#1557](https://github.com/A-Guy-educ/A-Guy-Web/pull/1557)) — @aguyshayb
+- feat: Scope browser storage to the signed-in user (shared school computers) ([#1554](https://github.com/A-Guy-educ/A-Guy-Web/pull/1554)) — @aguyshayb
+- fix: Keep RTL notebook cuts aligned and attach cuts to chat ([#1552](https://github.com/A-Guy-educ/A-Guy-Web/pull/1552)) — @aguyshayb
+- feat: Triple scroll view outer gutter on desktop ([#1551](https://github.com/A-Guy-educ/A-Guy-Web/pull/1551)) — @aguyshayb
+- feat: Snap held circles and ovals in the lesson notebook ([#1553](https://github.com/A-Guy-educ/A-Guy-Web/pull/1553)) — @aguyshayb
+## [v0.61.0] - 2026-11-04
+
+- promote: dev -> main (v0.61.0) ([#1556](https://github.com/A-Guy-educ/A-Guy-Web/pull/1556)) — @aguyshayb
 - chore: Release v0.61.0 ([#1555](https://github.com/A-Guy-educ/A-Guy-Web/pull/1555)) — @aguyshayb
 - fix: Stop Apple Pencil long-press selection in the lesson notebook ([#1549](https://github.com/A-Guy-educ/A-Guy-Web/pull/1549)) — @aguyshayb
 - feat: Add saved lesson notebook with cut-from-material ([#1548](https://github.com/A-Guy-educ/A-Guy-Web/pull/1548)) — @aguyshayb

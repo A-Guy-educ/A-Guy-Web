@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
-import { clearUserProfile, getUserProfile } from '@/client/state/localStorage/userProfile'
+import { getUserProfile, removeCourseSelection } from '@/client/state/localStorage/userProfile'
 import { getClientSideURL } from '@/infra/utils/getURL'
 import { Badge } from '@/ui/web/components/badge'
 import { Button } from '@/ui/web/components/button'
@@ -87,7 +87,7 @@ export function SelectedCourseCard() {
   }
 
   const handleRemoveSelection = () => {
-    clearUserProfile()
+    removeCourseSelection()
     router.replace('/courses')
   }
 

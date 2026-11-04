@@ -32,6 +32,9 @@ import { extractAllMediaIds } from '@/ui/web/exerciserenderer/utils/extractMedia
 import { ContentPageBodyRenderer } from './_components/ContentPageBodyRenderer'
 import { stripHtml } from '@/utils/strip-html'
 import { findUserProgress } from '@/server/web-api/progress'
+import { LearningStateSeeder } from '@/client/state/learningState/LearningStateSeeder'
+import { lessonLearningStateRefs } from '@/infra/learning-state/refs'
+import { findLearningStates } from '@/server/services/learning-state'
 import { LessonAnalytics } from './_components/LessonAnalytics'
 import { LessonIntroPage } from './_components/LessonIntroPage'
 import { queryLessonBlocks } from '@/server/repos/queries/lesson-blocks'
@@ -314,6 +317,18 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const showChat = exercises.length > 0 || Boolean(lesson.lessonContextText?.trim())
   const hasExerciseBlocks = exercises.some(hasBlocks)
   const contentType = hasExerciseBlocks ? 'exercises' : mediaFiles.length > 0 ? 'pdf' : 'blocks'
+  // Signed-in students resume from the server copy, so progress follows them
+  // across shared computers. Guests keep browser-only state.
+  const learningStateRefs = tierUser?.id
+    ? lessonLearningStateRefs(
+        lesson.id,
+        exercises.map((exercise) => exercise.id),
+      )
+    : []
+  const learningStates = tierUser?.id
+    ? // A failed read only loses the resume point; the lesson still opens.
+      await findLearningStates(String(tierUser.id), learningStateRefs).catch(() => ({}))
+    : {}
 
   return (
     <AccessGateProvider
@@ -324,6 +339,8 @@ export default async function LessonPage({ params }: LessonPageProps) {
       allowAnonymousPreview={true}
       onboardingTrigger={{ type: 'lesson', id: lesson.id }}
     >
+      {/* Must stay first: seeds localStorage before the lesson reads it. */}
+      <LearningStateSeeder key={lesson.id} refs={learningStateRefs} states={learningStates} />
       <LessonAnalytics
         lessonId={lesson.id}
         courseId={course.id}

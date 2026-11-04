@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react'
 import { NOTEBOOK_PAGE_WIDTH, type NotebookStroke } from '@/infra/types/notebook'
 import { cn } from '@/infra/utils/ui'
 import { isStylusTouch } from '@/ui/web/notebook/stylus-touch'
-import { STRAIGHTEN_HOLD_MS, STRAIGHTEN_SLOP_PX, straightenStroke } from './straighten'
+import { SNAP_HOLD_MS, SNAP_SLOP_PX, snapStroke, type SnappedShape } from './shape-snap'
 import { drawStroke, drawStrokes, roundCoord, strokeWidthFor } from './stroke-render'
 
 export interface InkTool {
@@ -27,8 +27,11 @@ interface InkSurfaceProps {
 interface LiveStroke {
   pointerId: number
   stroke: NotebookStroke
-  /** Snapped to a line by holding still; further moves only drag the end point. */
-  straight: boolean
+  /**
+   * Snapped to a shape by holding still. A line's end point keeps following
+   * the pointer; a circle stays put until the pointer lifts.
+   */
+  snapped: SnappedShape | null
   /** Where the pointer last came to rest, in client pixels. */
   anchor: { x: number; y: number }
   holdTimer: number | null
@@ -39,7 +42,7 @@ interface LiveStroke {
  * page units (`NOTEBOOK_PAGE_WIDTH` wide) so a page drawn on a tablet renders
  * the same on a laptop. The in-progress stroke is drawn incrementally; the
  * full page is only redrawn when the saved strokes change (undo, load) or a
- * held stroke snaps to a straight line.
+ * held stroke snaps to a line or circle.
  */
 export function InkSurface({
   height,
@@ -94,16 +97,16 @@ export function InkSurface({
   // fires once the pen has actually rested.
   const armHold = (current: LiveStroke) => {
     clearHold(current)
-    if (current.stroke.erase || current.straight) return
+    if (current.stroke.erase || current.snapped) return
     current.holdTimer = window.setTimeout(() => {
       current.holdTimer = null
       if (live.current !== current) return
-      const line = straightenStroke(current.stroke.points)
-      if (!line) return
-      current.stroke.points = line
-      current.straight = true
+      const snap = snapStroke(current.stroke.points)
+      if (!snap) return
+      current.stroke.points = snap.points
+      current.snapped = snap.shape
       redraw()
-    }, STRAIGHTEN_HOLD_MS)
+    }, SNAP_HOLD_MS)
   }
 
   const toPage = (el: HTMLCanvasElement, clientX: number, clientY: number) => {
@@ -128,7 +131,7 @@ export function InkSurface({
     const current: LiveStroke = {
       pointerId: e.pointerId,
       stroke,
-      straight: false,
+      snapped: null,
       anchor: { x: e.clientX, y: e.clientY },
       holdTimer: null,
     }
@@ -147,15 +150,15 @@ export function InkSurface({
     const samples = events.length ? events : [e.nativeEvent]
     const last = samples[samples.length - 1]
 
-    if (current.straight) {
+    if (current.snapped === 'ellipse') return
+    if (current.snapped === 'line') {
       const [x0, y0] = current.stroke.points
       current.stroke.points = [x0, y0, ...toPage(e.currentTarget, last.clientX, last.clientY)]
       redraw()
       return
     }
     if (
-      Math.hypot(last.clientX - current.anchor.x, last.clientY - current.anchor.y) >
-      STRAIGHTEN_SLOP_PX
+      Math.hypot(last.clientX - current.anchor.x, last.clientY - current.anchor.y) > SNAP_SLOP_PX
     ) {
       current.anchor = { x: last.clientX, y: last.clientY }
       armHold(current)
