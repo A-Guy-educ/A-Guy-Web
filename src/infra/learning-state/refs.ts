@@ -4,10 +4,10 @@
  * @ai-summary Shared identity of a learning-state document — (kind, key) per user — used by the server service, the API route, and the browser cache.
  */
 
-export const LEARNING_STATE_KINDS = ['exercise', 'lesson-chat'] as const
+export const LEARNING_STATE_KINDS = ['exercise', 'lesson-chat', 'exam-dates'] as const
 export type LearningStateKind = (typeof LEARNING_STATE_KINDS)[number]
 
-/** `exercise` → exercise id (or `review-<id>`); `lesson-chat` → lesson id. */
+/** `exercise` → exercise id (or `review-<id>`); `lesson-chat` → lesson id; `exam-dates` → course id. */
 export type LearningStateRef = { kind: LearningStateKind; key: string }
 export type LearningStateValue = Record<string, unknown>
 

@@ -19,6 +19,7 @@ import {
   flushLearningState,
   queueLearningStateSync,
   resetLearningStateSyncForTests,
+  seedExamDates,
   seedLearningState,
 } from '@/client/state/learningState/learningStateSync'
 import { STORAGE_OWNER_COOKIE_NAME } from '@/client/state/localStorage/userScopedStorage'
@@ -196,6 +197,32 @@ describe('learningStateSync', () => {
       await vi.advanceTimersByTimeAsync(0)
 
       expect(vi.mocked(fetch).mock.calls[0][1]).toMatchObject({ keepalive: true })
+    })
+  })
+
+  describe('seedExamDates', () => {
+    const examKey = (courseId: string) => `a-guy:exam-dates:${courseId}`
+    const exams = (date: string) => ({ exams: [{ id: 'e1', date }] })
+
+    it('writes every course the server has and uploads courses only this browser has', async () => {
+      localStorage.setItem(examKey('local-only'), JSON.stringify(exams('2026-06-01')))
+
+      seedExamDates({ 'course-1': exams('2026-12-01') })
+      await vi.advanceTimersByTimeAsync(1000)
+
+      expect(JSON.parse(localStorage.getItem(examKey('course-1'))!)).toEqual(exams('2026-12-01'))
+      expect(sentBodies()[0].writes).toEqual([
+        { kind: 'exam-dates', key: 'local-only', state: exams('2026-06-01') },
+      ])
+    })
+
+    it('keeps an exam date added offline over the older server list', () => {
+      localStorage.setItem(examKey('course-1'), JSON.stringify(exams('2027-01-01')))
+      queueLearningStateSync({ kind: 'exam-dates', key: 'course-1' })
+
+      seedExamDates({ 'course-1': exams('2026-12-01') })
+
+      expect(JSON.parse(localStorage.getItem(examKey('course-1'))!)).toEqual(exams('2027-01-01'))
     })
   })
 

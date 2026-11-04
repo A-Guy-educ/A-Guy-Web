@@ -27,6 +27,11 @@ vi.mock('@/client/state/localStorage/userProfile', () => ({
   getUserProfile: mockGetProfile,
 }))
 vi.mock('@/infra/analytics/utils/currentCourseSync', () => ({ syncCurrentCourse: mockSync }))
+const mockSeedExamDates = vi.hoisted(() => vi.fn())
+vi.mock('@/client/state/learningState/learningStateSync', () => ({
+  seedExamDates: mockSeedExamDates,
+  queueLearningStateSync: vi.fn(),
+}))
 
 import { useUserStorageOwnership } from '@/client/hooks/useUserStorageOwnership'
 
@@ -98,6 +103,27 @@ describe('useUserStorageOwnership', () => {
     renderHook(() => useUserStorageOwnership(user({ courseSelection: null }), false))
 
     expect(mockSync).toHaveBeenCalledWith('local-course')
+  })
+
+  it("seeds the student's exam dates and tells the countdowns to reload", () => {
+    mockClaim.mockReturnValue('kept')
+    const examDates = { 'course-1': { exams: [] } }
+    const onChanged = vi.fn()
+    window.addEventListener('a-guy:exam-dates-changed', onChanged)
+
+    renderHook(() => useUserStorageOwnership(user({ examDates }), false))
+
+    expect(mockSeedExamDates).toHaveBeenCalledWith(examDates)
+    expect(onChanged).toHaveBeenCalledTimes(1)
+    window.removeEventListener('a-guy:exam-dates-changed', onChanged)
+  })
+
+  it("does not seed into storage that still holds the previous student's data", () => {
+    mockClaim.mockReturnValue('wiped')
+
+    renderHook(() => useUserStorageOwnership(user({ examDates: {} }), false))
+
+    expect(mockSeedExamDates).not.toHaveBeenCalled()
   })
 
   describe('another tab switches account', () => {

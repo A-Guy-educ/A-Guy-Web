@@ -362,6 +362,8 @@ export interface User {
   courseSelection?: { courseId: string; gradeLevel: string } | null
   /** On any class roster (B2B). Set by `/api/users/me`; absent elsewhere. */
   isClassMember?: boolean
+  /** Server copy of exam dates per course id (`{ exams }` bundles), seeded into localStorage. */
+  examDates?: Record<string, Record<string, unknown>>
 }
 
 export interface Header {
