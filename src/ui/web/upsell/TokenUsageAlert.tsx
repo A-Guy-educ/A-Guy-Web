@@ -131,7 +131,14 @@ export function TokenUsageAlert({ userId }: { userId: string }) {
       {/* The chat refocuses its input when a turn ends (Tiptap defers that a
           frame) — right as this opens. Radix treats focus leaving as a
           dismiss, which closed the alert before it painted. */}
-      <DialogContent className="sm:max-w-md" onFocusOutside={(e) => e.preventDefault()}>
+      {/* Modal layer, not the default z-50: this fires mid-lesson, where the
+          exercise workspace is an opaque full-screen z-[200] layer that
+          otherwise hides the dialog completely. */}
+      <DialogContent
+        className="z-modal sm:max-w-md"
+        overlayClassName="z-modal-backdrop"
+        onFocusOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <div
             className={cn(

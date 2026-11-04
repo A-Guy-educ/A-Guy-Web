@@ -29,14 +29,17 @@ interface DialogContentProps extends React.ComponentPropsWithoutRef<
   typeof DialogPrimitive.Content
 > {
   allowDismiss?: boolean
+  /** Lets a dialog lift its backdrop together with its content (e.g. above
+   *  the full-screen lesson workspace). */
+  overlayClassName?: string
 }
 
 const DialogContent = React.forwardRef<
   React.ComponentRef<typeof DialogPrimitive.Content>,
   DialogContentProps
->(({ className, children, allowDismiss = true, ...props }, ref) => (
+>(({ className, overlayClassName, children, allowDismiss = true, ...props }, ref) => (
   <DialogPortal>
-    <DialogOverlay />
+    <DialogOverlay className={overlayClassName} />
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
