@@ -12,8 +12,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   OWNER_CHANGED_KEY,
   STORAGE_OWNER_COOKIE_NAME,
+  claimGuestStorage,
   claimUserStorage,
+  currentGuestOwner,
   decideStorageClaim,
+  readSignedInOwner,
   readStorageOwner,
   releaseUserStorage,
   subscribeToOwnerChanges,
@@ -58,24 +61,41 @@ function seedPreviousStudent(owner: string | null): void {
 }
 
 describe('decideStorageClaim', () => {
+  const THIS_TAB = 'guest:tab-1'
+
   it.each([
     { owner: 'user-a', isClassMember: false, expected: 'kept' },
     { owner: 'user-a', isClassMember: true, expected: 'kept' },
     { owner: 'user-b', isClassMember: false, expected: 'wiped' },
     { owner: 'user-b', isClassMember: true, expected: 'wiped' },
-    { owner: null, isClassMember: false, expected: 'adopted' },
+    // Untagged data predates ownership: whose it is cannot be known.
+    { owner: null, isClassMember: false, expected: 'wiped' },
     { owner: null, isClassMember: true, expected: 'wiped' },
+    // Guest data from this very tab (start wizard → sign-up) carries over…
+    { owner: THIS_TAB, isClassMember: false, expected: 'adopted' },
+    // …but never into a school account, and never another tab's.
+    { owner: THIS_TAB, isClassMember: true, expected: 'wiped' },
+    { owner: 'guest:tab-2', isClassMember: false, expected: 'wiped' },
   ] as const)(
     'owner=$owner classMember=$isClassMember → $expected',
     ({ owner, isClassMember, expected }) => {
-      expect(decideStorageClaim({ owner, userId: 'user-a', isClassMember })).toBe(expected)
+      expect(
+        decideStorageClaim({ owner, userId: 'user-a', isClassMember, guestOwner: THIS_TAB }),
+      ).toBe(expected)
     },
   )
+
+  it('never adopts untagged data, even when this tab has no guest tag (storage blocked)', () => {
+    expect(
+      decideStorageClaim({ owner: null, userId: 'user-a', isClassMember: false, guestOwner: null }),
+    ).toBe('wiped')
+  })
 })
 
 describe('claimUserStorage / releaseUserStorage', () => {
   beforeEach(() => {
     localStorage.clear()
+    sessionStorage.clear()
     clearAllCookies()
   })
 
@@ -104,25 +124,40 @@ describe('claimUserStorage / releaseUserStorage', () => {
     expect(cookie(COURSE_ID_COOKIE_NAME)).toBe('course-a')
   })
 
-  it('adopts unowned data for a non-school user (guest progress carries into the account)', () => {
+  it('wipes untagged data from before ownership, for every account (used pilot computers)', () => {
     seedPreviousStudent(null)
 
-    expect(claimUserStorage({ userId: 'user-a', isClassMember: false })).toBe('adopted')
+    expect(claimUserStorage({ userId: 'user-a', isClassMember: false })).toBe('wiped')
 
-    USER_KEYS.forEach((key) => expect(localStorage.getItem(key)).toBe('x'))
+    USER_KEYS.forEach((key) => expect(localStorage.getItem(key)).toBeNull())
+    expect(cookie(COURSE_ID_COOKIE_NAME)).toBeNull()
     expect(readStorageOwner()).toBe('user-a')
   })
 
-  it('wipes unowned data for a class member (likely a classmate on a shared computer)', () => {
-    seedPreviousStudent(null)
+  it("carries this tab's guest picks into a new home account (start wizard → sign-up)", () => {
+    seedPreviousStudent(currentGuestOwner())
+
+    expect(claimUserStorage({ userId: 'user-a', isClassMember: false })).toBe('adopted')
+
+    expect(cookie(COURSE_ID_COOKIE_NAME)).toBe('course-a')
+    expect(readStorageOwner()).toBe('user-a')
+  })
+
+  it('never lets a school account take over guest data, even from this tab', () => {
+    seedPreviousStudent(currentGuestOwner())
 
     expect(claimUserStorage({ userId: 'user-a', isClassMember: true })).toBe('wiped')
 
     USER_KEYS.forEach((key) => expect(localStorage.getItem(key)).toBeNull())
-    expect(readStorageOwner()).toBe('user-a')
   })
 
-  it('logout wipes user data and leaves the browser unowned', () => {
+  it("wipes another tab's guest data at sign-in", () => {
+    seedPreviousStudent('guest:closed-tab')
+
+    expect(claimUserStorage({ userId: 'user-a', isClassMember: false })).toBe('wiped')
+  })
+
+  it("logout wipes user data and hands the browser to this tab's guest", () => {
     seedPreviousStudent('user-a')
 
     releaseUserStorage()
@@ -130,7 +165,46 @@ describe('claimUserStorage / releaseUserStorage', () => {
     USER_KEYS.forEach((key) => expect(localStorage.getItem(key)).toBeNull())
     DEVICE_KEYS.forEach((key) => expect(localStorage.getItem(key)).toBe('x'))
     expect(cookie(COURSE_ID_COOKIE_NAME)).toBeNull()
-    expect(readStorageOwner()).toBeNull()
+    expect(readStorageOwner()).toBe(currentGuestOwner())
+    expect(readSignedInOwner()).toBeNull()
+  })
+
+  describe('claimGuestStorage', () => {
+    it('wipes untagged leftovers before a guest sees them, and tags the tab', () => {
+      seedPreviousStudent(null)
+
+      expect(claimGuestStorage()).toBe('wiped')
+
+      USER_KEYS.forEach((key) => expect(localStorage.getItem(key)).toBeNull())
+      expect(readStorageOwner()).toBe(currentGuestOwner())
+    })
+
+    it("wipes another tab's guest data", () => {
+      seedPreviousStudent('guest:closed-tab')
+
+      expect(claimGuestStorage()).toBe('wiped')
+      expect(readStorageOwner()).toBe(currentGuestOwner())
+    })
+
+    it("keeps this tab's own guest data", () => {
+      seedPreviousStudent(currentGuestOwner())
+
+      expect(claimGuestStorage()).toBe('kept')
+      USER_KEYS.forEach((key) => expect(localStorage.getItem(key)).toBe('x'))
+    })
+
+    it("leaves a user's data alone (a failed /api/users/me also looks like a guest)", () => {
+      seedPreviousStudent('user-a')
+
+      expect(claimGuestStorage()).toBe('kept')
+      USER_KEYS.forEach((key) => expect(localStorage.getItem(key)).toBe('x'))
+      expect(readStorageOwner()).toBe('user-a')
+    })
+
+    it('reports kept when there was nothing to wipe (no reload needed)', () => {
+      expect(claimGuestStorage()).toBe('kept')
+      expect(readStorageOwner()).toBe(currentGuestOwner())
+    })
   })
 
   it('signals other tabs on every owner change, but not when the owner is kept', () => {
@@ -144,7 +218,7 @@ describe('claimUserStorage / releaseUserStorage', () => {
     expect(localStorage.getItem(OWNER_CHANGED_KEY)).toBe(afterClaim)
 
     releaseUserStorage()
-    expect(localStorage.getItem(OWNER_CHANGED_KEY)).toMatch(/^:\d+$/)
+    expect(localStorage.getItem(OWNER_CHANGED_KEY)).toMatch(/^guest:[\w-]+:\d+$/)
   })
 })
 

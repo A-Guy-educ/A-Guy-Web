@@ -11,12 +11,14 @@ const mockGetProfile = vi.hoisted(() => vi.fn())
 const mockSync = vi.hoisted(() => vi.fn())
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: mockRefresh }) }))
-const mockReadOwner = vi.hoisted(() => vi.fn())
+const mockReadSignedInOwner = vi.hoisted(() => vi.fn())
+const mockClaimGuest = vi.hoisted(() => vi.fn())
 const ownerChangeListeners = vi.hoisted(() => new Set<() => void>())
 
 vi.mock('@/client/state/localStorage/userScopedStorage', () => ({
   claimUserStorage: mockClaim,
-  readStorageOwner: mockReadOwner,
+  readSignedInOwner: mockReadSignedInOwner,
+  claimGuestStorage: mockClaimGuest,
   subscribeToOwnerChanges: (onChange: () => void) => {
     ownerChangeListeners.add(onChange)
     return () => ownerChangeListeners.delete(onChange)
@@ -51,11 +53,22 @@ describe('useUserStorageOwnership', () => {
     vi.unstubAllGlobals()
   })
 
-  it('does nothing while auth is loading or for guests', () => {
+  it('does nothing while auth is loading', () => {
     renderHook(() => useUserStorageOwnership(user(), true))
+
+    expect(mockClaim).not.toHaveBeenCalled()
+    expect(mockClaimGuest).not.toHaveBeenCalled()
+  })
+
+  it("guests wipe a previous visitor's leftovers and reload only when something was removed", () => {
+    mockClaimGuest.mockReturnValueOnce('wiped').mockReturnValueOnce('kept')
+
+    renderHook(() => useUserStorageOwnership(null, false))
     renderHook(() => useUserStorageOwnership(null, false))
 
     expect(mockClaim).not.toHaveBeenCalled()
+    expect(mockClaimGuest).toHaveBeenCalledTimes(2)
+    expect(reload).toHaveBeenCalledTimes(1)
   })
 
   it('passes class membership to the claim', () => {
@@ -147,7 +160,7 @@ describe('useUserStorageOwnership', () => {
 
     it('reloads a stale tab when another tab claims storage for someone else', () => {
       renderHook(() => useUserStorageOwnership(user(), false))
-      mockReadOwner.mockReturnValue('user-b')
+      mockReadSignedInOwner.mockReturnValue('user-b')
 
       emitOwnerChange()
 
@@ -156,7 +169,7 @@ describe('useUserStorageOwnership', () => {
 
     it('reloads a signed-in tab when another tab logs out', () => {
       renderHook(() => useUserStorageOwnership(user(), false))
-      mockReadOwner.mockReturnValue(null)
+      mockReadSignedInOwner.mockReturnValue(null)
 
       emitOwnerChange()
 
@@ -165,7 +178,7 @@ describe('useUserStorageOwnership', () => {
 
     it('reloads a guest tab when another tab signs in', () => {
       renderHook(() => useUserStorageOwnership(null, false))
-      mockReadOwner.mockReturnValue('user-b')
+      mockReadSignedInOwner.mockReturnValue('user-b')
 
       emitOwnerChange()
 
@@ -174,7 +187,7 @@ describe('useUserStorageOwnership', () => {
 
     it('ignores owner events that still name this tab user', () => {
       renderHook(() => useUserStorageOwnership(user(), false))
-      mockReadOwner.mockReturnValue('user-a')
+      mockReadSignedInOwner.mockReturnValue('user-a')
 
       emitOwnerChange()
 
@@ -200,7 +213,7 @@ describe('useUserStorageOwnership', () => {
 
     it('does not watch while auth is still loading', () => {
       renderHook(() => useUserStorageOwnership(null, true))
-      mockReadOwner.mockReturnValue('user-b')
+      mockReadSignedInOwner.mockReturnValue('user-b')
 
       emitOwnerChange()
 
