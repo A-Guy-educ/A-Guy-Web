@@ -35,6 +35,7 @@ export const USER_SCOPED_KEY_PREFIXES = [
   'token-usage-alerts:',
   'analytics_user_properties',
   'mixpanel_aliased',
+  'a-guy:learning-state-pending',
 ] as const
 
 const USER_SCOPED_COOKIES = [GRADE_COOKIE_NAME, COURSE_ID_COOKIE_NAME] as const

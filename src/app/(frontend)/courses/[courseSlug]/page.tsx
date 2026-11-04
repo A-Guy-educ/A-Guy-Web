@@ -13,6 +13,7 @@ import { AccessGateProvider } from '@/ui/web/auth/AccessGateProvider'
 import { stripHtml } from '@/utils/strip-html'
 import { getContentDb, objectIdFromString, relationId } from '@/infra/db/content-db'
 import { findUserProgress } from '@/server/web-api/progress'
+import { findLessonChatPercents } from '@/server/services/learning-state'
 import { CoursePageContent } from './_components/CoursePageContent'
 import { mergeOpenGraph } from '@/infra/utils/mergeOpenGraph'
 
@@ -126,14 +127,20 @@ async function buildLessonProgressMap(
       .map((record) => record.recordId),
   )
 
+  // Chat-view lessons record progress in learning state, not exercise records.
+  const chatPercents = await findLessonChatPercents(user.id, lessonIds).catch(
+    () => ({}) as Record<string, number>,
+  )
+
   for (const lessonId of lessonIds) {
     const exerciseIds = lessonExerciseIds.get(lessonId) ?? []
     const completed = exerciseIds.filter((id) => completedExerciseIds.has(id)).length
     const total = exerciseIds.length
+    const exercisePercent = total > 0 ? Math.round((completed / total) * 100) : 0
     result[lessonId] = {
       completed,
       total,
-      percent: total > 0 ? Math.round((completed / total) * 100) : 0,
+      percent: Math.max(exercisePercent, chatPercents[lessonId] ?? 0),
     }
   }
 
