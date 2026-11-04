@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.62.0 — 2026-11-04
+
+### Features
+- Color point labels to match their dot (#1564)
+- Lint rule keeping browser storage in the storage layer (#1561)
+- Save exam dates on the server per student (#1560)
+- Save lesson and exercise progress on the server per student (#1559)
+- Scope browser storage to the signed-in user and wipe it on logout (#1554)
+- Snap held circles and ovals in the lesson notebook (#1553)
+- Triple scroll view outer gutter on desktop (#1551)
+
+### Bug Fixes
+- Never let an account inherit browser data that is not its own (#1563)
+- Restore lesson-content answers from the server on lesson load (#1562)
+- Reload stale tabs when another tab switches account (#1558)
+- Show token usage alert above the lesson workspace (#1557)
+- Keep RTL notebook cuts aligned and attach cuts to chat (#1552)
+
 ## v0.61.0 — 2026-11-04
 
 ### Features
