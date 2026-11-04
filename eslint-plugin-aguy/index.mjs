@@ -26,6 +26,7 @@ import fileLocation from './rules/file-location.mjs'
 import noExecSync from './rules/no-exec-sync.mjs'
 import preferDesignTokens from './rules/prefer-design-tokens.mjs'
 import noDbInRoutes from './rules/no-db-in-routes.mjs'
+import noRawWebStorage from './rules/no-raw-web-storage.mjs'
 
 const plugin = {
   meta: {
@@ -41,6 +42,7 @@ const plugin = {
     'no-exec-sync': noExecSync,
     'prefer-design-tokens': preferDesignTokens,
     'no-db-in-routes': noDbInRoutes,
+    'no-raw-web-storage': noRawWebStorage,
   },
 }
 export default plugin

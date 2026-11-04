@@ -86,6 +86,14 @@ const eslintConfig = [
       'aguy/no-db-in-routes': 'error',
     },
   },
+  {
+    plugins: { aguy: aguyPlugin },
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/**/*.stories.tsx'],
+    rules: {
+      'aguy/no-raw-web-storage': 'error',
+    },
+  },
 
   {
     ignores: [
