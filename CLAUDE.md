@@ -127,6 +127,15 @@ See [docs/architecture/DATA-ACCESS.md](./docs/architecture/DATA-ACCESS.md), incl
 
 ---
 
+## Browser Storage (CRITICAL)
+
+**Schools share computers.** `localStorage` / `sessionStorage` are only touched from modules under `src/client/state/`, enforced by `aguy/no-raw-web-storage` (same grandfather-list rule as above — never add to it).
+
+- Per-student keys go in `USER_SCOPED_KEY_PREFIXES` (`src/client/state/localStorage/userScopedStorage.ts`) so another student's sign-in wipes them.
+- Data that should follow the student across computers is synced through `src/client/state/learningState/learningStateSync.ts` (server copy: `user-learning-states`).
+
+---
+
 ## Design System (CRITICAL)
 
 **NEVER create custom colors, design tokens, or visual styles that are not defined in the project's design system.**
