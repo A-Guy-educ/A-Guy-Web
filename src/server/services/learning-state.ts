@@ -15,6 +15,7 @@ import { ObjectId, type AnyBulkWriteOperation, type Document } from 'mongodb'
 import { getContentDb } from '@/infra/db/content-db'
 import {
   learningStateId,
+  type LearningStateKind,
   type LearningStateRef,
   type LearningStateValue,
 } from '@/infra/learning-state/refs'
@@ -47,6 +48,23 @@ export async function findLearningStates(
     docs
       .map((doc) => [learningStateId({ kind: doc.kind, key: doc.key }), doc.state] as const)
       .filter(([id, state]) => wanted.has(id) && state && typeof state === 'object'),
+  )
+}
+
+/** Every stored state of one kind, keyed by its `key` (e.g. exam dates per course). */
+export async function findLearningStatesByKind(
+  userId: string,
+  kind: LearningStateKind,
+): Promise<Record<string, LearningStateValue>> {
+  const db = await getContentDb()
+  const docs = await db
+    .collection(LEARNING_STATE_COLLECTION)
+    .find({ user: { $in: idCandidates(userId) }, kind }, { projection: { key: 1, state: 1 } })
+    .toArray()
+  return Object.fromEntries(
+    docs
+      .filter((doc) => typeof doc.key === 'string' && doc.state && typeof doc.state === 'object')
+      .map((doc) => [doc.key as string, doc.state as LearningStateValue]),
   )
 }
 

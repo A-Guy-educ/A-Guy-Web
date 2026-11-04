@@ -25,7 +25,11 @@ import {
   type LearningStateValue,
 } from '@/infra/learning-state/refs'
 
-import { readLocalLearningState, writeLocalLearningState } from './learningStateKeys'
+import {
+  listLocalExamDateKeys,
+  readLocalLearningState,
+  writeLocalLearningState,
+} from './learningStateKeys'
 
 /** User-scoped (wiped on user switch) — listed in USER_SCOPED_KEY_PREFIXES. */
 export const PENDING_SYNC_KEY = 'a-guy:learning-state-pending'
@@ -161,6 +165,24 @@ export function seedLearningState(
     else if (readLocalLearningState(ref)) queueLearningStateSync(ref) // never uploaded
   })
   if (Object.keys(pending).length > 0) scheduleFlush(FLUSH_DELAY_MS)
+}
+
+/**
+ * Sign-in: seed every exam-dates state the server holds (they are shown on
+ * many pages, not just one lesson), and upload local ones it has never seen.
+ */
+export function seedExamDates(serverStatesByCourse: Record<string, LearningStateValue>): void {
+  if (typeof window === 'undefined') return
+  const courseIds = new Set([...Object.keys(serverStatesByCourse), ...listLocalExamDateKeys()])
+  seedLearningState(
+    [...courseIds].map((key) => ({ kind: 'exam-dates', key })),
+    Object.fromEntries(
+      Object.entries(serverStatesByCourse).map(([key, state]) => [
+        learningStateId({ kind: 'exam-dates', key }),
+        state,
+      ]),
+    ),
+  )
 }
 
 /** Test hook: forget timers and listeners between tests. */

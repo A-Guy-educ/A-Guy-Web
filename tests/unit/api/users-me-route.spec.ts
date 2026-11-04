@@ -18,6 +18,10 @@ vi.mock('@/server/services/user-course-selection', () => ({
   getCourseSelection: vi.fn().mockResolvedValue(null),
   isClassMember: vi.fn().mockResolvedValue(false),
 }))
+const mockExamDates = vi.hoisted(() => vi.fn())
+vi.mock('@/server/services/learning-state', () => ({
+  findLearningStatesByKind: mockExamDates,
+}))
 
 const createRequest = (cookieHeader?: string) => {
   const headers = new Headers()
@@ -33,6 +37,21 @@ const setCookieHeaders = (res: Response): string[] => {
 describe('GET /api/users/me', () => {
   beforeEach(() => {
     mockGetSession.mockReset()
+    mockExamDates.mockReset().mockResolvedValue({})
+  })
+
+  it("attaches the student's exam dates, and still answers when they fail to load", async () => {
+    const user = { id: 'user-1', role: 'student', collection: 'users' }
+    const examDates = { 'course-1': { exams: [{ id: 'e1', date: '2026-12-01' }] } }
+    mockGetSession.mockResolvedValue({ token: 't', user })
+    mockExamDates.mockResolvedValueOnce(examDates).mockRejectedValueOnce(new Error('mongo down'))
+
+    const first = await (await GET(createRequest('payload-token=t'))).json()
+    const second = await (await GET(createRequest('payload-token=t'))).json()
+
+    expect(mockExamDates).toHaveBeenCalledWith('user-1', 'exam-dates')
+    expect(first.user.examDates).toEqual(examDates)
+    expect(second.user.examDates).toEqual({})
   })
 
   it('returns 200 + user when the session is valid and does not touch cookies', async () => {
@@ -51,7 +70,13 @@ describe('GET /api/users/me', () => {
     // afterRead equivalent); readActiveSubscription short-circuits to null for
     // non-ObjectId ids like 'user-1', so the test shape stays deterministic.
     expect(await res.json()).toEqual({
-      user: { ...user, activeSubscription: null, courseSelection: null, isClassMember: false },
+      user: {
+        ...user,
+        activeSubscription: null,
+        courseSelection: null,
+        isClassMember: false,
+        examDates: {},
+      },
     })
     expect(setCookieHeaders(res)).toHaveLength(0)
   })
@@ -108,7 +133,13 @@ describe('GET /api/users/me', () => {
 
     expect(res.status).toBe(200)
     expect(await res.json()).toEqual({
-      user: { ...user, activeSubscription: null, courseSelection: null, isClassMember: false },
+      user: {
+        ...user,
+        activeSubscription: null,
+        courseSelection: null,
+        isClassMember: false,
+        examDates: {},
+      },
     })
     expect(setCookieHeaders(res)).toHaveLength(0)
   })

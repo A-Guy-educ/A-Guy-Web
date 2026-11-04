@@ -19,6 +19,8 @@ import {
   readStorageOwner,
   subscribeToOwnerChanges,
 } from '@/client/state/localStorage/userScopedStorage'
+import { seedExamDates } from '@/client/state/learningState/learningStateSync'
+import { EXAM_DATES_CHANGED_EVENT } from '@/client/state/localStorage/examDates'
 import { syncCurrentCourse } from '@/infra/analytics/utils/currentCourseSync'
 import type { User } from '@/infra/types/content'
 
@@ -73,6 +75,10 @@ export function useUserStorageOwnership(user: User | null, isLoading: boolean): 
       window.location.reload()
       return
     }
+
+    // Storage is now known to be this user's: bring in their exam dates.
+    seedExamDates(user.examDates ?? {})
+    window.dispatchEvent(new Event(EXAM_DATES_CHANGED_EVENT))
 
     if (!user.courseSelection) {
       // Server has no course yet: the local pick (now known to be this

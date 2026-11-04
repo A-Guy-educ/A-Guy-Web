@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   findLearningStates,
+  findLearningStatesByKind,
   findLessonChatPercents,
   saveLearningStates,
 } from '@/server/services/learning-state'
@@ -75,6 +76,18 @@ describe('learning-state service', () => {
       },
       { deleteOne: { filter: { user, kind: 'lesson-chat', key: 'lesson-1' } } },
     ])
+  })
+
+  it('lists every state of one kind by key (exam dates per course)', async () => {
+    storedDocs([
+      { key: 'course-1', state: { exams: [] } },
+      { key: 'course-2', state: null },
+    ])
+
+    expect(await findLearningStatesByKind(USER_ID, 'exam-dates')).toEqual({
+      'course-1': { exams: [] },
+    })
+    expect(collection.find.mock.calls[0][0]).toMatchObject({ kind: 'exam-dates' })
   })
 
   it('reads lesson-chat percents for the course page', async () => {
