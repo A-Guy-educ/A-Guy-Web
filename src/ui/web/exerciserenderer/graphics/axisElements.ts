@@ -64,6 +64,7 @@ function renderAxisPoints(board: JXG.Board, points: PointSpec[]) {
         cssStyle: TIMES_NEW_ROMAN_CSS,
       })
     } else {
+      const color = p.color || getDefaultAxisPointColor()
       const attrs: Record<string, unknown> = {
         name: p.label || '',
         fixed: true,
@@ -73,9 +74,10 @@ function renderAxisPoints(board: JXG.Board, points: PointSpec[]) {
           offset: mapPointLabelOffset(p.labelPosition),
           fontSize: p.fontSize ?? 12,
           cssStyle: TIMES_NEW_ROMAN_CSS,
+          // JSXGraph colors label text with `strokeColor`; match the dot.
+          strokeColor: color,
         },
       }
-      const color = p.color || getDefaultAxisPointColor()
       attrs.strokeColor = color
       attrs.fillColor = p.type === 'hole' ? '#ffffff' : color
       if (p.type === 'hole') {
