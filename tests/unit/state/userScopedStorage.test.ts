@@ -10,11 +10,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  OWNER_CHANGED_KEY,
   STORAGE_OWNER_COOKIE_NAME,
   claimUserStorage,
   decideStorageClaim,
   readStorageOwner,
   releaseUserStorage,
+  subscribeToOwnerChanges,
 } from '@/client/state/localStorage/userScopedStorage'
 import { COURSE_ID_COOKIE_NAME, GRADE_COOKIE_NAME } from '@/client/state/localStorage/userProfile'
 
@@ -129,5 +131,33 @@ describe('claimUserStorage / releaseUserStorage', () => {
     DEVICE_KEYS.forEach((key) => expect(localStorage.getItem(key)).toBe('x'))
     expect(cookie(COURSE_ID_COOKIE_NAME)).toBeNull()
     expect(readStorageOwner()).toBeNull()
+  })
+
+  it('signals other tabs on every owner change, but not when the owner is kept', () => {
+    seedPreviousStudent('user-b')
+
+    claimUserStorage({ userId: 'user-a', isClassMember: false })
+    const afterClaim = localStorage.getItem(OWNER_CHANGED_KEY)
+    expect(afterClaim).toMatch(/^user-a:\d+$/)
+
+    claimUserStorage({ userId: 'user-a', isClassMember: false })
+    expect(localStorage.getItem(OWNER_CHANGED_KEY)).toBe(afterClaim)
+
+    releaseUserStorage()
+    expect(localStorage.getItem(OWNER_CHANGED_KEY)).toMatch(/^:\d+$/)
+  })
+})
+
+describe('subscribeToOwnerChanges', () => {
+  it('fires only for the owner-changed key', () => {
+    const onChange = vi.fn()
+    const unsubscribe = subscribeToOwnerChanges(onChange)
+
+    window.dispatchEvent(new StorageEvent('storage', { key: 'a-guy:user-profile' }))
+    window.dispatchEvent(new StorageEvent('storage', { key: OWNER_CHANGED_KEY }))
+    unsubscribe()
+    window.dispatchEvent(new StorageEvent('storage', { key: OWNER_CHANGED_KEY }))
+
+    expect(onChange).toHaveBeenCalledTimes(1)
   })
 })
