@@ -9,6 +9,7 @@ import type { User } from '@/infra/types/content'
 
 import { Button } from '@/ui/web/components/button'
 import { logoutUser } from '@/client/auth/logout'
+import { releaseUserStorage } from '@/client/state/localStorage/userScopedStorage'
 import { analytics } from '@/infra/analytics'
 import { usePasswordLogin } from '@/ui/web/providers/PasswordLoginProvider'
 import { useTranslations } from '@/ui/web/providers/I18n'
@@ -50,6 +51,7 @@ export function MobileMenuAuthSection({
             try {
               analytics.reset()
               await logoutUser()
+              releaseUserStorage()
               window.dispatchEvent(new Event('auth:changed'))
               onClose()
               router.push('/login')
