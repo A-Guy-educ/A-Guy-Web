@@ -137,6 +137,17 @@ describe('learningStateSync', () => {
       expect(sentBodies()[0].writes).toEqual([{ ...EXERCISE, state: null }])
     })
 
+    it('treats a guest-tagged browser as signed out', async () => {
+      setOwner('guest:tab-1')
+      setLocalExercise(LOCAL_BUNDLE)
+      queueLearningStateSync(EXERCISE)
+
+      await vi.advanceTimersByTimeAsync(1000)
+
+      expect(fetch).not.toHaveBeenCalled()
+      expect(pendingIds()).toEqual([])
+    })
+
     it('drops pending edits for guests — there is no account to save to', async () => {
       setOwner(null)
       setLocalExercise(LOCAL_BUNDLE)

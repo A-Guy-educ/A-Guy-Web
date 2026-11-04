@@ -18,7 +18,7 @@
  * saved onto the next student's account.
  */
 
-import { readStorageOwner } from '@/client/state/localStorage/userScopedStorage'
+import { readSignedInOwner } from '@/client/state/localStorage/userScopedStorage'
 import {
   learningStateId,
   type LearningStateRef,
@@ -107,7 +107,7 @@ export async function flushLearningState({ keepalive = false } = {}): Promise<vo
   const refs = Object.values(pending)
   if (refs.length === 0) return
 
-  const ownerId = readStorageOwner()
+  const ownerId = readSignedInOwner()
   if (!ownerId) {
     // Guest (or signed out): there is no account to save to.
     writePending({})

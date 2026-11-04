@@ -15,8 +15,9 @@ import { useEffect } from 'react'
 
 import { applyServerCourseSelection, getUserProfile } from '@/client/state/localStorage/userProfile'
 import {
+  claimGuestStorage,
   claimUserStorage,
-  readStorageOwner,
+  readSignedInOwner,
   subscribeToOwnerChanges,
 } from '@/client/state/localStorage/userScopedStorage'
 import { seedExamDates } from '@/client/state/learningState/learningStateSync'
@@ -47,7 +48,8 @@ export function useUserStorageOwnership(user: User | null, isLoading: boolean): 
     if (isLoading) return
 
     const unsubscribe = subscribeToOwnerChanges(() => {
-      if (readStorageOwner() !== userId) window.location.reload()
+      // Guest re-tags are not account switches; only a signed-in owner counts.
+      if (readSignedInOwner() !== userId) window.location.reload()
     })
     // Backstop for switches that raise no storage event here (another dev
     // hostname, storage blocked): ask the server who is signed in on focus.
@@ -64,7 +66,12 @@ export function useUserStorageOwnership(user: User | null, isLoading: boolean): 
   }, [userId, isLoading])
 
   useEffect(() => {
-    if (isLoading || !user) return
+    if (isLoading) return
+    if (!user) {
+      // Signed out: a previous visitor's leftovers must not show to this one.
+      if (claimGuestStorage() === 'wiped') window.location.reload()
+      return
+    }
 
     const claim = claimUserStorage({ userId: user.id, isClassMember: Boolean(user.isClassMember) })
     const courseChanged = user.courseSelection
