@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.61.0 — 2026-11-04
+
+### Features
+- Add saved lesson notebook with cut-from-material (#1548)
+- Honor authored font size on axis point labels (#1547)
+- Widen scroll view page margins 50% on desktop (#1546)
+
+### Bug Fixes
+- Stop Apple Pencil long-press selection in the lesson notebook (#1549)
+
 ## v0.60.0 — 2026-11-02
 
 ### Features
