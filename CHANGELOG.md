@@ -5149,6 +5149,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Never let an account inherit browser data that is not its own ([#1563](https://github.com/A-Guy-educ/A-Guy-Web/pull/1563)) — @aguyshayb
 - fix: Restore lesson-content answers from the server on lesson load ([#1562](https://github.com/A-Guy-educ/A-Guy-Web/pull/1562)) — @aguyshayb
 - feat: Save exam dates on the server per student ([#1560](https://github.com/A-Guy-educ/A-Guy-Web/pull/1560)) — @aguyshayb
 - feat: Save lesson and exercise progress on the server per student ([#1559](https://github.com/A-Guy-educ/A-Guy-Web/pull/1559)) — @aguyshayb
