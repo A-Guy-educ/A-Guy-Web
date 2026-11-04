@@ -5149,6 +5149,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Save lesson and exercise progress on the server per student ([#1559](https://github.com/A-Guy-educ/A-Guy-Web/pull/1559)) — @aguyshayb
 - fix: Show token usage alert above the lesson workspace ([#1557](https://github.com/A-Guy-educ/A-Guy-Web/pull/1557)) — @aguyshayb
 - feat: Scope browser storage to the signed-in user (shared school computers) ([#1554](https://github.com/A-Guy-educ/A-Guy-Web/pull/1554)) — @aguyshayb
 - fix: Keep RTL notebook cuts aligned and attach cuts to chat ([#1552](https://github.com/A-Guy-educ/A-Guy-Web/pull/1552)) — @aguyshayb
