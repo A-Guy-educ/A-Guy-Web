@@ -31,6 +31,7 @@ import { getExerciseBlockGroups } from '@/lib/exercises/getExerciseBlocks'
 import { computeQuestionLabels } from '@/lib/exercises/computeSectionLabels'
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { clampToLearningExerciseGate, getUserTierSlug } from '@/lib/tiers'
+import { LessonNotebookPane } from '@/ui/web/notebook/LessonNotebookPane'
 import { TierLockBubble } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/TierLockBubble'
 
 type WorksheetGroups = React.ComponentProps<typeof ExerciseWorksheet>['groups']
@@ -38,6 +39,8 @@ type WorksheetGroups = React.ComponentProps<typeof ExerciseWorksheet>['groups']
 interface BlocksDocumentLessonViewProps {
   lessonTitle: string
   backUrl: string
+  /** Enables the student's lesson notebook (signed-in students only). */
+  lessonId?: string
   exercises: Exercise[]
   mediaMap?: Record<string, MediaType>
   /** Optional element rendered at the top of the primary pane (e.g. tab bar). */
@@ -199,6 +202,7 @@ function SolutionsSection({
 export function BlocksDocumentLessonView({
   lessonTitle,
   backUrl,
+  lessonId,
   exercises,
   mediaMap,
   headerSlot,
@@ -222,6 +226,66 @@ export function BlocksDocumentLessonView({
   const lessonContentGroups: WorksheetGroups =
     lessonContentBlocks.length > 0 ? [{ blocks: lessonContentBlocks, sectionIndex: null }] : []
 
+  const worksheet = (
+    <div className="flex-1 overflow-auto max-w-full bg-muted py-section-sm px-1 sm:px-2 print:bg-background print:overflow-visible print:p-0">
+      {/* data-cut-surface: the worksheet card is what students cut exercises from. */}
+      <div
+        data-cut-surface=""
+        className="mx-auto max-w-5xl rounded-xl border border-border bg-card shadow-elevation-1 overflow-hidden print:shadow-none print:border-0 print:rounded-none print:max-w-full"
+      >
+        <div
+          className="px-3 py-5 font-serif sm:px-6 sm:py-section-md lg:px-9 max-w-full overflow-hidden"
+          dir={dir}
+        >
+          {lessonTitle && (
+            <h1
+              className={cn(
+                'mb-8 text-heading-xl font-bold text-foreground',
+                dir === 'rtl' ? 'text-right' : 'text-left',
+              )}
+            >
+              {lessonTitle}
+            </h1>
+          )}
+          {lessonContentGroups.length > 0 && (
+            <section className="mb-section-lg border-b-2 border-border pb-section-md">
+              <ExerciseWorksheet
+                groups={lessonContentGroups}
+                mediaMap={mediaMap}
+                hideLatexBlocks={false}
+              />
+            </section>
+          )}
+          <div className="flex flex-col">
+            {renderable.map(({ exercise, groups }, idx) => (
+              <section
+                key={exercise.id}
+                className={cn(
+                  'flex flex-col gap-content-gap',
+                  idx > 0 && 'mt-section-lg border-t-2 border-border pt-section-md',
+                )}
+              >
+                {exercise.title && (
+                  <h2 className="text-heading-lg font-bold text-foreground">{exercise.title}</h2>
+                )}
+                <ExerciseWorksheet groups={groups} mediaMap={mediaMap} hideLatexBlocks={false} />
+              </section>
+            ))}
+          </div>
+
+          {isTierLocked && (
+            <div className="mt-section-md flex justify-center font-sans">
+              <TierLockBubble />
+            </div>
+          )}
+
+          {/* Solutions section — rendered AFTER all exercises */}
+          <SolutionsSection entries={solutionEntries} dir={dir} />
+        </div>
+      </div>
+    </div>
+  )
+
   return (
     <ExerciseWorkspace
       exerciseTitle={lessonTitle}
@@ -229,65 +293,16 @@ export function BlocksDocumentLessonView({
       primaryContent={
         <div className="flex h-full flex-col">
           {headerSlot}
-          <div className="flex-1 overflow-auto max-w-full bg-muted py-section-sm px-1 sm:px-2 print:bg-background print:overflow-visible print:p-0">
-            <div className="mx-auto max-w-5xl rounded-xl border border-border bg-card shadow-elevation-1 overflow-hidden print:shadow-none print:border-0 print:rounded-none print:max-w-full">
-              <div
-                className="px-3 py-5 font-serif sm:px-6 sm:py-section-md max-w-full overflow-hidden"
-                dir={dir}
-              >
-                {lessonTitle && (
-                  <h1
-                    className={cn(
-                      'mb-8 text-heading-xl font-bold text-foreground',
-                      dir === 'rtl' ? 'text-right' : 'text-left',
-                    )}
-                  >
-                    {lessonTitle}
-                  </h1>
-                )}
-                {lessonContentGroups.length > 0 && (
-                  <section className="mb-section-lg border-b-2 border-border pb-section-md">
-                    <ExerciseWorksheet
-                      groups={lessonContentGroups}
-                      mediaMap={mediaMap}
-                      hideLatexBlocks={false}
-                    />
-                  </section>
-                )}
-                <div className="flex flex-col">
-                  {renderable.map(({ exercise, groups }, idx) => (
-                    <section
-                      key={exercise.id}
-                      className={cn(
-                        'flex flex-col gap-content-gap',
-                        idx > 0 && 'mt-section-lg border-t-2 border-border pt-section-md',
-                      )}
-                    >
-                      {exercise.title && (
-                        <h2 className="text-heading-lg font-bold text-foreground">
-                          {exercise.title}
-                        </h2>
-                      )}
-                      <ExerciseWorksheet
-                        groups={groups}
-                        mediaMap={mediaMap}
-                        hideLatexBlocks={false}
-                      />
-                    </section>
-                  ))}
-                </div>
-
-                {isTierLocked && (
-                  <div className="mt-section-md flex justify-center font-sans">
-                    <TierLockBubble />
-                  </div>
-                )}
-
-                {/* Solutions section — rendered AFTER all exercises */}
-                <SolutionsSection entries={solutionEntries} dir={dir} />
-              </div>
-            </div>
-          </div>
+          {user && lessonId ? (
+            <LessonNotebookPane
+              lessonId={lessonId}
+              cutSource={{ kind: 'scroll', label: lessonTitle }}
+            >
+              {worksheet}
+            </LessonNotebookPane>
+          ) : (
+            worksheet
+          )}
         </div>
       }
       chatContent={chatContent}

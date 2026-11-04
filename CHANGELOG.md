@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.61.0 — 2026-11-04
+
+### Features
+- Add saved lesson notebook with cut-from-material (#1548)
+- Honor authored font size on axis point labels (#1547)
+- Widen scroll view page margins 50% on desktop (#1546)
+
+### Bug Fixes
+- Stop Apple Pencil long-press selection in the lesson notebook (#1549)
+
 ## v0.60.0 — 2026-11-02
 
 ### Features
@@ -5139,6 +5149,14 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.61.0 ([#1555](https://github.com/A-Guy-educ/A-Guy-Web/pull/1555)) — @aguyshayb
+- fix: Stop Apple Pencil long-press selection in the lesson notebook ([#1549](https://github.com/A-Guy-educ/A-Guy-Web/pull/1549)) — @aguyshayb
+- feat: Add saved lesson notebook with cut-from-material ([#1548](https://github.com/A-Guy-educ/A-Guy-Web/pull/1548)) — @aguyshayb
+- feat(graphics): Honor authored font size on axis point labels ([#1547](https://github.com/A-Guy-educ/A-Guy-Web/pull/1547)) — @aguyshayb
+- feat: Widen scroll view page margins 50% on desktop ([#1546](https://github.com/A-Guy-educ/A-Guy-Web/pull/1546)) — @aguyshayb
+## [v0.60.0] - 2026-11-02
+
+- promote: dev -> main (v0.60.0) ([#1545](https://github.com/A-Guy-educ/A-Guy-Web/pull/1545)) — @aguyshayb
 - chore: Release v0.60.0 ([#1544](https://github.com/A-Guy-educ/A-Guy-Web/pull/1544)) — @aguyshayb
 - feat: Open purchase consent inside the chosen tier card ([#1543](https://github.com/A-Guy-educ/A-Guy-Web/pull/1543)) — @aguyshayb
 - feat: Grant school students the basic tier on /join ([#1542](https://github.com/A-Guy-educ/A-Guy-Web/pull/1542)) — @aguyshayb
