@@ -5167,6 +5167,8 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+## [v0.62.0] - 2026-11-04
+
 - chore: Release v0.62.0 ([#1565](https://github.com/A-Guy-educ/A-Guy-Web/pull/1565)) — @aguyshayb
 - feat(graphics): Color point labels to match their dot ([#1564](https://github.com/A-Guy-educ/A-Guy-Web/pull/1564)) — @aguyshayb
 - fix: Never let an account inherit browser data that is not its own ([#1563](https://github.com/A-Guy-educ/A-Guy-Web/pull/1563)) — @aguyshayb
