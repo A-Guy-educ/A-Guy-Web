@@ -1,18 +1,13 @@
 'use client'
 
+import { lessonContentStorageId } from '@/infra/learning-state/refs'
 import type { Media } from '@/infra/types/content'
 import type { ContentBlock, ExerciseBlockGroup } from '@/infra/types/exercise'
 import { ExerciseRenderer } from '@/ui/web/exerciserenderer'
 import { useMemo } from 'react'
 
-/**
- * Storage key for answers to question blocks inside the lesson's own content.
- * Namespaced so it can never collide with a real exercise id, and exported so
- * the runner's reset can wipe it alongside the exercises' state.
- */
-export function lessonContentStorageId(lessonId: string): string {
-  return `lesson-content-${lessonId}`
-}
+// Re-exported so the runner's reset can wipe it alongside the exercises' state.
+export { lessonContentStorageId }
 
 interface LessonContentBubbleProps {
   lessonId: string
