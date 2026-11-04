@@ -3,7 +3,8 @@
 import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
 
-import { uploadDataUrlAsMediaDoc } from '@/infra/media/uploadDataUrl'
+import { dataUrlToFile, uploadDataUrlAsMediaDoc } from '@/infra/media/uploadDataUrl'
+import { attachFilesToChat } from '@/ui/web/chat/attach-files-event'
 import {
   NOTEBOOK_MAX_PAGE_HEIGHT,
   NOTEBOOK_PAGE_WIDTH,
@@ -62,16 +63,16 @@ export function useRegionCut({
         }
 
         const filename = `notebook-cut${region.page ? `-p${region.page}` : ''}.png`
-        const media = await uploadDataUrlAsMediaDoc(region.dataUrl, filename)
 
+        // The chat uploads its own attachments; the cut goes into the composer
+        // as a regular attachment chip for the student to send with a question.
         if (target === 'chat') {
-          window.dispatchEvent(
-            new CustomEvent('ask-media-attach', { detail: { mediaId: media.id, filename } }),
-          )
-          window.dispatchEvent(new CustomEvent('focus-chat-input'))
+          attachFilesToChat([dataUrlToFile(region.dataUrl, filename)])
           onSentToChat()
           return
         }
+
+        const media = await uploadDataUrlAsMediaDoc(region.dataUrl, filename)
 
         const page = await addPage(
           {
