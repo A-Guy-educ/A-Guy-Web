@@ -5149,6 +5149,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Snap held circles and ovals in the lesson notebook ([#1553](https://github.com/A-Guy-educ/A-Guy-Web/pull/1553)) — @aguyshayb
 ## [v0.61.0] - 2026-11-04
 
 - promote: dev -> main (v0.61.0) ([#1556](https://github.com/A-Guy-educ/A-Guy-Web/pull/1556)) — @aguyshayb
