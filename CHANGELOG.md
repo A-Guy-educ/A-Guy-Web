@@ -5167,6 +5167,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Add the New Classroom 3D landing at /newclass ([#1568](https://github.com/A-Guy-educ/A-Guy-Web/pull/1568)) — @aguyshayb
 - feat: Add the saved notebook to Ask page PDF uploads ([#1567](https://github.com/A-Guy-educ/A-Guy-Web/pull/1567)) — @aguyshayb
 ## [v0.62.0] - 2026-11-04
 
