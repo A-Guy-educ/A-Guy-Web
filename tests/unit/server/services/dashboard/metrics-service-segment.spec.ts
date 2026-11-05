@@ -1,9 +1,10 @@
 /**
  * Segment wiring in computeDashboardMetrics.
  *
- * `all` must issue exactly the pre-segment queries (no class-roster read, no
- * cohort on any aggregation, no b2bMetrics). b2b/b2c pass the cohort to the
- * user aggregations only — engagement keeps the platform-wide user-stats.
+ * `all` passes no cohort to any aggregation and attaches no b2bMetrics. The
+ * class roster is read for every segment because revenue's B2B seat estimate
+ * needs it. b2b/b2c pass the cohort to the user aggregations only —
+ * engagement keeps the platform-wide user-stats.
  */
 
 import { ObjectId } from 'mongodb'
@@ -18,7 +19,6 @@ const agg = vi.hoisted(() => ({
   aggregateSignupSources: vi.fn(async () => ({})),
   aggregateTokenMetrics: vi.fn(async () => ({})),
   aggregateTopLessonsByOpens: vi.fn(async () => []),
-  aggregateTransactions: vi.fn(async () => ({})),
   aggregateUserStats: vi.fn(),
   aggregateUsers: vi.fn(async () => ({ total: 0 })),
   aggregateUsersPerCurrentCourse: vi.fn(async () => []),
@@ -29,6 +29,7 @@ const agg = vi.hoisted(() => ({
 }))
 const classesFind = vi.hoisted(() => vi.fn())
 const aggregateB2bMetrics = vi.hoisted(() => vi.fn(async () => ({ schools: 1 })))
+const aggregateTransactions = vi.hoisted(() => vi.fn(async () => ({})))
 
 vi.mock('@/infra/db/content-db', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/infra/db/content-db')>()),
@@ -50,6 +51,7 @@ vi.mock('@/server/services/dashboard/guest-insights', () => ({
   aggregateGuestInsights: vi.fn(async () => ({})),
 }))
 vi.mock('@/server/services/dashboard/b2b-metrics', () => ({ aggregateB2bMetrics }))
+vi.mock('@/server/services/dashboard/revenue-metrics', () => ({ aggregateTransactions }))
 
 import { computeDashboardMetrics } from '@/server/services/dashboard/metrics-service'
 
@@ -68,10 +70,12 @@ beforeEach(() => {
 })
 
 describe('computeDashboardMetrics — segment', () => {
-  it("'all' never reads classes and passes no cohort", async () => {
+  it("'all' passes no cohort but still hands the roster to revenue", async () => {
     const result = await computeDashboardMetrics('month')
 
-    expect(classesFind).not.toHaveBeenCalled()
+    expect(classesFind).toHaveBeenCalledTimes(1)
+    const roster = aggregateTransactions.mock.calls[0][3] as { students: Set<string> }
+    expect([...roster.students]).toEqual([student.toString()])
     expect(agg.aggregateUserStats).toHaveBeenCalledTimes(1)
     expect(agg.aggregateUsers.mock.calls[0][2]).toBeNull()
     expect(agg.aggregateSignupSources.mock.calls[0][2]).toBeNull()
