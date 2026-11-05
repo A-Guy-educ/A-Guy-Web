@@ -1,0 +1,59 @@
+/* "The New Classroom 3D" landing palette (/newclass).
+   A self-contained marketing look: petrol leads actions and highlights, and the
+   three cube colors mark the dimensions (student / teacher / class). The page is
+   light-only by design, so these tokens have no dark-theme overrides.
+   Exposed to Tailwind as `nc-*` colors in tailwind.config.mjs. */
+@layer base {
+  :root {
+    --nc-ink: 180 21% 14%; /* #1C2B2B */
+    --nc-ink-2: 177 12% 34%; /* #4B605F */
+    --nc-ink-soft: 177 8% 52%; /* #7A8E8D */
+    --nc-line: 173 22% 86%; /* #D3E3E1 */
+    --nc-ground: 173 29% 95%; /* #EDF5F4 */
+    --nc-paper: 0 0% 100%; /* #FFFFFF */
+    --nc-peach: 171 33% 88%; /* #D5EAE7 */
+    --nc-sun: 171 32% 91%; /* #E2F0EE */
+    --nc-student: 14 73% 55%; /* #E0603A */
+    --nc-student-deep: 16 71% 42%; /* #B9471F */
+    --nc-student-tint: 17 78% 93%; /* #FBE7DF */
+    --nc-teacher: 210 61% 43%; /* #2A6DB0 */
+    --nc-teacher-deep: 210 66% 36%; /* #1F5C99 */
+    --nc-teacher-tint: 210 56% 94%; /* #E6EFF8 */
+    --nc-teacher-light: 210 70% 70%; /* #7DB3E8 */
+    --nc-class: 132 20% 53%; /* #6E9E78 */
+    --nc-class-mid: 135 21% 46%; /* #5E8F6A */
+    --nc-class-deep: 136 26% 33%; /* #3F6B4B */
+    --nc-aguy: 352 64% 33%; /* #8B1E2D */
+    --nc-aguy-tint: 351 47% 94%; /* #F7E9EB */
+    --nc-aguy-line: 348 36% 86%; /* #E8CED3 */
+    --nc-brand: 180 61% 30%; /* #1E7A7A */
+    --nc-brand-deep: 180 63% 23%; /* #155E5E */
+    --nc-brand-tint: 175 37% 88%; /* #D6ECEA */
+    --nc-brand-light: 176 36% 54%; /* #5FB3AD */
+    --nc-brand-on: 171 45% 91%; /* #DDF2EF */
+    --nc-old-bg: 180 8% 95%; /* #F1F3F3 */
+    --nc-old-line: 180 9% 89%; /* #E1E6E6 */
+    --nc-old-ink: 180 8% 39%; /* #5C6B6B */
+    --nc-old-board: 180 7% 63%; /* #9AA8A8 */
+    --nc-old-seat: 175 10% 79%; /* #C3CECD */
+    --nc-seat: 175 13% 66%; /* #9DB3B1 */
+    --nc-desk: 173 11% 85%; /* #D3DCDB */
+    --nc-divider: 173 19% 91%; /* #E3ECEB */
+    --nc-ghost-line: 173 24% 80%; /* #BFD8D5 */
+    --nc-footer-line: 172 28% 79%; /* #B9D8D4 */
+    --nc-ph-stripe: 175 26% 92%; /* #E4EFEE */
+    --nc-ph-line: 173 23% 73%; /* #A9C9C5 */
+    --nc-aguy-bg: 216 71% 99%; /* #F9FBFE */
+    --nc-lomdim-bg: 22 67% 98%; /* #FDF8F5 */
+    --nc-mock-bar: 214 26% 95%; /* #EEF1F5 */
+    --nc-mock-line: 215 20% 84%; /* #CDD4DE */
+    --nc-mock-row: 216 20% 95%; /* #F0F2F5 */
+    --nc-mock-flag: 10 75% 95%; /* #FCEDEA */
+    --nc-mock-cream: 38 70% 95%; /* #FBF4E8 */
+    --nc-mock-yellow: 39 87% 61%; /* #F2B544 */
+    --nc-mock-dash: 165 52% 24%; /* #1E5E4E */
+    --nc-grade-good: 145 46% 34%; /* #2E7D4F */
+    --nc-grade-mid: 36 71% 42%; /* #B7791F */
+    --nc-grade-low: 4 76% 40%; /* #B42318 */
+  }
+}

@@ -2,6 +2,7 @@
 @config "../../../tailwind.config.mjs";
 @import 'katex/dist/katex.min.css';
 @import './accents.css';
+@import './newclass-tokens.css';
 
 @layer base {
   h1,
