@@ -7,6 +7,7 @@ import type {
   NotebookPage,
   NotebookPageCreateInput,
   NotebookPageUpdateInput,
+  NotebookScope,
 } from '@/infra/types/notebook'
 
 const BASE = '/api/notebook/pages'
@@ -21,17 +22,24 @@ async function send<T>(url: string, init: RequestInit = {}): Promise<T> {
   return (await response.json()) as T
 }
 
-export async function fetchNotebookPages(lessonId: string): Promise<NotebookPage[]> {
-  const { pages } = await send<{ pages: NotebookPage[] }>(
-    `${BASE}?lessonId=${encodeURIComponent(lessonId)}`,
-  )
+/** The wire form of a scope: exactly one of `lessonId` / `askContext`. */
+function scopeParams(scope: NotebookScope): Record<string, string> {
+  return scope.kind === 'lesson' ? { lessonId: scope.lessonId } : { askContext: scope.contextKey }
+}
+
+export async function fetchNotebookPages(scope: NotebookScope): Promise<NotebookPage[]> {
+  const query = new URLSearchParams(scopeParams(scope)).toString()
+  const { pages } = await send<{ pages: NotebookPage[] }>(`${BASE}?${query}`)
   return pages
 }
 
-export async function createNotebookPage(input: NotebookPageCreateInput): Promise<NotebookPage> {
+export async function createNotebookPage({
+  scope,
+  ...input
+}: NotebookPageCreateInput): Promise<NotebookPage> {
   const { page } = await send<{ page: NotebookPage }>(BASE, {
     method: 'POST',
-    body: JSON.stringify(input),
+    body: JSON.stringify({ ...input, ...scopeParams(scope) }),
   })
   return page
 }

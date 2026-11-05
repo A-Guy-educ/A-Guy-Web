@@ -16,14 +16,26 @@ import type {
   NotebookPage,
   NotebookPageCreateInput,
   NotebookPageUpdateInput,
+  NotebookScope,
   NotebookStroke,
 } from '@/infra/types/notebook'
 import { userFilter } from '@/server/web-api/progress'
 
 export const NOTEBOOK_PAGES_COLLECTION = 'notebook_pages'
 
-/** Generous for a single lesson, and stops a runaway client from filling the collection. */
-export const MAX_PAGES_PER_LESSON = 200
+/** Generous for one lesson or Ask room, and stops a runaway client from filling the collection. */
+export const MAX_PAGES_PER_NOTEBOOK = 200
+
+/** The stored field for a scope — `lesson` for lessons, `askContext` for Ask rooms. */
+function scopeFields(scope: NotebookScope): Document {
+  return scope.kind === 'lesson' ? { lesson: scope.lessonId } : { askContext: scope.contextKey }
+}
+
+function scopeOf(doc: Document): NotebookScope {
+  return doc.askContext
+    ? { kind: 'ask', contextKey: String(doc.askContext) }
+    : { kind: 'lesson', lessonId: String(doc.lesson) }
+}
 
 function toIso(value: unknown): string {
   return value instanceof Date ? value.toISOString() : String(value ?? '')
@@ -32,7 +44,7 @@ function toIso(value: unknown): string {
 function toPage(doc: Document): NotebookPage {
   return {
     id: String(doc._id),
-    lessonId: String(doc.lesson),
+    scope: scopeOf(doc),
     height: Number(doc.height),
     cut: (doc.cut as NotebookCut | undefined) ?? null,
     strokes: (doc.strokes as NotebookStroke[] | undefined) ?? [],
@@ -49,13 +61,24 @@ function ownPageFilter(userId: string, pageId: string): Document | null {
 
 let indexEnsured: Promise<void> | null = null
 
-/** Backs every read here: a student's pages, per lesson, in notebook order. Created once per process. */
+/** Backs every read here: a student's pages, per lesson or Ask room, in notebook order. Created once per process. */
 function ensureIndex(db: Db): Promise<void> {
+  const collection = db.collection(NOTEBOOK_PAGES_COLLECTION)
   indexEnsured ??= Promise.resolve()
     .then(() =>
-      db
-        .collection(NOTEBOOK_PAGES_COLLECTION)
-        .createIndex({ user: 1, lesson: 1, createdAt: 1 }, { name: 'notebook_pages_user_lesson' }),
+      Promise.all([
+        collection.createIndex(
+          { user: 1, lesson: 1, createdAt: 1 },
+          { name: 'notebook_pages_user_lesson' },
+        ),
+        collection.createIndex(
+          { user: 1, askContext: 1, createdAt: 1 },
+          {
+            name: 'notebook_pages_user_ask_context',
+            partialFilterExpression: { askContext: { $exists: true } },
+          },
+        ),
+      ]),
     )
     .then(() => undefined)
     .catch((err: unknown) => {
@@ -65,13 +88,16 @@ function ensureIndex(db: Db): Promise<void> {
   return indexEnsured
 }
 
-/** A student's pages for one lesson, oldest first — the order they were added to the notebook. */
-export async function listNotebookPages(userId: string, lessonId: string): Promise<NotebookPage[]> {
+/** A student's pages for one notebook, oldest first — the order they were added. */
+export async function listNotebookPages(
+  userId: string,
+  scope: NotebookScope,
+): Promise<NotebookPage[]> {
   const db = await getContentDb()
   await ensureIndex(db)
   const docs = await db
     .collection(NOTEBOOK_PAGES_COLLECTION)
-    .find({ ...userFilter(userId), lesson: lessonId })
+    .find({ ...userFilter(userId), ...scopeFields(scope) })
     .sort({ createdAt: 1 })
     .toArray()
   return docs.map(toPage)
@@ -89,15 +115,15 @@ export async function createNotebookPage(
 
   const existing = await collection.countDocuments({
     ...userFilter(userId),
-    lesson: input.lessonId,
+    ...scopeFields(input.scope),
   })
-  if (existing >= MAX_PAGES_PER_LESSON) return { ok: false, reason: 'page_limit' }
+  if (existing >= MAX_PAGES_PER_NOTEBOOK) return { ok: false, reason: 'page_limit' }
 
   const now = new Date()
   const doc = {
     _id: new ObjectId(),
     user: ObjectId.isValid(userId) ? new ObjectId(userId) : userId,
-    lesson: input.lessonId,
+    ...scopeFields(input.scope),
     height: input.height,
     cut: input.cut ?? null,
     strokes: [],

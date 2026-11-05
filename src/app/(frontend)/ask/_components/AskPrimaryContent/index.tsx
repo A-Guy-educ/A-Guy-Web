@@ -268,7 +268,7 @@ export function AskPrimaryContent({ contextKey }: AskPrimaryContentProps) {
   if (isPdfUploaded) {
     return (
       <div className="h-full w-full min-h-0">
-        <AskPdfWorkspace file={currentFile} />
+        <AskPdfWorkspace file={currentFile} contextKey={contextKey} />
       </div>
     )
   }

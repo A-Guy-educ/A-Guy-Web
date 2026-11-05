@@ -9,11 +9,14 @@ import {
   NOTEBOOK_INK_COUNT,
   NOTEBOOK_MAX_PAGE_HEIGHT,
   NOTEBOOK_MIN_PAGE_HEIGHT,
+  type NotebookScope,
 } from '@/infra/types/notebook'
 
 const MAX_STROKES_PER_PAGE = 3_000
 const MAX_POINTS_PER_STROKE = 8_000
 const MAX_ID_LENGTH = 64
+/** Ask contextKeys are `ask:<courseId>:<timestamp>`; leave room for that to grow. */
+const MAX_CONTEXT_KEY_LENGTH = 200
 
 const pageHeight = z.number().int().min(NOTEBOOK_MIN_PAGE_HEIGHT).max(NOTEBOOK_MAX_PAGE_HEIGHT)
 const unit = z.number().min(0).max(1)
@@ -48,15 +51,39 @@ const cutSchema = z.object({
   }),
 })
 
-export const notebookListQuerySchema = z.object({
-  lessonId: z.string().min(1).max(MAX_ID_LENGTH),
-})
+/**
+ * A notebook is addressed by exactly one of `lessonId` (a lesson) or
+ * `askContext` (an Ask room's conversation contextKey).
+ */
+const scopeFields = {
+  lessonId: z.string().min(1).max(MAX_ID_LENGTH).optional(),
+  askContext: z.string().min(1).max(MAX_CONTEXT_KEY_LENGTH).optional(),
+}
 
-export const notebookPageCreateSchema = z.object({
-  lessonId: z.string().min(1).max(MAX_ID_LENGTH),
-  height: pageHeight,
-  cut: cutSchema.nullish(),
-})
+function hasOneScope(value: { lessonId?: string; askContext?: string }): boolean {
+  return (value.lessonId === undefined) !== (value.askContext === undefined)
+}
+
+function toScope(value: { lessonId?: string; askContext?: string }): NotebookScope {
+  return value.lessonId !== undefined
+    ? { kind: 'lesson', lessonId: value.lessonId }
+    : { kind: 'ask', contextKey: value.askContext! }
+}
+
+const ONE_SCOPE = { message: 'Give exactly one of lessonId or askContext' }
+
+export const notebookListQuerySchema = z
+  .object(scopeFields)
+  .refine(hasOneScope, ONE_SCOPE)
+  .transform((value) => ({ scope: toScope(value) }))
+
+export const notebookPageCreateSchema = z
+  .object({ ...scopeFields, height: pageHeight, cut: cutSchema.nullish() })
+  .refine(hasOneScope, ONE_SCOPE)
+  .transform(({ lessonId, askContext, ...rest }) => ({
+    ...rest,
+    scope: toScope({ lessonId, askContext }),
+  }))
 
 export const notebookPageUpdateSchema = z
   .object({

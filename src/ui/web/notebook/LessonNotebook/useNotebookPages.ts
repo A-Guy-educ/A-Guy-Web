@@ -2,7 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import type { NotebookCut, NotebookPage, NotebookStroke } from '@/infra/types/notebook'
+import type {
+  NotebookCut,
+  NotebookPage,
+  NotebookScope,
+  NotebookStroke,
+} from '@/infra/types/notebook'
 import { logger } from '@/infra/utils/logger'
 import * as api from './notebook-api'
 
@@ -14,13 +19,19 @@ export const EXTEND_BY = 600
 export type NotebookStatus = 'loading' | 'ready' | 'saving' | 'error'
 
 /**
- * A student's notebook pages for one lesson, with debounced autosave.
+ * A student's notebook pages for one scope (a lesson or an Ask room), with
+ * debounced autosave.
  *
  * Local state is the source of truth while the notebook is open; the server
  * copy trails it by at most `SAVE_DELAY_MS`. Pending saves are flushed on
  * unmount so switching tabs or lessons never drops the last strokes.
  */
-export function useNotebookPages(lessonId: string, enabled: boolean) {
+export function useNotebookPages(scope: NotebookScope, enabled: boolean) {
+  // Effects key on the scope's identity, not the object, so a fresh-but-equal
+  // scope from the caller each render doesn't refetch.
+  const scopeKey = scope.kind === 'lesson' ? `lesson:${scope.lessonId}` : `ask:${scope.contextKey}`
+  const scopeRef = useRef(scope)
+  scopeRef.current = scope
   const [pages, setPages] = useState<NotebookPage[]>([])
   const [status, setStatus] = useState<NotebookStatus>('loading')
   const pending = useRef(new Map<string, { strokes: NotebookStroke[]; height: number }>())
@@ -29,9 +40,10 @@ export function useNotebookPages(lessonId: string, enabled: boolean) {
   useEffect(() => {
     if (!enabled) return
     let cancelled = false
+    setPages([]) // never show the previous notebook's pages while the next loads
     setStatus('loading')
     api
-      .fetchNotebookPages(lessonId)
+      .fetchNotebookPages(scopeRef.current)
       .then((loaded) => {
         if (cancelled) return
         setPages(loaded)
@@ -44,7 +56,7 @@ export function useNotebookPages(lessonId: string, enabled: boolean) {
     return () => {
       cancelled = true
     }
-  }, [lessonId, enabled])
+  }, [scopeKey, enabled])
 
   const flush = useCallback(async () => {
     if (timer.current) window.clearTimeout(timer.current)
@@ -105,11 +117,11 @@ export function useNotebookPages(lessonId: string, enabled: boolean) {
 
   const addPage = useCallback(
     async (cut: NotebookCut | null = null, height = NEW_PAGE_HEIGHT): Promise<NotebookPage> => {
-      const page = await api.createNotebookPage({ lessonId, height, cut })
+      const page = await api.createNotebookPage({ scope: scopeRef.current, height, cut })
       setPages((current) => [...current, page])
       return page
     },
-    [lessonId],
+    [],
   )
 
   const removePage = useCallback(async (pageId: string) => {
