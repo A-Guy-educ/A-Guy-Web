@@ -12,12 +12,14 @@ export async function GET(request: NextRequest) {
   const user = await getWebUser(request.headers)
   if (!user?.id) return Response.json({ error: 'Unauthorized' }, { status: 401 })
 
+  const params = request.nextUrl.searchParams
   const parsed = notebookListQuerySchema.safeParse({
-    lessonId: request.nextUrl.searchParams.get('lessonId'),
+    lessonId: params.get('lessonId') ?? undefined,
+    askContext: params.get('askContext') ?? undefined,
   })
   if (!parsed.success) return Response.json({ error: 'Invalid request' }, { status: 400 })
 
-  const pages = await listNotebookPages(user.id, parsed.data.lessonId)
+  const pages = await listNotebookPages(user.id, parsed.data.scope)
   return Response.json({ pages })
 }
 

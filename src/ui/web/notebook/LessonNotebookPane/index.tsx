@@ -16,7 +16,7 @@ import React, { useCallback, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import { useMediaQuery } from '@/client/hooks/useMediaQuery'
-import type { NotebookPage } from '@/infra/types/notebook'
+import type { NotebookPage, NotebookScope } from '@/infra/types/notebook'
 import { cn } from '@/infra/utils/ui'
 import { LessonNotebook, useNotebookPages } from '@/ui/web/notebook/LessonNotebook'
 import { CutSelection, type ViewportBox } from '@/ui/web/notebook/RegionCut/CutSelection'
@@ -37,17 +37,18 @@ export type LessonCutSource =
   { kind: 'pdf'; mediaId: string; label: string } | { kind: 'scroll'; label: string }
 
 interface LessonNotebookPaneProps {
-  lessonId: string
+  /** Which notebook to show: a lesson's, or an Ask room's. */
+  scope: NotebookScope
   /** `null` when the material cannot be cut from (e.g. a video). */
   cutSource: LessonCutSource | null
   children: React.ReactNode
 }
 
-export function LessonNotebookPane({ lessonId, cutSource, children }: LessonNotebookPaneProps) {
+export function LessonNotebookPane({ scope, cutSource, children }: LessonNotebookPaneProps) {
   const [view, setView] = useState<PaneView>('material')
   const [focusPageId, setFocusPageId] = useState<string | null>(null)
   const materialRef = useRef<HTMLDivElement>(null)
-  const notebook = useNotebookPages(lessonId, true)
+  const notebook = useNotebookPages(scope, true)
   const checkPage = useCheckNotebookPage()
   // Any touchscreen, including hybrids — a finger there needs an explicit cut mode.
   const touchDevice = useMediaQuery('(any-pointer: coarse)')

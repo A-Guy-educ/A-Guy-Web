@@ -315,7 +315,7 @@ export function MediaTabContent({
           {headerSlot}
           {user ? (
             <LessonNotebookPane
-              lessonId={lessonId}
+              scope={{ kind: 'lesson', lessonId }}
               cutSource={
                 currentFile && isPdfFile(currentFile)
                   ? {

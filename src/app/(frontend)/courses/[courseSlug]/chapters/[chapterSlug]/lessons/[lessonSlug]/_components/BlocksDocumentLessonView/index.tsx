@@ -295,7 +295,7 @@ export function BlocksDocumentLessonView({
           {headerSlot}
           {user && lessonId ? (
             <LessonNotebookPane
-              lessonId={lessonId}
+              scope={{ kind: 'lesson', lessonId }}
               cutSource={{ kind: 'scroll', label: lessonTitle }}
             >
               {worksheet}
