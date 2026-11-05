@@ -723,11 +723,25 @@ function ActiveChat({
   // line. Auto-playing on entry arrival was removed per product request —
   // recordings stay available on demand.
 
+  // Gate the exercise stream behind the welcome bubble so the chat view opens
+  // on a single teacher message + Continue, matching the "message, press
+  // continue, first exercise" flow Shay specced. Reset flows re-mount the
+  // runner via `onExit`, so this state naturally returns to `false`.
+  const [hasAcknowledgedWelcome, setHasAcknowledgedWelcome] = useState(false)
+  const acknowledgeWelcome = useCallback(() => setHasAcknowledgedWelcome(true), [])
+
   useEffect(() => {
     // A new exercise / section (after Continue / skip) pins its first block
     // to the top so the student sees the intro or prompt first — see
     // pinScrollAnchor for why a single scrollIntoView overshoots. Everything
     // else (feedback, chat replies) keeps scrolling to the end.
+    // The stream is hidden until the welcome is acknowledged, so the resume
+    // seed's anchor is held until then — otherwise a returning student lands
+    // at the top of their replayed progress instead of their current section.
+    if (!hasAcknowledgedWelcome) {
+      scrollRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+      return
+    }
     const anchorKey = scrollAnchorRef.current?.key
     scrollAnchorRef.current = null
     const anchorEl = anchorKey
@@ -735,7 +749,7 @@ function ActiveChat({
       : null
     if (anchorEl) return pinScrollAnchor(anchorEl, streamRef.current, scrollerRef.current)
     scrollRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
-  }, [appendTick])
+  }, [appendTick, hasAcknowledgedWelcome])
 
   // Bridge for the notebook's "Check solution" button. The `<Notebook>`
   // dispatches an `ask-action` CustomEvent (same contract as the Ask
@@ -808,13 +822,6 @@ function ActiveChat({
     window.addEventListener(CHAT_LESSON_RESET_EVENT, handler)
     return () => window.removeEventListener(CHAT_LESSON_RESET_EVENT, handler)
   }, [])
-
-  // Gate the exercise stream behind the welcome bubble so the chat view opens
-  // on a single teacher message + Continue, matching the "message, press
-  // continue, first exercise" flow Shay specced. Reset flows re-mount the
-  // runner via `onExit`, so this state naturally returns to `false`.
-  const [hasAcknowledgedWelcome, setHasAcknowledgedWelcome] = useState(false)
-  const acknowledgeWelcome = useCallback(() => setHasAcknowledgedWelcome(true), [])
 
   const showContinueButton = hasAcknowledgedWelcome && !walker.isComplete && entries.length > 0
 
