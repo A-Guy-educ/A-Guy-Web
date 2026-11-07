@@ -259,6 +259,18 @@
       "segmentGroup": null
     },
     {
+      "routePath": "/api/join/enroll",
+      "filePath": "src/app/api/join/enroll/route.ts",
+      "kind": "route",
+      "segmentGroup": null
+    },
+    {
+      "routePath": "/api/learning-state",
+      "filePath": "src/app/api/learning-state/route.ts",
+      "kind": "route",
+      "segmentGroup": null
+    },
+    {
       "routePath": "/api/media",
       "filePath": "src/app/api/media/route.ts",
       "kind": "route",
@@ -267,6 +279,18 @@
     {
       "routePath": "/api/media/file/:filename",
       "filePath": "src/app/api/media/file/[filename]/route.ts",
+      "kind": "route",
+      "segmentGroup": null
+    },
+    {
+      "routePath": "/api/notebook/pages",
+      "filePath": "src/app/api/notebook/pages/route.ts",
+      "kind": "route",
+      "segmentGroup": null
+    },
+    {
+      "routePath": "/api/notebook/pages/:pageId",
+      "filePath": "src/app/api/notebook/pages/[pageId]/route.ts",
       "kind": "route",
       "segmentGroup": null
     },
@@ -415,6 +439,12 @@
       "segmentGroup": null
     },
     {
+      "routePath": "/api/users/me/token-usage",
+      "filePath": "src/app/api/users/me/token-usage/route.ts",
+      "kind": "route",
+      "segmentGroup": null
+    },
+    {
       "routePath": "/api/webhooks/paypal",
       "filePath": "src/app/api/webhooks/paypal/route.ts",
       "kind": "route",
@@ -556,6 +586,30 @@
       "routePath": "/manifest.webmanifest",
       "filePath": "src/app/(frontend)/manifest.webmanifest/route.ts",
       "kind": "route",
+      "segmentGroup": "(frontend)"
+    },
+    {
+      "routePath": "/newclass",
+      "filePath": "src/app/(frontend)/newclass/layout.tsx",
+      "kind": "layout",
+      "segmentGroup": "(frontend)"
+    },
+    {
+      "routePath": "/newclass",
+      "filePath": "src/app/(frontend)/newclass/page.tsx",
+      "kind": "page",
+      "segmentGroup": "(frontend)"
+    },
+    {
+      "routePath": "/newclass/aguy",
+      "filePath": "src/app/(frontend)/newclass/aguy/page.tsx",
+      "kind": "page",
+      "segmentGroup": "(frontend)"
+    },
+    {
+      "routePath": "/newclass/lomdim",
+      "filePath": "src/app/(frontend)/newclass/lomdim/page.tsx",
+      "kind": "page",
       "segmentGroup": "(frontend)"
     },
     {
@@ -764,7 +818,7 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-10-26T06:08:01.307Z",
-    "totalRoutes": 127
+    "generatedAt": "2026-11-07T07:04:04.118Z",
+    "totalRoutes": 136
   }
 }
