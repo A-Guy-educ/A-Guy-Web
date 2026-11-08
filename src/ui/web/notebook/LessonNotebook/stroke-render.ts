@@ -7,18 +7,26 @@ import type { NotebookStroke } from '@/infra/types/notebook'
 
 export const PEN_WIDTH = 3
 export const ERASER_WIDTH = 30
+/** Thin, regular and thick pens. `InkTool.size` indexes this. */
+export const PEN_SIZES = [1.5, PEN_WIDTH, 6] as const
 /** On-screen minimums, so a page shrunk onto a phone still writes a visible line. */
 const MIN_PEN_PX = 2
 const MIN_ERASER_PX = 16
 
 /**
  * Width for a new stroke, given how many screen pixels one page unit takes.
- * `undefined` means the default — only small screens store an explicit width.
+ * `undefined` means the default. The on-screen minimum scales with the pen, so
+ * thin, regular and thick stay distinct on a small screen.
  */
-export function strokeWidthFor(erase: boolean, pxPerUnit: number): number | undefined {
-  const base = erase ? ERASER_WIDTH : PEN_WIDTH
-  const needed = (erase ? MIN_ERASER_PX : MIN_PEN_PX) / pxPerUnit
-  return needed > base ? roundCoord(needed) : undefined
+export function strokeWidthFor(
+  erase: boolean,
+  pxPerUnit: number,
+  penWidth: number = PEN_WIDTH,
+): number | undefined {
+  const base = erase ? ERASER_WIDTH : penWidth
+  const needed = (erase ? MIN_ERASER_PX : (MIN_PEN_PX * penWidth) / PEN_WIDTH) / pxPerUnit
+  if (needed > base) return roundCoord(needed)
+  return erase || penWidth === PEN_WIDTH ? undefined : penWidth
 }
 
 /** One decimal of a page unit is far below a screen pixel and keeps saved pages small. */

@@ -32,6 +32,7 @@ src/app/(payload)/admin/importMap.js
 .tasks/**
 .opencode/**
 .agents/**
+.claude/worktrees/**
 .kody/**
 .playwright-mcp/**
 docs/ai/indexes/*.json
