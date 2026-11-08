@@ -58,6 +58,7 @@ export function MatchingItem({
       whileTap={!disabled ? { scale: 0.97 } : undefined}
       className={cn(
         'relative flex items-center gap-content-gap-xs p-3.5 rounded-xl border-2 text-start overflow-hidden',
+        'has-[[data-math-fit=newline]]:flex-wrap',
         'transition-all duration-normal min-h-[44px]',
         'bg-background/50 dark:bg-card dark:shadow-card',
         !disabled &&
@@ -97,11 +98,12 @@ export function MatchingItem({
       <span className="w-6 h-6 rounded-lg bg-muted flex items-center justify-center font-bold text-body-xs text-muted-foreground min-w-[24px] shrink-0 border border-border/30">
         {badge}
       </span>
-      <span className="flex-1 ps-1">
+      {/* Math that still wraps at 75% takes its own row, below the badge and result icon. */}
+      <span className="flex-1 ps-1 has-[[data-math-fit=newline]]:order-last has-[[data-math-fit=newline]]:basis-full">
         <RichTextRenderer block={optionBlock} />
       </span>
-      {correctState === true && <Check className="w-5 h-5 text-success shrink-0" />}
-      {correctState === false && <X className="w-5 h-5 text-destructive shrink-0" />}
+      {correctState === true && <Check className="w-5 h-5 text-success shrink-0 ms-auto" />}
+      {correctState === false && <X className="w-5 h-5 text-destructive shrink-0 ms-auto" />}
     </motion.button>
   )
 }
