@@ -135,24 +135,26 @@ export async function createNotebookPage(
 }
 
 /**
- * Replace a page's strokes and/or height. Returns `false` when the page does
- * not exist or belongs to someone else — the caller cannot tell which, on purpose.
+ * Replace a page's strokes and/or height. Returns the new `updatedAt`, or `null`
+ * when the page does not exist or belongs to someone else — the caller cannot
+ * tell which, on purpose.
  */
 export async function updateNotebookPage(
   userId: string,
   pageId: string,
   update: NotebookPageUpdateInput,
-): Promise<boolean> {
+): Promise<string | null> {
   const filter = ownPageFilter(userId, pageId)
-  if (!filter) return false
+  if (!filter) return null
 
-  const set: Document = { updatedAt: new Date() }
+  const updatedAt = new Date()
+  const set: Document = { updatedAt }
   if (update.height !== undefined) set.height = update.height
   if (update.strokes !== undefined) set.strokes = update.strokes
 
   const db = await getContentDb()
   const result = await db.collection(NOTEBOOK_PAGES_COLLECTION).updateOne(filter, { $set: set })
-  return result.matchedCount > 0
+  return result.matchedCount > 0 ? updatedAt.toISOString() : null
 }
 
 /** Delete one of the caller's pages. Returns `false` when there was nothing of theirs to delete. */

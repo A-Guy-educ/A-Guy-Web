@@ -12,13 +12,20 @@ import type {
 
 const BASE = '/api/notebook/pages'
 
+/** Carries the HTTP status so autosave can tell "gone for good" from "try again". */
+export class NotebookRequestError extends Error {
+  constructor(readonly status: number) {
+    super(`Notebook request failed (${status})`)
+  }
+}
+
 async function send<T>(url: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(url, {
     credentials: 'include',
     ...init,
     headers: init.body ? { 'content-type': 'application/json' } : undefined,
   })
-  if (!response.ok) throw new Error(`Notebook request failed (${response.status})`)
+  if (!response.ok) throw new NotebookRequestError(response.status)
   return (await response.json()) as T
 }
 
@@ -44,14 +51,16 @@ export async function createNotebookPage({
   return page
 }
 
+/** Resolves to the page's new `updatedAt` on the server. */
 export async function saveNotebookPage(
   pageId: string,
   update: NotebookPageUpdateInput,
-): Promise<void> {
-  await send(`${BASE}/${encodeURIComponent(pageId)}`, {
+): Promise<string> {
+  const { updatedAt } = await send<{ updatedAt: string }>(`${BASE}/${encodeURIComponent(pageId)}`, {
     method: 'PATCH',
     body: JSON.stringify(update),
   })
+  return updatedAt
 }
 
 export async function deleteNotebookPage(pageId: string): Promise<void> {
