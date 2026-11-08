@@ -28,10 +28,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   }
 
   const { pageId } = await params
-  const updated = await updateNotebookPage(user.id, pageId, parsed.data)
-  if (!updated) return Response.json({ error: 'Not found' }, { status: 404 })
+  const updatedAt = await updateNotebookPage(user.id, pageId, parsed.data)
+  if (!updatedAt) return Response.json({ error: 'Not found' }, { status: 404 })
 
-  return Response.json({ success: true })
+  return Response.json({ success: true, updatedAt })
 }
 
 export async function DELETE(request: NextRequest, { params }: RouteParams) {

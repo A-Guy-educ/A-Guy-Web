@@ -284,15 +284,11 @@ describe('remarkColorSyntax - Unmatched Braces', () => {
     expect(container.textContent).toContain('::text-highlight-1{text without closing')
   })
 
-  it('should handle text with nested braces (takes first } as closing)', () => {
+  it('should keep balanced literal braces inside the token', () => {
     const { container } = renderHighlightMarkdown('::text-highlight-1{outer {inner} text}')
-    // With simplified plugin, takes FIRST } as closing brace
     const redSpan = container.querySelector('.aguy-text-highlight-1')
-    expect(redSpan).not.toBeNull()
-    // Only captures up to first }, remaining text stays outside
-    expect(redSpan?.textContent).toBe('outer {inner')
-    // Remaining text after first } is " text}" (not "} text}")
-    expect(container.textContent).toContain('text}')
+    expect(redSpan?.textContent).toBe('outer {inner} text')
+    expect(container.textContent).toBe('outer {inner} text')
   })
 
   it('should handle empty color syntax', () => {
@@ -390,15 +386,151 @@ describe('remarkColorSyntax - Marker Removal', () => {
     expect(greenSpan?.textContent).not.toContain('}')
   })
 
-  it('should handle content with braces by taking first closing brace', () => {
-    // Since we take the first } we find, content with braces will be cut at first }
-    // This is expected behavior for the simplified plugin
-    const { container } = renderHighlightMarkdown('::text-highlight-1{code {x} here}')
+  it('should close on the balanced brace when content has braces', () => {
+    const { container } = renderHighlightMarkdown('::text-highlight-1{code {x} here} after')
     const redSpan = container.querySelector('.aguy-text-highlight-1')
-    expect(redSpan).not.toBeNull()
-    // Takes content up to first closing brace, so "code {x" is captured
-    expect(redSpan?.textContent).toBe('code {x')
-    // The rest " here}" becomes literal text after
-    expect(container.textContent).toContain(' here}')
+    expect(redSpan?.textContent).toBe('code {x} here')
+    expect(container.textContent).toContain(' after')
+  })
+})
+
+describe('remarkColorSyntax - Admin tokens', () => {
+  it('renders text-size-normal, including the Hebrew content that exposed the bug', () => {
+    const { container } = renderHighlightMarkdown('::text-size-normal{בכיתה יש }20 תלמידים')
+    expect(container.querySelector('.aguy-text-size-normal')?.textContent).toBe('בכיתה יש ')
+    expect(container.textContent).not.toContain('::text-size-normal')
+  })
+
+  it('renders text-align-right as a div outside any paragraph', () => {
+    const { container } = renderHighlightMarkdown('::text-align-right{שורה ימנית}')
+    const line = container.querySelector('.aguy-text-align-right')
+    expect(line?.tagName).toBe('DIV')
+    expect(line?.textContent).toBe('שורה ימנית')
+    expect(container.querySelector('p')).toBeNull()
+  })
+
+  it('gives each align line its own div when lines share a markdown paragraph', () => {
+    const { container } = renderHighlightMarkdown(
+      'לפני\n::text-align-right{ראשונה}\n::text-align-right{שנייה}\nאחרי',
+    )
+    const lines = container.querySelectorAll('div.aguy-text-align-right')
+    expect([...lines].map((line) => line.textContent)).toEqual(['ראשונה', 'שנייה'])
+    expect(container.querySelector('p .aguy-text-align-right')).toBeNull()
+    expect([...container.querySelectorAll('p')].map((p) => p.textContent?.trim())).toEqual([
+      'לפני',
+      'אחרי',
+    ])
+  })
+
+  it('keeps an empty align line as an element', () => {
+    const { container } = renderHighlightMarkdown('::text-align-right{}')
+    expect(container.querySelector('div.aguy-text-align-right')).not.toBeNull()
+    expect(container.textContent).not.toContain('::')
+  })
+
+  it('does not emit a div inside a paragraph when align is nested in bold', () => {
+    const { container } = renderHighlightMarkdown('**::text-align-right{דגש}**')
+    expect(container.querySelector('strong span.aguy-text-align-right')?.textContent).toBe('דגש')
+    expect(container.querySelector('p div')).toBeNull()
+  })
+})
+
+describe('remarkColorSyntax - Nested tokens', () => {
+  it('nests color inside size', () => {
+    const { container } = renderHighlightMarkdown('::text-size-large{::text-blue{x}}')
+    const inner = container.querySelector('.aguy-text-size-large > .aguy-text-blue')
+    expect(inner?.textContent).toBe('x')
+    expect(container.textContent).toBe('x')
+  })
+
+  it('nests size inside color', () => {
+    const { container } = renderHighlightMarkdown('::text-blue{a ::text-size-large{x} b}')
+    expect(container.querySelector('.aguy-text-blue > .aguy-text-size-large')?.textContent).toBe(
+      'x',
+    )
+    expect(container.querySelector('.aguy-text-blue')?.textContent).toBe('a x b')
+  })
+
+  it('lets align wrap size around color', () => {
+    const { container } = renderHighlightMarkdown(
+      '::text-align-right{::text-size-large{::text-blue{x}}}',
+    )
+    expect(
+      container.querySelector('div.aguy-text-align-right .aguy-text-size-large .aguy-text-blue')
+        ?.textContent,
+    ).toBe('x')
+    expect(container.textContent).toBe('x')
+  })
+
+  it('handles sibling tokens after a nested one', () => {
+    const { container } = renderHighlightMarkdown(
+      '::text-size-large{::text-blue{a}} ::text-green{b}',
+    )
+    expect(container.querySelector('.aguy-text-green')?.textContent).toBe('b')
+    expect(container.textContent).toBe('a b')
+  })
+
+  it('keeps bold inside nested tokens', () => {
+    const { container } = renderHighlightMarkdown('::text-size-large{::text-blue{a **b** c}}')
+    expect(container.querySelector('.aguy-text-blue strong')?.textContent).toBe('b')
+    expect(container.textContent).toBe('a b c')
+  })
+
+  it('transforms a nested token inside bold', () => {
+    const { container } = renderHighlightMarkdown('**::text-size-large{::text-blue{x}}**')
+    expect(container.querySelector('strong .aguy-text-size-large .aguy-text-blue')).not.toBeNull()
+  })
+})
+
+describe('remarkColorSyntax - Math inside tokens', () => {
+  it('does not count math braces when matching', () => {
+    const { container } = renderHighlightMarkdown('::text-blue{$\\frac{1}{2}$} אחרי')
+    const span = container.querySelector('.aguy-text-blue')
+    expect(span?.querySelector('.katex')).not.toBeNull()
+    expect(container.textContent).not.toContain('::text-blue')
+    // No stray brace after the tag (KaTeX's own annotation holds the LaTeX source).
+    expect(span?.nextSibling?.textContent).toBe(' אחרי')
+  })
+
+  it('keeps math inside nested tokens', () => {
+    const { container } = renderHighlightMarkdown(
+      '::text-size-large{::text-blue{$\\frac{1}{2}$} טקסט}',
+    )
+    expect(container.querySelector('.aguy-text-size-large .aguy-text-blue .katex')).not.toBeNull()
+    expect(container.textContent).not.toContain('::')
+  })
+
+  it('keeps math left-to-right inside an align line', () => {
+    const { container } = renderHighlightMarkdown('::text-align-right{שבר $\\frac{1}{2}$}')
+    const line = container.querySelector('div.aguy-text-align-right')
+    expect(line?.querySelector('[dir="ltr"] .katex')).not.toBeNull()
+  })
+})
+
+describe('remarkColorSyntax - Literal fallbacks', () => {
+  it('keeps an unknown token literal and still renders a later token', () => {
+    const { container } = renderHighlightMarkdown('::text-violet{a} ::text-blue{b}')
+    expect(container.querySelector('.aguy-text-violet')).toBeNull()
+    expect(container.textContent).toContain('::text-violet{a}')
+    expect(container.querySelector('.aguy-text-blue')?.textContent).toBe('b')
+  })
+
+  it('keeps an unknown token nested inside a known one literal', () => {
+    const { container } = renderHighlightMarkdown('::text-blue{::text-violet{a}}')
+    expect(container.querySelector('.aguy-text-blue')?.textContent).toBe('::text-violet{a}')
+    expect(container.querySelector('.aguy-text-violet')).toBeNull()
+  })
+
+  it('keeps an unclosed outer token literal and renders its closed inner token', () => {
+    const { container } = renderHighlightMarkdown('::text-size-large{::text-blue{x}')
+    expect(container.querySelector('.aguy-text-size-large')).toBeNull()
+    expect(container.querySelector('.aguy-text-blue')?.textContent).toBe('x')
+    expect(container.textContent).toContain('::text-size-large{')
+  })
+
+  it('keeps an unclosed align tag literal', () => {
+    const { container } = renderHighlightMarkdown('::text-align-right{line')
+    expect(container.querySelector('.aguy-text-align-right')).toBeNull()
+    expect(container.textContent).toContain('::text-align-right{line')
   })
 })

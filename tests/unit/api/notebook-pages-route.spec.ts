@@ -29,6 +29,7 @@ const STUDENT = '507f1f77bcf86cd799439011'
 const OTHER_STUDENT = '507f191e810c19729de860ea'
 const PAGE_ID = '65a000000000000000000001'
 const LESSON = 'lesson-1'
+const ASK_ROOM = 'ask:course-1:1730800000000'
 
 function storedPage(overrides: Doc = {}): Doc {
   return {
@@ -57,9 +58,9 @@ function request(path: string, init: RequestInit = {}) {
 
 const pageParams = (pageId = PAGE_ID) => ({ params: Promise.resolve({ pageId }) })
 
-async function list(lessonId = LESSON) {
+async function list(query = `lessonId=${LESSON}`) {
   const { GET } = await import('@/app/api/notebook/pages/route')
-  const response = await GET(request(`/api/notebook/pages?lessonId=${lessonId}`))
+  const response = await GET(request(`/api/notebook/pages?${query}`))
   return { status: response.status, body: await response.json() }
 }
 
@@ -120,7 +121,29 @@ describe('GET /api/notebook/pages', () => {
 
     expect(status).toBe(200)
     expect(body.pages).toHaveLength(1)
-    expect(body.pages[0]).toMatchObject({ id: PAGE_ID, lessonId: LESSON, height: 1150 })
+    expect(body.pages[0]).toMatchObject({
+      id: PAGE_ID,
+      scope: { kind: 'lesson', lessonId: LESSON },
+      height: 1150,
+    })
+  })
+
+  it("returns an Ask room's pages, and not the caller's lesson pages", async () => {
+    seed([
+      storedPage(),
+      storedPage({ _id: '65a000000000000000000002', lesson: undefined, askContext: ASK_ROOM }),
+    ])
+
+    const { status, body } = await list(`askContext=${encodeURIComponent(ASK_ROOM)}`)
+
+    expect(status).toBe(200)
+    expect(body.pages).toHaveLength(1)
+    expect(body.pages[0].scope).toEqual({ kind: 'ask', contextKey: ASK_ROOM })
+  })
+
+  it('rejects a request naming both a lesson and an Ask room', async () => {
+    const both = `lessonId=${LESSON}&askContext=${encodeURIComponent(ASK_ROOM)}`
+    expect((await list(both)).status).toBe(400)
   })
 
   it('rejects a request without a lesson', async () => {
@@ -137,8 +160,28 @@ describe('POST /api/notebook/pages', () => {
     const { status, body } = await create({ lessonId: LESSON, height: 1150 })
 
     expect(status).toBe(201)
-    expect(body.page).toMatchObject({ lessonId: LESSON, height: 1150, cut: null, strokes: [] })
+    expect(body.page).toMatchObject({
+      scope: { kind: 'lesson', lessonId: LESSON },
+      height: 1150,
+      cut: null,
+      strokes: [],
+    })
     expect(String(fake.collections.notebook_pages[0].user)).toBe(STUDENT)
+  })
+
+  it('creates a page in an Ask room, stored apart from lesson pages', async () => {
+    const fake = seed()
+
+    const { status, body } = await create({ askContext: ASK_ROOM, height: 1150 })
+
+    expect(status).toBe(201)
+    expect(body.page.scope).toEqual({ kind: 'ask', contextKey: ASK_ROOM })
+    expect(fake.collections.notebook_pages[0]).toMatchObject({ askContext: ASK_ROOM })
+    expect(fake.collections.notebook_pages[0]).not.toHaveProperty('lesson')
+  })
+
+  it('rejects a page with no notebook to belong to', async () => {
+    expect((await create({ height: 1150 })).status).toBe(400)
   })
 
   it('keeps where a cut came from', async () => {
@@ -187,9 +230,10 @@ describe('PATCH /api/notebook/pages/[pageId]', () => {
   it("saves strokes to the caller's page", async () => {
     const fake = seed([storedPage()])
 
-    const { status } = await patch({ strokes: [stroke], height: 1750 })
+    const { status, body } = await patch({ strokes: [stroke], height: 1750 })
 
     expect(status).toBe(200)
+    expect(new Date(body.updatedAt).toISOString()).toBe(body.updatedAt)
     expect(fake.collections.notebook_pages[0]).toMatchObject({ strokes: [stroke], height: 1750 })
   })
 

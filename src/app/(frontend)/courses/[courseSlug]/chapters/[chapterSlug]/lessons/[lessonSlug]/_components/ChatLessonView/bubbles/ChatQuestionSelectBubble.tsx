@@ -16,6 +16,10 @@ import {
 } from '@/ui/web/exerciserenderer/utils/exerciseStateStorage'
 import { reportQuestionAttempt } from '@/ui/web/exerciserenderer/utils/questionAttemptReporter'
 import { useTranslations } from '@/ui/web/providers/I18n'
+import {
+  MATH_NEW_ROW_CONTAINER,
+  MATH_NEW_ROW_CONTENT,
+} from '@/ui/web/shared/MathMarkdown/mathNewRowClasses'
 import { ArrowLeft, Check, Lightbulb } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { ChatQuestionLayout } from './ChatQuestionLayout'
@@ -256,6 +260,7 @@ function SingleSelectBubble({
               onClick={() => handlePick(choice)}
               className={cn(
                 'w-full text-right p-3.5 rounded-xl border-2 flex items-center justify-between gap-3',
+                MATH_NEW_ROW_CONTAINER,
                 'font-semibold text-body-md transition-colors',
                 'disabled:cursor-not-allowed',
                 !isDisabled &&
@@ -268,7 +273,7 @@ function SingleSelectBubble({
                 showAsWrong && 'border-error/60 bg-error/10 text-foreground',
               )}
             >
-              <span className="flex-1 text-right">
+              <span className={cn('flex-1 text-right', MATH_NEW_ROW_CONTENT)}>
                 <RichTextRenderer block={choice.labelBlock} />
               </span>
               <ArrowLeft
@@ -420,6 +425,7 @@ function MultiSelectBubble({
               onClick={() => handleToggle(choice.id)}
               className={cn(
                 'w-full text-right p-3.5 rounded-xl border-2 flex items-center justify-between gap-3',
+                MATH_NEW_ROW_CONTAINER,
                 'font-semibold text-body-md transition-colors',
                 'disabled:cursor-not-allowed',
                 !submitted &&
@@ -436,7 +442,7 @@ function MultiSelectBubble({
                   'border-border/40 bg-muted/40 text-muted-foreground opacity-70',
               )}
             >
-              <span className="flex-1 text-right">
+              <span className={cn('flex-1 text-right', MATH_NEW_ROW_CONTENT)}>
                 <RichTextRenderer block={choice.labelBlock} />
               </span>
               <span

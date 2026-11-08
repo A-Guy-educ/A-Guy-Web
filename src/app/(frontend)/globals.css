@@ -2,6 +2,7 @@
 @config "../../../tailwind.config.mjs";
 @import 'katex/dist/katex.min.css';
 @import './accents.css';
+@import './newclass-tokens.css';
 
 @layer base {
   h1,
@@ -481,6 +482,13 @@ html[data-theme='light'] {
     font-size: 1.35em;
   }
 
+  /* Set by fitWrappedMath on an expression that broke onto a second line. Applied
+     to the wrapper so the .katex em sizes above scale with it. */
+  .math-short[data-math-fit],
+  .math-long[data-math-fit] {
+    font-size: 0.75em;
+  }
+
   .katex-display {
     @apply my-5 overflow-x-auto overflow-y-hidden py-2;
 
@@ -894,6 +902,9 @@ math-field:focus-within {
 .aguy-text-size-medium {
   font-size: 1em;
 }
+.aguy-text-size-normal {
+  font-size: 1em;
+}
 .aguy-text-size-large {
   font-size: 1.25em;
 }
@@ -902,6 +913,19 @@ math-field:focus-within {
 }
 .aguy-text-size-xxlarge {
   font-size: 2em;
+}
+
+/* Whole-line alignment for ::text-align-right{} markdown syntax.
+   display:block covers the <span> fallback used where a <div> can't sit inside a <p>. */
+.aguy-text-align-right {
+  display: block;
+  text-align: right;
+  direction: rtl;
+  unicode-bidi: isolate;
+}
+/* An empty ::text-align-right{} is a blank line in the Admin editor, so keep its height. */
+.aguy-text-align-right:empty::before {
+  content: '\200b';
 }
 
 /* Landing page: hide chrome for immersive experience */

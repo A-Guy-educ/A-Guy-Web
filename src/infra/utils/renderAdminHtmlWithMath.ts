@@ -1,5 +1,5 @@
 import katex from 'katex'
-import { isAllowedColorToken } from '@/infra/utils/allowedColorTokens'
+import { isAllowedColorToken, isBlockColorToken } from '@/infra/utils/allowedColorTokens'
 
 const MATH_RE =
   /(?<!\\)\$\$([\s\S]+?)\$\$(?!\d)|(?<!\\)\$\$([^$\n]+?)\$(?!\$|\d)|(?<!\\)\$([^$\n]+?)\$(?!\d)/g
@@ -137,18 +137,68 @@ function escapeHtml(text: string): string {
     .replace(/'/g, '&#39;')
 }
 
-// Matches ::<token>{content} where token is [a-z0-9-]+ and content excludes '}'.
-// Unknown tokens fall through as literal text (matches the remark plugin behaviour).
-// Callers are responsible for HTML-escaping the input first when the source is
-// untrusted (e.g. Lexical text nodes); admin-authored HTML is trusted at
-// authoring time and can be passed through as-is.
-const COLOR_TOKEN_RE = /::([a-z0-9-]+)\{([^}]*)\}/g
+/**
+ * Index of the `}` closing a token whose content starts at `contentStart`, or -1.
+ * Math is still raw `$...$` at this stage, so its spans are found with the same
+ * MATH_RE the math pass uses and their braces are not counted.
+ */
+function findColorTokenClose(text: string, contentStart: number): number {
+  const mathSpans = [...text.slice(contentStart).matchAll(MATH_RE)].map((match) => ({
+    start: contentStart + match.index,
+    end: contentStart + match.index + match[0].length,
+  }))
 
-function renderColorTokensInText(text: string): string {
-  return text.replace(COLOR_TOKEN_RE, (match, token: string, content: string) => {
-    if (!isAllowedColorToken(token)) return match
-    return `<span class="aguy-${token}">${content}</span>`
-  })
+  let depth = 1
+  let spanIndex = 0
+  let index = contentStart
+  while (index < text.length) {
+    if (mathSpans[spanIndex]?.start === index) {
+      index = mathSpans[spanIndex].end
+      spanIndex += 1
+      continue
+    }
+    if (text[index] === '{') depth += 1
+    if (text[index] === '}') depth -= 1
+    if (depth === 0) return index
+    index += 1
+  }
+  return -1
+}
+
+function wrapColorToken(token: string, content: string, allowBlock: boolean): string {
+  const tag = allowBlock && isBlockColorToken(token) ? 'div' : 'span'
+  return `<${tag} class="aguy-${token}">${content}</${tag}>`
+}
+
+// Replaces ::<token>{content} with balanced braces, recursing into the content.
+// Unknown tokens and unclosed tags fall through as literal text (matches the
+// remark plugin behaviour). Callers are responsible for HTML-escaping the input
+// first when the source is untrusted (e.g. Lexical text nodes); admin-authored
+// HTML is trusted at authoring time and can be passed through as-is.
+//
+// `allowBlock` is false inside a <p>: a <div> there would be split out of the
+// paragraph by the HTML parser, so block tokens stay <span> (block via CSS).
+function renderColorTokensInText(text: string, allowBlock = true): string {
+  const source = text.replace(DOLLAR_ENTITY_RE, '$')
+  const markerRe = /::([a-z0-9-]+)\{/g
+
+  let result = ''
+  let cursor = 0
+  let match: RegExpExecArray | null
+  while ((match = markerRe.exec(source))) {
+    const token = match[1]
+    const contentStart = markerRe.lastIndex
+    if (!isAllowedColorToken(token)) continue
+
+    const close = findColorTokenClose(source, contentStart)
+    if (close === -1) continue
+
+    const content = renderColorTokensInText(source.slice(contentStart, close), allowBlock)
+    result += source.slice(cursor, match.index) + wrapColorToken(token, content, allowBlock)
+    cursor = close + 1
+    markerRe.lastIndex = cursor
+  }
+  return result + source.slice(cursor)
 }
 
 export function renderTextWithMath(text: string): string {
@@ -198,6 +248,12 @@ function isSkippingText(stack: StackEntry[]): boolean {
   return stack.some((entry) => entry.skip)
 }
 
+function renderHtmlTextSegment(text: string, stack: StackEntry[]): string {
+  if (isSkippingText(stack)) return text
+  const insideParagraph = stack.some((entry) => entry.name === 'p')
+  return renderMathInText(renderColorTokensInText(text, !insideParagraph))
+}
+
 /**
  * Renders admin-authored HTML with KaTeX math.
  *
@@ -217,7 +273,7 @@ export function renderAdminHtmlWithMath(html: string): string {
   while ((match = TAG_RE.exec(source))) {
     const tag = match[0]
     const text = source.slice(lastIndex, match.index)
-    result += isSkippingText(stack) ? text : renderMathInText(renderColorTokensInText(text))
+    result += renderHtmlTextSegment(text, stack)
     result += tag
 
     const name = getTagName(tag)
@@ -232,7 +288,6 @@ export function renderAdminHtmlWithMath(html: string): string {
     lastIndex = match.index + tag.length
   }
 
-  const tail = source.slice(lastIndex)
-  result += isSkippingText(stack) ? tail : renderMathInText(renderColorTokensInText(tail))
+  result += renderHtmlTextSegment(source.slice(lastIndex), stack)
   return result
 }

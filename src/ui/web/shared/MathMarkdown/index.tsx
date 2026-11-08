@@ -9,7 +9,7 @@
 
 import { cn } from '@/infra/utils/ui'
 import { normalizeLatexDelimiters } from '@/infra/utils/normalize-latex'
-import type { ComponentProps } from 'react'
+import { useRef, type ComponentProps } from 'react'
 import type { Components } from 'react-markdown'
 import ReactMarkdown from 'react-markdown'
 import rehypeKatex from 'rehype-katex'
@@ -17,6 +17,7 @@ import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 import { rehypeMathWrapper } from './rehype-math-wrapper'
 import { remarkColorSyntax } from './remark-color-syntax'
+import { useFitWrappedMath } from './useFitWrappedMath'
 
 type RemarkPluginsProp = ComponentProps<typeof ReactMarkdown>['remarkPlugins']
 
@@ -102,8 +103,10 @@ export function MathMarkdown({
     ...(remarkPlugins ?? []),
   ] as RemarkPluginsProp
   const source = normalizeLatex ? normalizeLatexDelimiters(content) : content
+  const containerRef = useRef<HTMLDivElement>(null)
+  useFitWrappedMath(containerRef, source)
   return (
-    <div className={cn(className)}>
+    <div ref={containerRef} className={cn(className)}>
       <ReactMarkdown
         remarkPlugins={plugins}
         rehypePlugins={[rehypeKatex, rehypeMathWrapper]}

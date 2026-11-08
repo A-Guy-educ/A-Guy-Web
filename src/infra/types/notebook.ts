@@ -4,7 +4,7 @@
  *
  * @fileType types
  * @domain notebook
- * @ai-summary A notebook page belongs to one student and is tagged with the lesson it was made in. A lesson's notebook is that student's pages for the lesson; a cross-lesson notebook is the same pages viewed together, so there is no separate notebook record.
+ * @ai-summary A notebook page belongs to one student and is tagged with where it was made — a lesson or an Ask room (its conversation contextKey). A notebook is that student's pages for one scope; a cross-lesson notebook is the same pages viewed together, so there is no separate notebook record.
  */
 
 /** Logical page width. Stroke coordinates are stored in this space so a page renders the same at any screen size. */
@@ -56,9 +56,16 @@ export interface NotebookCut {
   source: NotebookCutSource
 }
 
+/**
+ * Where a notebook lives. Stored as `lesson` or `askContext` on each page, so
+ * lesson pages written before Ask notebooks existed need no migration.
+ */
+export type NotebookScope =
+  { kind: 'lesson'; lessonId: string } | { kind: 'ask'; contextKey: string }
+
 export interface NotebookPage {
   id: string
-  lessonId: string
+  scope: NotebookScope
   height: number
   cut: NotebookCut | null
   strokes: NotebookStroke[]
@@ -67,7 +74,7 @@ export interface NotebookPage {
 }
 
 export interface NotebookPageCreateInput {
-  lessonId: string
+  scope: NotebookScope
   height: number
   cut?: NotebookCut | null
 }

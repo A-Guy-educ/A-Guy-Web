@@ -7,9 +7,17 @@ import type {
   NotebookPage,
   NotebookPageCreateInput,
   NotebookPageUpdateInput,
+  NotebookScope,
 } from '@/infra/types/notebook'
 
 const BASE = '/api/notebook/pages'
+
+/** Carries the HTTP status so autosave can tell "gone for good" from "try again". */
+export class NotebookRequestError extends Error {
+  constructor(readonly status: number) {
+    super(`Notebook request failed (${status})`)
+  }
+}
 
 async function send<T>(url: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(url, {
@@ -17,33 +25,42 @@ async function send<T>(url: string, init: RequestInit = {}): Promise<T> {
     ...init,
     headers: init.body ? { 'content-type': 'application/json' } : undefined,
   })
-  if (!response.ok) throw new Error(`Notebook request failed (${response.status})`)
+  if (!response.ok) throw new NotebookRequestError(response.status)
   return (await response.json()) as T
 }
 
-export async function fetchNotebookPages(lessonId: string): Promise<NotebookPage[]> {
-  const { pages } = await send<{ pages: NotebookPage[] }>(
-    `${BASE}?lessonId=${encodeURIComponent(lessonId)}`,
-  )
+/** The wire form of a scope: exactly one of `lessonId` / `askContext`. */
+function scopeParams(scope: NotebookScope): Record<string, string> {
+  return scope.kind === 'lesson' ? { lessonId: scope.lessonId } : { askContext: scope.contextKey }
+}
+
+export async function fetchNotebookPages(scope: NotebookScope): Promise<NotebookPage[]> {
+  const query = new URLSearchParams(scopeParams(scope)).toString()
+  const { pages } = await send<{ pages: NotebookPage[] }>(`${BASE}?${query}`)
   return pages
 }
 
-export async function createNotebookPage(input: NotebookPageCreateInput): Promise<NotebookPage> {
+export async function createNotebookPage({
+  scope,
+  ...input
+}: NotebookPageCreateInput): Promise<NotebookPage> {
   const { page } = await send<{ page: NotebookPage }>(BASE, {
     method: 'POST',
-    body: JSON.stringify(input),
+    body: JSON.stringify({ ...input, ...scopeParams(scope) }),
   })
   return page
 }
 
+/** Resolves to the page's new `updatedAt` on the server. */
 export async function saveNotebookPage(
   pageId: string,
   update: NotebookPageUpdateInput,
-): Promise<void> {
-  await send(`${BASE}/${encodeURIComponent(pageId)}`, {
+): Promise<string> {
+  const { updatedAt } = await send<{ updatedAt: string }>(`${BASE}/${encodeURIComponent(pageId)}`, {
     method: 'PATCH',
     body: JSON.stringify(update),
   })
+  return updatedAt
 }
 
 export async function deleteNotebookPage(pageId: string): Promise<void> {

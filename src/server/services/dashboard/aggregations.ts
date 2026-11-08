@@ -22,16 +22,13 @@ import type { AdminUserRefs } from './admin-users'
 import type {
   ContentCounts,
   CourseEnrollment,
-  CurrencyRevenue,
   EngagementMetrics,
   MonthlySignup,
-  RevenueMetrics,
   SessionTimeByLessonType,
   SignupSourceBreakdown,
   TokenMetrics,
   TopLesson,
   TopLessonByTokens,
-  TopProduct,
   TopUserByTokens,
   UserMetrics,
   UsersPerCourse,
@@ -545,129 +542,6 @@ export async function aggregateGuestSessions(
     converted: firstCount(result.converted),
     inPeriod: firstCount(result.inPeriod),
     convertedInPeriod: firstCount(result.convertedInPeriod),
-  }
-}
-
-// ---------------------------------------------------------------------------
-// transactions — revenue by currency + refunded/failed + top products
-// ---------------------------------------------------------------------------
-
-interface TransactionsFacetResult {
-  revenueByCurrency: Array<{ _id: string; total: number; count: number }>
-  refundedTotal: Array<{ total: number }>
-  failedTotal: Array<{ total: number }>
-  statusCounts: Array<{ _id: string; count: number }>
-  topProducts: Array<{
-    _id: unknown
-    agorot: number
-    product: Array<{ name?: string; slug?: string }>
-  }>
-}
-
-const DEFAULT_CURRENCIES = ['ILS', 'USD', 'EUR']
-
-export async function aggregateTransactions(
-  db: Db,
-  buckets: DateBuckets,
-  adminUserRefs: AdminUserRefs,
-): Promise<RevenueMetrics> {
-  const [result] = (await db
-    .collection('transactions')
-    .aggregate<TransactionsFacetResult>([
-      {
-        $match: {
-          createdAt: { $gte: buckets.periodStart },
-          user: { $nin: adminUserRefs.refs },
-        },
-      },
-      {
-        $facet: {
-          revenueByCurrency: [
-            { $match: { status: 'succeeded' } },
-            {
-              $group: {
-                _id: { $ifNull: ['$currency', 'ILS'] },
-                total: { $sum: { $ifNull: ['$amount', 0] } },
-                count: { $sum: 1 },
-              },
-            },
-          ],
-          refundedTotal: [
-            { $match: { status: 'refunded' } },
-            { $group: { _id: null, total: { $sum: { $ifNull: ['$amount', 0] } } } },
-          ],
-          failedTotal: [
-            { $match: { status: 'failed' } },
-            { $group: { _id: null, total: { $sum: { $ifNull: ['$amount', 0] } } } },
-          ],
-          statusCounts: [{ $group: { _id: '$status', count: { $sum: 1 } } }],
-          topProducts: [
-            { $match: { status: 'succeeded' } },
-            {
-              $group: {
-                _id: '$product',
-                agorot: { $sum: { $ifNull: ['$amount', 0] } },
-              },
-            },
-            { $sort: { agorot: -1 } },
-            { $limit: 5 },
-            {
-              $lookup: {
-                from: 'products',
-                localField: '_id',
-                foreignField: '_id',
-                as: 'product',
-              },
-            },
-          ],
-        },
-      },
-    ])
-    .toArray()) as [TransactionsFacetResult]
-
-  const totalRevenueAgorot: CurrencyRevenue = {}
-  for (const currency of DEFAULT_CURRENCIES) totalRevenueAgorot[currency] = 0
-  for (const row of result.revenueByCurrency) {
-    // $ifNull only substitutes null/missing, not the empty string, so an
-    // "" currency bucket slips past the pipeline default. Coerce here so
-    // those rows still contribute to ILS instead of being silently dropped.
-    const currency = row._id && row._id.length > 0 ? row._id : 'ILS'
-    totalRevenueAgorot[currency] = (totalRevenueAgorot[currency] || 0) + row.total
-  }
-
-  const refundedAgorot = result.refundedTotal[0]?.total ?? 0
-  const failedAgorot = result.failedTotal[0]?.total ?? 0
-
-  let succeededCount = 0
-  let nonPendingCount = 0
-  let transactionCount = 0
-  for (const row of result.statusCounts) {
-    transactionCount += row.count
-    if (row._id === 'succeeded') {
-      succeededCount = row.count
-      nonPendingCount += row.count
-    } else if (row._id === 'refunded' || row._id === 'failed') {
-      nonPendingCount += row.count
-    }
-  }
-
-  const successRate =
-    nonPendingCount > 0 ? Math.round((succeededCount / nonPendingCount) * 1000) / 10 : 0
-
-  const topProducts: TopProduct[] = result.topProducts.map((row) => {
-    const productDoc = row.product?.[0]
-    const idFragment = String(row._id ?? '').slice(-6)
-    const productName = productDoc?.name || productDoc?.slug || `__DELETED__:${idFragment}`
-    return { productName, agorot: row.agorot }
-  })
-
-  return {
-    totalRevenueAgorot,
-    refundedAgorot,
-    failedAgorot,
-    transactionCount,
-    successRate,
-    topProducts,
   }
 }
 

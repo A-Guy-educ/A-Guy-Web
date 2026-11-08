@@ -88,6 +88,7 @@ const QUESTION_BLOCK_TYPES = new Set([
   'question_free_response',
   'question_table',
   'question_matching',
+  'question_equation',
   'question_geometry',
   'question_axis',
 ])
@@ -295,7 +296,7 @@ export function BlocksDocumentLessonView({
           {headerSlot}
           {user && lessonId ? (
             <LessonNotebookPane
-              lessonId={lessonId}
+              scope={{ kind: 'lesson', lessonId }}
               cutSource={{ kind: 'scroll', label: lessonTitle }}
             >
               {worksheet}

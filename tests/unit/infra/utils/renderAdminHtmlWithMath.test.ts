@@ -100,6 +100,67 @@ describe('renderAdminHtmlWithMath - color-syntax tokens', () => {
     expect(result).toContain('<span class="aguy-text-green">')
     expect(result).toContain('class="katex"')
   })
+
+  it('renders text-size-normal in admin HTML', () => {
+    const result = renderAdminHtmlWithMath('<p>::text-size-normal{בכיתה יש }20 תלמידים</p>')
+    expect(result).toContain('<span class="aguy-text-size-normal">בכיתה יש </span>')
+    expect(result).not.toContain('::text-size-normal')
+  })
+
+  it('emits a div for align where the parent can hold one', () => {
+    const result = renderAdminHtmlWithMath('<section>::text-align-right{שורה}</section>')
+    expect(result).toContain('<div class="aguy-text-align-right">שורה</div>')
+  })
+
+  it('keeps align a span inside a paragraph so the parser cannot split it', () => {
+    const result = renderAdminHtmlWithMath('<p>::text-align-right{שורה}</p>')
+    expect(result).toBe('<p><span class="aguy-text-align-right">שורה</span></p>')
+
+    const parsed = new DOMParser().parseFromString(result, 'text/html')
+    expect(parsed.body.children).toHaveLength(1)
+    expect(parsed.querySelector('p .aguy-text-align-right')).not.toBeNull()
+  })
+
+  it('stays a span in a paragraph even when nested under another token', () => {
+    const result = renderAdminHtmlWithMath('<p>::text-blue{::text-align-right{x}}</p>')
+    expect(result).toContain(
+      '<span class="aguy-text-blue"><span class="aguy-text-align-right">x</span></span>',
+    )
+  })
+
+  it('nests tokens in both orders', () => {
+    const sizeOuter = renderAdminHtmlWithMath('<p>::text-size-large{::text-blue{x}}</p>')
+    expect(sizeOuter).toBe(
+      '<p><span class="aguy-text-size-large"><span class="aguy-text-blue">x</span></span></p>',
+    )
+
+    const colorOuter = renderAdminHtmlWithMath('<p>::text-blue{::text-size-large{x}}</p>')
+    expect(colorOuter).toBe(
+      '<p><span class="aguy-text-blue"><span class="aguy-text-size-large">x</span></span></p>',
+    )
+  })
+
+  it('does not count math braces, including entity-encoded dollars', () => {
+    const plain = renderAdminHtmlWithMath('<p>::text-blue{$\\frac{1}{2}$} אחרי</p>')
+    expect(plain).toContain('<span class="aguy-text-blue"><span dir="ltr"')
+    expect(plain).toContain('class="katex"')
+    expect(plain).not.toContain('::text-blue')
+    expect(plain).toMatch(/<\/span> אחרי<\/p>$/)
+
+    const encoded = renderAdminHtmlWithMath('<p>::text-blue{&#36;\\frac{1}{2}&#36;} אחרי</p>')
+    expect(encoded).toContain('<span class="aguy-text-blue"><span dir="ltr"')
+    expect(encoded).toMatch(/<\/span> אחרי<\/p>$/)
+  })
+
+  it('leaves nested tokens inside <code> untouched', () => {
+    const result = renderAdminHtmlWithMath('<code>::text-size-large{::text-blue{x}}</code>')
+    expect(result).toBe('<code>::text-size-large{::text-blue{x}}</code>')
+  })
+
+  it('keeps unknown and unclosed tokens literal in admin HTML', () => {
+    expect(renderAdminHtmlWithMath('<p>::text-violet{x}</p>')).toBe('<p>::text-violet{x}</p>')
+    expect(renderAdminHtmlWithMath('<p>::text-blue{x</p>')).toBe('<p>::text-blue{x</p>')
+  })
 })
 
 describe('renderTextWithMath - color-syntax tokens', () => {
@@ -142,5 +203,72 @@ describe('renderTextWithMath - color-syntax tokens', () => {
     const result = renderTextWithMath('::text-green{$x^2$}')
     expect(result).toContain('<span class="aguy-text-green">')
     expect(result).toContain('class="katex"')
+  })
+
+  it('renders text-size-normal around Hebrew content', () => {
+    expect(renderTextWithMath('::text-size-normal{בכיתה יש }')).toBe(
+      '<span class="aguy-text-size-normal">בכיתה יש </span>',
+    )
+  })
+
+  it('renders text-align-right as a block element', () => {
+    expect(renderTextWithMath('::text-align-right{שורה}')).toBe(
+      '<div class="aguy-text-align-right">שורה</div>',
+    )
+  })
+
+  it('nests tokens in both orders and under align', () => {
+    expect(renderTextWithMath('::text-size-large{::text-blue{x}}')).toBe(
+      '<span class="aguy-text-size-large"><span class="aguy-text-blue">x</span></span>',
+    )
+    expect(renderTextWithMath('::text-blue{::text-size-large{x}}')).toBe(
+      '<span class="aguy-text-blue"><span class="aguy-text-size-large">x</span></span>',
+    )
+    expect(renderTextWithMath('::text-align-right{::text-blue{x}}')).toBe(
+      '<div class="aguy-text-align-right"><span class="aguy-text-blue">x</span></div>',
+    )
+  })
+
+  it('handles several tokens on one line', () => {
+    expect(renderTextWithMath('::text-blue{a} b ::text-size-large{::text-green{c}} d')).toBe(
+      '<span class="aguy-text-blue">a</span> b <span class="aguy-text-size-large"><span class="aguy-text-green">c</span></span> d',
+    )
+  })
+
+  it('does not count math braces when matching', () => {
+    const result = renderTextWithMath('::text-blue{$\\frac{1}{2}$} אחרי')
+    expect(result).toContain('<span class="aguy-text-blue"><span dir="ltr"')
+    expect(result).toContain('class="katex"')
+    expect(result).not.toContain('::text-blue')
+    expect(result).toMatch(/<\/span> אחרי$/)
+  })
+
+  it('does not mistake currency dollars for math', () => {
+    const result = renderTextWithMath('::text-blue{$5} ו-::text-green{$10}')
+    expect(result).toContain('<span class="aguy-text-blue">$5</span>')
+    expect(result).toContain('<span class="aguy-text-green">$10</span>')
+  })
+
+  it('keeps unknown tokens literal, even around known ones', () => {
+    expect(renderTextWithMath('::text-violet{a}')).toBe('::text-violet{a}')
+    expect(renderTextWithMath('::text-blue{::text-violet{a}}')).toBe(
+      '<span class="aguy-text-blue">::text-violet{a}</span>',
+    )
+  })
+
+  it('keeps an unclosed outer token literal and renders its closed inner token', () => {
+    expect(renderTextWithMath('::text-blue{x')).toBe('::text-blue{x')
+    expect(renderTextWithMath('::text-size-large{::text-blue{x}')).toBe(
+      '::text-size-large{<span class="aguy-text-blue">x</span>',
+    )
+  })
+
+  it('does not let nested or block token content inject markup', () => {
+    const nested = renderTextWithMath('::text-align-right{::text-blue{<img src=x onerror=y>}}')
+    expect(nested).toContain('&lt;img src=x onerror=y&gt;')
+    expect(nested).not.toContain('<img')
+
+    const hostileToken = renderTextWithMath('::x"><script>{a}')
+    expect(hostileToken).not.toContain('<script>')
   })
 })

@@ -2,6 +2,63 @@ import tailwindcssAnimate from 'tailwindcss-animate'
 import typography from '@tailwindcss/typography'
 import designTokens from './tailwind.tokens.mjs'
 
+// /newclass landing palette — values live in src/app/(frontend)/newclass-tokens.css
+const NEWCLASS_TOKENS = [
+  'ink',
+  'ink-2',
+  'ink-soft',
+  'line',
+  'ground',
+  'paper',
+  'peach',
+  'sun',
+  'student',
+  'student-deep',
+  'student-tint',
+  'teacher',
+  'teacher-deep',
+  'teacher-tint',
+  'teacher-light',
+  'class',
+  'class-mid',
+  'class-deep',
+  'aguy',
+  'aguy-tint',
+  'aguy-line',
+  'brand',
+  'brand-deep',
+  'brand-tint',
+  'brand-light',
+  'brand-on',
+  'old-bg',
+  'old-line',
+  'old-ink',
+  'old-board',
+  'old-seat',
+  'seat',
+  'desk',
+  'divider',
+  'ghost-line',
+  'footer-line',
+  'ph-stripe',
+  'ph-line',
+  'aguy-bg',
+  'lomdim-bg',
+  'mock-bar',
+  'mock-line',
+  'mock-row',
+  'mock-flag',
+  'mock-cream',
+  'mock-yellow',
+  'mock-dash',
+  'grade-good',
+  'grade-mid',
+  'grade-low',
+]
+const newclassColors = Object.fromEntries(
+  NEWCLASS_TOKENS.map((name) => [name, `hsl(var(--nc-${name}))`]),
+)
+
 /** @type {import('tailwindcss').Config} */
 const config = {
   content: [
@@ -162,8 +219,11 @@ const config = {
         'tab-learn': 'hsl(var(--tab-learn))',
         'tab-practice': 'hsl(var(--tab-practice))',
         'tab-exams': 'hsl(var(--tab-exams))',
+        nc: newclassColors,
       },
       fontFamily: {
+        'nc-display': ['var(--font-rubik)', 'var(--font-heebo)', 'system-ui', 'sans-serif'],
+        'nc-body': ['var(--font-heebo)', 'system-ui', 'sans-serif'],
         mono: ['var(--font-geist-mono)'],
         sans: ['var(--font-geist-sans)'],
         serif: ['var(--font-stix-two-text)', 'serif'],

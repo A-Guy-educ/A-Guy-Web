@@ -24,6 +24,7 @@ const ALWAYS_ANSWER_REQUIRED_BLOCK_TYPES = new Set([
   'question_free_response',
   'question_table',
   'question_matching',
+  'question_equation',
 ])
 
 /**

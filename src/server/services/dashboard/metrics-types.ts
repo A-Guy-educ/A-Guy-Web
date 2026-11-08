@@ -182,13 +182,58 @@ export interface TopProduct {
   agorot: number
 }
 
+/** `succeeded` includes refunded rows — the payment did go through. */
+export interface PaymentOutcomeCounts {
+  succeeded: number
+  failed: number
+}
+
+/** Failed transactions grouped by (provider, code). */
+export interface FailureReason {
+  provider: string
+  code: string
+  count: number
+  agorot: number
+}
+
+export interface RevenueSegments {
+  b2c: {
+    /** Distinct users with a succeeded transaction in the period. */
+    payers: number
+    /** Succeeded ILS total in the period (platform-wide, = totalRevenueAgorot.ILS). */
+    revenueAgorot: number
+  }
+  /** Estimate — no school subscriptions exist yet. Current roster, not period-bound. */
+  b2b: {
+    /** Distinct non-admin users in any `classes.students`. */
+    students: number
+    seatPriceAgorot: number
+    estimatedRevenueAgorot: number
+  }
+}
+
+/**
+ * Period-filtered, admins excluded, platform-wide (no B2B/B2C filter).
+ * `pending` rows (abandoned checkouts) are excluded from every count.
+ */
 export interface RevenueMetrics {
   totalRevenueAgorot: CurrencyRevenue
   refundedAgorot: number
   failedAgorot: number
+  /** succeeded + refunded + failed. */
   transactionCount: number
+  /** (succeeded + refunded) ÷ transactionCount × 100, 1 decimal. */
   successRate: number
+  /** Grouped by product, falling back to tierSlug ("Subscription — <tier>"). */
   topProducts: TopProduct[]
+  /** Split by `isRenewal === true`. */
+  payments: {
+    firstPurchase: PaymentOutcomeCounts
+    renewal: PaymentOutcomeCounts
+  }
+  /** Sorted desc by count, top 10. */
+  failureReasons: FailureReason[]
+  segments: RevenueSegments
 }
 
 export interface TopLessonByTokens {

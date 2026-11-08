@@ -3,8 +3,15 @@
 /**
  * AskPdfWorkspace
  *
- * Minimal workspace rendered when the Ask page's uploaded file is a PDF:
- * just the PDF.js viewer + a draggable FloatingNotebook over it. No
+ * Minimal workspace rendered when the Ask page's uploaded file is a PDF.
+ *
+ * Signed-in students in an Ask room get the saved notebook pane (same as the
+ * lesson Media tab): a Material | Notebook switch over the PDF.js viewer,
+ * with always-on cutting into notebook pages scoped to the room's
+ * conversation contextKey. Guests, or a page without a room, keep the
+ * unsaved draggable FloatingNotebook described below.
+ *
+ * FloatingNotebook mode: just the PDF.js viewer + the notebook over it. No
  * title bar, hint/solution/generate-lesson chrome — a PDF of homework
  * typically has many exercises per page, so the student picks what
  * they're solving in their head and hits ✓ when done. The notebook's
@@ -24,20 +31,25 @@ import {
   trackPdfPage,
 } from '@/ui/web/media/PDFMedia/pdfViewerBridge'
 import { FloatingNotebook } from '@/ui/web/notebook/FloatingNotebook'
+import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { useMediaQuery } from '@/client/hooks/useMediaQuery'
+import { LessonNotebookPane } from '@/ui/web/notebook/LessonNotebookPane'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { AskActionEvent, ExerciseFile } from '../ask-types'
 import { ASK_ACTION_EVENT } from '../ask-types'
 
 interface AskPdfWorkspaceProps {
   file: ExerciseFile
+  /** The Ask room's conversation contextKey — the saved notebook is scoped to it. */
+  contextKey?: string
 }
 
 function dispatchAskAction(detail: AskActionEvent) {
   window.dispatchEvent(new CustomEvent(ASK_ACTION_EVENT, { detail }))
 }
 
-export function AskPdfWorkspace({ file }: AskPdfWorkspaceProps) {
+export function AskPdfWorkspace({ file, contextKey }: AskPdfWorkspaceProps) {
+  const { user, isLoading: isUserLoading } = useCurrentUser()
   const containerRef = useRef<HTMLDivElement>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [isChecking, setIsChecking] = useState(false)
@@ -102,17 +114,24 @@ export function AskPdfWorkspace({ file }: AskPdfWorkspaceProps) {
   const isTabletUp = useMediaQuery('(min-width: 768px)')
 
   if (!viewerUrl) return null
+  // Wait for the user before mounting the viewer: switching from the plain
+  // viewer to the notebook pane afterwards would reload the PDF.
+  if (isUserLoading) return <div className="h-full w-full bg-muted" />
 
-  return (
-    <div ref={containerRef} className="relative h-full w-full min-h-0 bg-muted overflow-hidden">
+  const savedNotebook = Boolean(user && contextKey)
+  const viewer = (
+    <div
+      ref={containerRef}
+      className="relative h-full w-full min-h-0 flex-1 bg-muted overflow-hidden"
+    >
       <iframe
         ref={iframeRef}
         src={viewerUrl}
         title={file.title}
         className="absolute inset-0 w-full h-full border-0"
       />
-      {/* Notebook is for tablet/desktop only — too cramped on phones */}
-      {isTabletUp && (
+      {/* Floating notebook is for tablet/desktop only — too cramped on phones */}
+      {!savedNotebook && isTabletUp && (
         <FloatingNotebook
           containerRef={containerRef}
           onCheck={handleCheck}
@@ -121,6 +140,19 @@ export function AskPdfWorkspace({ file }: AskPdfWorkspaceProps) {
           initialSize={{ w: 360, h: 320 }}
         />
       )}
+    </div>
+  )
+
+  if (!savedNotebook || !contextKey) return viewer
+
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      <LessonNotebookPane
+        scope={{ kind: 'ask', contextKey }}
+        cutSource={file.mediaId ? { kind: 'pdf', mediaId: file.mediaId, label: file.title } : null}
+      >
+        {viewer}
+      </LessonNotebookPane>
     </div>
   )
 }

@@ -15,6 +15,7 @@ import { relationId } from '@/server/repos/mongo'
 import { getAuthenticatedUserServer } from '@/server/utils/access-gate-server'
 import { checkPaidAccess } from '@/server/utils/check-paid-access'
 import { resolveLessonTierAccess } from '@/server/services/tier-lesson-access'
+import { orderExercisesByPlaylist } from '@/lib/lessons/orderExercisesByPlaylist'
 import { subscriptionsHref } from '@/lib/tiers/subscribe-return'
 import type {
   Chapter,
@@ -239,9 +240,12 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
   const [exercises, mediaFiles, formulaSheetResult] = await Promise.all([
     queryExercisesByLesson({ lessonId: lesson.id }).then((exercises) =>
-      (exercises ?? []).filter(
-        (ex): ex is Exercise =>
-          Boolean(ex) && typeof ex === 'object' && Boolean(ex.id) && Boolean(ex.slug),
+      orderExercisesByPlaylist(
+        (exercises ?? []).filter(
+          (ex): ex is Exercise =>
+            Boolean(ex) && typeof ex === 'object' && Boolean(ex.id) && Boolean(ex.slug),
+        ),
+        blocks,
       ),
     ),
     getMediaFiles(lesson.contentFiles),

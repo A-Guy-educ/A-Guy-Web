@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.63.0 — 2026-11-08
+
+### Features
+- Add premium header for signed-in students (#1576)
+- Render the question_equation block for students (#1573)
+- Extend revenue metrics for the Dash revenue tab rework (#1570)
+- Add the New Classroom 3D landing at /newclass (#1568)
+- Add the saved notebook to Ask page PDF uploads (#1567)
+
+### Bug Fixes
+- Move wrapped math to its own row in MCQ options (#1578)
+- Shrink wrapped math, then move it to a new line (#1577)
+- Render nested and alignment format tags on Web (#1575)
+- Order lesson exercises by the Admin playlist (#1574)
+- Keep notebook writing safe when the connection drops (#1572)
+- Read the two-L tranzilla metadata key for failure codes (#1571)
+- Land returning students on their current section in chat view (#1569)
+
 ## v0.62.0 — 2026-11-04
 
 ### Features
@@ -5166,6 +5184,18 @@
 - start interactive session live-1778076414935-0dlywn (7b990ec4b)
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
+
+- chore: Release v0.63.0 ([#1579](https://github.com/A-Guy-educ/A-Guy-Web/pull/1579)) — @aguyshayb
+- fix: Shrink wrapped math, then move it to a new line ([#1577](https://github.com/A-Guy-educ/A-Guy-Web/pull/1577)) — @aguyshayb
+- feat: Add premium header for signed-in students ([#1576](https://github.com/A-Guy-educ/A-Guy-Web/pull/1576)) — @aguyshayb
+- fix: Render nested and alignment format tags on Web ([#1575](https://github.com/A-Guy-educ/A-Guy-Web/pull/1575)) — @aguyshayb
+- fix: Keep notebook writing safe when the connection drops ([#1572](https://github.com/A-Guy-educ/A-Guy-Web/pull/1572)) — @aguyshayb
+- fix: Read the two-L tranzilla metadata key for failure codes ([#1571](https://github.com/A-Guy-educ/A-Guy-Web/pull/1571)) — @aguyshayb
+- feat: Extend revenue metrics for the Dash revenue tab rework ([#1570](https://github.com/A-Guy-educ/A-Guy-Web/pull/1570)) — @aguyshayb
+- fix: Land returning students on their current section in chat view ([#1569](https://github.com/A-Guy-educ/A-Guy-Web/pull/1569)) — @aguyshayb
+- feat: Add the New Classroom 3D landing at /newclass ([#1568](https://github.com/A-Guy-educ/A-Guy-Web/pull/1568)) — @aguyshayb
+- feat: Add the saved notebook to Ask page PDF uploads ([#1567](https://github.com/A-Guy-educ/A-Guy-Web/pull/1567)) — @aguyshayb
+## [v0.62.0] - 2026-11-04
 
 - chore: Release v0.62.0 ([#1565](https://github.com/A-Guy-educ/A-Guy-Web/pull/1565)) — @aguyshayb
 - feat(graphics): Color point labels to match their dot ([#1564](https://github.com/A-Guy-educ/A-Guy-Web/pull/1564)) — @aguyshayb

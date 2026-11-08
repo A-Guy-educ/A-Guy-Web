@@ -1,7 +1,7 @@
 /**
  * Question Attempt Reporter
  * Fire-and-forget POST to /api/attempts for per-question events the server
- * can't see: client-graded answers (select / matching / table), hint /
+ * can't see: client-graded answers (select / matching / table / equation), hint /
  * explanation clicks and self-compare fallbacks. Free-response verdicts are
  * recorded by validate-answer.
  */
@@ -51,6 +51,8 @@ export function isClientGradedSubmission(question: QuestionBlock, answer: UserAn
       return answer.selectedIds.length > 0
     case 'matching':
       return answer.connections.length > 0
+    case 'equation':
+      return answer.completedSteps > 0
     case 'table':
       return true
     default:

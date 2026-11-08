@@ -11,6 +11,7 @@ import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { BrandLogo } from '@/ui/web/BrandLogo'
 import { MobileMenu, MobileMenuButton } from './MobileMenu'
 import { HeaderNav } from './Nav'
+import { SignedInBar } from './SignedInBar'
 
 interface HeaderClientProps {
   data: Header
@@ -73,23 +74,30 @@ export const HeaderClient: React.FC<HeaderClientProps> = ({ data, version }) => 
         {...(theme ? { 'data-theme': theme } : {})}
       >
         <div className="container">
-          <div className="py-1.5 md:py-content-gap flex items-center justify-between text-header-foreground">
-            {/* Logo */}
-            <SystemLink
-              href="/"
-              className="flex items-center gap-3 flex-shrink-0 hover:opacity-80 transition-opacity"
-            >
-              <BrandLogo className="h-11 w-auto" />
-            </SystemLink>
-
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center">
-              <HeaderNav data={data} user={user} isAuthLoading={isAuthLoading} />
+          {user ? (
+            <div className="py-1.5 md:py-content-gap text-header-foreground">
+              <SignedInBar user={user} />
             </div>
+          ) : (
+            <div className="py-1.5 md:py-content-gap flex items-center justify-between text-header-foreground">
+              {/* Logo */}
+              <SystemLink
+                href="/"
+                className="flex items-center gap-3 flex-shrink-0 hover:opacity-80 transition-opacity"
+              >
+                <BrandLogo className="h-11 w-auto" />
+              </SystemLink>
 
-            {/* Mobile Menu Button */}
-            <MobileMenuButton onClick={() => setIsMobileMenuOpen(true)} />
-          </div>
+              {/* Desktop Navigation — stays in the HTML while auth loads, hidden so
+                  signed-in students don't see the visitor links flash first */}
+              <div className={cn('hidden lg:flex items-center', isAuthLoading && 'invisible')}>
+                <HeaderNav data={data} user={user} isAuthLoading={isAuthLoading} />
+              </div>
+
+              {/* Mobile Menu Button */}
+              <MobileMenuButton onClick={() => setIsMobileMenuOpen(true)} />
+            </div>
+          )}
         </div>
       </header>
 
