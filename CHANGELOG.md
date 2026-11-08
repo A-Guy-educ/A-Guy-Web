@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.63.0 — 2026-11-08
+
+### Features
+- Add premium header for signed-in students (#1576)
+- Render the question_equation block for students (#1573)
+- Extend revenue metrics for the Dash revenue tab rework (#1570)
+- Add the New Classroom 3D landing at /newclass (#1568)
+- Add the saved notebook to Ask page PDF uploads (#1567)
+
+### Bug Fixes
+- Move wrapped math to its own row in MCQ options (#1578)
+- Shrink wrapped math, then move it to a new line (#1577)
+- Render nested and alignment format tags on Web (#1575)
+- Order lesson exercises by the Admin playlist (#1574)
+- Keep notebook writing safe when the connection drops (#1572)
+- Read the two-L tranzilla metadata key for failure codes (#1571)
+- Land returning students on their current section in chat view (#1569)
+
 ## v0.62.0 — 2026-11-04
 
 ### Features
