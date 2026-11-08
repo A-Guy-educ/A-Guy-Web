@@ -196,6 +196,40 @@ export interface QuestionMatchingBlock {
 }
 
 // ---------------------------------
+// Question Equation Block
+// ---------------------------------
+// All math strings are LaTeX without $ delimiters.
+export interface EquationSides {
+  left: string
+  right: string
+}
+
+export interface EquationOption {
+  id: string
+  label: string // Operation applied to both sides, e.g. "-3" or "+x"
+}
+
+export interface EquationStep {
+  id: string
+  options: EquationOption[]
+  correctOptionId: string
+  result: EquationSides // The equation after the correct option
+}
+
+export interface QuestionEquationBlock {
+  id: string
+  type: 'question_equation'
+  prompt: InlineRichText
+  equation: EquationSides
+  steps: EquationStep[]
+  hint?: InlineRichText
+  solution?: InlineRichText
+  fullSolution?: InlineRichText
+  /** See `QuestionSelectTrueFalseBlock.showNotebook`. */
+  showNotebook?: boolean
+}
+
+// ---------------------------------
 // SVG Hotspot (clickable region within an SVG)
 // ---------------------------------
 export interface SvgHotspot {

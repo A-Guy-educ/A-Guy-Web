@@ -33,6 +33,7 @@ export const INTERACTIVE_QUESTION_TYPES: ReadonlySet<string> = new Set<string>([
   'question_free_response',
   'question_table',
   'question_matching',
+  'question_equation',
 ])
 
 function englishLetter(idx: number): string {

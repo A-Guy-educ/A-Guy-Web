@@ -5,7 +5,9 @@
  */
 
 import type {
+  EquationStep,
   ExerciseBlockGroup,
+  QuestionEquationBlock,
   LatexBlock,
   QuestionAttachment,
   QuestionMatchingBlock,
@@ -17,7 +19,9 @@ import type {
 } from '@/infra/types/exercise'
 
 export type {
+  EquationStep,
   ExerciseBlockGroup,
+  QuestionEquationBlock,
   LatexBlock,
   QuestionAttachment,
   QuestionMatchingBlock,
@@ -36,6 +40,7 @@ export type UserAnswer =
   | { type: 'free_response'; value: string }
   | { type: 'table'; cellValues: Record<string, string> }
   | { type: 'matching'; connections: Array<{ leftId: string; rightId: string }> }
+  | { type: 'equation'; completedSteps: number }
   | { type: 'svg'; selectedHotspotIds: string[] }
 
 export interface TableCellResult {
@@ -186,7 +191,11 @@ export interface QuestionTableBlock {
 }
 
 export type QuestionBlock =
-  QuestionSelectBlock | QuestionFreeResponseBlock | QuestionTableBlock | QuestionMatchingBlock
+  | QuestionSelectBlock
+  | QuestionFreeResponseBlock
+  | QuestionTableBlock
+  | QuestionMatchingBlock
+  | QuestionEquationBlock
 
 export interface HtmlBlock {
   id: string
