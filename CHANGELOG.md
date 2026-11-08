@@ -5185,6 +5185,8 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+## [v0.63.0] - 2026-11-08
+
 - chore: Release v0.63.0 ([#1579](https://github.com/A-Guy-educ/A-Guy-Web/pull/1579)) — @aguyshayb
 - fix: Shrink wrapped math, then move it to a new line ([#1577](https://github.com/A-Guy-educ/A-Guy-Web/pull/1577)) — @aguyshayb
 - feat: Add premium header for signed-in students ([#1576](https://github.com/A-Guy-educ/A-Guy-Web/pull/1576)) — @aguyshayb
