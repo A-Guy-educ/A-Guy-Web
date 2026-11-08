@@ -5185,6 +5185,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Add zoom, lasso, pen sizes and more shapes to the notebook ([#1581](https://github.com/A-Guy-educ/A-Guy-Web/pull/1581)) — @aguyshayb
 ## [v0.63.0] - 2026-11-08
 
 - chore: Release v0.63.0 ([#1579](https://github.com/A-Guy-educ/A-Guy-Web/pull/1579)) — @aguyshayb
