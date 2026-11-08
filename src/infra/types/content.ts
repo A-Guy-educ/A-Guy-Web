@@ -352,6 +352,10 @@ export interface Transaction {
 export interface User {
   id: string
   name?: string | null
+  /** Set by /join only, like `lastName` and `phone`. */
+  firstName?: string | null
+  lastName?: string | null
+  phone?: string | null
   email?: string | null
   role?: string | null
   roles?: string[] | null
