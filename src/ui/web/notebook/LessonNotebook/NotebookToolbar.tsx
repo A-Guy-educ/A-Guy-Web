@@ -37,9 +37,10 @@ export function NotebookToolbar({
   const t = useTranslations('courses.lessonNotebook')
   const statusLabel = {
     loading: '',
-    ready: t('saved'),
+    synced: t('saved'),
     saving: t('saving'),
-    error: t('saveFailed'),
+    savedLocally: t('savedLocally'),
+    unsaved: t('notSavedYet'),
   }[status]
 
   const button = (label: string, active: boolean, onClick: () => void, icon: React.ReactNode) => (
@@ -110,7 +111,7 @@ export function NotebookToolbar({
           role="status"
           className={cn(
             'px-2 text-body-xs',
-            status === 'error' ? 'text-destructive' : 'text-muted-foreground',
+            status === 'unsaved' ? 'text-destructive' : 'text-muted-foreground',
           )}
         >
           {statusLabel}

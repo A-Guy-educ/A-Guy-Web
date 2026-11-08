@@ -377,7 +377,8 @@
       "fingerDraws": "Write with finger",
       "saved": "Saved",
       "saving": "Saving…",
-      "saveFailed": "Not saved — will retry",
+      "savedLocally": "Saved on device · will sync",
+      "notSavedYet": "Not saved yet",
       "empty": "Cut an exercise from the material to solve it here, or start on a blank page."
     },
     "doodleNotebook": {

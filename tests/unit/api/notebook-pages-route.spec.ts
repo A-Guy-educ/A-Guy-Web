@@ -230,9 +230,10 @@ describe('PATCH /api/notebook/pages/[pageId]', () => {
   it("saves strokes to the caller's page", async () => {
     const fake = seed([storedPage()])
 
-    const { status } = await patch({ strokes: [stroke], height: 1750 })
+    const { status, body } = await patch({ strokes: [stroke], height: 1750 })
 
     expect(status).toBe(200)
+    expect(new Date(body.updatedAt).toISOString()).toBe(body.updatedAt)
     expect(fake.collections.notebook_pages[0]).toMatchObject({ strokes: [stroke], height: 1750 })
   })
 
