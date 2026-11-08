@@ -176,19 +176,25 @@ describe('failureReasons', () => {
     expect(
       code({
         failureCode: '004',
-        metadata: { tranzila: { responseCode: '033' } },
+        metadata: { tranzilla: { responseCode: '033' } },
         errorMessage: 'Tranzilla declined — response code 051',
       }),
     ).toBe('004')
   })
 
-  it('falls back to metadata.tranzila.responseCode', () => {
+  it('falls back to metadata.tranzilla.responseCode', () => {
     expect(
       code({
-        metadata: { tranzila: { responseCode: '033' } },
+        metadata: { tranzilla: { responseCode: '033' } },
         errorMessage: 'Tranzilla declined — response code 051',
       }),
     ).toBe('033')
+    // Older renewal declines carry only the metadata code, no errorMessage.
+    expect(code({ isRenewal: true, metadata: { tranzilla: { responseCode: '004' } } })).toBe('004')
+  })
+
+  it('ignores a one-L metadata.tranzila key (Admin never writes it)', () => {
+    expect(code({ metadata: { tranzila: { responseCode: '033' } } })).toBe('unknown')
   })
 
   it('falls back to the code parsed from errorMessage', () => {
@@ -211,10 +217,10 @@ describe('failureReasons', () => {
 
     const { failureReasons } = metrics(
       facetResult({
-        failureReasons: [{ _id: { provider: 'tranzila', code: 33 }, count: 3, agorot: 1500 }],
+        failureReasons: [{ _id: { provider: 'tranzilla', code: 33 }, count: 3, agorot: 1500 }],
       }),
     )
-    expect(failureReasons).toEqual([{ provider: 'tranzila', code: '33', count: 3, agorot: 1500 }])
+    expect(failureReasons).toEqual([{ provider: 'tranzilla', code: '33', count: 3, agorot: 1500 }])
   })
 })
 

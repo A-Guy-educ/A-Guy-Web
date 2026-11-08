@@ -35,13 +35,13 @@ const SETTLED_STATUSES = ['succeeded', 'refunded', 'failed']
 
 /**
  * Failure code, first present of: `failureCode` (newer Admin writes),
- * `metadata.tranzila.responseCode`, the code in an errorMessage like
+ * `metadata.tranzilla.responseCode`, the code in an errorMessage like
  * "Tranzilla declined — response code 033", else 'unknown'.
  */
 export const FAILURE_CODE_EXPR: Document = {
   $ifNull: [
     '$failureCode',
-    '$metadata.tranzila.responseCode',
+    '$metadata.tranzilla.responseCode',
     {
       $let: {
         vars: { m: { $regexFind: { input: '$errorMessage', regex: 'response code (\\w+)' } } },
