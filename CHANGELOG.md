@@ -5167,6 +5167,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Add premium header for signed-in students ([#1576](https://github.com/A-Guy-educ/A-Guy-Web/pull/1576)) — @aguyshayb
 - fix: Render nested and alignment format tags on Web ([#1575](https://github.com/A-Guy-educ/A-Guy-Web/pull/1575)) — @aguyshayb
 - fix: Keep notebook writing safe when the connection drops ([#1572](https://github.com/A-Guy-educ/A-Guy-Web/pull/1572)) — @aguyshayb
 - fix: Read the two-L tranzilla metadata key for failure codes ([#1571](https://github.com/A-Guy-educ/A-Guy-Web/pull/1571)) — @aguyshayb
