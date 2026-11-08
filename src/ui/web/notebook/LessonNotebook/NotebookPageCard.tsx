@@ -6,6 +6,8 @@ import { NOTEBOOK_PAGE_WIDTH, type NotebookPage, type NotebookStroke } from '@/i
 import { cn } from '@/infra/utils/ui'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { InkSurface, type InkTool } from './InkSurface'
+import { LassoLayer } from './LassoLayer'
+import type { StrokeSelection } from './useStrokeEditing'
 
 // Same squared paper as the floating notebook and the Ask drawing canvas.
 const GRID_STYLE = {
@@ -21,7 +23,12 @@ interface NotebookPageCardProps {
   inks: readonly string[]
   tool: InkTool
   fingerDraws: boolean
+  /** This page's lasso selection, if it has one. */
+  selection: StrokeSelection | null
   onStrokes: (strokes: NotebookStroke[]) => void
+  onLasso: (loop: number[]) => void
+  onMoveSelection: (dx: number, dy: number) => void
+  onClearSelection: () => void
   onActivate: () => void
   onExtend: () => void
   onDelete: () => void
@@ -35,7 +42,11 @@ export function NotebookPageCard({
   inks,
   tool,
   fingerDraws,
+  selection,
   onStrokes,
+  onLasso,
+  onMoveSelection,
+  onClearSelection,
   onActivate,
   onExtend,
   onDelete,
@@ -100,13 +111,24 @@ export function NotebookPageCard({
         )}
         <InkSurface
           height={page.height}
-          strokes={page.strokes}
+          strokes={selection?.rest ?? page.strokes}
           inks={inks}
           tool={tool}
           fingerDraws={fingerDraws}
           onStrokeEnd={(stroke) => onStrokes([...page.strokes, stroke])}
-          className={tool.erase ? 'cursor-cell' : 'cursor-crosshair'}
+          className={tool.mode === 'erase' ? 'cursor-cell' : 'cursor-crosshair'}
         />
+        {tool.mode === 'lasso' && (
+          <LassoLayer
+            height={page.height}
+            inks={inks}
+            selected={selection?.selected ?? null}
+            fingerDraws={fingerDraws}
+            onLasso={onLasso}
+            onMove={onMoveSelection}
+            onClear={onClearSelection}
+          />
+        )}
       </div>
 
       <footer className="flex justify-center border-t border-border/60 bg-muted/40 py-1.5">

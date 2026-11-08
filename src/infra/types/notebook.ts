@@ -13,15 +13,19 @@ export const NOTEBOOK_MIN_PAGE_HEIGHT = 600
 export const NOTEBOOK_MAX_PAGE_HEIGHT = 20_000
 
 /** Pen inks index into the `--pen-ink-*` design tokens, so stored strokes re-tint with the theme. */
-export const NOTEBOOK_INK_COUNT = 3
+export const NOTEBOOK_INK_COUNT = 4
+
+/** The most strokes one page may save. */
+export const NOTEBOOK_MAX_STROKES = 3_000
 
 export interface NotebookStroke {
   /** Index into the pen-ink palette. Ignored for eraser strokes. */
   ink: number
   erase?: boolean
   /**
-   * Line width in page units. Set when the stroke was drawn on a small screen,
-   * where the default would render hairline-thin; absent means the default.
+   * Line width in page units. Set when the student picked a thin or thick pen,
+   * or drew on a small screen where the default would render hairline-thin;
+   * absent means the default.
    */
   width?: number
   /** Flat `[x0, y0, x1, y1, …]` in page coordinates. */

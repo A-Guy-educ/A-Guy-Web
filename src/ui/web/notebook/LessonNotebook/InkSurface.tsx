@@ -4,13 +4,15 @@ import { useEffect, useRef } from 'react'
 
 import { NOTEBOOK_PAGE_WIDTH, type NotebookStroke } from '@/infra/types/notebook'
 import { cn } from '@/infra/utils/ui'
-import { isStylusTouch } from '@/ui/web/notebook/stylus-touch'
+import { useClaimPencilTouches } from '@/ui/web/notebook/stylus-touch'
 import { SNAP_HOLD_MS, SNAP_SLOP_PX, snapStroke, type SnappedShape } from './shape-snap'
-import { drawStroke, drawStrokes, roundCoord, strokeWidthFor } from './stroke-render'
+import { drawStroke, drawStrokes, PEN_SIZES, roundCoord, strokeWidthFor } from './stroke-render'
 
 export interface InkTool {
   ink: number
-  erase: boolean
+  mode: 'pen' | 'erase' | 'lasso'
+  /** Index into `PEN_SIZES`. */
+  size: number
 }
 
 interface InkSurfaceProps {
@@ -29,7 +31,7 @@ interface LiveStroke {
   stroke: NotebookStroke
   /**
    * Snapped to a shape by holding still. A line's end point keeps following
-   * the pointer; a circle stays put until the pointer lifts.
+   * the pointer; a closed shape stays put until the pointer lifts.
    */
   snapped: SnappedShape | null
   /** Where the pointer last came to rest, in client pixels. */
@@ -42,7 +44,7 @@ interface LiveStroke {
  * page units (`NOTEBOOK_PAGE_WIDTH` wide) so a page drawn on a tablet renders
  * the same on a laptop. The in-progress stroke is drawn incrementally; the
  * full page is only redrawn when the saved strokes change (undo, load) or a
- * held stroke snaps to a line or circle.
+ * held stroke snaps to a shape.
  */
 export function InkSurface({
   height,
@@ -73,15 +75,7 @@ export function InkSurface({
   // iPadOS runs its long-press text selection and panning for the Pencil too;
   // only a non-passive touchstart preventDefault stops it (pointer events still
   // fire). Fingers are left alone unless they draw, so they keep scrolling.
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const block = (e: TouchEvent) => {
-      if (fingerDraws || isStylusTouch(e)) e.preventDefault()
-    }
-    canvas.addEventListener('touchstart', block, { passive: false })
-    return () => canvas.removeEventListener('touchstart', block)
-  }, [fingerDraws])
+  useClaimPencilTouches(canvasRef, fingerDraws)
 
   useEffect(() => () => clearHold(live.current), [])
 
@@ -124,9 +118,10 @@ export function InkSurface({
       ink: tool.ink,
       points: toPage(e.currentTarget, e.clientX, e.clientY),
     }
-    if (tool.erase) stroke.erase = true
+    const erase = tool.mode === 'erase'
+    if (erase) stroke.erase = true
     const pxPerUnit = e.currentTarget.getBoundingClientRect().width / NOTEBOOK_PAGE_WIDTH
-    const width = strokeWidthFor(tool.erase, pxPerUnit)
+    const width = strokeWidthFor(erase, pxPerUnit, PEN_SIZES[tool.size])
     if (width !== undefined) stroke.width = width
     const current: LiveStroke = {
       pointerId: e.pointerId,
@@ -150,7 +145,7 @@ export function InkSurface({
     const samples = events.length ? events : [e.nativeEvent]
     const last = samples[samples.length - 1]
 
-    if (current.snapped === 'ellipse') return
+    if (current.snapped && current.snapped !== 'line') return
     if (current.snapped === 'line') {
       const [x0, y0] = current.stroke.points
       current.stroke.points = [x0, y0, ...toPage(e.currentTarget, last.clientX, last.clientY)]
@@ -185,7 +180,7 @@ export function InkSurface({
     <canvas
       ref={canvasRef}
       className={cn('absolute inset-0 h-full w-full select-none', className)}
-      style={{ touchAction: fingerDraws ? 'none' : 'pan-y', WebkitTouchCallout: 'none' }}
+      style={{ touchAction: fingerDraws ? 'none' : 'pan-x pan-y', WebkitTouchCallout: 'none' }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={finish}

@@ -8,11 +8,11 @@ import { z } from 'zod'
 import {
   NOTEBOOK_INK_COUNT,
   NOTEBOOK_MAX_PAGE_HEIGHT,
+  NOTEBOOK_MAX_STROKES,
   NOTEBOOK_MIN_PAGE_HEIGHT,
   type NotebookScope,
 } from '@/infra/types/notebook'
 
-const MAX_STROKES_PER_PAGE = 3_000
 const MAX_POINTS_PER_STROKE = 8_000
 const MAX_ID_LENGTH = 64
 /** Ask contextKeys are `ask:<courseId>:<timestamp>`; leave room for that to grow. */
@@ -88,7 +88,7 @@ export const notebookPageCreateSchema = z
 export const notebookPageUpdateSchema = z
   .object({
     height: pageHeight.optional(),
-    strokes: z.array(strokeSchema).max(MAX_STROKES_PER_PAGE).optional(),
+    strokes: z.array(strokeSchema).max(NOTEBOOK_MAX_STROKES).optional(),
   })
   .refine((value) => value.height !== undefined || value.strokes !== undefined, {
     message: 'Nothing to update',
