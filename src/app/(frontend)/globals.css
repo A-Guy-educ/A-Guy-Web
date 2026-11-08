@@ -482,6 +482,13 @@ html[data-theme='light'] {
     font-size: 1.35em;
   }
 
+  /* Set by fitWrappedMath on an expression that broke onto a second line. Applied
+     to the wrapper so the .katex em sizes above scale with it. */
+  .math-short[data-math-fit],
+  .math-long[data-math-fit] {
+    font-size: 0.75em;
+  }
+
   .katex-display {
     @apply my-5 overflow-x-auto overflow-y-hidden py-2;
 
