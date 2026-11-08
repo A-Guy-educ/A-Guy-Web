@@ -88,6 +88,7 @@ const QUESTION_BLOCK_TYPES = new Set([
   'question_free_response',
   'question_table',
   'question_matching',
+  'question_equation',
   'question_geometry',
   'question_axis',
 ])

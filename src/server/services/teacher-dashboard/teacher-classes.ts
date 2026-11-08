@@ -42,6 +42,7 @@ const QUESTION_BLOCK_TYPES: ReadonlySet<string> = new Set([
   'question_free_response',
   'question_table',
   'question_matching',
+  'question_equation',
 ])
 
 const HEX24 = /^[a-f0-9]{24}$/i
