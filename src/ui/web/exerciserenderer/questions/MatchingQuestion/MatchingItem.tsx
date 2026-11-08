@@ -4,6 +4,10 @@ import React from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/infra/utils/ui'
 import { Check, X } from 'lucide-react'
+import {
+  MATH_NEW_ROW_CONTAINER,
+  MATH_NEW_ROW_CONTENT,
+} from '@/ui/web/shared/MathMarkdown/mathNewRowClasses'
 import type { RichTextBlock, MatchingOption } from '../../types'
 import { RichTextRenderer } from '../../blocks/RichTextRenderer'
 import { getLetter } from './matchingUtils'
@@ -58,7 +62,7 @@ export function MatchingItem({
       whileTap={!disabled ? { scale: 0.97 } : undefined}
       className={cn(
         'relative flex items-center gap-content-gap-xs p-3.5 rounded-xl border-2 text-start overflow-hidden',
-        'has-[[data-math-fit=newline]]:flex-wrap',
+        MATH_NEW_ROW_CONTAINER,
         'transition-all duration-normal min-h-[44px]',
         'bg-background/50 dark:bg-card dark:shadow-card',
         !disabled &&
@@ -99,7 +103,7 @@ export function MatchingItem({
         {badge}
       </span>
       {/* Math that still wraps at 75% takes its own row, below the badge and result icon. */}
-      <span className="flex-1 ps-1 has-[[data-math-fit=newline]]:order-last has-[[data-math-fit=newline]]:basis-full">
+      <span className={cn('flex-1 ps-1', MATH_NEW_ROW_CONTENT)}>
         <RichTextRenderer block={optionBlock} />
       </span>
       {correctState === true && <Check className="w-5 h-5 text-success shrink-0 ms-auto" />}

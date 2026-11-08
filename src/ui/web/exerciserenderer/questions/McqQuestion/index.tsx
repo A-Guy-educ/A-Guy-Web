@@ -15,6 +15,10 @@ import { motion } from 'framer-motion'
 import { cn } from '@/infra/utils/ui'
 import { Checkbox } from '@/ui/web/components/checkbox'
 import { AlertCircle } from 'lucide-react'
+import {
+  MATH_NEW_ROW_CONTAINER,
+  MATH_NEW_ROW_CONTENT,
+} from '@/ui/web/shared/MathMarkdown/mathNewRowClasses'
 import type { QuestionSelectMcqBlock, UserAnswer, CheckResult, RichTextBlock } from '../../types'
 import { RichTextRenderer } from '../../blocks/RichTextRenderer'
 import { isMathOnlyRichText } from '../../utils/isMathOnlyRichText'
@@ -205,6 +209,7 @@ export function McqQuestion({
                 whileHover={!disabled ? { y: -2 } : undefined}
                 className={cn(
                   'relative flex items-start gap-3 rounded-xl border-2 transition-all duration-normal cursor-pointer overflow-hidden',
+                  MATH_NEW_ROW_CONTAINER,
                   allOptionsAreMathOnly ? 'p-card-padding' : 'p-card-padding-sm',
                   'bg-background/50 dark:bg-card',
                   'focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2',
@@ -256,7 +261,8 @@ export function McqQuestion({
                     )}
                   </div>
                 )}
-                <div className="flex-1 text-body-lg text-foreground">
+                {/* Not cn(): tailwind-merge reads text-body-lg as a color and drops it. */}
+                <div className={`flex-1 text-body-lg text-foreground ${MATH_NEW_ROW_CONTENT}`}>
                   <RichTextRenderer block={optionBlock} />
                 </div>
               </motion.label>
