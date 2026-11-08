@@ -5167,6 +5167,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Read the two-L tranzilla metadata key for failure codes ([#1571](https://github.com/A-Guy-educ/A-Guy-Web/pull/1571)) — @aguyshayb
 - feat: Extend revenue metrics for the Dash revenue tab rework ([#1570](https://github.com/A-Guy-educ/A-Guy-Web/pull/1570)) — @aguyshayb
 - fix: Land returning students on their current section in chat view ([#1569](https://github.com/A-Guy-educ/A-Guy-Web/pull/1569)) — @aguyshayb
 - feat: Add the New Classroom 3D landing at /newclass ([#1568](https://github.com/A-Guy-educ/A-Guy-Web/pull/1568)) — @aguyshayb
