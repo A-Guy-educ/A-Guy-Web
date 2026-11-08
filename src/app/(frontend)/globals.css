@@ -895,6 +895,9 @@ math-field:focus-within {
 .aguy-text-size-medium {
   font-size: 1em;
 }
+.aguy-text-size-normal {
+  font-size: 1em;
+}
 .aguy-text-size-large {
   font-size: 1.25em;
 }
@@ -903,6 +906,19 @@ math-field:focus-within {
 }
 .aguy-text-size-xxlarge {
   font-size: 2em;
+}
+
+/* Whole-line alignment for ::text-align-right{} markdown syntax.
+   display:block covers the <span> fallback used where a <div> can't sit inside a <p>. */
+.aguy-text-align-right {
+  display: block;
+  text-align: right;
+  direction: rtl;
+  unicode-bidi: isolate;
+}
+/* An empty ::text-align-right{} is a blank line in the Admin editor, so keep its height. */
+.aguy-text-align-right:empty::before {
+  content: '\200b';
 }
 
 /* Landing page: hide chrome for immersive experience */

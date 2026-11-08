@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { containsBlockColorToken } from '@/infra/utils/allowedColorTokens'
 import { renderTextWithMath } from '@/infra/utils/renderAdminHtmlWithMath'
 import { splitSentencesInLessonHtml } from '@/infra/utils/splitSentencesInLessonHtml'
 
@@ -46,6 +47,11 @@ function renderChildren(children: LexicalNode[] | undefined): React.ReactNode {
   return children.map((child, i) => <React.Fragment key={i}>{renderNode(child)}</React.Fragment>)
 }
 
+function hasBlockColorToken(node: LexicalNode): boolean {
+  if (node.text && containsBlockColorToken(node.text)) return true
+  return node.children?.some(hasBlockColorToken) ?? false
+}
+
 function renderNode(node: LexicalNode | undefined): React.ReactNode {
   if (!node) return null
 
@@ -53,8 +59,11 @@ function renderNode(node: LexicalNode | undefined): React.ReactNode {
     case 'text':
       return applyTextFormats(node.text ?? '', node.format ?? 0)
 
-    case 'paragraph':
-      return <p>{renderChildren(node.children)}</p>
+    case 'paragraph': {
+      // renderTextWithMath emits a <div> for block tokens, which can't sit inside a <p>.
+      const Tag = hasBlockColorToken(node) ? 'div' : 'p'
+      return <Tag>{renderChildren(node.children)}</Tag>
+    }
 
     case 'heading': {
       const tag = (node.tag ?? 'h2') as keyof React.JSX.IntrinsicElements

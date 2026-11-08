@@ -39,15 +39,28 @@ export const ALLOWED_COLOR_TOKENS = [
   'text-size-xs',
   'text-size-small',
   'text-size-medium',
+  'text-size-normal',
   'text-size-large',
   'text-size-xlarge',
   'text-size-xxlarge',
+  'text-align-right',
 ] as const
 
 export type AllowedColorToken = (typeof ALLOWED_COLOR_TOKENS)[number]
 
 const ALLOWED_SET: ReadonlySet<string> = new Set(ALLOWED_COLOR_TOKENS)
 
+// Tokens that style a whole line, so they need a block box rather than a span.
+const BLOCK_COLOR_TOKENS: readonly AllowedColorToken[] = ['text-align-right']
+
 export function isAllowedColorToken(token: string): token is AllowedColorToken {
   return ALLOWED_SET.has(token)
+}
+
+export function isBlockColorToken(token: string): boolean {
+  return (BLOCK_COLOR_TOKENS as readonly string[]).includes(token)
+}
+
+export function containsBlockColorToken(text: string): boolean {
+  return BLOCK_COLOR_TOKENS.some((token) => text.includes(`::${token}{`))
 }
