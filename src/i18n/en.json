@@ -395,6 +395,7 @@
       "cutAlt": "Exercise copied from the lesson material",
       "showLatestCut": "Show last cut",
       "hideLatestCut": "Hide cut",
+      "latestCutTitle": "Original exercise cut",
       "checkPage": "Check",
       "nothingToCheck": "Write your solution on the page first.",
       "deletePage": "Delete page",

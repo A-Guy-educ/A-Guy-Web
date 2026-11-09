@@ -11,13 +11,14 @@
  */
 
 import { NotebookPen } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 
 import { NOTEBOOK_PAGE_WIDTH, type NotebookPage } from '@/infra/types/notebook'
 import { cn } from '@/infra/utils/ui'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import type { InkTool } from './InkSurface'
+import { latestCutOf } from './LatestCutButton'
 import { NotebookPageCard } from './NotebookPageCard'
 import { NotebookToolbar } from './NotebookToolbar'
 import { useInkPalette } from './useInkPalette'
@@ -57,6 +58,7 @@ export function LessonNotebook({
   const zoom = ZOOM_LEVELS[zoomLevel]
 
   const activePage = pages.find((page) => page.id === activeId) ?? pages.at(-1) ?? null
+  const latestCut = useMemo(() => latestCutOf(pages), [pages])
 
   useEffect(() => {
     if (!focusPageId) return
@@ -116,6 +118,7 @@ export function LessonNotebook({
       className="relative flex flex-col gap-card-gap p-card-padding-sm md:p-card-padding"
     >
       <NotebookToolbar
+        latestCut={latestCut}
         inks={inks}
         tool={tool}
         fingerDraws={fingerDraws}

@@ -14,12 +14,15 @@ import {
 } from 'lucide-react'
 
 import { cn } from '@/infra/utils/ui'
+import type { NotebookCut } from '@/infra/types/notebook'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import type { InkTool } from './InkSurface'
+import { LatestCutButton } from './LatestCutButton'
 import { PEN_SIZES } from './stroke-render'
 import type { NotebookStatus } from './useNotebookPages'
 
 interface NotebookToolbarProps {
+  latestCut: NotebookCut | null
   inks: readonly string[]
   tool: InkTool
   fingerDraws: boolean
@@ -46,6 +49,7 @@ const ACTIVE = 'bg-primary/15 text-primary hover:bg-primary/20 hover:text-primar
 const SIZE_DOTS = ['h-1 w-1', 'h-2 w-2', 'h-3 w-3']
 
 export function NotebookToolbar({
+  latestCut,
   inks,
   tool,
   fingerDraws,
@@ -106,6 +110,7 @@ export function NotebookToolbar({
 
   return (
     <div className="sticky top-2 z-20 mx-auto flex w-fit max-w-full flex-wrap items-center justify-center gap-1 rounded-2xl border border-border bg-card/95 px-2 py-1 shadow-elevation-2 backdrop-blur">
+      <LatestCutButton cut={latestCut} />
       {button(
         t('pen'),
         tool.mode === 'pen',
