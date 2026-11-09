@@ -11,7 +11,9 @@ import { uploadDataUrlAsMedia } from '@/infra/media/uploadDataUrl'
 import { SYSTEM_EVENTS, systemEventBus } from '@/infra/system-events'
 
 import { logger } from '@/infra/utils/logger'
-import { apiService } from '@/server/services/api/api-service'
+import { apiService, type ChatApiResponse } from '@/server/services/api/api-service'
+import type { NotebookCheckLocale, NotebookCheckRequest } from '@/infra/types/notebook'
+import type { NotebookCheckTrace } from '@/ui/web/notebook/CheckDebugPanel'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { ASK_STEP_CONTEXT_EVENT } from '@/app/(frontend)/ask/_components/ask-types'
@@ -172,6 +174,9 @@ export function useNotebookChat({
 
   // Error state
   const [chatError, setChatError] = useState<ChatError | null>(null)
+
+  // What the last notebook check sent and got back (admins only)
+  const [checkTrace, setCheckTrace] = useState<NotebookCheckTrace | null>(null)
 
   // Track last injected exercise ID to avoid duplicate context injection
   const lastInjectedExerciseId = useRef<string | null>(null)
@@ -707,6 +712,23 @@ export function useNotebookChat({
   const streamMessageRef = useRef(streamMessage)
   streamMessageRef.current = streamMessage
 
+  const reportChatFailure = (result: ChatApiResponse, retry: () => Promise<void>) => {
+    if (result.errorType === 'auth' || result.authRequired) {
+      setChatError({ type: 'auth' as const, message: authRequiredMessage })
+    } else if (result.errorType === 'quota' || result.quotaExceeded) {
+      setChatError({
+        type: 'quota' as const,
+        message: result.error || 'Chat limit reached. Try again later.',
+      })
+    } else if (result.errorType === 'limit') {
+      setChatError({ type: 'limit' as const, message: result.error || errorMessage })
+    } else if (result.errorCode === 'attachment_unavailable') {
+      showAttachmentRetry(retry)
+    } else {
+      toast.error(result.error || errorMessage)
+    }
+  }
+
   /**
    * Send message synchronously (with media or admin mode)
    */
@@ -741,29 +763,16 @@ export function useNotebookChat({
       )
 
       if (!result.success) {
-        if (result.errorType === 'auth' || result.authRequired) {
-          setChatError({ type: 'auth' as const, message: authRequiredMessage })
-        } else if (result.errorType === 'quota' || result.quotaExceeded) {
-          setChatError({
-            type: 'quota' as const,
-            message: result.error || 'Chat limit reached. Try again later.',
-          })
-        } else if (result.errorType === 'limit') {
-          setChatError({ type: 'limit' as const, message: result.error || errorMessage })
-        } else if (result.errorCode === 'attachment_unavailable') {
-          showAttachmentRetry(() =>
-            sendMessageSync(
-              message,
-              acknowledgment,
-              context,
-              mediaIds,
-              chatAssetIds,
-              contextKeyOverrideParam,
-            ),
-          )
-        } else {
-          toast.error(result.error || errorMessage)
-        }
+        reportChatFailure(result, () =>
+          sendMessageSync(
+            message,
+            acknowledgment,
+            context,
+            mediaIds,
+            chatAssetIds,
+            contextKeyOverrideParam,
+          ),
+        )
         return
       }
 
@@ -1082,6 +1091,58 @@ export function useNotebookChat({
     }
   }
 
+  const requestNotebookCheck = async (check: NotebookCheckRequest): Promise<void> => {
+    const requestController = new AbortController()
+    activeRequestRef.current?.abort()
+    activeRequestRef.current = requestController
+    try {
+      const result = await apiService.checkNotebookPage(check, requestController.signal)
+      if (requestController.signal.aborted) return
+      if (!result.success) {
+        reportChatFailure(result, () => requestNotebookCheck(check))
+        return
+      }
+      if (result.conversationId && result.contextKey) {
+        onConversationCreated?.(result.conversationId, result.contextKey)
+      }
+      setCheckTrace(result.debug ? { ...result.debug, inkImage: check.inkImage } : null)
+      if (result.message) {
+        const content = result.message
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            role: ChatRole.Assistant,
+            content,
+            createdAt: new Date().toISOString(),
+          },
+        ])
+      }
+    } finally {
+      if (activeRequestRef.current === requestController) {
+        activeRequestRef.current = null
+        isLoadingRef.current = false
+        setIsLoading(false)
+      }
+      signalTokenUsageChanged()
+    }
+  }
+
+  /**
+   * Check one notebook page as a standalone turn: the server ignores the chat
+   * history and saves only the tutor's reply, so nothing else joins the chat.
+   */
+  const checkNotebookPage = async (
+    inkImage: string,
+    exerciseMediaId: string | undefined,
+    locale: NotebookCheckLocale,
+  ) => {
+    if (isLoadingRef.current || isLoadingHistoryRef.current || !contextKey) return
+    isLoadingRef.current = true
+    setIsLoading(true)
+    await requestNotebookCheck({ inkImage, exerciseMediaId, contextKey, lessonId, locale })
+  }
+
   return {
     messages,
     inputValue,
@@ -1121,5 +1182,7 @@ export function useNotebookChat({
     sendVisibleHelp,
     sendContextualHelpWithMedia,
     sendContextualHelpWithMediaId,
+    checkNotebookPage,
+    checkTrace,
   }
 }

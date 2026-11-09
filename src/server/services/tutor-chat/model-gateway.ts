@@ -7,6 +7,8 @@ export type TutorModelInput = {
   system: string
   prompt: string
   parts: TutorModelPart[]
+  /** Defaults to the tutor chat's temperature. */
+  temperature?: number
   signal?: AbortSignal
 }
 
@@ -111,7 +113,7 @@ export class GeminiTutorModelGateway implements TutorModelGateway {
         },
       ],
       generationConfig: {
-        temperature: 0.7,
+        temperature: input.temperature ?? 0.7,
         maxOutputTokens: 2048,
       },
     })

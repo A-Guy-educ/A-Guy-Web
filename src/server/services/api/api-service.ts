@@ -9,6 +9,7 @@ import { logger } from '@/infra/utils/logger'
 import { parseSSEData } from '@/infra/types/backend'
 import type { ChatErrorCode } from '@/infra/types/tutor-chat'
 import { parseChatHttpError } from '@/infra/llm/tutor-chat-error'
+import type { NotebookCheckDebug, NotebookCheckRequest } from '@/infra/types/notebook'
 
 export interface ChatApiResponse {
   success: boolean
@@ -24,6 +25,8 @@ export interface ChatApiResponse {
   conversationId?: string
   contextKey?: string
   turnId?: string
+  /** Present on notebook checks for admins. */
+  debug?: NotebookCheckDebug
 }
 
 export interface ConversationMessage {
@@ -140,6 +143,45 @@ export const apiService = {
     } catch (error) {
       // Network errors or other exceptions
       console.error('Chat API request failed:', error)
+      return { success: false, error: 'Network error' }
+    }
+  },
+
+  /** Check one notebook page. The server saves only the tutor's reply. */
+  async checkNotebookPage(
+    check: NotebookCheckRequest,
+    signal?: AbortSignal,
+  ): Promise<ChatApiResponse> {
+    try {
+      const response = await fetch('/api/notebook/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(check),
+        signal,
+      })
+      const data = await response.json()
+
+      if (!response.ok) {
+        const visible = parseChatHttpError(response.status, data)
+        return {
+          success: false,
+          error: visible.message,
+          errorCode: visible.code,
+          errorType: visible.type,
+          authRequired: visible.type === 'auth',
+          quotaExceeded: visible.type === 'quota',
+        }
+      }
+      return {
+        success: true,
+        message: data.message,
+        conversationId: data.conversationId,
+        contextKey: data.contextKey,
+        debug: data.debug,
+      }
+    } catch (error) {
+      logger.error({ err: error }, 'Notebook check request failed')
       return { success: false, error: 'Network error' }
     }
   },
