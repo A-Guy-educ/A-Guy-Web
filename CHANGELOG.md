@@ -5185,6 +5185,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Stop the floating notebook flashing while the user loads ([#1583](https://github.com/A-Guy-educ/A-Guy-Web/pull/1583)) — @aguyshayb
 - feat: Add personal details page at /me ([#1582](https://github.com/A-Guy-educ/A-Guy-Web/pull/1582)) — @aguyshayb
 - feat: Add zoom, lasso, pen sizes and more shapes to the notebook ([#1581](https://github.com/A-Guy-educ/A-Guy-Web/pull/1581)) — @aguyshayb
 ## [v0.63.0] - 2026-11-08
