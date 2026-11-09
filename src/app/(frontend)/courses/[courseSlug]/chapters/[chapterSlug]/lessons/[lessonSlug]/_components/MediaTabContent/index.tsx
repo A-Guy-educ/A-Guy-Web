@@ -126,7 +126,7 @@ export function MediaTabContent({
   const primaryAreaRef = useRef<HTMLDivElement>(null)
   // Signed-in students get the saved lesson notebook; guests keep the
   // unsaved floating scratchpad, since there is no account to save to.
-  const { user } = useCurrentUser()
+  const { user, isLoading: isUserLoading } = useCurrentUser()
 
   // Deep-link detection: read ?file=N from URL on mount
   useEffect(() => {
@@ -331,7 +331,7 @@ export function MediaTabContent({
           ) : (
             material
           )}
-          {!user && isTabletUp && (
+          {!user && !isUserLoading && isTabletUp && (
             <FloatingNotebook containerRef={primaryAreaRef} onCheck={handleNotebookCheck} />
           )}
           {isDesktop && isChatCollapsed && (
