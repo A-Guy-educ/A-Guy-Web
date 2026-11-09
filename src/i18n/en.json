@@ -393,6 +393,8 @@
       "blankPage": "Blank page",
       "newBlankPage": "New blank page",
       "cutAlt": "Exercise copied from the lesson material",
+      "showLatestCut": "Show last cut",
+      "hideLatestCut": "Hide cut",
       "checkPage": "Check",
       "nothingToCheck": "Write your solution on the page first.",
       "deletePage": "Delete page",
