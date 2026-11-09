@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.64.0 — 2026-11-09
+
+### Features
+- Move the latest cut button to the notebook toolbar (#1590)
+- Show the latest notebook cut over the chat (#1586)
+- Add the saved notebook to image uploads in Ask (#1585)
+- Add personal details page at /me (#1582)
+- Add zoom, lasso, pen sizes and more shapes to the notebook (#1581)
+
+### Bug Fixes
+- Make scroll view cuts fast and keep the page responsive (#1587)
+- Check notebook pages as isolated turns with admin debugging (#1584)
+- Stop the floating notebook flashing while the user loads (#1583)
+
 ## v0.63.0 — 2026-11-08
 
 ### Features
