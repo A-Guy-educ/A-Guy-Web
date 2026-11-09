@@ -5185,6 +5185,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Move the latest cut button to the notebook toolbar ([#1590](https://github.com/A-Guy-educ/A-Guy-Web/pull/1590)) — @aguyshayb
 - fix: Make scroll view cuts fast and keep the page responsive ([#1587](https://github.com/A-Guy-educ/A-Guy-Web/pull/1587)) — @aguyshayb
 - feat: Show the latest notebook cut over the chat ([#1586](https://github.com/A-Guy-educ/A-Guy-Web/pull/1586)) — @aguyshayb
 - feat: Add the saved notebook to image uploads in Ask ([#1585](https://github.com/A-Guy-educ/A-Guy-Web/pull/1585)) — @aguyshayb
