@@ -393,6 +393,8 @@
       "blankPage": "עמוד ריק",
       "newBlankPage": "עמוד ריק חדש",
       "cutAlt": "תרגיל שהועתק מחומר השיעור",
+      "showLatestCut": "הצג גזיר אחרון",
+      "hideLatestCut": "הסתר גזיר",
       "checkPage": "בדוק",
       "nothingToCheck": "כתבו קודם את הפתרון בעמוד.",
       "deletePage": "מחק עמוד",
