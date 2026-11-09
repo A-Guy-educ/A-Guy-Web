@@ -87,3 +87,41 @@ export interface NotebookPageUpdateInput {
   height?: number
   strokes?: NotebookStroke[]
 }
+
+export const NOTEBOOK_CHECK_VERDICTS = [
+  'correct',
+  'incorrect',
+  'incomplete',
+  'unrelated',
+  'unreadable',
+] as const
+
+export type NotebookCheckVerdict = (typeof NOTEBOOK_CHECK_VERDICTS)[number]
+export type NotebookCheckLocale = 'he' | 'en'
+
+export interface NotebookCheckRequest {
+  /** PNG data URL of the page's handwriting. */
+  inkImage: string
+  /** The page's cut exercise, when it has one. */
+  exerciseMediaId?: string
+  /** The chat the tutor's reply is added to. */
+  contextKey: string
+  lessonId?: string
+  locale: NotebookCheckLocale
+}
+
+/** What a check sent and got back. Returned to admins only. */
+export interface NotebookCheckDebug {
+  traceId: string
+  model: string
+  temperature: number
+  durationMs: number
+  inputTokens: number
+  outputTokens: number
+  system: string
+  prompt: string
+  exerciseUrl: string | null
+  reading: string | null
+  verdict: NotebookCheckVerdict | null
+  rawReply: string
+}

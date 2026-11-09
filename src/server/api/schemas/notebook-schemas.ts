@@ -85,6 +85,28 @@ export const notebookPageCreateSchema = z
     scope: toScope({ lessonId, askContext }),
   }))
 
+const PNG_DATA_URL_PREFIX = 'data:image/png;base64,'
+/** Keeps a check under Vercel's 4.5 MB request body limit. */
+const MAX_INK_DATA_URL_LENGTH = 4_000_000
+
+export const notebookCheckSchema = z
+  .object({
+    inkImage: z
+      .string()
+      .max(MAX_INK_DATA_URL_LENGTH)
+      .refine((value) => value.startsWith(`${PNG_DATA_URL_PREFIX}iVBOR`), {
+        message: 'Handwriting must be a PNG data URL',
+      }),
+    exerciseMediaId: z.string().min(1).max(MAX_ID_LENGTH).optional(),
+    contextKey: z.string().min(1).max(MAX_CONTEXT_KEY_LENGTH),
+    lessonId: z.string().min(1).max(MAX_ID_LENGTH).optional(),
+    locale: z.enum(['he', 'en']),
+  })
+  .transform(({ inkImage, ...rest }) => ({
+    ...rest,
+    inkBase64: inkImage.slice(PNG_DATA_URL_PREFIX.length),
+  }))
+
 export const notebookPageUpdateSchema = z
   .object({
     height: pageHeight.optional(),

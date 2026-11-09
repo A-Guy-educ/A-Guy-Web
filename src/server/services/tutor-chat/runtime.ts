@@ -12,7 +12,7 @@ class UnconfiguredTutorModelGateway implements TutorModelGateway {
   }
 }
 
-function createGateway(): TutorModelGateway {
+export function createTutorModelGateway(): TutorModelGateway {
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) return new UnconfiguredTutorModelGateway()
 
@@ -25,6 +25,6 @@ function createGateway(): TutorModelGateway {
 export function createTutorChatOrchestrator() {
   return new TutorChatOrchestrator({
     repository: new MongoTutorConversationRepository(),
-    gateway: createGateway(),
+    gateway: createTutorModelGateway(),
   })
 }
