@@ -25,6 +25,62 @@ function isWebKitSafari(): boolean {
   return iOS || (/Safari/.test(ua) && !/Chrome|Chromium|Android/.test(ua))
 }
 
+/**
+ * Each KaTeX font lists woff2, woff and ttf, and browsers use the first they
+ * support. Dropping the rest makes the snapshot a third of the size. The
+ * library's `preferredFontFormat` can't do this: it loses some fonts entirely,
+ * which turned math bold.
+ */
+export function keepFirstFontSource(css: string): string {
+  return css.replace(/,\s*url\([^)]*\)(\s*format\([^)]*\))?/g, '')
+}
+
+function loadFontCss(surface: HTMLElement): Promise<string> {
+  fontCss ??= getFontEmbedCSS(surface)
+    .then(keepFirstFontSource)
+    .catch((err: unknown) => {
+      fontCss = null
+      throw err
+    })
+  return fontCss
+}
+
+/** Fetches the fonts ahead of the click. A failure resurfaces on the cut, which retries. */
+export function prepareDomCapture(surface: HTMLElement): void {
+  loadFontCss(surface).catch(() => undefined)
+}
+
+/** Displays that keep their computed size once their contents are gone. */
+const SIZED_DISPLAYS = new Set(['block', 'flex', 'grid', 'flow-root', 'inline-block', 'list-item'])
+
+/**
+ * Cloning a node copies the computed style of everything inside it, and a
+ * selection across two exercises means cloning the whole worksheet. An element
+ * entirely above or below the selection can't be seen, so it is cloned empty:
+ * its copied height keeps everything else in place. Its first and last
+ * children stay because their margins can collapse through it.
+ */
+function onlyNearSelection(box: ViewportBox): (node: HTMLElement) => boolean {
+  const offSelection = new WeakMap<Element, boolean>()
+
+  const isOffSelection = (element: Element): boolean => {
+    const known = offSelection.get(element)
+    if (known !== undefined) return known
+    const rect = element.getBoundingClientRect()
+    const off =
+      (rect.bottom <= box.top || rect.top >= box.top + box.height) &&
+      SIZED_DISPLAYS.has(getComputedStyle(element).display)
+    offSelection.set(element, off)
+    return off
+  }
+
+  return (node) => {
+    const parent = node.parentElement
+    if (!parent || !isOffSelection(parent)) return true
+    return node === parent.firstElementChild || node === parent.lastElementChild
+  }
+}
+
 function contains(outer: DOMRect, box: ViewportBox): boolean {
   return (
     outer.left <= box.left &&
@@ -61,11 +117,6 @@ export async function captureDomRegion(
   const rect = node.getBoundingClientRect()
   const pixelRatio = Math.min(RENDER_RATIO, MAX_OUTPUT_SIDE / Math.max(box.width, box.height))
 
-  fontCss ??= getFontEmbedCSS(surface).catch((err: unknown) => {
-    fontCss = null
-    throw err
-  })
-
   // html-to-image sizes the output from `width`/`height` but also applies
   // them to the cloned node; `style` is applied after, so it restores the
   // node's real layout size and shifts it so the selection sits at the
@@ -80,7 +131,8 @@ export async function captureDomRegion(
     width: box.width,
     height: box.height,
     pixelRatio,
-    fontEmbedCSS: await fontCss,
+    fontEmbedCSS: await loadFontCss(surface),
+    filter: onlyNearSelection(box),
     backgroundColor: getComputedStyle(surface).backgroundColor,
     style: {
       width: `${rect.width}px`,
