@@ -18,6 +18,12 @@ const LANGUAGE: Record<NotebookCheckLocale, string> = {
   en: 'English',
 }
 
+/** Shown instead of a reply that came back without its tags or was cut off. */
+export const CHECK_RETRY_MESSAGE: Record<NotebookCheckLocale, string> = {
+  he: 'לא הצלחנו להשלים את הבדיקה הפעם. אפשר ללחוץ שוב על "בדוק".',
+  en: 'We could not finish checking this page. Please press Check again.',
+}
+
 const VERDICT_RULES = `Choose exactly one verdict:
 - unrelated: the handwriting is not an attempt at this exercise (ordinary words, names, doodles, work on another problem). Say so plainly and invite the student to try. Do not praise it and do not discuss any solution steps.
 - unreadable: you cannot make out what was written. Say what is unclear and ask them to rewrite it.

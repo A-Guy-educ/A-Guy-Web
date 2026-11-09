@@ -16,10 +16,17 @@ import type { TutorModelGateway, TutorModelPart } from '@/server/services/tutor-
 import { createTutorModelGateway } from '@/server/services/tutor-chat/runtime'
 import { enforceTutorTurnPolicy } from '@/server/services/tutor-chat/turn-policy'
 import { loadAttachmentPart } from '@/server/web-api/chat-attachments'
-import { buildCheckInstructions, CHECK_SYSTEM_PROMPT, parseCheckReply } from './check-prompt'
+import {
+  buildCheckInstructions,
+  CHECK_RETRY_MESSAGE,
+  CHECK_SYSTEM_PROMPT,
+  parseCheckReply,
+} from './check-prompt'
 
 /** Grading should be repeatable, so well below the chat's temperature. */
 const CHECK_TEMPERATURE = 0.2
+/** Reading messy handwriting and solving the exercise takes more thought than a chat turn. */
+const CHECK_THINKING_BUDGET = 4096
 const CHECK_RATE_LIMIT = { rateLimit: 20, rateWindowMs: 60_000 }
 
 export interface NotebookCheckInput {
@@ -104,6 +111,7 @@ export async function runNotebookCheck(
     prompt,
     parts: labelledParts(exercise, input.inkBase64),
     temperature: CHECK_TEMPERATURE,
+    thinkingBudget: CHECK_THINKING_BUDGET,
     signal: input.signal,
   })
   if (result.inputTokens + result.outputTokens > 0) {
@@ -120,13 +128,17 @@ export async function runNotebookCheck(
   const parsed = parseCheckReply(result.text)
   if (!parsed.message) throw new TutorChatError('provider_error')
 
+  // A broken reply is never saved: the student just sees the retry message.
+  const complete = parsed.verdict !== null && result.finishReason !== 'MAX_TOKENS'
   const conversation = await deps.conversations.getOrCreate(input.ownerId, input.contextKey)
-  await deps.conversations.appendMessage(input.ownerId, conversation.id, {
-    turnId: randomUUID(),
-    role: 'assistant',
-    content: parsed.message,
-  })
-  await deps.conversations.compact(input.ownerId, conversation.id)
+  if (complete) {
+    await deps.conversations.appendMessage(input.ownerId, conversation.id, {
+      turnId: randomUUID(),
+      role: 'assistant',
+      content: parsed.message,
+    })
+    await deps.conversations.compact(input.ownerId, conversation.id)
+  }
 
   const durationMs = Date.now() - startedAt
   // Metadata only: the transcription is a student's work and stays out of logs.
@@ -135,6 +147,8 @@ export async function runNotebookCheck(
       traceId: input.traceId,
       model: result.model,
       verdict: parsed.verdict,
+      finishReason: result.finishReason,
+      thoughtsTokens: result.thoughtsTokens,
       hasExercise: Boolean(exercise),
       inkLength: input.inkBase64.length,
       inputTokens: result.inputTokens,
@@ -145,7 +159,7 @@ export async function runNotebookCheck(
   )
 
   return {
-    message: parsed.message,
+    message: complete ? parsed.message : CHECK_RETRY_MESSAGE[input.locale],
     conversationId: conversation.id,
     contextKey: input.contextKey,
     ...(input.includeDebug
@@ -157,6 +171,8 @@ export async function runNotebookCheck(
             durationMs,
             inputTokens: result.inputTokens,
             outputTokens: result.outputTokens,
+            thoughtsTokens: result.thoughtsTokens ?? 0,
+            finishReason: result.finishReason ?? null,
             system: CHECK_SYSTEM_PROMPT,
             prompt,
             exerciseUrl: exercise?.url ?? null,

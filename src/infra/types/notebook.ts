@@ -118,6 +118,8 @@ export interface NotebookCheckDebug {
   durationMs: number
   inputTokens: number
   outputTokens: number
+  thoughtsTokens: number
+  finishReason: string | null
   system: string
   prompt: string
   exerciseUrl: string | null

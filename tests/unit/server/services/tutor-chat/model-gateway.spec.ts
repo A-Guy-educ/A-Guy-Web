@@ -24,6 +24,57 @@ describe('Gemini tutor model gateway', () => {
     expect(state.buffer).toBe('')
   })
 
+  function gatewayReturning(model: string, body: unknown) {
+    const requests: Array<{ generationConfig: Record<string, unknown> }> = []
+    const fetchImpl = async (_url: string, init: RequestInit) => {
+      requests.push(JSON.parse(String(init.body)))
+      return new Response(JSON.stringify(body), { status: 200 })
+    }
+    const gateway = new GeminiTutorModelGateway({
+      apiKey: 'test-key',
+      model,
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+      timeoutMs: 5_000,
+    })
+    return { gateway, requests }
+  }
+
+  it('leaves room for the answer on top of a capped thinking budget', async () => {
+    const { gateway, requests } = gatewayReturning('gemini-2.5-flash', {})
+
+    await gateway.generate({ system: 's', prompt: 'p', parts: [] })
+    await gateway.generate({ system: 's', prompt: 'p', parts: [], thinkingBudget: 4096 })
+
+    expect(requests[0].generationConfig).toMatchObject({
+      maxOutputTokens: 8192,
+      thinkingConfig: { thinkingBudget: 2048 },
+    })
+    expect(requests[1].generationConfig).toMatchObject({
+      thinkingConfig: { thinkingBudget: 4096 },
+    })
+  })
+
+  it('sends no thinking budget to models that may reject one', async () => {
+    const { gateway, requests } = gatewayReturning('gemini-2.0-flash', {})
+
+    await gateway.generate({ system: 's', prompt: 'p', parts: [] })
+
+    expect(requests[0].generationConfig).not.toHaveProperty('thinkingConfig')
+  })
+
+  it('reports why the model stopped and how much it thought', async () => {
+    const { gateway } = gatewayReturning('gemini-2.5-flash', {
+      candidates: [{ content: { parts: [{ text: 'half' }] }, finishReason: 'MAX_TOKENS' }],
+      usageMetadata: { promptTokenCount: 9, candidatesTokenCount: 82, thoughtsTokenCount: 1966 },
+    })
+
+    await expect(gateway.generate({ system: 's', prompt: 'p', parts: [] })).resolves.toMatchObject({
+      text: 'half',
+      finishReason: 'MAX_TOKENS',
+      thoughtsTokens: 1966,
+    })
+  })
+
   it('streams real provider chunks and reports final usage', async () => {
     const encoder = new TextEncoder()
     const fetchImpl = async () =>

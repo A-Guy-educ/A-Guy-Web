@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   buildCheckInstructions,
+  CHECK_RETRY_MESSAGE,
   parseCheckReply,
 } from '@/server/services/notebook-check/check-prompt'
 import {
@@ -99,6 +100,32 @@ describe('runNotebookCheck', () => {
       rawReply: REPLY,
       exerciseUrl: 'https://blob/cut.png',
     })
+  })
+
+  it('gives the model extra thinking room for reading and solving', async () => {
+    await runNotebookCheck(input, d)
+
+    expect(d.gateway.generate.mock.calls[0][0].thinkingBudget).toBe(4096)
+  })
+
+  it.each([
+    ['came back without its closing tag', '<reading>84x - 126', 'STOP'],
+    ['was cut off after the verdict', `${REPLY} חצי משפט`, 'MAX_TOKENS'],
+  ])('shows a retry message when the reply %s', async (_name, text, finishReason) => {
+    d.gateway.generate.mockResolvedValue({
+      text,
+      finishReason,
+      thoughtsTokens: 1900,
+      inputTokens: 900,
+      outputTokens: 80,
+      model: 'test-model',
+    })
+
+    const result = await runNotebookCheck({ ...input, includeDebug: true }, d)
+
+    expect(result.message).toBe(CHECK_RETRY_MESSAGE.he)
+    expect(d.conversations.appendMessage).not.toHaveBeenCalled()
+    expect(result.debug).toMatchObject({ rawReply: text, finishReason, thoughtsTokens: 1900 })
   })
 
   it('rejects the check without charging the student when the cut cannot load', async () => {

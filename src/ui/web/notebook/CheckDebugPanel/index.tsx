@@ -51,7 +51,8 @@ export function CheckDebugPanel({ trace }: { trace: NotebookCheckTrace }) {
         </p>
         <p>
           {trace.model} · temperature {trace.temperature} · {trace.durationMs} ms ·{' '}
-          {trace.inputTokens} in / {trace.outputTokens} out · {trace.traceId}
+          {trace.inputTokens} in / {trace.outputTokens} out / {trace.thoughtsTokens} thinking ·
+          stopped: {trace.finishReason ?? 'unknown'} · {trace.traceId}
         </p>
         <details>
           <summary className="cursor-pointer">Raw reply</summary>
