@@ -5185,6 +5185,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Show the latest notebook cut over the chat ([#1586](https://github.com/A-Guy-educ/A-Guy-Web/pull/1586)) — @aguyshayb
 - feat: Add the saved notebook to image uploads in Ask ([#1585](https://github.com/A-Guy-educ/A-Guy-Web/pull/1585)) — @aguyshayb
 - fix: Check notebook pages as isolated turns with admin debugging ([#1584](https://github.com/A-Guy-educ/A-Guy-Web/pull/1584)) — @aguyshayb
 - fix: Stop the floating notebook flashing while the user loads ([#1583](https://github.com/A-Guy-educ/A-Guy-Web/pull/1583)) — @aguyshayb
