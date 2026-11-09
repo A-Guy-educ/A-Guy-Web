@@ -21,7 +21,7 @@ import { cn } from '@/infra/utils/ui'
 import { latestCutOf, setLatestCut } from '@/ui/web/notebook/LatestCutPeek/latest-cut-store'
 import { LessonNotebook, useNotebookPages } from '@/ui/web/notebook/LessonNotebook'
 import { CutSelection, type ViewportBox } from '@/ui/web/notebook/RegionCut/CutSelection'
-import { captureDomRegion } from '@/ui/web/notebook/RegionCut/dom-region-capture'
+import { captureDomRegion, prepareDomCapture } from '@/ui/web/notebook/RegionCut/dom-region-capture'
 import { captureImageRegion } from '@/ui/web/notebook/RegionCut/image-region-capture'
 import { capturePdfRegion } from '@/ui/web/notebook/RegionCut/pdf-region-capture'
 import { CUT_SURFACE_ATTR, useCutSelection } from '@/ui/web/notebook/RegionCut/useCutSelection'
@@ -66,6 +66,13 @@ export function LessonNotebookPane({ scope, cutSource, children }: LessonNoteboo
     touchDevice && touchCut,
   )
   const { clear: clearSelection } = selection
+  // A finished drag means a cut is likely, and the first one fetches every font.
+  const selected = Boolean(selection.box) && !selection.dragging
+  useEffect(() => {
+    if (kind !== 'scroll' || !selected) return
+    const surface = materialRef.current?.querySelector<HTMLElement>(`[${CUT_SURFACE_ATTR}]`)
+    if (surface) prepareDomCapture(surface)
+  }, [kind, selected])
   // A finished cut hands scrolling back to the finger.
   const clear = useCallback(() => {
     clearSelection()
