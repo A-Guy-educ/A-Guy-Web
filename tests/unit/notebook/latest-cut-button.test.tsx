@@ -1,11 +1,10 @@
 // @vitest-environment jsdom
 
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { NotebookCut, NotebookPage } from '@/infra/types/notebook'
-import { LatestCutPeek } from '@/ui/web/notebook/LatestCutPeek'
-import { latestCutOf, setLatestCut } from '@/ui/web/notebook/LatestCutPeek/latest-cut-store'
+import { LatestCutButton, latestCutOf } from '@/ui/web/notebook/LessonNotebook/LatestCutButton'
 import { I18nProvider } from '@/ui/web/providers/I18n'
 
 const mockIsTabletUp = vi.hoisted(() => vi.fn())
@@ -13,7 +12,13 @@ vi.mock('@/client/hooks/useMediaQuery', () => ({ useMediaQuery: mockIsTabletUp }
 
 const messages = {
   courses: {
-    lessonNotebook: { showLatestCut: 'Show last cut', hideLatestCut: 'Hide cut', cutAlt: 'Cut' },
+    lessonNotebook: {
+      showLatestCut: 'Show last cut',
+      hideLatestCut: 'Hide cut',
+      latestCutTitle: 'Original exercise cut',
+      sourceWithPage: '{label} · page {page}',
+      cutAlt: 'Cut',
+    },
   },
 }
 
@@ -23,7 +28,7 @@ function cutNamed(name: string): NotebookCut {
     url: `https://blob.example.com/${name}.png`,
     width: 800,
     height: 240,
-    source: { kind: 'pdf', label: 'worksheet' },
+    source: { kind: 'pdf', label: 'worksheet', page: 2 },
   }
 }
 
@@ -39,11 +44,11 @@ function page(createdAt: string, cut: NotebookCut | null): NotebookPage {
   }
 }
 
-function renderPeek() {
-  return render(
+function tree(cut: NotebookCut | null) {
+  return (
     <I18nProvider locale="en" messages={messages}>
-      <LatestCutPeek />
-    </I18nProvider>,
+      <LatestCutButton cut={cut} />
+    </I18nProvider>
   )
 }
 
@@ -53,31 +58,40 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup()
-  act(() => setLatestCut(null))
 })
 
-describe('LatestCutPeek', () => {
+describe('LatestCutButton', () => {
   it('shows nothing until there is a cut', () => {
-    renderPeek()
+    render(tree(null))
 
     expect(screen.queryByRole('button')).toBeNull()
   })
 
   it('opens the cut and follows a newer one', () => {
-    act(() => setLatestCut(cutNamed('first')))
-    renderPeek()
+    const { rerender } = render(tree(cutNamed('first')))
 
     fireEvent.click(screen.getByRole('button', { name: 'Show last cut' }))
     expect(screen.getByAltText('Cut').getAttribute('src')).toContain('first.png')
+    expect(screen.getByText('worksheet · page 2')).toBeTruthy()
 
-    act(() => setLatestCut(cutNamed('second')))
+    rerender(tree(cutNamed('second')))
     expect(screen.getByAltText('Cut').getAttribute('src')).toContain('second.png')
+  })
+
+  it('closes from the card', () => {
+    render(tree(cutNamed('first')))
+    const toggle = screen.getByRole('button', { name: 'Show last cut' })
+
+    fireEvent.click(toggle)
+    expect(toggle.getAttribute('aria-expanded')).toBe('true')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Hide cut' }))
+    expect(toggle.getAttribute('aria-expanded')).toBe('false')
   })
 
   it('stays hidden on phones', () => {
     mockIsTabletUp.mockReturnValue(false)
-    act(() => setLatestCut(cutNamed('first')))
-    renderPeek()
+    render(tree(cutNamed('first')))
 
     expect(screen.queryByRole('button')).toBeNull()
   })

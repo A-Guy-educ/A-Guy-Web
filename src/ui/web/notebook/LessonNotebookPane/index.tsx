@@ -18,7 +18,6 @@ import { toast } from 'sonner'
 import { useMediaQuery } from '@/client/hooks/useMediaQuery'
 import type { NotebookPage, NotebookScope } from '@/infra/types/notebook'
 import { cn } from '@/infra/utils/ui'
-import { latestCutOf, setLatestCut } from '@/ui/web/notebook/LatestCutPeek/latest-cut-store'
 import { LessonNotebook, useNotebookPages } from '@/ui/web/notebook/LessonNotebook'
 import { CutSelection, type ViewportBox } from '@/ui/web/notebook/RegionCut/CutSelection'
 import { captureDomRegion, prepareDomCapture } from '@/ui/web/notebook/RegionCut/dom-region-capture'
@@ -53,9 +52,6 @@ export function LessonNotebookPane({ scope, cutSource, children }: LessonNoteboo
   const materialRef = useRef<HTMLDivElement>(null)
   const notebook = useNotebookPages(scope, true)
   const checkPage = useCheckNotebookPage()
-  const latestCut = useMemo(() => latestCutOf(notebook.pages), [notebook.pages])
-  useEffect(() => setLatestCut(latestCut), [latestCut])
-  useEffect(() => () => setLatestCut(null), [])
   // Any touchscreen, including hybrids — a finger there needs an explicit cut mode.
   const touchDevice = useMediaQuery('(any-pointer: coarse)')
   const [touchCut, setTouchCut] = useState(false)

@@ -38,7 +38,6 @@ import { FormulaSheetContent } from '@/ui/web/shared/FormulaSheetViewer/FormulaS
 import { uploadDataUrlAsMedia } from '@/infra/media/uploadDataUrl'
 import { logger } from '@/infra/utils/logger'
 import { CheckDebugPanel } from '@/ui/web/notebook/CheckDebugPanel'
-import { LatestCutPeek } from '@/ui/web/notebook/LatestCutPeek'
 import {
   CHAT_ATTACH_FILES_EVENT,
   type ChatAttachFilesDetail,
@@ -491,8 +490,7 @@ export function ChatInterface({
   )
 
   return (
-    <div className="relative flex flex-col h-full min-h-0">
-      {displayMode !== 'input-only' && <LatestCutPeek />}
+    <div className="flex flex-col h-full min-h-0">
       {/* Header with optional reset button and teacher profile badge */}
       {showResetButton && (
         <div className="flex items-center justify-between p-3 border-b border-border">
