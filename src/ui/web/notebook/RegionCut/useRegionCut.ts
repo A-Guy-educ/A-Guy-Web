@@ -62,7 +62,8 @@ export function useRegionCut({
           return
         }
 
-        const filename = `notebook-cut${region.page ? `-p${region.page}` : ''}.png`
+        const extension = region.dataUrl.startsWith('data:image/jpeg') ? 'jpg' : 'png'
+        const filename = `notebook-cut${region.page ? `-p${region.page}` : ''}.${extension}`
 
         // The chat uploads its own attachments; the cut goes into the composer
         // as a regular attachment chip for the student to send with a question.

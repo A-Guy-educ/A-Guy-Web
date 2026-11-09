@@ -21,6 +21,7 @@ import { cn } from '@/infra/utils/ui'
 import { LessonNotebook, useNotebookPages } from '@/ui/web/notebook/LessonNotebook'
 import { CutSelection, type ViewportBox } from '@/ui/web/notebook/RegionCut/CutSelection'
 import { captureDomRegion } from '@/ui/web/notebook/RegionCut/dom-region-capture'
+import { captureImageRegion } from '@/ui/web/notebook/RegionCut/image-region-capture'
 import { capturePdfRegion } from '@/ui/web/notebook/RegionCut/pdf-region-capture'
 import { CUT_SURFACE_ATTR, useCutSelection } from '@/ui/web/notebook/RegionCut/useCutSelection'
 import { useRegionCut } from '@/ui/web/notebook/RegionCut/useRegionCut'
@@ -31,10 +32,11 @@ export { CUT_SURFACE_ATTR }
 
 /**
  * What the material is, for cutting. `pdf` is the PDF.js viewer iframe;
- * `scroll` is rendered HTML whose cuttable part carries `data-cut-surface`.
+ * `scroll` is rendered HTML whose cuttable part carries `data-cut-surface`;
+ * `image` is an uploaded image, the `<img>` that carries that attribute.
  */
 export type LessonCutSource =
-  { kind: 'pdf'; mediaId: string; label: string } | { kind: 'scroll'; label: string }
+  { kind: 'pdf' | 'image'; mediaId: string; label: string } | { kind: 'scroll'; label: string }
 
 interface LessonNotebookPaneProps {
   /** Which notebook to show: a lesson's, or an Ask room's. */
@@ -74,6 +76,7 @@ export function LessonNotebookPane({ scope, cutSource, children }: LessonNoteboo
         return iframe ? capturePdfRegion(iframe, box) : null
       }
       const surface = root?.querySelector<HTMLElement>(`[${CUT_SURFACE_ATTR}]`)
+      if (surface instanceof HTMLImageElement) return captureImageRegion(surface, box)
       return surface ? captureDomRegion(surface, box) : null
     },
     [kind],

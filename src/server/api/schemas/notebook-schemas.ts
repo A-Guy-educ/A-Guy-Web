@@ -43,7 +43,7 @@ const cutSchema = z.object({
   width: z.number().int().positive().max(20_000),
   height: z.number().int().positive().max(40_000),
   source: z.object({
-    kind: z.enum(['pdf', 'scroll']),
+    kind: z.enum(['pdf', 'scroll', 'image']),
     mediaId: z.string().min(1).max(MAX_ID_LENGTH).optional(),
     label: z.string().max(300),
     page: z.number().int().positive().optional(),
