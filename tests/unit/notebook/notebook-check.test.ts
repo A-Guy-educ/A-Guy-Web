@@ -29,7 +29,6 @@ const input: NotebookCheckInput = {
   inkBase64: 'ink-bytes',
   exerciseMediaId: 'cut-1',
   locale: 'he',
-  includeDebug: false,
   traceId: 'trace-1',
 }
 
@@ -51,7 +50,7 @@ function deps() {
       appendMessage: vi.fn().mockResolvedValue({}),
       compact: vi.fn().mockResolvedValue(false),
     },
-    loadExercise: vi.fn().mockResolvedValue({ part: CUT_PART, url: 'https://blob/cut.png' }),
+    loadExercise: vi.fn().mockResolvedValue({ part: CUT_PART }),
     enforcePolicy: vi.fn().mockResolvedValue(undefined),
     recordUsage: vi.fn().mockResolvedValue(undefined),
   } satisfies NotebookCheckDependencies
@@ -89,19 +88,6 @@ describe('runNotebookCheck', () => {
     expect(saved).not.toHaveProperty('media')
   })
 
-  it('returns debug details only when asked to', async () => {
-    const student = await runNotebookCheck(input, d)
-    const admin = await runNotebookCheck({ ...input, includeDebug: true }, deps())
-
-    expect(student.debug).toBeUndefined()
-    expect(admin.debug).toMatchObject({
-      reading: 'x = 8',
-      verdict: 'incorrect',
-      rawReply: REPLY,
-      exerciseUrl: 'https://blob/cut.png',
-    })
-  })
-
   it('gives the model extra thinking room for reading and solving', async () => {
     await runNotebookCheck(input, d)
 
@@ -121,11 +107,10 @@ describe('runNotebookCheck', () => {
       model: 'test-model',
     })
 
-    const result = await runNotebookCheck({ ...input, includeDebug: true }, d)
+    const result = await runNotebookCheck(input, d)
 
     expect(result.message).toBe(CHECK_RETRY_MESSAGE.he)
     expect(d.conversations.appendMessage).not.toHaveBeenCalled()
-    expect(result.debug).toMatchObject({ rawReply: text, finishReason, thoughtsTokens: 1900 })
   })
 
   it('rejects the check without charging the student when the cut cannot load', async () => {

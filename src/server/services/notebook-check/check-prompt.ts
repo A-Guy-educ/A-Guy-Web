@@ -1,7 +1,7 @@
 /**
  * @fileType utility
  * @domain notebook
- * @ai-summary Prompt and reply parser for checking one notebook page. The model transcribes the handwriting first and states a verdict in tags, so the verdict is grounded in what was written and both can be inspected in the debug panel; the tags are stripped before the student sees the reply.
+ * @ai-summary Prompt and reply parser for checking one notebook page. The model transcribes the handwriting first and states a verdict in tags, so the verdict is grounded in what was written; the tags are stripped before the student sees the reply.
  */
 import {
   NOTEBOOK_CHECK_VERDICTS,

@@ -5,7 +5,7 @@
  */
 import { randomUUID } from 'crypto'
 
-import type { NotebookCheckDebug, NotebookCheckLocale } from '@/infra/types/notebook'
+import type { NotebookCheckLocale } from '@/infra/types/notebook'
 import { TutorChatError } from '@/infra/types/tutor-chat'
 import { logger } from '@/infra/utils/logger'
 import { recordLlmUsage } from '@/server/services/llm-usage'
@@ -36,7 +36,6 @@ export interface NotebookCheckInput {
   inkBase64: string
   exerciseMediaId?: string
   locale: NotebookCheckLocale
-  includeDebug: boolean
   traceId: string
   signal?: AbortSignal
 }
@@ -45,12 +44,10 @@ export interface NotebookCheckResult {
   message: string
   conversationId: string
   contextKey: string
-  debug?: NotebookCheckDebug
 }
 
 interface LoadedExercise {
   part: TutorModelPart
-  url: string | null
 }
 
 export interface NotebookCheckDependencies {
@@ -66,7 +63,7 @@ async function loadExerciseImage(ownerId: string, mediaId: string) {
   if (!media) return null
   const loaded = await loadAttachmentPart(media)
   if (loaded.kind !== 'part') return null
-  return { part: loaded.part, url: typeof media.url === 'string' ? media.url : null }
+  return { part: loaded.part }
 }
 
 function defaultDependencies(): NotebookCheckDependencies {
@@ -162,25 +159,5 @@ export async function runNotebookCheck(
     message: complete ? parsed.message : CHECK_RETRY_MESSAGE[input.locale],
     conversationId: conversation.id,
     contextKey: input.contextKey,
-    ...(input.includeDebug
-      ? {
-          debug: {
-            traceId: input.traceId,
-            model: result.model,
-            temperature: CHECK_TEMPERATURE,
-            durationMs,
-            inputTokens: result.inputTokens,
-            outputTokens: result.outputTokens,
-            thoughtsTokens: result.thoughtsTokens ?? 0,
-            finishReason: result.finishReason ?? null,
-            system: CHECK_SYSTEM_PROMPT,
-            prompt,
-            exerciseUrl: exercise?.url ?? null,
-            reading: parsed.reading,
-            verdict: parsed.verdict,
-            rawReply: result.text,
-          },
-        }
-      : {}),
   }
 }

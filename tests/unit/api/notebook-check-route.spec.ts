@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockGetWebUser = vi.hoisted(() => vi.fn())
 const mockRun = vi.hoisted(() => vi.fn())
@@ -22,6 +22,11 @@ async function post(payload: unknown) {
   return { status: response.status, body: await response.json() }
 }
 
+// The route's first load takes seconds, too close to the per-test timeout.
+beforeAll(async () => {
+  await import('@/app/api/notebook/check/route')
+}, 30_000)
+
 beforeEach(() => {
   mockGetWebUser.mockReset().mockResolvedValue({ id: 'student-1', role: 'student' })
   mockRun.mockReset().mockResolvedValue({ message: 'ok', conversationId: 'c', contextKey: 'k' })
@@ -40,22 +45,13 @@ describe('POST /api/notebook/check', () => {
     expect(mockRun).not.toHaveBeenCalled()
   })
 
-  it('passes the decoded image to the check, without debug for students', async () => {
+  it('passes the decoded image to the check', async () => {
     const { status } = await post(body)
 
     expect(status).toBe(200)
     expect(mockRun.mock.calls[0][0]).toMatchObject({
       ownerId: 'student-1',
       inkBase64: 'iVBORw0KGgoAAAA',
-      includeDebug: false,
     })
-  })
-
-  it('turns debug on for admins', async () => {
-    mockGetWebUser.mockResolvedValue({ id: 'admin-1', role: 'admin' })
-
-    await post(body)
-
-    expect(mockRun.mock.calls[0][0].includeDebug).toBe(true)
   })
 })
