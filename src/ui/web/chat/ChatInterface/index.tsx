@@ -37,6 +37,7 @@ import { FormulaSheetButton } from '@/ui/web/shared/FormulaSheetViewer/FormulaSh
 import { FormulaSheetContent } from '@/ui/web/shared/FormulaSheetViewer/FormulaSheetContent'
 import { uploadDataUrlAsMedia } from '@/infra/media/uploadDataUrl'
 import { logger } from '@/infra/utils/logger'
+import { CheckDebugPanel } from '@/ui/web/notebook/CheckDebugPanel'
 import {
   CHAT_ATTACH_FILES_EVENT,
   type ChatAttachFilesDetail,
@@ -177,6 +178,8 @@ export function ChatInterface({
     sendVisibleHelp,
     sendContextualHelpWithMedia,
     sendContextualHelpWithMediaId,
+    checkNotebookPage,
+    checkTrace,
   } = useNotebookChat({
     initialMessage: t('chatWelcome'),
     authRequiredMessage: t('chatAuthRequired'),
@@ -276,7 +279,7 @@ export function ChatInterface({
   askActionRef.current = (e: Event) => {
     const { type, title, imageData, mediaId, pdfPageImage, pdfPageNumber } = (e as CustomEvent)
       .detail as {
-      type: 'hint' | 'solution' | 'check'
+      type: 'hint' | 'solution' | 'check' | 'page-check'
       title: string
       imageData?: string
       mediaId?: string
@@ -306,6 +309,8 @@ export function ChatInterface({
           `The student is working on "${title}" and wants to see the solution approach. Guide them step by step through the solution.`,
         )
       }
+    } else if (type === 'page-check' && imageData) {
+      void checkNotebookPage(imageData, mediaId, locale === 'he' ? 'he' : 'en')
     } else if (type === 'check' && imageData) {
       if (pdfPageImage) {
         // PDF path: student is working against a multi-exercise PDF.
@@ -643,6 +648,7 @@ export function ChatInterface({
             <span>{tCourses('chatThinking')}</span>
           </div>
         )}
+        {checkTrace && <CheckDebugPanel trace={checkTrace} />}
         <div ref={messagesEndRef} />
       </div>
 

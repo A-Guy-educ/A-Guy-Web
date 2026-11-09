@@ -12,7 +12,7 @@
  * notebook is open so it keeps its scroll position.
  */
 
-import React, { useCallback, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import { useMediaQuery } from '@/client/hooks/useMediaQuery'
@@ -20,7 +20,8 @@ import type { NotebookPage, NotebookScope } from '@/infra/types/notebook'
 import { cn } from '@/infra/utils/ui'
 import { LessonNotebook, useNotebookPages } from '@/ui/web/notebook/LessonNotebook'
 import { CutSelection, type ViewportBox } from '@/ui/web/notebook/RegionCut/CutSelection'
-import { captureDomRegion } from '@/ui/web/notebook/RegionCut/dom-region-capture'
+import { captureDomRegion, prepareDomCapture } from '@/ui/web/notebook/RegionCut/dom-region-capture'
+import { captureImageRegion } from '@/ui/web/notebook/RegionCut/image-region-capture'
 import { capturePdfRegion } from '@/ui/web/notebook/RegionCut/pdf-region-capture'
 import { CUT_SURFACE_ATTR, useCutSelection } from '@/ui/web/notebook/RegionCut/useCutSelection'
 import { useRegionCut } from '@/ui/web/notebook/RegionCut/useRegionCut'
@@ -31,10 +32,11 @@ export { CUT_SURFACE_ATTR }
 
 /**
  * What the material is, for cutting. `pdf` is the PDF.js viewer iframe;
- * `scroll` is rendered HTML whose cuttable part carries `data-cut-surface`.
+ * `scroll` is rendered HTML whose cuttable part carries `data-cut-surface`;
+ * `image` is an uploaded image, the `<img>` that carries that attribute.
  */
 export type LessonCutSource =
-  { kind: 'pdf'; mediaId: string; label: string } | { kind: 'scroll'; label: string }
+  { kind: 'pdf' | 'image'; mediaId: string; label: string } | { kind: 'scroll'; label: string }
 
 interface LessonNotebookPaneProps {
   /** Which notebook to show: a lesson's, or an Ask room's. */
@@ -60,6 +62,13 @@ export function LessonNotebookPane({ scope, cutSource, children }: LessonNoteboo
     touchDevice && touchCut,
   )
   const { clear: clearSelection } = selection
+  // A finished drag means a cut is likely, and the first one fetches every font.
+  const selected = Boolean(selection.box) && !selection.dragging
+  useEffect(() => {
+    if (kind !== 'scroll' || !selected) return
+    const surface = materialRef.current?.querySelector<HTMLElement>(`[${CUT_SURFACE_ATTR}]`)
+    if (surface) prepareDomCapture(surface)
+  }, [kind, selected])
   // A finished cut hands scrolling back to the finger.
   const clear = useCallback(() => {
     clearSelection()
@@ -74,6 +83,7 @@ export function LessonNotebookPane({ scope, cutSource, children }: LessonNoteboo
         return iframe ? capturePdfRegion(iframe, box) : null
       }
       const surface = root?.querySelector<HTMLElement>(`[${CUT_SURFACE_ATTR}]`)
+      if (surface instanceof HTMLImageElement) return captureImageRegion(surface, box)
       return surface ? captureDomRegion(surface, box) : null
     },
     [kind],

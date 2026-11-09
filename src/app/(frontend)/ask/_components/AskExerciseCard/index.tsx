@@ -1,13 +1,10 @@
 'use client'
 
-import Image from 'next/image'
 import { cn } from '@/infra/utils/ui'
 import { useTranslations } from '@/ui/web/providers/I18n'
-import { Award, Edit3, Lightbulb, Loader2, Play, RotateCcw } from 'lucide-react'
-import { useState } from 'react'
+import { Award, Lightbulb, Loader2, Play, RotateCcw } from 'lucide-react'
 import type { AskActionEvent, ExerciseFile } from '../ask-types'
 import { ASK_ACTION_EVENT } from '../ask-types'
-import { AskDrawingCanvas } from '../AskDrawingCanvas'
 
 interface AskExerciseCardProps {
   file: ExerciseFile
@@ -34,7 +31,11 @@ export function AskExerciseCard({
   onStartOver,
 }: AskExerciseCardProps) {
   const t = useTranslations('homepage.ask')
-  const [isOpen, setIsOpen] = useState(false)
+  // Cutting reads the image back from a canvas, which needs a same-origin
+  // source. Until the upload finishes there is only the local preview.
+  const imageSrc = file.filename
+    ? `/api/media/file/${encodeURIComponent(file.filename)}?inline=1`
+    : file.url
 
   const handleHint = () => {
     dispatchAskAction({ type: 'hint', title: file.title, mediaId: file.mediaId })
@@ -44,19 +45,16 @@ export function AskExerciseCard({
     dispatchAskAction({ type: 'solution', title: file.title, mediaId: file.mediaId })
   }
 
-  const handleCheckSolution = (imageData: string) => {
-    dispatchAskAction({ type: 'check', title: file.title, imageData, mediaId: file.mediaId })
-  }
-
   return (
     <div className="rounded-2xl bg-card border border-border/40 shadow-elevation-1 transition-all duration-normal overflow-hidden border-s-4 border-s-accent mb-6">
-      <div className="relative overflow-hidden bg-muted aspect-video">
-        <Image
-          src={file.url}
+      <div className="bg-muted">
+        {/* eslint-disable-next-line @next/next/no-img-element -- must stay same-origin to be cut */}
+        <img
+          src={imageSrc}
           alt={file.title}
-          fill
-          className="object-contain"
-          sizes="(max-width: 768px) 100vw, 50vw"
+          draggable={false}
+          data-cut-surface
+          className="h-auto w-full select-none"
         />
       </div>
 
@@ -118,22 +116,8 @@ export function AskExerciseCard({
                 )}
               </ActionButton>
             )}
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className={cn(
-                'flex items-center gap-content-gap-xs px-5 py-2 rounded-xl font-bold transition-all duration-normal',
-                isOpen
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-primary/10 text-primary hover:bg-primary/20',
-              )}
-            >
-              <Edit3 className="w-4 h-4" />
-              {isOpen ? t('closeNotebook') : t('openNotebook')}
-            </button>
           </div>
         </div>
-
-        {isOpen && <AskDrawingCanvas onCheckSolution={handleCheckSolution} />}
       </div>
     </div>
   )

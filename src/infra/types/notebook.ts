@@ -13,15 +13,19 @@ export const NOTEBOOK_MIN_PAGE_HEIGHT = 600
 export const NOTEBOOK_MAX_PAGE_HEIGHT = 20_000
 
 /** Pen inks index into the `--pen-ink-*` design tokens, so stored strokes re-tint with the theme. */
-export const NOTEBOOK_INK_COUNT = 3
+export const NOTEBOOK_INK_COUNT = 4
+
+/** The most strokes one page may save. */
+export const NOTEBOOK_MAX_STROKES = 3_000
 
 export interface NotebookStroke {
   /** Index into the pen-ink palette. Ignored for eraser strokes. */
   ink: number
   erase?: boolean
   /**
-   * Line width in page units. Set when the stroke was drawn on a small screen,
-   * where the default would render hairline-thin; absent means the default.
+   * Line width in page units. Set when the student picked a thin or thick pen,
+   * or drew on a small screen where the default would render hairline-thin;
+   * absent means the default.
    */
   width?: number
   /** Flat `[x0, y0, x1, y1, …]` in page coordinates. */
@@ -37,8 +41,8 @@ export interface NotebookCutRect {
 }
 
 export interface NotebookCutSource {
-  kind: 'pdf' | 'scroll'
-  /** Media id of the PDF the cut came from (PDF cuts only). */
+  kind: 'pdf' | 'scroll' | 'image'
+  /** Media id of the file the cut came from (PDF and image cuts). */
   mediaId?: string
   /** Human label shown in the page header, e.g. the file name. */
   label: string
@@ -82,4 +86,42 @@ export interface NotebookPageCreateInput {
 export interface NotebookPageUpdateInput {
   height?: number
   strokes?: NotebookStroke[]
+}
+
+export const NOTEBOOK_CHECK_VERDICTS = [
+  'correct',
+  'incorrect',
+  'incomplete',
+  'unrelated',
+  'unreadable',
+] as const
+
+export type NotebookCheckVerdict = (typeof NOTEBOOK_CHECK_VERDICTS)[number]
+export type NotebookCheckLocale = 'he' | 'en'
+
+export interface NotebookCheckRequest {
+  /** PNG data URL of the page's handwriting. */
+  inkImage: string
+  /** The page's cut exercise, when it has one. */
+  exerciseMediaId?: string
+  /** The chat the tutor's reply is added to. */
+  contextKey: string
+  lessonId?: string
+  locale: NotebookCheckLocale
+}
+
+/** What a check sent and got back. Returned to admins only. */
+export interface NotebookCheckDebug {
+  traceId: string
+  model: string
+  temperature: number
+  durationMs: number
+  inputTokens: number
+  outputTokens: number
+  system: string
+  prompt: string
+  exerciseUrl: string | null
+  reading: string | null
+  verdict: NotebookCheckVerdict | null
+  rawReply: string
 }

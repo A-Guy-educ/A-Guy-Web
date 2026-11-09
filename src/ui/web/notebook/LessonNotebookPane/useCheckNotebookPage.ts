@@ -9,8 +9,7 @@ import { useTranslations } from '@/ui/web/providers/I18n'
 
 /**
  * "Check this page": hand the page's handwriting and its cut exercise to the
- * tutor through the same `ask-action` check the floating notebook uses, so
- * the chat's existing check prompt (student work + original exercise) applies.
+ * chat as a `page-check`, which the tutor grades as a standalone turn.
  */
 export function useCheckNotebookPage() {
   const t = useTranslations('courses.lessonNotebook')
@@ -25,8 +24,7 @@ export function useCheckNotebookPage() {
       window.dispatchEvent(
         new CustomEvent('ask-action', {
           detail: {
-            type: 'check',
-            title: page.cut?.source.label ?? t('blankPage'),
+            type: 'page-check',
             imageData,
             mediaId: page.cut?.mediaId,
           },

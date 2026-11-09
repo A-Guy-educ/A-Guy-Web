@@ -11,19 +11,25 @@
  */
 
 import { NotebookPen } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 
-import type { NotebookPage } from '@/infra/types/notebook'
+import { NOTEBOOK_PAGE_WIDTH, type NotebookPage } from '@/infra/types/notebook'
+import { cn } from '@/infra/utils/ui'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import type { InkTool } from './InkSurface'
+import { latestCutOf } from './LatestCutButton'
 import { NotebookPageCard } from './NotebookPageCard'
 import { NotebookToolbar } from './NotebookToolbar'
 import { useInkPalette } from './useInkPalette'
 import type { useNotebookPages } from './useNotebookPages'
+import { useStrokeEditing } from './useStrokeEditing'
 
 export { useNotebookPages, NEW_PAGE_HEIGHT } from './useNotebookPages'
 export { flattenPageInk } from './flatten-page'
 export { useInkPalette } from './useInkPalette'
+
+const ZOOM_LEVELS = [1, 1.25, 1.5, 2]
 
 interface LessonNotebookProps {
   notebook: ReturnType<typeof useNotebookPages>
@@ -41,19 +47,53 @@ export function LessonNotebook({
 }: LessonNotebookProps) {
   const t = useTranslations('courses.lessonNotebook')
   const inks = useInkPalette()
-  const [tool, setTool] = useState<InkTool>({ ink: 0, erase: false })
+  const [tool, setTool] = useState<InkTool>({ ink: 0, mode: 'pen', size: 1 })
   const [fingerDraws, setFingerDraws] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(null)
+  const [zoomLevel, setZoomLevel] = useState(0)
+  const rootRef = useRef<HTMLDivElement>(null)
   const pageRefs = useRef(new Map<string, HTMLElement>())
   const { pages, status, addPage, setStrokes, extendPage, removePage } = notebook
+  const editing = useStrokeEditing(setStrokes, () => onError(t('pageFull')))
+  const zoom = ZOOM_LEVELS[zoomLevel]
 
   const activePage = pages.find((page) => page.id === activeId) ?? pages.at(-1) ?? null
+  const latestCut = useMemo(() => latestCutOf(pages), [pages])
 
   useEffect(() => {
     if (!focusPageId) return
     setActiveId(focusPageId)
     pageRefs.current.get(focusPageId)?.scrollIntoView({ block: 'start' })
   }, [focusPageId, pages.length])
+
+  const changeTool = (next: InkTool) => {
+    if (next.mode !== 'lasso') editing.clearSelection()
+    setTool(next)
+  }
+
+  // The caller's pane is what scrolls; keep the same spot in view as pages grow.
+  const changeZoom = (direction: 1 | -1) => {
+    const next = zoomLevel + direction
+    if (next < 0 || next >= ZOOM_LEVELS.length) return
+    const scroller = rootRef.current?.parentElement
+    const scrollTop = scroller?.scrollTop ?? 0
+    flushSync(() => setZoomLevel(next))
+    if (scroller) scroller.scrollTop = (scrollTop * ZOOM_LEVELS[next]) / zoom
+  }
+
+  /** The middle of what's on screen of this page, in page units. */
+  const visibleCenterY = (page: NotebookPage) => {
+    const rect = pageRefs.current.get(page.id)?.getBoundingClientRect()
+    const view = rootRef.current?.parentElement?.getBoundingClientRect()
+    if (!rect || !view) return page.height / 2
+    const middle = (Math.max(rect.top, view.top) + Math.min(rect.bottom, view.bottom)) / 2
+    return ((middle - rect.top) * NOTEBOOK_PAGE_WIDTH) / rect.width
+  }
+
+  const paste = () => {
+    if (!activePage) return
+    editing.paste(activePage, visibleCenterY(activePage))
+  }
 
   const addBlank = () => {
     addPage()
@@ -68,20 +108,33 @@ export function LessonNotebook({
 
   const remove = (page: NotebookPage) => {
     if (!window.confirm(t('deleteConfirm'))) return
+    editing.clearSelection()
     removePage(page.id).catch(() => onError(t('deleteFailed')))
   }
 
   return (
-    <div className="relative flex flex-col gap-card-gap p-card-padding-sm md:p-card-padding">
+    <div
+      ref={rootRef}
+      className="relative flex flex-col gap-card-gap p-card-padding-sm md:p-card-padding"
+    >
       <NotebookToolbar
+        latestCut={latestCut}
         inks={inks}
         tool={tool}
         fingerDraws={fingerDraws}
         canUndo={Boolean(activePage?.strokes.length)}
+        canCopy={editing.selection !== null}
+        canPaste={editing.canPaste && activePage !== null}
+        zoom={zoom}
+        canZoomIn={zoomLevel < ZOOM_LEVELS.length - 1}
+        canZoomOut={zoomLevel > 0}
         status={status}
-        onTool={setTool}
+        onTool={changeTool}
         onFingerDraws={setFingerDraws}
-        onUndo={() => activePage && setStrokes(activePage.id, activePage.strokes.slice(0, -1))}
+        onUndo={() => activePage && editing.undo(activePage)}
+        onCopy={editing.copySelection}
+        onPaste={paste}
+        onZoom={changeZoom}
         onBlankPage={addBlank}
       />
 
@@ -99,31 +152,37 @@ export function LessonNotebook({
         </div>
       )}
 
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-card-gap">
-        {pages.map((page, index) => (
-          <div
-            key={page.id}
-            className="scroll-mt-16"
-            ref={(el) => {
-              if (el) pageRefs.current.set(page.id, el)
-              else pageRefs.current.delete(page.id)
-            }}
-          >
-            <NotebookPageCard
-              page={page}
-              pageNumber={index + 1}
-              active={page.id === activePage?.id}
-              inks={inks}
-              tool={tool}
-              fingerDraws={fingerDraws}
-              onStrokes={(strokes) => setStrokes(page.id, strokes)}
-              onActivate={() => setActiveId(page.id)}
-              onExtend={() => extendPage(page.id)}
-              onDelete={() => remove(page)}
-              onCheck={() => onCheckPage(page, inks)}
-            />
-          </div>
-        ))}
+      <div className={cn('mx-auto w-full max-w-4xl', zoom > 1 && 'overflow-x-auto')}>
+        <div className="flex flex-col gap-card-gap" style={{ width: `${zoom * 100}%` }}>
+          {pages.map((page, index) => (
+            <div
+              key={page.id}
+              className="scroll-mt-16"
+              ref={(el) => {
+                if (el) pageRefs.current.set(page.id, el)
+                else pageRefs.current.delete(page.id)
+              }}
+            >
+              <NotebookPageCard
+                page={page}
+                pageNumber={index + 1}
+                active={page.id === activePage?.id}
+                inks={inks}
+                tool={tool}
+                fingerDraws={fingerDraws}
+                selection={editing.selection?.pageId === page.id ? editing.selection : null}
+                onStrokes={(strokes) => editing.applyStrokes(page, strokes)}
+                onLasso={(loop) => editing.lasso(page, loop)}
+                onMoveSelection={(dx, dy) => editing.moveSelection(page, dx, dy)}
+                onClearSelection={editing.clearSelection}
+                onActivate={() => setActiveId(page.id)}
+                onExtend={() => extendPage(page.id)}
+                onDelete={() => remove(page)}
+                onCheck={() => onCheckPage(page, inks)}
+              />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )

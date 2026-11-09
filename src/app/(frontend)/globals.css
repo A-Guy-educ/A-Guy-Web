@@ -127,6 +127,7 @@
     --pen-ink-1: 222 47% 11%; /* near-black */
     --pen-ink-2: 0 72% 45%; /* red */
     --pen-ink-3: 217 85% 45%; /* blue */
+    --pen-ink-4: 142 71% 35%; /* green */
   }
 
   [data-theme='dark'] {
@@ -240,6 +241,7 @@
     --pen-ink-1: 222 47% 15%;
     --pen-ink-2: 0 72% 55%;
     --pen-ink-3: 217 85% 55%;
+    --pen-ink-4: 142 71% 45%;
   }
 }
 

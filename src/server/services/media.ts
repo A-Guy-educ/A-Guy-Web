@@ -51,6 +51,15 @@ export async function findMediaById(id: string): Promise<Document | null> {
   return db.collection('media').findOne({ _id: new ObjectId(id) })
 }
 
+/** One media document uploaded by this user, or `null`. */
+export async function findOwnedMedia(id: string, ownerId: string): Promise<Document | null> {
+  if (!ObjectId.isValid(id)) return null
+  const db = await getContentDb()
+  // createdBy is an ObjectId under the Admin schema; older rows may be strings.
+  const createdBy = ObjectId.isValid(ownerId) ? { $in: [ownerId, new ObjectId(ownerId)] } : ownerId
+  return db.collection('media').findOne({ _id: new ObjectId(id), createdBy })
+}
+
 /** One media document by its stored filename, or `null`. */
 export async function findMediaByFilename(filename: string): Promise<Document | null> {
   const db = await getContentDb()

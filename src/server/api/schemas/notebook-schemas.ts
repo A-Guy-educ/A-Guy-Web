@@ -8,11 +8,11 @@ import { z } from 'zod'
 import {
   NOTEBOOK_INK_COUNT,
   NOTEBOOK_MAX_PAGE_HEIGHT,
+  NOTEBOOK_MAX_STROKES,
   NOTEBOOK_MIN_PAGE_HEIGHT,
   type NotebookScope,
 } from '@/infra/types/notebook'
 
-const MAX_STROKES_PER_PAGE = 3_000
 const MAX_POINTS_PER_STROKE = 8_000
 const MAX_ID_LENGTH = 64
 /** Ask contextKeys are `ask:<courseId>:<timestamp>`; leave room for that to grow. */
@@ -43,7 +43,7 @@ const cutSchema = z.object({
   width: z.number().int().positive().max(20_000),
   height: z.number().int().positive().max(40_000),
   source: z.object({
-    kind: z.enum(['pdf', 'scroll']),
+    kind: z.enum(['pdf', 'scroll', 'image']),
     mediaId: z.string().min(1).max(MAX_ID_LENGTH).optional(),
     label: z.string().max(300),
     page: z.number().int().positive().optional(),
@@ -85,10 +85,32 @@ export const notebookPageCreateSchema = z
     scope: toScope({ lessonId, askContext }),
   }))
 
+const PNG_DATA_URL_PREFIX = 'data:image/png;base64,'
+/** Keeps a check under Vercel's 4.5 MB request body limit. */
+const MAX_INK_DATA_URL_LENGTH = 4_000_000
+
+export const notebookCheckSchema = z
+  .object({
+    inkImage: z
+      .string()
+      .max(MAX_INK_DATA_URL_LENGTH)
+      .refine((value) => value.startsWith(`${PNG_DATA_URL_PREFIX}iVBOR`), {
+        message: 'Handwriting must be a PNG data URL',
+      }),
+    exerciseMediaId: z.string().min(1).max(MAX_ID_LENGTH).optional(),
+    contextKey: z.string().min(1).max(MAX_CONTEXT_KEY_LENGTH),
+    lessonId: z.string().min(1).max(MAX_ID_LENGTH).optional(),
+    locale: z.enum(['he', 'en']),
+  })
+  .transform(({ inkImage, ...rest }) => ({
+    ...rest,
+    inkBase64: inkImage.slice(PNG_DATA_URL_PREFIX.length),
+  }))
+
 export const notebookPageUpdateSchema = z
   .object({
     height: pageHeight.optional(),
-    strokes: z.array(strokeSchema).max(MAX_STROKES_PER_PAGE).optional(),
+    strokes: z.array(strokeSchema).max(NOTEBOOK_MAX_STROKES).optional(),
   })
   .refine((value) => value.height !== undefined || value.strokes !== undefined, {
     message: 'Nothing to update',

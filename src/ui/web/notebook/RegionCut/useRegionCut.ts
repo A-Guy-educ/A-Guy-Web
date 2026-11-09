@@ -37,6 +37,11 @@ export function pageHeightForCut(width: number, height: number): number {
   return Math.min(NOTEBOOK_MAX_PAGE_HEIGHT, Math.max(NEW_PAGE_HEIGHT, imageHeight + SOLVING_SPACE))
 }
 
+/** Capturing can hold the main thread, so the spinner has to reach the screen first. */
+function nextPaint(): Promise<void> {
+  return new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve)))
+}
+
 /**
  * Turns a selection on the lesson material into an uploaded image, then
  * either a new notebook page or a chat attachment. Upload happens once,
@@ -56,13 +61,15 @@ export function useRegionCut({
     async (target: CutTarget, selection: ViewportBox) => {
       setBusy(true)
       try {
+        await nextPaint()
         const region = await capture(selection)
         if (!region) {
           toast.error(t('cutUnavailable'))
           return
         }
 
-        const filename = `notebook-cut${region.page ? `-p${region.page}` : ''}.png`
+        const extension = region.dataUrl.startsWith('data:image/jpeg') ? 'jpg' : 'png'
+        const filename = `notebook-cut${region.page ? `-p${region.page}` : ''}.${extension}`
 
         // The chat uploads its own attachments; the cut goes into the composer
         // as a regular attachment chip for the student to send with a question.

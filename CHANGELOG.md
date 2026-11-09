@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.64.0 — 2026-11-09
+
+### Features
+- Move the latest cut button to the notebook toolbar (#1590)
+- Show the latest notebook cut over the chat (#1586)
+- Add the saved notebook to image uploads in Ask (#1585)
+- Add personal details page at /me (#1582)
+- Add zoom, lasso, pen sizes and more shapes to the notebook (#1581)
+
+### Bug Fixes
+- Make scroll view cuts fast and keep the page responsive (#1587)
+- Check notebook pages as isolated turns with admin debugging (#1584)
+- Stop the floating notebook flashing while the user loads (#1583)
+
 ## v0.63.0 — 2026-11-08
 
 ### Features
@@ -5184,6 +5198,16 @@
 - start interactive session live-1778076414935-0dlywn (7b990ec4b)
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
+
+- feat: Move the latest cut button to the notebook toolbar ([#1590](https://github.com/A-Guy-educ/A-Guy-Web/pull/1590)) — @aguyshayb
+- fix: Make scroll view cuts fast and keep the page responsive ([#1587](https://github.com/A-Guy-educ/A-Guy-Web/pull/1587)) — @aguyshayb
+- feat: Show the latest notebook cut over the chat ([#1586](https://github.com/A-Guy-educ/A-Guy-Web/pull/1586)) — @aguyshayb
+- feat: Add the saved notebook to image uploads in Ask ([#1585](https://github.com/A-Guy-educ/A-Guy-Web/pull/1585)) — @aguyshayb
+- fix: Check notebook pages as isolated turns with admin debugging ([#1584](https://github.com/A-Guy-educ/A-Guy-Web/pull/1584)) — @aguyshayb
+- fix: Stop the floating notebook flashing while the user loads ([#1583](https://github.com/A-Guy-educ/A-Guy-Web/pull/1583)) — @aguyshayb
+- feat: Add personal details page at /me ([#1582](https://github.com/A-Guy-educ/A-Guy-Web/pull/1582)) — @aguyshayb
+- feat: Add zoom, lasso, pen sizes and more shapes to the notebook ([#1581](https://github.com/A-Guy-educ/A-Guy-Web/pull/1581)) — @aguyshayb
+## [v0.63.0] - 2026-11-08
 
 - chore: Release v0.63.0 ([#1579](https://github.com/A-Guy-educ/A-Guy-Web/pull/1579)) — @aguyshayb
 - fix: Shrink wrapped math, then move it to a new line ([#1577](https://github.com/A-Guy-educ/A-Guy-Web/pull/1577)) — @aguyshayb
