@@ -100,7 +100,7 @@ export function UserDropdown({ user }: { user: User }) {
 
         <DropdownMenuSeparator />
         <DropdownMenuLabel className={SECTION_LABEL}>{t('myAccount')}</DropdownMenuLabel>
-        <AccountMenuLink href="/account" icon={UserIcon} label={t('personalDetails')} />
+        <AccountMenuLink href="/me" icon={UserIcon} label={t('personalDetails')} />
 
         <DropdownMenuLabel className={SECTION_LABEL}>{t('settings')}</DropdownMenuLabel>
         <div className="flex flex-col gap-content-gap-xs px-2 py-1">

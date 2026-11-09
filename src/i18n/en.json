@@ -245,6 +245,17 @@
       "name": "Name",
       "email": "Email",
       "missing": "Not provided",
+      "me": {
+        "title": "Personal details",
+        "firstName": "First name",
+        "lastName": "Last name",
+        "className": "Class",
+        "school": "School",
+        "city": "City",
+        "studyGroup": "Study group",
+        "phone": "Mobile",
+        "email": "Email"
+      },
       "selectedCourse": "Selected Course",
       "noCourseSelected": "No course selected",
       "selectCourse": "Select a Course",

@@ -268,6 +268,17 @@
       "name": "שם",
       "email": "אימייל",
       "missing": "לא סופק",
+      "me": {
+        "title": "פרטים אישיים",
+        "firstName": "שם",
+        "lastName": "משפחה",
+        "className": "כיתה",
+        "school": "בית ספר",
+        "city": "עיר",
+        "studyGroup": "הקבצה",
+        "phone": "נייד",
+        "email": "מייל"
+      },
       "selectedCourse": "קורס נבחר",
       "noCourseSelected": "לא נבחר קורס",
       "selectCourse": "בחר קורס",
