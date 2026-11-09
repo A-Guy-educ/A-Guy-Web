@@ -1,7 +1,9 @@
 'use client'
 
+import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { interactiveLessonToGuidedExplanation } from '@/infra/llm/services/interactive-lesson/lesson-to-guided-explanation'
 import { GuidedExplanationRunner } from '@/ui/web/GuidedExplanationRunner'
+import { LessonNotebookPane } from '@/ui/web/notebook/LessonNotebookPane'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import {
   AlertCircle,
@@ -56,6 +58,7 @@ interface AskPrimaryContentProps {
 export function AskPrimaryContent({ contextKey }: AskPrimaryContentProps) {
   const t = useTranslations('homepage.ask')
   const locale = useLocale()
+  const { user } = useCurrentUser()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [currentFile, setCurrentFile] = useState<ExerciseFile | null>(null)
   const [isUploading, setIsUploading] = useState(false)
@@ -273,8 +276,8 @@ export function AskPrimaryContent({ contextKey }: AskPrimaryContentProps) {
     )
   }
 
-  return (
-    <div className="p-card-padding md:p-10 h-full overflow-y-auto">
+  const material = (
+    <div className="p-card-padding md:p-10 h-full min-h-0 flex-1 overflow-y-auto">
       <div className="max-w-2xl mx-auto w-full">
         <header className="mb-10 text-center md:text-right">
           <h1 className="text-display-md font-black mb-2">{t('pageTitle')}</h1>
@@ -356,6 +359,20 @@ export function AskPrimaryContent({ contextKey }: AskPrimaryContentProps) {
           />
         </div>
       )}
+    </div>
+  )
+
+  // An uploaded image gets the room's saved notebook, same as a PDF.
+  if (!user || !contextKey || !currentFile?.mediaId || isPdfFile) return material
+
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      <LessonNotebookPane
+        scope={{ kind: 'ask', contextKey }}
+        cutSource={{ kind: 'image', mediaId: currentFile.mediaId, label: currentFile.title }}
+      >
+        {material}
+      </LessonNotebookPane>
     </div>
   )
 }

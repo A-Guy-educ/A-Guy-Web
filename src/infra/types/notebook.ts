@@ -41,8 +41,8 @@ export interface NotebookCutRect {
 }
 
 export interface NotebookCutSource {
-  kind: 'pdf' | 'scroll'
-  /** Media id of the PDF the cut came from (PDF cuts only). */
+  kind: 'pdf' | 'scroll' | 'image'
+  /** Media id of the file the cut came from (PDF and image cuts). */
   mediaId?: string
   /** Human label shown in the page header, e.g. the file name. */
   label: string
