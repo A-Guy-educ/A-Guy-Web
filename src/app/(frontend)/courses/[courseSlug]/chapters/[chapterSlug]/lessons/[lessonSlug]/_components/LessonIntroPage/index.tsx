@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { BookOpen, ChevronLeft, FileText, Globe, Layers, RotateCcw, Sparkles } from 'lucide-react'
+import { Globe } from 'lucide-react'
 import { usePathname, useSearchParams } from 'next/navigation'
 
 import { ExerciseWorkspace } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseWorkspace'
@@ -10,11 +10,9 @@ import type { ResolvedLessonBlock } from '@/server/repos/queries/lesson-blocks'
 import { getExerciseBlocks } from '@/lib/exercises/getExerciseBlocks'
 import { getLessonContentBlocks } from '@/lib/lessons/getLessonContentBlocks'
 import { getEffectiveLessonType } from '@/server/constants/lesson-types'
-import { SystemLink } from '@/infra/loading/components/SystemLink'
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { ChatInterface } from '@/ui/web/chat'
 import { BackToCourses } from '@/app/(frontend)/courses/_components/BackToCourses'
-import { Button } from '@/ui/web/components/button'
 import { Card, CardContent } from '@/ui/web/components/card'
 import {
   Dialog,
@@ -25,14 +23,20 @@ import {
 } from '@/ui/web/components/dialog'
 import { trackOnboardingStep } from '@/client/utils/guest-session-beacon'
 import { GoogleLoginButton } from '@/ui/web/auth/GoogleLoginButton'
-import { Progress } from '@/ui/web/components/progress'
 import { useTranslations } from '@/ui/web/providers/I18n'
-import { MathMarkdown } from '@/ui/web/shared/MathMarkdown'
+import type { LessonLandingContent } from '@/lib/lessons/buildLessonLanding'
 
 import { ContentPagesPreamble } from '../ContentPagesPreamble'
 import { DualModeLessonView } from '../DualModeLessonView'
 import type { LessonMode } from '../DualModeLessonView/useLessonViewMode'
 import { EmptyLessonPlaceholder } from '../EmptyLessonPlaceholder'
+import {
+  LessonLandingExplanation,
+  LessonLandingHero,
+  LessonLandingPractice,
+  LessonLandingRelated,
+  LessonLandingWorkedExample,
+} from '../LessonLanding'
 import { useLessonIntroPage } from './useLessonIntroPage'
 import { ShareButton } from '@/ui/web/shared/ShareButton'
 
@@ -88,6 +92,17 @@ interface LessonIntroPageProps {
    * per-exercise lock in ExercisesPager.
    */
   lessonLearningIndex?: number | null
+  /** Worked example, practice questions and hero sketch pulled from the exercises. */
+  landing?: LessonLandingContent
+}
+
+const EMPTY_LANDING: LessonLandingContent = { visual: null, workedExample: null, practice: [] }
+
+function splitKeywords(value?: string | null): string[] {
+  return (value ?? '')
+    .split(',')
+    .map((keyword) => keyword.trim())
+    .filter(Boolean)
 }
 
 function plainText(value?: string | null) {
@@ -136,6 +151,7 @@ export function LessonIntroPage({
   prerequisites = [],
   isLocaleFallback = false,
   lessonLearningIndex = null,
+  landing = EMPTY_LANDING,
 }: LessonIntroPageProps) {
   const t = useTranslations('courses')
   const tCommon = useTranslations('common.languageSwitcher')
@@ -366,148 +382,40 @@ export function LessonIntroPage({
           </div>
         )}
 
-        <section className="grid gap-content-gap-md md:flex-1 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)] lg:items-center">
-          <div className="space-y-4 md:space-y-6">
-            <div className="inline-flex items-center gap-content-gap-xs rounded-full border border-border bg-muted px-3 py-1.5 text-label uppercase tracking-wider text-muted-foreground md:px-4 md:py-2">
-              <Sparkles className="h-3.5 w-3.5 text-primary md:h-4 md:w-4" />
-              {t('lessonIntro')}
-            </div>
-
-            <div className="space-y-3 md:space-y-4">
-              <p className="text-body-sm text-muted-foreground md:text-body-md">
-                {[gradeLevel, courseTitle, chapterTitle, lesson.topic].filter(Boolean).join(' / ')}
-              </p>
-              <h1 className="text-heading-xl font-medium leading-tight text-foreground md:text-display-lg">
-                {lesson.title}
-              </h1>
-              {description ? (
-                <div className="max-w-2xl space-y-1.5 md:space-y-2">
-                  <h2 className="text-heading-sm font-medium text-foreground md:text-heading-md">
-                    {t('lessonLobbySummary')}
-                  </h2>
-                  <MathMarkdown
-                    content={description}
-                    className="text-body-sm leading-relaxed text-muted-foreground md:text-body-md"
-                  />
-                </div>
-              ) : null}
-            </div>
-
-            <div className="grid grid-cols-3 gap-content-gap-xs md:gap-content-gap-sm">
-              <div className="rounded-lg border border-border bg-card p-card-padding-sm shadow-elevation-1 md:p-card-padding">
-                <Layers className="mb-2 h-4 w-4 text-primary md:mb-3 md:h-5 md:w-5" />
-                <p className="text-heading-md font-medium text-foreground md:text-heading-lg">
-                  {exerciseCount}
-                </p>
-                <p className="truncate text-body-xs text-muted-foreground md:text-body-sm">
-                  {t('exercise')}
-                </p>
-              </div>
-              <div className="rounded-lg border border-border bg-card p-card-padding-sm shadow-elevation-1 md:p-card-padding">
-                <FileText className="mb-2 h-4 w-4 text-primary md:mb-3 md:h-5 md:w-5" />
-                <p className="text-heading-md font-medium text-foreground md:text-heading-lg">
-                  {pdfCount}
-                </p>
-                <p className="truncate text-body-xs text-muted-foreground md:text-body-sm">
-                  {t('pdfLessonPagerDocuments')}
-                </p>
-              </div>
-              <div className="rounded-lg border border-border bg-card p-card-padding-sm shadow-elevation-1 md:p-card-padding">
-                <BookOpen className="mb-2 h-4 w-4 text-primary md:mb-3 md:h-5 md:w-5" />
-                <p className="text-heading-md font-medium text-foreground md:text-heading-lg">
-                  {contentPageCount}
-                </p>
-                <p className="truncate text-body-xs text-muted-foreground md:text-body-sm">
-                  {t('pages')}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <aside className="space-y-3 md:space-y-4">
-            <div className="rounded-lg border border-border bg-card p-card-padding shadow-card md:p-card-padding-lg">
-              <div className="space-y-4 md:space-y-5">
-                <div>
-                  <h2 className="text-heading-md font-medium text-foreground md:text-heading-lg">
-                    {t('lessonLobbyProgress')}
-                  </h2>
-                  <p className="mt-1 text-body-sm text-muted-foreground">
-                    {total > 0 ? (
-                      <>
-                        <span dir="ltr">
-                          {completed} / {total}
-                        </span>{' '}
-                        {t('exercise')}
-                      </>
-                    ) : (
-                      t('lessonLobbyNoProgress')
-                    )}
-                  </p>
-                </div>
-
-                <Progress value={percent} className="h-2" />
-                <p className="text-body-sm text-muted-foreground">
-                  {isComplete
-                    ? t('lessonLobbyComplete')
-                    : percent > 0
-                      ? t('lessonLobbyInProgress')
-                      : t('lessonLobbyReady')}
-                </p>
-
-                <div className="flex flex-col gap-content-gap-xs md:gap-content-gap-sm">
-                  <Button
-                    onClick={() => requestStart(primaryExerciseIndex)}
-                    size="lg"
-                    className="w-full transition-all duration-normal"
-                  >
-                    {primaryLabel}
-                    <ChevronLeft className="ms-2 h-5 w-5 rtl:rotate-0 ltr:rotate-180" />
-                  </Button>
-                  {hasProgress ? (
-                    <Button
-                      onClick={() => requestStart(0)}
-                      variant="outline"
-                      size="lg"
-                      className="w-full transition-all duration-normal"
-                    >
-                      <RotateCcw className="me-2 h-4 w-4" />
-                      {t('lessonLobbyRestart')}
-                    </Button>
-                  ) : null}
-                </div>
-              </div>
-            </div>
-
-            {nextLesson?.title ? (
-              <div className="rounded-lg border border-border bg-muted p-card-padding-sm md:p-card-padding">
-                <p className="text-label uppercase tracking-wider text-muted-foreground">
-                  {t('lessonLobbyNextLesson')}
-                </p>
-                <p className="mt-2 text-body-md font-medium text-foreground">{nextLesson.title}</p>
-              </div>
-            ) : null}
-
-            {prerequisites.length > 0 ? (
-              <div className="rounded-lg border border-border bg-muted p-card-padding-sm md:p-card-padding">
-                <p className="text-label uppercase tracking-wider text-muted-foreground">
-                  {t('lessonLobbyPrerequisites')}
-                </p>
-                <ul className="mt-2 space-y-2">
-                  {prerequisites.map((prereq) => (
-                    <li key={prereq.id}>
-                      <SystemLink
-                        href={`/courses/${prereq.courseSlug}/chapters/${prereq.chapterSlug}/lessons/${prereq.slug}`}
-                        className="block text-body-sm font-medium text-foreground transition-colors hover:text-primary"
-                      >
-                        {prereq.title}
-                      </SystemLink>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-          </aside>
-        </section>
+        <div className="space-y-section-xs">
+          <LessonLandingHero
+            breadcrumb={[gradeLevel, courseTitle, chapterTitle, lesson.topic].filter(
+              (part): part is string => Boolean(part),
+            )}
+            title={lesson.title}
+            description={description}
+            intro={lesson.intro}
+            objective={lesson.lessonObjective}
+            estimatedMinutes={lesson.estimatedMinutes}
+            exerciseCount={exerciseCount}
+            visual={landing.visual}
+            primaryLabel={primaryLabel}
+            progressPercent={percent}
+            showRestart={hasProgress}
+            onStart={() => requestStart(primaryExerciseIndex)}
+            onRestart={() => requestStart(0)}
+          />
+          <LessonLandingExplanation
+            explanation={lesson.publicExplanation}
+            formulas={lesson.formulas}
+            commonMistakes={lesson.commonMistakes}
+          />
+          <LessonLandingWorkedExample
+            example={landing.workedExample}
+            fallbackText={lesson.examples}
+          />
+          <LessonLandingPractice questions={landing.practice} />
+          <LessonLandingRelated
+            keywords={splitKeywords(lesson.meta?.keywords)}
+            prerequisites={prerequisites}
+            nextLessonTitle={nextLesson?.title}
+          />
+        </div>
       </main>
 
       <Dialog open={showLoginPrompt} onOpenChange={setShowLoginPrompt}>

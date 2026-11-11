@@ -37,6 +37,8 @@ export interface Meta {
   title?: string | null
   description?: string | null
   image?: string | Media | null
+  /** Comma-separated keywords (lessons only). Shown as related concepts on the lesson landing page. */
+  keywords?: string | null
 }
 
 export interface Hero {
@@ -117,6 +119,14 @@ export interface Lesson {
   /** Free-text subject area set in Admin (e.g. "פונקציות"). Rendered as part
    *  of the breadcrumb line above the lesson title on the intro card. */
   topic?: string | null
+  /** Public landing-page copy, all optional and authored in Admin's lesson Content tab. */
+  intro?: string | null
+  lessonObjective?: string | null
+  publicExplanation?: string | null
+  formulas?: string | null
+  examples?: string | null
+  commonMistakes?: string | null
+  estimatedMinutes?: number | null
   type?: 'learning' | 'practice' | 'exam' | string | null
   lessonType?: string | null
   lessonContentType?: string | null
