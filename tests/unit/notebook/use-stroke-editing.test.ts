@@ -53,6 +53,16 @@ describe('useStrokeEditing', () => {
     expect(result.current.selection?.selected).toEqual([moved])
   })
 
+  it('resizes the selection from its top-left corner, and undo restores it', () => {
+    const { result, pages } = setup([inside, outside])
+    act(() => result.current.lasso(pages.a, LOOP))
+    act(() => result.current.resizeSelection(pages.a, 0.5))
+    // Bounds include the pen's 1.5 radius, so the corner is (148.5, 148.5).
+    expect(pages.a.strokes).toEqual([outside, { ink: 0, points: [149.3, 149.3, 174.3, 174.3] }])
+    act(() => result.current.undo(pages.a))
+    expect(pages.a.strokes).toEqual([inside, outside])
+  })
+
   it('undo after a move puts the strokes back instead of deleting one', () => {
     const { result, pages } = setup([inside, outside])
     act(() => result.current.lasso(pages.a, LOOP))

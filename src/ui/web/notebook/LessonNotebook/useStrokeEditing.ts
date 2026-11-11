@@ -7,7 +7,7 @@ import {
   type NotebookPage,
   type NotebookStroke,
 } from '@/infra/types/notebook'
-import { clampOffset, liftStrokes, strokesBounds, translateStrokes } from './lasso'
+import { clampOffset, liftStrokes, scaleStrokes, strokesBounds, translateStrokes } from './lasso'
 
 const MAX_UNDO_STEPS = 50
 /** Pasted strokes sit slightly off their source, so a paste over the original shows. */
@@ -65,20 +65,36 @@ export function useStrokeEditing(
     setSelection(lifted.selected.length ? { pageId: page.id, ...lifted } : null)
   }, [])
 
-  const moveSelection = useCallback(
-    (page: NotebookPage, dx: number, dy: number) => {
+  const replaceSelection = useCallback(
+    (page: NotebookPage, change: (selected: NotebookStroke[]) => NotebookStroke[]) => {
       if (!selection) return
-      const moved = translateStrokes(selection.selected, dx, dy)
-      // On top of the page, so erasers from before the move can't touch it.
-      const next = [...selection.rest, ...moved]
+      const changed = change(selection.selected)
+      // On top of the page, so erasers from before the change can't touch it.
+      const next = [...selection.rest, ...changed]
       if (next.length > NOTEBOOK_MAX_STROKES) {
         onPageFull()
         return
       }
       applyStrokes(page, next)
-      setSelection({ ...selection, selected: moved })
+      setSelection({ ...selection, selected: changed })
     },
     [selection, applyStrokes, onPageFull],
+  )
+
+  const moveSelection = useCallback(
+    (page: NotebookPage, dx: number, dy: number) =>
+      replaceSelection(page, (selected) => translateStrokes(selected, dx, dy)),
+    [replaceSelection],
+  )
+
+  /** Scales the selection from its top-left corner. */
+  const resizeSelection = useCallback(
+    (page: NotebookPage, scale: number) =>
+      replaceSelection(page, (selected) => {
+        const { left, top } = strokesBounds(selected)
+        return scaleStrokes(selected, left, top, scale)
+      }),
+    [replaceSelection],
   )
 
   const copySelection = useCallback(() => {
@@ -113,6 +129,7 @@ export function useStrokeEditing(
     undo,
     lasso,
     moveSelection,
+    resizeSelection,
     copySelection,
     paste,
     clearSelection,

@@ -12,7 +12,6 @@
 
 import { NotebookPen } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { flushSync } from 'react-dom'
 
 import { NOTEBOOK_PAGE_WIDTH, type NotebookPage } from '@/infra/types/notebook'
 import { cn } from '@/infra/utils/ui'
@@ -22,14 +21,13 @@ import { latestCutOf } from './LatestCutButton'
 import { NotebookPageCard } from './NotebookPageCard'
 import { NotebookToolbar } from './NotebookToolbar'
 import { useInkPalette } from './useInkPalette'
+import { usePinchZoom } from './usePinchZoom'
 import type { useNotebookPages } from './useNotebookPages'
 import { useStrokeEditing } from './useStrokeEditing'
 
 export { useNotebookPages, NEW_PAGE_HEIGHT } from './useNotebookPages'
 export { flattenPageInk } from './flatten-page'
 export { useInkPalette } from './useInkPalette'
-
-const ZOOM_LEVELS = [1, 1.25, 1.5, 2]
 
 interface LessonNotebookProps {
   notebook: ReturnType<typeof useNotebookPages>
@@ -46,16 +44,17 @@ export function LessonNotebook({
   onError,
 }: LessonNotebookProps) {
   const t = useTranslations('courses.lessonNotebook')
-  const inks = useInkPalette()
-  const [tool, setTool] = useState<InkTool>({ ink: 0, mode: 'pen', size: 1 })
+  const { inks, paperInks } = useInkPalette()
+  const [tool, setTool] = useState<InkTool>({ ink: 0, mode: 'pen', size: 1, eraser: 'area' })
   const [fingerDraws, setFingerDraws] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(null)
-  const [zoomLevel, setZoomLevel] = useState(0)
   const rootRef = useRef<HTMLDivElement>(null)
+  const zoomAreaRef = useRef<HTMLDivElement>(null)
+  const zoomContentRef = useRef<HTMLDivElement>(null)
   const pageRefs = useRef(new Map<string, HTMLElement>())
   const { pages, status, addPage, setStrokes, extendPage, removePage } = notebook
   const editing = useStrokeEditing(setStrokes, () => onError(t('pageFull')))
-  const zoom = ZOOM_LEVELS[zoomLevel]
+  const zoom = usePinchZoom(zoomAreaRef, zoomContentRef)
 
   const activePage = pages.find((page) => page.id === activeId) ?? pages.at(-1) ?? null
   const latestCut = useMemo(() => latestCutOf(pages), [pages])
@@ -69,16 +68,6 @@ export function LessonNotebook({
   const changeTool = (next: InkTool) => {
     if (next.mode !== 'lasso') editing.clearSelection()
     setTool(next)
-  }
-
-  // The caller's pane is what scrolls; keep the same spot in view as pages grow.
-  const changeZoom = (direction: 1 | -1) => {
-    const next = zoomLevel + direction
-    if (next < 0 || next >= ZOOM_LEVELS.length) return
-    const scroller = rootRef.current?.parentElement
-    const scrollTop = scroller?.scrollTop ?? 0
-    flushSync(() => setZoomLevel(next))
-    if (scroller) scroller.scrollTop = (scrollTop * ZOOM_LEVELS[next]) / zoom
   }
 
   /** The middle of what's on screen of this page, in page units. */
@@ -125,16 +114,12 @@ export function LessonNotebook({
         canUndo={Boolean(activePage?.strokes.length)}
         canCopy={editing.selection !== null}
         canPaste={editing.canPaste && activePage !== null}
-        zoom={zoom}
-        canZoomIn={zoomLevel < ZOOM_LEVELS.length - 1}
-        canZoomOut={zoomLevel > 0}
         status={status}
         onTool={changeTool}
         onFingerDraws={setFingerDraws}
         onUndo={() => activePage && editing.undo(activePage)}
         onCopy={editing.copySelection}
         onPaste={paste}
-        onZoom={changeZoom}
         onBlankPage={addBlank}
       />
 
@@ -152,8 +137,15 @@ export function LessonNotebook({
         </div>
       )}
 
-      <div className={cn('mx-auto w-full max-w-4xl', zoom > 1 && 'overflow-x-auto')}>
-        <div className="flex flex-col gap-card-gap" style={{ width: `${zoom * 100}%` }}>
+      <div
+        ref={zoomAreaRef}
+        className={cn('mx-auto w-full max-w-4xl', zoom > 1 && 'overflow-x-auto')}
+      >
+        <div
+          ref={zoomContentRef}
+          className="flex flex-col gap-card-gap"
+          style={{ width: `${zoom * 100}%` }}
+        >
           {pages.map((page, index) => (
             <div
               key={page.id}
@@ -174,11 +166,12 @@ export function LessonNotebook({
                 onStrokes={(strokes) => editing.applyStrokes(page, strokes)}
                 onLasso={(loop) => editing.lasso(page, loop)}
                 onMoveSelection={(dx, dy) => editing.moveSelection(page, dx, dy)}
+                onResizeSelection={(scale) => editing.resizeSelection(page, scale)}
                 onClearSelection={editing.clearSelection}
                 onActivate={() => setActiveId(page.id)}
                 onExtend={() => extendPage(page.id)}
                 onDelete={() => remove(page)}
-                onCheck={() => onCheckPage(page, inks)}
+                onCheck={() => onCheckPage(page, paperInks)}
               />
             </div>
           ))}

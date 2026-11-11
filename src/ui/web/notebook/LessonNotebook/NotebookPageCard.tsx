@@ -28,6 +28,7 @@ interface NotebookPageCardProps {
   onStrokes: (strokes: NotebookStroke[]) => void
   onLasso: (loop: number[]) => void
   onMoveSelection: (dx: number, dy: number) => void
+  onResizeSelection: (scale: number) => void
   onClearSelection: () => void
   onActivate: () => void
   onExtend: () => void
@@ -46,6 +47,7 @@ export function NotebookPageCard({
   onStrokes,
   onLasso,
   onMoveSelection,
+  onResizeSelection,
   onClearSelection,
   onActivate,
   onExtend,
@@ -116,6 +118,7 @@ export function NotebookPageCard({
           tool={tool}
           fingerDraws={fingerDraws}
           onStrokeEnd={(stroke) => onStrokes([...page.strokes, stroke])}
+          onStrokesErased={onStrokes}
           className={tool.mode === 'erase' ? 'cursor-cell' : 'cursor-crosshair'}
         />
         {tool.mode === 'lasso' && (
@@ -126,6 +129,7 @@ export function NotebookPageCard({
             fingerDraws={fingerDraws}
             onLasso={onLasso}
             onMove={onMoveSelection}
+            onResize={onResizeSelection}
             onClear={onClearSelection}
           />
         )}
