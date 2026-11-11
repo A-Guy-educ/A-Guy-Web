@@ -128,6 +128,13 @@
     --pen-ink-2: 0 72% 45%; /* red */
     --pen-ink-3: 217 85% 45%; /* blue */
     --pen-ink-4: 142 71% 35%; /* green */
+
+    /* Lesson notebook inks. Same as the pen inks on light paper; the dark
+       block swaps them for colours that read on the dark page. */
+    --notebook-ink-1: var(--pen-ink-1);
+    --notebook-ink-2: var(--pen-ink-2);
+    --notebook-ink-3: var(--pen-ink-3);
+    --notebook-ink-4: var(--pen-ink-4);
   }
 
   [data-theme='dark'] {
@@ -242,6 +249,13 @@
     --pen-ink-2: 0 72% 55%;
     --pen-ink-3: 217 85% 55%;
     --pen-ink-4: 142 71% 45%;
+
+    /* Lesson notebook inks on the dark page: black becomes white and the
+       colours match the brightened accents above. */
+    --notebook-ink-1: 0 0% 96%; /* white */
+    --notebook-ink-2: 0 72% 62%; /* red */
+    --notebook-ink-3: 217 91% 68%; /* blue */
+    --notebook-ink-4: 142 71% 55%; /* green */
   }
 }
 

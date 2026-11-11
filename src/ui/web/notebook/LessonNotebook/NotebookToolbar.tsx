@@ -9,8 +9,6 @@ import {
   LassoSelect,
   Pencil,
   Undo2,
-  ZoomIn,
-  ZoomOut,
 } from 'lucide-react'
 
 import { cn } from '@/infra/utils/ui'
@@ -29,16 +27,12 @@ interface NotebookToolbarProps {
   canUndo: boolean
   canCopy: boolean
   canPaste: boolean
-  zoom: number
-  canZoomIn: boolean
-  canZoomOut: boolean
   status: NotebookStatus
   onTool: (tool: InkTool) => void
   onFingerDraws: (value: boolean) => void
   onUndo: () => void
   onCopy: () => void
   onPaste: () => void
-  onZoom: (direction: 1 | -1) => void
   onBlankPage: () => void
 }
 
@@ -46,7 +40,7 @@ const ICON_BUTTON =
   'flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors duration-normal disabled:opacity-40 disabled:pointer-events-none'
 const ACTIVE = 'bg-primary/15 text-primary hover:bg-primary/20 hover:text-primary'
 /** Dot sizes for the thin, regular and thick pen buttons. */
-const SIZE_DOTS = ['h-1 w-1', 'h-2 w-2', 'h-3 w-3']
+const SIZE_DOTS = ['h-1.5 w-1.5', 'h-2.5 w-2.5', 'h-3.5 w-3.5']
 
 export function NotebookToolbar({
   latestCut,
@@ -56,16 +50,12 @@ export function NotebookToolbar({
   canUndo,
   canCopy,
   canPaste,
-  zoom,
-  canZoomIn,
-  canZoomOut,
   status,
   onTool,
   onFingerDraws,
   onUndo,
   onCopy,
   onPaste,
-  onZoom,
   onBlankPage,
 }: NotebookToolbarProps) {
   const t = useTranslations('courses.lessonNotebook')
@@ -118,10 +108,21 @@ export function NotebookToolbar({
         <Pencil className="h-4 w-4" />,
       )}
       {button(
-        t('eraser'),
+        tool.eraser === 'stroke' ? t('objectEraser') : t('eraser'),
         tool.mode === 'erase',
-        () => onTool({ ...tool, mode: 'erase' }),
-        <Eraser className="h-4 w-4" />,
+        // Tapping the eraser again switches between rubbing out and removing whole strokes.
+        () =>
+          onTool(
+            tool.mode === 'erase'
+              ? { ...tool, eraser: tool.eraser === 'area' ? 'stroke' : 'area' }
+              : { ...tool, mode: 'erase' },
+          ),
+        <span className="relative flex">
+          <Eraser className="h-4 w-4" />
+          {tool.eraser === 'stroke' && (
+            <span className="absolute -bottom-1 -end-1 h-2 w-2 rounded-full bg-current" />
+          )}
+        </span>,
       )}
       {button(
         t('lasso'),
@@ -157,10 +158,7 @@ export function NotebookToolbar({
             title={t(`size${index}`)}
             aria-pressed={tool.mode === 'pen' && tool.size === index}
             onClick={() => onTool({ ...tool, size: index, mode: 'pen' })}
-            className={cn(
-              'flex h-9 w-7 items-center justify-center rounded-full text-muted-foreground hover:text-foreground transition-colors duration-normal',
-              tool.mode === 'pen' && tool.size === index && 'text-primary hover:text-primary',
-            )}
+            className={cn(ICON_BUTTON, tool.mode === 'pen' && tool.size === index && ACTIVE)}
           >
             <span className={cn('rounded-full bg-current', SIZE_DOTS[index])} />
           </button>
@@ -180,13 +178,6 @@ export function NotebookToolbar({
         <Hand className="h-4 w-4" />,
       )}
       {button(t('newBlankPage'), false, onBlankPage, <FilePlus className="h-4 w-4" />)}
-      <div className="flex items-center" dir="ltr">
-        {actionButton(t('zoomOut'), !canZoomOut, () => onZoom(-1), <ZoomOut className="h-4 w-4" />)}
-        <span className="w-10 text-center text-body-xs text-muted-foreground">
-          {Math.round(zoom * 100)}%
-        </span>
-        {actionButton(t('zoomIn'), !canZoomIn, () => onZoom(1), <ZoomIn className="h-4 w-4" />)}
-      </div>
       {statusLabel && (
         <span
           role="status"
