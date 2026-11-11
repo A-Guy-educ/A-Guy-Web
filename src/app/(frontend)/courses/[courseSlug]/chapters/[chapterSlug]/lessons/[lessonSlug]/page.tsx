@@ -15,6 +15,7 @@ import { relationId } from '@/server/repos/mongo'
 import { getAuthenticatedUserServer } from '@/server/utils/access-gate-server'
 import { checkPaidAccess } from '@/server/utils/check-paid-access'
 import { resolveLessonTierAccess } from '@/server/services/tier-lesson-access'
+import { buildLessonLanding } from '@/lib/lessons/buildLessonLanding'
 import { orderExercisesByPlaylist } from '@/lib/lessons/orderExercisesByPlaylist'
 import { subscriptionsHref } from '@/lib/tiers/subscribe-return'
 import type {
@@ -376,6 +377,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
         }
         isLocaleFallback={isLocaleFallback}
         lessonLearningIndex={lessonLearningIndex}
+        landing={buildLessonLanding(exercises)}
       />
     </AccessGateProvider>
   )
