@@ -36,6 +36,7 @@ import { cn } from '@/infra/utils/ui'
 import { useLocale } from '@/ui/web/providers/I18n'
 import { MediaMapProvider } from '../context/MediaMapContext'
 import { RichTextRenderer } from '../blocks/RichTextRenderer'
+import { MathMarkdown } from '@/ui/web/shared/MathMarkdown'
 import { HtmlBlockRenderer } from '../blocks/HtmlBlockRenderer'
 import { SvgRenderer } from '../blocks/SvgRenderer'
 import { GeometryRenderer } from '../blocks/GeometryRenderer'
@@ -539,86 +540,71 @@ const ALIGN_CLASS: Record<'left' | 'center' | 'right', string> = {
 }
 
 function WorksheetTable({ block }: { block: QuestionTableBlock }) {
-  const { headers, rowsData, showBorders, showHeader, columnAlignment } = block.table
-  const alignClass = (i: number) => ALIGN_CLASS[columnAlignment?.[i] ?? 'left']
-  const cellBase = showBorders ? 'border border-foreground/40 px-3 py-2' : 'px-3 py-2'
+  const locale = useLocale()
+  const isRtl = locale?.toLowerCase().startsWith('he') ?? false
 
   // 3/5 wrap heuristic for tables: column count as proxy for aspect ratio.
   // <= 4 columns -> table is narrow enough to fit side-by-side at 40% / 25rem cap.
   // > 4 columns -> table too wide -> stack vertically.
-  const isNarrowTable = headers.length <= 4
-
-  // Always use LTR for the layout container so side-by-side is consistent.
-  const dir: 'ltr' | 'rtl' = 'ltr'
+  const isNarrowTable = block.table.headers.length <= 4
+  const table = <WorksheetTableGrid table={block.table} dir={isRtl ? 'rtl' : undefined} />
 
   return (
     <div className="flex flex-col gap-content-gap-xs">
       {isNarrowTable ? (
-        // Side-by-side: 60/40, mobile stacks prompt-first
-        <div className="flex flex-col sm:flex-row gap-content-gap" dir={dir}>
+        // Side-by-side: 60/40, mobile stacks prompt-first.
+        // Always LTR for the layout container so side-by-side is consistent.
+        <div className="flex flex-col sm:flex-row gap-content-gap" dir="ltr">
           {/* Prompt first on mobile (sm:order-first), full width on mobile */}
           <div className="flex-[3] sm:order-first min-h-[60px]">
             <PromptText prompt={block.prompt} />
           </div>
           {/* Table on the right (mobile: full width below) */}
-          <div className="flex-[2] max-w-[25rem]">
-            <table className="w-full table-fixed border-collapse text-body-sm">
-              {showHeader && headers.length > 0 && (
-                <thead>
-                  <tr>
-                    {headers.map((h, i) => (
-                      <th key={i} className={cn(cellBase, 'bg-muted font-semibold', alignClass(i))}>
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-              )}
-              <tbody>
-                {rowsData.map((row, ri) => (
-                  <tr key={ri}>
-                    {row.map((cell, ci) => (
-                      <td key={ci} className={cn(cellBase, alignClass(ci))}>
-                        {cell || ' '}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <div className="flex-[2] max-w-[25rem]">{table}</div>
         </div>
       ) : (
         // Stacked: prompt above, table below
         <div className="flex flex-col gap-content-gap-xs">
           <PromptText prompt={block.prompt} />
-          <table className="w-full table-fixed border-collapse text-body-sm">
-            {showHeader && headers.length > 0 && (
-              <thead>
-                <tr>
-                  {headers.map((h, i) => (
-                    <th key={i} className={cn(cellBase, 'bg-muted font-semibold', alignClass(i))}>
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-            )}
-            <tbody>
-              {rowsData.map((row, ri) => (
-                <tr key={ri}>
-                  {row.map((cell, ci) => (
-                    <td key={ci} className={cn(cellBase, alignClass(ci))}>
-                      {cell || ' '}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {table}
         </div>
       )}
     </div>
+  )
+}
+
+function WorksheetTableGrid({ table, dir }: { table: QuestionTableBlock['table']; dir?: 'rtl' }) {
+  const { headers, rowsData, showBorders, showHeader, columnAlignment } = table
+  const alignClass = (i: number) => ALIGN_CLASS[columnAlignment?.[i] ?? 'center']
+  const cellBase = showBorders ? 'border border-foreground/40 px-3 py-2' : 'px-3 py-2'
+
+  // Cells hold markdown + $...$ LaTeX (same content the interactive
+  // ExerciseTable renders), so they go through MathMarkdown, not raw text.
+  return (
+    <table className="w-full table-fixed border-collapse text-body-sm" dir={dir}>
+      {showHeader && headers.length > 0 && (
+        <thead>
+          <tr>
+            {headers.map((h, i) => (
+              <th key={i} className={cn(cellBase, 'bg-muted font-semibold', alignClass(i))}>
+                <MathMarkdown content={h} />
+              </th>
+            ))}
+          </tr>
+        </thead>
+      )}
+      <tbody>
+        {rowsData.map((row, ri) => (
+          <tr key={ri}>
+            {row.map((cell, ci) => (
+              <td key={ci} className={cn(cellBase, 'overflow-x-auto', alignClass(ci))}>
+                {cell ? <MathMarkdown content={cell} /> : <span className="block min-h-[1.5em]" />}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
   )
 }
 
