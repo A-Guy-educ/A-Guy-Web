@@ -5199,6 +5199,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Add pinch zoom, stroke eraser and resizing to the notebook ([#1594](https://github.com/A-Guy-educ/A-Guy-Web/pull/1594)) — @aguyshayb
 - fix: Stop tutor and notebook check replies being cut off ([#1593](https://github.com/A-Guy-educ/A-Guy-Web/pull/1593)) — @aguyshayb
 - feat: Move the latest cut button to the notebook toolbar ([#1590](https://github.com/A-Guy-educ/A-Guy-Web/pull/1590)) — @aguyshayb
 - fix: Make scroll view cuts fast and keep the page responsive ([#1587](https://github.com/A-Guy-educ/A-Guy-Web/pull/1587)) — @aguyshayb
