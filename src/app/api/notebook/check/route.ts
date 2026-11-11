@@ -2,7 +2,6 @@ import { randomUUID } from 'crypto'
 
 import { type NextRequest, NextResponse } from 'next/server'
 
-import { AccountRole } from '@/infra/auth/roles'
 import { logger } from '@/infra/utils/logger'
 import { getWebUser } from '@/infra/web-api/mongo-payload'
 import { notebookCheckSchema } from '@/server/api/schemas'
@@ -21,7 +20,6 @@ export async function POST(request: NextRequest) {
     const result = await runNotebookCheck({
       ...parsed.data,
       ownerId: String(user.id),
-      includeDebug: user.role === AccountRole.Admin,
       traceId,
       signal: request.signal,
     })

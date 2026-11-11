@@ -9,6 +9,8 @@ export type TutorModelInput = {
   parts: TutorModelPart[]
   /** Defaults to the tutor chat's temperature. */
   temperature?: number
+  /** Defaults to the tutor chat's thinking budget. */
+  thinkingBudget?: number
   signal?: AbortSignal
 }
 
@@ -18,7 +20,17 @@ export type TutorModelUsage = {
   model: string
 }
 
-export type TutorModelResult = TutorModelUsage & { text: string }
+export type TutorModelResult = TutorModelUsage & {
+  text: string
+  /** Why the model stopped; `MAX_TOKENS` means the reply was cut off. */
+  finishReason?: string
+  thoughtsTokens?: number
+}
+
+/** Gemini counts hidden thinking against this limit, so it must leave room for both. */
+const MAX_OUTPUT_TOKENS = 8192
+/** Keeps thinking from crowding out the answer. */
+const DEFAULT_THINKING_BUDGET = 2048
 
 export interface TutorModelGateway {
   generate(input: TutorModelInput): Promise<TutorModelResult>
@@ -29,13 +41,19 @@ type GeminiStreamRecord = {
   text: string
   inputTokens: number
   outputTokens: number
+  thoughtsTokens?: number
+  finishReason?: string
 }
 
 type GeminiStreamState = { buffer: string }
 
 type GeminiResponse = {
-  candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>
-  usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number }
+  candidates?: Array<{ content?: { parts?: Array<{ text?: string }> }; finishReason?: string }>
+  usageMetadata?: {
+    promptTokenCount?: number
+    candidatesTokenCount?: number
+    thoughtsTokenCount?: number
+  }
 }
 
 export function parseGeminiSse(state: GeminiStreamState, chunk: string): GeminiStreamRecord[] {
@@ -74,6 +92,8 @@ export function parseGeminiSse(state: GeminiStreamState, chunk: string): GeminiS
       text: parsed.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('') || '',
       inputTokens: Math.max(0, Number(parsed.usageMetadata?.promptTokenCount || 0)),
       outputTokens: Math.max(0, Number(parsed.usageMetadata?.candidatesTokenCount || 0)),
+      thoughtsTokens: parsed.usageMetadata?.thoughtsTokenCount,
+      finishReason: parsed.candidates?.[0]?.finishReason,
     })
   }
 
@@ -114,9 +134,28 @@ export class GeminiTutorModelGateway implements TutorModelGateway {
       ],
       generationConfig: {
         temperature: input.temperature ?? 0.7,
-        maxOutputTokens: 2048,
+        maxOutputTokens: MAX_OUTPUT_TOKENS,
+        // LLM_MODEL_OVERRIDE_EXERCISE_CHAT can pick a model that rejects a budget.
+        ...(this.model.startsWith('gemini-2.5')
+          ? {
+              thinkingConfig: { thinkingBudget: input.thinkingBudget ?? DEFAULT_THINKING_BUDGET },
+            }
+          : {}),
       },
     })
+  }
+
+  private warnIfCutShort(finishReason: string | undefined, usage: Partial<GeminiStreamRecord>) {
+    if (!finishReason || finishReason === 'STOP') return
+    logger.warn(
+      {
+        model: this.model,
+        finishReason,
+        outputTokens: usage.outputTokens,
+        thoughtsTokens: usage.thoughtsTokens,
+      },
+      'Gemini tutor reply stopped early',
+    )
   }
 
   private async request(path: 'generateContent' | 'streamGenerateContent', input: TutorModelInput) {
@@ -161,10 +200,16 @@ export class GeminiTutorModelGateway implements TutorModelGateway {
   async generate(input: TutorModelInput): Promise<TutorModelResult> {
     const response = await this.request('generateContent', input)
     const parsed = (await response.json()) as GeminiResponse
+    const outputTokens = Math.max(0, Number(parsed.usageMetadata?.candidatesTokenCount || 0))
+    const thoughtsTokens = parsed.usageMetadata?.thoughtsTokenCount
+    const finishReason = parsed.candidates?.[0]?.finishReason
+    this.warnIfCutShort(finishReason, { outputTokens, thoughtsTokens })
     return {
       text: parsed.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('') || '',
       inputTokens: Math.max(0, Number(parsed.usageMetadata?.promptTokenCount || 0)),
-      outputTokens: Math.max(0, Number(parsed.usageMetadata?.candidatesTokenCount || 0)),
+      outputTokens,
+      thoughtsTokens,
+      finishReason,
       model: this.model,
     }
   }
@@ -178,6 +223,8 @@ export class GeminiTutorModelGateway implements TutorModelGateway {
     const state = { buffer: '' }
     let inputTokens = 0
     let outputTokens = 0
+    let thoughtsTokens: number | undefined
+    let finishReason: string | undefined
     try {
       while (true) {
         const { done, value } = await reader.read()
@@ -185,6 +232,8 @@ export class GeminiTutorModelGateway implements TutorModelGateway {
         for (const record of parseGeminiSse(state, decoder.decode(value, { stream: true }))) {
           inputTokens = Math.max(inputTokens, record.inputTokens)
           outputTokens = Math.max(outputTokens, record.outputTokens)
+          thoughtsTokens = record.thoughtsTokens ?? thoughtsTokens
+          finishReason = record.finishReason ?? finishReason
           if (record.text) yield record.text
         }
       }
@@ -193,6 +242,8 @@ export class GeminiTutorModelGateway implements TutorModelGateway {
         for (const record of parseGeminiSse(state, trailing)) {
           inputTokens = Math.max(inputTokens, record.inputTokens)
           outputTokens = Math.max(outputTokens, record.outputTokens)
+          thoughtsTokens = record.thoughtsTokens ?? thoughtsTokens
+          finishReason = record.finishReason ?? finishReason
           if (record.text) yield record.text
         }
       }
@@ -200,6 +251,7 @@ export class GeminiTutorModelGateway implements TutorModelGateway {
       reader.releaseLock()
     }
 
+    this.warnIfCutShort(finishReason, { outputTokens, thoughtsTokens })
     return { inputTokens, outputTokens, model: this.model }
   }
 }

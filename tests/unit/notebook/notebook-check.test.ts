@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   buildCheckInstructions,
+  CHECK_RETRY_MESSAGE,
   parseCheckReply,
 } from '@/server/services/notebook-check/check-prompt'
 import {
@@ -28,7 +29,6 @@ const input: NotebookCheckInput = {
   inkBase64: 'ink-bytes',
   exerciseMediaId: 'cut-1',
   locale: 'he',
-  includeDebug: false,
   traceId: 'trace-1',
 }
 
@@ -50,7 +50,7 @@ function deps() {
       appendMessage: vi.fn().mockResolvedValue({}),
       compact: vi.fn().mockResolvedValue(false),
     },
-    loadExercise: vi.fn().mockResolvedValue({ part: CUT_PART, url: 'https://blob/cut.png' }),
+    loadExercise: vi.fn().mockResolvedValue({ part: CUT_PART }),
     enforcePolicy: vi.fn().mockResolvedValue(undefined),
     recordUsage: vi.fn().mockResolvedValue(undefined),
   } satisfies NotebookCheckDependencies
@@ -88,17 +88,29 @@ describe('runNotebookCheck', () => {
     expect(saved).not.toHaveProperty('media')
   })
 
-  it('returns debug details only when asked to', async () => {
-    const student = await runNotebookCheck(input, d)
-    const admin = await runNotebookCheck({ ...input, includeDebug: true }, deps())
+  it('gives the model extra thinking room for reading and solving', async () => {
+    await runNotebookCheck(input, d)
 
-    expect(student.debug).toBeUndefined()
-    expect(admin.debug).toMatchObject({
-      reading: 'x = 8',
-      verdict: 'incorrect',
-      rawReply: REPLY,
-      exerciseUrl: 'https://blob/cut.png',
+    expect(d.gateway.generate.mock.calls[0][0].thinkingBudget).toBe(4096)
+  })
+
+  it.each([
+    ['came back without its closing tag', '<reading>84x - 126', 'STOP'],
+    ['was cut off after the verdict', `${REPLY} חצי משפט`, 'MAX_TOKENS'],
+  ])('shows a retry message when the reply %s', async (_name, text, finishReason) => {
+    d.gateway.generate.mockResolvedValue({
+      text,
+      finishReason,
+      thoughtsTokens: 1900,
+      inputTokens: 900,
+      outputTokens: 80,
+      model: 'test-model',
     })
+
+    const result = await runNotebookCheck(input, d)
+
+    expect(result.message).toBe(CHECK_RETRY_MESSAGE.he)
+    expect(d.conversations.appendMessage).not.toHaveBeenCalled()
   })
 
   it('rejects the check without charging the student when the cut cannot load', async () => {

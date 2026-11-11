@@ -13,7 +13,6 @@ import { SYSTEM_EVENTS, systemEventBus } from '@/infra/system-events'
 import { logger } from '@/infra/utils/logger'
 import { apiService, type ChatApiResponse } from '@/server/services/api/api-service'
 import type { NotebookCheckLocale, NotebookCheckRequest } from '@/infra/types/notebook'
-import type { NotebookCheckTrace } from '@/ui/web/notebook/CheckDebugPanel'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { ASK_STEP_CONTEXT_EVENT } from '@/app/(frontend)/ask/_components/ask-types'
@@ -174,9 +173,6 @@ export function useNotebookChat({
 
   // Error state
   const [chatError, setChatError] = useState<ChatError | null>(null)
-
-  // What the last notebook check sent and got back (admins only)
-  const [checkTrace, setCheckTrace] = useState<NotebookCheckTrace | null>(null)
 
   // Track last injected exercise ID to avoid duplicate context injection
   const lastInjectedExerciseId = useRef<string | null>(null)
@@ -1105,7 +1101,6 @@ export function useNotebookChat({
       if (result.conversationId && result.contextKey) {
         onConversationCreated?.(result.conversationId, result.contextKey)
       }
-      setCheckTrace(result.debug ? { ...result.debug, inkImage: check.inkImage } : null)
       if (result.message) {
         const content = result.message
         setMessages((prev) => [
@@ -1183,6 +1178,5 @@ export function useNotebookChat({
     sendContextualHelpWithMedia,
     sendContextualHelpWithMediaId,
     checkNotebookPage,
-    checkTrace,
   }
 }

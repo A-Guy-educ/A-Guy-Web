@@ -37,7 +37,6 @@ import { FormulaSheetButton } from '@/ui/web/shared/FormulaSheetViewer/FormulaSh
 import { FormulaSheetContent } from '@/ui/web/shared/FormulaSheetViewer/FormulaSheetContent'
 import { uploadDataUrlAsMedia } from '@/infra/media/uploadDataUrl'
 import { logger } from '@/infra/utils/logger'
-import { CheckDebugPanel } from '@/ui/web/notebook/CheckDebugPanel'
 import {
   CHAT_ATTACH_FILES_EVENT,
   type ChatAttachFilesDetail,
@@ -179,7 +178,6 @@ export function ChatInterface({
     sendContextualHelpWithMedia,
     sendContextualHelpWithMediaId,
     checkNotebookPage,
-    checkTrace,
   } = useNotebookChat({
     initialMessage: t('chatWelcome'),
     authRequiredMessage: t('chatAuthRequired'),
@@ -648,7 +646,6 @@ export function ChatInterface({
             <span>{tCourses('chatThinking')}</span>
           </div>
         )}
-        {checkTrace && <CheckDebugPanel trace={checkTrace} />}
         <div ref={messagesEndRef} />
       </div>
 
