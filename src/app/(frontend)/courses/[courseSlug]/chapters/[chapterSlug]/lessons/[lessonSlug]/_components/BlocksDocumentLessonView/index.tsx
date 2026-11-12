@@ -15,8 +15,9 @@
 
 'use client'
 
-import React from 'react'
+import React, { useMemo } from 'react'
 import { cn } from '@/infra/utils/ui'
+import type { MediaItem } from '@/infra/llm/exercise-context'
 import {
   ExerciseWorksheet,
   WORKSHEET_LINE_HEIGHT,
@@ -33,6 +34,11 @@ import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { clampToLearningExerciseGate, getUserTierSlug } from '@/lib/tiers'
 import { LessonNotebookPane } from '@/ui/web/notebook/LessonNotebookPane'
 import { TierLockBubble } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/TierLockBubble'
+import {
+  SCROLL_EXERCISE_ATTR,
+  buildScrollExerciseContexts,
+  useScrollExerciseBroadcast,
+} from './useScrollExerciseBroadcast'
 
 type WorksheetGroups = React.ComponentProps<typeof ExerciseWorksheet>['groups']
 
@@ -215,13 +221,35 @@ export function BlocksDocumentLessonView({
   const dir: 'ltr' | 'rtl' = locale?.toLowerCase().startsWith('he') ? 'rtl' : 'ltr'
 
   const { user } = useCurrentUser()
-  const tierUser = { currentTier: getUserTierSlug(user as { currentTier?: string | null } | null) }
-  const visibleExercises = clampToLearningExerciseGate(tierUser, lessonLearningIndex, exercises)
+  const tierSlug = getUserTierSlug(user as { currentTier?: string | null } | null)
+  // Memoized so the chat broadcast below only re-publishes when the
+  // exercises actually change, not on every render.
+  const visibleExercises = useMemo(
+    () => clampToLearningExerciseGate({ currentTier: tierSlug }, lessonLearningIndex, exercises),
+    [tierSlug, lessonLearningIndex, exercises],
+  )
   const isTierLocked = visibleExercises.length < exercises.length
 
-  const renderable = visibleExercises
-    .map((exercise) => ({ exercise, groups: getGroups(exercise) }))
-    .filter((entry) => entry.groups.some((group) => group.blocks.length > 0))
+  const renderable = useMemo(
+    () =>
+      visibleExercises
+        .map((exercise) => ({ exercise, groups: getGroups(exercise) }))
+        .filter((entry) => entry.groups.some((group) => group.blocks.length > 0)),
+    [visibleExercises],
+  )
+
+  // Tell the chat which exercise is on screen — this view has no PDF for
+  // the server to attach, so without it the tutor can't see the exercise.
+  const scrollExerciseContexts = useMemo(
+    () =>
+      buildScrollExerciseContexts(
+        renderable,
+        dir === 'rtl',
+        mediaMap as Record<string, MediaItem> | undefined,
+      ),
+    [renderable, dir, mediaMap],
+  )
+  useScrollExerciseBroadcast(scrollExerciseContexts)
 
   const solutionEntries = getSolutionsByExercise(visibleExercises, locale)
   const lessonContentGroups: WorksheetGroups =
@@ -261,6 +289,7 @@ export function BlocksDocumentLessonView({
             {renderable.map(({ exercise, groups }, idx) => (
               <section
                 key={exercise.id}
+                {...{ [SCROLL_EXERCISE_ATTR]: exercise.id }}
                 className={cn(
                   'flex flex-col gap-content-gap',
                   idx > 0 && 'mt-section-lg border-t-2 border-border pt-section-md',

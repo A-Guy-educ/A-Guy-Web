@@ -91,6 +91,9 @@ function readBlockText(block: { type: string; [key: string]: unknown }): string 
 
 /**
  * Format exercise content blocks into a readable message for the LLM.
+ *
+ * `maxOutputLength` defaults to the 2000-char cap; callers that need every
+ * section of a long exercise (the scroll view) can pass a larger budget.
  */
 export function formatExerciseContextMessage(
   exerciseTitle: string,
@@ -100,6 +103,7 @@ export function formatExerciseContextMessage(
     [key: string]: unknown
   }>,
   mediaMap?: Record<string, MediaItem>,
+  maxOutputLength: number = MAX_OUTPUT_LENGTH,
 ): string {
   const parts: string[] = []
 
@@ -116,7 +120,7 @@ export function formatExerciseContextMessage(
 
   for (const block of blocks) {
     // Check if we're at the limit
-    const remaining = MAX_OUTPUT_LENGTH - currentLength
+    const remaining = maxOutputLength - currentLength
     if (remaining < 50) {
       break
     }
@@ -135,8 +139,8 @@ export function formatExerciseContextMessage(
   parts.push('[END EXERCISE CONTEXT]')
 
   const result = parts.join('\n')
-  return result.length > MAX_OUTPUT_LENGTH
-    ? result.substring(0, MAX_OUTPUT_LENGTH - TRUNCATE_SUFFIX.length) + TRUNCATE_SUFFIX
+  return result.length > maxOutputLength
+    ? result.substring(0, maxOutputLength - TRUNCATE_SUFFIX.length) + TRUNCATE_SUFFIX
     : result
 }
 
