@@ -26,6 +26,17 @@ import {
   type PdfPageContext,
   type PdfPageEventDetail,
 } from './pdf-context'
+import {
+  SCROLL_EXERCISE_EVENT,
+  buildPromptWithScrollExerciseContext,
+  getPublishedScrollExercise,
+  nextScrollExerciseSentState,
+  shouldIncludeScrollExerciseContent,
+  stripScrollExerciseContext,
+  type ScrollExerciseContext,
+  type ScrollExerciseEventDetail,
+  type ScrollExerciseSentState,
+} from './scroll-exercise-context'
 
 export type { ChatStepContext } from './step-context'
 
@@ -171,6 +182,31 @@ export function useNotebookChat({
     return () => window.removeEventListener(MEDIA_PDF_PAGE_EVENT, handler)
   }, [])
 
+  // Exercise currently in view in the scroll view, which has no PDF for the
+  // server to attach. `scrollExerciseSentRef` tracks what the AI already
+  // received so the full exercise text isn't repeated on every turn;
+  // `pendingScrollExerciseRef` holds this turn's update until it succeeds.
+  const scrollExerciseRef = useRef<ScrollExerciseContext | null>(null)
+  const scrollExerciseSentRef = useRef<ScrollExerciseSentState | null>(null)
+  const pendingScrollExerciseRef = useRef<ScrollExerciseSentState | null>(null)
+
+  useEffect(() => {
+    scrollExerciseRef.current = getPublishedScrollExercise()
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as ScrollExerciseEventDetail
+      scrollExerciseRef.current = detail ?? null
+    }
+    window.addEventListener(SCROLL_EXERCISE_EVENT, handler)
+    return () => window.removeEventListener(SCROLL_EXERCISE_EVENT, handler)
+  }, [])
+
+  const commitScrollExerciseSent = useCallback(() => {
+    if (pendingScrollExerciseRef.current) {
+      scrollExerciseSentRef.current = pendingScrollExerciseRef.current
+      pendingScrollExerciseRef.current = null
+    }
+  }, [])
+
   // Error state
   const [chatError, setChatError] = useState<ChatError | null>(null)
 
@@ -230,6 +266,8 @@ export function useNotebookChat({
     pendingExerciseContextRef.current = null
     welcomedExerciseIdsRef.current = new Set()
     lastInjectedExerciseId.current = null
+    scrollExerciseSentRef.current = null
+    pendingScrollExerciseRef.current = null
   }, [contextKey])
 
   useEffect(() => () => activeRequestRef.current?.abort(), [])
@@ -349,15 +387,18 @@ export function useNotebookChat({
                     msg.role === ChatRole.User || msg.role === 'user'
                       ? ChatRole.User
                       : ChatRole.Assistant,
-                  // Strip any persisted <pdf-page> / <step-context> /
-                  // <exercise-context> prefixes so the displayed bubble
-                  // stays clean. The AI still sees them on the server side
-                  // (full content is retrieved for LLM context). Order
-                  // matters: the write side wraps innermost-to-outermost as
-                  // exercise-context ⊂ step-context ⊂ pdf-page, so we peel
-                  // in reverse here.
+                  // Strip any persisted <scroll-exercise> / <pdf-page> /
+                  // <step-context> / <exercise-context> prefixes so the
+                  // displayed bubble stays clean. The AI still sees them on
+                  // the server side (full content is retrieved for LLM
+                  // context). Order matters: the write side wraps
+                  // innermost-to-outermost as exercise-context ⊂
+                  // step-context ⊂ pdf-page ⊂ scroll-exercise, so we peel in
+                  // reverse here.
                   content: stripExerciseContext(
-                    stripStepContext(stripPdfPageContext(String(msg.content))),
+                    stripStepContext(
+                      stripPdfPageContext(stripScrollExerciseContext(String(msg.content))),
+                    ),
                   ),
                   media: raw.media,
                   chatAssets: raw.chatAssets,
@@ -495,9 +536,26 @@ export function useNotebookChat({
     // Consume any pending exercise context on the first outgoing message
     // since the student entered the exercise. It's prepended to the AI
     // prompt only — the visible bubble carries the raw message.
-    const promptForAI = buildPromptWithPdfPageContext(
-      buildPromptWithStepContext(consumePendingExerciseContext(message), stepContext),
-      pdfPageContextRef.current,
+    // Scroll view: say which exercise is on screen, with its text when the
+    // AI hasn't received it recently.
+    const scrollExercise = scrollExerciseRef.current
+    const includeScrollContent = scrollExercise
+      ? shouldIncludeScrollExerciseContent(scrollExercise, scrollExerciseSentRef.current)
+      : false
+    pendingScrollExerciseRef.current = scrollExercise
+      ? nextScrollExerciseSentState(
+          scrollExercise,
+          includeScrollContent,
+          scrollExerciseSentRef.current,
+        )
+      : null
+    const promptForAI = buildPromptWithScrollExerciseContext(
+      buildPromptWithPdfPageContext(
+        buildPromptWithStepContext(consumePendingExerciseContext(message), stepContext),
+        pdfPageContextRef.current,
+      ),
+      scrollExercise,
+      includeScrollContent,
     )
 
     const userMessage: ChatMessage = {
@@ -641,6 +699,7 @@ export function useNotebookChat({
             // Only clear pending exercise context on a successful send so a
             // transient error leaves the ref set for the retry.
             pendingExerciseContextRef.current = null
+            commitScrollExerciseSent()
           } else if (event.type === 'error') {
             const errMsg = event.error || errorMessage
             // Check if this is an auth error (contains "auth" or "authentication")
@@ -702,7 +761,14 @@ export function useNotebookChat({
         inputRef.current?.focus()
       }
     },
-    [errorMessage, authRequiredMessage, scrollToBottom, onConversationCreated, showAttachmentRetry],
+    [
+      errorMessage,
+      authRequiredMessage,
+      scrollToBottom,
+      onConversationCreated,
+      showAttachmentRetry,
+      commitScrollExerciseSent,
+    ],
   )
   // Lets the retry action call the latest `streamMessage` from inside itself.
   const streamMessageRef = useRef(streamMessage)
@@ -775,6 +841,7 @@ export function useNotebookChat({
       // Only clear pending exercise context on a successful send so a
       // transient error leaves the ref set for the retry.
       pendingExerciseContextRef.current = null
+      commitScrollExerciseSent()
 
       // Notify caller of conversation creation
       if (result.conversationId && result.contextKey) {

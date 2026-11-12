@@ -2,6 +2,7 @@
 import { ChatRole } from '@/infra/llm/chat-message-role'
 import { apiService } from '@/server/services/api/api-service'
 import { useNotebookChat } from '@/ui/web/chat'
+import { publishScrollExercise } from '@/ui/web/chat/hooks/scroll-exercise-context'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { toast } from 'sonner'
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
@@ -175,6 +176,53 @@ describe('useNotebookChat', () => {
     expect(apiService.chatStream).toHaveBeenCalledTimes(2)
     const userBubbles = result.current.messages.filter((m) => m.role === ChatRole.User)
     expect(userBubbles).toHaveLength(1)
+  })
+
+  it('tells the AI which scroll-view exercise is on screen, text only when it changes', async () => {
+    ;(apiService.chatStream as ReturnType<typeof vi.fn>).mockImplementation(async function* () {
+      yield { type: 'chunk', text: 'ok' }
+      yield { type: 'done' }
+    })
+    const { result } = renderHook(() => useNotebookChat(defaultProps))
+    await waitFor(() => expect(result.current.isLoadingHistory).toBe(false))
+
+    act(() => {
+      publishScrollExercise({
+        exerciseId: 'ex-3',
+        title: 'תרגיל 3',
+        position: 3,
+        total: 10,
+        content: 'נתונה פירמידה ישרה SABCD',
+      })
+    })
+
+    const send = async (text: string) => {
+      act(() => {
+        result.current.setInputValue(text)
+      })
+      await act(async () => {
+        result.current.handleSubmit({ preventDefault: () => undefined } as React.FormEvent)
+      })
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+    }
+    const lastPrompt = () =>
+      (apiService.chatStream as ReturnType<typeof vi.fn>).mock.calls.at(-1)?.[0] as string
+
+    await send('מה התשובה לג?')
+    expect(lastPrompt()).toContain('<scroll-exercise position="3" total="10"')
+    expect(lastPrompt()).toContain('נתונה פירמידה ישרה SABCD')
+
+    await send('ועכשיו?')
+    expect(lastPrompt()).toContain('viewing exercise 3 of 10')
+    expect(lastPrompt()).not.toContain('פירמידה')
+
+    // The visible bubble never shows the hidden block.
+    const userBubbles = result.current.messages.filter((m) => m.role === ChatRole.User)
+    expect(userBubbles.map((m) => m.content)).toEqual(['מה התשובה לג?', 'ועכשיו?'])
+
+    act(() => {
+      publishScrollExercise(null)
+    })
   })
 
   it('sends quick action prompts', async () => {
