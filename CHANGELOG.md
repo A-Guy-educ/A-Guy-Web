@@ -5213,6 +5213,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- promote: dev -> main (v0.65.0) ([#1599](https://github.com/A-Guy-educ/A-Guy-Web/pull/1599)) — @aguyshayb
 - chore: Release v0.65.0 ([#1598](https://github.com/A-Guy-educ/A-Guy-Web/pull/1598)) — @aguyshayb
 - feat: Tell the tutor which exercise is on screen in the scroll view ([#1597](https://github.com/A-Guy-educ/A-Guy-Web/pull/1597)) — @aguyshayb
 - feat: Redesign lesson entry page as a public lesson landing ([#1596](https://github.com/A-Guy-educ/A-Guy-Web/pull/1596)) — @aguyshayb
