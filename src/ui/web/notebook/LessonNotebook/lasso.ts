@@ -11,6 +11,8 @@ import { ERASER_WIDTH, PEN_WIDTH, roundCoord } from './stroke-render'
 const MIN_INSIDE_RATIO = 0.7
 /** Long segments are split this finely (page units) so an eraser can cut through them. */
 const MIN_SAMPLE_STEP = 4
+/** A resized selection can't shrink below this (page units, longest side). */
+const MIN_RESIZE_SIDE = 12
 
 export interface StrokeBounds {
   left: number
@@ -61,8 +63,7 @@ function overlaps(a: StrokeBounds, b: StrokeBounds): boolean {
 const inkRadius = (stroke: NotebookStroke) => (stroke.width ?? PEN_WIDTH) / 2
 const eraserRadius = (stroke: NotebookStroke) => (stroke.width ?? ERASER_WIDTH) / 2
 
-function isErasedAt(x: number, y: number, eraser: NotebookStroke, reach: number): boolean {
-  const { points } = eraser
+function isNearPath(x: number, y: number, points: readonly number[], reach: number): boolean {
   if (points.length === 2)
     return distanceToSegment(x, y, [points[0], points[1]], [points[0], points[1]]) <= reach
   for (let i = 2; i < points.length; i += 2) {
@@ -103,7 +104,12 @@ function withoutErased(stroke: NotebookStroke, erasers: readonly NotebookStroke[
   for (let i = 0; i < samples.length; i += 2) {
     // Ink has round ends, so it needs to stop a full ink-radius short of the eraser.
     const erased = erasers.some((eraser) =>
-      isErasedAt(samples[i], samples[i + 1], eraser, eraserRadius(eraser) + inkRadius(stroke)),
+      isNearPath(
+        samples[i],
+        samples[i + 1],
+        eraser.points,
+        eraserRadius(eraser) + inkRadius(stroke),
+      ),
     )
     if (erased) endRun()
     else run.push(samples[i], samples[i + 1])
@@ -179,4 +185,54 @@ export function clampOffset(
     dx: Math.max(-bounds.left, Math.min(dx, NOTEBOOK_PAGE_WIDTH - bounds.right)),
     dy: Math.max(-bounds.top, Math.min(dy, pageHeight - bounds.bottom)),
   }
+}
+
+/** Strokes scaled about (originX, originY). Line widths stay as drawn, like Apple Notes. */
+export function scaleStrokes(
+  strokes: readonly NotebookStroke[],
+  originX: number,
+  originY: number,
+  scale: number,
+): NotebookStroke[] {
+  return strokes.map((stroke) => ({
+    ...stroke,
+    points: stroke.points.map((value, i) => {
+      const origin = i % 2 === 0 ? originX : originY
+      return roundCoord(origin + (value - origin) * scale)
+    }),
+  }))
+}
+
+/** The closest scale to `scale` that keeps the box on the page and still visible, grown from its top-left. */
+export function clampScale(bounds: StrokeBounds, scale: number, pageHeight: number): number {
+  const width = bounds.right - bounds.left
+  const height = bounds.bottom - bounds.top
+  const largest = Math.min(
+    (NOTEBOOK_PAGE_WIDTH - bounds.left) / width,
+    (pageHeight - bounds.top) / height,
+  )
+  const smallest = Math.min(1, MIN_RESIZE_SIDE / Math.max(width, height))
+  return Math.max(smallest, Math.min(scale, largest))
+}
+
+/**
+ * Finds the ink strokes a point touches, for the stroke eraser. Bounds are
+ * worked out once per gesture so each pointer sample only measures the
+ * strokes that are actually nearby.
+ */
+export function strokeHitTester(strokes: readonly NotebookStroke[]) {
+  const boxes = strokes.map((stroke) =>
+    stroke.erase ? null : pointsBounds(stroke.points, inkRadius(stroke)),
+  )
+  return (x: number, y: number, reach: number): number[] =>
+    boxes.flatMap((box, index) =>
+      box &&
+      x >= box.left - reach &&
+      x <= box.right + reach &&
+      y >= box.top - reach &&
+      y <= box.bottom + reach &&
+      isNearPath(x, y, strokes[index].points, reach + inkRadius(strokes[index]))
+        ? [index]
+        : [],
+    )
 }

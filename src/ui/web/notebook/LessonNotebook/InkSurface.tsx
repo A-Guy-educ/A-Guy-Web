@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react'
 import { NOTEBOOK_PAGE_WIDTH, type NotebookStroke } from '@/infra/types/notebook'
 import { cn } from '@/infra/utils/ui'
 import { useClaimPencilTouches } from '@/ui/web/notebook/stylus-touch'
+import { strokeHitTester } from './lasso'
 import { SNAP_HOLD_MS, SNAP_SLOP_PX, snapStroke, type SnappedShape } from './shape-snap'
 import { drawStroke, drawStrokes, PEN_SIZES, roundCoord, strokeWidthFor } from './stroke-render'
 
@@ -13,7 +14,14 @@ export interface InkTool {
   mode: 'pen' | 'erase' | 'lasso'
   /** Index into `PEN_SIZES`. */
   size: number
+  /** `area` rubs out what it passes over; `stroke` removes every stroke it touches. */
+  eraser: 'area' | 'stroke'
 }
+
+/** How close (page units) the stroke eraser must pass to a stroke to remove it. */
+const STROKE_ERASER_REACH = 8
+/** On a small screen it reaches at least this many screen pixels. */
+const STROKE_ERASER_MIN_PX = 10
 
 interface InkSurfaceProps {
   height: number
@@ -23,11 +31,14 @@ interface InkSurfaceProps {
   /** When false a finger scrolls the notebook and only a stylus or mouse writes. */
   fingerDraws: boolean
   onStrokeEnd: (stroke: NotebookStroke) => void
+  /** The stroke eraser removed strokes; this is what's left. */
+  onStrokesErased: (remaining: NotebookStroke[]) => void
   className?: string
 }
 
 interface LiveStroke {
   pointerId: number
+  pointerType: string
   stroke: NotebookStroke
   /**
    * Snapped to a shape by holding still. A line's end point keeps following
@@ -37,6 +48,15 @@ interface LiveStroke {
   /** Where the pointer last came to rest, in client pixels. */
   anchor: { x: number; y: number }
   holdTimer: number | null
+}
+
+interface StrokeErase {
+  pointerId: number
+  pointerType: string
+  hits: ReturnType<typeof strokeHitTester>
+  reach: number
+  last: [number, number]
+  removed: Set<number>
 }
 
 /**
@@ -53,10 +73,12 @@ export function InkSurface({
   tool,
   fingerDraws,
   onStrokeEnd,
+  onStrokesErased,
   className,
 }: InkSurfaceProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const live = useRef<LiveStroke | null>(null)
+  const strokeErase = useRef<StrokeErase | null>(null)
   // The hold timer fires outside render, so it reads the page through refs.
   const page = useRef({ height, strokes, inks })
   page.current = { height, strokes, inks }
@@ -79,12 +101,45 @@ export function InkSurface({
 
   useEffect(() => () => clearHold(live.current), [])
 
-  const redraw = () => {
+  const redraw = (visible: readonly NotebookStroke[] = page.current.strokes) => {
     const ctx = canvasRef.current?.getContext('2d')
     if (!ctx) return
     ctx.clearRect(0, 0, NOTEBOOK_PAGE_WIDTH, page.current.height)
-    drawStrokes(ctx, page.current.strokes, page.current.inks)
+    drawStrokes(ctx, visible, page.current.inks)
     if (live.current) drawStroke(ctx, live.current.stroke, page.current.inks)
+  }
+
+  const remaining = (removed: Set<number>) =>
+    page.current.strokes.filter((_, index) => !removed.has(index))
+
+  // Checks along the whole move, so a quick swipe can't skip over a thin stroke.
+  const eraseAlong = (current: StrokeErase, x: number, y: number) => {
+    const [fromX, fromY] = current.last
+    const steps = Math.max(1, Math.ceil(Math.hypot(x - fromX, y - fromY) / current.reach))
+    let changed = false
+    for (let step = 1; step <= steps; step++) {
+      const hits = current.hits(
+        fromX + ((x - fromX) * step) / steps,
+        fromY + ((y - fromY) * step) / steps,
+        current.reach,
+      )
+      for (const index of hits) {
+        if (current.removed.has(index)) continue
+        current.removed.add(index)
+        changed = true
+      }
+    }
+    current.last = [x, y]
+    if (changed) redraw(remaining(current.removed))
+  }
+
+  // A second finger landing means a pinch, not more writing: drop what the
+  // first finger started.
+  const cancelForPinch = () => {
+    clearHold(live.current)
+    live.current = null
+    strokeErase.current = null
+    redraw()
   }
 
   // Restarted whenever the pointer moves past the jitter slop, so it only
@@ -110,21 +165,43 @@ export function InkSurface({
   }
 
   const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (e.button !== 0 || live.current) return
+    if (e.button !== 0) return
+    const active = live.current ?? strokeErase.current
+    if (active) {
+      if (e.pointerType === 'touch' && active.pointerType === 'touch') cancelForPinch()
+      return
+    }
     if (e.pointerType === 'touch' && !fingerDraws) return
     e.preventDefault()
     e.currentTarget.setPointerCapture(e.pointerId)
+    const pxPerUnit = e.currentTarget.getBoundingClientRect().width / NOTEBOOK_PAGE_WIDTH
+
+    if (tool.mode === 'erase' && tool.eraser === 'stroke') {
+      const [x, y] = toPage(e.currentTarget, e.clientX, e.clientY)
+      const current: StrokeErase = {
+        pointerId: e.pointerId,
+        pointerType: e.pointerType,
+        hits: strokeHitTester(strokes),
+        reach: Math.max(STROKE_ERASER_REACH, STROKE_ERASER_MIN_PX / pxPerUnit),
+        last: [x, y],
+        removed: new Set(),
+      }
+      strokeErase.current = current
+      eraseAlong(current, x, y)
+      return
+    }
+
     const stroke: NotebookStroke = {
       ink: tool.ink,
       points: toPage(e.currentTarget, e.clientX, e.clientY),
     }
     const erase = tool.mode === 'erase'
     if (erase) stroke.erase = true
-    const pxPerUnit = e.currentTarget.getBoundingClientRect().width / NOTEBOOK_PAGE_WIDTH
     const width = strokeWidthFor(erase, pxPerUnit, PEN_SIZES[tool.size])
     if (width !== undefined) stroke.width = width
     const current: LiveStroke = {
       pointerId: e.pointerId,
+      pointerType: e.pointerType,
       stroke,
       snapped: null,
       anchor: { x: e.clientX, y: e.clientY },
@@ -137,6 +214,16 @@ export function InkSurface({
   }
 
   const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const erasing = strokeErase.current
+    if (erasing && erasing.pointerId === e.pointerId) {
+      e.preventDefault()
+      const events = e.nativeEvent.getCoalescedEvents?.() ?? []
+      for (const sample of events.length ? events : [e.nativeEvent]) {
+        const [x, y] = toPage(e.currentTarget, sample.clientX, sample.clientY)
+        eraseAlong(erasing, x, y)
+      }
+      return
+    }
     const current = live.current
     if (!current || current.pointerId !== e.pointerId) return
     e.preventDefault()
@@ -169,6 +256,12 @@ export function InkSurface({
   }
 
   const finish = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const erasing = strokeErase.current
+    if (erasing && erasing.pointerId === e.pointerId) {
+      strokeErase.current = null
+      if (erasing.removed.size) onStrokesErased(remaining(erasing.removed))
+      return
+    }
     const current = live.current
     if (!current || current.pointerId !== e.pointerId) return
     clearHold(current)

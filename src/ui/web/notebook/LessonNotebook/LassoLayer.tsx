@@ -4,12 +4,16 @@ import { useRef, useState } from 'react'
 
 import { NOTEBOOK_PAGE_WIDTH, type NotebookStroke } from '@/infra/types/notebook'
 import { useClaimPencilTouches } from '@/ui/web/notebook/stylus-touch'
-import { clampOffset, strokesBounds } from './lasso'
+import { clampOffset, clampScale, scaleStrokes, strokesBounds } from './lasso'
 import { PEN_WIDTH, roundCoord } from './stroke-render'
 
 /** A press this close (page units) to the selection still grabs it. */
 const GRAB_PADDING = 12
 const NO_OFFSET = { dx: 0, dy: 0 }
+/** Size (page units) of the resize handle drawn on the selection's corner. */
+const HANDLE_SIZE = 18
+/** A press this close (page units) to the corner grabs the handle. */
+const HANDLE_GRAB = 24
 
 const OUTLINE = {
   vectorEffect: 'non-scaling-stroke',
@@ -24,12 +28,16 @@ interface LassoLayerProps {
   fingerDraws: boolean
   onLasso: (loop: number[]) => void
   onMove: (dx: number, dy: number) => void
+  /** Scale the selection from its top-left corner. */
+  onResize: (scale: number) => void
   onClear: () => void
 }
 
-type Gesture =
-  | { kind: 'loop'; pointerId: number; points: number[] }
-  | { kind: 'drag'; pointerId: number; startX: number; startY: number }
+type Gesture = { pointerId: number; pointerType: string } & (
+  | { kind: 'loop'; points: number[] }
+  | { kind: 'drag'; startX: number; startY: number }
+  | { kind: 'resize' }
+)
 
 function pathFor(points: readonly number[]): string {
   const parts = [`M${points[0]} ${points[1]}`]
@@ -41,7 +49,8 @@ function pathFor(points: readonly number[]): string {
 
 /**
  * Sits over a page while the lasso tool is on. Drawing a loop selects the ink
- * inside it; dragging inside the selection moves it. Drawn as vector paths in
+ * inside it; dragging inside the selection moves it, and dragging its corner
+ * handle resizes it. Drawn as vector paths in
  * page units so the selection can follow the pointer without repainting the
  * page canvas.
  */
@@ -52,15 +61,23 @@ export function LassoLayer({
   fingerDraws,
   onLasso,
   onMove,
+  onResize,
   onClear,
 }: LassoLayerProps) {
   const svgRef = useRef<SVGSVGElement>(null)
   const gesture = useRef<Gesture | null>(null)
   const [loop, setLoop] = useState<number[]>([])
   const [offset, setOffset] = useState(NO_OFFSET)
+  const [scale, setScale] = useState(1)
   useClaimPencilTouches(svgRef, fingerDraws)
 
   const bounds = selected ? strokesBounds(selected) : null
+  // While resizing, show the selection at its new size; widths stay as drawn.
+  const shown =
+    selected && bounds && scale !== 1
+      ? scaleStrokes(selected, bounds.left, bounds.top, scale)
+      : selected
+  const shownBounds = shown && scale !== 1 ? strokesBounds(shown) : bounds
 
   const toPage = (e: React.PointerEvent<SVGSVGElement>) => {
     const rect = e.currentTarget.getBoundingClientRect()
@@ -69,11 +86,25 @@ export function LassoLayer({
   }
 
   const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
-    if (e.button !== 0 || gesture.current) return
+    if (e.button !== 0) return
+    if (gesture.current) {
+      // A second finger means a pinch: drop what the first finger started.
+      if (e.pointerType === 'touch' && gesture.current.pointerType === 'touch') reset()
+      return
+    }
     if (e.pointerType === 'touch' && !fingerDraws) return
     e.preventDefault()
     e.currentTarget.setPointerCapture(e.pointerId)
     const [x, y] = toPage(e)
+    const pointer = { pointerId: e.pointerId, pointerType: e.pointerType }
+    if (
+      bounds &&
+      Math.abs(x - bounds.right) <= HANDLE_GRAB &&
+      Math.abs(y - bounds.bottom) <= HANDLE_GRAB
+    ) {
+      gesture.current = { ...pointer, kind: 'resize' }
+      return
+    }
     const grabbed =
       bounds &&
       x >= bounds.left - GRAB_PADDING &&
@@ -81,11 +112,11 @@ export function LassoLayer({
       y >= bounds.top - GRAB_PADDING &&
       y <= bounds.bottom + GRAB_PADDING
     if (grabbed) {
-      gesture.current = { kind: 'drag', pointerId: e.pointerId, startX: x, startY: y }
+      gesture.current = { ...pointer, kind: 'drag', startX: x, startY: y }
       return
     }
     onClear()
-    gesture.current = { kind: 'loop', pointerId: e.pointerId, points: [x, y] }
+    gesture.current = { ...pointer, kind: 'loop', points: [x, y] }
     setLoop([x, y])
   }
 
@@ -97,15 +128,22 @@ export function LassoLayer({
     if (current.kind === 'loop') {
       current.points = [...current.points, x, y]
       setLoop(current.points)
-    } else if (bounds) {
+    } else if (current.kind === 'drag' && bounds) {
       setOffset(clampOffset(bounds, x - current.startX, y - current.startY, height))
+    } else if (current.kind === 'resize' && bounds) {
+      // Follows the pointer along the box's diagonal, keeping its shape.
+      const width = bounds.right - bounds.left
+      const tall = bounds.bottom - bounds.top
+      const wanted = (x - bounds.left + (y - bounds.top)) / (width + tall)
+      setScale(clampScale(bounds, wanted, height))
     }
   }
 
-  const reset = () => {
+  function reset() {
     gesture.current = null
     setLoop([])
     setOffset(NO_OFFSET)
+    setScale(1)
   }
 
   const onPointerUp = (e: React.PointerEvent<SVGSVGElement>) => {
@@ -113,6 +151,7 @@ export function LassoLayer({
     if (!current || current.pointerId !== e.pointerId) return
     if (current.kind === 'loop' && current.points.length >= 6) onLasso(current.points)
     if (current.kind === 'drag' && (offset.dx || offset.dy)) onMove(offset.dx, offset.dy)
+    if (current.kind === 'resize' && scale !== 1) onResize(scale)
     reset()
   }
 
@@ -132,9 +171,9 @@ export function LassoLayer({
       onPointerCancel={onPointerAbort}
       onLostPointerCapture={onPointerAbort}
     >
-      {selected && bounds && (
+      {shown && shownBounds && (
         <g transform={`translate(${offset.dx} ${offset.dy})`}>
-          {selected.map((stroke, index) => (
+          {shown.map((stroke, index) => (
             <path
               key={index}
               d={pathFor(stroke.points)}
@@ -146,12 +185,22 @@ export function LassoLayer({
             />
           ))}
           <rect
-            x={bounds.left}
-            y={bounds.top}
-            width={bounds.right - bounds.left}
-            height={bounds.bottom - bounds.top}
+            x={shownBounds.left}
+            y={shownBounds.top}
+            width={shownBounds.right - shownBounds.left}
+            height={shownBounds.bottom - shownBounds.top}
             className="fill-primary/10 stroke-primary cursor-move"
             {...OUTLINE}
+          />
+          <rect
+            x={shownBounds.right - HANDLE_SIZE / 2}
+            y={shownBounds.bottom - HANDLE_SIZE / 2}
+            width={HANDLE_SIZE}
+            height={HANDLE_SIZE}
+            rx={3}
+            className="fill-background stroke-primary cursor-nwse-resize"
+            vectorEffect="non-scaling-stroke"
+            strokeWidth={2}
           />
         </g>
       )}

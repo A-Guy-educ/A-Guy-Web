@@ -4,7 +4,10 @@ import { NOTEBOOK_MAX_STROKES, type NotebookStroke } from '@/infra/types/noteboo
 import { notebookPageUpdateSchema } from '@/server/api/schemas/notebook-schemas'
 import {
   clampOffset,
+  clampScale,
   liftStrokes,
+  scaleStrokes,
+  strokeHitTester,
   strokesBounds,
   translateStrokes,
 } from '@/ui/web/notebook/LessonNotebook/lasso'
@@ -91,6 +94,44 @@ describe('moving strokes', () => {
     expect(clampOffset(bounds, -500, -500, 1000)).toEqual({ dx: -100, dy: -100 })
     expect(clampOffset(bounds, 5000, 5000, 1000)).toEqual({ dx: 700, dy: 800 })
     expect(clampOffset(bounds, 10, 20, 1000)).toEqual({ dx: 10, dy: 20 })
+  })
+})
+
+describe('resizing strokes', () => {
+  it('scales points from the origin and keeps the line width', () => {
+    const stroke = { ink: 0, width: 6, points: [100, 100, 300, 200] }
+    expect(scaleStrokes([stroke], 100, 100, 0.5)).toEqual([
+      { ink: 0, width: 6, points: [100, 100, 200, 150] },
+    ])
+    expect(stroke.points).toEqual([100, 100, 300, 200])
+  })
+
+  it('stops growing at the edge of the page', () => {
+    const bounds = { left: 500, top: 0, right: 700, bottom: 100 }
+    expect(clampScale(bounds, 5, 1000)).toBe(2)
+  })
+
+  it('stops shrinking before the selection disappears', () => {
+    const bounds = { left: 0, top: 0, right: 240, bottom: 120 }
+    expect(clampScale(bounds, 0.001, 1000)).toBe(0.05)
+    expect(clampScale(bounds, 0.5, 1000)).toBe(0.5)
+  })
+})
+
+describe('strokeHitTester', () => {
+  const strokes: NotebookStroke[] = [
+    ink(100, 100, 200, 100),
+    eraser(100, 100, 200, 100),
+    ink(100, 300, 200, 300),
+  ]
+
+  it('finds the ink strokes near a point', () => {
+    expect(strokeHitTester(strokes)(150, 105, 8)).toEqual([0])
+    expect(strokeHitTester(strokes)(150, 200, 8)).toEqual([])
+  })
+
+  it('never removes eraser strokes', () => {
+    expect(strokeHitTester([eraser(100, 100, 200, 100)])(150, 100, 8)).toEqual([])
   })
 })
 

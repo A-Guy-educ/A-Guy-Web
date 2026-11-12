@@ -109,19 +109,3 @@ export interface NotebookCheckRequest {
   lessonId?: string
   locale: NotebookCheckLocale
 }
-
-/** What a check sent and got back. Returned to admins only. */
-export interface NotebookCheckDebug {
-  traceId: string
-  model: string
-  temperature: number
-  durationMs: number
-  inputTokens: number
-  outputTokens: number
-  system: string
-  prompt: string
-  exerciseUrl: string | null
-  reading: string | null
-  verdict: NotebookCheckVerdict | null
-  rawReply: string
-}

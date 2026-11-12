@@ -9,7 +9,7 @@ import { logger } from '@/infra/utils/logger'
 import { parseSSEData } from '@/infra/types/backend'
 import type { ChatErrorCode } from '@/infra/types/tutor-chat'
 import { parseChatHttpError } from '@/infra/llm/tutor-chat-error'
-import type { NotebookCheckDebug, NotebookCheckRequest } from '@/infra/types/notebook'
+import type { NotebookCheckRequest } from '@/infra/types/notebook'
 
 export interface ChatApiResponse {
   success: boolean
@@ -25,8 +25,6 @@ export interface ChatApiResponse {
   conversationId?: string
   contextKey?: string
   turnId?: string
-  /** Present on notebook checks for admins. */
-  debug?: NotebookCheckDebug
 }
 
 export interface ConversationMessage {
@@ -178,7 +176,6 @@ export const apiService = {
         message: data.message,
         conversationId: data.conversationId,
         contextKey: data.contextKey,
-        debug: data.debug,
       }
     } catch (error) {
       logger.error({ err: error }, 'Notebook check request failed')

@@ -1,7 +1,7 @@
 /**
  * @fileType utility
  * @domain notebook
- * @ai-summary Prompt and reply parser for checking one notebook page. The model transcribes the handwriting first and states a verdict in tags, so the verdict is grounded in what was written and both can be inspected in the debug panel; the tags are stripped before the student sees the reply.
+ * @ai-summary Prompt and reply parser for checking one notebook page. The model transcribes the handwriting first and states a verdict in tags, so the verdict is grounded in what was written; the tags are stripped before the student sees the reply.
  */
 import {
   NOTEBOOK_CHECK_VERDICTS,
@@ -16,6 +16,12 @@ Use \\(...\\) for inline math and \\[...\\] for display math.`
 const LANGUAGE: Record<NotebookCheckLocale, string> = {
   he: 'Hebrew, in a neutral (non-gendered) voice',
   en: 'English',
+}
+
+/** Shown instead of a reply that came back without its tags or was cut off. */
+export const CHECK_RETRY_MESSAGE: Record<NotebookCheckLocale, string> = {
+  he: 'לא הצלחנו להשלים את הבדיקה הפעם. אפשר ללחוץ שוב על "בדוק".',
+  en: 'We could not finish checking this page. Please press Check again.',
 }
 
 const VERDICT_RULES = `Choose exactly one verdict:

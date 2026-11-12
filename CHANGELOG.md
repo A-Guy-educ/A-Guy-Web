@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.65.0 — 2026-11-12
+
+### Features
+- Tell the tutor which exercise is on screen in the scroll view (#1597)
+- Redesign lesson entry page as a public lesson landing (#1596)
+- Add pinch zoom, stroke eraser and resizing to the notebook (#1594)
+
+### Bug Fixes
+- Render math in scroll view table cells (#1595)
+- Stop tutor and notebook check replies being cut off (#1593)
+
+### Refactor
+- Remove the notebook check debug panel (#1593)
+
 ## v0.64.0 — 2026-11-09
 
 ### Features
@@ -5199,6 +5213,12 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.65.0 ([#1598](https://github.com/A-Guy-educ/A-Guy-Web/pull/1598)) — @aguyshayb
+- feat: Tell the tutor which exercise is on screen in the scroll view ([#1597](https://github.com/A-Guy-educ/A-Guy-Web/pull/1597)) — @aguyshayb
+- feat: Redesign lesson entry page as a public lesson landing ([#1596](https://github.com/A-Guy-educ/A-Guy-Web/pull/1596)) — @aguyshayb
+- fix: Render math in scroll view table cells ([#1595](https://github.com/A-Guy-educ/A-Guy-Web/pull/1595)) — @aguyshayb
+- feat: Add pinch zoom, stroke eraser and resizing to the notebook ([#1594](https://github.com/A-Guy-educ/A-Guy-Web/pull/1594)) — @aguyshayb
+- fix: Stop tutor and notebook check replies being cut off ([#1593](https://github.com/A-Guy-educ/A-Guy-Web/pull/1593)) — @aguyshayb
 - feat: Move the latest cut button to the notebook toolbar ([#1590](https://github.com/A-Guy-educ/A-Guy-Web/pull/1590)) — @aguyshayb
 - fix: Make scroll view cuts fast and keep the page responsive ([#1587](https://github.com/A-Guy-educ/A-Guy-Web/pull/1587)) — @aguyshayb
 - feat: Show the latest notebook cut over the chat ([#1586](https://github.com/A-Guy-educ/A-Guy-Web/pull/1586)) — @aguyshayb
