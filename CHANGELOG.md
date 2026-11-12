@@ -5199,6 +5199,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Tell the tutor which exercise is on screen in the scroll view ([#1597](https://github.com/A-Guy-educ/A-Guy-Web/pull/1597)) — @aguyshayb
 - feat: Redesign lesson entry page as a public lesson landing ([#1596](https://github.com/A-Guy-educ/A-Guy-Web/pull/1596)) — @aguyshayb
 - fix: Render math in scroll view table cells ([#1595](https://github.com/A-Guy-educ/A-Guy-Web/pull/1595)) — @aguyshayb
 - feat: Add pinch zoom, stroke eraser and resizing to the notebook ([#1594](https://github.com/A-Guy-educ/A-Guy-Web/pull/1594)) — @aguyshayb
