@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.65.0 — 2026-11-12
+
+### Features
+- Tell the tutor which exercise is on screen in the scroll view (#1597)
+- Redesign lesson entry page as a public lesson landing (#1596)
+- Add pinch zoom, stroke eraser and resizing to the notebook (#1594)
+
+### Bug Fixes
+- Render math in scroll view table cells (#1595)
+- Stop tutor and notebook check replies being cut off (#1593)
+
+### Refactor
+- Remove the notebook check debug panel (#1593)
+
 ## v0.64.0 — 2026-11-09
 
 ### Features
