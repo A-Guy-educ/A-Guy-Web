@@ -3909,6 +3909,28 @@
       "priority": 8
     },
     {
+      "id": "CLAUDE-browser-storage-critical-",
+      "title": "Browser Storage (CRITICAL)",
+      "content": "**Schools share computers.** `localStorage` / `sessionStorage` are only touched from modules under `src/client/state/`, enforced by `aguy/no-raw-web-storage` (same grandfather-list rule as above — never add to it).\n\n- Per-student keys go in `USER_SCOPED_KEY_PREFIXES` (`src/client/state/localStorage/userScopedStorage.ts`) so another student's sign-in wipes them.\n- Data that should follow the student across computers is synced through `src/client/state/learningState/learningStateSync.ts` (server copy: `user-learning-states`).\n\n---",
+      "keywords": [
+        "client",
+        "state",
+        "computers",
+        "localstorage",
+        "student",
+        "browser",
+        "storage",
+        "critical",
+        "schools",
+        "share"
+      ],
+      "category": "quick-reference",
+      "sourceFile": "CLAUDE.md",
+      "startLine": 130,
+      "endLine": 139,
+      "priority": 8
+    },
+    {
       "id": "CLAUDE-design-system-critical-",
       "title": "Design System (CRITICAL)",
       "content": "**NEVER create custom colors, design tokens, or visual styles that are not defined in the project's design system.**\n\nAll colors, spacing, typography, shadows, and other visual tokens are centrally defined in:\n\n- **CSS Variables (themes)**: [src/app/(frontend)/globals.css](<./src/app/(frontend)/globals.css>) - Light/dark theme colors, semantic colors, text highlights\n- **Tailwind Tokens**: [tailwind.tokens.mjs](./tailwind.tokens.mjs) - Spacing, shadows, z-index, typography, animations\n- **Tailwind Config**: [tailwind.config.mjs](./tailwind.config.mjs) - Full theme configuration\n\nKey rules:\n\n- Use existing CSS variables (`--primary`, `--secondary`, `--accent`, `--success`, `--warning`, `--error`, `--text-highlight-1` through `--text-highlight-8`, etc.)\n- For canvas/non-CSS contexts, convert design system HSL values to hex - do NOT invent new colors\n- All new UI must use Tailwind classes that reference the design system tokens\n- If a needed color/token doesn't exist, add it to the design system first, then use it\n\n---",
@@ -3926,8 +3948,8 @@
       ],
       "category": "quick-reference",
       "sourceFile": "CLAUDE.md",
-      "startLine": 130,
-      "endLine": 149,
+      "startLine": 139,
+      "endLine": 158,
       "priority": 8
     },
     {
@@ -3948,8 +3970,8 @@
       ],
       "category": "quick-reference",
       "sourceFile": "CLAUDE.md",
-      "startLine": 149,
-      "endLine": 169,
+      "startLine": 158,
+      "endLine": 178,
       "priority": 8
     },
     {
@@ -5417,8 +5439,8 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-10-26T06:07:58.411Z",
-    "totalChunks": 274,
+    "generatedAt": "2026-11-14T07:34:51.494Z",
+    "totalChunks": 275,
     "sourceFiles": [
       "AGENTS.md",
       "DESIGN_SYSTEM.md",
