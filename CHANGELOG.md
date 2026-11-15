@@ -5222,6 +5222,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Show exercise sketch with landing practice questions ([#1605](https://github.com/A-Guy-educ/A-Guy-Web/pull/1605)) — @aguyshayb
 - promote: dev -> main (v0.66.0) ([#1604](https://github.com/A-Guy-educ/A-Guy-Web/pull/1604)) — @aguyshayb
 - chore: Release v0.66.0 ([#1603](https://github.com/A-Guy-educ/A-Guy-Web/pull/1603)) — @aguyshayb
 - fix: Open proof dropdown above the exercise workspace ([#1602](https://github.com/A-Guy-educ/A-Guy-Web/pull/1602)) — @aguyshayb
