@@ -81,6 +81,44 @@ describe('buildLessonLanding', () => {
     expect(practice).toEqual([])
   })
 
+  it("attaches the exercise's own sketch and statement to a section question", () => {
+    const geometry = {
+      id: 'geo',
+      type: 'question_geometry',
+      prompt: rich('In the sketch, ABC is a triangle'),
+      layout: 'textRight',
+      geometry: { canvas: { width: 10, height: 10 }, elements: {} },
+      answer: { kind: 'numeric', value: 3 },
+    }
+    const withSections = {
+      ...exercise('1', [rich('Given:'), geometry, { id: 'q-own', type: 'question_free_response' }]),
+      sections: [{ id: 'sec-1', order: 0, content: { blocks: [mcq('q1')] } }],
+    } as Exercise
+
+    const [question] = buildLessonLanding([withSections]).practice
+
+    expect(question.id).toBe('q1')
+    expect(question.context).toEqual([
+      rich('Given:'),
+      {
+        id: 'geo',
+        type: 'question_geometry',
+        prompt: rich('In the sketch, ABC is a triangle'),
+        layout: 'textAbove',
+        geometry: { canvas: { width: 10, height: 10 }, elements: {}, interactive: false },
+      },
+    ])
+  })
+
+  it('only uses the blocks before the question in a legacy single-list exercise', () => {
+    const svg = { id: 'svg', type: 'svg', value: '<svg/>' }
+    const [question] = buildLessonLanding([
+      exercise('1', [svg, mcq('q1'), rich('later section text')]),
+    ]).practice
+
+    expect(question.context).toEqual([svg])
+  })
+
   it('picks the first non-interactive sketch as the visual', () => {
     const interactive = { id: 's1', type: 'svg', value: '<svg/>', interactive: true }
     const axis = { id: 'ax', type: 'question_axis', axis: { functions: [] } }

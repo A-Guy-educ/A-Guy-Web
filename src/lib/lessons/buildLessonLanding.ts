@@ -2,6 +2,8 @@ import type { Exercise } from '@/infra/types/content'
 import type { ContentBlock, QuestionSelectMcqBlock } from '@/infra/types/exercise'
 import { getExerciseBlocks } from '@/lib/exercises/getExerciseBlocks'
 
+import { getLandingContextBlocks } from './getLandingContextBlocks'
+
 export interface LessonLandingQuestion {
   id: string
   exerciseTitle: string | null
@@ -10,6 +12,8 @@ export interface LessonLandingQuestion {
   options: Array<{ id: string; text: string }>
   correctOptionId: string
   hint: string | null
+  /** Exercise-level blocks (statement, sketch) the question refers to. */
+  context: ContentBlock[]
 }
 
 export interface LessonLandingWorkedExample {
@@ -76,6 +80,7 @@ function toQuestion({ exercise, block }: McqCandidate): LessonLandingQuestion {
     })),
     correctOptionId: block.answer.correctOptionIds[0],
     hint: block.hint?.value?.trim() || null,
+    context: getLandingContextBlocks(exercise, block.id),
   }
 }
 
