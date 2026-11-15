@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.66.0 — 2026-11-15
+
+### Features
+- Port dynamic mode of the question_equation block (#1601)
+- Render question_proof geometry proof tables (#1600)
+
+### Bug Fixes
+- Open proof dropdown above the exercise workspace (#1602)
+
 ## v0.65.0 — 2026-11-12
 
 ### Features
