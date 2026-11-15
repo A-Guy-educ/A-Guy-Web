@@ -6,6 +6,11 @@ import {
   isAutoGradedAnswer,
 } from '@/ui/web/exerciserenderer/utils/answerChecking'
 import { isClientGradedSubmission } from '@/ui/web/exerciserenderer/utils/questionAttemptReporter'
+import {
+  formatEquationAnswer,
+  readEquationOperations,
+} from '@/ui/web/exerciserenderer/utils/equationAnswer'
+import type { EquationOperation } from '@/infra/types/linearEquation'
 
 const MESSAGES = {
   invalidAnswerType: 'Invalid answer type',
@@ -71,5 +76,58 @@ describe('equation answer checking', () => {
   it('only records a verdict once a step was done', () => {
     expect(isClientGradedSubmission(block, answerAt(0))).toBe(false)
     expect(isClientGradedSubmission(block, answerAt(1))).toBe(true)
+  })
+})
+
+describe('dynamic mode', () => {
+  const dynamic: QuestionEquationBlock = {
+    ...block,
+    mode: 'dynamic',
+    steps: [],
+    linear: { a: 2, b: 3, c: 1, d: 8 },
+  }
+  const answerWith = (operations: EquationOperation[]) => ({
+    type: 'equation' as const,
+    completedSteps: operations.length,
+    operations,
+  })
+  const minusX: EquationOperation = { kind: 'add_x', value: { n: -1, d: 1 } }
+  const minus3: EquationOperation = { kind: 'add_number', value: { n: -3, d: 1 } }
+  const plus4: EquationOperation = { kind: 'add_number', value: { n: 4, d: 1 } }
+
+  it('is correct once the chosen operations isolate x, detours included', async () => {
+    const solved = await checkQuestionAnswer(
+      dynamic,
+      answerWith([plus4, minusX, minus3, { kind: 'add_number', value: { n: -4, d: 1 } }]),
+      MESSAGES,
+    )
+    const partial = await checkQuestionAnswer(dynamic, answerWith([minusX]), MESSAGES)
+    expect(solved.isCorrect).toBe(true)
+    expect(partial.isCorrect).toBe(false)
+    expect(isAutoGradedAnswer(dynamic, answerWith([minusX, minus3]))).toBe(true)
+    expect(isAutoGradedAnswer(dynamic, answerWith([minusX]))).toBe(false)
+  })
+
+  it('treats a saved answer without operations as no moves', async () => {
+    const legacy = await checkQuestionAnswer(dynamic, answerAt(2), MESSAGES)
+    expect(legacy.isCorrect).toBe(false)
+  })
+
+  it('ignores a malformed operations list instead of throwing', () => {
+    const divideByZero = { kind: 'divide', value: { n: 0, d: 1 } } as EquationOperation
+    const unknownKind = { kind: 'multiply', value: { n: 2, d: 1 } } as unknown as EquationOperation
+    const badFraction = { kind: 'add_x', value: { n: 1.5, d: 0 } } as EquationOperation
+    for (const bad of [divideByZero, unknownKind, badFraction]) {
+      expect(readEquationOperations(answerWith([minusX, bad]))).toEqual([])
+      expect(() => isAutoGradedAnswer(dynamic, answerWith([minusX, bad]))).not.toThrow()
+    }
+  })
+
+  it('summarises moves for the chat', () => {
+    expect(formatEquationAnswer(dynamic, answerWith([minusX]))).toBe('1 moves: -x')
+    expect(formatEquationAnswer(dynamic, answerWith([minusX, minus3]))).toBe(
+      '2 moves: -x, -3, solved',
+    )
+    expect(formatEquationAnswer(block, answerAt(1))).toBe('1/2 steps')
   })
 })
