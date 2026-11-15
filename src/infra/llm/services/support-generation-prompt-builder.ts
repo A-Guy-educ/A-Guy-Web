@@ -1,10 +1,14 @@
-// @ts-nocheck
 /**
  * Block context → support generation user prompt builder
  *
- * @ai-summary Extracts prompt text, answer text, and options from a ContentBlock into a structured user prompt for the support generation LLM call. @ts-nocheck — if block types change, no compile errors will catch mismatches. The prompt format must stay compatible with what SUPPORT_GENERATION_PROMPT expects (three keys: hints, solution, fullSolution). Adding a new block type here with a different answer extraction path requires updating the prompt template too.
+ * @ai-summary Extracts prompt text, answer text, and options from a ContentBlock into a structured user prompt for the support generation LLM call. ContentBlock is `any`, so each branch casts to its concrete block type. The prompt format must stay compatible with what SUPPORT_GENERATION_PROMPT expects (three keys: hints, solution, fullSolution). Adding a new block type here with a different answer extraction path requires updating the prompt template too.
  */
-import type { ContentBlock } from '@/infra/types/exercise'
+import type {
+  ContentBlock,
+  QuestionMatchingBlock,
+  QuestionProofBlock,
+  QuestionSelectMcqBlock,
+} from '@/infra/types/exercise'
 
 export interface SupportPromptInput {
   block: ContentBlock
@@ -54,9 +58,10 @@ function extractAnswerText(block: ContentBlock): string {
       return `Correct: ${block.answer.correctOptionId ?? 'not set'}`
     }
     if (block.variant === 'mcq') {
-      const correctLabels = block.answer.correctOptionIds
+      const { answer } = block as QuestionSelectMcqBlock
+      const correctLabels = answer.correctOptionIds
         .map((id) => {
-          const opt = block.answer.options.find((o) => o.id === id)
+          const opt = answer.options.find((o) => o.id === id)
           return opt ? opt.content.value : id
         })
         .join(', ')
@@ -78,11 +83,26 @@ function extractAnswerText(block: ContentBlock): string {
     return '(table without solution fill)'
   }
 
+  if (block.type === 'question_proof') {
+    const { table } = block as QuestionProofBlock
+    const rows = (table?.rowsData ?? [])
+      .map((row, ri) => `Row ${ri + 1}: ${row.map((c) => c || '___').join(' | ')}`)
+      .join('; ')
+    const blanks = Object.entries(table?.answers ?? {})
+      .map(
+        ([key, val]) =>
+          `Cell [${key}]: ${val} (choices: ${(table.options?.[key] ?? []).join(' / ')})`,
+      )
+      .join('; ')
+    return `Proof table (claim | reason): ${rows}. Answers: ${blanks}`
+  }
+
   if (block.type === 'question_matching') {
-    const pairs = block.correctPairs
+    const matching = block as QuestionMatchingBlock
+    const pairs = matching.correctPairs
       .map((p) => {
-        const left = block.leftColumn.find((o) => o.id === p.optionId)
-        const right = block.rightColumn.find((o) => o.id === p.matchId)
+        const left = matching.leftColumn.find((o) => o.id === p.optionId)
+        const right = matching.rightColumn.find((o) => o.id === p.matchId)
         const leftText = left?.content.value ?? p.optionId
         const rightText = right?.content.value ?? p.matchId
         return `${leftText} -> ${rightText}`
@@ -100,7 +120,9 @@ function hasOptions(block: ContentBlock): boolean {
 
 function extractOptionsText(block: ContentBlock): string {
   if (block.type === 'question_select' && block.variant === 'mcq') {
-    return block.answer.options.map((opt) => `[${opt.id}] ${opt.content.value}`).join(' | ')
+    return (block as QuestionSelectMcqBlock).answer.options
+      .map((opt) => `[${opt.id}] ${opt.content.value}`)
+      .join(' | ')
   }
   return ''
 }

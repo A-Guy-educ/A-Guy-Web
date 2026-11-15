@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.66.0 — 2026-11-15
+
+### Features
+- Port dynamic mode of the question_equation block (#1601)
+- Render question_proof geometry proof tables (#1600)
+
+### Bug Fixes
+- Open proof dropdown above the exercise workspace (#1602)
+
 ## v0.65.0 — 2026-11-12
 
 ### Features
@@ -5213,6 +5222,13 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.66.0 ([#1603](https://github.com/A-Guy-educ/A-Guy-Web/pull/1603)) — @aguyshayb
+- fix: Open proof dropdown above the exercise workspace ([#1602](https://github.com/A-Guy-educ/A-Guy-Web/pull/1602)) — @aguyshayb
+- feat: Port dynamic mode of the question_equation block ([#1601](https://github.com/A-Guy-educ/A-Guy-Web/pull/1601)) — @aguyshayb
+- feat: Render question_proof geometry proof tables ([#1600](https://github.com/A-Guy-educ/A-Guy-Web/pull/1600)) — @aguyshayb
+## [v0.65.0] - 2026-11-12
+
+- promote: dev -> main (v0.65.0) ([#1599](https://github.com/A-Guy-educ/A-Guy-Web/pull/1599)) — @aguyshayb
 - chore: Release v0.65.0 ([#1598](https://github.com/A-Guy-educ/A-Guy-Web/pull/1598)) — @aguyshayb
 - feat: Tell the tutor which exercise is on screen in the scroll view ([#1597](https://github.com/A-Guy-educ/A-Guy-Web/pull/1597)) — @aguyshayb
 - feat: Redesign lesson entry page as a public lesson landing ([#1596](https://github.com/A-Guy-educ/A-Guy-Web/pull/1596)) — @aguyshayb

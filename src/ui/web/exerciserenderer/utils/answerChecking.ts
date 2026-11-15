@@ -12,6 +12,8 @@ import type {
   CheckResult,
 } from '../types'
 import type { QuestionAttemptContext } from './questionAttemptReporter'
+import { isEquationSolved } from './equationAnswer'
+import { validateTableAnswers } from './tableValidation'
 
 export interface AnswerErrorMessages {
   invalidAnswerType: string
@@ -82,6 +84,15 @@ export async function checkQuestionAnswer(
       // Table validation is handled client-side in TableQuestion component
       return { isCorrect: false, message: messages.invalidAnswerType }
 
+    case 'question_proof': {
+      // Interactive mode grades inside ProofQuestion; this path serves batch
+      // "check all", which has no component callback. Same grader either way.
+      if (answer.type !== 'table') return { isCorrect: false, message: messages.invalidAnswerType }
+      return {
+        isCorrect: validateTableAnswers(answer.cellValues, question.table.answers).allCorrect,
+      }
+    }
+
     case 'question_matching': {
       if (answer.type !== 'matching') {
         return { isCorrect: false, message: messages.invalidAnswerType }
@@ -99,7 +110,7 @@ export async function checkQuestionAnswer(
       if (answer.completedSteps === 0) {
         return { isCorrect: false, message: messages.selectAnAnswer }
       }
-      return { isCorrect: answer.completedSteps >= question.steps.length }
+      return { isCorrect: isEquationSolved(question, answer) }
     }
   }
 }
@@ -109,7 +120,7 @@ export async function checkQuestionAnswer(
  */
 export function isAutoGradedAnswer(question: QuestionBlock, answer: UserAnswer): boolean {
   if (question.type === 'question_equation') {
-    return answer.type === 'equation' && answer.completedSteps >= question.steps.length
+    return answer.type === 'equation' && isEquationSolved(question, answer)
   }
   return (
     question.type === 'question_select' && answer.type === 'true_false' && answer.value !== null
@@ -247,6 +258,7 @@ export function getInitialAnswer(question: QuestionBlock): UserAnswer {
     case 'question_free_response':
       return { type: 'free_response', value: '' }
     case 'question_table':
+    case 'question_proof':
       return { type: 'table', cellValues: {} }
     case 'question_matching':
       return { type: 'matching', connections: [] }

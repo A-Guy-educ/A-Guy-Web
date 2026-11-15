@@ -283,6 +283,22 @@ function formatExerciseContent(content: unknown): string {
           ? (qBlock.prompt as { value?: string }).value
           : undefined
       if (prompt) parts.push(`[Table Question]: ${prompt}`)
+    } else if (b.type === 'question_proof') {
+      const qBlock = b as {
+        type: 'question_proof'
+        prompt?: { value?: string }
+        given?: { value?: string }
+        table?: { rowsData?: string[][]; options?: Record<string, string[]> }
+      }
+      if (qBlock.prompt?.value) parts.push(`[Proof Question]: ${qBlock.prompt.value}`)
+      if (qBlock.given?.value) parts.push(`[Given]: ${qBlock.given.value}`)
+      for (const [ri, row] of (qBlock.table?.rowsData ?? []).entries()) {
+        const cells = row.map((cell, ci) => {
+          const choices = cell === '' ? qBlock.table?.options?.[`${ri}-${ci}`] : undefined
+          return choices?.length ? `[blank: ${choices.join(' / ')}]` : cell
+        })
+        parts.push(`[Proof Row ${ri + 1}]: ${cells.join(' — ')}`)
+      }
     } else if (b.type === 'question_matching') {
       const qBlock = b as { type: 'question_matching'; prompt?: { value?: string } }
       const prompt =
