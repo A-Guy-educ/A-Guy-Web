@@ -62,7 +62,9 @@ export function ProofCellSelect({
         >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent>
+        {/* The list portals to <body>; the exercise page wraps everything in a
+            full-screen `z-[200]` layer, so the default `z-50` opened behind it. */}
+        <SelectContent className="z-popover">
           {options.map((option) => (
             <SelectItem key={option} value={option}>
               <MathMarkdown content={option} />

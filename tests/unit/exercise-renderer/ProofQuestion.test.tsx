@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { ProofQuestion } from '@/ui/web/exerciserenderer/questions/ProofQuestion'
 import { formatExerciseContextMessage } from '@/infra/llm/exercise-context'
@@ -54,6 +54,24 @@ describe('ProofQuestion', () => {
     expect(follows(given, diagram)).toBe(true)
     expect(follows(diagram, table)).toBe(true)
     expect(follows(table, check)).toBe(true)
+  })
+})
+
+describe('ProofQuestion dropdown', () => {
+  // Radix Select calls these DOM APIs that jsdom doesn't implement.
+  Element.prototype.hasPointerCapture ??= () => false
+  Element.prototype.releasePointerCapture ??= () => {}
+  Element.prototype.scrollIntoView ??= () => {}
+
+  it('opens its options above full-screen page layers (exercise workspace is z-[200])', () => {
+    renderProof()
+    fireEvent.keyDown(screen.getByRole('combobox'), { key: 'Enter' })
+
+    const listbox = screen.getByRole('listbox')
+    expect(screen.getAllByRole('option')).toHaveLength(3)
+    const layer = listbox.closest('.z-popover')
+    expect(layer).toBeTruthy()
+    expect(layer!.className).not.toMatch(/\bz-50\b/)
   })
 })
 
