@@ -7,6 +7,8 @@ import { cn } from '@/infra/utils/ui'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { MathMarkdown } from '@/ui/web/shared/MathMarkdown'
 
+import { LessonLandingPracticeContext } from './LessonLandingPracticeContext'
+
 interface LessonLandingPracticeCardProps {
   question: LessonLandingQuestion
   number: number
@@ -23,6 +25,7 @@ export function LessonLandingPracticeCard({ question, number }: LessonLandingPra
         <span>{t('lessonLandingPracticeLabel').replace('{{number}}', String(number))}</span>
         {question.level ? <span>{question.level}</span> : null}
       </div>
+      <LessonLandingPracticeContext blocks={question.context} />
       <MathMarkdown
         content={question.prompt}
         className="mt-2 text-body-md font-medium text-foreground"
