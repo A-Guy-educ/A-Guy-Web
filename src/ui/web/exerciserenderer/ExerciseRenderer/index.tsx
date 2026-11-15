@@ -63,6 +63,7 @@ import {
 } from '../utils/answerChecking'
 import { readExerciseState, writeExerciseState } from '../utils/exerciseStateStorage'
 import { isClientGradedSubmission, reportQuestionAttempt } from '../utils/questionAttemptReporter'
+import { formatEquationAnswer } from '../utils/equationAnswer'
 import { MediaMapProvider } from '../context/MediaMapContext'
 import { VideoPlayer } from '../components/VideoPlayer'
 import { getMediaUrl } from '@/infra/utils/getMediaUrl'
@@ -91,7 +92,7 @@ function formatStudentAnswer(question: QuestionBlock, answer: UserAnswer): strin
     return answer.connections.map((c) => `${c.leftId} → ${c.rightId}`).join(', ')
   }
   if (answer.type === 'equation' && question.type === 'question_equation') {
-    return `${answer.completedSteps}/${question.steps.length} steps`
+    return formatEquationAnswer(question, answer)
   }
   return ''
 }

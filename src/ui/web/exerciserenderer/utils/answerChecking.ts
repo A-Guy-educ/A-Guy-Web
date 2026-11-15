@@ -12,6 +12,7 @@ import type {
   CheckResult,
 } from '../types'
 import type { QuestionAttemptContext } from './questionAttemptReporter'
+import { isEquationSolved } from './equationAnswer'
 
 export interface AnswerErrorMessages {
   invalidAnswerType: string
@@ -99,7 +100,7 @@ export async function checkQuestionAnswer(
       if (answer.completedSteps === 0) {
         return { isCorrect: false, message: messages.selectAnAnswer }
       }
-      return { isCorrect: answer.completedSteps >= question.steps.length }
+      return { isCorrect: isEquationSolved(question, answer) }
     }
   }
 }
@@ -109,7 +110,7 @@ export async function checkQuestionAnswer(
  */
 export function isAutoGradedAnswer(question: QuestionBlock, answer: UserAnswer): boolean {
   if (question.type === 'question_equation') {
-    return answer.type === 'equation' && answer.completedSteps >= question.steps.length
+    return answer.type === 'equation' && isEquationSolved(question, answer)
   }
   return (
     question.type === 'question_select' && answer.type === 'true_false' && answer.value !== null

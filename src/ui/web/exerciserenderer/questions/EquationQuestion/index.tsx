@@ -6,6 +6,7 @@ import { MathMarkdown } from '@/ui/web/shared/MathMarkdown'
 import type { EquationStep, QuestionEquationBlock, RichTextBlock, UserAnswer } from '../../types'
 import { RichTextRenderer } from '../../blocks/RichTextRenderer'
 import { EquationLine } from './EquationLine'
+import { DynamicEquationQuestion } from './DynamicEquationQuestion'
 
 interface EquationQuestionProps {
   question: QuestionEquationBlock
@@ -21,6 +22,7 @@ interface EquationQuestionProps {
 /**
  * Solve an equation line by line. Each step offers operations applied to both
  * sides; only the step's correct option advances to its authored result.
+ * Dynamic mode generates the options instead (see DynamicEquationQuestion).
  */
 export function EquationQuestion({
   question,
@@ -58,13 +60,30 @@ export function EquationQuestion({
     mediaIds: prompt.mediaIds || [],
   }
 
+  const promptNode = prompt.value.trim() && (
+    <div className="text-body-md font-medium text-foreground leading-relaxed">
+      <RichTextRenderer block={promptBlock} />
+    </div>
+  )
+
+  if (question.mode === 'dynamic' && question.linear) {
+    return (
+      <DynamicEquationQuestion
+        question={question}
+        linear={question.linear}
+        answer={answer}
+        onChange={onChange}
+        onWrongChoice={onWrongChoice}
+        disabled={disabled}
+        t={t}
+        prompt={promptNode}
+      />
+    )
+  }
+
   return (
     <div className="flex flex-col gap-content-gap">
-      {prompt.value.trim() && (
-        <div className="text-body-md font-medium text-foreground leading-relaxed">
-          <RichTextRenderer block={promptBlock} />
-        </div>
-      )}
+      {promptNode}
 
       <div
         aria-live="polite"
@@ -93,7 +112,7 @@ export function EquationQuestion({
           <p className="text-center text-body-md font-semibold text-foreground">
             {t('equationPrompt')}
           </p>
-          <div dir="ltr" className="grid grid-cols-3 gap-content-gap-xs.5">
+          <div dir="ltr" className="grid grid-cols-3 gap-content-gap-xs">
             {currentStep.options.map((option) => (
               <button
                 key={option.id}
