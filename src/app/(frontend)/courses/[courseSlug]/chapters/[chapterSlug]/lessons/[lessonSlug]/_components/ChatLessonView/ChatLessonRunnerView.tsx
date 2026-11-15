@@ -101,6 +101,7 @@ function isHelpQuestionBlock(block: { type: string }): boolean {
     block.type === 'question_select' ||
     block.type === 'question_free_response' ||
     block.type === 'question_table' ||
+    block.type === 'question_proof' ||
     block.type === 'question_matching' ||
     block.type === 'question_equation'
   )

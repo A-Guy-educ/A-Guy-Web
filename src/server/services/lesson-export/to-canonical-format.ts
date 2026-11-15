@@ -207,6 +207,7 @@ function extractQuestionContent(block: ContentBlock): QuestionContent | null {
         answer: block.answer as AnyAnswer,
       }
     case 'question_table':
+    case 'question_proof':
       return {
         prompt: block.prompt,
         hint: block.hint,

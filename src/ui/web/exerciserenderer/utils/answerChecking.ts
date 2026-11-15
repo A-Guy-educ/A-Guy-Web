@@ -12,6 +12,7 @@ import type {
   CheckResult,
 } from '../types'
 import type { QuestionAttemptContext } from './questionAttemptReporter'
+import { validateTableAnswers } from './tableValidation'
 
 export interface AnswerErrorMessages {
   invalidAnswerType: string
@@ -81,6 +82,15 @@ export async function checkQuestionAnswer(
     case 'question_table':
       // Table validation is handled client-side in TableQuestion component
       return { isCorrect: false, message: messages.invalidAnswerType }
+
+    case 'question_proof': {
+      // Interactive mode grades inside ProofQuestion; this path serves batch
+      // "check all", which has no component callback. Same grader either way.
+      if (answer.type !== 'table') return { isCorrect: false, message: messages.invalidAnswerType }
+      return {
+        isCorrect: validateTableAnswers(answer.cellValues, question.table.answers).allCorrect,
+      }
+    }
 
     case 'question_matching': {
       if (answer.type !== 'matching') {
@@ -247,6 +257,7 @@ export function getInitialAnswer(question: QuestionBlock): UserAnswer {
     case 'question_free_response':
       return { type: 'free_response', value: '' }
     case 'question_table':
+    case 'question_proof':
       return { type: 'table', cellValues: {} }
     case 'question_matching':
       return { type: 'matching', connections: [] }

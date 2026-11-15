@@ -41,6 +41,7 @@ const QUESTION_BLOCK_TYPES: ReadonlySet<string> = new Set([
   'question_select',
   'question_free_response',
   'question_table',
+  'question_proof',
   'question_matching',
   'question_equation',
 ])
