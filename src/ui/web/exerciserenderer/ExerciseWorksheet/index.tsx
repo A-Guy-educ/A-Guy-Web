@@ -22,6 +22,7 @@
  *   - question_select(mcq)       -> Hebrew label + prompt + bulleted choice list (empty radios)
  *   - question_free_response     -> Hebrew label + prompt (no answer lines — per issue #1396)
  *   - question_table             -> Hebrew label + prompt + empty table grid
+ *   - question_proof             -> Hebrew label + prompt + given + claim/reason table
  *   - question_matching          -> Hebrew label + prompt + two columns of items
  *   - question_equation          -> Hebrew label + prompt + starting equation
  *
@@ -47,6 +48,7 @@ import { MultiAxisRenderer } from '../blocks/MultiAxisRenderer'
 import { LatexBlockRenderer } from '../blocks/LatexBlockRenderer'
 import { QuestionWithAttachment } from '../blocks/QuestionWithAttachment'
 import { renderQuestionAttachment } from '../blocks/renderQuestionAttachment'
+import { WorksheetProof } from './WorksheetProof'
 import { getMediaUrl } from '@/infra/utils/getMediaUrl'
 import { computeQuestionLabels } from '@/lib/exercises/computeSectionLabels'
 import type { Media } from '@/infra/types/content'
@@ -66,6 +68,7 @@ import type {
   QuestionSelectMcqBlock,
   QuestionSelectTrueFalseBlock,
   QuestionTableBlock,
+  QuestionProofBlock,
   RichTextBlock,
   SvgBlock,
 } from '@/infra/types/exercise'
@@ -159,6 +162,7 @@ const LABELLED_QUESTION_TYPES = new Set([
   'question_select',
   'question_free_response',
   'question_table',
+  'question_proof',
   'question_matching',
   'question_equation',
 ])
@@ -346,6 +350,10 @@ function renderBlockContent({
 
   if (block.type === 'question_table') {
     return <WorksheetTable block={block as QuestionTableBlock} />
+  }
+
+  if (block.type === 'question_proof') {
+    return <WorksheetProof block={block as QuestionProofBlock} />
   }
 
   if (block.type === 'question_matching') {

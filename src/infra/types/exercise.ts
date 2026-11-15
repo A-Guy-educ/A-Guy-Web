@@ -150,6 +150,39 @@ export interface QuestionTableBlock {
 }
 
 // ---------------------------------
+// Proof Table (used inside QuestionProofBlock)
+// ---------------------------------
+export interface ProofTable {
+  /** Always `['טענה', 'נימוק']` (claim / reason). */
+  headers: string[]
+  /** Each row is `[claim, reason]`; `''` marks a blank cell. */
+  rowsData: string[][]
+  /** Key `"rowIdx-colIdx"` → the correct option's text. */
+  answers: Record<string, string>
+  /** Key `"rowIdx-colIdx"` → 2–3 choices for that blank (includes the answer). */
+  options: Record<string, string[]>
+}
+
+// ---------------------------------
+// Question Proof Block (geometry proof table: claim / reason)
+// ---------------------------------
+export interface QuestionProofBlock {
+  id: string
+  type: 'question_proof'
+  prompt: InlineRichText
+  /** The "נתון" (given) box shown above the table. */
+  given?: InlineRichText
+  table: ProofTable
+  hint?: InlineRichText
+  solution?: InlineRichText
+  fullSolution?: InlineRichText
+  /** See `QuestionSelectTrueFalseBlock.showNotebook`. */
+  showNotebook?: boolean
+  /** The proof's diagram. Rendered beside the table, not beside the card. */
+  attachment?: QuestionAttachment
+}
+
+// ---------------------------------
 // Latex Block
 // ---------------------------------
 export interface LatexBlock {

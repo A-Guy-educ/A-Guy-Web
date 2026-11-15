@@ -15,6 +15,7 @@ import type {
   QuestionFreeResponseBlock,
   QuestionGeometryBlock,
   QuestionMatchingBlock,
+  QuestionProofBlock,
   QuestionSelectMcqBlock,
   QuestionSelectTrueFalseBlock,
   QuestionTableBlock,
@@ -173,6 +174,9 @@ function formatBlock(
     case 'question_table':
       return formatTableBlock(block as unknown as QuestionTableBlock, index)
 
+    case 'question_proof':
+      return formatProofBlock(block as unknown as QuestionProofBlock, index)
+
     case 'latex':
       return formatLatexBlock(block as unknown as LatexBlock, index)
 
@@ -226,6 +230,26 @@ function formatTableBlock(block: QuestionTableBlock, index: number): string {
   const cols = block.table.headers.length
   const hint = block.hint ? ` | Hint: ${truncateText(block.hint.value, 50)}` : ''
   return `${index}. [Question: Table] ${prompt} | ${cols} columns × ${rows} rows${hint}`
+}
+
+/**
+ * Lists every claim / reason row. Blank cells show their choices but never
+ * which one is correct (answers are stripped, like every other block).
+ */
+function formatProofBlock(block: QuestionProofBlock, index: number): string {
+  const prompt = truncateText(block.prompt.value, 80)
+  const given = block.given?.value ? ` | Given: ${truncateText(block.given.value, 120)}` : ''
+  const rows = block.table.rowsData
+    .map((row, ri) => {
+      const cells = row.map((cell, ci) => {
+        const choices = cell === '' ? block.table.options?.[`${ri}-${ci}`] : undefined
+        return choices?.length ? `[blank: ${choices.join(' / ')}]` : cell
+      })
+      return `${ri + 1}) ${cells.join(' — ')}`
+    })
+    .join('; ')
+  const hint = block.hint ? ` | Hint: ${truncateText(block.hint.value, 50)}` : ''
+  return `${index}. [Question: Proof (claim — reason)] ${prompt}${given} | Rows: ${rows}${hint}`
 }
 
 function formatLatexBlock(block: LatexBlock, index: number): string {

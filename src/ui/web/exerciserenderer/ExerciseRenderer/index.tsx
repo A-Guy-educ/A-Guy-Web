@@ -21,6 +21,7 @@ import type {
   QuestionSelectMcqBlock,
   QuestionFreeResponseBlock,
   QuestionTableBlock,
+  QuestionProofBlock,
   QuestionMatchingBlock,
   QuestionEquationBlock,
   SvgBlock,
@@ -48,6 +49,7 @@ import { TrueFalseQuestion } from '../questions/TrueFalseQuestion'
 import { McqQuestion } from '../questions/McqQuestion'
 import { FreeResponseQuestion } from '../questions/FreeResponseQuestion'
 import { TableQuestion } from '../questions/TableQuestion'
+import { ProofQuestion } from '../questions/ProofQuestion'
 import { MatchingQuestion } from '../questions/MatchingQuestion'
 import { EquationQuestion } from '../questions/EquationQuestion'
 import { QuestionCard } from '../components/QuestionCard'
@@ -172,6 +174,7 @@ export function ExerciseRenderer({
           block.type === 'question_select' ||
           block.type === 'question_free_response' ||
           block.type === 'question_table' ||
+          block.type === 'question_proof' ||
           block.type === 'question_matching' ||
           block.type === 'question_equation',
       ) as QuestionBlock[],
@@ -718,12 +721,13 @@ export function ExerciseRenderer({
       }
     }
 
-    // NOTE: We count question_table as a question so it gets its own section letter.
+    // NOTE: We count question_table / question_proof as questions so they get their own section letter.
     // Rich text / latex blocks must NOT increment the counter.
     const nextIndex =
       block.type === 'question_select' ||
       block.type === 'question_free_response' ||
       block.type === 'question_table' ||
+      block.type === 'question_proof' ||
       block.type === 'question_matching' ||
       block.type === 'question_equation'
         ? questionIndex + 1
@@ -760,6 +764,7 @@ export function ExerciseRenderer({
       !(question.type === 'question_select' && question.variant === 'true_false') &&
       !isSingleSelectMcq &&
       question.type !== 'question_table' &&
+      question.type !== 'question_proof' &&
       question.type !== 'question_equation'
 
     // Help system for this question (always shown — AI fallback when no backend content).
@@ -793,8 +798,11 @@ export function ExerciseRenderer({
       )
 
     const attachment = (question as QuestionBlock & { attachment?: QuestionAttachment }).attachment
+    // Proofs place their diagram beside the table themselves (see ProofQuestion),
+    // so they skip both the after-prompt slot and the card-level wrapper.
+    const ownsAttachmentLayout = question.type === 'question_proof'
     const afterPrompt =
-      attachment && attachmentAfterPrompt
+      attachment && attachmentAfterPrompt && !ownsAttachmentLayout
         ? renderQuestionAttachment(question.id, attachment)
         : undefined
 
@@ -880,6 +888,18 @@ export function ExerciseRenderer({
             t={t}
           />
         )}
+        {question.type === 'question_proof' && (
+          <ProofQuestion
+            question={question as QuestionProofBlock}
+            attachment={attachment ? renderQuestionAttachment(question.id, attachment) : undefined}
+            answer={answer}
+            onChange={(ans) => handleAnswerChange(question.id, ans)}
+            checked={checked}
+            allCorrect={!!disabled}
+            onCheckResult={(correct) => handleTableCheckResult(question.id, correct)}
+            t={t}
+          />
+        )}
         {question.type === 'question_matching' && (
           <MatchingQuestion
             afterPrompt={afterPrompt}
@@ -910,7 +930,7 @@ export function ExerciseRenderer({
     )
 
     const node =
-      attachment && !attachmentAfterPrompt ? (
+      attachment && !attachmentAfterPrompt && !ownsAttachmentLayout ? (
         <QuestionWithAttachment
           key={question.id}
           layout={attachment.layout}

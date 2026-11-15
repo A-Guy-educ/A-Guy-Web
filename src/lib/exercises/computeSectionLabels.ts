@@ -32,6 +32,7 @@ export const INTERACTIVE_QUESTION_TYPES: ReadonlySet<string> = new Set<string>([
   'question_select',
   'question_free_response',
   'question_table',
+  'question_proof',
   'question_matching',
   'question_equation',
 ])
