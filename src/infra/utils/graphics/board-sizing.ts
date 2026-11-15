@@ -57,6 +57,12 @@ export interface BoardSizeInput {
    * they belong to the uncapped 330px spec and would distort the ratio.
    */
   maxHeight?: number
+  /**
+   * Geometry only: when the width is clamped below the aspect-driven width,
+   * shrink the height with it so the board keeps the viewport's shape
+   * instead of squeezing x-units relative to y-units.
+   */
+  lockAspect?: boolean
 }
 
 export interface BoardSize {
@@ -89,6 +95,7 @@ export function computeBoardSize(input: BoardSizeInput): BoardSize {
     widthOverride,
     heightOverride,
     maxHeight,
+    lockAspect = false,
   } = input
 
   const hasMaxHeight = maxHeight !== undefined && Number.isFinite(maxHeight) && maxHeight > 0
@@ -122,7 +129,7 @@ export function computeBoardSize(input: BoardSizeInput): BoardSize {
   // Narrow-screen fallback #2: container narrower than the min width, just
   // use the container (no horizontal scroll). Spec says height stays 330.
   if (container > 0 && container < SKETCH_MIN_WIDTH_PX) {
-    return { width: container, height }
+    return withLockedAspect({ width: container, height }, naturalWidth, lockAspect && !degenerate)
   }
 
   // Normal path. If no container size was provided (SSR, zero-width render)
@@ -134,5 +141,11 @@ export function computeBoardSize(input: BoardSizeInput): BoardSize {
       : Infinity
   const width = Math.max(SKETCH_MIN_WIDTH_PX, Math.min(naturalWidth, effectiveMax))
 
-  return { width, height }
+  return withLockedAspect({ width, height }, naturalWidth, lockAspect && !degenerate)
+}
+
+/** Shrink the height by the same factor the width was clamped below its natural size. */
+function withLockedAspect(size: BoardSize, naturalWidth: number, lock: boolean): BoardSize {
+  if (!lock || size.width >= naturalWidth) return size
+  return { width: size.width, height: (size.height * size.width) / naturalWidth }
 }

@@ -105,3 +105,22 @@ describe('computeBoardSize (maxHeight cap)', () => {
     expect(r.height).toBe(330)
   })
 })
+
+describe('computeBoardSize (lockAspect, geometry)', () => {
+  it('shrinks the height with the width when the 75% cap clamps a wide board', () => {
+    // natural 3300 × 330 → capped to 750 wide, height follows: 750 / 10 = 75
+    const r = computeBoardSize({ xRange: 100, yRange: 10, availableWidth: 1000, lockAspect: true })
+    expect(r.width).toBe(750)
+    expect(r.height).toBeCloseTo(75, 5)
+  })
+
+  it('keeps the ratio on a container narrower than the min width', () => {
+    const r = computeBoardSize({ xRange: 10, yRange: 10, availableWidth: 240, lockAspect: true })
+    expect(r).toEqual({ width: 240, height: 240 })
+  })
+
+  it('leaves the height alone when the min width widens a tall board', () => {
+    const r = computeBoardSize({ xRange: 10, yRange: 100, availableWidth: 1000, lockAspect: true })
+    expect(r).toEqual({ width: SKETCH_MIN_WIDTH_PX, height: SKETCH_HEIGHT_PX })
+  })
+})
