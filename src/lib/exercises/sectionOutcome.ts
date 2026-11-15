@@ -23,6 +23,7 @@ const ALWAYS_ANSWER_REQUIRED_BLOCK_TYPES = new Set([
   'question_select',
   'question_free_response',
   'question_table',
+  'question_proof',
   'question_matching',
   'question_equation',
 ])

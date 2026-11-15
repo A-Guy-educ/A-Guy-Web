@@ -19,6 +19,8 @@ interface LooseBlock {
   hint?: LooseRichText
   solution?: LooseRichText
   fullSolution?: LooseRichText
+  /** question_proof's "נתון" box. */
+  given?: LooseRichText
   options?: Array<{ label?: LooseRichText }>
   answer?: {
     options?: Array<{ content?: LooseRichText }>
@@ -44,6 +46,7 @@ export function extractMediaIds(content: { blocks: LooseBlock[] }): string[] {
     collect(block.hint)
     collect(block.solution)
     collect(block.fullSolution)
+    collect(block.given)
 
     if (block.options) {
       for (const opt of block.options) {

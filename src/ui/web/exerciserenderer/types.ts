@@ -11,6 +11,8 @@ import type {
   LatexBlock,
   QuestionAttachment,
   QuestionMatchingBlock,
+  QuestionProofBlock,
+  ProofTable,
   SvgBlock,
   MatchingOption,
   MatchingPair,
@@ -25,6 +27,8 @@ export type {
   LatexBlock,
   QuestionAttachment,
   QuestionMatchingBlock,
+  QuestionProofBlock,
+  ProofTable,
   SvgBlock,
   MatchingOption,
   MatchingPair,
@@ -194,6 +198,7 @@ export type QuestionBlock =
   | QuestionSelectBlock
   | QuestionFreeResponseBlock
   | QuestionTableBlock
+  | QuestionProofBlock
   | QuestionMatchingBlock
   | QuestionEquationBlock
 
