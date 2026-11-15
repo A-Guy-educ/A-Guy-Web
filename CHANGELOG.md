@@ -5222,6 +5222,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.66.0 ([#1603](https://github.com/A-Guy-educ/A-Guy-Web/pull/1603)) — @aguyshayb
 - fix: Open proof dropdown above the exercise workspace ([#1602](https://github.com/A-Guy-educ/A-Guy-Web/pull/1602)) — @aguyshayb
 - feat: Port dynamic mode of the question_equation block ([#1601](https://github.com/A-Guy-educ/A-Guy-Web/pull/1601)) — @aguyshayb
 - feat: Render question_proof geometry proof tables ([#1600](https://github.com/A-Guy-educ/A-Guy-Web/pull/1600)) — @aguyshayb
