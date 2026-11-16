@@ -5236,6 +5236,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Center point labels on their compass direction ([#1618](https://github.com/A-Guy-educ/A-Guy-Web/pull/1618)) — @aguyshayb
 - feat: Add interactive school walkthrough at /classdemo ([#1617](https://github.com/A-Guy-educ/A-Guy-Web/pull/1617)) — @aguyshayb
 ## [v0.67.0] - 2026-11-16
 
