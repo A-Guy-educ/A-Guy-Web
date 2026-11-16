@@ -5236,6 +5236,8 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+## [v0.67.0] - 2026-11-16
+
 - promote: dev -> main (v0.67.0) ([#1616](https://github.com/A-Guy-educ/A-Guy-Web/pull/1616)) — @aguyshayb
 - chore: Release v0.67.0 ([#1615](https://github.com/A-Guy-educ/A-Guy-Web/pull/1615)) — @aguyshayb
 - fix: Show the notebook quota offer as a popup, not a chat card ([#1614](https://github.com/A-Guy-educ/A-Guy-Web/pull/1614)) — @aguyshayb
