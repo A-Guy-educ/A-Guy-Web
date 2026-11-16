@@ -19,6 +19,8 @@ import {
 } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 
+import { ChatInputQuotaBadge, ChatInputQuotaStatus, type ChatViewQuota } from './ChatInputQuota'
+
 interface ChatInputPanelProps {
   disabled?: boolean
   isSending: boolean
@@ -31,6 +33,8 @@ interface ChatInputPanelProps {
    * `mediaIds` array.
    */
   onSubmit: (text: string, mediaIds: string[]) => void
+  /** AI quota for the counter + upgrade offer; `null` hides both. */
+  quota?: ChatViewQuota | null
 }
 
 interface UploadItem {
@@ -50,6 +54,7 @@ export function ChatInputPanel({
   placeholder,
   sendLabel,
   onSubmit,
+  quota = null,
 }: ChatInputPanelProps) {
   const t = useTranslations('courses')
   const [value, setValue] = useState('')
@@ -159,15 +164,17 @@ export function ChatInputPanel({
           aria-expanded={!isFolded}
           title={isFolded ? t('chatExpandInput') : t('chatCollapseInput')}
           className={cn(
-            'shrink-0 w-9 h-9 rounded-full border border-border bg-card/95 backdrop-blur-md',
+            'relative shrink-0 w-9 h-9 rounded-full border border-border bg-card/95 backdrop-blur-md',
             'text-foreground flex items-center justify-center shadow-elevation-1 transition-colors',
             'hover:bg-muted',
           )}
         >
           {isFolded ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          {isFolded && quota && <ChatInputQuotaBadge quota={quota} />}
         </button>
 
         <div className={cn('flex-1 min-w-0', isFolded && 'hidden')} dir="rtl">
+          {quota && <ChatInputQuotaStatus quota={quota} onSkip={() => setIsFolded(true)} />}
           {uploads.length > 0 && (
             <div className="flex flex-wrap gap-content-gap-xs mb-2">
               {uploads.map((u) => (

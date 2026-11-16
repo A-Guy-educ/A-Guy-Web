@@ -24,6 +24,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { ChatErrorSurface } from '../ChatErrorSurface'
 import { ChatMessageView } from '../ChatMessageView'
 import { ChatQuotaBar } from '../ChatQuotaBar'
+import { ChatUpgradeOffer } from '../ChatUpgradeOffer'
 import { TTSButton } from '../TTSButton'
 import { useChatQuota } from '../hooks/useChatQuota'
 import { useNotebookChat } from '../hooks/useNotebookChat'
@@ -164,6 +165,7 @@ export function ChatInterface({
     // Error handling
     chatError,
     dismissError,
+    quotaOffer,
     // External media injection (Ask page uploads)
     addExternalMedia,
     askMedia: _askMedia,
@@ -209,6 +211,21 @@ export function ChatInterface({
   const { label: teacherProfileLabel } = useTeacherProfileLabel(!!currentUser)
   const isAdmin = (currentUser as unknown as { role?: string })?.role === 'admin'
   const quota = useChatQuota()
+  const { refreshQuota } = quota
+  // Out of AI quota: either a turn was just rejected, or the counter already
+  // said so on load. Admins are never capped.
+  const offerSource =
+    !currentUser || isAdmin
+      ? null
+      : (quotaOffer?.source ?? (quota.isLoaded && quota.isLimitReached ? 'chat' : null))
+
+  // A rejection lands the offer at the bottom of the conversation; bring it
+  // into view and sync the counter with the server.
+  useEffect(() => {
+    if (!quotaOffer) return
+    void refreshQuota()
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+  }, [quotaOffer, refreshQuota, messagesEndRef])
 
   // Auto-send contextual help on incorrect answer (ref pattern for stable listener)
   const incorrectAnswerRef = useRef<(e: Event) => void>(() => {})
@@ -646,6 +663,7 @@ export function ChatInterface({
             <span>{tCourses('chatThinking')}</span>
           </div>
         )}
+        {!isLoadingHistory && offerSource && <ChatUpgradeOffer source={offerSource} />}
         <div ref={messagesEndRef} />
       </div>
 
