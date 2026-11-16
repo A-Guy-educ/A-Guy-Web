@@ -5222,6 +5222,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Show upgrade offer when the chat or notebook hits the AI cap ([#1609](https://github.com/A-Guy-educ/A-Guy-Web/pull/1609)) — @aguyshayb
 - fix: Rotate geometry line labels in pixel space ([#1608](https://github.com/A-Guy-educ/A-Guy-Web/pull/1608)) — @aguyshayb
 - fix: Scale notebook grid with zoom ([#1607](https://github.com/A-Guy-educ/A-Guy-Web/pull/1607)) — @aguyshayb
 - fix: Keep geometry sketches at equal x/y units ([#1606](https://github.com/A-Guy-educ/A-Guy-Web/pull/1606)) — @aguyshayb
