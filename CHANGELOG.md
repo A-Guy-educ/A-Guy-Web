@@ -5222,6 +5222,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Show the notebook quota offer as a popup, not a chat card ([#1614](https://github.com/A-Guy-educ/A-Guy-Web/pull/1614)) — @aguyshayb
 - fix: Notebook page checks spend tokens, not chat messages ([#1613](https://github.com/A-Guy-educ/A-Guy-Web/pull/1613)) — @aguyshayb
 - fix: Accurate quota copy and notebook check offer ([#1612](https://github.com/A-Guy-educ/A-Guy-Web/pull/1612)) — @aguyshayb
 - feat: Show upgrade offer when the chat or notebook hits the AI cap ([#1609](https://github.com/A-Guy-educ/A-Guy-Web/pull/1609)) — @aguyshayb
