@@ -76,6 +76,8 @@ function defaultDependencies(): NotebookCheckDependencies {
         ownerId,
         rateKey: `chat:${ownerId}:notebook-check`,
         ...CHECK_RATE_LIMIT,
+        // Page checks spend tokens, not the daily chat messages.
+        countsAsMessage: false,
       }),
     recordUsage: recordLlmUsage,
   }

@@ -6,11 +6,11 @@ import { useTranslations } from '@/ui/web/providers/I18n'
 import { UpgradeOfferCard } from '@/ui/web/upsell/UpgradeOfferCard'
 import type { QuotaOfferReason, QuotaOfferSource } from '../hooks/useNotebookChat'
 
-// Body copy per what hit the cap and which cap it was. Out of daily chat
-// messages is not out of the plan — the copy must not claim it is.
-const INTRO_KEYS: Record<QuotaOfferSource, Record<QuotaOfferReason, string>> = {
-  chat: { messages: 'chatQuotaMessagesBody', tokens: 'chatViewQuotaExhaustedBody' },
-  notebook: { messages: 'notebookQuotaMessagesBody', tokens: 'notebookQuotaExhaustedBody' },
+// Out of daily chat messages is not out of the plan — the copy must not claim
+// it is. Page checks only spend tokens, so the notebook has one message.
+function introKey(source: QuotaOfferSource, reason: QuotaOfferReason): string {
+  if (source === 'notebook') return 'notebookQuotaExhaustedBody'
+  return reason === 'messages' ? 'chatQuotaMessagesBody' : 'chatViewQuotaExhaustedBody'
 }
 
 /**
@@ -45,7 +45,7 @@ export function ChatUpgradeOffer({ source, reason }: ChatUpgradeOfferProps) {
       key={`${source}-${reason}`}
       compact
       title={t(isNotebook ? 'notebookQuotaOfferTitle' : 'chatViewQuotaOfferTitle')}
-      intro={t(INTRO_KEYS[source][reason])}
+      intro={t(introKey(source, reason))}
       continueLabel={t(isNotebook ? 'notebookQuotaContinueCta' : 'chatViewQuotaContinueCta')}
       restrictedLabel={t(isNotebook ? 'notebookQuotaRestrictedBody' : 'chatQuotaRestrictedBody')}
       currentTier={currentTier}
