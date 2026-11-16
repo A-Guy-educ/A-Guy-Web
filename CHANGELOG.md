@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.67.0 — 2026-11-16
+
+### Features
+- Show upgrade offer when the chat or notebook hits the AI cap (#1609)
+- Show exercise sketch with landing practice questions (#1605)
+
+### Bug Fixes
+- Show the notebook quota offer as a popup, not a chat card (#1614)
+- Notebook page checks spend tokens, not chat messages (#1613)
+- Accurate quota copy and notebook check offer (#1612)
+- Rotate geometry line labels in pixel space (#1608)
+- Scale notebook grid with zoom (#1607)
+- Keep geometry sketches at equal x/y units (#1606)
+
 ## v0.66.0 — 2026-11-15
 
 ### Features
