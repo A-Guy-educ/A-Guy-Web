@@ -21,6 +21,7 @@ import { logger } from '@/infra/utils/logger'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ChatInputPanel } from './ChatInputPanel'
+import { useChatViewQuota } from './ChatInputQuota'
 import { ChatLessonProgress } from './ChatLessonProgress'
 import { GivenDataFloating } from './GivenDataFloating'
 import { ContinueButton } from './bubbles/ContinueButton'
@@ -314,6 +315,7 @@ function ActiveChat({
     authRequiredMessage: t('chatViewAuthRequired'),
     quotaExceededMessage: t('chatViewQuotaExceeded'),
   })
+  const quota = useChatViewQuota(chat.isSending, chat.isQuotaExhausted)
 
   // Cancel any pending auto-advance timer whenever the student navigates or
   // resets — otherwise a leftover timer would fire after unmount.
@@ -924,6 +926,8 @@ function ActiveChat({
       </main>
 
       <ChatInputPanel
+        disabled={quota?.exhausted}
+        quota={quota}
         isSending={chat.isSending}
         placeholder={t('chatViewInputPlaceholder')}
         sendLabel={t('chatViewSendLabel')}

@@ -63,6 +63,9 @@ export interface ChatError {
   message: string
 }
 
+/** What ran into the AI quota: a chat turn, or a notebook page check. */
+export type QuotaOfferSource = 'chat' | 'notebook'
+
 interface UseNotebookChatProps {
   initialMessage: string
   authRequiredMessage: string
@@ -209,6 +212,12 @@ export function useNotebookChat({
 
   // Error state
   const [chatError, setChatError] = useState<ChatError | null>(null)
+  // Set when the server rejects a turn for quota; the chat shows the upgrade
+  // offer as its last message instead of an error strip.
+  // `at` makes a repeat rejection a new value, so the chat scrolls to it again.
+  const [quotaOffer, setQuotaOffer] = useState<{ source: QuotaOfferSource; at: number } | null>(
+    null,
+  )
 
   // Track last injected exercise ID to avoid duplicate context injection
   const lastInjectedExerciseId = useRef<string | null>(null)
@@ -712,10 +721,7 @@ export function useNotebookChat({
               event.errorCode === 'quota_exceeded' ||
               event.errorCode === 'token_limit_exceeded'
             ) {
-              setChatError({
-                type: 'quota' as const,
-                message: 'Chat limit reached. Try again later.',
-              })
+              setQuotaOffer({ source: 'chat', at: Date.now() })
             } else if (event.errorCode === 'rate_limited') {
               setChatError({ type: 'limit' as const, message: errMsg })
             } else if (event.errorCode === 'attachment_unavailable') {
@@ -774,14 +780,15 @@ export function useNotebookChat({
   const streamMessageRef = useRef(streamMessage)
   streamMessageRef.current = streamMessage
 
-  const reportChatFailure = (result: ChatApiResponse, retry: () => Promise<void>) => {
+  const reportChatFailure = (
+    result: ChatApiResponse,
+    retry: () => Promise<void>,
+    source: QuotaOfferSource = 'chat',
+  ) => {
     if (result.errorType === 'auth' || result.authRequired) {
       setChatError({ type: 'auth' as const, message: authRequiredMessage })
     } else if (result.errorType === 'quota' || result.quotaExceeded) {
-      setChatError({
-        type: 'quota' as const,
-        message: result.error || 'Chat limit reached. Try again later.',
-      })
+      setQuotaOffer({ source, at: Date.now() })
     } else if (result.errorType === 'limit') {
       setChatError({ type: 'limit' as const, message: result.error || errorMessage })
     } else if (result.errorCode === 'attachment_unavailable') {
@@ -1162,7 +1169,7 @@ export function useNotebookChat({
       const result = await apiService.checkNotebookPage(check, requestController.signal)
       if (requestController.signal.aborted) return
       if (!result.success) {
-        reportChatFailure(result, () => requestNotebookCheck(check))
+        reportChatFailure(result, () => requestNotebookCheck(check), 'notebook')
         return
       }
       if (result.conversationId && result.contextKey) {
@@ -1236,6 +1243,7 @@ export function useNotebookChat({
     // Error handling
     chatError,
     dismissError,
+    quotaOffer,
     // Programmatic message injection
     addAssistantMessage,
     injectExerciseContext,
