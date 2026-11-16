@@ -18,6 +18,12 @@ import { toast } from 'sonner'
 import { useMediaQuery } from '@/client/hooks/useMediaQuery'
 import type { NotebookPage, NotebookScope } from '@/infra/types/notebook'
 import { cn } from '@/infra/utils/ui'
+import {
+  ChatUpgradeOffer,
+  NOTEBOOK_QUOTA_OFFER_EVENT,
+  type NotebookQuotaOfferDetail,
+} from '@/ui/web/chat/ChatUpgradeOffer'
+import type { QuotaOfferReason } from '@/ui/web/chat/hooks/useNotebookChat'
 import { LessonNotebook, useNotebookPages } from '@/ui/web/notebook/LessonNotebook'
 import { CutSelection, type ViewportBox } from '@/ui/web/notebook/RegionCut/CutSelection'
 import { captureDomRegion, prepareDomCapture } from '@/ui/web/notebook/RegionCut/dom-region-capture'
@@ -52,6 +58,21 @@ export function LessonNotebookPane({ scope, cutSource, children }: LessonNoteboo
   const materialRef = useRef<HTMLDivElement>(null)
   const notebook = useNotebookPages(scope, true)
   const checkPage = useCheckNotebookPage()
+  // The chat answers page checks, but it may be hidden while the notebook is
+  // open — show a quota rejection here too, above the pages.
+  const [quotaOffer, setQuotaOffer] = useState<{ reason: QuotaOfferReason; at: number } | null>(
+    null,
+  )
+  const offerRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const onOffer = (e: Event) => {
+      const { reason } = (e as CustomEvent<NotebookQuotaOfferDetail>).detail
+      setQuotaOffer({ reason, at: Date.now() })
+      requestAnimationFrame(() => offerRef.current?.scrollIntoView({ block: 'nearest' }))
+    }
+    window.addEventListener(NOTEBOOK_QUOTA_OFFER_EVENT, onOffer)
+    return () => window.removeEventListener(NOTEBOOK_QUOTA_OFFER_EVENT, onOffer)
+  }, [])
   // Any touchscreen, including hybrids — a finger there needs an explicit cut mode.
   const touchDevice = useMediaQuery('(any-pointer: coarse)')
   const [touchCut, setTouchCut] = useState(false)
@@ -138,6 +159,15 @@ export function LessonNotebookPane({ scope, cutSource, children }: LessonNoteboo
 
       {view === 'notebook' && (
         <div className="min-h-0 flex-1 overflow-y-auto">
+          {quotaOffer && (
+            <div
+              key={quotaOffer.at}
+              ref={offerRef}
+              className="mx-auto max-w-4xl px-card-padding-sm pt-card-padding-sm"
+            >
+              <ChatUpgradeOffer source="notebook" reason={quotaOffer.reason} />
+            </div>
+          )}
           <LessonNotebook
             notebook={notebook}
             focusPageId={focusPageId}

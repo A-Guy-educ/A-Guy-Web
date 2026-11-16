@@ -15,6 +15,8 @@ export interface ChatViewQuota {
   max: number
   resetAt: string | null
   exhausted: boolean
+  /** The daily message counter is full (vs. a plan-level token rejection). */
+  outOfMessages: boolean
   currentTier: TierSlug
 }
 
@@ -42,6 +44,7 @@ export function useChatViewQuota(isSending: boolean, rejected: boolean): ChatVie
     max: quota.maxQuestions,
     resetAt: quota.resetAt,
     exhausted: rejected || quota.isLimitReached,
+    outOfMessages: quota.isLimitReached,
     currentTier: getUserTierSlug(user as { currentTier?: string | null }),
   }
 }
@@ -90,7 +93,7 @@ export function ChatInputQuotaStatus({
           <UpgradeOfferCard
             compact
             title={t('chatViewQuotaOfferTitle')}
-            intro={t('chatViewQuotaExhaustedBody')}
+            intro={t(quota.outOfMessages ? 'chatQuotaMessagesBody' : 'chatViewQuotaExhaustedBody')}
             continueLabel={t('chatViewQuotaContinueCta')}
             restrictedLabel={t('chatViewQuotaRestrictedBody')}
             currentTier={quota.currentTier}

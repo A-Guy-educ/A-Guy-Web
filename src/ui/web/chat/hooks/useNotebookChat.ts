@@ -65,6 +65,18 @@ export interface ChatError {
 
 /** What ran into the AI quota: a chat turn, or a notebook page check. */
 export type QuotaOfferSource = 'chat' | 'notebook'
+/** Which cap: the daily chat-message count, or the plan's AI token budget. */
+export type QuotaOfferReason = 'messages' | 'tokens'
+
+export interface QuotaOffer {
+  source: QuotaOfferSource
+  reason: QuotaOfferReason
+  /** Makes a repeat rejection a new value, so the UI reacts to it again. */
+  at: number
+}
+
+const quotaReasonOf = (code: string | undefined): QuotaOfferReason =>
+  code === 'token_limit_exceeded' ? 'tokens' : 'messages'
 
 interface UseNotebookChatProps {
   initialMessage: string
@@ -214,10 +226,7 @@ export function useNotebookChat({
   const [chatError, setChatError] = useState<ChatError | null>(null)
   // Set when the server rejects a turn for quota; the chat shows the upgrade
   // offer as its last message instead of an error strip.
-  // `at` makes a repeat rejection a new value, so the chat scrolls to it again.
-  const [quotaOffer, setQuotaOffer] = useState<{ source: QuotaOfferSource; at: number } | null>(
-    null,
-  )
+  const [quotaOffer, setQuotaOffer] = useState<QuotaOffer | null>(null)
 
   // Track last injected exercise ID to avoid duplicate context injection
   const lastInjectedExerciseId = useRef<string | null>(null)
@@ -721,7 +730,11 @@ export function useNotebookChat({
               event.errorCode === 'quota_exceeded' ||
               event.errorCode === 'token_limit_exceeded'
             ) {
-              setQuotaOffer({ source: 'chat', at: Date.now() })
+              setQuotaOffer({
+                source: 'chat',
+                reason: quotaReasonOf(event.errorCode),
+                at: Date.now(),
+              })
             } else if (event.errorCode === 'rate_limited') {
               setChatError({ type: 'limit' as const, message: errMsg })
             } else if (event.errorCode === 'attachment_unavailable') {
@@ -788,7 +801,7 @@ export function useNotebookChat({
     if (result.errorType === 'auth' || result.authRequired) {
       setChatError({ type: 'auth' as const, message: authRequiredMessage })
     } else if (result.errorType === 'quota' || result.quotaExceeded) {
-      setQuotaOffer({ source, at: Date.now() })
+      setQuotaOffer({ source, reason: quotaReasonOf(result.errorCode), at: Date.now() })
     } else if (result.errorType === 'limit') {
       setChatError({ type: 'limit' as const, message: result.error || errorMessage })
     } else if (result.errorCode === 'attachment_unavailable') {

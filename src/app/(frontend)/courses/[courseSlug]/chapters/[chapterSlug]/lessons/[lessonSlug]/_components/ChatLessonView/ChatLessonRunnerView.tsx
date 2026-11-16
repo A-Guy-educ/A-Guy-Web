@@ -895,7 +895,8 @@ function ActiveChat({
                 freeResponseValidationErrors={freeResponseValidationErrors}
                 isQuotaExhausted={chat.isQuotaExhausted}
                 introPrefix={t('chatViewIntroPrefix')}
-                quotaExhaustedBodyFallback={t('chatViewQuotaExhaustedBody')}
+                // No token window on the card: the daily chat-message cap tripped.
+                quotaExhaustedBodyFallback={t('chatQuotaMessagesBody')}
                 quotaExhaustedBodyDaily={t('chatViewQuotaExhaustedBodyDaily')}
                 quotaExhaustedBodyMonthly={t('chatViewQuotaExhaustedBodyMonthly')}
                 quotaContinueLabel={t('chatViewQuotaContinueCta')}

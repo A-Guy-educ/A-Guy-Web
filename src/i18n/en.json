@@ -468,6 +468,8 @@
     "chatViewQuotaContinueCta": "Keep going without help",
     "chatViewQuotaOfferTitle": "Keep the help going?",
     "chatViewQuotaRestrictedBody": "Continuing in the lesson. Help and answer-checking aren't available here — keep solving and come back any time to upgrade.",
+    "chatQuotaMessagesBody": "You've used all your chat messages for now. They renew when your limit resets — or upgrade your plan to get more messages right away.",
+    "notebookQuotaMessagesBody": "Page checks use chat messages, and you've used all of yours for now. They renew when your limit resets — or upgrade your plan to keep checking right away.",
     "chatQuotaRestrictedBody": "The chat is paused until your limit resets. You can still scroll up to read your earlier messages.",
     "notebookQuotaOfferTitle": "Want your notebook checked?",
     "notebookQuotaExhaustedBody": "You've used up your page checks for now. Upgrade your plan to keep getting your notebook pages checked, plus hints and guidance in chat.",
