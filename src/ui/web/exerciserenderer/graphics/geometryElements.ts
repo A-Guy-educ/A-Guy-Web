@@ -5,27 +5,12 @@ import {
   sizeScaleToPixels,
 } from '@/infra/contracts/graphics/textColors'
 import { LINE_LABEL_OFFSET_RATIO, lineLabelFontSize } from '@/infra/utils/graphics/line-label'
+import { pointLabelPlacement } from '@/infra/utils/graphics/point-label-placement'
 import { renderAngles } from './geometryAngleMarkers'
 
 type PointSpec = GeometrySpecV1['elements']['points'][number]
 type LineSpec = GeometrySpecV1['elements']['lines'][number]
 type CircleSpec = GeometrySpecV1['elements']['circles'][number]
-
-/** Map compass direction to a pixel [x, y] offset for JSXGraph labels. */
-function mapLabelOffset(pos?: string): [number, number] {
-  const d = 15
-  const map: Record<string, [number, number]> = {
-    tl: [-d, d],
-    t: [0, d],
-    tr: [d, d],
-    l: [-d, 0],
-    r: [d, 0],
-    bl: [-d, -d],
-    b: [0, -d],
-    br: [d, -d],
-  }
-  return map[pos || 'r'] || [d, 0]
-}
 
 const TIMES_NEW_ROMAN_CSS = "font-family: 'Times New Roman', Times, serif;"
 
@@ -46,7 +31,7 @@ function renderPoints(board: JXG.Board, points: PointSpec[]): Map<string, any> {
       size: p.size ?? 4,
       withLabel: labelVisible,
       label: {
-        offset: mapLabelOffset(p.position),
+        ...pointLabelPlacement(p.position),
         fontSize: p.fontSize ?? 15,
         visible: labelVisible,
         // JSXGraph colors label text with `strokeColor`; match the dot.
