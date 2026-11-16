@@ -68,13 +68,16 @@ describe('useNotebookChat quota offer', () => {
       result.current.handleSubmit({ preventDefault: () => undefined } as React.FormEvent)
     })
 
-    await waitFor(() => expect(result.current.quotaOffer?.source).toBe('chat'))
+    await waitFor(() =>
+      expect(result.current.quotaOffer).toMatchObject({ source: 'chat', reason: 'messages' }),
+    )
     expect(result.current.chatError).toBeNull()
   })
 
   it('tags a quota-rejected notebook page check as a notebook offer', async () => {
     mocked(apiService.checkNotebookPage).mockResolvedValueOnce({
       success: false,
+      errorCode: 'token_limit_exceeded',
       errorType: 'quota',
       quotaExceeded: true,
     })
@@ -84,7 +87,7 @@ describe('useNotebookChat quota offer', () => {
       await result.current.checkNotebookPage('data:image/png;base64,AA', undefined, 'en')
     })
 
-    expect(result.current.quotaOffer?.source).toBe('notebook')
+    expect(result.current.quotaOffer).toMatchObject({ source: 'notebook', reason: 'tokens' })
     expect(result.current.chatError).toBeNull()
   })
 })

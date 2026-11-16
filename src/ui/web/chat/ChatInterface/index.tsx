@@ -24,7 +24,11 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { ChatErrorSurface } from '../ChatErrorSurface'
 import { ChatMessageView } from '../ChatMessageView'
 import { ChatQuotaBar } from '../ChatQuotaBar'
-import { ChatUpgradeOffer } from '../ChatUpgradeOffer'
+import {
+  ChatUpgradeOffer,
+  NOTEBOOK_QUOTA_OFFER_EVENT,
+  type NotebookQuotaOfferDetail,
+} from '../ChatUpgradeOffer'
 import { TTSButton } from '../TTSButton'
 import { useChatQuota } from '../hooks/useChatQuota'
 import { useNotebookChat } from '../hooks/useNotebookChat'
@@ -212,19 +216,30 @@ export function ChatInterface({
   const isAdmin = (currentUser as unknown as { role?: string })?.role === 'admin'
   const quota = useChatQuota()
   const { refreshQuota } = quota
-  // Out of AI quota: either a turn was just rejected, or the counter already
-  // said so on load. Admins are never capped.
-  const offerSource =
-    !currentUser || isAdmin
-      ? null
-      : (quotaOffer?.source ?? (quota.isLoaded && quota.isLimitReached ? 'chat' : null))
+  // Out of AI quota: either a turn was just rejected (shown to anyone the
+  // server turned away), or the counter already said so on load (hidden for
+  // admins, like the counter itself).
+  const offer =
+    quotaOffer ??
+    (currentUser && !isAdmin && quota.isLoaded && quota.isLimitReached
+      ? { source: 'chat' as const, reason: 'messages' as const }
+      : null)
 
   // A rejection lands the offer at the bottom of the conversation; bring it
-  // into view and sync the counter with the server.
+  // into view and sync the counter with the server. A rejected page check is
+  // also announced to the notebook, which may be what's on screen instead of
+  // this chat.
   useEffect(() => {
     if (!quotaOffer) return
     void refreshQuota()
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    if (quotaOffer.source === 'notebook') {
+      window.dispatchEvent(
+        new CustomEvent<NotebookQuotaOfferDetail>(NOTEBOOK_QUOTA_OFFER_EVENT, {
+          detail: { reason: quotaOffer.reason },
+        }),
+      )
+    }
   }, [quotaOffer, refreshQuota, messagesEndRef])
 
   // Auto-send contextual help on incorrect answer (ref pattern for stable listener)
@@ -663,7 +678,9 @@ export function ChatInterface({
             <span>{tCourses('chatThinking')}</span>
           </div>
         )}
-        {!isLoadingHistory && offerSource && <ChatUpgradeOffer source={offerSource} />}
+        {!isLoadingHistory && offer && (
+          <ChatUpgradeOffer source={offer.source} reason={offer.reason} />
+        )}
         <div ref={messagesEndRef} />
       </div>
 
