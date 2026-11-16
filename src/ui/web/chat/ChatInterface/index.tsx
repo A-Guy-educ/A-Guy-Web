@@ -170,6 +170,7 @@ export function ChatInterface({
     chatError,
     dismissError,
     quotaOffer,
+    notebookQuotaOffer,
     // External media injection (Ask page uploads)
     addExternalMedia,
     askMedia: _askMedia,
@@ -226,21 +227,23 @@ export function ChatInterface({
       : null)
 
   // A rejection lands the offer at the bottom of the conversation; bring it
-  // into view and sync the counter with the server. A rejected page check is
-  // also announced to the notebook, which may be what's on screen instead of
-  // this chat.
+  // into view and sync the counter with the server.
   useEffect(() => {
     if (!quotaOffer) return
     void refreshQuota()
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
-    if (quotaOffer.source === 'notebook') {
-      window.dispatchEvent(
-        new CustomEvent<NotebookQuotaOfferDetail>(NOTEBOOK_QUOTA_OFFER_EVENT, {
-          detail: { reason: quotaOffer.reason },
-        }),
-      )
-    }
   }, [quotaOffer, refreshQuota, messagesEndRef])
+
+  // A rejected page check isn't a chat message: hand it to the notebook,
+  // which shows it as a popup.
+  useEffect(() => {
+    if (!notebookQuotaOffer) return
+    window.dispatchEvent(
+      new CustomEvent<NotebookQuotaOfferDetail>(NOTEBOOK_QUOTA_OFFER_EVENT, {
+        detail: { reason: notebookQuotaOffer.reason },
+      }),
+    )
+  }, [notebookQuotaOffer])
 
   // Auto-send contextual help on incorrect answer (ref pattern for stable listener)
   const incorrectAnswerRef = useRef<(e: Event) => void>(() => {})

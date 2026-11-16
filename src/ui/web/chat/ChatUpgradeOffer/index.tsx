@@ -25,14 +25,16 @@ export interface NotebookQuotaOfferDetail {
 interface ChatUpgradeOfferProps {
   source: QuotaOfferSource
   reason: QuotaOfferReason
+  /** Called when the student takes the "continue without" link. */
+  onContinue?: () => void
 }
 
 /**
  * The chat-view quota card, compact, shown once the AI quota runs out: as the
- * side chat's last message, and in the notebook pane after a rejected page
- * check. Nothing is blocked — the student can still scroll what's above it.
+ * side chat's last message (nothing is blocked — the conversation above stays
+ * scrollable), and in the notebook's popup after a rejected page check.
  */
-export function ChatUpgradeOffer({ source, reason }: ChatUpgradeOfferProps) {
+export function ChatUpgradeOffer({ source, reason, onContinue }: ChatUpgradeOfferProps) {
   const t = useTranslations('courses')
   const { user } = useCurrentUser()
   const currentTier = getUserTierSlug(user as { currentTier?: string | null } | null)
@@ -49,6 +51,7 @@ export function ChatUpgradeOffer({ source, reason }: ChatUpgradeOfferProps) {
       continueLabel={t(isNotebook ? 'notebookQuotaContinueCta' : 'chatViewQuotaContinueCta')}
       restrictedLabel={t(isNotebook ? 'notebookQuotaRestrictedBody' : 'chatQuotaRestrictedBody')}
       currentTier={currentTier}
+      onContinue={onContinue}
     />
   )
 }
