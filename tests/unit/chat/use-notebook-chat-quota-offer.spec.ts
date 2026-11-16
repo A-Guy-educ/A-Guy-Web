@@ -74,7 +74,7 @@ describe('useNotebookChat quota offer', () => {
     expect(result.current.chatError).toBeNull()
   })
 
-  it('tags a quota-rejected notebook page check as a notebook offer', async () => {
+  it('keeps a quota-rejected notebook page check out of the chat offer', async () => {
     mocked(apiService.checkNotebookPage).mockResolvedValueOnce({
       success: false,
       errorCode: 'token_limit_exceeded',
@@ -87,7 +87,12 @@ describe('useNotebookChat quota offer', () => {
       await result.current.checkNotebookPage('data:image/png;base64,AA', undefined, 'en')
     })
 
-    expect(result.current.quotaOffer).toMatchObject({ source: 'notebook', reason: 'tokens' })
+    // The notebook shows its own popup; the chat gets no offer card for it.
+    expect(result.current.notebookQuotaOffer).toMatchObject({
+      source: 'notebook',
+      reason: 'tokens',
+    })
+    expect(result.current.quotaOffer).toBeNull()
     expect(result.current.chatError).toBeNull()
   })
 })

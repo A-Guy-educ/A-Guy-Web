@@ -227,6 +227,9 @@ export function useNotebookChat({
   // Set when the server rejects a turn for quota; the chat shows the upgrade
   // offer as its last message instead of an error strip.
   const [quotaOffer, setQuotaOffer] = useState<QuotaOffer | null>(null)
+  // A rejected notebook page check is the notebook's to show (as a popup), not
+  // a chat message — kept apart so it never becomes the chat's offer card.
+  const [notebookQuotaOffer, setNotebookQuotaOffer] = useState<QuotaOffer | null>(null)
 
   // Track last injected exercise ID to avoid duplicate context injection
   const lastInjectedExerciseId = useRef<string | null>(null)
@@ -801,7 +804,9 @@ export function useNotebookChat({
     if (result.errorType === 'auth' || result.authRequired) {
       setChatError({ type: 'auth' as const, message: authRequiredMessage })
     } else if (result.errorType === 'quota' || result.quotaExceeded) {
-      setQuotaOffer({ source, reason: quotaReasonOf(result.errorCode), at: Date.now() })
+      const offer = { source, reason: quotaReasonOf(result.errorCode), at: Date.now() }
+      if (source === 'notebook') setNotebookQuotaOffer(offer)
+      else setQuotaOffer(offer)
     } else if (result.errorType === 'limit') {
       setChatError({ type: 'limit' as const, message: result.error || errorMessage })
     } else if (result.errorCode === 'attachment_unavailable') {
@@ -1257,6 +1262,7 @@ export function useNotebookChat({
     chatError,
     dismissError,
     quotaOffer,
+    notebookQuotaOffer,
     // Programmatic message injection
     addAssistantMessage,
     injectExerciseContext,
