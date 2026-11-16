@@ -26,6 +26,7 @@ import { capturePdfRegion } from '@/ui/web/notebook/RegionCut/pdf-region-capture
 import { CUT_SURFACE_ATTR, useCutSelection } from '@/ui/web/notebook/RegionCut/useCutSelection'
 import { useRegionCut } from '@/ui/web/notebook/RegionCut/useRegionCut'
 import { NotebookPaneHeader, type PaneView } from './NotebookPaneHeader'
+import { NotebookQuotaPopup } from './NotebookQuotaPopup'
 import { useCheckNotebookPage } from './useCheckNotebookPage'
 
 export { CUT_SURFACE_ATTR }
@@ -135,6 +136,8 @@ export function LessonNotebookPane({ scope, cutSource, children }: LessonNoteboo
           />
         )}
       </div>
+
+      <NotebookQuotaPopup />
 
       {view === 'notebook' && (
         <div className="min-h-0 flex-1 overflow-y-auto">

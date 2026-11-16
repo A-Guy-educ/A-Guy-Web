@@ -8,6 +8,11 @@ export async function enforceTutorTurnPolicy(input: {
   rateKey: string
   rateLimit: number
   rateWindowMs: number
+  /**
+   * Whether this turn uses one of the student's daily chat messages. Chat
+   * turns do; tools like the notebook page check are capped by tokens only.
+   */
+  countsAsMessage?: boolean
 }) {
   const tokenLimit = await checkTokenLimit(input.ownerId)
   if (!tokenLimit.withinLimit) {
@@ -29,6 +34,8 @@ export async function enforceTutorTurnPolicy(input: {
       retryAfter: Math.max(1, Math.ceil((rate.resetAt - Date.now()) / 1000)),
     })
   }
+
+  if (input.countsAsMessage === false) return
 
   const quota = await checkAndIncrementChatQuota(input.ownerId)
   if (!quota.allowed) {

@@ -24,6 +24,11 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { ChatErrorSurface } from '../ChatErrorSurface'
 import { ChatMessageView } from '../ChatMessageView'
 import { ChatQuotaBar } from '../ChatQuotaBar'
+import {
+  ChatUpgradeOffer,
+  NOTEBOOK_QUOTA_OFFER_EVENT,
+  type NotebookQuotaOfferDetail,
+} from '../ChatUpgradeOffer'
 import { TTSButton } from '../TTSButton'
 import { useChatQuota } from '../hooks/useChatQuota'
 import { useNotebookChat } from '../hooks/useNotebookChat'
@@ -164,6 +169,8 @@ export function ChatInterface({
     // Error handling
     chatError,
     dismissError,
+    quotaOffer,
+    notebookQuotaOffer,
     // External media injection (Ask page uploads)
     addExternalMedia,
     askMedia: _askMedia,
@@ -209,6 +216,34 @@ export function ChatInterface({
   const { label: teacherProfileLabel } = useTeacherProfileLabel(!!currentUser)
   const isAdmin = (currentUser as unknown as { role?: string })?.role === 'admin'
   const quota = useChatQuota()
+  const { refreshQuota } = quota
+  // Out of AI quota: either a turn was just rejected (shown to anyone the
+  // server turned away), or the counter already said so on load (hidden for
+  // admins, like the counter itself).
+  const offer =
+    quotaOffer ??
+    (currentUser && !isAdmin && quota.isLoaded && quota.isLimitReached
+      ? { source: 'chat' as const, reason: 'messages' as const }
+      : null)
+
+  // A rejection lands the offer at the bottom of the conversation; bring it
+  // into view and sync the counter with the server.
+  useEffect(() => {
+    if (!quotaOffer) return
+    void refreshQuota()
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+  }, [quotaOffer, refreshQuota, messagesEndRef])
+
+  // A rejected page check isn't a chat message: hand it to the notebook,
+  // which shows it as a popup.
+  useEffect(() => {
+    if (!notebookQuotaOffer) return
+    window.dispatchEvent(
+      new CustomEvent<NotebookQuotaOfferDetail>(NOTEBOOK_QUOTA_OFFER_EVENT, {
+        detail: { reason: notebookQuotaOffer.reason },
+      }),
+    )
+  }, [notebookQuotaOffer])
 
   // Auto-send contextual help on incorrect answer (ref pattern for stable listener)
   const incorrectAnswerRef = useRef<(e: Event) => void>(() => {})
@@ -645,6 +680,9 @@ export function ChatInterface({
             <Loader2 className="w-4 h-4 animate-spin" />
             <span>{tCourses('chatThinking')}</span>
           </div>
+        )}
+        {!isLoadingHistory && offer && (
+          <ChatUpgradeOffer source={offer.source} reason={offer.reason} />
         )}
         <div ref={messagesEndRef} />
       </div>

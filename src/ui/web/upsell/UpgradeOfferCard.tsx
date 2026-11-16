@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 
+import { cn } from '@/infra/utils/ui'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { TIER_PRICE_ILS, type TierSlug } from '@/lib/tiers'
 import { UpgradeCheckoutDialog } from './UpgradeCheckoutDialog'
@@ -25,6 +26,8 @@ export interface UpgradeOfferCardProps {
    *   - `premium`  → no tier buttons (restricted copy only)
    */
   currentTier?: TierSlug
+  /** Narrow containers (the side chat): tighter padding, one tier per row. */
+  compact?: boolean
 }
 
 /**
@@ -70,6 +73,7 @@ export function UpgradeOfferCard({
   onContinue,
   restrictedLabel,
   currentTier,
+  compact = false,
 }: UpgradeOfferCardProps) {
   const tSubs = useTranslations('subscriptions')
   const tOffer = useTranslations('upgradeOffer')
@@ -92,12 +96,21 @@ export function UpgradeOfferCard({
 
   return (
     <>
-      <article className="self-start w-full max-w-[90%] rounded-2xl border-2 border-primary/30 bg-primary/[0.03] p-card-padding shadow-elevation-1">
-        <h3 className="text-heading-sm font-black text-foreground">{title}</h3>
+      <article
+        className={cn(
+          'self-start w-full rounded-2xl border-2 border-primary/30 bg-primary/[0.03] shadow-elevation-1',
+          compact ? 'p-card-padding-sm' : 'max-w-[90%] p-card-padding',
+        )}
+      >
+        <h3
+          className={cn('font-black text-foreground', compact ? 'text-body-md' : 'text-heading-sm')}
+        >
+          {title}
+        </h3>
         <p className="mt-2 text-body-sm text-muted-foreground leading-relaxed">{intro}</p>
 
         {hasTierButtons ? (
-          <div className="mt-4 grid gap-content-gap-xs sm:grid-cols-2">
+          <div className={cn('grid gap-content-gap-xs', compact ? 'mt-3' : 'mt-4 sm:grid-cols-2')}>
             {offerTiers.map((tier) => {
               const isRecommended = tier === recommended
               const tierName = tSubs(`tiers.${tier}.name`)
@@ -122,7 +135,12 @@ export function UpgradeOfferCard({
                     </span>
                   ) : null}
                   <span className="text-body-sm font-bold text-foreground">{tierName}</span>
-                  <span className="text-heading-md font-black text-primary tabular-nums">
+                  <span
+                    className={cn(
+                      'font-black text-primary tabular-nums',
+                      compact ? 'text-body-lg' : 'text-heading-md',
+                    )}
+                  >
                     {CURRENCY_FORMAT.format(price)}
                     <span className="ms-1 text-body-xs font-normal text-muted-foreground">
                       {tSubs('perMonth')}

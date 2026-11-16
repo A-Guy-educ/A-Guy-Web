@@ -67,6 +67,22 @@ describe('enforceTutorTurnPolicy', () => {
     expect(mocks.checkAndIncrementChatQuota).not.toHaveBeenCalled()
   })
 
+  it('skips the chat message quota for turns that are not chat messages', async () => {
+    mocks.checkAndIncrementChatQuota.mockResolvedValue({
+      allowed: false,
+      questionsUsed: 15,
+      maxQuestions: 15,
+      resetAt: null,
+    })
+
+    await expect(
+      enforceTutorTurnPolicy({ ...input, countsAsMessage: false }),
+    ).resolves.toBeUndefined()
+    expect(mocks.checkTokenLimit).toHaveBeenCalledWith('user-1')
+    expect(mocks.rateLimit).toHaveBeenCalledOnce()
+    expect(mocks.checkAndIncrementChatQuota).not.toHaveBeenCalled()
+  })
+
   it('returns stable quota details when the question quota rejects the turn', async () => {
     mocks.checkAndIncrementChatQuota.mockResolvedValue({
       allowed: false,

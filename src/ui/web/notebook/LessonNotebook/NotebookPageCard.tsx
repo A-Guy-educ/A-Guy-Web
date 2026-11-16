@@ -10,10 +10,25 @@ import { LassoLayer } from './LassoLayer'
 import type { StrokeSelection } from './useStrokeEditing'
 
 // Same squared paper as the floating notebook and the Ask drawing canvas.
-const GRID_STYLE = {
-  backgroundImage:
-    'linear-gradient(hsl(var(--border)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--border)) 1px, transparent 1px)',
-  backgroundSize: '20px 20px',
+const GRID_IMAGE =
+  'linear-gradient(hsl(var(--border)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--border)) 1px, transparent 1px)'
+/** Grid cell side in page units — 20px at the page's natural width. */
+const GRID_CELL = 20
+
+/**
+ * The grid is part of the paper, so its cells are sized in page units like the
+ * ink: they grow and shrink with zoom instead of staying 20 screen pixels.
+ * Percentages of the page's width and height give square cells because the
+ * page box keeps the `NOTEBOOK_PAGE_WIDTH / height` aspect ratio.
+ */
+function paperStyle(height: number) {
+  const cellX = (GRID_CELL / NOTEBOOK_PAGE_WIDTH) * 100
+  const cellY = (GRID_CELL / height) * 100
+  return {
+    backgroundImage: GRID_IMAGE,
+    backgroundSize: `${cellX}% ${cellY}%`,
+    aspectRatio: `${NOTEBOOK_PAGE_WIDTH} / ${height}`,
+  }
 }
 
 interface NotebookPageCardProps {
@@ -96,10 +111,7 @@ export function NotebookPageCard({
         </div>
       </header>
 
-      <div
-        className="relative w-full bg-background"
-        style={{ ...GRID_STYLE, aspectRatio: `${NOTEBOOK_PAGE_WIDTH} / ${page.height}` }}
-      >
+      <div className="relative w-full bg-background" style={paperStyle(page.height)}>
         {cut && (
           // eslint-disable-next-line @next/next/no-img-element -- blob-hosted user cut; sized by the page, not by next/image
           <img

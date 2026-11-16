@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.67.0 — 2026-11-16
+
+### Features
+- Show upgrade offer when the chat or notebook hits the AI cap (#1609)
+- Show exercise sketch with landing practice questions (#1605)
+
+### Bug Fixes
+- Show the notebook quota offer as a popup, not a chat card (#1614)
+- Notebook page checks spend tokens, not chat messages (#1613)
+- Accurate quota copy and notebook check offer (#1612)
+- Rotate geometry line labels in pixel space (#1608)
+- Scale notebook grid with zoom (#1607)
+- Keep geometry sketches at equal x/y units (#1606)
+
 ## v0.66.0 — 2026-11-15
 
 ### Features
@@ -5222,6 +5236,16 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.67.0 ([#1615](https://github.com/A-Guy-educ/A-Guy-Web/pull/1615)) — @aguyshayb
+- fix: Show the notebook quota offer as a popup, not a chat card ([#1614](https://github.com/A-Guy-educ/A-Guy-Web/pull/1614)) — @aguyshayb
+- fix: Notebook page checks spend tokens, not chat messages ([#1613](https://github.com/A-Guy-educ/A-Guy-Web/pull/1613)) — @aguyshayb
+- fix: Accurate quota copy and notebook check offer ([#1612](https://github.com/A-Guy-educ/A-Guy-Web/pull/1612)) — @aguyshayb
+- feat: Show upgrade offer when the chat or notebook hits the AI cap ([#1609](https://github.com/A-Guy-educ/A-Guy-Web/pull/1609)) — @aguyshayb
+- fix: Rotate geometry line labels in pixel space ([#1608](https://github.com/A-Guy-educ/A-Guy-Web/pull/1608)) — @aguyshayb
+- fix: Scale notebook grid with zoom ([#1607](https://github.com/A-Guy-educ/A-Guy-Web/pull/1607)) — @aguyshayb
+- fix: Keep geometry sketches at equal x/y units ([#1606](https://github.com/A-Guy-educ/A-Guy-Web/pull/1606)) — @aguyshayb
+- feat: Show exercise sketch with landing practice questions ([#1605](https://github.com/A-Guy-educ/A-Guy-Web/pull/1605)) — @aguyshayb
+- promote: dev -> main (v0.66.0) ([#1604](https://github.com/A-Guy-educ/A-Guy-Web/pull/1604)) — @aguyshayb
 - chore: Release v0.66.0 ([#1603](https://github.com/A-Guy-educ/A-Guy-Web/pull/1603)) — @aguyshayb
 - fix: Open proof dropdown above the exercise workspace ([#1602](https://github.com/A-Guy-educ/A-Guy-Web/pull/1602)) — @aguyshayb
 - feat: Port dynamic mode of the question_equation block ([#1601](https://github.com/A-Guy-educ/A-Guy-Web/pull/1601)) — @aguyshayb
