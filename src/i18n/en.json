@@ -944,7 +944,12 @@
     "moreCourses": "More courses",
     "loading": "Loading...",
     "deleteConversation": "Delete conversation",
-    "deleteConfirm": "Are you sure you want to delete this conversation?"
+    "deleteConfirm": "Are you sure you want to delete this conversation?",
+    "hiddenLesson": {
+      "title": "Your teacher hasn’t opened this lesson yet",
+      "message": "It will appear here as soon as your teacher opens it for your class.",
+      "back": "Back to the course"
+    }
   },
   "stats": {
     "title": "My Statistics",

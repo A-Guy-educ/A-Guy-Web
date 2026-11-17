@@ -74,6 +74,8 @@ export interface ClassProgressResponse {
   class: { id: string; name: string }
   lessons: Array<{ id: string; title: string; questionCount: number }>
   students: Array<{ id: string; name: string; lessons: Record<string, StudentLessonProgress> }>
+  /** Lessons of `lessons` the class's teachers hid from its students. */
+  hiddenLessonIds: string[]
 }
 
 const STATUS_RANK: Record<LessonStatus, number> = { not_started: 0, in_progress: 1, completed: 2 }
@@ -151,6 +153,7 @@ export function buildClassProgress(input: {
   students: Array<{ id: string; name: string }>
   progressDocs: ProgressDocInput[]
   attempts: AttemptInput[]
+  hiddenLessonIds?: readonly string[]
 }): ClassProgressResponse {
   const attemptsByKey = new Map(
     input.attempts.map((a) => [`${a.user}|${questionKey(a.exercise, a.block)}`, a]),
@@ -197,5 +200,9 @@ export function buildClassProgress(input: {
       questionCount: l.questions.length,
     })),
     students,
+    // Ids of lessons since removed from the course would only confuse the counter.
+    hiddenLessonIds: (input.hiddenLessonIds ?? []).filter((id) =>
+      input.lessons.some((lesson) => lesson.id === id),
+    ),
   }
 }

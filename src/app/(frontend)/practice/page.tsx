@@ -6,6 +6,7 @@ import {
   type LearningPageSearchParams,
 } from '../study/learningPageSelection'
 import { readRequestCourseSelection } from '../study/requestCourseSelection'
+import { withoutTeacherHiddenLessons } from '../study/withoutTeacherHiddenLessons'
 import { prefetchStudyData } from '@/server/repos/queries/study-page'
 
 interface PracticePageProps {
@@ -22,14 +23,16 @@ export default async function PracticePage({ searchParams }: PracticePageProps) 
     systemLocale: await getSystemLocale(),
   })
 
-  const prefetchedData = selection.grade
-    ? await prefetchStudyData(
-        selection.grade,
-        selection.contentLocale,
-        'practice',
-        selection.courseId,
-      )
-    : null
+  const prefetchedData = await withoutTeacherHiddenLessons(
+    selection.grade
+      ? await prefetchStudyData(
+          selection.grade,
+          selection.contentLocale,
+          'practice',
+          selection.courseId,
+        )
+      : null,
+  )
 
   return (
     <div>
