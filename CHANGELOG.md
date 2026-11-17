@@ -5236,6 +5236,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat(classroom): Let teachers hide lessons from their class ([#1622](https://github.com/A-Guy-educ/A-Guy-Web/pull/1622)) — @aguyshayb
 - feat: Real student/teacher entry at /classdemo + newclass landing corrections ([#1620](https://github.com/A-Guy-educ/A-Guy-Web/pull/1620)) — @aguyshayb
 - fix: Restore spacing the token codemod broke on /classdemo ([#1619](https://github.com/A-Guy-educ/A-Guy-Web/pull/1619)) — @aguyshayb
 - fix: Center point labels on their compass direction ([#1618](https://github.com/A-Guy-educ/A-Guy-Web/pull/1618)) — @aguyshayb
