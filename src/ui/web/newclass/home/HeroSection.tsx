@@ -30,7 +30,7 @@ export function HeroSection() {
               איך אנחנו מטמיעים
             </Link>
           </div>
-          <p className="flex flex-wrap items-center gap-content-gap-xs.5 text-body-md text-nc-ink-2">
+          <p className="flex flex-wrap items-center gap-[10px] text-body-md text-nc-ink-2">
             החזון שלנו:{' '}
             <strong className="font-semibold text-nc-brand-deep">
               תלמיד שלומד בעצמו, מורה עם זמן ללמד.

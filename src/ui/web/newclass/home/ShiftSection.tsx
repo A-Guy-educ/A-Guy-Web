@@ -45,9 +45,9 @@ const DIFFERENCES = [
 
 function PointList({ items, mark, tone }: { items: string[]; mark: string; tone: string }) {
   return (
-    <ul className="flex flex-col gap-content-gap-xs.5">
+    <ul className="flex flex-col gap-[10px]">
       {items.map((item) => (
-        <li key={item} className="flex items-start gap-content-gap-xs.5 text-body-md leading-[1.6]">
+        <li key={item} className="flex items-start gap-[10px] text-body-md leading-[1.6]">
           <i
             className={`mt-[3px] inline-flex size-5 flex-none items-center justify-center rounded-full text-body-xs font-bold not-italic ${tone}`}
           >
@@ -104,7 +104,7 @@ export function ShiftSection() {
           {DIFFERENCES.map((d) => (
             <article
               key={d.title}
-              className="flex flex-col gap-content-gap-xs.5 rounded-[20px] bg-nc-ground p-7"
+              className="flex flex-col gap-[10px] rounded-[20px] bg-nc-ground p-7"
             >
               <h4 className="font-nc-display text-heading-xl font-bold text-nc-brand-deep">
                 {d.title}
