@@ -8,6 +8,7 @@
  *     defaults to `aguy.co.il` so our own testing doesn't skew numbers).
  *   - When `courseId` and/or `grade` is set, restrict to accounts whose
  *     `currentCourse` currently matches (snapshot — see course-scope.ts).
+ *   - When a dashboard segment is picked, keep only that cohort's users.
  *
  * Returned `refs` is a flat list of userId ObjectIds *and* their string
  * form so signal queries can `$in`-match regardless of which encoding the
@@ -20,6 +21,8 @@
  */
 
 import { ObjectId, type Db } from 'mongodb'
+
+import { usersCohortMatch, type UserCohort } from '../user-segment'
 
 import { resolveCurrentCourseMatch } from './course-scope'
 import type { SignalSpan } from './signal-types'
@@ -34,6 +37,7 @@ export interface EligibleUsers {
 export interface UserScope {
   courseId: string | null
   grade: string | null
+  cohort?: UserCohort | null
 }
 
 interface UserRow {
@@ -76,6 +80,7 @@ export async function fetchEligibleUsers(
     role: { $ne: 'admin' },
     email: { $exists: true, $ne: '' },
     createdAt: { $lte: span.end },
+    ...usersCohortMatch(scope.cohort),
   }
   const excludeRegex = excludedEmailRegex()
   if (excludeRegex) match.email = { $exists: true, $ne: '', $not: excludeRegex }

@@ -73,7 +73,7 @@ export async function computeDashboardMetrics(
     aggregateUserStats(db, buckets, adminUserRefs, cohort),
     aggregateUsers(db, buckets, cohort),
     aggregateGuestSessions(db, buckets, adminUserRefs, cohort),
-    aggregateTransactions(db, buckets, adminUserRefs, roster),
+    aggregateTransactions(db, buckets, adminUserRefs, roster, cohort),
     aggregateCourseEnrollments(db, adminUserRefs),
     aggregateLessonTypes(db),
     countSimpleContent(db),

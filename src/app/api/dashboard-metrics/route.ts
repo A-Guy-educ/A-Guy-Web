@@ -8,9 +8,10 @@
  *
  * Response shape is unchanged — see DashboardMetricsResponse. `segment`
  * (default `all`; rules in segment-classifier.ts) scopes userMetrics,
- * monthlySignups, engagement time + feature usage, tokenMetrics and the
- * guest conversion figures. Revenue, content counts and the lesson-stats
- * widgets stay platform-wide. `b2b` adds the `b2bMetrics` school roll-up. The optional
+ * monthlySignups, engagement time + feature usage, tokenMetrics, the guest
+ * conversion figures, revenueMetrics and productHealth. Content counts and the
+ * lesson-stats widgets (no user on the row) stay platform-wide. `b2b` adds the
+ * `b2bMetrics` school roll-up. The optional
  * `productHealth` slice (Dash PR #16 wireframe) is attached when
  * PRODUCT_HEALTH_ENABLED is truthy and driven by the following query
  * params (all optional; validated in product-health/params.ts):
@@ -80,10 +81,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const [data, productHealth] = await Promise.all([
       computeDashboardMetrics(period, segment),
       productHealthResult?.ok
-        ? computeProductHealth(productHealthResult.params).catch((err: unknown) => {
-            logger.warn({ err }, 'dashboard-metrics: productHealth slice failed — omitting')
-            return undefined as ProductHealthPayload | undefined
-          })
+        ? computeProductHealth(productHealthResult.params, undefined, segment).catch(
+            (err: unknown) => {
+              logger.warn({ err }, 'dashboard-metrics: productHealth slice failed — omitting')
+              return undefined as ProductHealthPayload | undefined
+            },
+          )
         : Promise.resolve(undefined),
     ])
     const durationMs = Date.now() - startedAt

@@ -94,6 +94,7 @@ describe('computeDashboardMetrics — segment', () => {
     expect(agg.aggregateUserStats.mock.calls[0][3]).toBeNull()
     expect(agg.aggregateSignupSources.mock.calls[0][2]).toBeNull()
     expect(agg.aggregateMonthlySignups.mock.calls[0][1]).toBeNull()
+    expect((aggregateTransactions.mock.calls[0] as unknown[])[4]).toBeNull()
     expect(result.segment).toBe('all')
     expect(result).not.toHaveProperty('b2bMetrics')
   })
@@ -102,26 +103,30 @@ describe('computeDashboardMetrics — segment', () => {
     ['b2b', 'in', [student.toString()]],
     ['other', 'in', [schoolUser.toString()]],
     ['b2c', 'nin', [student.toString(), schoolUser.toString()]],
-  ] as const)("'%s' scopes users, engagement, tokens and guests", async (segment, mode, ids) => {
-    const result = await computeDashboardMetrics('month', segment)
+  ] as const)(
+    "'%s' scopes users, engagement, tokens, guests and revenue",
+    async (segment, mode, ids) => {
+      const result = await computeDashboardMetrics('month', segment)
 
-    const cohort = agg.aggregateUsers.mock.calls[0][2] as {
-      segment: string
-      mode: string
-      stringIds: string[]
-    }
-    expect(cohort).toMatchObject({ segment, mode, stringIds: ids })
-    expect(agg.aggregateUserStats).toHaveBeenCalledTimes(1)
-    expect(agg.aggregateUserStats.mock.calls[0][3]).toBe(cohort)
-    expect(agg.aggregateSignupSources.mock.calls[0][2]).toBe(cohort)
-    expect(agg.aggregateMonthlySignups.mock.calls[0][1]).toBe(cohort)
-    expect(agg.aggregateTokenMetrics.mock.calls[0][2]).toBe(cohort)
-    expect(agg.aggregateGuestSessions.mock.calls[0][3]).toBe(cohort)
-    expect(aggregateGuestInsights.mock.calls[0][3]).toBe(cohort)
-    expect(result.userMetrics).toEqual({ statsFrom: 'cohort' })
-    expect(result.engagement.avgTimeSpentMinutes).toBe(99)
-    expect(result.segment).toBe(segment)
-  })
+      const cohort = agg.aggregateUsers.mock.calls[0][2] as {
+        segment: string
+        mode: string
+        stringIds: string[]
+      }
+      expect(cohort).toMatchObject({ segment, mode, stringIds: ids })
+      expect(agg.aggregateUserStats).toHaveBeenCalledTimes(1)
+      expect(agg.aggregateUserStats.mock.calls[0][3]).toBe(cohort)
+      expect(agg.aggregateSignupSources.mock.calls[0][2]).toBe(cohort)
+      expect(agg.aggregateMonthlySignups.mock.calls[0][1]).toBe(cohort)
+      expect(agg.aggregateTokenMetrics.mock.calls[0][2]).toBe(cohort)
+      expect(agg.aggregateGuestSessions.mock.calls[0][3]).toBe(cohort)
+      expect(aggregateGuestInsights.mock.calls[0][3]).toBe(cohort)
+      expect((aggregateTransactions.mock.calls[0] as unknown[])[4]).toBe(cohort)
+      expect(result.userMetrics).toEqual({ statsFrom: 'cohort' })
+      expect(result.engagement.avgTimeSpentMinutes).toBe(99)
+      expect(result.segment).toBe(segment)
+    },
+  )
 
   it('attaches b2bMetrics only for b2b', async () => {
     expect((await computeDashboardMetrics('week', 'b2b')).b2bMetrics).toEqual({ schools: 1 })
