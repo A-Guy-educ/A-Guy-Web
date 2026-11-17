@@ -13,7 +13,7 @@ export function AguyShowcase() {
       <div className={`${wrap} flex flex-wrap items-center gap-14`}>
         <div className="flex min-w-0 flex-[1_1_380px] flex-col gap-5">
           <span className={eyebrow}>הכירו את A-guy</span>
-          <h2 className={h2}>מורה דיגיטלי לכל תלמיד, ותמונת כיתה מלאה למורה</h2>
+          <h2 className={h2}>למידה עצמאית לכל תלמיד, ותמונת כיתה מלאה למורה</h2>
           <p className={lead}>
             A-guy הוא מורה דיגיטלי מבוסס בינה מלאכותית, אבל הוא לא צ&apos;אט בוט שנותן תשובות. הוא
             מסביר, שואל ומתרגל עם התלמיד צעד אחר צעד, בטקסט ובקול. כשהתלמיד צריך יותר, הוא פשוט מרים
@@ -30,7 +30,7 @@ export function AguyShowcase() {
                 >
                   {s.value}
                 </b>
-                <span className="text-sm leading-[1.4] text-nc-ink-2">{s.label}</span>
+                <span className="text-body-sm leading-[1.4] text-nc-ink-2">{s.label}</span>
               </div>
             ))}
           </div>
@@ -54,19 +54,19 @@ export function AguyShowcase() {
         <div
           role="img"
           aria-label="המחשה של A-guy: מסך תרגול, המורה הדיגיטלי מסביר פתרון, ודשבורד המורה"
-          className="relative flex min-w-0 flex-[1_1_520px] flex-col gap-6 py-2 sm:block sm:h-[700px] sm:py-0"
+          className="relative flex min-w-0 flex-[1_1_520px] flex-col gap-content-gap-lg py-2 sm:block sm:h-[700px] sm:py-0"
         >
           <StudentWindow className="z-[2] rotate-[1.5deg] sm:top-0 sm:right-0 sm:w-[54%] sm:min-w-[240px] sm:rotate-[4deg]" />
           <ChatWindow className="z-[3] -rotate-[1.5deg] sm:top-10 sm:left-0 sm:w-1/2 sm:min-w-[240px] sm:-rotate-[5deg]" />
           <TeacherWindow className="z-[1] sm:top-[380px] sm:right-[4%] sm:w-[60%] sm:min-w-[250px] sm:-rotate-2" />
-          <div className="z-[3] flex flex-col items-center gap-2 self-center sm:absolute sm:bottom-0 sm:left-1/2 sm:-translate-x-1/2">
+          <div className="z-[3] flex flex-col items-center gap-content-gap-xs self-center sm:absolute sm:bottom-0 sm:left-1/2 sm:-translate-x-1/2">
             <div
               dir="ltr"
-              className="flex size-[104px] items-center justify-center rounded-full bg-nc-aguy font-nc-display text-xl font-extrabold text-white shadow-[0_0_0_10px_hsl(var(--nc-aguy)/0.15)]"
+              className="flex size-[104px] items-center justify-center rounded-full bg-nc-aguy font-nc-display text-heading-xl font-extrabold text-white shadow-[0_0_0_10px_hsl(var(--nc-aguy)/0.15)]"
             >
               A-guy
             </div>
-            <small className="text-xs text-nc-ink-2">תצוגת המחשה</small>
+            <small className="text-body-xs text-nc-ink-2">תצוגת המחשה</small>
           </div>
         </div>
       </div>
