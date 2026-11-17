@@ -43,7 +43,7 @@ export function ClassDemoRegister({ state, dispatch }: ClassDemoRegisterProps) {
       </p>
       <section className={`${panel} rounded-[23px] p-5 sm:p-7`}>
         <div
-          className="mb-6 grid grid-cols-2 gap-content-gap-xs.5 sm:gap-3"
+          className="mb-6 grid grid-cols-2 gap-[10px] sm:gap-3"
           role="radiogroup"
           aria-label="תפקיד"
         >

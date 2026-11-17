@@ -23,7 +23,7 @@ export function ClassDemoHeader({ screen, dispatch }: ClassDemoHeaderProps) {
         >
           a<span className="text-nc-brand-light">.</span>
         </span>
-        <span className="flex items-center gap-content-gap-xs.5 font-nc-display text-body-sm font-bold sm:text-body-lg">
+        <span className="flex items-center gap-[10px] font-nc-display text-body-sm font-bold sm:text-body-lg">
           <span dir="ltr" className="text-body-md sm:text-heading-xl">
             Aguy
           </span>
@@ -31,7 +31,7 @@ export function ClassDemoHeader({ screen, dispatch }: ClassDemoHeaderProps) {
           <span>הכיתה החדשה</span>
         </span>
       </button>
-      <div className="flex flex-wrap items-center gap-content-gap-xs.5">
+      <div className="flex flex-wrap items-center gap-[10px]">
         <span className="hidden rounded-full bg-nc-mock-bar px-2.5 py-1 text-[11px] font-extrabold text-nc-ink-soft sm:inline">
           DEMO · נתוני המחשה
         </span>

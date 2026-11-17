@@ -41,7 +41,7 @@ export function LessonPreviewDialog({
         aria-labelledby="cd-lesson-title"
         className="w-full max-w-[440px] rounded-[20px] bg-nc-paper p-7 text-nc-ink shadow-modal"
       >
-        <div className="flex items-center justify-between gap-content-gap-xs.5">
+        <div className="flex items-center justify-between gap-[10px]">
           <span className={eyebrow}>תצוגת שיעור לדוגמה</span>
           <button type="button" className={btn.ghostSm} aria-label="סגירה" onClick={onClose}>
             <X className="size-4" aria-hidden="true" />
@@ -50,7 +50,7 @@ export function LessonPreviewDialog({
         <h3 id="cd-lesson-title" className="my-3 text-[22px] font-bold">
           {lesson.title}
         </h3>
-        <div className="flex flex-wrap items-center gap-content-gap-xs.5 text-[11px] text-nc-ink-soft">
+        <div className="flex flex-wrap items-center gap-[10px] text-[11px] text-nc-ink-soft">
           <b className="font-bold text-nc-ink-2">{LESSON_TYPE_LABEL[lesson.type]}</b>
           <span>·</span>
           <span>{lesson.minutes} דקות</span>
