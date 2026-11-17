@@ -10,6 +10,11 @@ import { queryPurchaseHrefForCourse } from '@/server/repos/queries/products'
 import { SystemParams } from '@/infra/config/system-params'
 import { AccessGateProvider } from '@/ui/web/auth/AccessGateProvider'
 import { checkPaidAccess } from '@/server/utils/check-paid-access'
+import { getAuthenticatedUserServer } from '@/server/utils/access-gate-server'
+import {
+  getHiddenLessonIdsForStudent,
+  withoutHiddenLessons,
+} from '@/server/services/classroom/class-lesson-visibility'
 import { stripHtml } from '@/utils/strip-html'
 import { ChapterPageBreadcrumb } from '../../../_components/ChapterPageBreadcrumb'
 import { ChapterHeader } from '../../../_components/ChapterHeader'
@@ -53,7 +58,11 @@ export default async function ChapterPage({ params }: ChapterPageProps) {
     SystemParams.getGatedWarningMs(),
   ])
 
-  const lessons = await queryLessonsByChapter({ chapterId: chapter.id })
+  const [chapterLessons, hiddenLessonIds] = await Promise.all([
+    queryLessonsByChapter({ chapterId: chapter.id }),
+    getAuthenticatedUserServer().then(({ user }) => getHiddenLessonIdsForStudent(user, course.id)),
+  ])
+  const lessons = withoutHiddenLessons(chapterLessons, hiddenLessonIds)
 
   // Compute entitlement once for the whole chapter so every LessonCard can
   // decide its lock state without an extra round-trip.
