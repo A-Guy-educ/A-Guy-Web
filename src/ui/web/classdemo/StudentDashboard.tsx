@@ -104,7 +104,7 @@ interface StudentLessonCardProps {
 function StudentLessonCard({ lesson, done, onOpen }: StudentLessonCardProps) {
   return (
     <div className={`${panel} flex flex-col gap-3 p-5 sm:min-h-48`}>
-      <div className="flex flex-wrap items-center gap-content-gap-xs.5 text-[11px] text-nc-ink-soft">
+      <div className="flex flex-wrap items-center gap-[10px] text-[11px] text-nc-ink-soft">
         <b className="font-bold text-nc-ink-2">{LESSON_TYPE_LABEL[lesson.type]}</b>
         <span>· {lesson.minutes} דקות</span>
       </div>

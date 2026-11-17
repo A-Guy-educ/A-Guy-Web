@@ -37,7 +37,7 @@ export function TeacherDashboard({ published, dispatch }: TeacherDashboardProps)
 
   return (
     <>
-      <div className="mb-[18px] grid grid-cols-2 gap-content-gap-xs.5 md:grid-cols-4 md:gap-[15px]">
+      <div className="mb-[18px] grid grid-cols-2 gap-[10px] md:grid-cols-4 md:gap-[15px]">
         {stats.map((s) => (
           <div
             key={s.label}

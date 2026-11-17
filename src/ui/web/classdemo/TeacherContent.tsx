@@ -74,11 +74,11 @@ interface LessonToggleRowProps {
 
 function LessonToggleRow({ lesson, on, onToggle }: LessonToggleRowProps) {
   return (
-    <div className="flex min-h-[87px] flex-wrap items-center gap-content-gap-xs.5 border-b border-nc-divider px-2 py-section-xs last:border-b-0 sm:flex-nowrap sm:gap-3.5 sm:px-4">
+    <div className="flex min-h-[87px] flex-wrap items-center gap-[10px] border-b border-nc-divider px-2 py-section-xs last:border-b-0 sm:flex-nowrap sm:gap-3.5 sm:px-4">
       <LessonTypeIcon type={lesson.type} />
       <div className="min-w-0 flex-[1_1_calc(100%-70px)] sm:flex-1">
         <h4 className="mt-0 mb-1 text-body-sm font-extrabold">{lesson.title}</h4>
-        <div className="flex flex-wrap items-center gap-content-gap-xs.5 text-[11px] text-nc-ink-soft">
+        <div className="flex flex-wrap items-center gap-[10px] text-[11px] text-nc-ink-soft">
           <b className="font-bold text-nc-ink-2">{LESSON_TYPE_LABEL[lesson.type]}</b>
           <span>·</span>
           <span>{lesson.subject}</span>
