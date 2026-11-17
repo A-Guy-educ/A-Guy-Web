@@ -26,11 +26,11 @@ export function NewClassBrand() {
 export function NewClassHeader() {
   return (
     <header className="sticky top-0 z-sticky border-b border-nc-line bg-nc-ground/95 backdrop-blur-md">
-      <div className={`${wrap} flex flex-wrap items-center justify-between gap-4 py-3`}>
-        <div className="flex flex-wrap items-center gap-6">
+      <div className={`${wrap} flex flex-wrap items-center justify-between gap-content-gap py-3`}>
+        <div className="flex flex-wrap items-center gap-content-gap-lg">
           <Link
             href="/newclass"
-            className="flex items-center gap-2.5 font-nc-display text-xl font-bold text-nc-ink no-underline"
+            className="flex items-center gap-content-gap-xs.5 font-nc-display text-heading-xl font-bold text-nc-ink no-underline"
           >
             <CubeLogo />
             <span>
@@ -49,9 +49,14 @@ export function NewClassHeader() {
             ))}
           </nav>
         </div>
-        <ContactButton className={`${btn.brand} rounded-full px-5 py-2.5 text-[15px]`}>
-          צרו קשר
-        </ContactButton>
+        <div className="flex flex-wrap items-center gap-content-gap-xs">
+          <Link className={`${btn.ghost} rounded-full px-5 py-2.5 text-[15px]`} href="/classdemo">
+            כניסה / הרשמה
+          </Link>
+          <ContactButton className={`${btn.brand} rounded-full px-5 py-2.5 text-[15px]`}>
+            צרו קשר
+          </ContactButton>
+        </div>
       </div>
     </header>
   )
