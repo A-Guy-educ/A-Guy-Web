@@ -27,8 +27,8 @@ export function PilotsSection() {
   return (
     <section id="pilots" className={section}>
       <div className={wrap}>
-        <SectionHead kicker="מהשטח" title="מה קורה בבתי הספר שכבר עובדים איתנו" />
-        <div className="mb-6 grid grid-cols-[repeat(auto-fit,minmax(min(220px,100%),1fr))] gap-4">
+        <SectionHead kicker="אחרים אומרים עלינו" title="מה קורה בבתי הספר שכבר עובדים איתנו" />
+        <div className="mb-6 grid grid-cols-[repeat(auto-fit,minmax(min(220px,100%),1fr))] gap-content-gap">
           {KPIS.map((kpi) => (
             <div key={kpi.label} className="flex flex-col gap-1 rounded-[20px] bg-nc-paper p-7">
               <b className={`font-nc-display text-[38px] font-extrabold ${kpi.color}`}>
@@ -38,11 +38,11 @@ export function PilotsSection() {
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(260px,100%),1fr))] gap-6">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(260px,100%),1fr))] gap-content-gap-lg">
           {QUOTES.map((q) => (
             <figure
               key={q.quote}
-              className={`m-0 flex flex-col gap-5 rounded-[20px] border-t-4 bg-nc-paper p-8 ${q.accent}`}
+              className={`m-0 flex flex-col gap-5 rounded-[20px] border-t-4 bg-nc-paper p-card-padding-lg ${q.accent}`}
             >
               <blockquote className="m-0 text-[19px] leading-[1.7]">{q.quote}</blockquote>
               <figcaption className="text-[15px] text-nc-ink-2">

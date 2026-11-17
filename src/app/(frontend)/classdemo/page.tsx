@@ -1,17 +1,16 @@
 import type { Metadata } from 'next'
 
 import { pageMetadata } from '@/infra/seo/pageMetadata'
-import { ClassDemo } from '@/ui/web/classdemo/ClassDemo'
+import { ClassRolePicker } from '@/ui/web/classdemo/ClassRolePicker'
 
 export default function ClassDemoPage() {
-  return <ClassDemo />
+  return <ClassRolePicker />
 }
 
 export async function generateMetadata(): Promise<Metadata> {
   return pageMetadata({
-    title: 'הכיתה החדשה — דמו',
-    description:
-      'הדגמה אינטראקטיבית: המורה פותח שיעורים לכיתה, התלמידים מתכוננים בעצמם, והכיתה מגיעה מוכנה.',
+    title: 'כניסה / הרשמה — הכיתה החדשה',
+    description: 'תלמידים מצטרפים לכיתה שלהם, מורים נכנסים למרחב המורה.',
     noIndex: true,
   })
 }
