@@ -11,13 +11,14 @@ export type Period = 'day' | 'week' | 'month' | 'year'
 export const VALID_PERIODS: readonly Period[] = ['day', 'week', 'month', 'year']
 
 /**
- * Users-tab cohort. B2B = the user id appears in any `classes` doc's
- * `students[]` or `teachers[]`; B2C = everyone else. Derived per request from
- * the class rosters — there is no stored segment field on users.
+ * Dashboard cohort. B2B = on any `classes` roster (or onboarded via /join);
+ * other = school-driven but off-roster (institutional email, Google
+ * Classroom / /join arrival); B2C = everyone else. Derived per request —
+ * there is no stored segment field on users. Rules: segment-classifier.ts.
  */
-export type UserSegment = 'all' | 'b2c' | 'b2b'
+export type UserSegment = 'all' | 'b2c' | 'b2b' | 'other'
 
-export const VALID_SEGMENTS: readonly UserSegment[] = ['all', 'b2c', 'b2b']
+export const VALID_SEGMENTS: readonly UserSegment[] = ['all', 'b2c', 'b2b', 'other']
 
 export interface B2bSchoolMetrics {
   schoolId: string

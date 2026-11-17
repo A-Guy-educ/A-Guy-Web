@@ -31,7 +31,7 @@ import { ensureDashboardIndexes } from './ensure-indexes'
 import { aggregateGuestInsights } from './guest-insights'
 import { aggregateTransactions } from './revenue-metrics'
 import type { DashboardMetricsResponse, Period, UserSegment } from './metrics-types'
-import { buildUserCohort, fetchClassRoster } from './user-segment'
+import { buildUserCohort, fetchClassRoster, fetchUserSegments } from './user-segment'
 
 export async function computeDashboardMetrics(
   period: Period,
@@ -47,9 +47,11 @@ export async function computeDashboardMetrics(
   // user reference, so any admin activity that already touched them stays
   // baked in until a write-time guard lands separately.
   // The class roster is always read: revenue's B2B seat estimate needs it
-  // even when the Users tab is on `all` (buildUserCohort returns null then).
+  // even on `all`. The b2b/other id sets are only built when a segment is
+  // picked, so the default view pays nothing extra.
   const [adminUserRefs, roster] = await Promise.all([fetchAdminUserRefs(db), fetchClassRoster(db)])
-  const cohort = buildUserCohort(segment, roster)
+  const segmentSets = segment === 'all' ? null : await fetchUserSegments(db, roster)
+  const cohort = buildUserCohort(segment, segmentSets)
 
   const [
     userStats,
@@ -66,12 +68,11 @@ export async function computeDashboardMetrics(
     usersPerCourse,
     signupSourceBreakdown,
     guestInsights,
-    cohortUserStats,
     b2bMetrics,
   ] = await Promise.all([
-    aggregateUserStats(db, buckets, adminUserRefs),
+    aggregateUserStats(db, buckets, adminUserRefs, cohort),
     aggregateUsers(db, buckets, cohort),
-    aggregateGuestSessions(db, buckets, adminUserRefs),
+    aggregateGuestSessions(db, buckets, adminUserRefs, cohort),
     aggregateTransactions(db, buckets, adminUserRefs, roster),
     aggregateCourseEnrollments(db, adminUserRefs),
     aggregateLessonTypes(db),
@@ -79,13 +80,10 @@ export async function computeDashboardMetrics(
     aggregateMonthlySignups(db, cohort),
     aggregateTopLessonsByOpens(db),
     aggregateSessionTimeByLessonType(db),
-    aggregateTokenMetrics(db, adminUserRefs),
+    aggregateTokenMetrics(db, adminUserRefs, cohort),
     aggregateUsersPerCurrentCourse(db),
     aggregateSignupSources(db, buckets, cohort),
-    aggregateGuestInsights(db, buckets, adminUserRefs),
-    // Engagement (time spread, feature usage) stays platform-wide, so the
-    // cohort-scoped user-stats pass is a second query feeding userMetrics only.
-    cohort ? aggregateUserStats(db, buckets, adminUserRefs, cohort) : Promise.resolve(null),
+    aggregateGuestInsights(db, buckets, adminUserRefs, cohort),
     segment === 'b2b'
       ? aggregateB2bMetrics(db, roster, buckets, adminUserRefs)
       : Promise.resolve(undefined),
@@ -95,7 +93,7 @@ export async function computeDashboardMetrics(
     period,
     segment,
     userMetrics: buildUserMetrics({
-      userStats: cohortUserStats ?? userStats,
+      userStats,
       users,
       guests,
       signupSourceBreakdown,

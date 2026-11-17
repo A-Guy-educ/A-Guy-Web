@@ -5,6 +5,8 @@
  *
  * Every guest-sessions pipeline opens with a `$match` (not a bare `$facet`)
  * so the planner can use the createdAt / onboarding indexes before fanning out.
+ * `cohortMatch` (user-segment.ts `guestCohortMatch`) is merged into that
+ * first `$match` to drop sessions claimed by users outside the segment.
  */
 
 import type { Document } from 'mongodb'
@@ -45,9 +47,9 @@ const groupByLandingType = { $group: { _id: '$landingType', n: { $sum: 1 } } }
 // Pipelines
 // ---------------------------------------------------------------------------
 
-export function buildAllTimePipeline(adminRefs: unknown[]): Document[] {
+export function buildAllTimePipeline(adminRefs: unknown[], cohortMatch: Document = {}): Document[] {
   return [
-    { $match: TRACKED_SESSION },
+    { $match: { ...TRACKED_SESSION, ...cohortMatch } },
     {
       $group: {
         _id: '$landingType',
@@ -58,9 +60,9 @@ export function buildAllTimePipeline(adminRefs: unknown[]): Document[] {
   ]
 }
 
-export function buildLast30dPipeline(since: Date): Document[] {
+export function buildLast30dPipeline(since: Date, cohortMatch: Document = {}): Document[] {
   return [
-    { $match: { createdAt: { $gte: since }, ...TRACKED_SESSION } },
+    { $match: { createdAt: { $gte: since }, ...TRACKED_SESSION, ...cohortMatch } },
     {
       $facet: {
         landing: [groupByLandingType],
@@ -91,9 +93,13 @@ export function buildLast30dPipeline(since: Date): Document[] {
 }
 
 /** Cohort = sessions whose onboarding started on/after `since`. */
-export function buildOnboardingFunnelPipeline(since: Date, adminRefs: unknown[]): Document[] {
+export function buildOnboardingFunnelPipeline(
+  since: Date,
+  adminRefs: unknown[],
+  cohortMatch: Document = {},
+): Document[] {
   return [
-    { $match: { 'onboarding.startedAt': { $gte: since } } },
+    { $match: { 'onboarding.startedAt': { $gte: since }, ...cohortMatch } },
     {
       $group: {
         _id: null,

@@ -34,7 +34,13 @@ import type {
   UsersPerCourse,
 } from './metrics-types'
 import type { DateBuckets } from './date-buckets'
-import { userRefPredicate, usersCohortMatch, type UserCohort } from './user-segment'
+import {
+  guestCohortMatch,
+  userIdStringPredicate,
+  userRefPredicate,
+  usersCohortMatch,
+  type UserCohort,
+} from './user-segment'
 
 function firstCount(bucket: Array<{ n?: number }> | undefined): number {
   return bucket?.[0]?.n ?? 0
@@ -94,7 +100,7 @@ export async function aggregateUserStats(
       // the user relationship as either an ObjectId or its string form
       // (see progress.ts `userFilter`); adminUserRefs.refs carries both
       // encodings so $nin matches regardless of which shape the row used.
-      // `cohort` narrows to B2B / B2C on top (see user-segment.ts).
+      // `cohort` narrows to one segment on top (see user-segment.ts).
       { $match: { user: userRefPredicate(adminUserRefs.refs, cohort) } },
       {
         $facet: {
@@ -520,6 +526,7 @@ export async function aggregateGuestSessions(
   db: Db,
   buckets: DateBuckets,
   adminUserRefs: AdminUserRefs,
+  cohort?: UserCohort | null,
 ): Promise<{
   total: number
   today: number
@@ -531,7 +538,10 @@ export async function aggregateGuestSessions(
 }> {
   const [result] = (await db
     .collection('guest-sessions')
-    .aggregate<GuestsFacetResult>([{ $facet: buildGuestSessionsFacet(buckets, adminUserRefs) }])
+    .aggregate<GuestsFacetResult>([
+      ...(cohort ? [{ $match: guestCohortMatch(cohort) }] : []),
+      { $facet: buildGuestSessionsFacet(buckets, adminUserRefs) },
+    ])
     .toArray()) as [GuestsFacetResult]
 
   return {
@@ -901,6 +911,7 @@ interface TokenUsageFacetResult {
 export async function aggregateTokenMetrics(
   db: Db,
   adminUserRefs: AdminUserRefs,
+  cohort?: UserCohort | null,
 ): Promise<TokenMetrics> {
   const now = new Date()
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
@@ -910,7 +921,8 @@ export async function aggregateTokenMetrics(
   // llm-usage stores `userId` as a plain string (llm-usage.ts:150), so use
   // the stringIds slice rather than the mixed refs list. `$nin: []` is a
   // no-op when there are no admins, so this is safe when the list is empty.
-  const adminUserIdStrings = adminUserRefs.stringIds
+  // `cohort` narrows to one segment on top.
+  const userIdMatch = userIdStringPredicate(adminUserRefs.stringIds, cohort)
   const [usageFacet] = (await db
     .collection('llm-usage')
     .aggregate<TokenUsageFacetResult>([
@@ -920,7 +932,7 @@ export async function aggregateTokenMetrics(
             {
               $match: {
                 createdAt: { $gte: startOfToday },
-                userId: { $nin: adminUserIdStrings },
+                userId: userIdMatch,
               },
             },
             { $group: { _id: null, total: { $sum: '$totalTokens' } } },
@@ -929,7 +941,7 @@ export async function aggregateTokenMetrics(
             {
               $match: {
                 createdAt: { $gte: startOfMonth },
-                userId: { $nin: adminUserIdStrings },
+                userId: userIdMatch,
               },
             },
             {
@@ -945,7 +957,7 @@ export async function aggregateTokenMetrics(
             {
               $match: {
                 createdAt: { $gte: startOfYear },
-                userId: { $nin: adminUserIdStrings },
+                userId: userIdMatch,
               },
             },
             { $group: { _id: null, total: { $sum: '$totalTokens' } } },
@@ -958,7 +970,7 @@ export async function aggregateTokenMetrics(
               $match: {
                 createdAt: { $gte: startOfMonth },
                 lessonId: { $ne: null },
-                userId: { $nin: adminUserIdStrings },
+                userId: userIdMatch,
               },
             },
             {
@@ -979,7 +991,7 @@ export async function aggregateTokenMetrics(
               $match: {
                 createdAt: { $gte: startOfMonth },
                 lessonId: { $ne: null },
-                userId: { $nin: adminUserIdStrings },
+                userId: userIdMatch,
               },
             },
             { $group: { _id: '$lessonId', total: { $sum: '$totalTokens' } } },
