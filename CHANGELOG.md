@@ -5236,6 +5236,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Real student/teacher entry at /classdemo + newclass landing corrections ([#1620](https://github.com/A-Guy-educ/A-Guy-Web/pull/1620)) — @aguyshayb
 - fix: Restore spacing the token codemod broke on /classdemo ([#1619](https://github.com/A-Guy-educ/A-Guy-Web/pull/1619)) — @aguyshayb
 - fix: Center point labels on their compass direction ([#1618](https://github.com/A-Guy-educ/A-Guy-Web/pull/1618)) — @aguyshayb
 - feat: Add interactive school walkthrough at /classdemo ([#1617](https://github.com/A-Guy-educ/A-Guy-Web/pull/1617)) — @aguyshayb
