@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.68.0 — 2026-11-18
+
+### Features
+- Apply second round of newclass landing corrections (#1627)
+- Record paywall, pricing and checkout funnel events (#1625)
+- Add chat tool rail to scroll and media views (#1623)
+- Let teachers hide lessons from their class (#1622)
+- Add other segment and scope revenue and product health by segment (#1621)
+- Turn /classdemo into the real student and teacher entry (#1620)
+- Add interactive school walkthrough at /classdemo (#1617)
+
+### Bug Fixes
+- Always show Google account chooser on sign-in (#1626)
+- Ignore picomatch ReDoS advisory with no patch yet (#1624)
+- Restore /classdemo spacing broken by the token codemod (#1619)
+- Center point labels on their compass direction (#1618)
+
 ## v0.67.0 — 2026-11-16
 
 ### Features
