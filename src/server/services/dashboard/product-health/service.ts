@@ -9,6 +9,9 @@
 
 import { getContentDb } from '@/infra/db/content-db'
 
+import type { UserSegment } from '../metrics-types'
+import { buildUserCohort, fetchClassRoster, fetchUserSegments } from '../user-segment'
+
 import { fetchAvailableCourses, fetchAvailableGrades } from './available-courses'
 import {
   activeUserRate,
@@ -38,12 +41,19 @@ const CALCULATOR_MAP: Record<ProductHealthKpi, (ctx: KpiContext) => KpiCalculato
 export async function computeProductHealth(
   params: ParsedProductHealthParams,
   now: Date = new Date(),
+  segment: UserSegment = 'all',
 ): Promise<ProductHealthPayload> {
   const db = await getContentDb()
   const resolved = resolvePeriod(params, now)
   const span = { start: signalWindowStart(resolved), end: resolved.period.end }
+  // Rebuilt here rather than shared with computeDashboardMetrics: the two run
+  // in parallel and the lookups are small, so keeping them independent is simpler.
+  const cohort =
+    segment === 'all'
+      ? null
+      : buildUserCohort(segment, await fetchUserSegments(db, await fetchClassRoster(db)))
   const [signals, availableCourses, availableGrades] = await Promise.all([
-    fetchAllSignals(db, span, { courseId: params.courseId, grade: params.grade }),
+    fetchAllSignals(db, span, { courseId: params.courseId, grade: params.grade, cohort }),
     fetchAvailableCourses(db),
     fetchAvailableGrades(db),
   ])

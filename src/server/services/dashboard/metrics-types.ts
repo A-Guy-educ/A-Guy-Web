@@ -11,13 +11,14 @@ export type Period = 'day' | 'week' | 'month' | 'year'
 export const VALID_PERIODS: readonly Period[] = ['day', 'week', 'month', 'year']
 
 /**
- * Users-tab cohort. B2B = the user id appears in any `classes` doc's
- * `students[]` or `teachers[]`; B2C = everyone else. Derived per request from
- * the class rosters — there is no stored segment field on users.
+ * Dashboard cohort. B2B = on any `classes` roster (or onboarded via /join);
+ * other = school-driven but off-roster (institutional email, Google
+ * Classroom / /join arrival); B2C = everyone else. Derived per request —
+ * there is no stored segment field on users. Rules: segment-classifier.ts.
  */
-export type UserSegment = 'all' | 'b2c' | 'b2b'
+export type UserSegment = 'all' | 'b2c' | 'b2b' | 'other'
 
-export const VALID_SEGMENTS: readonly UserSegment[] = ['all', 'b2c', 'b2b']
+export const VALID_SEGMENTS: readonly UserSegment[] = ['all', 'b2c', 'b2b', 'other']
 
 export interface B2bSchoolMetrics {
   schoolId: string
@@ -200,7 +201,7 @@ export interface RevenueSegments {
   b2c: {
     /** Distinct users with a succeeded transaction in the period. */
     payers: number
-    /** Succeeded ILS total in the period (platform-wide, = totalRevenueAgorot.ILS). */
+    /** Succeeded ILS total in the period (all users, = totalRevenueAgorot.ILS). */
     revenueAgorot: number
   }
   /** Estimate — no school subscriptions exist yet. Current roster, not period-bound. */
@@ -213,7 +214,7 @@ export interface RevenueSegments {
 }
 
 /**
- * Period-filtered, admins excluded, platform-wide (no B2B/B2C filter).
+ * Period-filtered, admins excluded, restricted to the picked segment's users.
  * `pending` rows (abandoned checkouts) are excluded from every count.
  */
 export interface RevenueMetrics {
@@ -233,7 +234,8 @@ export interface RevenueMetrics {
   }
   /** Sorted desc by count, top 10. */
   failureReasons: FailureReason[]
-  segments: RevenueSegments
+  /** B2C payers vs. B2B seat estimate. Only on `segment=all`; a picked segment omits it. */
+  segments?: RevenueSegments
 }
 
 export interface TopLessonByTokens {
@@ -262,8 +264,9 @@ export interface TokenMetrics {
 export interface DashboardMetricsResponse {
   period: Period
   /**
-   * Cohort `userMetrics` and `monthlySignups` were computed over. Guest
-   * fields are pre-signup and every other block is always platform-wide.
+   * Cohort every user-based block was computed over. Anonymous guest sessions
+   * can't be classified, so they appear in every segment; contentCounts and
+   * the lesson-stats widgets have no user and stay platform-wide.
    */
   segment: UserSegment
   userMetrics: UserMetrics

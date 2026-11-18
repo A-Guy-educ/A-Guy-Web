@@ -251,6 +251,16 @@ describe('segments', () => {
     })
   })
 
+  it('is omitted when a segment was picked', () => {
+    const result = toRevenueMetrics({
+      result: facetResult({ b2cPayers: [{ n: 2 }] }),
+      roster: EMPTY_ROSTER,
+      adminUserIds: new Set(),
+      segmented: true,
+    })
+    expect(result).not.toHaveProperty('segments')
+  })
+
   it('counts distinct payers across ObjectId/string encodings', () => {
     expect(buildTransactionsFacet().b2cPayers).toEqual([
       { $match: { status: 'succeeded', user: { $ne: null } } },
@@ -280,5 +290,25 @@ describe('aggregateTransactions', () => {
       { $match: { createdAt: { $gte: buckets.periodStart }, user: { $nin: ['admin'] } } },
       { $facet: buildTransactionsFacet() },
     ])
+  })
+
+  it.each([
+    ['in', { $nin: ['admin'], $in: ['u1'] }],
+    ['nin', { $nin: ['admin', 'u1'] }],
+  ] as const)("restricts users to a '%s' cohort", async (mode, user) => {
+    const aggregate = vi.fn(() => ({ toArray: async () => [facetResult()] }))
+    const db = { collection: () => ({ aggregate }) } as unknown as Db
+
+    const result = await aggregateTransactions(
+      db,
+      computeDateBuckets('month'),
+      { refs: ['admin'], stringIds: ['admin'] },
+      EMPTY_ROSTER,
+      { segment: mode === 'in' ? 'b2b' : 'b2c', mode, refs: ['u1'], stringIds: ['u1'] },
+    )
+
+    const pipeline = (aggregate.mock.calls[0] as unknown as [Document[]])[0]
+    expect(pipeline[0].$match.user).toEqual(user)
+    expect(result).not.toHaveProperty('segments')
   })
 })
