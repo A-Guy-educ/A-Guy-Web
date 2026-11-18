@@ -5,7 +5,6 @@ import { SectionHead } from '../SectionHead'
 
 interface Program {
   name: string
-  ltr?: boolean
   kind: string
   oneLiner: string
   checks: string[]
@@ -16,8 +15,7 @@ interface Program {
 
 const PROGRAMS: Program[] = [
   {
-    name: 'A-guy',
-    ltr: true,
+    name: 'Aguy לבית הספר',
     kind: 'טכנולוגיה',
     oneLiner: 'כל תלמיד ניגש לחומר בעצמו, ופונה למורה רק כשהוא באמת צריך.',
     checks: [
@@ -26,7 +24,7 @@ const PROGRAMS: Program[] = [
       'הכיתה עובדת במקביל: לבד, בזוגות ובקבוצות עם המורה',
     ],
     href: '/newclass/aguy',
-    cta: 'פרטים נוספים על A-guy',
+    cta: 'פרטים נוספים על Aguy לבית הספר',
     theme: {
       card: 'bg-nc-aguy-bg',
       title: 'text-nc-teacher-deep',
@@ -38,11 +36,11 @@ const PROGRAMS: Program[] = [
   {
     name: 'לומדים ללמד',
     kind: 'אנשים',
-    oneLiner: 'בני נוער מוכשרים ללוות תלמידים אחרים, בכיתה ובשיעורים פרטניים.',
+    oneLiner: 'תלמידים בוגרים עוברים הכשרה, והופכים לתומכי הוראה שעוזרים למורים בזמן השיעור.',
     checks: [
-      'החונכים עוברים 60 שעות הכשרה פרונטלית עם מורה מוסמך',
-      'החונכים נכנסים לשיעורים ומקלים על המורה בכיתה',
-      'נחשב לשעות מעורבות חברתית של החונכים',
+      '30 שבועות של קורסים והתנסות בכיתות',
+      'שעתיים שבועיות, בתוך מערכת השעות',
+      'כל המשתתפים מסיימים כתומכי הוראה',
     ],
     href: '/newclass/lomdim',
     cta: 'פרטים נוספים על לומדים ללמד',
@@ -65,17 +63,14 @@ export function ProgramsSection() {
           טכנולוגיה, לומדים ללמד דרך אנשים. כל תוכנית עומדת בפני עצמה, ובית הספר בוחר אחת מהן או את
           שתיהן.
         </SectionHead>
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(320px,100%),1fr))] gap-6">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(320px,100%),1fr))] gap-content-gap-lg">
           {PROGRAMS.map((p) => (
             <article
               key={p.name}
               className={`flex flex-col gap-5 rounded-3xl border border-nc-line p-7 sm:p-10 ${p.theme.card}`}
             >
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <h3
-                  dir={p.ltr ? 'ltr' : undefined}
-                  className={`font-nc-display text-[34px] font-extrabold ${p.theme.title}`}
-                >
+                <h3 className={`font-nc-display text-[34px] font-extrabold ${p.theme.title}`}>
                   {p.name}
                 </h3>
                 <span className={`${tag} ${p.theme.tag}`}>{p.kind}</span>
@@ -83,7 +78,7 @@ export function ProgramsSection() {
               <p className="text-[19px] leading-[1.6] font-medium">{p.oneLiner}</p>
               <ul className="flex flex-col gap-3 text-nc-ink-2">
                 {p.checks.map((c) => (
-                  <li key={c} className="flex gap-2.5">
+                  <li key={c} className="flex gap-[10px]">
                     <b className={`font-bold ${p.theme.check}`}>✓</b>
                     {c}
                   </li>
