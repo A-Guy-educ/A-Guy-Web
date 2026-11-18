@@ -5236,6 +5236,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat(newclass): Apply second round of boss corrections ([#1627](https://github.com/A-Guy-educ/A-Guy-Web/pull/1627)) — @aguyshayb
 - fix(auth): Always show Google account chooser on sign-in ([#1626](https://github.com/A-Guy-educ/A-Guy-Web/pull/1626)) — @aguyshayb
 - feat(analytics): Record paywall, pricing and checkout funnel events ([#1625](https://github.com/A-Guy-educ/A-Guy-Web/pull/1625)) — @aguyshayb
 - feat(lesson): Add chat tool rail to scroll and media views ([#1623](https://github.com/A-Guy-educ/A-Guy-Web/pull/1623)) — @aguyshayb
