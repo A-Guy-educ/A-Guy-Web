@@ -5253,6 +5253,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- promote: dev -> main (v0.68.0) ([#1629](https://github.com/A-Guy-educ/A-Guy-Web/pull/1629)) — @aguyshayb
 - chore: Release v0.68.0 ([#1628](https://github.com/A-Guy-educ/A-Guy-Web/pull/1628)) — @aguyshayb
 - feat(newclass): Apply second round of boss corrections ([#1627](https://github.com/A-Guy-educ/A-Guy-Web/pull/1627)) — @aguyshayb
 - fix(auth): Always show Google account chooser on sign-in ([#1626](https://github.com/A-Guy-educ/A-Guy-Web/pull/1626)) — @aguyshayb
