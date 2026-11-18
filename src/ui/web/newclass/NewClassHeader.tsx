@@ -5,8 +5,7 @@ import { CubeLogo } from './CubeMark'
 import { btn, wrap } from './newclassStyles'
 
 const NAV_LINKS = [
-  { href: '/newclass#about', label: 'קצת עלינו' },
-  { href: '/newclass#dims', label: 'שלושת הממדים' },
+  { href: '/newclass#shift', label: 'החזון שלנו' },
   { href: '/newclass#programs', label: 'התוכניות שלנו' },
   { href: '/newclass#challenges', label: 'האתגרים' },
   { href: '/newclass#pilots', label: 'אחרים אומרים עלינו' },

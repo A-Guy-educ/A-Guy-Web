@@ -1,4 +1,9 @@
-export const CONTACT_TOPICS = ['A-guy', 'לומדים ללמד', 'שתי התוכניות', 'עוד לא בטוחים'] as const
+export const CONTACT_TOPICS = [
+  'Aguy לבית הספר',
+  'לומדים ללמד',
+  'שתי התוכניות',
+  'עוד לא בטוחים',
+] as const
 
 export type ContactTopic = (typeof CONTACT_TOPICS)[number]
 
