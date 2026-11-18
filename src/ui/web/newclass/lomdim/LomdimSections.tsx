@@ -142,9 +142,9 @@ export function LomdimBenefits() {
               <h3 className={`font-nc-display text-heading-xl font-extrabold ${b.tone.title}`}>
                 {b.title}
               </h3>
-              <ul className="m-0 flex list-none flex-col gap-content-gap-xs.5 p-0">
+              <ul className="m-0 flex list-none flex-col gap-[10px] p-0">
                 {b.points.map((point) => (
-                  <li key={point} className="flex items-start gap-content-gap-xs.5">
+                  <li key={point} className="flex items-start gap-[10px]">
                     <b className={`mt-2.5 size-2 flex-none rounded-full ${b.tone.dot}`} />
                     {point}
                   </li>
@@ -167,7 +167,7 @@ export function LomdimSteps() {
           {STEPS.map((step, i) => (
             <li
               key={step.title}
-              className="flex flex-col gap-content-gap-xs.5 rounded-3xl bg-nc-paper p-card-padding"
+              className="flex flex-col gap-[10px] rounded-3xl bg-nc-paper p-card-padding"
             >
               <span className="self-start rounded-full bg-nc-brand px-3.5 py-1 font-nc-display text-body-sm font-bold text-white">
                 {step.when}

@@ -78,7 +78,7 @@ export function ProgramsSection() {
               <p className="text-[19px] leading-[1.6] font-medium">{p.oneLiner}</p>
               <ul className="flex flex-col gap-3 text-nc-ink-2">
                 {p.checks.map((c) => (
-                  <li key={c} className="flex gap-content-gap-xs.5">
+                  <li key={c} className="flex gap-[10px]">
                     <b className={`font-bold ${p.theme.check}`}>✓</b>
                     {c}
                   </li>
