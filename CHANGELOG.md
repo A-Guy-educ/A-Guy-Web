@@ -5236,6 +5236,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix(auth): Always show Google account chooser on sign-in ([#1626](https://github.com/A-Guy-educ/A-Guy-Web/pull/1626)) — @aguyshayb
 - feat(analytics): Record paywall, pricing and checkout funnel events ([#1625](https://github.com/A-Guy-educ/A-Guy-Web/pull/1625)) — @aguyshayb
 - feat(lesson): Add chat tool rail to scroll and media views ([#1623](https://github.com/A-Guy-educ/A-Guy-Web/pull/1623)) — @aguyshayb
 - fix(deps): Ignore picomatch ReDoS advisory with no patch yet ([#1624](https://github.com/A-Guy-educ/A-Guy-Web/pull/1624)) — @aguyshayb
