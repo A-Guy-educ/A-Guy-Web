@@ -45,9 +45,16 @@ interface LessonNotebookPaneProps {
   /** `null` when the material cannot be cut from (e.g. a video). */
   cutSource: LessonCutSource | null
   children: React.ReactNode
+  /** Desktop: lesson menu shown at the start of the header bar. */
+  headerLeading?: React.ReactNode
 }
 
-export function LessonNotebookPane({ scope, cutSource, children }: LessonNotebookPaneProps) {
+export function LessonNotebookPane({
+  scope,
+  cutSource,
+  children,
+  headerLeading,
+}: LessonNotebookPaneProps) {
   const [view, setView] = useState<PaneView>('material')
   const [focusPageId, setFocusPageId] = useState<string | null>(null)
   const materialRef = useRef<HTMLDivElement>(null)
@@ -119,6 +126,7 @@ export function LessonNotebookPane({ scope, cutSource, children }: LessonNoteboo
         touchDevice={touchDevice}
         touchCut={touchCut}
         onTouchCut={setTouchCut}
+        leading={headerLeading}
       />
 
       <div

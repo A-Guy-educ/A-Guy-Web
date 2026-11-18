@@ -71,9 +71,13 @@ export function buildScrollExerciseContexts(
   })
 }
 
-function exerciseIdInView(): string | null {
+/** `undefined` = can't tell right now (material hidden), keep the last answer. */
+function exerciseIdInView(): string | null | undefined {
   const sections = document.querySelectorAll<HTMLElement>(`[${SCROLL_EXERCISE_ATTR}]`)
   if (sections.length === 0) return null
+  // While the notebook covers the material, the worksheet has no layout and
+  // every section reads as top = 0, which would pick the last exercise.
+  if (sections[0].getClientRects().length === 0) return undefined
   const anchor = window.innerHeight * VIEWPORT_ANCHOR
   let current = sections[0]
   for (const section of sections) {
@@ -99,7 +103,7 @@ export function useScrollExerciseBroadcast(contexts: ScrollExerciseContext[]): v
     const update = () => {
       frame = 0
       const id = exerciseIdInView()
-      if (id === lastIdRef.current) return
+      if (id === undefined || id === lastIdRef.current) return
       lastIdRef.current = id
       publishScrollExercise(id ? (byId.get(id) ?? null) : null)
     }

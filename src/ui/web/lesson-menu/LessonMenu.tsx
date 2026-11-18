@@ -73,6 +73,11 @@ interface LessonMenuProps {
    * (LessonIntroPage's empty-workspace branches).
    */
   variant?: 'lesson' | 'standalone'
+  /**
+   * `'floating'` (default) pins the menu + back pills to the viewport's start
+   * corner. `'inline'` renders them in normal flow, for a view's own top bar.
+   */
+  placement?: 'floating' | 'inline'
 }
 
 const PANEL_ID = 'lesson-menu-panel'
@@ -87,6 +92,7 @@ export function LessonMenu({
   restart,
   hideBack = false,
   variant,
+  placement = 'floating',
 }: LessonMenuProps) {
   const t = useTranslations('courses')
   const locale = useLocale()
@@ -148,16 +154,22 @@ export function LessonMenu({
   }
 
   const BackIcon = rtl ? ArrowRight : ArrowLeft
+  const inline = placement === 'inline'
+  const pillClassName = cn(
+    'flex items-center justify-center rounded-full border border-border text-foreground hover:bg-muted transition-colors',
+    inline ? 'h-8 w-8 bg-card' : 'h-9 w-9 bg-card/95 backdrop-blur shadow-elevation-2',
+  )
 
   return (
     <>
       {/* Floating chrome: menu + back buttons at logical `start` (top-left
           LTR, top-right RTL) so they don't collide with MobileChatPanel's
           close-X on the opposite edge. The lesson title lives inside the
-          dropdown header; chat view shows it in a dedicated cycling pill. */}
+          dropdown header; chat view shows it in a dedicated cycling pill.
+          Inline placement drops the same pair into a view's top bar. */}
       <div
-        style={{ top: 'calc(0.5rem + env(safe-area-inset-top))' }}
-        className="fixed start-3 z-[400] flex items-center gap-1.5"
+        style={inline ? undefined : { top: 'calc(0.5rem + env(safe-area-inset-top))' }}
+        className={cn('flex shrink-0 items-center gap-1.5', !inline && 'fixed start-3 z-[400]')}
       >
         <button
           type="button"
@@ -169,11 +181,7 @@ export function LessonMenu({
           // (`AnimatePresence` unmounts it on close). A dangling
           // `aria-controls` reference confuses some AT vendors.
           aria-controls={open ? PANEL_ID : undefined}
-          className={cn(
-            'flex h-9 w-9 items-center justify-center rounded-full',
-            'bg-card/95 backdrop-blur border border-border shadow-elevation-2',
-            'text-foreground hover:bg-muted transition-colors',
-          )}
+          className={pillClassName}
         >
           <Menu className="w-4 h-4 text-primary" />
         </button>
@@ -182,11 +190,7 @@ export function LessonMenu({
             type="button"
             onClick={handleBack}
             aria-label={onLessonSurface ? t('backToCourse') : t('back')}
-            className={cn(
-              'flex h-9 w-9 items-center justify-center rounded-full',
-              'bg-card/95 backdrop-blur border border-border shadow-elevation-2',
-              'text-foreground hover:bg-muted transition-colors',
-            )}
+            className={pillClassName}
           >
             <BackIcon className="w-4 h-4 text-primary" />
           </button>
