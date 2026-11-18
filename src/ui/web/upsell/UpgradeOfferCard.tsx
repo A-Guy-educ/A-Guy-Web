@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 
+import { usePaywallBeacon, type ClientPaywallGate } from '@/client/hooks/usePaywallBeacon'
 import { cn } from '@/infra/utils/ui'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { TIER_PRICE_ILS, type TierSlug } from '@/lib/tiers'
@@ -28,6 +29,8 @@ export interface UpgradeOfferCardProps {
   currentTier?: TierSlug
   /** Narrow containers (the side chat): tighter padding, one tier per row. */
   compact?: boolean
+  /** Which wall this is, for the payment-funnel log (one event per mount). */
+  paywallGate: ClientPaywallGate
 }
 
 /**
@@ -74,7 +77,9 @@ export function UpgradeOfferCard({
   restrictedLabel,
   currentTier,
   compact = false,
+  paywallGate,
 }: UpgradeOfferCardProps) {
+  usePaywallBeacon(paywallGate)
   const tSubs = useTranslations('subscriptions')
   const tOffer = useTranslations('upgradeOffer')
   const [selectedTier, setSelectedTier] = useState<TierSlug | null>(null)

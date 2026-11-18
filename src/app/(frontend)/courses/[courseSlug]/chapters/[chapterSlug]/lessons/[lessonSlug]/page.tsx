@@ -15,6 +15,7 @@ import { relationId } from '@/server/repos/mongo'
 import { getAuthenticatedUserServer } from '@/server/utils/access-gate-server'
 import { checkPaidAccess } from '@/server/utils/check-paid-access'
 import { resolveLessonTierAccess } from '@/server/services/tier-lesson-access'
+import { recordFunnelEvent } from '@/server/services/funnel-events'
 import { getHiddenLessonIdsForStudent } from '@/server/services/classroom/class-lesson-visibility'
 import { buildLessonLanding } from '@/lib/lessons/buildLessonLanding'
 import { orderExercisesByPlaylist } from '@/lib/lessons/orderExercisesByPlaylist'
@@ -244,9 +245,16 @@ export default async function LessonPage({ params }: LessonPageProps) {
     gradeLevel: course.courseLabel,
   })
   if (tierAccess.isLocked) {
-    redirect(
-      subscriptionsHref(`/courses/${courseSlug}/chapters/${chapterSlug}/lessons/${lessonSlug}`),
-    )
+    const lessonPath = `/courses/${courseSlug}/chapters/${chapterSlug}/lessons/${lessonSlug}`
+    if (viewer?.id) {
+      await recordFunnelEvent({
+        type: 'paywall_shown',
+        userId: String(viewer.id),
+        gate: 'lesson',
+        path: lessonPath,
+      })
+    }
+    redirect(subscriptionsHref(lessonPath))
   }
 
   const [exercises, mediaFiles, formulaSheetResult] = await Promise.all([

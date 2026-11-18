@@ -98,6 +98,7 @@ export function ChatInputQuotaStatus({
             restrictedLabel={t('chatViewQuotaRestrictedBody')}
             currentTier={quota.currentTier}
             onContinue={onSkip}
+            paywallGate="ai_quota"
           />
         </div>
       )}
