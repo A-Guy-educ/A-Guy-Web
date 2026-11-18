@@ -42,6 +42,7 @@ export function QuotaExhaustedCard({
         /* Parent `useChatChannel` already suppresses AI calls once the quota
          *  flag is set — the skip is a UX acknowledgment, not a state wipe. */
       }}
+      paywallGate="ai_quota"
     />
   )
 }

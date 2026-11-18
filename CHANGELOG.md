@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.68.0 — 2026-11-18
+
+### Features
+- Apply second round of newclass landing corrections (#1627)
+- Record paywall, pricing and checkout funnel events (#1625)
+- Add chat tool rail to scroll and media views (#1623)
+- Let teachers hide lessons from their class (#1622)
+- Add other segment and scope revenue and product health by segment (#1621)
+- Turn /classdemo into the real student and teacher entry (#1620)
+- Add interactive school walkthrough at /classdemo (#1617)
+
+### Bug Fixes
+- Always show Google account chooser on sign-in (#1626)
+- Ignore picomatch ReDoS advisory with no patch yet (#1624)
+- Restore /classdemo spacing broken by the token codemod (#1619)
+- Center point labels on their compass direction (#1618)
+
 ## v0.67.0 — 2026-11-16
 
 ### Features
@@ -5236,6 +5253,21 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.68.0 ([#1628](https://github.com/A-Guy-educ/A-Guy-Web/pull/1628)) — @aguyshayb
+- feat(newclass): Apply second round of boss corrections ([#1627](https://github.com/A-Guy-educ/A-Guy-Web/pull/1627)) — @aguyshayb
+- fix(auth): Always show Google account chooser on sign-in ([#1626](https://github.com/A-Guy-educ/A-Guy-Web/pull/1626)) — @aguyshayb
+- feat(analytics): Record paywall, pricing and checkout funnel events ([#1625](https://github.com/A-Guy-educ/A-Guy-Web/pull/1625)) — @aguyshayb
+- feat(lesson): Add chat tool rail to scroll and media views ([#1623](https://github.com/A-Guy-educ/A-Guy-Web/pull/1623)) — @aguyshayb
+- fix(deps): Ignore picomatch ReDoS advisory with no patch yet ([#1624](https://github.com/A-Guy-educ/A-Guy-Web/pull/1624)) — @aguyshayb
+- feat(dashboard): Split every user-based metric by segment, add other ([#1621](https://github.com/A-Guy-educ/A-Guy-Web/pull/1621)) — @aguyshayb
+- feat(classroom): Let teachers hide lessons from their class ([#1622](https://github.com/A-Guy-educ/A-Guy-Web/pull/1622)) — @aguyshayb
+- feat: Real student/teacher entry at /classdemo + newclass landing corrections ([#1620](https://github.com/A-Guy-educ/A-Guy-Web/pull/1620)) — @aguyshayb
+- fix: Restore spacing the token codemod broke on /classdemo ([#1619](https://github.com/A-Guy-educ/A-Guy-Web/pull/1619)) — @aguyshayb
+- fix: Center point labels on their compass direction ([#1618](https://github.com/A-Guy-educ/A-Guy-Web/pull/1618)) — @aguyshayb
+- feat: Add interactive school walkthrough at /classdemo ([#1617](https://github.com/A-Guy-educ/A-Guy-Web/pull/1617)) — @aguyshayb
+## [v0.67.0] - 2026-11-16
+
+- promote: dev -> main (v0.67.0) ([#1616](https://github.com/A-Guy-educ/A-Guy-Web/pull/1616)) — @aguyshayb
 - chore: Release v0.67.0 ([#1615](https://github.com/A-Guy-educ/A-Guy-Web/pull/1615)) — @aguyshayb
 - fix: Show the notebook quota offer as a popup, not a chat card ([#1614](https://github.com/A-Guy-educ/A-Guy-Web/pull/1614)) — @aguyshayb
 - fix: Notebook page checks spend tokens, not chat messages ([#1613](https://github.com/A-Guy-educ/A-Guy-Web/pull/1613)) — @aguyshayb

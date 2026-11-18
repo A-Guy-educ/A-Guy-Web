@@ -22,6 +22,7 @@ export function TierLockBubble() {
       title={t('chatViewTierLockTitle')}
       intro={t('chatViewTierLockBody')}
       currentTier={currentTier}
+      paywallGate="exercise"
     />
   )
 }

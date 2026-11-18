@@ -24,7 +24,7 @@ import {
 } from '@/ui/web/exerciserenderer/ExerciseWorksheet'
 import { RichTextRenderer } from '@/ui/web/exerciserenderer/blocks/RichTextRenderer'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
-import type { Exercise, Media as MediaType } from '@/infra/types/content'
+import type { Exercise, FormulaSheet, Media as MediaType } from '@/infra/types/content'
 import type { ContentBlock } from '@/infra/types/exercise'
 import type { QuestionBlock, InlineRichText, RichTextBlock } from '@/ui/web/exerciserenderer/types'
 import { ExerciseWorkspace } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseWorkspace'
@@ -33,6 +33,10 @@ import { computeQuestionLabels } from '@/lib/exercises/computeSectionLabels'
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { clampToLearningExerciseGate, getUserTierSlug } from '@/lib/tiers'
 import { LessonNotebookPane } from '@/ui/web/notebook/LessonNotebookPane'
+import { useMediaQuery } from '@/client/hooks/useMediaQuery'
+import { ChatInterface } from '@/ui/web/chat'
+import { InlineLessonMenu, LessonViewerBar } from '@/ui/web/lesson-menu'
+import { ScrollSheetPreview } from './ScrollSheetPreview'
 import { TierLockBubble } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/_components/ChatLessonView/bubbles/TierLockBubble'
 import {
   SCROLL_EXERCISE_ATTR,
@@ -51,7 +55,11 @@ interface BlocksDocumentLessonViewProps {
   mediaMap?: Record<string, MediaType>
   /** Optional element rendered at the top of the primary pane (e.g. tab bar). */
   headerSlot?: React.ReactNode
-  chatContent?: React.ReactNode
+  /** Mount the lesson chat beside the worksheet. */
+  showChat?: boolean
+  /** Conversation scope for the chat; defaults to `lessonId`. */
+  chatLessonId?: string
+  formulaSheet?: FormulaSheet | null
   /**
    * 1-based position in the user's opened learning lessons — same free-tier
    * exercise gate as the chat view. Exercises past the gate (and their
@@ -214,7 +222,9 @@ export function BlocksDocumentLessonView({
   exercises,
   mediaMap,
   headerSlot,
-  chatContent,
+  showChat = false,
+  chatLessonId,
+  formulaSheet,
   lessonLearningIndex = null,
   lessonContentBlocks = [],
 }: BlocksDocumentLessonViewProps) {
@@ -222,6 +232,7 @@ export function BlocksDocumentLessonView({
   const dir: 'ltr' | 'rtl' = locale?.toLowerCase().startsWith('he') ? 'rtl' : 'ltr'
 
   const { user } = useCurrentUser()
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
   const tierSlug = getUserTierSlug(user as { currentTier?: string | null } | null)
   // Memoized so the chat broadcast below only re-publishes when the
   // exercises actually change, not on every render.
@@ -317,10 +328,23 @@ export function BlocksDocumentLessonView({
     </div>
   )
 
+  // Desktop puts the lesson menu in the material's top bar; mobile keeps
+  // the floating pills (ExerciseWorkspace decides which one renders).
+  const menu = isDesktop ? <InlineLessonMenu lessonTitle={lessonTitle} backUrl={backUrl} /> : null
+  const chatLesson = chatLessonId ?? lessonId
+
   return (
     <ExerciseWorkspace
       exerciseTitle={lessonTitle}
       backUrl={backUrl}
+      menuPlacement="inline"
+      chatTools={{
+        formulaSheet,
+        sheetPreview:
+          renderable.length > 0 ? (
+            <ScrollSheetPreview entries={renderable} mediaMap={mediaMap} dir={dir} />
+          ) : undefined,
+      }}
       primaryContent={
         <div className="flex h-full flex-col">
           {headerSlot}
@@ -328,15 +352,29 @@ export function BlocksDocumentLessonView({
             <LessonNotebookPane
               scope={{ kind: 'lesson', lessonId }}
               cutSource={{ kind: 'scroll', label: lessonTitle }}
+              headerLeading={menu}
             >
               {worksheet}
             </LessonNotebookPane>
           ) : (
-            worksheet
+            <>
+              {menu && <LessonViewerBar>{menu}</LessonViewerBar>}
+              {worksheet}
+            </>
           )}
         </div>
       }
-      chatContent={chatContent}
+      chatContent={
+        showChat && chatLesson ? (
+          <ChatInterface
+            lessonId={chatLesson}
+            translationNamespace="courses"
+            showMathTools={true}
+            // Desktop opens the formula sheet from the chat tool rail.
+            formulaSheet={isDesktop ? undefined : formulaSheet}
+          />
+        ) : null
+      }
     />
   )
 }

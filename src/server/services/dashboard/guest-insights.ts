@@ -32,6 +32,7 @@ import {
   toUaBotHits,
 } from './guest-insights-pipelines'
 import type { GuestInsights, OnboardingFunnel } from './guest-insights-types'
+import { guestCohortMatch, type UserCohort } from './user-segment'
 
 const GUEST_SESSIONS = 'guest-sessions'
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
@@ -59,9 +60,11 @@ async function computeGuestInsights(
   db: Db,
   buckets: DateBuckets,
   adminUserRefs: AdminUserRefs,
+  cohort: UserCohort | null | undefined,
 ): Promise<GuestInsights> {
   const since = new Date(buckets.now.getTime() - THIRTY_DAYS_MS)
   const sessions = db.collection(GUEST_SESSIONS)
+  const cohortMatch = guestCohortMatch(cohort)
 
   const [allTime, [last30d], [funnel], botHits] = await Promise.all([
     sessions
@@ -69,12 +72,12 @@ async function computeGuestInsights(
         _id: unknown
         guests: number
         converted: number
-      }>(buildAllTimePipeline(adminUserRefs.refs))
+      }>(buildAllTimePipeline(adminUserRefs.refs, cohortMatch))
       .toArray(),
-    sessions.aggregate<Last30dFacet>(buildLast30dPipeline(since)).toArray(),
+    sessions.aggregate<Last30dFacet>(buildLast30dPipeline(since, cohortMatch)).toArray(),
     sessions
       .aggregate<Partial<OnboardingFunnel>>(
-        buildOnboardingFunnelPipeline(since, adminUserRefs.refs),
+        buildOnboardingFunnelPipeline(since, adminUserRefs.refs, cohortMatch),
       )
       .toArray(),
     db
@@ -98,9 +101,10 @@ export async function aggregateGuestInsights(
   db: Db,
   buckets: DateBuckets,
   adminUserRefs: AdminUserRefs,
+  cohort?: UserCohort | null,
 ): Promise<GuestInsights> {
   try {
-    return await computeGuestInsights(db, buckets, adminUserRefs)
+    return await computeGuestInsights(db, buckets, adminUserRefs, cohort)
   } catch (err) {
     logger.warn({ err }, 'dashboard-metrics: guestInsights slice failed — returning empty')
     return emptyGuestInsights()

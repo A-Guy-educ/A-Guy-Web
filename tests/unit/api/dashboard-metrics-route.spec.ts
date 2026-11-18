@@ -6,8 +6,8 @@
  * relies on all four being supported natively — the old day→month shim in
  * A-Guy-Dash exists purely because Web used to 400 on `day`.
  *
- * Also covers the B2B/B2C `segment` param: validation, the default of `all`,
- * the cohort predicates partitioning `all`, and the `b2bMetrics` shape.
+ * Also covers the `segment` param (all/b2c/b2b/other): validation, the default
+ * of `all`, the cohort predicates partitioning `all`, and the `b2bMetrics` shape.
  */
 
 import { ObjectId } from 'mongodb'
@@ -15,6 +15,7 @@ import { NextRequest } from 'next/server'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { buildB2bMetrics } from '@/server/services/dashboard/b2b-metrics'
+import { classifyUserSegments } from '@/server/services/dashboard/segment-classifier'
 import {
   buildClassRoster,
   buildUserCohort,
@@ -154,14 +155,17 @@ describe('GET /api/dashboard-metrics — segment handling', () => {
     expect(body).toEqual({ ...emptyMetrics('week'), segment: 'all' })
   })
 
-  it.each(['all', 'b2c', 'b2b'] as const)("forwards and echoes segment='%s'", async (segment) => {
-    const { status, body } = await callRoute(
-      `http://localhost/api/dashboard-metrics?period=month&segment=${segment}`,
-    )
-    expect(status).toBe(200)
-    expect(mockComputeDashboardMetrics).toHaveBeenCalledWith('month', segment)
-    expect(body.segment).toBe(segment)
-  })
+  it.each(['all', 'b2c', 'b2b', 'other'] as const)(
+    "forwards and echoes segment='%s'",
+    async (segment) => {
+      const { status, body } = await callRoute(
+        `http://localhost/api/dashboard-metrics?period=month&segment=${segment}`,
+      )
+      expect(status).toBe(200)
+      expect(mockComputeDashboardMetrics).toHaveBeenCalledWith('month', segment)
+      expect(body.segment).toBe(segment)
+    },
+  )
 
   it.each(['B2B', 'schools', ''])("rejects segment='%s' with 400", async (segment) => {
     const { status, body } = await callRoute(
@@ -207,14 +211,25 @@ function matchesRef(value: unknown, predicate: Record<string, unknown>): boolean
 
 const oid = () => new ObjectId()
 
-describe('dashboard user segments — B2B / B2C partition', () => {
+describe('dashboard user segments — B2B / other / B2C partition', () => {
   const studentOnly = oid()
   const teacherOnly = oid()
   const teacherAndStudent = oid()
   const consumerA = oid()
   const consumerB = oid()
+  const schoolMail = oid()
+  const classroomArrival = oid()
   const admin = oid()
-  const users = [studentOnly, teacherOnly, teacherAndStudent, consumerA, consumerB, admin]
+  const users = [
+    studentOnly,
+    teacherOnly,
+    teacherAndStudent,
+    consumerA,
+    consumerB,
+    schoolMail,
+    classroomArrival,
+    admin,
+  ]
   const adminRefs = [admin, admin.toString()]
 
   // Mixed encodings on purpose: /join pushes ObjectIds, older rows are strings.
@@ -233,10 +248,23 @@ describe('dashboard user segments — B2B / B2C partition', () => {
     },
   ]
   const roster = buildClassRoster(classes)
+  const sets = classifyUserSegments({
+    rosterMembers: roster.members,
+    users: [
+      // On a roster AND a school address: roster wins.
+      { _id: studentOnly, email: 'kid@inbar.school' },
+      { _id: consumerA, email: 'a@gmail.com' },
+      { _id: consumerB, email: 'b@Walla.co.il' },
+      { _id: schoolMail, email: 'pupil@melton.ort.org.il' },
+      { _id: classroomArrival, email: 'c@gmail.com' },
+    ],
+    schoolArrivals: new Set([classroomArrival.toString()]),
+  })
+  type Segment = 'all' | 'b2b' | 'b2c' | 'other'
 
   // Mirrors aggregateUsers: role != admin, then the cohort clause on _id.
-  function countUsers(segment: 'all' | 'b2b' | 'b2c'): number {
-    const idPredicate = usersCohortMatch(buildUserCohort(segment, roster))._id as
+  function countUsers(segment: Segment): number {
+    const idPredicate = usersCohortMatch(buildUserCohort(segment, sets))._id as
       Record<string, unknown> | undefined
     return users.filter(
       (id) => !refEquals(id, admin) && (!idPredicate || matchesRef(id, idPredicate)),
@@ -244,30 +272,33 @@ describe('dashboard user segments — B2B / B2C partition', () => {
   }
 
   // Mirrors aggregateUserStats: one predicate on the `user` reference field.
-  function countUserStats(segment: 'all' | 'b2b' | 'b2c', storeAsString: boolean): number {
-    const predicate = userRefPredicate(adminRefs, buildUserCohort(segment, roster))
+  function countUserStats(segment: Segment, storeAsString: boolean): number {
+    const predicate = userRefPredicate(adminRefs, buildUserCohort(segment, sets))
     return users.filter((id) => matchesRef(storeAsString ? id.toString() : id, predicate)).length
   }
 
   it("'all' adds no cohort clause, so existing pipelines are untouched", () => {
-    expect(buildUserCohort('all', roster)).toBeNull()
+    expect(buildUserCohort('all', sets)).toBeNull()
+    expect(buildUserCohort('b2c', null)).toBeNull()
     expect(usersCohortMatch(null)).toEqual({})
     expect(userRefPredicate(adminRefs, null)).toEqual({ $nin: adminRefs })
   })
 
-  it('b2b + b2c users add up to all users', () => {
-    expect(countUsers('all')).toBe(5)
+  it('b2b + other + b2c users add up to all users', () => {
+    expect(countUsers('all')).toBe(7)
     expect(countUsers('b2b')).toBe(3)
+    expect(countUsers('other')).toBe(2) // school address, Google Classroom arrival
     expect(countUsers('b2c')).toBe(2)
-    expect(countUsers('b2b') + countUsers('b2c')).toBe(countUsers('all'))
+    expect(countUsers('b2b') + countUsers('other') + countUsers('b2c')).toBe(countUsers('all'))
   })
 
   it.each([false, true])(
-    'b2b + b2c user-stats rows add up to all (user stored as string: %s)',
+    'b2b + other + b2c user-stats rows add up to all (user stored as string: %s)',
     (storeAsString) => {
       const all = countUserStats('all', storeAsString)
-      expect(all).toBe(5)
-      expect(countUserStats('b2b', storeAsString) + countUserStats('b2c', storeAsString)).toBe(all)
+      expect(all).toBe(7)
+      const parts = (['b2b', 'other', 'b2c'] as const).map((s) => countUserStats(s, storeAsString))
+      expect(parts.reduce((a, b) => a + b, 0)).toBe(all)
     },
   )
 

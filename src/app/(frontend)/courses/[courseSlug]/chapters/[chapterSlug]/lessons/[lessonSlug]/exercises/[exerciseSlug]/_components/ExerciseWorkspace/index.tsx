@@ -5,6 +5,8 @@ import { cn } from '@/infra/utils/ui'
 import type { FormulaSheet } from '@/infra/types/content'
 import { type MobileExerciseViewMode, SplitPaneLayout } from '@/ui/web/components/split-pane-layout'
 import { LessonMenu, useLessonMenuConfig } from '@/ui/web/lesson-menu'
+import { ChatToolsColumn, useChatTools, type ChatToolsOptions } from '@/ui/web/chat-tools'
+import { useMediaQuery } from '@/client/hooks/useMediaQuery'
 import { X } from 'lucide-react'
 import React, { useCallback, useState, type ReactElement } from 'react'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
@@ -89,6 +91,17 @@ interface ExerciseWorkspaceProps {
    * to pass this prop.
    */
   menuVariant?: 'lesson' | 'standalone'
+  /**
+   * `'inline'`: on desktop the caller renders the lesson menu in its own top
+   * bar (`InlineLessonMenu`), so the floating pills are skipped there.
+   */
+  menuPlacement?: 'floating' | 'inline'
+  /**
+   * Desktop: wrap the chat in a column with a tool rail (formula sheet,
+   * calculator, material miniature…) that can collapse to a vertical strip.
+   * Mobile keeps the plain chat panel.
+   */
+  chatTools?: ChatToolsOptions
   // Accepted for API compatibility with existing callers. The mobile "Help"
   // panel that consumed these was removed — hint/guiding/formula/notes are
   // now surfaced through the exercise renderer's own controls.
@@ -104,8 +117,15 @@ export function ExerciseWorkspace({
   primaryContent,
   chatContent,
   menuVariant,
+  menuPlacement = 'floating',
+  chatTools,
 }: ExerciseWorkspaceProps) {
   const [mobileMode, setMobileMode] = useState<MobileExerciseViewMode>('exercise')
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
+  const locale = useLocale()
+  const rtl = isRTL(locale as 'en' | 'he')
+  const chatToolsState = useChatTools()
+  const useToolColumn = Boolean(chatTools) && isDesktop && React.isValidElement(chatContent)
 
   const handleMobileModeChange = useCallback((mode: MobileExerciseViewMode) => {
     setMobileMode(mode)
@@ -120,22 +140,29 @@ export function ExerciseWorkspace({
 
   return (
     <div className="fixed inset-0 bg-background z-[200] flex flex-col overflow-hidden">
-      <LessonMenu
-        lessonTitle={lessonTitle ?? exerciseTitle}
-        tabs={menuConfig?.tabs}
-        activeMode={menuConfig?.activeMode}
-        onSelectMode={menuConfig?.onSelectMode}
-        backUrl={backUrl}
-        mute={menuConfig?.mute}
-        restart={menuConfig?.restart}
-        hideBack={menuConfig?.hideBack}
-        variant={menuVariant}
-      />
+      {!(menuPlacement === 'inline' && isDesktop) && (
+        <LessonMenu
+          lessonTitle={lessonTitle ?? exerciseTitle}
+          tabs={menuConfig?.tabs}
+          activeMode={menuConfig?.activeMode}
+          onSelectMode={menuConfig?.onSelectMode}
+          backUrl={backUrl}
+          mute={menuConfig?.mute}
+          restart={menuConfig?.restart}
+          hideBack={menuConfig?.hideBack}
+          variant={menuVariant}
+        />
+      )}
 
       <SplitPaneLayout
         primaryContent={primaryContent}
+        chatCollapsed={useToolColumn && chatToolsState.collapsed}
         chatContent={
-          chatContent && React.isValidElement(chatContent) ? (
+          useToolColumn && chatTools ? (
+            <ChatToolsColumn options={chatTools} state={chatToolsState} rtl={rtl}>
+              {chatContent}
+            </ChatToolsColumn>
+          ) : chatContent && React.isValidElement(chatContent) ? (
             <MobileChatPanel
               chatContent={chatContent}
               onBackToExercise={() => handleMobileModeChange('exercise')}

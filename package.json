@@ -1,6 +1,6 @@
 {
   "name": "a-guy",
-  "version": "0.67.0",
+  "version": "0.68.0",
   "description": "A-Guy web app",
   "license": "BSL-1.1",
   "type": "module",
@@ -376,7 +376,8 @@
       "ignoreGhsas": [
         "GHSA-86w9-cpqp-85rv",
         "GHSA-vfj7-8cjw-p6xm",
-        "GHSA-mrhx-c7xc-m3w5"
+        "GHSA-mrhx-c7xc-m3w5",
+        "GHSA-fc5q-39xc-vjpf"
       ]
     }
   },

@@ -17,7 +17,6 @@ import React, { useEffect, useMemo } from 'react'
 import type { Exercise, FormulaSheet, Media as MediaType } from '@/infra/types/content'
 import type { ContentBlock } from '@/infra/types/exercise'
 import type { ResolvedLessonBlock } from '@/server/repos/queries/lesson-blocks'
-import { ChatInterface } from '@/ui/web/chat'
 import { LessonMenuProvider, type LessonMenuTab } from '@/ui/web/lesson-menu'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { BlocksDocumentLessonView } from '../BlocksDocumentLessonView'
@@ -211,16 +210,9 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
           mediaMap={mediaMap}
           lessonLearningIndex={lessonLearningIndex}
           lessonContentBlocks={lessonContentBlocks}
-          chatContent={
-            showChat ? (
-              <ChatInterface
-                lessonId={chatLessonId ?? lessonId}
-                translationNamespace="courses"
-                showMathTools={true}
-                formulaSheet={formulaSheet}
-              />
-            ) : null
-          }
+          showChat={showChat}
+          chatLessonId={chatLessonId}
+          formulaSheet={formulaSheet}
         />
       )
     }

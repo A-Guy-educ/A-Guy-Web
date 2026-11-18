@@ -7,9 +7,11 @@
  *   they never count towards transactionCount or the success rate.
  * - A `refunded` payment did go through, so it counts as a success.
  *
- * Revenue stays platform-wide — the Users-tab B2B/B2C segment filter is not
- * applied here. The B2B segment block is an estimate from the class roster
- * (no school subscriptions exist yet), priced at SCHOOL_SEAT_PRICE_AGOROT.
+ * With a segment picked, only that cohort's transactions are counted and the
+ * `segments` split is omitted (it compares B2C payers against the B2B seat
+ * estimate, which only makes sense on `all`). The B2B seat estimate comes from
+ * the class roster (no school subscriptions exist yet), priced at
+ * SCHOOL_SEAT_PRICE_AGOROT.
  */
 
 import type { Db, Document } from 'mongodb'
@@ -21,9 +23,10 @@ import type {
   FailureReason,
   PaymentOutcomeCounts,
   RevenueMetrics,
+  RevenueSegments,
   TopProduct,
 } from './metrics-types'
-import type { ClassRoster } from './user-segment'
+import { userRefPredicate, type ClassRoster, type UserCohort } from './user-segment'
 
 /** ₪59/month per student — placeholder until school subscriptions exist. */
 export const SCHOOL_SEAT_PRICE_AGOROT = 5900
@@ -205,8 +208,10 @@ export function toRevenueMetrics(input: {
   result: TransactionsFacetResult
   roster: ClassRoster
   adminUserIds: Set<string>
+  /** Omit the B2C/B2B split — a segment was picked, so the totals are already one segment. */
+  segmented?: boolean
 }): RevenueMetrics {
-  const { result, roster, adminUserIds } = input
+  const { result, roster, adminUserIds, segmented = false } = input
   const totalRevenueAgorot = toCurrencyRevenue(result.revenueByCurrency)
 
   const succeeded = countStatus(result.statusCounts, 'succeeded')
@@ -215,9 +220,6 @@ export function toRevenueMetrics(input: {
   const transactionCount = succeeded + refunded + failed
   const successRate =
     transactionCount > 0 ? Math.round(((succeeded + refunded) / transactionCount) * 1000) / 10 : 0
-
-  // Same admin exclusion as b2bMetrics.students, so the two tiles agree.
-  const students = [...roster.students].filter((id) => !adminUserIds.has(id)).length
 
   return {
     totalRevenueAgorot,
@@ -228,16 +230,26 @@ export function toRevenueMetrics(input: {
     topProducts: toTopProducts(result.topProducts),
     payments: toPayments(result.paymentOutcomes),
     failureReasons: toFailureReasons(result.failureReasons),
-    segments: {
-      b2c: {
-        payers: result.b2cPayers[0]?.n ?? 0,
-        revenueAgorot: totalRevenueAgorot.ILS ?? 0,
-      },
-      b2b: {
-        students,
-        seatPriceAgorot: SCHOOL_SEAT_PRICE_AGOROT,
-        estimatedRevenueAgorot: students * SCHOOL_SEAT_PRICE_AGOROT,
-      },
+    ...(segmented ? {} : { segments: buildRevenueSegments(result, roster, adminUserIds) }),
+  }
+}
+
+function buildRevenueSegments(
+  result: TransactionsFacetResult,
+  roster: ClassRoster,
+  adminUserIds: Set<string>,
+): RevenueSegments {
+  // Same admin exclusion as b2bMetrics.students, so the two tiles agree.
+  const students = [...roster.students].filter((id) => !adminUserIds.has(id)).length
+  return {
+    b2c: {
+      payers: result.b2cPayers[0]?.n ?? 0,
+      revenueAgorot: toCurrencyRevenue(result.revenueByCurrency).ILS ?? 0,
+    },
+    b2b: {
+      students,
+      seatPriceAgorot: SCHOOL_SEAT_PRICE_AGOROT,
+      estimatedRevenueAgorot: students * SCHOOL_SEAT_PRICE_AGOROT,
     },
   }
 }
@@ -247,6 +259,7 @@ export async function aggregateTransactions(
   buckets: DateBuckets,
   adminUserRefs: AdminUserRefs,
   roster: ClassRoster,
+  cohort?: UserCohort | null,
 ): Promise<RevenueMetrics> {
   const [result] = (await db
     .collection('transactions')
@@ -254,7 +267,7 @@ export async function aggregateTransactions(
       {
         $match: {
           createdAt: { $gte: buckets.periodStart },
-          user: { $nin: adminUserRefs.refs },
+          user: userRefPredicate(adminUserRefs.refs, cohort),
         },
       },
       { $facet: buildTransactionsFacet() },
@@ -265,5 +278,6 @@ export async function aggregateTransactions(
     result,
     roster,
     adminUserIds: new Set(adminUserRefs.stringIds),
+    segmented: Boolean(cohort),
   })
 }

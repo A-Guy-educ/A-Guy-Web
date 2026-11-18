@@ -213,5 +213,38 @@ export async function getClassProgressForViewer(
     students,
     progressDocs,
     attempts,
+    hiddenLessonIds: relationIds(classDoc.hiddenLessons),
   })
+}
+
+/**
+ * Hide or show one lesson of the class's course for its students. One lesson per
+ * call with $addToSet / $pull, so two teachers toggling at once don't overwrite
+ * each other. Returns `false` (route → 404) for a missing class, a class the
+ * viewer can't read, or a lesson outside the class's course.
+ */
+export async function setClassLessonHidden(
+  viewer: TeacherViewer,
+  classId: string,
+  lessonId: string,
+  hidden: boolean,
+): Promise<boolean> {
+  if (!HEX24.test(classId) || !HEX24.test(lessonId)) return false
+  const db = await getContentDb()
+  const classDoc = await db
+    .collection(CLASSES_COLLECTION)
+    .findOne({ _id: objectIdFromString(classId) } as Document, {
+      projection: { teachers: 1, tenant: 1, course: 1 },
+    })
+  if (!classDoc || !canViewClass(viewer, classDoc)) return false
+
+  const courseId = relationId(classDoc.course)
+  const lessons = courseId ? await queryLessonsByCourse({ courseId }) : []
+  if (!lessons.some((lesson) => lesson.id === lessonId)) return false
+
+  const update = hidden
+    ? { $addToSet: { hiddenLessons: objectIdFromString(lessonId) } }
+    : { $pull: { hiddenLessons: { $in: idCandidates(lessonId) } } }
+  await db.collection(CLASSES_COLLECTION).updateOne({ _id: classDoc._id }, update as Document)
+  return true
 }

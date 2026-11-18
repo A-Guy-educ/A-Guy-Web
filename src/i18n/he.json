@@ -377,6 +377,37 @@
     "noPDF": "תוכן PDF אינו זמין לשיעור זה.",
     "collapseChat": "סגור צ'אט",
     "expandChat": "פתח צ'אט",
+    "chatTools": {
+      "railLabel": "כלי עזר באזור הצ׳אט",
+      "chat": "צ׳אט",
+      "answers": "תשובות סופיות",
+      "formulas": "דף נוסחאות",
+      "calculator": "מחשבון מדעי",
+      "sheet": "דף תרגילים מוקטן",
+      "comingSoonTitle": "בקרוב",
+      "answersComingSoon": "בקרוב תוכלו לבדוק כאן את התשובה הסופית לכל סעיף, בלי לצאת מהתרגיל.",
+      "backToChat": "חזרה לצ׳אט",
+      "calcClear": "AC · ניקוי",
+      "calcKeypad": "לוח מקשים של מחשבון",
+      "calcFootnote": "פונקציות טריגונומטריות · לוגריתמים · חזקות · שורשים",
+      "calcErrors": {
+        "empty": "הזינו תרגיל",
+        "invalid": "ביטוי לא תקין",
+        "missingParen": "סוגריים חסרים",
+        "incomplete": "ביטוי לא שלם",
+        "unknownFunction": "פונקציה לא מוכרת",
+        "undefined": "התוצאה אינה מוגדרת",
+        "factorialDomain": "עצרת מוגדרת למספר שלם בין 0 ל־170",
+        "tanUndefined": "טנגנס אינו מוגדר בזווית זו"
+      },
+      "sheetPage": "עמוד {current} מתוך {total}",
+      "sheetExercise": "תרגיל {current} מתוך {total}",
+      "sheetZoomIn": "הגדל",
+      "sheetZoomOut": "הקטן",
+      "sheetFitWidth": "התאם לרוחב",
+      "sheetLoading": "גללו בחומר כדי לטעון את העמוד הזה.",
+      "sheetEmpty": "אין כאן עמוד להצגה."
+    },
     "lessonNotebook": {
       "materialTab": "חומר",
       "notebookTab": "מחברת",
@@ -944,7 +975,12 @@
     "moreCourses": "קורסים נוספים",
     "loading": "טוען...",
     "deleteConversation": "מחק שיחה",
-    "deleteConfirm": "האם אתה בטוח שברצונך למחוק שיחה זו?"
+    "deleteConfirm": "האם אתה בטוח שברצונך למחוק שיחה זו?",
+    "hiddenLesson": {
+      "title": "המורה עוד לא פתח את השיעור הזה",
+      "message": "השיעור יופיע כאן ברגע שהמורה יפתח אותו לכיתה.",
+      "back": "חזרה לקורס"
+    }
   },
   "stats": {
     "title": "הסטטיסטיקה שלי",

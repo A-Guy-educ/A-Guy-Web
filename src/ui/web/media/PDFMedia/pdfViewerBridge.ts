@@ -107,3 +107,14 @@ export function readPdfCurrentPage(iframe: HTMLIFrameElement): number | null {
     return null
   }
 }
+
+/** Read the PDF's page count from a PDF.js iframe. `null` until the document loads. */
+export function readPdfPageCount(iframe: HTMLIFrameElement): number | null {
+  try {
+    const win = iframe.contentWindow as PdfJsWindow | null
+    const count = win?.PDFViewerApplication?.pdfViewer?.pagesCount
+    return typeof count === 'number' && count > 0 ? count : null
+  } catch {
+    return null
+  }
+}

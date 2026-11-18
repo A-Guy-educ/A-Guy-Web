@@ -18,20 +18,18 @@ import { ChatInterface } from '@/ui/web/chat'
 import { Media as MediaComponent } from '@/ui/web/media'
 import { ExerciseWorkspace } from '@/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseWorkspace'
 import { useMediaQuery } from '@/client/hooks/useMediaQuery'
-import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
-import { isRTL } from '@/i18n/config'
-import {
-  ChevronLeft,
-  ChevronRight,
-  MessageCircle,
-  PanelLeftClose,
-  PanelRightClose,
-} from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/infra/utils/ui'
+import { InlineLessonMenu, LessonViewerBar } from '@/ui/web/lesson-menu'
+import { MediaSheetPreview } from './MediaSheetPreview'
 import { FloatingNotebook } from '@/ui/web/notebook/FloatingNotebook'
 import { capturePdfPageImage, readPdfCurrentPage } from '@/ui/web/media/PDFMedia/pdfViewerBridge'
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { LessonNotebookPane } from '@/ui/web/notebook/LessonNotebookPane'
+
+function isImageFile(file: Media): boolean {
+  return file.mediaType === 'image' || Boolean(file.mimeType?.startsWith('image/'))
+}
 
 function isPdfFile(file: Media): boolean {
   return (
@@ -52,54 +50,6 @@ interface MediaTabContentProps {
   formulaSheet?: FormulaSheet | null
 }
 
-// Chat content shim: ExerciseWorkspace / SplitPaneLayout inject mobile
-// props (`displayMode`, `isMobile`, `viewMode`, `onModeToggle`,
-// `onChatInteraction`) via `React.cloneElement` on whatever we pass as
-// `chatContent`. Wrapping ChatInterface in a plain <div> would swallow
-// those props and break mobile chat behavior, so this shim re-forwards
-// anything that isn't a UI concern of this wrapper to ChatInterface.
-interface ChatPaneWithCollapseProps {
-  showCollapse: boolean
-  onCollapse: () => void
-  rtl: boolean
-  collapseLabel: string
-  children: React.ReactElement
-}
-
-function ChatPaneWithCollapse({
-  showCollapse,
-  onCollapse,
-  rtl,
-  collapseLabel,
-  children,
-  ...forwarded
-}: ChatPaneWithCollapseProps & Record<string, unknown>) {
-  // Pane close icon: in LTR the chat sits on the right, so the "fold it
-  // out of the way" icon is `PanelRightClose` (right-side panel with an
-  // inward arrow). RTL mirrors to `PanelLeftClose`. An X here was reading
-  // as "close conversation", which it isn't — chat state is preserved.
-  const FoldIcon = rtl ? PanelLeftClose : PanelRightClose
-  return (
-    <div className="relative h-full">
-      {showCollapse && (
-        <button
-          type="button"
-          onClick={onCollapse}
-          aria-label={collapseLabel}
-          title={collapseLabel}
-          className={cn(
-            'absolute top-3 z-30 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card/90 text-muted-foreground shadow-elevation-2 backdrop-blur hover:text-foreground hover:bg-muted transition-colors duration-normal',
-            rtl ? 'right-3' : 'left-3',
-          )}
-        >
-          <FoldIcon className="h-4 w-4" />
-        </button>
-      )}
-      {React.cloneElement(children, forwarded)}
-    </div>
-  )
-}
-
 export function MediaTabContent({
   lessonTitle,
   backUrl,
@@ -110,19 +60,12 @@ export function MediaTabContent({
   chatLessonId,
   formulaSheet,
 }: MediaTabContentProps) {
-  const t = useTranslations('courses')
-  const locale = useLocale()
-  const rtl = isRTL(locale as 'en' | 'he')
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   // Notebook is for tablet/desktop only — too cramped on phones
   const isTabletUp = useMediaQuery('(min-width: 768px)')
   const [currentFileIndex, setCurrentFileIndex] = useState(0)
   const [touchStart, setTouchStart] = useState<number | null>(null)
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
-  // Chat collapse is desktop-only — on mobile the SplitPaneLayout already
-  // owns the exercise/chat view-mode toggle, and collapsing on top of that
-  // would double-up affordances.
-  const [isChatCollapsed, setIsChatCollapsed] = useState(false)
   const primaryAreaRef = useRef<HTMLDivElement>(null)
   // Signed-in students get the saved lesson notebook; guests keep the
   // unsaved floating scratchpad, since there is no account to save to.
@@ -306,16 +249,41 @@ export function MediaTabContent({
     </>
   )
 
+  const sheetKind = !currentFile
+    ? null
+    : isPdfFile(currentFile)
+      ? 'pdf'
+      : isImageFile(currentFile)
+        ? 'image'
+        : null
+  // Desktop puts the lesson menu in the material's top bar; mobile keeps
+  // the floating pills (ExerciseWorkspace decides which one renders).
+  const menu = isDesktop ? <InlineLessonMenu lessonTitle={lessonTitle} backUrl={backUrl} /> : null
+
   return (
     <ExerciseWorkspace
       exerciseTitle={lessonTitle}
       backUrl={backUrl}
+      menuPlacement="inline"
+      chatTools={{
+        formulaSheet,
+        sheetPreview:
+          currentFile && sheetKind ? (
+            <MediaSheetPreview
+              key={currentFile.id}
+              file={currentFile}
+              kind={sheetKind}
+              containerRef={primaryAreaRef}
+            />
+          ) : undefined,
+      }}
       primaryContent={
         <div ref={primaryAreaRef} className="relative flex h-full flex-col min-h-0">
           {headerSlot}
           {user ? (
             <LessonNotebookPane
               scope={{ kind: 'lesson', lessonId }}
+              headerLeading={menu}
               cutSource={
                 currentFile && isPdfFile(currentFile)
                   ? {
@@ -329,43 +297,24 @@ export function MediaTabContent({
               {material}
             </LessonNotebookPane>
           ) : (
-            material
+            <>
+              {menu && <LessonViewerBar>{menu}</LessonViewerBar>}
+              {material}
+            </>
           )}
           {!user && !isUserLoading && isTabletUp && (
             <FloatingNotebook containerRef={primaryAreaRef} onCheck={handleNotebookCheck} />
           )}
-          {isDesktop && isChatCollapsed && (
-            <button
-              type="button"
-              onClick={() => setIsChatCollapsed(false)}
-              aria-label={t('expandChat')}
-              className={cn(
-                'absolute top-4 z-30 flex items-center gap-1.5 px-3 py-2 rounded-full bg-primary text-primary-foreground shadow-elevation-3 hover:scale-105 transition-transform duration-normal',
-                rtl ? 'left-4' : 'right-4',
-              )}
-            >
-              <MessageCircle className="w-4 h-4" />
-              <span className="text-body-xs font-medium">{t('expandChat')}</span>
-            </button>
-          )}
         </div>
       }
       chatContent={
-        isDesktop && isChatCollapsed ? undefined : (
-          <ChatPaneWithCollapse
-            showCollapse={isDesktop}
-            onCollapse={() => setIsChatCollapsed(true)}
-            rtl={rtl}
-            collapseLabel={t('collapseChat')}
-          >
-            <ChatInterface
-              lessonId={chatLessonId ?? lessonId}
-              translationNamespace="courses"
-              showMathTools={true}
-              formulaSheet={formulaSheet}
-            />
-          </ChatPaneWithCollapse>
-        )
+        <ChatInterface
+          lessonId={chatLessonId ?? lessonId}
+          translationNamespace="courses"
+          showMathTools={true}
+          // Desktop opens the formula sheet from the chat tool rail.
+          formulaSheet={isDesktop ? undefined : formulaSheet}
+        />
       }
     />
   )

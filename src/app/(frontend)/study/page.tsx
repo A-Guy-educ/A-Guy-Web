@@ -8,6 +8,7 @@ import {
   type LearningPageSearchParams,
 } from './learningPageSelection'
 import { readRequestCourseSelection } from './requestCourseSelection'
+import { withoutTeacherHiddenLessons } from './withoutTeacherHiddenLessons'
 import {
   prefetchEmbeddedLearningFallback,
   prefetchStudyData,
@@ -29,16 +30,18 @@ export default async function StudyPage({ searchParams }: StudyPageProps) {
   })
 
   // Server-side prefetch when grade is known (direct DB, no HTTP round-trip)
-  const prefetchedData = selection.grade
-    ? await prefetchStudyData(
-        selection.grade,
-        selection.contentLocale,
-        'learning',
-        selection.courseId,
-      )
-    : shouldUseEmbeddedLearningFallback({ headersList, selection })
-      ? await prefetchEmbeddedLearningFallback(selection.contentLocale, 'learning')
-      : null
+  const prefetchedData = await withoutTeacherHiddenLessons(
+    selection.grade
+      ? await prefetchStudyData(
+          selection.grade,
+          selection.contentLocale,
+          'learning',
+          selection.courseId,
+        )
+      : shouldUseEmbeddedLearningFallback({ headersList, selection })
+        ? await prefetchEmbeddedLearningFallback(selection.contentLocale, 'learning')
+        : null,
+  )
 
   return (
     <div>

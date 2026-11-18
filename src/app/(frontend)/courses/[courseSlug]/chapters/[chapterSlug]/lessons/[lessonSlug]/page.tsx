@@ -15,6 +15,8 @@ import { relationId } from '@/server/repos/mongo'
 import { getAuthenticatedUserServer } from '@/server/utils/access-gate-server'
 import { checkPaidAccess } from '@/server/utils/check-paid-access'
 import { resolveLessonTierAccess } from '@/server/services/tier-lesson-access'
+import { recordFunnelEvent } from '@/server/services/funnel-events'
+import { getHiddenLessonIdsForStudent } from '@/server/services/classroom/class-lesson-visibility'
 import { buildLessonLanding } from '@/lib/lessons/buildLessonLanding'
 import { orderExercisesByPlaylist } from '@/lib/lessons/orderExercisesByPlaylist'
 import { subscriptionsHref } from '@/lib/tiers/subscribe-return'
@@ -39,6 +41,7 @@ import { lessonLearningStateRefs } from '@/infra/learning-state/refs'
 import { findLearningStates } from '@/server/services/learning-state'
 import { LessonAnalytics } from './_components/LessonAnalytics'
 import { LessonIntroPage } from './_components/LessonIntroPage'
+import { HiddenLessonNotice } from './_components/HiddenLessonNotice'
 import { queryLessonBlocks } from '@/server/repos/queries/lesson-blocks'
 import { mergeOpenGraph } from '@/infra/utils/mergeOpenGraph'
 
@@ -198,6 +201,15 @@ export default async function LessonPage({ params }: LessonPageProps) {
   }
 
   const { contentLocale, course, chapter, lesson, blocks, isLocaleFallback } = lessonData
+
+  // Checked before any paywall: a lesson the class teacher hid isn't for sale either.
+  // The content/ and exercises/ sub-routes redirect here, so this covers them too.
+  const { user: viewer } = await getAuthenticatedUserServer()
+  const hiddenLessonIds = await getHiddenLessonIdsForStudent(viewer, course.id)
+  if (hiddenLessonIds.has(lesson.id)) {
+    return <HiddenLessonNotice courseSlug={courseSlug} />
+  }
+
   const accessType = resolveAccessType(lesson.accessType, course.accessType)
   const [gatedDelayMs, gatedWarningMs] = await Promise.all([
     SystemParams.getGatedDelayMs(),
@@ -226,17 +238,23 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
   // Free-tier counter (TIERS.md): practice/exam past the user's 3 opened
   // lessons of that type go to the plan store. No-op when the kill switch is off.
-  const { user: tierUser } = await getAuthenticatedUserServer()
   const tierAccess = await resolveLessonTierAccess({
-    user: tierUser,
+    user: viewer,
     lessonId: lesson.id,
     lessonType: lesson.type,
     gradeLevel: course.courseLabel,
   })
   if (tierAccess.isLocked) {
-    redirect(
-      subscriptionsHref(`/courses/${courseSlug}/chapters/${chapterSlug}/lessons/${lessonSlug}`),
-    )
+    const lessonPath = `/courses/${courseSlug}/chapters/${chapterSlug}/lessons/${lessonSlug}`
+    if (viewer?.id) {
+      await recordFunnelEvent({
+        type: 'paywall_shown',
+        userId: String(viewer.id),
+        gate: 'lesson',
+        path: lessonPath,
+      })
+    }
+    redirect(subscriptionsHref(lessonPath))
   }
 
   const [exercises, mediaFiles, formulaSheetResult] = await Promise.all([
@@ -324,15 +342,15 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const contentType = hasExerciseBlocks ? 'exercises' : mediaFiles.length > 0 ? 'pdf' : 'blocks'
   // Signed-in students resume from the server copy, so progress follows them
   // across shared computers. Guests keep browser-only state.
-  const learningStateRefs = tierUser?.id
+  const learningStateRefs = viewer?.id
     ? lessonLearningStateRefs(
         lesson.id,
         exercises.map((exercise) => exercise.id),
       )
     : []
-  const learningStates = tierUser?.id
+  const learningStates = viewer?.id
     ? // A failed read only loses the resume point; the lesson still opens.
-      await findLearningStates(String(tierUser.id), learningStateRefs).catch(() => ({}))
+      await findLearningStates(String(viewer.id), learningStateRefs).catch(() => ({}))
     : {}
 
   return (

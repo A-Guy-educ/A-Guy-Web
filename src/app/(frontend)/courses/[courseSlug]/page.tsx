@@ -14,6 +14,10 @@ import { stripHtml } from '@/utils/strip-html'
 import { getContentDb, objectIdFromString, relationId } from '@/infra/db/content-db'
 import { findUserProgress } from '@/server/web-api/progress'
 import { findLessonChatPercents } from '@/server/services/learning-state'
+import {
+  getHiddenLessonIdsForStudent,
+  withoutHiddenLessons,
+} from '@/server/services/classroom/class-lesson-visibility'
 import { CoursePageContent } from './_components/CoursePageContent'
 import { mergeOpenGraph } from '@/infra/utils/mergeOpenGraph'
 
@@ -48,10 +52,12 @@ export default async function CoursePage({ params }: CoursePageProps) {
     SystemParams.getGatedWarningMs(),
   ])
 
-  const [chapters, lessons] = await Promise.all([
+  const [chapters, courseLessons, hiddenLessonIds] = await Promise.all([
     queryChaptersByCourse({ courseId: course.id }),
     queryLessonsByCourse({ courseId: course.id }),
+    getAuthenticatedUserServer().then(({ user }) => getHiddenLessonIdsForStudent(user, course.id)),
   ])
+  const lessons = withoutHiddenLessons(courseLessons, hiddenLessonIds)
 
   // Fetch lesson progress: exercises completed / total exercises per lesson.
   // Scoped to the course's grade label so users with progress under multiple

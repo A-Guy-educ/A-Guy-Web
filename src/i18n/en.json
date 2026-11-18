@@ -377,6 +377,37 @@
     "noPDF": "PDF content is not available for this lesson.",
     "collapseChat": "Collapse chat",
     "expandChat": "Open chat",
+    "chatTools": {
+      "railLabel": "Chat tools",
+      "chat": "Chat",
+      "answers": "Final answers",
+      "formulas": "Formula sheet",
+      "calculator": "Scientific calculator",
+      "sheet": "Exercise sheet",
+      "comingSoonTitle": "Coming soon",
+      "answersComingSoon": "Soon you'll be able to check your final answer for each part right here, without leaving the exercise.",
+      "backToChat": "Back to chat",
+      "calcClear": "AC · Clear",
+      "calcKeypad": "Calculator keypad",
+      "calcFootnote": "Trigonometry · Logarithms · Powers · Roots",
+      "calcErrors": {
+        "empty": "Enter an expression",
+        "invalid": "Invalid expression",
+        "missingParen": "Missing parenthesis",
+        "incomplete": "Incomplete expression",
+        "unknownFunction": "Unknown function",
+        "undefined": "The result is undefined",
+        "factorialDomain": "Factorial needs a whole number from 0 to 170",
+        "tanUndefined": "Tangent is undefined at this angle"
+      },
+      "sheetPage": "Page {current} of {total}",
+      "sheetExercise": "Exercise {current} of {total}",
+      "sheetZoomIn": "Zoom in",
+      "sheetZoomOut": "Zoom out",
+      "sheetFitWidth": "Fit width",
+      "sheetLoading": "Scroll the material to load this page.",
+      "sheetEmpty": "There's no page to preview here."
+    },
     "lessonNotebook": {
       "materialTab": "Material",
       "notebookTab": "Notebook",
@@ -944,7 +975,12 @@
     "moreCourses": "More courses",
     "loading": "Loading...",
     "deleteConversation": "Delete conversation",
-    "deleteConfirm": "Are you sure you want to delete this conversation?"
+    "deleteConfirm": "Are you sure you want to delete this conversation?",
+    "hiddenLesson": {
+      "title": "Your teacher hasn’t opened this lesson yet",
+      "message": "It will appear here as soon as your teacher opens it for your class.",
+      "back": "Back to the course"
+    }
   },
   "stats": {
     "title": "My Statistics",

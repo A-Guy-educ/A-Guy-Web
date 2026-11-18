@@ -33,6 +33,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     'scope',
     'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
   )
+  // Schools share computers: always show Google's account chooser instead of
+  // silently reusing whichever Google account the browser is signed into.
+  authUrl.searchParams.set('prompt', 'select_account')
 
   const res = NextResponse.redirect(authUrl)
   const state = await storeOAuthState(res, returnTo)
