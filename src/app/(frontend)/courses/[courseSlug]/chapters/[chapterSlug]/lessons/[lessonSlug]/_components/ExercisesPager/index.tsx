@@ -7,6 +7,7 @@ import { Input } from '@/ui/web/components/input'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
 import { ExerciseRenderer } from '@/ui/web/exerciserenderer'
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
+import { usePaywallBeacon } from '@/client/hooks/usePaywallBeacon'
 import { useSubscriptionsHref } from '@/client/hooks/useSubscriptionsHref'
 import { canAccessLearningExercise, getUserTierSlug } from '@/lib/tiers'
 import {
@@ -28,6 +29,12 @@ import { ChatInterface } from '@/ui/web/chat'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/infra/utils/ui'
 import { Confetti } from '@/ui/web/components/confetti'
+
+/** Logs the free-tier exercise lock card below to the payment funnel. */
+function ExerciseLockBeacon() {
+  usePaywallBeacon('exercise')
+  return null
+}
 
 const pageTransition = {
   initial: { opacity: 0, x: 20 },
@@ -336,6 +343,7 @@ export function ExercisesPager({
                   <motion.div key={currentExercise.id} {...pageTransition} className="space-y-4">
                     {isExerciseLockedByTier ? (
                       <div className="md:bg-card md:rounded-2xl md:p-card-padding-lg md:border md:border-border/60 md:shadow-elevation-1 p-card-padding flex flex-col items-center text-center gap-content-gap">
+                        <ExerciseLockBeacon />
                         <div className="w-14 h-14 rounded-2xl bg-warning/15 flex items-center justify-center">
                           <Lock className="w-7 h-7 text-warning" />
                         </div>

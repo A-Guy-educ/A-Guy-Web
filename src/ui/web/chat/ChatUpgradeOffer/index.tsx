@@ -52,6 +52,7 @@ export function ChatUpgradeOffer({ source, reason, onContinue }: ChatUpgradeOffe
       restrictedLabel={t(isNotebook ? 'notebookQuotaRestrictedBody' : 'chatQuotaRestrictedBody')}
       currentTier={currentTier}
       onContinue={onContinue}
+      paywallGate="ai_quota"
     />
   )
 }

@@ -31,12 +31,27 @@ import { getWebUser } from '@/infra/web-api/mongo-payload'
 import { logger } from '@/infra/utils/logger/logger'
 import { subscriptionsHref, withSubscribeReturnTo } from '@/lib/tiers/subscribe-return'
 import { fetchAdminApi } from '@/server/services/admin-api'
+import { recordFunnelEvent } from '@/server/services/funnel-events'
 
 const BodySchema = z.object({
   tier: z.enum(['basic', 'advanced', 'premium']),
   offerSlug: z.enum(['default', 'intro3mo']).default('default'),
   returnTo: z.string().max(512).optional(),
 })
+
+function recordCheckoutStarted(
+  userId: string | number,
+  body: { tier: string; offerSlug?: string | null },
+  status: number,
+): Promise<void> {
+  return recordFunnelEvent({
+    type: 'checkout_started',
+    userId: String(userId),
+    tier: body.tier,
+    offerSlug: body.offerSlug,
+    status,
+  })
+}
 
 export async function POST(request: NextRequest) {
   // Early auth gate — admin re-checks via its own payload.auth(), but
@@ -68,6 +83,7 @@ export async function POST(request: NextRequest) {
         cancelUrl: `${baseUrl}${subscriptionsHref(parsed.data.returnTo)}`,
       },
     })
+    await recordCheckoutStarted(user.id, parsed.data, admin.status)
     // Pass Admin's status + body through verbatim so the client sees the
     // real auth / validation / conflict codes (401 / 400 / 409 / etc.) and
     // can surface the specific error key.
@@ -83,6 +99,7 @@ export async function POST(request: NextRequest) {
       },
       'Subscription checkout: admin proxy failed',
     )
+    await recordCheckoutStarted(user.id, parsed.data, 500)
     return NextResponse.json({ success: false, error: 'checkout_failed' }, { status: 500 })
   }
 }
