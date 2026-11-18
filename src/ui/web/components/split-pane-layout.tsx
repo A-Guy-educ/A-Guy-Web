@@ -18,6 +18,8 @@ interface SplitPaneLayoutProps {
   maxSize?: number
   mobileMode?: MobileExerciseViewMode
   onMobileModeChange?: (mode: MobileExerciseViewMode) => void
+  /** Desktop: shrink the chat pane to a narrow rail without remounting either pane. */
+  chatCollapsed?: boolean
 }
 
 type ChatCloneProps = {
@@ -52,6 +54,7 @@ export function SplitPaneLayout({
   maxSize = 80,
   mobileMode,
   onMobileModeChange,
+  chatCollapsed = false,
 }: SplitPaneLayoutProps) {
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   const [internalMobileMode, setInternalMobileMode] =
@@ -250,6 +253,7 @@ export function SplitPaneLayout({
           maxSize={maxSize}
           storageKey={storageKey}
           className="flex-1"
+          collapsed={chatCollapsed}
         >
           <div className="h-full overflow-hidden min-h-0">{primaryContent}</div>
           <div className="bg-background flex flex-col overflow-hidden h-full">{chatContent}</div>

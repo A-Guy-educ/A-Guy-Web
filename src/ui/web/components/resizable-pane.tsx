@@ -11,6 +11,12 @@ interface ResizablePaneProps {
   children: [React.ReactNode, React.ReactNode]
   className?: string
   storageKey?: string // Optional key to persist size in localStorage
+  /**
+   * Shrink the second pane to `collapsedSize` and hide the handle. The panes
+   * stay mounted, so an iframe in the first pane doesn't reload.
+   */
+  collapsed?: boolean
+  collapsedSize?: string
 }
 
 export function ResizablePane({
@@ -21,6 +27,8 @@ export function ResizablePane({
   children,
   className,
   storageKey,
+  collapsed = false,
+  collapsedSize = '3.5rem',
 }: ResizablePaneProps) {
   const [isDragging, setIsDragging] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -128,7 +136,7 @@ export function ResizablePane({
       {/* First Pane */}
       <div
         style={{
-          flex: `0 0 ${firstPaneSize}%`,
+          flex: collapsed ? '1 1 0%' : `0 0 ${firstPaneSize}%`,
         }}
         className="overflow-hidden relative min-h-0"
       >
@@ -139,7 +147,7 @@ export function ResizablePane({
 
       {/* Resizer Handle */}
       <div
-        className={resizerClasses}
+        className={cn(resizerClasses, collapsed && 'hidden')}
         onMouseDown={handleMouseDown}
         onTouchStart={handleMouseDown}
         role="separator"
@@ -175,7 +183,14 @@ export function ResizablePane({
       </div>
 
       {/* Second Pane */}
-      <div className="flex-1 overflow-hidden relative min-h-0">
+      <div
+        style={collapsed ? { flex: `0 0 ${collapsedSize}` } : undefined}
+        className={cn(
+          'flex-1 overflow-hidden relative min-h-0',
+          collapsed &&
+            (orientation === 'horizontal' ? 'border-s border-border' : 'border-t border-border'),
+        )}
+      >
         {children[1]}
         {/* Overlay to prevent iframe from capturing mouse events during drag */}
         {isDragging && <div className="absolute inset-0 z-10" />}
