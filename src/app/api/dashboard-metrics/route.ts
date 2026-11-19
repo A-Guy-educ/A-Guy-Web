@@ -9,7 +9,7 @@
  * Response shape is unchanged — see DashboardMetricsResponse. `segment`
  * (default `all`; rules in segment-classifier.ts) scopes userMetrics,
  * monthlySignups, engagement time + feature usage, tokenMetrics, the guest
- * conversion figures, revenueMetrics and productHealth. Content counts and the
+ * conversion figures, the funnel, revenueMetrics and productHealth. Content counts and the
  * lesson-stats widgets (no user on the row) stay platform-wide. `b2b` adds the
  * `b2bMetrics` school roll-up. The optional
  * `productHealth` slice (Dash PR #16 wireframe) is attached when
