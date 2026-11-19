@@ -5253,6 +5253,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Lesson explanation bullets and chat link wrapping ([#1630](https://github.com/A-Guy-educ/A-Guy-Web/pull/1630)) — @aguyshayb
 ## [v0.68.0] - 2026-11-18
 
 - promote: dev -> main (v0.68.0) ([#1629](https://github.com/A-Guy-educ/A-Guy-Web/pull/1629)) — @aguyshayb
