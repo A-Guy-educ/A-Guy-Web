@@ -402,7 +402,6 @@ export function LessonIntroPage({
           />
           <LessonLandingExplanation
             explanation={lesson.publicExplanation}
-            formulas={lesson.formulas}
             commonMistakes={lesson.commonMistakes}
           />
           <LessonLandingWorkedExample
