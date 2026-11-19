@@ -19,19 +19,20 @@
 import { ObjectId, type Db, type Document } from 'mongodb'
 
 import type { AdminUserRefs } from './admin-users'
-import type {
-  ContentCounts,
-  CourseEnrollment,
-  EngagementMetrics,
-  MonthlySignup,
-  SessionTimeByLessonType,
-  SignupSourceBreakdown,
-  TokenMetrics,
-  TopLesson,
-  TopLessonByTokens,
-  TopUserByTokens,
-  UserMetrics,
-  UsersPerCourse,
+import {
+  SIGNUP_SOURCE_KEYS,
+  type ContentCounts,
+  type CourseEnrollment,
+  type EngagementMetrics,
+  type MonthlySignup,
+  type SessionTimeByLessonType,
+  type SignupSourceBreakdown,
+  type TokenMetrics,
+  type TopLesson,
+  type TopLessonByTokens,
+  type TopUserByTokens,
+  type UserMetrics,
+  type UsersPerCourse,
 } from './metrics-types'
 import type { DateBuckets } from './date-buckets'
 import {
@@ -367,14 +368,6 @@ interface SignupSourceRow {
   _id: string
   count: number
 }
-
-const SIGNUP_SOURCE_KEYS: readonly (keyof SignupSourceBreakdown)[] = [
-  'google',
-  'guykoren',
-  'direct',
-  'other',
-  'unknown',
-]
 
 export async function aggregateSignupSources(
   db: Db,

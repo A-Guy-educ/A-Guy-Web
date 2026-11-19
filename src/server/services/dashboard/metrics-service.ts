@@ -28,6 +28,7 @@ import {
 import { computeDateBuckets } from './date-buckets'
 import { aggregateB2bMetrics } from './b2b-metrics'
 import { ensureDashboardIndexes } from './ensure-indexes'
+import { aggregateFunnel } from './funnel-metrics'
 import { aggregateGuestInsights } from './guest-insights'
 import { aggregateTransactions } from './revenue-metrics'
 import type { DashboardMetricsResponse, Period, UserSegment } from './metrics-types'
@@ -68,6 +69,7 @@ export async function computeDashboardMetrics(
     usersPerCourse,
     signupSourceBreakdown,
     guestInsights,
+    funnel,
     b2bMetrics,
   ] = await Promise.all([
     aggregateUserStats(db, buckets, adminUserRefs, cohort),
@@ -84,6 +86,7 @@ export async function computeDashboardMetrics(
     aggregateUsersPerCurrentCourse(db),
     aggregateSignupSources(db, buckets, cohort),
     aggregateGuestInsights(db, buckets, adminUserRefs, cohort),
+    aggregateFunnel(db, buckets, adminUserRefs, cohort),
     segment === 'b2b'
       ? aggregateB2bMetrics(db, roster, buckets, adminUserRefs)
       : Promise.resolve(undefined),
@@ -124,6 +127,7 @@ export async function computeDashboardMetrics(
     revenueMetrics,
     tokenMetrics,
     guestInsights,
+    funnel,
     ...(b2bMetrics ? { b2bMetrics } : {}),
   }
 }

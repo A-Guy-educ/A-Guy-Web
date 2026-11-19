@@ -66,6 +66,14 @@ export interface SignupSourceBreakdown {
   unknown: number
 }
 
+export const SIGNUP_SOURCE_KEYS: readonly (keyof SignupSourceBreakdown)[] = [
+  'google',
+  'guykoren',
+  'direct',
+  'other',
+  'unknown',
+]
+
 export interface UserMetrics {
   activeUsersToday: number
   activeUsersYesterday: number
@@ -280,6 +288,11 @@ export interface DashboardMetricsResponse {
    * visitors. Shape lives with the service in `./guest-insights-types.ts`.
    */
   guestInsights: import('./guest-insights-types').GuestInsights
+  /**
+   * Visitor → signup → first week → paywall → pricing → checkout → paid, for
+   * the period. Shape and step definitions in `./funnel-types.ts`.
+   */
+  funnel: import('./funnel-types').FunnelMetrics
   /**
    * Optional Product Health tab payload. Gated behind
    * `PRODUCT_HEALTH_ENABLED`; the field is omitted (undefined) when off so
