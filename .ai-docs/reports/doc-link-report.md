@@ -1,6 +1,6 @@
 # Doc Link Fixer - Failure Report
 
-Generated: 2026-10-26T07:32:58.908Z
+Generated: 2026-11-21T09:22:48.780Z
 
 ## Summary
 
