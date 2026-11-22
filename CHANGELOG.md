@@ -5253,6 +5253,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat(courses): Add the 'what are we doing today' guide to the course page ([#1634](https://github.com/A-Guy-educ/A-Guy-Web/pull/1634)) — @aguyshayb
 - feat(courses): Link AI lesson suggestions and route homework photos ([#1633](https://github.com/A-Guy-educ/A-Guy-Web/pull/1633)) — @aguyshayb
 - chore: Remove the password signup page ([#1632](https://github.com/A-Guy-educ/A-Guy-Web/pull/1632)) — @aguyshayb
 - feat(dashboard): Add visitor-to-paid funnel to dashboard metrics ([#1631](https://github.com/A-Guy-educ/A-Guy-Web/pull/1631)) — @aguyshayb
