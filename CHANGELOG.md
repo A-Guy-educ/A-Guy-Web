@@ -5253,6 +5253,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Match the private-lesson demo on the course page ([#1637](https://github.com/A-Guy-educ/A-Guy-Web/pull/1637)) — @aguyshayb
 - feat: Match the private-lesson demo on the landing and start pages ([#1636](https://github.com/A-Guy-educ/A-Guy-Web/pull/1636)) — @aguyshayb
 - feat(landing): Replace the home page with the private-lesson landing ([#1635](https://github.com/A-Guy-educ/A-Guy-Web/pull/1635)) — @aguyshayb
 - feat(courses): Add the 'what are we doing today' guide to the course page ([#1634](https://github.com/A-Guy-educ/A-Guy-Web/pull/1634)) — @aguyshayb
