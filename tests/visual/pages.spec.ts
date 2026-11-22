@@ -31,12 +31,4 @@ test.describe('Visual Regression - Pages', () => {
       maxDiffPixelRatio: 0.05,
     })
   })
-
-  test('signup page', async ({ page }) => {
-    await page.goto('/signup')
-    await page.waitForTimeout(1000)
-    await expect(page).toHaveScreenshot('signup-page.png', {
-      maxDiffPixelRatio: 0.05,
-    })
-  })
 })

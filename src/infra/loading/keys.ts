@@ -20,7 +20,6 @@ export const LOADING_KEYS = {
 
   // Auth actions (used in this task)
   LOGIN: 'auth:login',
-  SIGNUP: 'auth:signup',
 
   // Data fetching (used in this task)
   CHAPTERS_LOAD: 'data:chapters',

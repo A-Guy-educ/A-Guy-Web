@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 const mockLoginWithPassword = vi.hoisted(() => vi.fn())
-const mockCreatePasswordUser = vi.hoisted(() => vi.fn())
 const mockHeaders = vi.hoisted(() => vi.fn())
 
 vi.mock('@/infra/auth/web-auth', async (importOriginal) => {
@@ -9,7 +8,6 @@ vi.mock('@/infra/auth/web-auth', async (importOriginal) => {
 
   return {
     ...actual,
-    createPasswordUser: mockCreatePasswordUser,
     loginWithPassword: mockLoginWithPassword,
   }
 })
@@ -23,15 +21,6 @@ function loginFormData() {
   const data = new FormData()
   data.set('email', 'student@example.com')
   data.set('password', 'correct-password')
-  return data
-}
-
-function signupFormData() {
-  const data = new FormData()
-  data.set('name', 'Student')
-  data.set('email', 'new-student@example.com')
-  data.set('password', 'correct-password')
-  data.set('confirmPassword', 'correct-password')
   return data
 }
 
@@ -50,7 +39,6 @@ describe('password auth cookies', () => {
     vi.unstubAllEnvs()
     vi.resetModules()
     mockLoginWithPassword.mockReset()
-    mockCreatePasswordUser.mockReset()
     mockHeaders.mockReset()
   })
 
@@ -75,34 +63,6 @@ describe('password auth cookies', () => {
         maxAge: 60 * 60 * 24 * 7,
         // Partitioned cookies are keyed to the embedding top-level site, so a
         // partitioned login cookie can never be read by a sibling app.
-        partitioned: false,
-        path: '/',
-        sameSite: 'lax',
-        secure: true,
-      }),
-    )
-  })
-
-  it('writes a shareable (non-partitioned) cookie for a top-level password signup', async () => {
-    vi.stubEnv('NODE_ENV', 'production')
-    noRequestScope()
-    mockCreatePasswordUser.mockResolvedValue({
-      token: 'session-token',
-      user: { id: 'user-1' },
-    })
-    const cookieStore = { set: vi.fn() }
-    const { signupAction } =
-      await import('@/app/(frontend)/signup/actions/signup_createUser-action')
-
-    const result = await signupAction(signupFormData(), cookieStore)
-
-    expect(result).toEqual({ success: true, userId: 'user-1', data: { userId: 'user-1' } })
-    expect(cookieStore.set).toHaveBeenCalledWith(
-      'payload-token',
-      'session-token',
-      expect.objectContaining({
-        httpOnly: true,
-        maxAge: 60 * 60 * 24 * 7,
         partitioned: false,
         path: '/',
         sameSite: 'lax',
