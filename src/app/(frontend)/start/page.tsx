@@ -13,7 +13,12 @@ import { StartPageClient } from './StartPageClient'
 
 export const revalidate = 60
 
-export default async function StartPage() {
+export default async function StartPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
+  const { teacher } = await searchParams
   const locale = await getSystemLocale()
   const contentLocale = isValidContentLocale(locale) ? locale : undefined
   const courses = await getPublishedCourseList(contentLocale)
@@ -30,7 +35,12 @@ export default async function StartPage() {
   }
 
   return (
-    <StartPageClient courses={courses} direction={getDirection(locale)} isNewUser={isNewUser} />
+    <StartPageClient
+      courses={courses}
+      direction={getDirection(locale)}
+      isNewUser={isNewUser}
+      initialTeacherSlug={typeof teacher === 'string' ? teacher : undefined}
+    />
   )
 }
 

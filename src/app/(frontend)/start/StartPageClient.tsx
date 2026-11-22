@@ -28,6 +28,8 @@ interface StartPageClientProps {
   courses: Course[]
   direction: Direction
   isNewUser: boolean
+  /** Teacher already picked on the landing page (`/start?teacher=<slug>`). */
+  initialTeacherSlug?: string
 }
 
 const START_COPY = {
@@ -113,7 +115,7 @@ const START_COPY = {
 
 const moodOrder: Mood[] = ['excellent', 'good', 'tired']
 
-export function StartPageClient({ courses, direction }: StartPageClientProps) {
+export function StartPageClient({ courses, direction, initialTeacherSlug }: StartPageClientProps) {
   const locale = useLocale()
   const copy = locale === 'he' ? START_COPY.he : START_COPY.en
   const [pane, setPane] = useState<Pane>('conversation')
@@ -124,6 +126,7 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
   const [teacherProfiles, setTeacherProfiles] = useState<TeacherProfile[]>([])
   const [selectedTeacherProfile, setSelectedTeacherProfile] = useState<TeacherProfile | null>(null)
   const [showLoginModal, setShowLoginModal] = useState(false)
+  const [teacherFromLanding, setTeacherFromLanding] = useState(false)
   const { user, isLoading: isAuthLoading } = useCurrentUser()
   const isAnonymous = !user && !isAuthLoading
 
@@ -132,6 +135,13 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
   useEffect(() => {
     if (isAnonymous) trackOnboardingStep('started')
   }, [isAnonymous])
+
+  // A teacher picked on the landing page still counts as the persona step.
+  // Tracked here rather than where it is applied, because auth may still be
+  // loading when the conversation starts.
+  useEffect(() => {
+    if (isAnonymous && teacherFromLanding) trackOnboardingStep('personaSelected')
+  }, [isAnonymous, teacherFromLanding])
 
   useEffect(() => {
     document.body.classList.add('landing-page')
@@ -171,43 +181,6 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
     setDisplayedText(text)
   }, [])
 
-  const fetchTeacherProfiles = useCallback(async () => {
-    try {
-      const res = await fetch('/api/teacher-profiles')
-      if (res.ok) {
-        const data = await res.json()
-        if (data.profiles) {
-          setTeacherProfiles(data.profiles)
-        }
-      }
-    } catch {
-      // profiles remain empty, wizard will skip or show empty state
-    }
-  }, [])
-
-  const startConversation = useCallback(async () => {
-    setPane('conversation')
-    setInteraction('none')
-    await fetchTeacherProfiles()
-    showText(copy.teacherQuestion)
-    setInteraction('teacher')
-  }, [copy.teacherQuestion, fetchTeacherProfiles, showText])
-
-  useEffect(() => {
-    if (pane === 'conversation') {
-      startConversation()
-    }
-  }, [pane, startConversation])
-
-  const selectMood = useCallback(
-    (_mood: Mood) => {
-      playTone(580, 120)
-      showText(copy.courseQuestion)
-      setInteraction('courses')
-    },
-    [copy.courseQuestion, playTone, showText],
-  )
-
   const saveTeacherProfile = useCallback(async (slug: string) => {
     try {
       const res = await fetch('/api/user-settings', {
@@ -224,6 +197,66 @@ export function StartPageClient({ courses, direction }: StartPageClientProps) {
       setUserProfile({ teacherProfileSlug: slug })
     }
   }, [])
+
+  const fetchTeacherProfiles = useCallback(async (): Promise<TeacherProfile[]> => {
+    try {
+      const res = await fetch('/api/teacher-profiles')
+      if (res.ok) {
+        const data = await res.json()
+        if (data.profiles) {
+          setTeacherProfiles(data.profiles)
+          return data.profiles as TeacherProfile[]
+        }
+      }
+    } catch {
+      // profiles remain empty, wizard will skip or show empty state
+    }
+    return []
+  }, [])
+
+  const startConversation = useCallback(async () => {
+    setPane('conversation')
+    setInteraction('none')
+    const profiles = await fetchTeacherProfiles()
+
+    // Came from the landing page's teacher picker: keep that choice and go
+    // straight to the course (the landing page has no mood step). An unknown
+    // slug falls back to asking, as if no teacher had been passed.
+    const preselected = profiles.find((p) => p.slug === initialTeacherSlug)
+    if (preselected) {
+      setSelectedTeacherProfile(preselected)
+      setTeacherFromLanding(true)
+      void saveTeacherProfile(preselected.slug)
+      showText(copy.courseQuestion)
+      setInteraction('courses')
+      return
+    }
+
+    showText(copy.teacherQuestion)
+    setInteraction('teacher')
+  }, [
+    copy.courseQuestion,
+    copy.teacherQuestion,
+    fetchTeacherProfiles,
+    initialTeacherSlug,
+    saveTeacherProfile,
+    showText,
+  ])
+
+  useEffect(() => {
+    if (pane === 'conversation') {
+      startConversation()
+    }
+  }, [pane, startConversation])
+
+  const selectMood = useCallback(
+    (_mood: Mood) => {
+      playTone(580, 120)
+      showText(copy.courseQuestion)
+      setInteraction('courses')
+    },
+    [copy.courseQuestion, playTone, showText],
+  )
 
   const selectTeacher = useCallback(
     async (teacher: TeacherProfile) => {
