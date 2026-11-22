@@ -3,6 +3,7 @@
 @import 'katex/dist/katex.min.css';
 @import './accents.css';
 @import './newclass-tokens.css';
+@import './privatelesson-tokens.css';
 
 @layer base {
   h1,

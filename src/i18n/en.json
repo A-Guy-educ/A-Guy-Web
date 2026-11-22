@@ -1495,54 +1495,54 @@
     }
   },
   "privateLessonLanding": {
-    "hero": {
-      "badge": "Built from 50,000 private lessons",
-      "headline": "7 hours of math a week.",
-      "question": "So why does your child still need a private tutor?",
-      "prep": "15 minutes of prep with Aguy before the lesson.",
+    "header": {
+      "home": "Aguy home page",
+      "example": "How it works",
+      "teachers": "Meet the teachers",
+      "comparison": "Comparison & price",
+      "cta": "Start for free"
+    },
+    "intro": {
+      "eyebrow": "Built on the experience of 50,000 private lessons",
+      "title": "7 hours of math a week.",
+      "question": "So why does your child still need a tutor?",
+      "prepBefore": "15 minutes of prep with",
+      "prepAfter": "before class.",
       "benefit": "More understanding in class. Less catching up at home.",
-      "cta": "Start for free",
-      "login": "I already have an account"
+      "imageAlt": "A student solving an exercise on her own in a notebook, next to Aguy on a laptop",
+      "caption": "Learning to learn alone. Saving on private lessons."
     },
     "offer": {
-      "eyebrow": "Learn to learn on your own. Save on private lessons.",
-      "headline": "A month with Aguy for ₪{price}",
+      "headline": "A month with",
+      "price": "for ₪{price}",
       "guarantee": "Didn't work for you? Money back.",
       "cta": "Start a month for ₪{price}",
-      "free": "You can also start for free",
+      "free": "Or start for free",
       "whatsapp": "Book a fit call with a teacher",
-      "whatsappMessage": "Hi, I'd like to book a short call to get to know Aguy and see if it fits my child."
+      "whatsappMessage": "Hi, I'd like a short call to get to know Aguy and see if it fits my child."
     },
-    "objection": {
-      "quote": "“There's no way my child will learn like this.”",
-      "heard": "Many students who use Aguy today said exactly that.",
-      "answer": "You don't need to know how to learn on your own to start — that's exactly what you learn here.",
-      "how": "We start from your child's level, even the very basics, with guiding questions, hints when stuck, and encouragement along the way."
+    "confidence": {
+      "titleLine1": "“There's no way my child",
+      "titleLine2": "will learn like this.”",
+      "proofLine1": "Many students using ",
+      "proofLine2": "today said exactly that.",
+      "message": "You don't need to know how to learn alone to start —",
+      "messageStrong": "that's exactly what you learn here.",
+      "detail": "We start at your child's level, even from the very basics, with guiding questions, hints when stuck and encouragement along the way."
     },
-    "method": {
-      "title": "See how learning works here",
-      "description": "Try on your own, get guidance when you need it, and work your way to the solution.",
-      "steps": {
-        "try": {
-          "title": "Try on your own",
-          "description": "Every exercise starts with the student's thinking, not the answer."
-        },
-        "hint": {
-          "title": "A hint when stuck",
-          "description": "A guiding question or a small hint — just enough to keep going."
-        },
-        "solve": {
-          "title": "Reach the solution",
-          "description": "Solve it all the way and understand why it worked."
-        }
-      }
+    "example": {
+      "title": "See how learning works here.",
+      "description": "Try alone, get guidance when needed, and work your way to the solution.",
+      "slotTitle": "Try an exercise from the system here",
+      "slotText": "The real Aguy segment will be embedded here."
     },
     "teachers": {
-      "title": "Which teacher fits you?",
+      "title": "Which teacher suits you?",
       "description": "Same goal. Each in their own way.",
-      "choose": "Continue with this teacher",
-      "empty": "Teachers will load in a moment. You can also start right away:",
-      "startAnyway": "Start for free"
+      "pickLabel": "Choose a teacher",
+      "continue": "Continue with the teacher you chose",
+      "hello": "Nice to meet you :)",
+      "portraitLabel": "{name}, your private teacher"
     },
     "learn": {
       "title": "What do you learn with the teacher?",
@@ -1550,11 +1550,11 @@
       "items": {
         "homework": {
           "title": "Homework",
-          "description": "Snap it. Attach it. Start."
+          "description": "Snap. Attach. Start."
         },
         "fromScratch": {
           "title": "Learn from scratch",
-          "description": "Understand the basics, come to class ready."
+          "description": "Understand the basics, arrive ready for class."
         },
         "practice": {
           "title": "Practice a topic",
@@ -1562,17 +1562,21 @@
         },
         "exam": {
           "title": "Prepare for an exam",
-          "description": "A plan, exams and matriculation exams."
+          "description": "A plan, exams and matriculation."
         }
       },
-      "adaptive": "Learning that adapts to you.",
-      "adaptiveDetail": "Tuned to 16 student types, and sharper with every question."
+      "adaptive": "Learning that adapts itself to you.",
+      "adaptiveDetail": "Fits 16 types of students, and gets sharper with every question."
     },
     "comparison": {
       "title": "And what about the price?",
       "description": "Aguy's private teacher vs. a regular private tutor.",
-      "aguy": "Aguy — digital private teacher",
-      "tutor": "Regular private tutor",
+      "caption": "Comparing Aguy's digital private teacher with a regular private tutor",
+      "compareLabel": "What are we comparing?",
+      "aguy": "Aguy",
+      "aguySub": "Digital private teacher",
+      "tutor": "Private tutor",
+      "tutorSub": "Regular",
       "rows": {
         "learning": {
           "label": "Learning style",
@@ -1581,7 +1585,7 @@
         },
         "independence": {
           "label": "Independence",
-          "aguy": "Builds independence",
+          "aguy": "Encourages independence",
           "tutor": "Can create dependence"
         },
         "cost": {
@@ -1591,37 +1595,56 @@
         },
         "time": {
           "label": "Time saved",
-          "aguy": "Ready for class, less study at home",
-          "tutor": "Extra study after class"
+          "aguy": "Ready for class, less studying at home",
+          "tutor": "Extra learning after class"
         },
         "availability": {
           "label": "Availability",
-          "aguy": "Anytime, anywhere, on mobile too",
+          "aguy": "Anytime, anywhere, even on mobile",
           "tutor": "Depends on the tutor"
         },
         "expertise": {
           "label": "Expertise",
           "aguy": "Experience from 50,000 lessons",
-          "tutor": "Depends on the tutor"
+          "tutor": "Depends on the tutor's experience"
         },
         "fit": {
-          "label": "Personal fit",
+          "label": "Personalization",
           "aguy": "Diagnosis and feedback on every question",
           "tutor": "Depends on the tutor's skill"
         },
         "content": {
           "label": "Content",
-          "aguy": "All the material plus simulation exams",
+          "aguy": "All the material plus mock exams",
           "tutor": "The tutor's own materials"
         }
       },
       "plans": "You can start for free. Paid plans: ₪{basic}, ₪{advanced} or ₪{premium} a month.",
-      "cta": "Enter my private lesson"
+      "cta": "Enter my private lesson",
+      "note": "Pick a teacher and a class, and start."
     },
-    "closing": {
-      "title": "Pick a teacher and a grade, and start.",
+    "footer": {
       "tagline": "The world is changing. So is the way we learn.",
-      "cta": "Start for free"
+      "enter": "Enter a lesson"
     }
+  },
+  "teacherPersonas": {
+    "detailed": {
+      "name": "The Digger",
+      "tagline": "In a good way",
+      "quote": "My goal?\nThat you succeed without me."
+    },
+    "focused": {
+      "name": "The Focused One",
+      "tagline": "Only what's needed",
+      "quote": "No time to waste. We'll do exactly what's needed."
+    },
+    "attentive": {
+      "name": "The Attentive One",
+      "tagline": "Notices every detail",
+      "quote": "Your way to success starts with trying."
+    },
+    "portraitLabel": "Your teacher — {name}",
+    "wink": "Click for a wink"
   }
 }
