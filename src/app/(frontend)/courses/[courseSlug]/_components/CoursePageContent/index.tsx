@@ -73,15 +73,6 @@ export function CoursePageContent({
     [chapters, lessons],
   )
 
-  const lessonsForSuggest = useMemo(() => {
-    const chapterTitleById = new Map(chapters.map((c) => [c.id, c.title]))
-    return lessons.map((l) => {
-      const chapterId = typeof l.chapter === 'string' ? l.chapter : (l.chapter?.id ?? null)
-      const chapter = chapterId ? chapterTitleById.get(chapterId) : undefined
-      return { title: l.title, chapter }
-    })
-  }, [chapters, lessons])
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
       <CourseAnalytics courseId={course.id} courseTitle={course.title} />
@@ -122,8 +113,8 @@ export function CoursePageContent({
             courseId={course.id}
             courseSlug={courseSlug}
             courseTitle={course.title}
-            lessonsForSuggest={lessonsForSuggest}
             activeTab={activeTab}
+            onTabChange={setActiveTab}
           />
         </div>
       )}

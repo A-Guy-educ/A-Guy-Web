@@ -297,6 +297,19 @@ export function ChatInterface({
     return () => window.removeEventListener(CHAT_ATTACH_FILES_EVENT, handler)
   }, [])
 
+  // Course composer → /ask handoff: prefill (not send) the student's question,
+  // so they can check it or add to it first.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { question } = (e as CustomEvent<{ question: string }>).detail
+      if (!question) return
+      setInputValue(question)
+      inputRef.current?.focus()
+    }
+    window.addEventListener('ask-question-prefill', handler)
+    return () => window.removeEventListener('ask-question-prefill', handler)
+  }, [setInputValue, inputRef])
+
   // FloatingAskButton: focus the chat input when the floating button is clicked
   useEffect(() => {
     const handleFocusChatInput = () => {

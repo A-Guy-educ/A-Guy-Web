@@ -1,9 +1,10 @@
 /**
  * Drag/drop handoff from the course search composer into the /ask page.
  *
- * On drop of an image or PDF the composer uploads to /api/media, creates a
- * fresh Ask conversation scoped to the current course, parks the uploaded
- * media on `sessionStorage` under `ASK_PENDING_MEDIA_KEY`, and navigates to
+ * Dropped files go to `onFileDrop` (the composer suggests lessons for a photo
+ * first). `uploadFile` uploads an image or PDF to /api/media, creates a fresh
+ * Ask conversation scoped to the current course, parks the uploaded media
+ * (and the typed question, if any) on `sessionStorage`, and navigates to
  * `/ask?chat=<id>&ctx=<ctx>`. `AskPrimaryContent` reads the parked media on
  * mount and dispatches the restore event the rest of the Ask page already
  * understands — same code path as resuming an existing conversation.
@@ -17,6 +18,7 @@ import { useRouter } from 'next/navigation'
 import { useCallback, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { logger } from '@/infra/utils/logger'
+import { writeAskPendingQuestion } from '@/client/state/sessionStorage/askPendingQuestion'
 import {
   getAskPendingMediaKey,
   type AskPendingMediaPayload,
@@ -24,6 +26,8 @@ import {
 
 interface Options {
   courseId: string
+  /** Called with a dropped file; the composer decides whether it goes to Ask. */
+  onFileDrop: (file: File) => void
   /** Toast / inline label when the drop isn't an image/pdf. */
   invalidTypeLabel: string
   /** Toast when the upload/handoff fails. */
@@ -43,7 +47,23 @@ function isAcceptedFile(file: File): boolean {
   return /\.pdf$/i.test(file.name)
 }
 
-export function useCourseComposerDropToAsk({ courseId, invalidTypeLabel, failureLabel }: Options) {
+async function createAskConversation(courseId: string) {
+  const convRes = await fetch('/api/conversations/by-context', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ courseId }),
+  })
+  if (!convRes.ok) throw new Error(`conversation create failed: ${convRes.status}`)
+  return (await convRes.json()) as { id: string; contextKey: string }
+}
+
+export function useCourseComposerDropToAsk({
+  courseId,
+  onFileDrop,
+  invalidTypeLabel,
+  failureLabel,
+}: Options) {
   const router = useRouter()
   const [state, setState] = useState<DropState>({ isUploading: false, isDragOver: false })
   // Nested dragenter/leave events fire on child elements; counting keeps the
@@ -52,7 +72,7 @@ export function useCourseComposerDropToAsk({ courseId, invalidTypeLabel, failure
   const dragDepth = useRef(0)
 
   const uploadAndNavigate = useCallback(
-    async (file: File) => {
+    async (file: File, question?: string) => {
       if (!courseId) return
       if (!isAcceptedFile(file)) {
         toast.error(invalidTypeLabel)
@@ -78,17 +98,11 @@ export function useCourseComposerDropToAsk({ courseId, invalidTypeLabel, failure
           (filename.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'application/octet-stream')
         if (!mediaId) throw new Error('upload response missing mediaId')
 
-        const convRes = await fetch('/api/conversations/by-context', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ courseId }),
-        })
-        if (!convRes.ok) throw new Error(`conversation create failed: ${convRes.status}`)
-        const { id, contextKey } = (await convRes.json()) as { id: string; contextKey: string }
+        const { id, contextKey } = await createAskConversation(courseId)
 
         const payload: AskPendingMediaPayload = { mediaId, filename, mimeType, url }
         window.sessionStorage.setItem(getAskPendingMediaKey(contextKey), JSON.stringify(payload))
+        if (question) writeAskPendingQuestion(contextKey, question)
 
         router.push(`/ask?chat=${id}&ctx=${encodeURIComponent(contextKey)}`)
       } catch (error) {
@@ -99,6 +113,25 @@ export function useCourseComposerDropToAsk({ courseId, invalidTypeLabel, failure
       }
     },
     [courseId, failureLabel, invalidTypeLabel, router],
+  )
+
+  /** Text-only handoff: open a fresh Ask room with the question prefilled. */
+  const openAskWithQuestion = useCallback(
+    async (question: string) => {
+      if (!courseId) return
+      setState({ isUploading: true, isDragOver: false })
+      try {
+        const { id, contextKey } = await createAskConversation(courseId)
+        writeAskPendingQuestion(contextKey, question)
+        router.push(`/ask?chat=${id}&ctx=${encodeURIComponent(contextKey)}`)
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error('Unknown error')
+        logger.error({ err }, 'CourseComposer ask handoff failed')
+        toast.error(failureLabel)
+        setState({ isUploading: false, isDragOver: false })
+      }
+    },
+    [courseId, failureLabel, router],
   )
 
   const handleDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
@@ -127,10 +160,9 @@ export function useCourseComposerDropToAsk({ courseId, invalidTypeLabel, failure
       if (!e.dataTransfer?.files?.length) return
       e.preventDefault()
       dragDepth.current = 0
-      const file = e.dataTransfer.files[0]
-      void uploadAndNavigate(file)
+      onFileDrop(e.dataTransfer.files[0])
     },
-    [uploadAndNavigate],
+    [onFileDrop],
   )
 
   return {
@@ -145,5 +177,6 @@ export function useCourseComposerDropToAsk({ courseId, invalidTypeLabel, failure
     // Same path as drop, exposed for the mobile `+` file-picker button
     // where drag-and-drop isn't available.
     uploadFile: uploadAndNavigate,
+    openAskWithQuestion,
   }
 }

@@ -1,25 +1,30 @@
 /**
- * Chat-style composer that replaces the compact quick-search button. Always
- * visible above the tab content; live-filters lessons on every keystroke and
- * falls back to a Gemini suggestion when the local search returns nothing.
- * The AI reply persists until a new query produces results or a new AI reply
- * arrives — it does not blink on every keystroke.
+ * Chat-style composer above the course tabs. Live-filters lessons on every
+ * keystroke; a sentence-like request or a homework photo goes to Gemini,
+ * which answers with linked lessons and a next step (Ask for homework, the
+ * exams tab for test prep). PDFs, and photos from signed-out visitors, go
+ * straight to Ask as before.
  *
  * @fileType component
  * @domain frontend
  */
 'use client'
 
-import { ArrowUp, Loader2, Plus, Search, Sparkles, Upload } from 'lucide-react'
+import { ArrowUp, Loader2, Plus, Search, Upload, X } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef } from 'react'
+import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { cn } from '@/infra/utils/ui'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import type { LessonType } from '@/server/constants/lesson-types'
-import type { LessonSuggestInputLesson } from '@/server/services/lesson-suggest/generateLessonSuggestion'
 import type { CourseTab } from '../CourseTabs'
 import { TAB_COLORS } from '../CourseTabs'
 import type { LessonSearchNode } from '../LessonListTab/lessonRoadmapTypes'
+import { BADGE_CLASSES, buildLessonHref } from './courseComposerLinks'
+import { isSuggestableImage } from './courseComposerImage'
+import { looksLikeSentence } from './courseComposerSuggest'
+import { CourseComposerSuggestion } from './CourseComposerSuggestion'
 import { useCourseComposerState } from './useCourseComposerState'
 import { useCourseComposerDropToAsk } from './useCourseComposerDropToAsk'
 
@@ -28,8 +33,8 @@ interface CourseComposerProps {
   courseId: string
   courseSlug: string
   courseTitle: string
-  lessonsForSuggest: LessonSuggestInputLesson[]
   activeTab: CourseTab
+  onTabChange: (tab: CourseTab) => void
 }
 
 const MAX_CHIPS = 3
@@ -40,24 +45,13 @@ const CHIP_TAB_TO_LESSON_TYPE: Partial<Record<CourseTab, LessonType>> = {
   exams: 'exam',
 }
 
-const BADGE_CLASSES: Record<LessonType, string> = {
-  learning: 'bg-tab-learn/10 text-tab-learn border-tab-learn/30',
-  practice: 'bg-tab-practice/10 text-tab-practice border-tab-practice/30',
-  exam: 'bg-tab-exams/10 text-tab-exams border-tab-exams/30',
-}
-
-function buildHref(node: LessonSearchNode, courseSlug: string): string | null {
-  if (!node.chapterSlug) return null
-  return `/courses/${courseSlug}/chapters/${node.chapterSlug}/lessons/${node.lesson.slug}`
-}
-
 export function CourseComposer({
   nodes,
   courseId,
   courseSlug,
   courseTitle,
-  lessonsForSuggest,
   activeTab,
+  onTabChange,
 }: CourseComposerProps) {
   const t = useTranslations('coursePage.composer')
   const tPage = useTranslations('coursePage')
@@ -66,25 +60,52 @@ export function CourseComposer({
   const itemRefs = useRef<Array<HTMLAnchorElement | null>>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const { query, setQuery, filtered, aiMessage, aiLoading, aiError, selectedIdx, setSelectedIdx } =
-    useCourseComposerState({
-      nodes,
-      courseTitle,
-      lessonsForSuggest,
-      locale,
-      activeTab,
-    })
+  const router = useRouter()
+  const pathname = usePathname()
+  const { user } = useCurrentUser()
+  const composer = useCourseComposerState({ nodes, courseTitle, locale, activeTab })
+  const { query, setQuery, filtered, attachment, selectedIdx, setSelectedIdx } = composer
+
+  // Photo suggestions need an account (the route requires one); PDFs and
+  // signed-out visitors keep the direct Ask handoff.
+  const handleFile = (file: File) => {
+    if (user && isSuggestableImage(file)) composer.attachPhoto(file)
+    else void uploadFile(file, query)
+  }
 
   const {
     isUploading: isDropUploading,
     isDragOver,
     dropHandlers,
     uploadFile,
+    openAskWithQuestion,
   } = useCourseComposerDropToAsk({
     courseId,
+    onFileDrop: handleFile,
     invalidTypeLabel: t('dropInvalidType'),
     failureLabel: t('dropFailed'),
   })
+
+  // Ask rooms belong to an account, so a signed-out student signs in first
+  // and comes back here.
+  const solveInAsk = () => {
+    if (!user) {
+      router.push(`/login?returnTo=${encodeURIComponent(pathname)}`)
+      return
+    }
+    if (attachment) void uploadFile(attachment.file, query)
+    else if (query.trim()) void openAskWithQuestion(query)
+  }
+
+  // Enter/send opens the highlighted lesson for a plain topic search;
+  // anything else (a sentence, a photo, no local match) asks the model now.
+  const submit = () => {
+    if (!attachment && filtered.length > 0 && !looksLikeSentence(query)) {
+      itemRefs.current[selectedIdx]?.click()
+    } else {
+      void composer.send()
+    }
+  }
 
   const activeColor = TAB_COLORS[activeTab]
   const placeholderKey =
@@ -112,9 +133,7 @@ export function CourseComposer({
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      if (filtered.length > 0) {
-        itemRefs.current[selectedIdx]?.click()
-      }
+      submit()
       return
     }
     if (filtered.length === 0) return
@@ -127,8 +146,9 @@ export function CourseComposer({
     }
   }
 
-  const showResults = filtered.length > 0
-  const showAiMessage = !showResults && (aiLoading || aiMessage || aiError)
+  const showResults = filtered.length > 0 && !attachment
+  const showSuggestion = composer.aiLoading || composer.suggestion || composer.aiError
+  const canSend = Boolean(query.trim() || attachment)
 
   return (
     <div className="w-full max-w-3xl mx-auto" {...dropHandlers}>
@@ -158,6 +178,26 @@ export function CourseComposer({
             )}
           </div>
         )}
+        {attachment && (
+          <div className="mb-2 inline-flex items-center gap-content-gap-xs rounded-xl border border-border bg-muted/60 p-1 pe-2">
+            {/* eslint-disable-next-line @next/next/no-img-element -- local blob preview */}
+            <img
+              src={attachment.previewUrl}
+              alt={t('photoAttached')}
+              className="h-12 w-12 rounded-lg object-cover"
+            />
+            <span className="text-body-xs text-muted-foreground">{t('photoAttached')}</span>
+            <button
+              type="button"
+              onClick={composer.removePhoto}
+              aria-label={t('removePhoto')}
+              title={t('removePhoto')}
+              className="w-6 h-6 rounded-full hover:bg-muted flex items-center justify-center text-muted-foreground"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
         <textarea
           ref={textareaRef}
           rows={1}
@@ -171,7 +211,7 @@ export function CourseComposer({
         <div className="mt-2 flex items-center justify-between gap-content-gap-xs">
           <div className="flex items-center gap-1.5 min-w-0 flex-1">
             {/* Hidden file input triggered by the `+` button below.
-                Mirrors the drop target: images and PDFs are routed to Ask. */}
+                Mirrors the drop target (see handleFile). */}
             <input
               ref={fileInputRef}
               type="file"
@@ -179,7 +219,7 @@ export function CourseComposer({
               accept="image/*,application/pdf,.pdf"
               onChange={(e) => {
                 const file = e.target.files?.[0]
-                if (file) void uploadFile(file)
+                if (file) handleFile(file)
                 e.target.value = ''
               }}
             />
@@ -213,18 +253,16 @@ export function CourseComposer({
 
           <button
             type="button"
-            onClick={() => {
-              if (filtered.length > 0) itemRefs.current[selectedIdx]?.click()
-            }}
+            onClick={submit}
             aria-label={t('send')}
-            disabled={!query.trim()}
+            disabled={!canSend}
             className={cn(
               'shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all',
-              query.trim()
+              canSend
                 ? 'text-white hover:opacity-90'
                 : 'bg-muted text-muted-foreground cursor-not-allowed',
             )}
-            style={query.trim() ? { backgroundColor: activeColor.stroke } : undefined}
+            style={canSend ? { backgroundColor: activeColor.stroke } : undefined}
           >
             <ArrowUp className="w-4 h-4" />
           </button>
@@ -234,7 +272,7 @@ export function CourseComposer({
       {showResults && (
         <div className="mt-2 bg-card border border-border rounded-2xl shadow-elevation-2 overflow-hidden">
           {filtered.map((n, idx) => {
-            const href = buildHref(n, courseSlug)
+            const href = buildLessonHref(n, courseSlug)
             if (!href) return null
             return (
               <SystemLink
@@ -269,23 +307,18 @@ export function CourseComposer({
         </div>
       )}
 
-      {showAiMessage && (
-        <div
-          className="mt-2 flex items-start gap-content-gap-xs bg-muted/40 border border-border rounded-2xl px-4 py-3 text-body-sm text-foreground"
-          role="status"
-          aria-live="polite"
-        >
-          <Sparkles className="w-4 h-4 shrink-0 mt-0.5" style={{ color: activeColor.stroke }} />
-          <div className="flex-1">
-            {aiLoading && !aiMessage && (
-              <span className="text-muted-foreground">{t('thinking')}</span>
-            )}
-            {!aiLoading && aiMessage && <span>{aiMessage}</span>}
-            {!aiLoading && !aiMessage && aiError && (
-              <span className="text-muted-foreground">{t('suggestError')}</span>
-            )}
-          </div>
-        </div>
+      {showSuggestion && (
+        <CourseComposerSuggestion
+          suggestion={composer.suggestion}
+          loading={composer.aiLoading}
+          error={composer.aiError}
+          courseSlug={courseSlug}
+          accentColor={activeColor.stroke}
+          hasPhoto={Boolean(attachment)}
+          askBusy={isDropUploading}
+          onSolveInAsk={solveInAsk}
+          onOpenExams={() => onTabChange('exams')}
+        />
       )}
     </div>
   )
