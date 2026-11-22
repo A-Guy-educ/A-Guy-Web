@@ -1,22 +1,26 @@
 'use client'
 
+import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { useExamCountdown } from '@/client/hooks/useExamCountdown'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
 import type { Chapter, Course, Lesson } from '@/infra/types/content'
 import type { LessonProgress } from '../types'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { BarChart3, GraduationCap } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AskTab } from '../AskTab'
 import { CourseAnalytics } from '../CourseAnalytics'
-import { CourseComposer } from '../CourseComposer'
+import { CourseComposer, type CourseComposerHandle } from '../CourseComposer'
+import { CourseGuide, type CourseGuideAction } from '../CourseGuide'
+import { pickContinueLesson } from '../CourseGuide/pickContinueLesson'
 import { CourseTabs, TAB_COLORS, type CourseTab } from '../CourseTabs'
 import { ExamReminderBubble } from '../ExamReminderBubble'
 import { LessonListTab } from '../LessonListTab'
 import { buildLessonSearchNodes } from '../LessonListTab/buildLessonSearchNodes'
 import { LocaleFallbackBanner } from '../../../_components/LocaleFallbackBanner'
 import { ShareButton } from '@/ui/web/shared/ShareButton'
+import { useTeacherProfileLabel } from '@/ui/web/chat/hooks/useTeacherProfileLabel'
 
 interface CoursePageContentProps {
   course: Course
@@ -73,6 +77,27 @@ export function CoursePageContent({
     [chapters, lessons],
   )
 
+  const { user } = useCurrentUser()
+  const { label: teacherLabel } = useTeacherProfileLabel(Boolean(user))
+  const composerRef = useRef<CourseComposerHandle>(null)
+  const continueLesson = useMemo(
+    () => pickContinueLesson(searchNodes, lessonProgressMap),
+    [searchNodes, lessonProgressMap],
+  )
+
+  // Each starting point opens the tab it belongs to and hands the student to
+  // the composer, whose per-tab placeholder asks the follow-up question.
+  // Homework opens the photo picker straight from the click (browsers only
+  // allow that inside the user gesture).
+  const handleGuideAction = (action: CourseGuideAction) => {
+    if (action === 'homework') {
+      composerRef.current?.openPhotoPicker()
+      return
+    }
+    setActiveTab(action)
+    composerRef.current?.focus()
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
       <CourseAnalytics courseId={course.id} courseTitle={course.title} />
@@ -104,20 +129,29 @@ export function CoursePageContent({
         </div>
       </div>
 
-      <CourseTabs activeTab={activeTab} onTabChange={setActiveTab} />
-
       {searchNodes.length > 0 && (
-        <div className="container mx-auto px-3 sm:px-6 max-w-5xl mb-content-gap">
-          <CourseComposer
-            nodes={searchNodes}
-            courseId={course.id}
+        <div className="container mx-auto px-3 sm:px-6 max-w-5xl mb-section-sm">
+          <CourseGuide
             courseSlug={courseSlug}
-            courseTitle={course.title}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-          />
+            teacherLabel={teacherLabel}
+            continueLesson={continueLesson}
+            onAction={handleGuideAction}
+          >
+            <CourseComposer
+              ref={composerRef}
+              nodes={searchNodes}
+              courseId={course.id}
+              courseSlug={courseSlug}
+              courseTitle={course.title}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              isSignedIn={Boolean(user)}
+            />
+          </CourseGuide>
         </div>
       )}
+
+      <CourseTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
       {/* Main content with AnimatePresence for smooth tab transitions */}
       <main className="container mx-auto px-3 sm:px-6 py-section-sm max-w-5xl">
