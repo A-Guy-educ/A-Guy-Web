@@ -5253,6 +5253,8 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat(courses): Link AI lesson suggestions and route homework photos ([#1633](https://github.com/A-Guy-educ/A-Guy-Web/pull/1633)) — @aguyshayb
+- chore: Remove the password signup page ([#1632](https://github.com/A-Guy-educ/A-Guy-Web/pull/1632)) — @aguyshayb
 - feat(dashboard): Add visitor-to-paid funnel to dashboard metrics ([#1631](https://github.com/A-Guy-educ/A-Guy-Web/pull/1631)) — @aguyshayb
 - fix: Lesson explanation bullets and chat link wrapping ([#1630](https://github.com/A-Guy-educ/A-Guy-Web/pull/1630)) — @aguyshayb
 ## [v0.68.0] - 2026-11-18

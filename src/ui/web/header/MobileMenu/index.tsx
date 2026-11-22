@@ -6,7 +6,6 @@ import { cn } from '@/infra/utils/ui'
 import { CMSLink } from '@/ui/web/Link'
 import type { Header as HeaderType, User } from '@/infra/types/content'
 import { LanguageSwitcher } from '@/ui/web/LanguageSwitcher'
-import { usePasswordLogin } from '@/ui/web/providers/PasswordLoginProvider'
 import { useTranslations, useLocale } from '@/ui/web/providers/I18n'
 import { getNavItemsForLocale } from '@/ui/web/nav-variants'
 import { MobileMenuAuthSection } from './MobileMenuAuthSection'
@@ -30,13 +29,11 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
 }) => {
   const tCommon = useTranslations('common.header')
   const tMenu = useTranslations('common.mobileMenu')
-  const passwordLogin = usePasswordLogin()
   const systemLocale = useLocale()
 
   const allNavItems = getNavItemsForLocale(data, systemLocale)
-  const navItems = passwordLogin
-    ? allNavItems
-    : allNavItems.filter(({ link }) => link?.url !== '/signup')
+  // /signup was removed (Google sign-in only); hide any stale CMS link to it.
+  const navItems = allNavItems.filter(({ link }) => link?.url !== '/signup')
   const portalContainerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
