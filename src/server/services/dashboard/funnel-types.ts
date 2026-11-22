@@ -29,6 +29,9 @@ export const FUNNEL_EVENTS_TRACKED_SINCE = '2026-11-18'
 /** Days after signup that count as "the first week". */
 export const FIRST_WEEK_DAYS = 7
 
+/** Lesson dwell that counts as doing something (same bar as Product Health). */
+export const ENGAGED_DWELL_SECONDS = 60
+
 export interface VisitorFunnel {
   /** Guest sessions started in the period. */
   visitors: number
@@ -42,10 +45,22 @@ export interface VisitorFunnel {
 
 export interface SignupFunnel {
   signedUp: number
-  /** Opened a lesson or answered a question within the first week. */
+  /** Alive: opened any lesson (even a bounce) or answered a question in the first week. */
   activeFirstWeek: number
-  /** Active again between 24h and 7 days after signup. */
+  /**
+   * Did something: ENGAGED_DWELL_SECONDS+ in one lesson visit, or answered a
+   * question, in the first week.
+   */
+  engagedFirstWeek: number
+  /** Did something again between 24h and 7 days after signup. */
   returnedFirstWeek: number
+  /** Signups whose first week is over — the base for `activeDaysFirstWeek`. */
+  weekCompleted: number
+  /**
+   * Sum over `weekCompleted` signups of the days (24h blocks from signup, 0-7)
+   * they did something on. Average = activeDaysFirstWeek / weekCompleted.
+   */
+  activeDaysFirstWeek: number
   /** Met any upgrade wall (lesson, exercise or AI quota). */
   paywallShown: number
   pricingViewed: number
@@ -72,6 +87,11 @@ export interface FunnelMetrics {
   eventsTrackedSince: string
   visitors: VisitorFunnel
   signups: SignupFunnel
+  /**
+   * `weekCompleted` signups by days they did something on in their first
+   * week: index 0 = no day, index 7 = every day.
+   */
+  firstWeekActiveDays: number[]
   payments: PaymentFunnel
   /** Signup funnel split by `users.signupSource`. */
   bySource: Record<keyof SignupSourceBreakdown, SignupFunnel>

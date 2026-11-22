@@ -28,6 +28,7 @@ import {
 import type { AdminUserRefs } from './admin-users'
 import type { DateBuckets } from './date-buckets'
 import {
+  ENGAGED_DWELL_SECONDS,
   FIRST_WEEK_DAYS,
   FUNNEL_EVENTS_TRACKED_SINCE,
   type FunnelLandingKey,
@@ -51,7 +52,10 @@ const WEEK_MS = FIRST_WEEK_DAYS * DAY_MS
 export const SIGNUP_STEPS = [
   'signedUp',
   'activeFirstWeek',
+  'engagedFirstWeek',
   'returnedFirstWeek',
+  'weekCompleted',
+  'activeDaysFirstWeek',
   'paywallShown',
   'pricingViewed',
   'checkoutStarted',
@@ -101,8 +105,16 @@ export function buildVisitorFunnelPipeline(
   ]
 }
 
-/** Activity rows (`at` field) for the student within the first week. */
-function firstWeekLookup(from: string, atField: string, as: string): Document {
+/**
+ * Activity rows for the student within the first week: `at`, and `engaged`
+ * when the row counts as doing something (`engagedIf`, default always).
+ */
+function firstWeekLookup(
+  from: string,
+  atField: string,
+  as: string,
+  engagedIf: Document = { $literal: true },
+): Document {
   return {
     $lookup: {
       from,
@@ -119,7 +131,7 @@ function firstWeekLookup(from: string, atField: string, as: string): Document {
             },
           },
         },
-        { $project: { _id: 0, at: `$${atField}` } },
+        { $project: { _id: 0, at: `$${atField}`, engaged: engagedIf } },
       ],
       as,
     },
@@ -130,20 +142,28 @@ function sumSteps(): Document {
   return Object.fromEntries(SIGNUP_STEPS.map((step) => [step, { $sum: `$${step}` }]))
 }
 
-export function buildSignupFunnelPipeline(since: Date, cohort?: UserCohort | null): Document[] {
-  const flag = (cond: Document): Document => ({ $cond: [cond, 1, 0] })
-  const hasEvent = (type: string): Document => ({ $in: [type, '$events.type'] })
-  const returned = {
-    $anyElementTrue: [
-      {
-        $map: {
-          input: { $concatArrays: ['$visits', '$attempts'] },
-          as: 'a',
-          in: { $gte: ['$$a.at', { $add: ['$createdAt', DAY_MS] }] },
+/** Day index (0-6) after signup of each engaged activity row, deduplicated. */
+const ENGAGED_DAYS: Document = {
+  $setUnion: [
+    {
+      $map: {
+        input: {
+          $filter: { input: { $concatArrays: ['$visits', '$attempts'] }, cond: '$$this.engaged' },
         },
+        in: { $floor: { $divide: [{ $subtract: ['$$this.at', '$createdAt'] }, DAY_MS] } },
       },
-    ],
-  }
+    },
+  ],
+}
+
+export function buildSignupFunnelPipeline(
+  since: Date,
+  now: Date,
+  cohort?: UserCohort | null,
+): Document[] {
+  const flag = (cond: Document | string): Document => ({ $cond: [cond, 1, 0] })
+  const hasEvent = (type: string): Document => ({ $in: [type, '$events.type'] })
+  const weekDone = { $lte: [{ $add: ['$createdAt', WEEK_MS] }, now] }
 
   return [
     {
@@ -154,7 +174,9 @@ export function buildSignupFunnelPipeline(since: Date, cohort?: UserCohort | nul
       },
     },
     { $project: { createdAt: 1, signupSource: 1 } },
-    firstWeekLookup('lesson-visits', 'startedAt', 'visits'),
+    firstWeekLookup('lesson-visits', 'startedAt', 'visits', {
+      $gte: [{ $ifNull: ['$dwellSeconds', 0] }, ENGAGED_DWELL_SECONDS],
+    }),
     firstWeekLookup('question-attempts', 'createdAt', 'attempts'),
     {
       $lookup: {
@@ -194,13 +216,21 @@ export function buildSignupFunnelPipeline(since: Date, cohort?: UserCohort | nul
         as: 'landing',
       },
     },
+    { $set: { engagedDays: ENGAGED_DAYS, weekDone } },
     {
       $project: {
         source: { $ifNull: ['$signupSource', 'unknown'] },
         landingType: { $ifNull: [{ $first: '$landing.landingType' }, 'unknown'] },
         signedUp: { $literal: 1 },
         activeFirstWeek: flag({ $or: [hasRows('visits'), hasRows('attempts')] }),
-        returnedFirstWeek: flag(returned),
+        engagedFirstWeek: flag({ $gt: [{ $size: '$engagedDays' }, 0] }),
+        returnedFirstWeek: flag({
+          $anyElementTrue: [{ $map: { input: '$engagedDays', in: { $gte: ['$$this', 1] } } }],
+        }),
+        weekCompleted: flag('$weekDone'),
+        activeDaysFirstWeek: { $cond: ['$weekDone', { $size: '$engagedDays' }, 0] },
+        activeDays: { $size: '$engagedDays' },
+        weekDone: 1,
         paywallShown: flag(hasEvent('paywall_shown')),
         pricingViewed: flag(hasEvent('pricing_viewed')),
         checkoutStarted: flag(hasEvent('checkout_started')),
@@ -212,6 +242,10 @@ export function buildSignupFunnelPipeline(since: Date, cohort?: UserCohort | nul
         total: [{ $group: { _id: null, ...sumSteps() } }],
         bySource: [{ $group: { _id: '$source', ...sumSteps() } }],
         byLandingType: [{ $group: { _id: '$landingType', ...sumSteps() } }],
+        activeDays: [
+          { $match: { weekDone: true } },
+          { $group: { _id: '$activeDays', n: { $sum: 1 } } },
+        ],
       },
     },
   ]
@@ -295,6 +329,7 @@ export interface SignupFacet {
   total: SignupRow[]
   bySource: SignupRow[]
   byLandingType: SignupRow[]
+  activeDays: Array<{ _id: unknown; n: number }>
 }
 
 export function emptySignupFunnel(): SignupFunnel {
@@ -325,6 +360,14 @@ function bucketRows<K extends string, T extends object>(
     result = { ...result, [key]: addRow(result[key], row, steps) }
   }
   return result
+}
+
+/** Histogram over 0..FIRST_WEEK_DAYS active days; out-of-range rows are dropped. */
+export function toActiveDaysHistogram(rows: SignupFacet['activeDays'] | undefined): number[] {
+  return Array.from(
+    { length: FIRST_WEEK_DAYS + 1 },
+    (_, days) => rows?.find((row) => row._id === days)?.n ?? 0,
+  )
 }
 
 export type PaymentStepRow = { _id: unknown; users: number }
@@ -364,6 +407,7 @@ export function toFunnelMetrics(input: {
     eventsTrackedSince: FUNNEL_EVENTS_TRACKED_SINCE,
     visitors,
     signups: total ? addRow(emptySignupFunnel(), total, SIGNUP_STEPS) : emptySignupFunnel(),
+    firstWeekActiveDays: toActiveDaysHistogram(signupFacet?.activeDays),
     payments: toPaymentFunnel(paymentRows),
     bySource: bucketRows<keyof SignupSourceBreakdown, SignupFunnel>(
       signupFacet?.bySource,
@@ -404,7 +448,7 @@ export async function aggregateFunnel(
         .toArray(),
       db
         .collection('users')
-        .aggregate<SignupFacet>(buildSignupFunnelPipeline(since, cohort))
+        .aggregate<SignupFacet>(buildSignupFunnelPipeline(since, buckets.now, cohort))
         .toArray(),
       db
         .collection(FUNNEL_EVENTS_COLLECTION)
