@@ -17,7 +17,7 @@ describe('getOnboardingRedirect', () => {
     // Bug #783: the /start wizard already collected teacher / mood / course.
     // Wrapping in /onboarding/persona would bounce new users through a
     // redundant step whose server-side auth check (lines 15-19 of
-    // /onboarding/persona/page.tsx) can fire `redirect('/signup')` if the
+    // /onboarding/persona/page.tsx) can fire `redirect('/login')` if the
     // freshly-set auth cookie isn't readable on the immediate follow-up
     // request — producing the "second login popup" symptom.
     expect(getOnboardingRedirect(safe('/courses/algebra'), { skipPersona: true })).toBe(

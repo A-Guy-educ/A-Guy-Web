@@ -7,7 +7,6 @@ import type { Header as HeaderType, User } from '@/infra/types/content'
 import { CMSLink } from '@/ui/web/Link'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
 import { LanguageSwitcher } from '@/ui/web/LanguageSwitcher'
-import { usePasswordLogin } from '@/ui/web/providers/PasswordLoginProvider'
 import { useTranslations, useLocale } from '@/ui/web/providers/I18n'
 import { Button } from '@/ui/web/components/button'
 import { UserDropdown } from '@/ui/web/UserDropdown'
@@ -21,13 +20,11 @@ interface HeaderNavProps {
 
 export const HeaderNav: React.FC<HeaderNavProps> = ({ data, user, isAuthLoading }) => {
   const tCommon = useTranslations('common.header')
-  const passwordLogin = usePasswordLogin()
   const systemLocale = useLocale()
 
   const allNavItems = getNavItemsForLocale(data, systemLocale)
-  const navItems = passwordLogin
-    ? allNavItems
-    : allNavItems.filter(({ link }) => link?.url !== '/signup')
+  // /signup was removed (Google sign-in only); hide any stale CMS link to it.
+  const navItems = allNavItems.filter(({ link }) => link?.url !== '/signup')
 
   // Group navigation items by type
   const primaryLinks = navItems.slice(0, Math.ceil(navItems.length / 2))
@@ -84,11 +81,6 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({ data, user, isAuthLoading 
             <Button size="sm" asChild>
               <SystemLink href="/login">{tCommon('login')}</SystemLink>
             </Button>
-            {passwordLogin && (
-              <Button size="sm" variant="outline" asChild>
-                <SystemLink href="/signup">{tCommon('signup')}</SystemLink>
-              </Button>
-            )}
           </div>
         )}
       </div>

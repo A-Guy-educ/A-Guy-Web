@@ -167,7 +167,6 @@
     "header": {
       "welcome": "Welcome,",
       "login": "Log in",
-      "signup": "Sign up",
       "myAccount": "My Account",
       "home": "Home",
       "myPlan": "My plan",
@@ -310,29 +309,6 @@
       "errorLoading": "Failed to load transaction",
       "notFound": "Transaction not found",
       "viewProduct": "View Product"
-    },
-    "signup": {
-      "title": "Create Account",
-      "subtitle": "Sign up to start learning",
-      "name": "Name",
-      "namePlaceholder": "John Doe",
-      "email": "Email",
-      "emailPlaceholder": "you@example.com",
-      "password": "Password",
-      "passwordPlaceholder": "••••••••",
-      "confirmPassword": "Confirm Password",
-      "createAccount": "Create Account",
-      "creatingAccount": "Creating account...",
-      "alreadyHaveAccount": "Already have an account?",
-      "login": "Log in",
-      "errors": {
-        "nameRequired": "Name is required",
-        "invalidEmail": "Valid email is required",
-        "passwordTooShort": "Password must be at least 8 characters",
-        "passwordMismatch": "Passwords do not match",
-        "emailExists": "This email is already registered",
-        "duplicateEmailMessage": "An account with this email already exists. Would you like to log in instead?"
-      }
     }
   },
   "roles": {

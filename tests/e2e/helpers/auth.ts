@@ -74,55 +74,6 @@ export async function createTestUser(
 }
 
 /**
- * Authenticate a user via signup page
- * This creates the user if they don't exist and logs them in
- */
-export async function authenticateViaSignup(page: Page, user: TestUser): Promise<void> {
-  // Navigate to signup page
-  await page.goto('/signup')
-  await page.waitForLoadState('networkidle')
-
-  // Wait for form to be visible
-  await page.waitForSelector('input[name="name"]', { timeout: 10000 })
-
-  // Fill signup form
-  await page.fill('input[name="name"]', user.email.split('@')[0])
-  await page.fill('input[name="email"]', user.email)
-  await page.fill('input[name="password"]', user.password)
-  await page.fill('input[name="confirmPassword"]', user.password)
-
-  // Submit form - wait for navigation or error
-  await Promise.race([
-    page.waitForURL(/\//, { timeout: 15000 }), // Success: redirect to home
-    page
-      .waitForSelector('text=/account created|already exists|error/i', { timeout: 5000 })
-      .catch(() => null), // Error message
-  ])
-
-  // Check if we're on home page (success) or still on signup (might be error)
-  const currentUrl = page.url()
-  if (!currentUrl.includes('/signup')) {
-    // Successfully redirected
-    return
-  }
-
-  // If still on signup page, check for error - might be duplicate email
-  const errorText = await page.locator('body').textContent()
-  if (errorText?.includes('already exists') || errorText?.includes('already registered')) {
-    // User exists, will need to login instead
-    throw new Error('User already exists')
-  }
-
-  // Wait a bit more for redirect
-  await page.waitForTimeout(2000)
-  if (!page.url().includes('/signup')) {
-    return
-  }
-
-  throw new Error('Signup failed - still on signup page')
-}
-
-/**
  * Sign a user in by minting a real session and setting its cookie.
  *
  * More reliable than driving the login form, and it exercises the same token

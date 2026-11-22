@@ -16,7 +16,7 @@ export default async function PersonaSelectionPage({
   const { user } = await getMeUser()
 
   if (!user) {
-    redirect('/signup')
+    redirect('/login')
   }
 
   const params = await searchParams
