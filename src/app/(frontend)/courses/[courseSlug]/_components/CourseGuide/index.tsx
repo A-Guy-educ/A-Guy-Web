@@ -14,7 +14,6 @@ import {
   BookOpen,
   ClipboardCheck,
   EyeOff,
-  GraduationCap,
   NotebookPen,
   Pencil,
   Sparkles,
@@ -26,6 +25,8 @@ import {
   writeCourseGuideHidden,
 } from '@/client/state/localStorage/courseGuide'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
+import { isPersonaSlug, personaForSlug } from '@/ui/web/privateLesson/teacherPersonas'
+import { TutorPortrait } from '@/ui/web/privateLesson/TutorPortrait'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { buildLessonHref } from '../CourseComposer/courseComposerLinks'
 import type { LessonSearchNode } from '../LessonListTab/lessonRoadmapTypes'
@@ -42,6 +43,8 @@ const ACTIONS: Array<{ action: CourseGuideAction; icon: LucideIcon; labelKey: st
 interface CourseGuideProps {
   courseSlug: string
   teacherLabel: string | null
+  /** The student's teacher profile; picks the portrait (guests get the demo's default). */
+  teacherSlug: string | null
   continueLesson: LessonSearchNode | null
   onAction: (action: CourseGuideAction) => void
   /** The composer: shown under the guide, and on its own when the guide is hidden. */
@@ -51,11 +54,17 @@ interface CourseGuideProps {
 export function CourseGuide({
   courseSlug,
   teacherLabel,
+  teacherSlug,
   continueLesson,
   onAction,
   children,
 }: CourseGuideProps) {
   const t = useTranslations('coursePage.guide')
+  const tp = useTranslations('teacherPersonas')
+  const persona = personaForSlug(teacherSlug)
+  // The demo's three teachers go by the demo's names; any other profile by its own label.
+  const teacherName =
+    isPersonaSlug(teacherSlug) || !teacherLabel ? tp(`${persona}.name`) : teacherLabel
   // null until mounted: reading storage during render would break hydration,
   // and showing the guide first would flash it for students who hid it.
   const [hidden, setHidden] = useState<boolean | null>(null)
@@ -100,12 +109,12 @@ export function CourseGuide({
       </button>
 
       <div className="flex flex-col items-center text-center">
-        <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center shadow-elevation-1">
-          <GraduationCap className="w-10 h-10 text-primary" aria-hidden="true" />
-        </div>
-        {teacherLabel && (
-          <span className="mt-1 text-body-sm text-muted-foreground">{teacherLabel}</span>
-        )}
+        <TutorPortrait
+          persona={persona}
+          label={tp('portraitLabel').replace('{name}', teacherName)}
+          winkTitle={tp('wink')}
+        />
+        <span className="mt-1 text-body-sm text-muted-foreground">{teacherName}</span>
         <h2
           id="course-guide-title"
           className="mt-4 text-heading-xl md:text-display-sm font-black text-foreground"

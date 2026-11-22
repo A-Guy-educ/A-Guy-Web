@@ -78,7 +78,7 @@ export function CoursePageContent({
   )
 
   const { user } = useCurrentUser()
-  const { label: teacherLabel } = useTeacherProfileLabel(Boolean(user))
+  const { label: teacherLabel, slug: teacherSlug } = useTeacherProfileLabel(Boolean(user))
   const composerRef = useRef<CourseComposerHandle>(null)
   const continueLesson = useMemo(
     () => pickContinueLesson(searchNodes, lessonProgressMap),
@@ -134,6 +134,7 @@ export function CoursePageContent({
           <CourseGuide
             courseSlug={courseSlug}
             teacherLabel={teacherLabel}
+            teacherSlug={teacherSlug}
             continueLesson={continueLesson}
             onAction={handleGuideAction}
           >

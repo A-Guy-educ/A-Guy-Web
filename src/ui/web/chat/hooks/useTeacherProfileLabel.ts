@@ -4,20 +4,23 @@ import { useEffect, useState } from 'react'
 
 interface TeacherProfileLabel {
   label: string | null
+  slug: string | null
   isLoading: boolean
 }
 
 /**
- * Fetches the authenticated user's selected teacher profile label.
+ * Fetches the authenticated user's selected teacher profile label and slug.
  * Returns null for guests or when no profile is selected.
  */
 export function useTeacherProfileLabel(isAuthenticated: boolean): TeacherProfileLabel {
   const [label, setLabel] = useState<string | null>(null)
+  const [slug, setSlug] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     if (!isAuthenticated) {
       setLabel(null)
+      setSlug(null)
       return
     }
 
@@ -38,6 +41,7 @@ export function useTeacherProfileLabel(isAuthenticated: boolean): TeacherProfile
         const data = await res.json()
         if (controller.signal.aborted) return
         setLabel(data.settings?.teacherProfile?.label ?? null)
+        setSlug(data.settings?.teacherProfile?.slug ?? null)
       } catch {
         if (!controller.signal.aborted) setLabel(null)
       } finally {
@@ -49,5 +53,5 @@ export function useTeacherProfileLabel(isAuthenticated: boolean): TeacherProfile
     return () => controller.abort()
   }, [isAuthenticated])
 
-  return { label, isLoading }
+  return { label, slug, isLoading }
 }

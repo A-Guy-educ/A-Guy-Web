@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it } from 'vitest'
 
 import { TIER_PRICE_ILS } from '@/lib/tiers'
 import { PrivateLessonLanding } from '@/ui/web/homepage/PrivateLessonLanding'
@@ -9,11 +9,7 @@ import { I18nProvider } from '@/ui/web/providers/I18n'
 
 import heMessages from '../../../src/i18n/he.json'
 
-function renderLanding(profiles: unknown[]) {
-  vi.stubGlobal(
-    'fetch',
-    vi.fn().mockResolvedValue(new Response(JSON.stringify({ profiles }), { status: 200 })),
-  )
+function renderLanding() {
   return render(
     <I18nProvider locale="he" messages={heMessages}>
       <PrivateLessonLanding />
@@ -22,34 +18,59 @@ function renderLanding(profiles: unknown[]) {
 }
 
 describe('PrivateLessonLanding', () => {
-  afterEach(() => {
-    cleanup()
-    vi.unstubAllGlobals()
-  })
+  afterEach(cleanup)
 
-  it('shows the real basic-tier price, not a hardcoded one', () => {
-    renderLanding([])
+  it('shows the real basic-tier price, not the demo one', () => {
+    renderLanding()
     expect(
       screen.getByRole('heading', { name: `חודש עם Aguy ב־${TIER_PRICE_ILS.basic} ₪` }),
     ).toBeTruthy()
     expect(
       screen.getByRole('link', { name: `מתחילים חודש ב־${TIER_PRICE_ILS.basic} ₪` }),
     ).toHaveProperty('pathname', '/subscriptions')
+    expect(
+      screen.getByText(
+        `אפשר להתחיל בחינם. מסלולים בתשלום: ${TIER_PRICE_ILS.basic}, ${TIER_PRICE_ILS.advanced} או ${TIER_PRICE_ILS.premium} ₪ בחודש.`,
+      ),
+    ).toBeTruthy()
   })
 
-  it('sends a picked teacher on to /start with the teacher preselected', async () => {
-    renderLanding([{ slug: 'digger', label: 'החופר', description: 'בקטע טוב' }])
-    const card = await screen.findByRole('link', { name: /החופר/ })
-    expect(card.getAttribute('href')).toBe('/start?teacher=digger')
+  it('shows the demo student photo', () => {
+    renderLanding()
+    const photo = screen.getByRole('img', { name: /תלמידה פותרת תרגיל/ })
+    expect(photo.getAttribute('src')).toContain('independent-student.webp')
   })
 
-  it('falls back to a plain start link when no teachers load', async () => {
-    renderLanding([])
-    await screen.findByText('המורים יעלו בעוד רגע. אפשר גם להתחיל ישר:')
-    const hrefs = screen
-      .getAllByRole('link', { name: 'מתחילים בחינם' })
-      .map((a) => a.getAttribute('href'))
-    expect(hrefs).toContain('/start')
+  it('swaps the portrait and line when another teacher is picked', () => {
+    renderLanding()
+    const portrait = screen.getByRole('img', { name: 'החופר, המורה הפרטי' })
+    expect(portrait.dataset.teacher).toBe('detailed')
+    expect(screen.getByRole('link', { name: 'ממשיכים עם המורה שבחרתם' }).getAttribute('href')).toBe(
+      '/start?teacher=teacher_patient',
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /הממוקדת/ }))
+
+    expect(screen.getByRole('img', { name: 'הממוקדת, המורה הפרטי' }).dataset.teacher).toBe(
+      'focused',
+    )
+    expect(screen.getByText('אין זמן לבזבז. נעשה בדיוק מה שצריך.')).toBeTruthy()
+    expect(screen.getByRole('button', { name: /הממוקדת/ }).getAttribute('aria-pressed')).toBe(
+      'true',
+    )
+    expect(screen.getByRole('link', { name: 'ממשיכים עם המורה שבחרתם' }).getAttribute('href')).toBe(
+      '/start?teacher=teacher_focused',
+    )
+  })
+
+  it('sends the free and comparison CTAs to /start', () => {
+    renderLanding()
+    expect(screen.getByRole('link', { name: 'אפשר גם להתחיל בחינם' }).getAttribute('href')).toBe(
+      '/start',
+    )
+    expect(screen.getByRole('link', { name: 'נכנסים לשיעור הפרטי שלי' }).getAttribute('href')).toBe(
+      '/start',
+    )
   })
 })
 

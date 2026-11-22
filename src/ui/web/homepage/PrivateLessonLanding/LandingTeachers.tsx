@@ -1,84 +1,76 @@
 'use client'
 
-import { GraduationCap } from 'lucide-react'
-import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { Fragment, useState } from 'react'
 
-import { PRIMARY_CTA_CLASS, SectionHeading, START_PAGE_HREF, type Translate } from './landingShared'
+import {
+  PERSONA_PROFILE_SLUG,
+  TEACHER_PERSONAS,
+  type TeacherPersona,
+} from '@/ui/web/privateLesson/teacherPersonas'
 
-interface TeacherCard {
-  slug: string
-  label: string
-  description: string
-}
+import { fill, startWithTeacherHref, type Translate } from './landingShared'
 
 /**
- * Picking a teacher continues in /start with that teacher preselected, which
- * goes straight to choosing a course and only then asks the visitor to sign in.
+ * "איזה מורה מתאים לכם?" — three teacher cards and a big portrait with the
+ * picked teacher's line. Continuing opens /start on the class step.
  */
-export function LandingTeachers({ t }: { t: Translate }) {
-  const [teachers, setTeachers] = useState<TeacherCard[] | null>(null)
-
-  useEffect(() => {
-    const controller = new AbortController()
-    fetch('/api/teacher-profiles', { signal: controller.signal })
-      .then((res) => (res.ok ? res.json() : { profiles: [] }))
-      .then((data: { profiles?: TeacherCard[] }) => setTeachers(data.profiles ?? []))
-      .catch(() => {
-        if (!controller.signal.aborted) setTeachers([])
-      })
-    return () => controller.abort()
-  }, [])
+export function LandingTeachers({ t, tp }: { t: Translate; tp: Translate }) {
+  const [picked, setPicked] = useState<TeacherPersona>('detailed')
+  const name = tp(`${picked}.name`)
+  const quoteLines = tp(`${picked}.quote`).split('\n')
 
   return (
-    <section id="teachers" className="scroll-mt-20 px-4 py-section-xl">
-      <div className="mx-auto max-w-6xl">
-        <SectionHeading title={t('teachers.title')} description={t('teachers.description')} />
+    <section className="mentors wrap" id="teachers" aria-labelledby="mentors-title">
+      <div className="mentor-copy">
+        <h2 id="mentors-title">{t('teachers.title')}</h2>
+        <p className="section-copy">{t('teachers.description')}</p>
+        <div className="mentor-picks" role="group" aria-label={t('teachers.pickLabel')}>
+          {TEACHER_PERSONAS.map((persona) => (
+            <button
+              key={persona}
+              type="button"
+              className="mentor-pick"
+              aria-pressed={picked === persona}
+              onClick={() => setPicked(persona)}
+            >
+              <span className="pl-avatar" data-teacher={persona} aria-hidden="true" />
+              <strong>{tp(`${persona}.name`)}</strong>
+              <span>{tp(`${persona}.tagline`)}</span>
+            </button>
+          ))}
+        </div>
+        <a className="mentor-start" href={startWithTeacherHref(PERSONA_PROFILE_SLUG[picked])}>
+          {t('teachers.continue')}
+        </a>
+      </div>
 
-        {teachers === null && (
-          <div className="grid gap-content-gap-lg md:grid-cols-3" aria-hidden>
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="h-56 animate-pulse rounded-3xl bg-muted" />
-            ))}
+      <div className="hero-visual">
+        <div className="portrait-field">
+          <span className="scribble">{t('teachers.hello')}</span>
+          <div
+            className="pl-avatar hero-teacher"
+            data-teacher={picked}
+            role="img"
+            aria-label={fill(t('teachers.portraitLabel'), { name })}
+          />
+          <div className="name-tag">
+            <b>{name}</b>
+            <span>{tp(`${picked}.tagline`)}.</span>
           </div>
-        )}
-
-        {teachers?.length === 0 && (
-          <div className="text-center">
-            <p className="mb-4 text-body-lg text-muted-foreground">{t('teachers.empty')}</p>
-            <Link href={START_PAGE_HREF} className={PRIMARY_CTA_CLASS}>
-              {t('teachers.startAnyway')}
-            </Link>
-          </div>
-        )}
-
-        {teachers && teachers.length > 0 && (
-          <ul className="grid gap-content-gap-lg md:grid-cols-3">
-            {teachers.map((teacher) => (
-              <li key={teacher.slug}>
-                <Link
-                  href={`${START_PAGE_HREF}?teacher=${encodeURIComponent(teacher.slug)}`}
-                  className="group flex h-full flex-col items-center rounded-3xl border border-border bg-card p-card-padding text-center shadow-elevation-1 transition-all duration-normal hover:-translate-y-1 hover:border-primary hover:shadow-elevation-3"
-                >
-                  <span className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-                    <GraduationCap className="h-10 w-10 text-primary" aria-hidden />
-                  </span>
-                  <h3 className="mt-4 text-heading-xl font-bold text-foreground">
-                    {teacher.label}
-                  </h3>
-                  {teacher.description && (
-                    <p className="mt-2 flex-1 text-body-md text-muted-foreground">
-                      {teacher.description}
-                    </p>
-                  )}
-                  <span className="mt-5 rounded-full bg-primary px-5 py-2 text-body-sm font-bold text-primary-foreground transition-opacity group-hover:opacity-90">
-                    {t('teachers.choose')}
-                  </span>
-                </Link>
-              </li>
+        </div>
+        <div className="speech">
+          <span className="quote-mark" aria-hidden="true">
+            ״
+          </span>
+          <p>
+            {quoteLines.map((line, index) => (
+              <Fragment key={index}>
+                {index > 0 && <br />}
+                {line}
+              </Fragment>
             ))}
-          </ul>
-        )}
+          </p>
+        </div>
       </div>
     </section>
   )
