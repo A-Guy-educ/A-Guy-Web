@@ -5,6 +5,7 @@
  *   .pl-landing     the public landing page at /
  *   .pl-onboarding  the teacher → class card at /start
  *   .pl-avatar      teacher photos and the animated tutor portrait
+ * The course page (.pl-hub) is in private-lesson-hub.css.
  * Colors are the `--pl-*` tokens in src/app/(frontend)/privatelesson-tokens.css.
  * The demo is light-only, so is this.
  */

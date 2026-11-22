@@ -1,14 +1,8 @@
 // @vitest-environment jsdom
-import { beforeEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
-import { pickContinueLesson } from '@/app/(frontend)/courses/[courseSlug]/_components/CourseGuide/pickContinueLesson'
+import { pickContinueLesson } from '@/app/(frontend)/courses/[courseSlug]/_components/CourseHub/pickContinueLesson'
 import type { LessonSearchNode } from '@/app/(frontend)/courses/[courseSlug]/_components/LessonListTab/lessonRoadmapTypes'
-import {
-  COURSE_GUIDE_HIDDEN_KEY,
-  readCourseGuideHidden,
-  writeCourseGuideHidden,
-} from '@/client/state/localStorage/courseGuide'
-import { USER_SCOPED_KEY_PREFIXES } from '@/client/state/localStorage/userScopedStorage'
 import type { Lesson } from '@/infra/types/content'
 
 function node(id: string, lessonType: LessonSearchNode['lessonType'] = 'learning') {
@@ -42,21 +36,5 @@ describe('pickContinueLesson', () => {
   it('ignores practice progress and returns null when everything is done', () => {
     expect(pickContinueLesson(nodes, progress({ p1: 50 }))).toBeNull()
     expect(pickContinueLesson(nodes, progress({ l1: 100, l2: 100, l3: 100, l4: 100 }))).toBeNull()
-  })
-})
-
-describe('course guide hidden flag', () => {
-  beforeEach(() => localStorage.clear())
-
-  it('round-trips and clears', () => {
-    expect(readCourseGuideHidden()).toBe(false)
-    writeCourseGuideHidden(true)
-    expect(readCourseGuideHidden()).toBe(true)
-    writeCourseGuideHidden(false)
-    expect(readCourseGuideHidden()).toBe(false)
-  })
-
-  it('is wiped when another student signs in on the same computer', () => {
-    expect(USER_SCOPED_KEY_PREFIXES.some((p) => COURSE_GUIDE_HIDDEN_KEY.startsWith(p))).toBe(true)
   })
 })

@@ -1,7 +1,8 @@
 /* Private-lesson palette: the boss's demo (aguy-private-lesson-demo), used by
-   the landing page at /, the /start onboarding card and the teacher portraits.
+   the landing page at /, the /start onboarding card, the course page and the
+   teacher portraits.
    Light-only by design, like the demo, so these tokens have no dark overrides.
-   Consumed by src/ui/web/privateLesson/private-lesson.css. */
+   Consumed by src/ui/web/privateLesson/private-lesson*.css. */
 @layer base {
   :root {
     --pl-paper: 0 0% 100%; /* #FFFFFF */
@@ -61,5 +62,50 @@
     --pl-track-selected: 326 62% 95%; /* #FAEAF3 */
     --pl-track-selected-ink: 327 82% 35%; /* #A11060 */
     --pl-track-focus: 326 51% 70%; /* #D98AB7 */
+    --pl-hub-pink: 327 81% 39%; /* #B5136B */
+    --pl-hub-pill-line: 240 7% 91%; /* #E7E7EA */
+    --pl-hub-pill-hover: 324 56% 98%; /* #FDF8FB */
+    --pl-hub-icon-hover: 240 5% 96%; /* #F4F4F5 */
+    --pl-hub-course: 314 7% 35%; /* #61545E */
+    --pl-hub-portrait: 327 44% 95%; /* #F8EDF3 */
+    --pl-hub-portrait-line: 323 30% 92%; /* #F0E3EB */
+    --pl-hub-portrait-shadow: 336 56% 35%; /* #8C2850 */
+    --pl-hub-teacher-name: 324 14% 45%; /* #846477 */
+    --pl-hub-continue-label: 240 5% 34%; /* #53535B */
+    --pl-hub-continue-hover: 326 54% 97%; /* #FCF5F9 */
+    --pl-hub-continue-ink: 328 81% 31%; /* #8D0F53 */
+    --pl-hub-entry-line: 300 8% 91%; /* #E9E5E9 */
+    --pl-hub-entry-hover: 330 50% 98%; /* #FDF9FB */
+    --pl-hub-entry-line-hover: 325 32% 78%; /* #D8B4C9 */
+    --pl-hub-entry-shadow: 326 57% 31%; /* #7B2255 */
+    --pl-hub-entry-active: 326 50% 95%; /* #F8EAF2 */
+    --pl-hub-entry-icon: 330 50% 97%; /* #FBF3F7 */
+    --pl-hub-spotlight-line: 328 39% 79%; /* #DFB6CC */
+    --pl-hub-spotlight-line-peak: 327 43% 55%; /* #BD5A90 */
+    --pl-hub-spotlight: 324 100% 99%; /* #FFFAFD */
+    --pl-hub-composer-line: 240 6% 91%; /* #E6E6E9 */
+    --pl-hub-composer: 240 7% 97%; /* #F7F7F8 */
+    --pl-hub-placeholder: 240 3% 61%; /* #99999F */
+    --pl-hub-talking: 328 57% 95%; /* #FAEDF4 */
+    --pl-hub-attachment-ink: 240 3% 46%; /* #73737A */
+    --pl-hub-count: 240 4% 61%; /* #9999A0 */
+    --pl-hub-info: 240 4% 56%; /* #8A8A92 */
+    --pl-hub-card-line: 240 6% 93%; /* #ECECEE */
+    --pl-hub-track: 300 9% 94%; /* #F0EDF0 */
+    --pl-hub-tab-line: 323 26% 87%; /* #E6D4DF */
+    --pl-hub-tab: 324 38% 97%; /* #FBF6F9 */
+    --pl-hub-filter: 328 45% 94%; /* #F7EAF1 */
+    --pl-hub-filter-line: 327 42% 70%; /* #D393B6 */
+    --pl-hub-chapter-line: 270 7% 88%; /* #E1DFE3 */
+    --pl-hub-chapter: 240 11% 98%; /* #FAFAFB */
+    --pl-hub-chapter-ring: 240 6% 87%; /* #DCDCE0 */
+    --pl-hub-chapter-icon: 252 4% 53%; /* #83818B */
+    --pl-hub-chapter-meta: 270 4% 53%; /* #86818B */
+    --pl-hub-chapter-count: 270 4% 52%; /* #85808A */
+    --pl-hub-chapter-track: 240 10% 94%; /* #EEEEF1 */
+    --pl-hub-chapter-divider: 312 8% 88%; /* #E4DFE3 */
+    --pl-hub-muted: 240 2% 53%; /* #85858A */
+    --pl-hub-link: 240 4% 60%; /* #94949C */
+    --pl-hub-link-line: 240 9% 94%; /* #EDEDF0 */
   }
 }

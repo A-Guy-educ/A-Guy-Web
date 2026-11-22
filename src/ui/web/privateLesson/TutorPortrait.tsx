@@ -24,18 +24,25 @@ interface TutorPortraitProps {
   label: string
   /** Wink hint for the clickable portrait. */
   winkTitle: string
+  /** A first hello this long after mounting (the demo greets as the welcome arrives). */
+  greetAfterMs?: number
 }
 
-export function TutorPortrait({ persona, label, winkTitle }: TutorPortraitProps) {
+export function TutorPortrait({ persona, label, winkTitle, greetAfterMs }: TutorPortraitProps) {
   const [motion, setMotion] = useState<Motion>(null)
   const canWink = persona === 'detailed'
 
   useEffect(() => {
-    const timer = window.setInterval(() => {
+    const hello = () => {
       if (!document.hidden) setMotion('quiet-hello')
-    }, HELLO_EVERY_MS)
-    return () => window.clearInterval(timer)
-  }, [])
+    }
+    const first = greetAfterMs === undefined ? undefined : window.setTimeout(hello, greetAfterMs)
+    const timer = window.setInterval(hello, HELLO_EVERY_MS)
+    return () => {
+      window.clearTimeout(first)
+      window.clearInterval(timer)
+    }
+  }, [greetAfterMs])
 
   const wink = () => setMotion('wink-hello')
 
