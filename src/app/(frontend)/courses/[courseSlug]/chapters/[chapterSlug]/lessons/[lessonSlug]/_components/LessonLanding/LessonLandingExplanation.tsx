@@ -6,6 +6,7 @@ import { splitExplanationBullets } from '@/lib/lessons/splitExplanationBullets'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { MathMarkdown } from '@/ui/web/shared/MathMarkdown'
 
+import { LessonLandingBulletList } from './LessonLandingBulletList'
 import { LessonLandingSection } from './LessonLandingSection'
 
 interface LessonLandingExplanationProps {
@@ -32,13 +33,7 @@ export function LessonLandingExplanation({
       <div className="grid gap-content-gap-sm md:grid-cols-[minmax(0,1.5fr)_minmax(0,0.8fr)]">
         {bullets.length > 0 ? (
           <div className="rounded-xl border border-border bg-card p-card-padding">
-            <ul className="list-disc space-y-2 ps-5 text-body-md leading-relaxed text-foreground marker:text-primary">
-              {bullets.map((bullet, index) => (
-                <li key={index}>
-                  <MathMarkdown content={bullet} />
-                </li>
-              ))}
-            </ul>
+            <LessonLandingBulletList bullets={bullets} />
           </div>
         ) : null}
         {commonMistakes ? (

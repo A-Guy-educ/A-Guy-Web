@@ -1,4 +1,5 @@
 export { LessonLandingExplanation } from './LessonLandingExplanation'
+export { LessonLandingFormulas } from './LessonLandingFormulas'
 export { LessonLandingHero } from './LessonLandingHero'
 export { LessonLandingPractice } from './LessonLandingPractice'
 export { LessonLandingRelated } from './LessonLandingRelated'

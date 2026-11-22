@@ -32,6 +32,7 @@ import type { LessonMode } from '../DualModeLessonView/useLessonViewMode'
 import { EmptyLessonPlaceholder } from '../EmptyLessonPlaceholder'
 import {
   LessonLandingExplanation,
+  LessonLandingFormulas,
   LessonLandingHero,
   LessonLandingPractice,
   LessonLandingRelated,
@@ -404,6 +405,7 @@ export function LessonIntroPage({
             explanation={lesson.publicExplanation}
             commonMistakes={lesson.commonMistakes}
           />
+          <LessonLandingFormulas formulas={lesson.formulas} />
           <LessonLandingWorkedExample
             example={landing.workedExample}
             fallbackText={lesson.examples}
