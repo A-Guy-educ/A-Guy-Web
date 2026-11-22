@@ -2,8 +2,8 @@
  * Chat-style composer above the course tabs. Live-filters lessons on every
  * keystroke; a sentence-like request or a homework photo goes to Gemini,
  * which answers with linked lessons and a next step (Ask for homework, the
- * exams tab for test prep). PDFs, and photos from signed-out visitors, go
- * straight to Ask as before.
+ * exams tab for test prep). PDFs go straight to Ask as before; signed-out
+ * visitors are sent to log in before anything is uploaded.
  *
  * @fileType component
  * @domain frontend
@@ -12,8 +12,7 @@
 
 import { ArrowUp, Loader2, Plus, Search, Upload, X } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useRef } from 'react'
-import { useCurrentUser } from '@/client/hooks/useCurrentUser'
+import { useEffect, useImperativeHandle, useRef, type Ref } from 'react'
 import { cn } from '@/infra/utils/ui'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
@@ -35,6 +34,14 @@ interface CourseComposerProps {
   courseTitle: string
   activeTab: CourseTab
   onTabChange: (tab: CourseTab) => void
+  isSignedIn: boolean
+  ref?: Ref<CourseComposerHandle>
+}
+
+/** Lets the course guide's starting points drive the composer. */
+export interface CourseComposerHandle {
+  focus: () => void
+  openPhotoPicker: () => void
 }
 
 const MAX_CHIPS = 3
@@ -52,6 +59,8 @@ export function CourseComposer({
   courseTitle,
   activeTab,
   onTabChange,
+  isSignedIn,
+  ref,
 }: CourseComposerProps) {
   const t = useTranslations('coursePage.composer')
   const tPage = useTranslations('coursePage')
@@ -62,14 +71,17 @@ export function CourseComposer({
 
   const router = useRouter()
   const pathname = usePathname()
-  const { user } = useCurrentUser()
   const composer = useCourseComposerState({ nodes, courseTitle, locale, activeTab })
   const { query, setQuery, filtered, attachment, selectedIdx, setSelectedIdx } = composer
 
-  // Photo suggestions need an account (the route requires one); PDFs and
-  // signed-out visitors keep the direct Ask handoff.
+  // Uploads and Ask rooms belong to an account, so a signed-out student signs
+  // in first and comes back here.
+  const goToLogin = () => router.push(`/login?returnTo=${encodeURIComponent(pathname)}`)
+
+  // Photos get lesson suggestions first; PDFs go straight to Ask.
   const handleFile = (file: File) => {
-    if (user && isSuggestableImage(file)) composer.attachPhoto(file)
+    if (!isSignedIn) goToLogin()
+    else if (isSuggestableImage(file)) composer.attachPhoto(file)
     else void uploadFile(file, query)
   }
 
@@ -86,11 +98,9 @@ export function CourseComposer({
     failureLabel: t('dropFailed'),
   })
 
-  // Ask rooms belong to an account, so a signed-out student signs in first
-  // and comes back here.
   const solveInAsk = () => {
-    if (!user) {
-      router.push(`/login?returnTo=${encodeURIComponent(pathname)}`)
+    if (!isSignedIn) {
+      goToLogin()
       return
     }
     if (attachment) void uploadFile(attachment.file, query)
@@ -106,6 +116,11 @@ export function CourseComposer({
       void composer.send()
     }
   }
+
+  useImperativeHandle(ref, () => ({
+    focus: () => textareaRef.current?.focus(),
+    openPhotoPicker: () => (isSignedIn ? fileInputRef.current?.click() : goToLogin()),
+  }))
 
   const activeColor = TAB_COLORS[activeTab]
   const placeholderKey =

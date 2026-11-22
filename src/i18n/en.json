@@ -984,6 +984,18 @@
       "title": "Your teacher hasn’t opened this lesson yet",
       "message": "It will appear here as soon as your teacher opens it for your class.",
       "back": "Back to the course"
+    },
+    "guide": {
+      "greeting": "Hey there, what are we doing today?",
+      "continue": "Continue:",
+      "hide": "Hide",
+      "show": "What are we doing today?",
+      "actions": {
+        "homework": "Homework",
+        "learn": "Learn from scratch",
+        "practice": "Practice a topic",
+        "exams": "Prepare for an exam"
+      }
     }
   },
   "stats": {
