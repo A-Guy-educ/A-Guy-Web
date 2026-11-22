@@ -1,6 +1,7 @@
 'use client'
 
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
+import { takeAskPendingQuestion } from '@/client/state/sessionStorage/askPendingQuestion'
 import { interactiveLessonToGuidedExplanation } from '@/infra/llm/services/interactive-lesson/lesson-to-guided-explanation'
 import { GuidedExplanationRunner } from '@/ui/web/GuidedExplanationRunner'
 import { LessonNotebookPane } from '@/ui/web/notebook/LessonNotebookPane'
@@ -25,6 +26,7 @@ import {
   ASK_MEDIA_ATTACH_EVENT,
   ASK_MEDIA_CLEAR_EVENT,
   ASK_MEDIA_RESTORE_EVENT,
+  ASK_QUESTION_PREFILL_EVENT,
   getAskPendingMediaKey,
 } from '../ask-types'
 import { AskExerciseCard } from '../AskExerciseCard'
@@ -147,6 +149,17 @@ export function AskPrimaryContent({ contextKey }: AskPrimaryContentProps) {
     })
     queueMicrotask(() => {
       dispatchMediaAttach({ mediaId, filename })
+    })
+  }, [contextKey])
+
+  // Question typed in the course composer before the handoff. Deferred like
+  // the media attach above so ChatInterface's listener is mounted.
+  useEffect(() => {
+    if (!contextKey) return
+    const question = takeAskPendingQuestion(contextKey)
+    if (!question) return
+    queueMicrotask(() => {
+      window.dispatchEvent(new CustomEvent(ASK_QUESTION_PREFILL_EVENT, { detail: { question } }))
     })
   }, [contextKey])
 

@@ -942,11 +942,15 @@
       "thinking": "Thinking…",
       "noLessonsFallback": "Sorry, no lessons seem to fit in this course.",
       "suggestError": "Couldn’t reach the assistant. Please try again.",
-      "dropHint": "Drop an image or PDF to open it in Ask",
+      "dropHint": "Drop a homework photo or PDF",
       "dropUploading": "Uploading your file…",
       "dropInvalidType": "Only images and PDFs can be dropped here",
       "dropFailed": "Upload failed. Please try again.",
-      "attachFile": "Attach an image or PDF"
+      "attachFile": "Attach an image or PDF",
+      "solveInAsk": "Solve it together in Ask",
+      "openExams": "See all exams",
+      "removePhoto": "Remove photo",
+      "photoAttached": "Homework photo"
     },
     "moreCourses": "More courses",
     "loading": "Loading...",

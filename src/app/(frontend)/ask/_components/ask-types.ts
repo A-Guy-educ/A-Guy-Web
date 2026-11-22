@@ -67,6 +67,8 @@ export const ASK_ACTION_EVENT = 'ask-action' as const
 export const ASK_MEDIA_ATTACH_EVENT = 'ask-media-attach' as const
 export const ASK_MEDIA_RESTORE_EVENT = 'ask-media-restore' as const
 export const ASK_MEDIA_CLEAR_EVENT = 'ask-media-clear' as const
+/** Prefills the chat input with a question handed off from the course composer. */
+export const ASK_QUESTION_PREFILL_EVENT = 'ask-question-prefill' as const
 export const ASK_STEP_CONTEXT_EVENT = 'ask-step-context' as const
 
 /**

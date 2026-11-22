@@ -942,11 +942,15 @@
       "thinking": "חושב…",
       "noLessonsFallback": "מצטער, לא נמצאו שיעורים שמתאימים בקורס הזה.",
       "suggestError": "לא הצלחתי להתחבר לעוזר. נסה שוב.",
-      "dropHint": "שחרר כאן תמונה או PDF כדי לפתוח ב-Ask",
+      "dropHint": "שחרר כאן צילום של שיעורי בית או PDF",
       "dropUploading": "מעלה את הקובץ…",
       "dropInvalidType": "אפשר לגרור רק תמונות או קובצי PDF",
       "dropFailed": "ההעלאה נכשלה. נסה שוב.",
-      "attachFile": "צרף תמונה או PDF"
+      "attachFile": "צרף תמונה או PDF",
+      "solveInAsk": "פותרים את זה יחד ב-Ask",
+      "openExams": "לכל הבחינות",
+      "removePhoto": "הסר תמונה",
+      "photoAttached": "צילום שיעורי בית"
     },
     "moreCourses": "קורסים נוספים",
     "loading": "טוען...",
