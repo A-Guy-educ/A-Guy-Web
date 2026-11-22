@@ -1,96 +1,4 @@
 {
-  "landingPage": {
-    "hero": {
-      "headline": "The world changes faster than any curriculum",
-      "subheadline": "That's why learning has to adapt too",
-      "brand": "Meet Aguy",
-      "role": "A private AI math tutor for elementary, middle, high school, and Bagrut prep",
-      "pitch": "Learn any topic from scratch with a unique pedagogical method, personalized practice, mock exams, and homework help.",
-      "trialCta": "Start learning",
-      "trialCtaNote": "(free)",
-      "loginCta": "Already registered? Sign in"
-    },
-    "value": {
-      "title": "Effective learning that saves time and money",
-      "paragraph1Prefix": "We took tens of thousands of teaching hours, hundreds of thousands of original exercises, and thousands of lesson plans — ",
-      "paragraph1Bold": "and built a professional, patient tutor.",
-      "paragraph2": "Everything is grounded in a unique pedagogy that builds strong learning habits, deep understanding, and the ability to keep learning independently."
-    },
-    "comparison": {
-      "title": "Everything good about a private tutor. Only better.",
-      "description": "We took personal attention, understanding of difficulties, and close guidance, then turned them into accessible smart technology.",
-      "aguy": "Aguy",
-      "tutor": "Regular private tutor",
-      "rows": {
-        "personal": {
-          "label": "Personalized learning",
-          "aguy": "Dynamic diagnosis, monitoring, and feedback.",
-          "tutor": "Mostly available during the private lesson."
-        },
-        "plan": {
-          "label": "Learning plan",
-          "aguy": "Structured and focused around the official curriculum.",
-          "tutor": "Manual, usually built around a weekly hour."
-        },
-        "experience": {
-          "label": "Professional experience",
-          "aguy": "Based on 20+ years of teaching experience.",
-          "tutor": "Depends heavily on the teacher you find."
-        },
-        "emotional": {
-          "label": "Emotional support",
-          "aguy": "Detects frustration and encourages in real time.",
-          "tutor": "Can be excellent, but depends on chemistry and availability."
-        },
-        "cost": {
-          "label": "Cost",
-          "aguy": "Far more affordable than a single private lesson.",
-          "tutor": "Hundreds of shekels per hour."
-        },
-        "availability": {
-          "label": "Question availability",
-          "aguy": "Available 24/7 exactly when students get stuck.",
-          "tutor": "Usually only at scheduled times."
-        }
-      }
-    },
-    "features": {
-      "title": "What's included?",
-      "items": {
-        "lessons": {
-          "title": "1,000 lessons",
-          "description": "Learn any topic from scratch in a short time."
-        },
-        "exercises": {
-          "title": "500 practice sets",
-          "description": "Original exercises for every level, from basics to challenge."
-        },
-        "exams": {
-          "title": "500 exams",
-          "description": "Simulations for the school year and Bagrut prep."
-        },
-        "teacher": {
-          "title": "Math tutor",
-          "description": "Ask questions and get your answers checked instantly."
-        },
-        "plan": {
-          "title": "Learning plan",
-          "description": "Build a focused plan for an upcoming exam."
-        },
-        "emotional": {
-          "title": "Special features",
-          "description": "Extra tools that support the learning journey."
-        }
-      }
-    },
-    "cta": {
-      "title": "Anyone can learn math on their own.",
-      "description": "Start with a system that guides, explains, and encourages at every step.",
-      "trial": "Start learning",
-      "trialNote": "(free)",
-      "loginCta": "Already registered? Click here to sign in"
-    }
-  },
   "landing": {
     "hero": {
       "badge": "Your digital math teacher",
@@ -1584,6 +1492,136 @@
     },
     "footer": {
       "copyright": "© 2024 Aguy. All rights reserved."
+    }
+  },
+  "privateLessonLanding": {
+    "hero": {
+      "badge": "Built from 50,000 private lessons",
+      "headline": "7 hours of math a week.",
+      "question": "So why does your child still need a private tutor?",
+      "prep": "15 minutes of prep with Aguy before the lesson.",
+      "benefit": "More understanding in class. Less catching up at home.",
+      "cta": "Start for free",
+      "login": "I already have an account"
+    },
+    "offer": {
+      "eyebrow": "Learn to learn on your own. Save on private lessons.",
+      "headline": "A month with Aguy for ₪{price}",
+      "guarantee": "Didn't work for you? Money back.",
+      "cta": "Start a month for ₪{price}",
+      "free": "You can also start for free",
+      "whatsapp": "Book a fit call with a teacher",
+      "whatsappMessage": "Hi, I'd like to book a short call to get to know Aguy and see if it fits my child."
+    },
+    "objection": {
+      "quote": "“There's no way my child will learn like this.”",
+      "heard": "Many students who use Aguy today said exactly that.",
+      "answer": "You don't need to know how to learn on your own to start — that's exactly what you learn here.",
+      "how": "We start from your child's level, even the very basics, with guiding questions, hints when stuck, and encouragement along the way."
+    },
+    "method": {
+      "title": "See how learning works here",
+      "description": "Try on your own, get guidance when you need it, and work your way to the solution.",
+      "steps": {
+        "try": {
+          "title": "Try on your own",
+          "description": "Every exercise starts with the student's thinking, not the answer."
+        },
+        "hint": {
+          "title": "A hint when stuck",
+          "description": "A guiding question or a small hint — just enough to keep going."
+        },
+        "solve": {
+          "title": "Reach the solution",
+          "description": "Solve it all the way and understand why it worked."
+        }
+      }
+    },
+    "teachers": {
+      "title": "Which teacher fits you?",
+      "description": "Same goal. Each in their own way.",
+      "choose": "Continue with this teacher",
+      "empty": "Teachers will load in a moment. You can also start right away:",
+      "startAnyway": "Start for free"
+    },
+    "learn": {
+      "title": "What do you learn with the teacher?",
+      "description": "From homework to exam prep — in one place.",
+      "items": {
+        "homework": {
+          "title": "Homework",
+          "description": "Snap it. Attach it. Start."
+        },
+        "fromScratch": {
+          "title": "Learn from scratch",
+          "description": "Understand the basics, come to class ready."
+        },
+        "practice": {
+          "title": "Practice a topic",
+          "description": "Strengthen what needs it."
+        },
+        "exam": {
+          "title": "Prepare for an exam",
+          "description": "A plan, exams and matriculation exams."
+        }
+      },
+      "adaptive": "Learning that adapts to you.",
+      "adaptiveDetail": "Tuned to 16 student types, and sharper with every question."
+    },
+    "comparison": {
+      "title": "And what about the price?",
+      "description": "Aguy's private teacher vs. a regular private tutor.",
+      "aguy": "Aguy — digital private teacher",
+      "tutor": "Regular private tutor",
+      "rows": {
+        "learning": {
+          "label": "Learning style",
+          "aguy": "Active",
+          "tutor": "Mostly passive"
+        },
+        "independence": {
+          "label": "Independence",
+          "aguy": "Builds independence",
+          "tutor": "Can create dependence"
+        },
+        "cost": {
+          "label": "Monthly cost",
+          "aguy": "From ₪{price}",
+          "tutor": "₪400–1,000"
+        },
+        "time": {
+          "label": "Time saved",
+          "aguy": "Ready for class, less study at home",
+          "tutor": "Extra study after class"
+        },
+        "availability": {
+          "label": "Availability",
+          "aguy": "Anytime, anywhere, on mobile too",
+          "tutor": "Depends on the tutor"
+        },
+        "expertise": {
+          "label": "Expertise",
+          "aguy": "Experience from 50,000 lessons",
+          "tutor": "Depends on the tutor"
+        },
+        "fit": {
+          "label": "Personal fit",
+          "aguy": "Diagnosis and feedback on every question",
+          "tutor": "Depends on the tutor's skill"
+        },
+        "content": {
+          "label": "Content",
+          "aguy": "All the material plus simulation exams",
+          "tutor": "The tutor's own materials"
+        }
+      },
+      "plans": "You can start for free. Paid plans: ₪{basic}, ₪{advanced} or ₪{premium} a month.",
+      "cta": "Enter my private lesson"
+    },
+    "closing": {
+      "title": "Pick a teacher and a grade, and start.",
+      "tagline": "The world is changing. So is the way we learn.",
+      "cta": "Start for free"
     }
   }
 }

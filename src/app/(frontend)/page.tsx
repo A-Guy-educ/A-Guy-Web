@@ -1,4 +1,4 @@
-import { DemoLandingPage } from '@/ui/web/homepage/DemoLandingPage'
+import { PrivateLessonLanding } from '@/ui/web/homepage/PrivateLessonLanding'
 import { resolveLandingRedirect } from '@/infra/onboarding/homeRedirect'
 import { getMeUser } from '@/infra/utils/getMeUser'
 import { mergeOpenGraph } from '@/infra/utils/mergeOpenGraph'
@@ -13,7 +13,7 @@ export default async function HomepagePage() {
     redirect(destination)
   }
 
-  return <DemoLandingPage />
+  return <PrivateLessonLanding />
 }
 
 // Title shown in the browser tab and in WhatsApp / Facebook link previews.
