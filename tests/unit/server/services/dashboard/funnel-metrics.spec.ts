@@ -14,12 +14,14 @@ import {
   buildSignupFunnelPipeline,
   buildVisitorFunnelPipeline,
   emptySignupFunnel,
+  toActiveDaysHistogram,
   toFunnelMetrics,
 } from '@/server/services/dashboard/funnel-metrics'
 import { FUNNEL_EVENTS_TRACKED_SINCE } from '@/server/services/dashboard/funnel-types'
 import type { UserCohort } from '@/server/services/dashboard/user-segment'
 
 const SINCE = new Date('2026-10-19T00:00:00.000Z')
+const NOW = new Date('2026-11-19T00:00:00.000Z')
 const ADMINS = ['admin-1']
 const B2C: UserCohort = { segment: 'b2c', mode: 'nin', refs: ['school-1'], stringIds: ['school-1'] }
 
@@ -42,7 +44,7 @@ describe('buildVisitorFunnelPipeline', () => {
 
 describe('buildSignupFunnelPipeline', () => {
   it('starts from non-admin users created in the period, scoped by cohort', () => {
-    expect(firstMatch(buildSignupFunnelPipeline(SINCE, B2C))).toEqual({
+    expect(firstMatch(buildSignupFunnelPipeline(SINCE, NOW, B2C))).toEqual({
       createdAt: { $gte: SINCE },
       role: { $ne: 'admin' },
       _id: { $nin: ['school-1'] },
@@ -50,7 +52,7 @@ describe('buildSignupFunnelPipeline', () => {
   })
 
   it('looks up each later step', () => {
-    const from = buildSignupFunnelPipeline(SINCE)
+    const from = buildSignupFunnelPipeline(SINCE, NOW)
       .filter((stage) => stage.$lookup)
       .map((stage) => stage.$lookup.from)
     expect(from).toEqual([
@@ -60,6 +62,33 @@ describe('buildSignupFunnelPipeline', () => {
       'transactions',
       'guest-sessions',
     ])
+  })
+
+  it('counts a lesson visit as doing something only past the dwell bar', () => {
+    const visits = buildSignupFunnelPipeline(SINCE, NOW).find(
+      (stage) => stage.$lookup?.from === 'lesson-visits',
+    )?.$lookup as Document
+    const project = visits.pipeline.at(-1).$project as Document
+    expect(project.engaged).toEqual({ $gte: [{ $ifNull: ['$dwellSeconds', 0] }, 60] })
+  })
+
+  it('builds the active-days histogram from finished first weeks only', () => {
+    const facet = buildSignupFunnelPipeline(SINCE, NOW).at(-1)?.$facet as Document
+    expect(facet.activeDays[0]).toEqual({ $match: { weekDone: true } })
+  })
+})
+
+describe('toActiveDaysHistogram', () => {
+  it('fills days 0-7 and drops anything outside', () => {
+    expect(
+      toActiveDaysHistogram([
+        { _id: 1, n: 180 },
+        { _id: 0, n: 126 },
+        { _id: 7, n: 2 },
+        { _id: 9, n: 5 },
+      ]),
+    ).toEqual([126, 180, 0, 0, 0, 0, 0, 2])
+    expect(toActiveDaysHistogram(undefined)).toEqual([0, 0, 0, 0, 0, 0, 0, 0])
   })
 })
 
