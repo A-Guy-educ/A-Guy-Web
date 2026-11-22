@@ -10,7 +10,6 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { CourseTab } from '../CourseTabs'
 import type { LessonSearchNode } from '../LessonListTab/lessonRoadmapTypes'
 import { downscaleImageForSuggest } from './courseComposerImage'
 import {
@@ -26,7 +25,6 @@ interface Options {
   nodes: LessonSearchNode[]
   courseTitle: string
   locale: 'en' | 'he'
-  activeTab: CourseTab
 }
 
 export interface ComposerAttachment {
@@ -56,7 +54,7 @@ function scoreMatch(node: LessonSearchNode, q: string): number {
   return 0
 }
 
-export function useCourseComposerState({ nodes, courseTitle, locale, activeTab }: Options) {
+export function useCourseComposerState({ nodes, courseTitle, locale }: Options) {
   const [query, setQuery] = useState('')
   const [attachment, setAttachment] = useState<ComposerAttachment | null>(null)
   const [suggestion, setSuggestion] = useState<ComposerSuggestion | null>(null)
@@ -122,12 +120,6 @@ export function useCourseComposerState({ nodes, courseTitle, locale, activeTab }
   useEffect(() => {
     if (!query.trim() && !attachment) resetAi()
   }, [query, attachment, resetAi])
-
-  // A new tab is a new context: a stale suggestion would be misleading.
-  useEffect(() => {
-    setQuery('')
-    resetAi()
-  }, [activeTab, resetAi])
 
   // Debounced text suggestion. With a photo attached the student sends
   // explicitly, so typing a caption doesn't re-upload the image per keystroke.

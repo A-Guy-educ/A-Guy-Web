@@ -1,26 +1,35 @@
 'use client'
 
+/**
+ * The course page in the private-lesson demo's layout (styles under `.pl-hub`
+ * in `@/ui/web/privateLesson/private-lesson-hub.css`): the course name, the
+ * teacher's welcome with four starting points, the composer, then the last
+ * lesson and all content — learning / practice / exams, each as chapters of
+ * our lesson cards.
+ */
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { useExamCountdown } from '@/client/hooks/useExamCountdown'
 import { SystemLink } from '@/infra/loading/components/SystemLink'
 import type { Chapter, Course, Lesson } from '@/infra/types/content'
 import type { LessonProgress } from '../types'
-import { useTranslations } from '@/ui/web/providers/I18n'
+import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import { BarChart3, GraduationCap } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { AskTab } from '../AskTab'
 import { CourseAnalytics } from '../CourseAnalytics'
 import { CourseComposer, type CourseComposerHandle } from '../CourseComposer'
-import { CourseGuide, type CourseGuideAction } from '../CourseGuide'
-import { pickContinueLesson } from '../CourseGuide/pickContinueLesson'
-import { CourseTabs, TAB_COLORS, type CourseTab } from '../CourseTabs'
-import { ExamReminderBubble } from '../ExamReminderBubble'
+import { buildLessonHref } from '../CourseComposer/courseComposerLinks'
+import { CourseLastLesson } from '../CourseHub/CourseLastLesson'
+import { CourseWelcome, type CourseHubAction } from '../CourseHub/CourseWelcome'
+import { pickContinueLesson } from '../CourseHub/pickContinueLesson'
+import { CONTENT_TABS, CourseTabs, type ContentTab } from '../CourseTabs'
 import { LessonListTab } from '../LessonListTab'
 import { buildLessonSearchNodes } from '../LessonListTab/buildLessonSearchNodes'
 import { LocaleFallbackBanner } from '../../../_components/LocaleFallbackBanner'
 import { ShareButton } from '@/ui/web/shared/ShareButton'
 import { useTeacherProfileLabel } from '@/ui/web/chat/hooks/useTeacherProfileLabel'
+
+import '@/ui/web/privateLesson/private-lesson.css'
+import '@/ui/web/privateLesson/private-lesson-hub.css'
 
 interface CoursePageContentProps {
   course: Course
@@ -37,11 +46,7 @@ interface CoursePageContentProps {
   purchaseHref?: string
 }
 
-const tabContentVariants = {
-  initial: { opacity: 0, y: 8 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -8 },
-}
+const LESSON_TYPE_BY_TAB = { learn: 'learning', practice: 'practice', exams: 'exam' } as const
 
 export function CoursePageContent({
   course,
@@ -54,11 +59,12 @@ export function CoursePageContent({
 }: CoursePageContentProps) {
   const t = useTranslations('coursePage')
   const tCourses = useTranslations('courses')
+  const locale = useLocale()
   // Persist active tab per-course so returning from a lesson via "back to home
   // page" lands on the originating tab. SSR starts on 'learn' (default), then a
   // mount-time effect swaps to the stored value — avoids a hydration mismatch
   // vs. reading localStorage during render.
-  const [activeTab, setActiveTab] = useState<CourseTab>('learn')
+  const [activeTab, setActiveTab] = useState<ContentTab>('learn')
   useEffect(() => {
     const raw = readStoredCourseTab(courseSlug)
     if (raw && raw !== activeTab) setActiveTab(raw)
@@ -70,8 +76,6 @@ export function CoursePageContent({
   }, [courseSlug, activeTab])
   const { hasUpcomingExam, daysUntil } = useExamCountdown(course.id)
 
-  const activeColor = TAB_COLORS[activeTab].stroke
-
   const searchNodes = useMemo(
     () => buildLessonSearchNodes({ chapters, lessons }),
     [chapters, lessons],
@@ -80,16 +84,18 @@ export function CoursePageContent({
   const { user } = useCurrentUser()
   const { label: teacherLabel, slug: teacherSlug } = useTeacherProfileLabel(Boolean(user))
   const composerRef = useRef<CourseComposerHandle>(null)
+  const allContentRef = useRef<HTMLHeadingElement>(null)
+  const lastLessonRef = useRef<HTMLHeadingElement>(null)
   const continueLesson = useMemo(
     () => pickContinueLesson(searchNodes, lessonProgressMap),
     [searchNodes, lessonProgressMap],
   )
+  const continueHref = continueLesson ? buildLessonHref(continueLesson, courseSlug) : null
 
-  // Each starting point opens the tab it belongs to and hands the student to
-  // the composer, whose per-tab placeholder asks the follow-up question.
-  // Homework opens the photo picker straight from the click (browsers only
-  // allow that inside the user gesture).
-  const handleGuideAction = (action: CourseGuideAction) => {
+  // Each starting point opens the content it belongs to and hands the student
+  // to the composer. Homework opens the photo picker straight from the click
+  // (browsers only allow that inside the user gesture).
+  const handleAction = (action: CourseHubAction) => {
     if (action === 'homework') {
       composerRef.current?.openPhotoPicker()
       return
@@ -98,133 +104,123 @@ export function CoursePageContent({
     composerRef.current?.focus()
   }
 
+  const openExams = () => {
+    setActiveTab('exams')
+    allContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted">
+    <div className="pl-hub" dir={locale === 'he' ? 'rtl' : 'ltr'}>
       <CourseAnalytics courseId={course.id} courseTitle={course.title} />
 
-      {/* Locale fallback notice */}
       {isLocaleFallback && (
         <div className="container mx-auto px-3 sm:px-6 pt-section-sm max-w-5xl">
           <LocaleFallbackBanner isLocaleFallback={isLocaleFallback} />
         </div>
       )}
 
-      {/* Course title area with gradient accent */}
-      <div className="w-full py-section-sm px-3 sm:px-6 relative overflow-hidden">
-        {/* Subtle gradient accent behind the title */}
-        <div
-          className="absolute inset-0 opacity-[0.04] pointer-events-none"
-          style={{
-            background: `radial-gradient(ellipse at center top, ${activeColor}, transparent 70%)`,
-          }}
-        />
-        <div className="max-w-5xl mx-auto text-center relative">
-          {hasUpcomingExam && daysUntil !== null && <ExamReminderBubble daysUntil={daysUntil} />}
-          <h1 className="text-display-sm md:text-display-md font-black text-foreground mt-4 text-center">
-            {course.title}
-          </h1>
-          <div className="absolute top-0 end-0">
-            <ShareButton title={course.title} ariaLabel={tCourses('shareCourse')} />
-          </div>
-        </div>
-      </div>
+      <h1 className="hub-course">
+        {course.title}
+        <ShareButton title={course.title} ariaLabel={tCourses('shareCourse')} />
+      </h1>
 
       {searchNodes.length > 0 && (
-        <div className="container mx-auto px-3 sm:px-6 max-w-5xl mb-section-sm">
-          <CourseGuide
-            courseSlug={courseSlug}
-            teacherLabel={teacherLabel}
+        <>
+          <CourseWelcome
             teacherSlug={teacherSlug}
-            continueLesson={continueLesson}
-            onAction={handleGuideAction}
-          >
-            <CourseComposer
-              ref={composerRef}
-              nodes={searchNodes}
-              courseId={course.id}
-              courseSlug={courseSlug}
-              courseTitle={course.title}
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-              isSignedIn={Boolean(user)}
-            />
-          </CourseGuide>
-        </div>
+            teacherLabel={teacherLabel}
+            continueLesson={
+              continueLesson && continueHref
+                ? { title: continueLesson.lesson.title, href: continueHref }
+                : null
+            }
+            examDaysUntil={hasUpcomingExam ? daysUntil : null}
+            onAction={handleAction}
+          />
+          <CourseComposer
+            ref={composerRef}
+            nodes={searchNodes}
+            courseId={course.id}
+            courseSlug={courseSlug}
+            courseTitle={course.title}
+            onOpenExams={openExams}
+            isSignedIn={Boolean(user)}
+          />
+        </>
       )}
 
-      <CourseTabs activeTab={activeTab} onTabChange={setActiveTab} />
+      <section className="browse">
+        <button
+          type="button"
+          className="browse-cue"
+          onClick={() =>
+            (lastLessonRef.current ?? allContentRef.current)?.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start',
+            })
+          }
+        >
+          {t('hub.browseCue')}
+          <svg viewBox="0 0 24 24" className="pl-icon" aria-hidden="true">
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </button>
 
-      {/* Main content with AnimatePresence for smooth tab transitions */}
-      <main className="container mx-auto px-3 sm:px-6 py-section-sm max-w-5xl">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            variants={tabContentVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={{ duration: 0.2, ease: 'easeInOut' }}
-          >
-            {(activeTab === 'learn' || activeTab === 'practice' || activeTab === 'exams') && (
-              <LessonListTab
-                lessons={lessons}
-                chapters={chapters}
-                courseSlug={courseSlug}
-                courseId={course.id}
-                courseAccessType={course.accessType}
-                gradeLevel={course.courseLabel || ''}
-                tabColor={TAB_COLORS[activeTab]}
-                lessonProgressMap={lessonProgressMap}
-                lessonType={
-                  activeTab === 'learn' ? 'learning' : activeTab === 'exams' ? 'exam' : 'practice'
-                }
-                purchaseHref={purchaseHref}
-              />
-            )}
-            {activeTab === 'ask' && (
-              <AskTab courseId={course.id} accentColor={TAB_COLORS[activeTab].stroke} />
-            )}
-          </motion.div>
-        </AnimatePresence>
+        {continueLesson && continueHref && (
+          <>
+            <h2 ref={lastLessonRef}>{t('hub.lastHeading')}</h2>
+            <CourseLastLesson
+              node={continueLesson}
+              href={continueHref}
+              percent={lessonProgressMap[continueLesson.lesson.id]?.percent ?? 0}
+            />
+          </>
+        )}
 
-        {/* Footer actions with divider */}
-        <div className="mt-16 pt-8 border-t border-border">
-          <div className="flex flex-wrap justify-center items-center gap-content-gap">
-            <SystemLink
-              href={`/stats?courseId=${course.id}`}
-              className="flex items-center justify-center gap-content-gap-xs text-body-sm font-bold text-foreground bg-card border border-border px-6 py-3 rounded-full hover:bg-muted/50 transition-all duration-normal"
-            >
-              <BarChart3 className="w-4 h-4" />
-              {t('statsAndPerformance')}
-            </SystemLink>
-            <SystemLink
-              href="/study-plan"
-              className="flex items-center justify-center gap-content-gap-xs text-body-sm font-bold text-primary-foreground bg-primary px-6 py-3 rounded-full shadow-elevation-3 hover:opacity-90 transition-all duration-normal"
-            >
-              <GraduationCap className="w-4 h-4" />
-              {t('upcomingExam')}
-            </SystemLink>
-          </div>
+        <h2 ref={allContentRef}>{t('hub.allContent')}</h2>
+        <CourseTabs activeTab={activeTab} onTabChange={setActiveTab} />
+        <LessonListTab
+          key={activeTab}
+          lessons={lessons}
+          chapters={chapters}
+          courseSlug={courseSlug}
+          courseId={course.id}
+          courseAccessType={course.accessType}
+          gradeLevel={course.courseLabel || ''}
+          lessonProgressMap={lessonProgressMap}
+          lessonType={LESSON_TYPE_BY_TAB[activeTab]}
+          purchaseHref={purchaseHref}
+        />
+
+        <div className="hub-links">
+          <SystemLink href={`/stats?courseId=${course.id}`} className="demo-view">
+            <BarChart3 className="w-3.5 h-3.5" aria-hidden="true" />
+            {t('statsAndPerformance')}
+          </SystemLink>
+          <SystemLink href="/study-plan" className="demo-view">
+            <GraduationCap className="w-3.5 h-3.5" aria-hidden="true" />
+            {t('upcomingExam')}
+          </SystemLink>
         </div>
-      </main>
+      </section>
     </div>
   )
 }
 
 const TAB_STORAGE_PREFIX = 'aguy:courseTab:'
-const VALID_TABS: readonly CourseTab[] = ['learn', 'practice', 'exams', 'ask']
 
-function readStoredCourseTab(courseSlug: string): CourseTab | null {
+function readStoredCourseTab(courseSlug: string): ContentTab | null {
   if (typeof window === 'undefined') return null
   try {
     const raw = window.localStorage.getItem(`${TAB_STORAGE_PREFIX}${courseSlug}`)
-    return (VALID_TABS as readonly string[]).includes(raw ?? '') ? (raw as CourseTab) : null
+    // A stored 'ask' (the old fourth tab) falls back to the default.
+    return (CONTENT_TABS as readonly string[]).includes(raw ?? '') ? (raw as ContentTab) : null
   } catch {
     return null
   }
 }
 
-function writeStoredCourseTab(courseSlug: string, tab: CourseTab): void {
+function writeStoredCourseTab(courseSlug: string, tab: ContentTab): void {
   if (typeof window === 'undefined') return
   try {
     window.localStorage.setItem(`${TAB_STORAGE_PREFIX}${courseSlug}`, tab)

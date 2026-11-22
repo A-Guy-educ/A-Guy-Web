@@ -840,12 +840,6 @@
       "exam": "Exam"
     },
     "composer": {
-      "placeholder": {
-        "learn": "What do you want to study? Try a topic, or pick a lesson below",
-        "practice": "What do you want to practice?",
-        "exams": "What are you preparing for?",
-        "ask": "Ask about anything in this course"
-      },
       "send": "Send",
       "thinking": "Thinking…",
       "noLessonsFallback": "Sorry, no lessons seem to fit in this course.",
@@ -854,11 +848,15 @@
       "dropUploading": "Uploading your file…",
       "dropInvalidType": "Only images and PDFs can be dropped here",
       "dropFailed": "Upload failed. Please try again.",
-      "attachFile": "Attach an image or PDF",
+      "attachFile": "Add a photo or file",
       "solveInAsk": "Solve it together in Ask",
       "openExams": "See all exams",
       "removePhoto": "Remove photo",
-      "photoAttached": "Homework photo"
+      "photoAttached": "Homework photo",
+      "placeholder": "Type or attach a photo…",
+      "mic": "Answer by voice",
+      "micUnavailable": "Voice dictation isn't available in this browser. You can use your phone keyboard's microphone.",
+      "micFailed": "I couldn't catch that recording. You can type your answer instead."
     },
     "moreCourses": "More courses",
     "loading": "Loading...",
@@ -869,17 +867,32 @@
       "message": "It will appear here as soon as your teacher opens it for your class.",
       "back": "Back to the course"
     },
-    "guide": {
-      "greeting": "Hey there, what are we doing today?",
+    "hub": {
+      "greeting": "What are we doing today?",
+      "greetingReturning": "Hey there, what are we doing today?",
       "continue": "Continue:",
-      "hide": "Hide",
-      "show": "What are we doing today?",
       "actions": {
         "homework": "Homework",
         "learn": "Learn from scratch",
         "practice": "Practice a topic",
         "exams": "Prepare for an exam"
-      }
+      },
+      "examBadge": "Exam in {days} days",
+      "browseCue": "Last lesson and all content",
+      "lastHeading": "Last lesson",
+      "lastDescription": "Pick up where we left off",
+      "resume": "Continue",
+      "allContent": "All content",
+      "contentTabsLabel": "Content type",
+      "lessonTypes": {
+        "learning": "Learning",
+        "practice": "Practice",
+        "exam": "Exam"
+      },
+      "chapterMeta": "Chapter {num} · {count} lessons",
+      "chapterMetaOne": "Chapter {num} · one lesson",
+      "chapterDone": "{done}/{total} done",
+      "noStarted": "You haven't started any lessons in this track yet."
     }
   },
   "stats": {
@@ -1632,17 +1645,20 @@
     "detailed": {
       "name": "The Digger",
       "tagline": "In a good way",
-      "quote": "My goal?\nThat you succeed without me."
+      "quote": "My goal?\nThat you succeed without me.",
+      "intro": "To really understand, we'll get into the small details."
     },
     "focused": {
       "name": "The Focused One",
       "tagline": "Only what's needed",
-      "quote": "No time to waste. We'll do exactly what's needed."
+      "quote": "No time to waste. We'll do exactly what's needed.",
+      "intro": "No time to waste. We'll do exactly what's needed."
     },
     "attentive": {
       "name": "The Attentive One",
       "tagline": "Notices every detail",
-      "quote": "Your way to success starts with trying."
+      "quote": "Your way to success starts with trying.",
+      "intro": "Your way to success starts with trying."
     },
     "portraitLabel": "Your teacher — {name}",
     "wink": "Click for a wink"
