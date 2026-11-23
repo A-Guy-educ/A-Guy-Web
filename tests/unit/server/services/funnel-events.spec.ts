@@ -38,6 +38,21 @@ describe('buildFunnelEventDoc', () => {
     })
   })
 
+  it('keeps the wall on skips and plan picks, null for plans-page picks', () => {
+    expect(
+      buildFunnelEventDoc({ type: 'paywall_dismissed', userId: USER, gate: 'ai_quota' }, NOW),
+    ).toMatchObject({ type: 'paywall_dismissed', gate: 'ai_quota' })
+    expect(
+      buildFunnelEventDoc(
+        { type: 'plan_selected', userId: USER, tier: 'basic', gate: 'exercise' },
+        NOW,
+      ),
+    ).toMatchObject({ type: 'plan_selected', tier: 'basic', gate: 'exercise' })
+    expect(
+      buildFunnelEventDoc({ type: 'plan_selected', userId: USER, tier: 'basic' }, NOW),
+    ).toMatchObject({ gate: null })
+  })
+
   it('records the checkout tier, offer and Admin status', () => {
     expect(
       buildFunnelEventDoc(

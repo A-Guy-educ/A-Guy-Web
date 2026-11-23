@@ -33,6 +33,7 @@ import {
   FUNNEL_EVENTS_TRACKED_SINCE,
   type FunnelLandingKey,
   type FunnelMetrics,
+  type GateStats,
   type PaymentFunnel,
   type SignupFunnel,
   type VisitorFunnel,
@@ -73,7 +74,7 @@ const VISITOR_STEPS = [
 const FUNNEL_LANDING_KEYS: readonly FunnelLandingKey[] = [...LANDING_TYPES, 'unknown']
 
 const exists = (field: string): Document => ({ $ne: [{ $type: `$${field}` }, 'missing'] })
-const countIf = (cond: Document): Document => ({ $sum: { $cond: [cond, 1, 0] } })
+const countIf = (cond: Document | string): Document => ({ $sum: { $cond: [cond, 1, 0] } })
 const hasRows = (field: string): Document => ({ $gt: [{ $size: `$${field}` }, 0] })
 
 /** `user` equals the looked-up student, in either id encoding. */
@@ -318,6 +319,115 @@ export function buildPaymentFunnelPipeline(
   ]
 }
 
+/**
+ * One row per wall with distinct students, total hits, repeat students, and
+ * students who skipped it. Conversions are credited to the last wall a
+ * student met before their first plan pick / first payment (picks on
+ * /subscriptions have no gate of their own, so last-wall is used for all).
+ */
+export function buildGateStatsPipeline(
+  since: Date,
+  adminRefs: unknown[],
+  cohort?: UserCohort | null,
+): Document[] {
+  const user = { ...userRefPredicate(adminRefs, cohort), $ne: null }
+  const firstAt = (type: string): Document => ({
+    $min: {
+      $map: {
+        input: { $filter: { input: '$events', cond: { $eq: ['$$this.type', type] } } },
+        in: '$$this.at',
+      },
+    },
+  })
+  const lastWallBefore = (field: string): Document => ({
+    $getField: {
+      field: 'gate',
+      input: {
+        $last: {
+          $filter: {
+            input: '$events',
+            cond: {
+              $and: [
+                { $eq: ['$$this.type', 'paywall_shown'] },
+                { $lte: ['$$this.at', `$${field}`] },
+              ],
+            },
+          },
+        },
+      },
+    },
+  })
+  return [
+    {
+      $match: {
+        createdAt: { $gte: since },
+        user,
+        type: { $in: ['paywall_shown', 'paywall_dismissed', 'plan_selected'] },
+      },
+    },
+    { $project: { _id: 0, user: { $toString: '$user' }, type: 1, gate: 1, at: '$createdAt' } },
+    {
+      $unionWith: {
+        coll: 'transactions',
+        pipeline: [
+          {
+            $match: {
+              createdAt: { $gte: since },
+              status: 'succeeded',
+              isRenewal: { $ne: true },
+              user,
+            },
+          },
+          { $project: { _id: 0, user: { $toString: '$user' }, type: 'paid', at: '$createdAt' } },
+        ],
+      },
+    },
+    { $sort: { at: 1 } },
+    { $group: { _id: '$user', events: { $push: { type: '$type', gate: '$gate', at: '$at' } } } },
+    { $set: { pickedAt: firstAt('plan_selected'), paidAt: firstAt('paid') } },
+    {
+      $set: {
+        decidedPlanGate: lastWallBefore('pickedAt'),
+        decidedPaidGate: lastWallBefore('paidAt'),
+        shown: {
+          $map: {
+            input: {
+              $filter: { input: '$events', cond: { $eq: ['$$this.type', 'paywall_shown'] } },
+            },
+            in: '$$this.gate',
+          },
+        },
+        dismissed: {
+          $map: {
+            input: {
+              $filter: { input: '$events', cond: { $eq: ['$$this.type', 'paywall_dismissed'] } },
+            },
+            in: '$$this.gate',
+          },
+        },
+      },
+    },
+    { $set: { gate: { $setUnion: ['$shown'] } } },
+    { $unwind: '$gate' },
+    {
+      $set: {
+        hits: { $size: { $filter: { input: '$shown', cond: { $eq: ['$$this', '$gate'] } } } },
+      },
+    },
+    {
+      $group: {
+        _id: '$gate',
+        students: { $sum: 1 },
+        hits: { $sum: '$hits' },
+        repeatStudents: countIf({ $gte: ['$hits', 2] }),
+        dismissedStudents: countIf({ $in: ['$gate', '$dismissed'] }),
+        decidedPlan: countIf({ $eq: ['$decidedPlanGate', '$gate'] }),
+        decidedPaid: countIf({ $eq: ['$decidedPaidGate', '$gate'] }),
+      },
+    },
+  ]
+}
+
 // ---------------------------------------------------------------------------
 // Mappers
 // ---------------------------------------------------------------------------
@@ -372,13 +482,41 @@ export function toActiveDaysHistogram(rows: SignupFacet['activeDays'] | undefine
 
 export type PaymentStepRow = { _id: unknown; users: number }
 
-export function toPaymentFunnel(rows: PaymentStepRow[] | undefined): PaymentFunnel {
+export type GateStatsRow = { _id: unknown } & Partial<GateStats>
+
+export function emptyGateStats(): GateStats {
+  return {
+    students: 0,
+    hits: 0,
+    repeatStudents: 0,
+    dismissedStudents: 0,
+    decidedPlan: 0,
+    decidedPaid: 0,
+  }
+}
+
+export function toGateStats(rows: GateStatsRow[] | undefined): Record<PaywallGate, GateStats> {
+  return Object.fromEntries(
+    PAYWALL_GATES.map((gate) => {
+      const { _id: _gate, ...row } = rows?.find((r) => r._id === gate) ?? { _id: gate }
+      return [gate, { ...emptyGateStats(), ...row }]
+    }),
+  ) as Record<PaywallGate, GateStats>
+}
+
+export function toPaymentFunnel(
+  rows: PaymentStepRow[] | undefined,
+  gateRows?: GateStatsRow[],
+): PaymentFunnel {
   const count = (step: string): number => rows?.find((row) => row._id === step)?.users ?? 0
   return {
     paywallShown: count('paywall'),
     paywallByGate: Object.fromEntries(
       PAYWALL_GATES.map((gate) => [gate, count(`paywall:${gate}`)]),
     ) as Record<PaywallGate, number>,
+    byGate: toGateStats(gateRows),
+    planSelected: count('plan_selected'),
+    paywallDismissed: count('paywall_dismissed'),
     pricingViewed: count('pricing_viewed'),
     checkoutStarted: count('checkout_started'),
     paid: count('paid'),
@@ -389,8 +527,9 @@ export function toFunnelMetrics(input: {
   visitorRows: VisitorRow[] | undefined
   signupFacet: SignupFacet | undefined
   paymentRows: PaymentStepRow[] | undefined
+  gateRows?: GateStatsRow[]
 }): FunnelMetrics {
-  const { visitorRows, signupFacet, paymentRows } = input
+  const { visitorRows, signupFacet, paymentRows, gateRows } = input
   const visitorsByLandingType = bucketRows<LandingType, VisitorFunnel>(
     visitorRows,
     LANDING_TYPES,
@@ -408,7 +547,7 @@ export function toFunnelMetrics(input: {
     visitors,
     signups: total ? addRow(emptySignupFunnel(), total, SIGNUP_STEPS) : emptySignupFunnel(),
     firstWeekActiveDays: toActiveDaysHistogram(signupFacet?.activeDays),
-    payments: toPaymentFunnel(paymentRows),
+    payments: toPaymentFunnel(paymentRows, gateRows),
     bySource: bucketRows<keyof SignupSourceBreakdown, SignupFunnel>(
       signupFacet?.bySource,
       SIGNUP_SOURCE_KEYS,
@@ -439,7 +578,8 @@ export async function aggregateFunnel(
 ): Promise<FunnelMetrics> {
   try {
     const since = buckets.periodStart
-    const [visitorRows, [signupFacet], paymentRows] = await Promise.all([
+    const events = db.collection(FUNNEL_EVENTS_COLLECTION)
+    const [visitorRows, [signupFacet], paymentRows, gateRows] = await Promise.all([
       db
         .collection('guest-sessions')
         .aggregate<VisitorRow>(
@@ -450,12 +590,14 @@ export async function aggregateFunnel(
         .collection('users')
         .aggregate<SignupFacet>(buildSignupFunnelPipeline(since, buckets.now, cohort))
         .toArray(),
-      db
-        .collection(FUNNEL_EVENTS_COLLECTION)
+      events
         .aggregate<PaymentStepRow>(buildPaymentFunnelPipeline(since, adminUserRefs.refs, cohort))
         .toArray(),
+      events
+        .aggregate<GateStatsRow>(buildGateStatsPipeline(since, adminUserRefs.refs, cohort))
+        .toArray(),
     ])
-    return toFunnelMetrics({ visitorRows, signupFacet, paymentRows })
+    return toFunnelMetrics({ visitorRows, signupFacet, paymentRows, gateRows })
   } catch (err) {
     logger.warn({ err }, 'dashboard-metrics: funnel slice failed — returning empty')
     return toFunnelMetrics({

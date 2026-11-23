@@ -7,6 +7,11 @@
  *                      `lesson` (practice/exam lesson redirected to the plan
  *                      store), `exercise` (free-tier exercise lock), or
  *                      `ai_quota` (AI chat quota used up).
+ * - `paywall_dismissed` the student took "continue without" on a wall that
+ *                      offers it (AI quota cards), staying on their tier.
+ * - `plan_selected`    a plan was picked: a plan box on an upgrade wall
+ *                      (`gate` = that wall) or Subscribe on /subscriptions
+ *                      (`gate` null).
  * - `pricing_viewed`   the /subscriptions page rendered. `returnTo` is the
  *                      page that sent them there, when known.
  * - `checkout_started` a tier was picked and Web asked Admin for a checkout.
@@ -38,6 +43,8 @@ const MAX_PATH_LENGTH = 300
 
 export type FunnelEvent =
   | { type: 'paywall_shown'; userId: string; gate: PaywallGate; path?: string | null }
+  | { type: 'paywall_dismissed'; userId: string; gate: PaywallGate }
+  | { type: 'plan_selected'; userId: string; tier: string; gate?: PaywallGate | null }
   | { type: 'pricing_viewed'; userId: string | null; returnTo?: string | null }
   | {
       type: 'checkout_started'
@@ -79,6 +86,10 @@ export function buildFunnelEventDoc(event: FunnelEvent, now: Date): Record<strin
   switch (event.type) {
     case 'paywall_shown':
       return { ...base, gate: event.gate, path: clip(event.path) }
+    case 'paywall_dismissed':
+      return { ...base, gate: event.gate }
+    case 'plan_selected':
+      return { ...base, tier: event.tier, gate: event.gate ?? null }
     case 'pricing_viewed':
       return { ...base, returnTo: clip(event.returnTo) }
     case 'checkout_started':

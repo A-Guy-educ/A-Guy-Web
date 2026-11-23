@@ -6,6 +6,7 @@ import { Check, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
+import { sendFunnelEvent } from '@/client/hooks/usePaywallBeacon'
 import { Button } from '@/ui/web/components/button'
 import {
   Dialog,
@@ -144,6 +145,7 @@ export function TierCard({
       router.push(`/login?returnTo=${encodeURIComponent(subscriptionsHref(returnTo))}`)
       return
     }
+    sendFunnelEvent({ type: 'plan_selected', tier, gate: null })
     if (!isConsented) {
       toast.error(tConsent('requiredToast'))
       return

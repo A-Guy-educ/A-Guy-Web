@@ -69,11 +69,37 @@ export interface SignupFunnel {
   paid: number
 }
 
+/** One upgrade wall over the period. Student counts are distinct students. */
+export interface GateStats {
+  /** Students who met this wall. */
+  students: number
+  /** Times it was shown, repeats included. */
+  hits: number
+  /** Students who met it 2+ times. */
+  repeatStudents: number
+  /** Students who took "continue without" on it (AI quota cards only). */
+  dismissedStudents: number
+  /**
+   * Students for whom this was the last wall met before their first plan
+   * pick — the wall that "broke" them. Each picker counts under one wall.
+   */
+  decidedPlan: number
+  /** Same, before their first payment. decidedPaid / students = how well the wall converts. */
+  decidedPaid: number
+}
+
 export interface PaymentFunnel {
   /** Distinct students who met any upgrade wall. */
   paywallShown: number
   /** Distinct students per wall; one student can count under several. */
   paywallByGate: Record<PaywallGate, number>
+  /** Per-wall detail: which walls are met most and who keeps meeting them. */
+  byGate: Record<PaywallGate, GateStats>
+  /** Clicked a plan on an upgrade wall or Subscribe on /subscriptions. */
+  planSelected: number
+  /** Took "continue without" on any wall. */
+  paywallDismissed: number
+  /** Opened /subscriptions — a side path; walls show prices themselves. */
   pricingViewed: number
   checkoutStarted: number
   /** Distinct students with a succeeded first purchase (renewals are on the Revenue tab). */
