@@ -312,6 +312,7 @@
       "hideLatestCut": "הסתר גזיר",
       "latestCutTitle": "גזיר תרגיל מקורי",
       "checkPage": "בדוק",
+      "checkPageHint": "בדיקת העמוד הנוכחי",
       "nothingToCheck": "כתבו קודם את הפתרון בעמוד.",
       "deletePage": "מחק עמוד",
       "deleteConfirm": "למחוק את העמוד? מה שכתבתם בו יימחק.",

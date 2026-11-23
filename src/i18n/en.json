@@ -312,6 +312,7 @@
       "hideLatestCut": "Hide cut",
       "latestCutTitle": "Original exercise cut",
       "checkPage": "Check",
+      "checkPageHint": "Check the page you're on",
       "nothingToCheck": "Write your solution on the page first.",
       "deletePage": "Delete page",
       "deleteConfirm": "Delete this page? Your writing on it will be lost.",

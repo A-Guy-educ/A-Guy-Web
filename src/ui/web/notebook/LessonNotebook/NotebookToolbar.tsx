@@ -1,6 +1,7 @@
 'use client'
 
 import {
+  CheckCheck,
   ClipboardPaste,
   Copy,
   Eraser,
@@ -17,6 +18,7 @@ import { useTranslations } from '@/ui/web/providers/I18n'
 import type { InkTool } from './InkSurface'
 import { LatestCutButton } from './LatestCutButton'
 import { PEN_SIZES } from './stroke-render'
+import { useTouchToolHint } from './useTouchToolHint'
 import type { NotebookStatus } from './useNotebookPages'
 
 interface NotebookToolbarProps {
@@ -27,6 +29,8 @@ interface NotebookToolbarProps {
   canUndo: boolean
   canCopy: boolean
   canPaste: boolean
+  /** There is a page to check (the active one). */
+  canCheck: boolean
   status: NotebookStatus
   onTool: (tool: InkTool) => void
   onFingerDraws: (value: boolean) => void
@@ -34,6 +38,7 @@ interface NotebookToolbarProps {
   onCopy: () => void
   onPaste: () => void
   onBlankPage: () => void
+  onCheck: () => void
 }
 
 const ICON_BUTTON =
@@ -50,6 +55,7 @@ export function NotebookToolbar({
   canUndo,
   canCopy,
   canPaste,
+  canCheck,
   status,
   onTool,
   onFingerDraws,
@@ -57,8 +63,10 @@ export function NotebookToolbar({
   onCopy,
   onPaste,
   onBlankPage,
+  onCheck,
 }: NotebookToolbarProps) {
   const t = useTranslations('courses.lessonNotebook')
+  const { hint, onPointerUp } = useTouchToolHint()
   const statusLabel = {
     loading: '',
     synced: t('saved'),
@@ -99,7 +107,10 @@ export function NotebookToolbar({
   )
 
   return (
-    <div className="sticky top-2 z-20 mx-auto flex w-fit max-w-full flex-wrap items-center justify-center gap-1 rounded-2xl border border-border bg-card/95 px-2 py-1 shadow-elevation-2 backdrop-blur">
+    <div
+      onPointerUp={onPointerUp}
+      className="sticky top-2 z-20 mx-auto flex w-fit max-w-full flex-wrap items-center justify-center gap-1 rounded-2xl border border-border bg-card/95 px-2 py-1 shadow-elevation-2 backdrop-blur"
+    >
       <LatestCutButton cut={latestCut} />
       {button(
         t('pen'),
@@ -178,6 +189,17 @@ export function NotebookToolbar({
         <Hand className="h-4 w-4" />,
       )}
       {button(t('newBlankPage'), false, onBlankPage, <FilePlus className="h-4 w-4" />)}
+      <button
+        type="button"
+        aria-label={t('checkPageHint')}
+        title={t('checkPageHint')}
+        disabled={!canCheck}
+        onClick={onCheck}
+        className="ms-1 flex h-9 items-center gap-1.5 rounded-full bg-success/10 px-3 text-body-xs font-semibold text-success hover:bg-success/20 disabled:opacity-40 disabled:pointer-events-none transition-colors duration-normal"
+      >
+        <CheckCheck className="h-4 w-4" />
+        {t('checkPage')}
+      </button>
       {statusLabel && (
         <span
           role="status"
@@ -187,6 +209,16 @@ export function NotebookToolbar({
           )}
         >
           {statusLabel}
+        </span>
+      )}
+      {hint && (
+        // Screen readers already read the button's aria-label.
+        <span
+          key={hint.id}
+          aria-hidden
+          className="pointer-events-none absolute top-full left-1/2 mt-2 w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 rounded-md border border-border bg-popover px-3 py-1.5 text-center text-body-xs text-popover-foreground shadow-elevation-3 animate-in fade-in-0 zoom-in-95"
+        >
+          {hint.label}
         </span>
       )}
     </div>
