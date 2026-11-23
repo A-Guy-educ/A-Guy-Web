@@ -1,9 +1,9 @@
 /**
  * Picks the real exercise the landing page lets visitors try: a free lesson
- * exercise whose only question is a single-answer multiple choice with a
- * written hint and guiding question (`solution`), ideally also a written
- * explanation (`fullSolution`), so every help button has something to show
- * without the lesson chat's AI. Exercises with images are skipped
+ * exercise whose only question is a single-answer multiple choice, ranked by
+ * how much written help it has — hint, guiding question (`solution`) and
+ * explanation (`fullSolution`) — since the landing has no lesson chat to fill
+ * the gaps. Looks in 7th grade math first, then the other published courses. Exercises with images are skipped
  * (the landing has no media map). Cached for an hour — the scan reads several
  * lessons and the landing is the busiest page.
  *
@@ -14,16 +14,20 @@ import { unstable_cache } from 'next/cache'
 
 import { resolveAccessType } from '@/infra/auth/access-types'
 import type { ExerciseBlockGroup } from '@/infra/types/exercise'
-import type { ContentLocale } from '@/infra/types/content'
+import type { ContentLocale, Course } from '@/infra/types/content'
 import { getExerciseBlockGroups } from '@/lib/exercises/getExerciseBlocks'
 import { getEffectiveLessonType } from '@/server/constants/lesson-types'
-import { queryCourseBySlugWithFallback } from '@/server/repos/queries/courses'
+import {
+  queryCourseBySlugWithFallback,
+  queryPublishedCourses,
+} from '@/server/repos/queries/courses'
 import { queryExercisesByLesson } from '@/server/repos/queries/exercises'
 import { queryLessonsByCourse } from '@/server/repos/queries/lessons'
 
 /** The course the demo exercise comes from; the course list is the fallback. */
 const PREFERRED_COURSE_SLUG = '7th_grade_math'
-const MAX_LESSONS_SCANNED = 25
+/** Lessons read in total across all courses, so a sparse catalog can't make the scan run long. */
+const MAX_LESSONS_SCANNED = 40
 const CACHE_SECONDS = 3600
 
 export interface LandingDemoExercise {
@@ -55,47 +59,63 @@ function usesMedia(value: unknown): boolean {
 }
 
 /**
- * True when the exercise's single question is a single-answer MCQ with a hint
- * and a guiding question; `complete` also asks for the written explanation.
+ * How good a landing demo the exercise makes: 0 = unusable; otherwise its only
+ * question is a single-answer MCQ without images, and the score counts the
+ * written help — 1 hint, 2 hint + guiding question, 3 all three.
  */
-export function isLandingDemoCandidate(groups: ExerciseBlockGroup[], complete = false): boolean {
+export function rankLandingDemoCandidate(groups: ExerciseBlockGroup[]): number {
   const blocks = groups.flatMap((group) => group.blocks) as unknown as LooseBlock[]
   const questions = blocks.filter(
     (b) => typeof b.type === 'string' && b.type.startsWith('question'),
   )
-  if (questions.length !== 1) return false
+  if (questions.length !== 1) return 0
   const [question] = questions
-  if (question.type !== 'question_select' || question.variant !== 'mcq') return false
-  if (question.selectionMode === 'multiple' || question.attachment) return false
-  if (!hasText(question.hint) || !hasText(question.solution)) return false
-  if (complete && !hasText(question.fullSolution)) return false
-  return !usesMedia(blocks)
+  if (question.type !== 'question_select' || question.variant !== 'mcq') return 0
+  if (question.selectionMode === 'multiple' || question.attachment) return 0
+  if (!hasText(question.hint) || usesMedia(blocks)) return 0
+  if (!hasText(question.solution)) return 1
+  return hasText(question.fullSolution) ? 3 : 2
+}
+
+const BEST_RANK = 3
+
+/** The preferred course first, then the rest of the catalog in its usual order. */
+async function candidateCourses(locale: ContentLocale | undefined): Promise<Course[]> {
+  const { course: preferred } = await queryCourseBySlugWithFallback({
+    slug: PREFERRED_COURSE_SLUG,
+    locale,
+  })
+  const rest = (await queryPublishedCourses(locale)).filter((c) => c.id !== preferred?.id)
+  return preferred ? [preferred, ...rest] : rest
 }
 
 async function findLandingDemoExercise(
   locale: ContentLocale | undefined,
 ): Promise<LandingDemoExercise | null> {
-  const { course } = await queryCourseBySlugWithFallback({ slug: PREFERRED_COURSE_SLUG, locale })
-  if (!course) return null
+  let best: LandingDemoExercise | null = null
+  let bestRank = 0
+  let budget = MAX_LESSONS_SCANNED
 
-  const lessons = (await queryLessonsByCourse({ courseId: course.id }))
-    .filter((lesson) => resolveAccessType(lesson.accessType, course.accessType) === 'free')
-    .filter((lesson) => getEffectiveLessonType(lesson.type) !== 'exam')
-    .slice(0, MAX_LESSONS_SCANNED)
+  for (const course of await candidateCourses(locale)) {
+    const lessons = (await queryLessonsByCourse({ courseId: course.id }))
+      .filter((lesson) => resolveAccessType(lesson.accessType, course.accessType) === 'free')
+      .filter((lesson) => getEffectiveLessonType(lesson.type) !== 'exam')
+      .slice(0, budget)
+    budget -= lessons.length
 
-  // Prefer an exercise where all three help buttons have written content.
-  let fallback: LandingDemoExercise | null = null
-  for (const lesson of lessons) {
-    const exercises = await queryExercisesByLesson({ lessonId: lesson.id })
-    for (const exercise of exercises) {
-      const groups = getExerciseBlockGroups(exercise)
-      if (!isLandingDemoCandidate(groups)) continue
-      const found = { lessonId: lesson.id, exerciseId: exercise.id, groups }
-      if (isLandingDemoCandidate(groups, true)) return found
-      fallback ??= found
+    for (const lesson of lessons) {
+      for (const exercise of await queryExercisesByLesson({ lessonId: lesson.id })) {
+        const groups = getExerciseBlockGroups(exercise)
+        const rank = rankLandingDemoCandidate(groups)
+        if (rank <= bestRank) continue
+        best = { lessonId: lesson.id, exerciseId: exercise.id, groups }
+        bestRank = rank
+        if (rank === BEST_RANK) return best
+      }
     }
+    if (budget <= 0) break
   }
-  return fallback
+  return best
 }
 
 export async function getLandingDemoExercise(
@@ -104,7 +124,7 @@ export async function getLandingDemoExercise(
   try {
     return await unstable_cache(
       () => findLandingDemoExercise(locale),
-      ['landing-demo-exercise', locale ?? 'default'],
+      ['landing-demo-exercise-v2', locale ?? 'default'],
       { revalidate: CACHE_SECONDS },
     )()
   } catch (error) {
