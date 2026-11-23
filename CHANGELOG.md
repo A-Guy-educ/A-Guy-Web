@@ -5253,6 +5253,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Add the prep plan to the course exam hub and a clearer back button ([#1646](https://github.com/A-Guy-educ/A-Guy-Web/pull/1646)) — @aguyshayb
 - fix: Find a landing demo exercise beyond 7th grade math ([#1643](https://github.com/A-Guy-educ/A-Guy-Web/pull/1643)) — @aguyshayb
 - feat: Add a dark version of the private-lesson look ([#1642](https://github.com/A-Guy-educ/A-Guy-Web/pull/1642)) — @aguyshayb
 - feat(dashboard): Track plan picks and per-wall conversion in the funnel ([#1641](https://github.com/A-Guy-educ/A-Guy-Web/pull/1641)) — @aguyshayb
