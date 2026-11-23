@@ -4,9 +4,9 @@
  * A real exercise in the landing's "try it here" slot, in the lesson chat
  * view's look: the given-data card, the chat question bubble, and the hint /
  * explanation chips. The lesson chat answers through the AI teacher; here the
- * teacher's lines are the exercise's written ones — the hint (also offered
- * after a first wrong pick, as in the lesson) and the explanation, which
- * also follows a wrong answer. Nothing is saved or reported (no lesson /
+ * teacher's lines are the exercise's written ones — the hint (given right
+ * after a first wrong pick on a 3+ option question, which stays open for a
+ * second try) and the explanation, which follows a wrong answer. Nothing is saved or reported (no lesson /
  * exercise ids) — visitors aren't signed in.
  *
  * @fileType component
@@ -102,7 +102,7 @@ export function LandingDemoExercise({ groups }: { groups: ExerciseBlockGroup[] }
               block={question}
               onSubmit={handleSubmit}
               onHintRequest={hint ? () => showHelp('hint') : undefined}
-              retryHintLabel={t('chatViewRetryHintCta')}
+              autoRetryHint
             />
             {!answered && (hint || explanation) ? (
               <QuickActionChips
