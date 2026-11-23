@@ -757,13 +757,21 @@
   background: hsl(var(--pl-paper));
   text-align: start;
 }
-.pl-landing .demo-wrong-hint {
-  margin-top: 14px;
-  padding: 12px 16px;
-  border-inline-start: 3px solid hsl(var(--pl-pink));
-  border-radius: 12px;
-  background: hsl(var(--pl-highlight));
-  font-size: 16px;
+/* The lesson chat bubbles inside are Tailwind: hand the element resets above
+   back to the utility layer. */
+.pl-landing .system-example-live :is(h1, h2, h3, p) {
+  margin: revert-layer;
+  font-size: revert-layer;
+  font-weight: revert-layer;
+  line-height: revert-layer;
+  letter-spacing: revert-layer;
+}
+.pl-landing .system-example-live button {
+  font: revert-layer;
+}
+.pl-landing .system-example-live a {
+  color: revert-layer;
+  text-decoration: revert-layer;
 }
 .pl-landing .example-mark {
   color: hsl(var(--pl-pink));
