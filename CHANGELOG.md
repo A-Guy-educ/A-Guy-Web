@@ -5253,6 +5253,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Add the demo's finder, a live exercise and a language toggle ([#1640](https://github.com/A-Guy-educ/A-Guy-Web/pull/1640)) — @aguyshayb
 - feat(dashboard): Measure first-week engagement depth in the funnel ([#1639](https://github.com/A-Guy-educ/A-Guy-Web/pull/1639)) — @aguyshayb
 - feat: Add formulas section to the lesson intro page ([#1638](https://github.com/A-Guy-educ/A-Guy-Web/pull/1638)) — @aguyshayb
 - feat: Match the private-lesson demo on the course page ([#1637](https://github.com/A-Guy-educ/A-Guy-Web/pull/1637)) — @aguyshayb
