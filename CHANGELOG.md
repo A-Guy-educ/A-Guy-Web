@@ -5253,6 +5253,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Show the landing demo exercise in the lesson chat view ([#1651](https://github.com/A-Guy-educ/A-Guy-Web/pull/1651)) — @aguyshayb
 - fix: Show a single sub-question as the landing demo exercise ([#1650](https://github.com/A-Guy-educ/A-Guy-Web/pull/1650)) — @aguyshayb
 - fix: Let the landing demo exercise come from any lesson ([#1649](https://github.com/A-Guy-educ/A-Guy-Web/pull/1649)) — @aguyshayb
 - fix: Let the landing demo exercise come from sign-up lessons ([#1648](https://github.com/A-Guy-educ/A-Guy-Web/pull/1648)) — @aguyshayb
