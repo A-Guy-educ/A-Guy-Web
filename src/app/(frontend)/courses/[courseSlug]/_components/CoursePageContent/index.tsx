@@ -147,6 +147,8 @@ export function CoursePageContent({
         <CourseFinder
           kind={finder}
           persona={personaForSlug(teacherSlug)}
+          isSignedIn={Boolean(user)}
+          loginHref={`/login?returnTo=${encodeURIComponent(`/courses/${courseSlug}`)}`}
           onBack={() => setFinder(null)}
           onCamera={() => composerRef.current?.openCamera()}
           onUpload={() => composerRef.current?.openFilePicker()}
