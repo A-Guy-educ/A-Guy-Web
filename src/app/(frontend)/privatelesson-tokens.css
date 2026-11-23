@@ -125,6 +125,10 @@
     --pl-upload-hover: 330 50% 98%; /* #FCF6F9 */
     --pl-upload-line-hover: 328 33% 78%; /* #D9B4C8 */
     --pl-finder-list-heading: 315 8% 19%; /* #352D33 */
+    --pl-exam-plan-line: 320 22% 92%; /* #EEE5EB */
+    --pl-exam-plan-mark: 325 14% 59%; /* #A48999 */
+    --pl-exam-plan-title: 325 10% 37%; /* #67545F */
+    --pl-exam-plan-sub: 323 9% 55%; /* #96828E */
   }
 
   /* Dark: neutrals take our warm grey (hue 30) with surfaces and lines dark and text
@@ -247,5 +251,9 @@
     --pl-upload-hover: 330 40% 11%; /* #FCF6F9 */
     --pl-upload-line-hover: 328 33% 82%; /* #D9B4C8 */
     --pl-finder-list-heading: 30 8% 86%; /* #352D33 */
+    --pl-exam-plan-line: 30 8% 19%; /* #EEE5EB */
+    --pl-exam-plan-mark: 30 8% 48%; /* #A48999 */
+    --pl-exam-plan-title: 30 8% 66%; /* #67545F */
+    --pl-exam-plan-sub: 30 8% 50%; /* #96828E */
   }
 }

@@ -2,8 +2,9 @@
  * What a starting point opens, as in the demo. Learning, practice and exams
  * become a referral: the teacher asks what the student is after, and a photo
  * or a few words get them matching lessons (the composer below does the
- * matching; the chapters below are there to pick from directly). Homework
- * asks for the exercise itself, which the composer hands to Ask.
+ * matching; the chapters below are there to pick from directly). Exams open
+ * the demo's exam hub with "my prep plan" (our study plan). Homework asks for
+ * the exercise itself, which the composer hands to Ask.
  *
  * @fileType component
  * @domain frontend
@@ -14,25 +15,45 @@ import type { TeacherPersona } from '@/ui/web/privateLesson/teacherPersonas'
 import { useTranslations } from '@/ui/web/providers/I18n'
 
 import type { CourseHubAction } from './CourseWelcome'
+import { ExamPrepPlan } from './ExamPrepPlan'
 
 interface CourseFinderProps {
   kind: CourseHubAction
   persona: TeacherPersona
+  isSignedIn: boolean
+  loginHref: string
   onBack: () => void
   onCamera: () => void
   onUpload: () => void
 }
 
-export function CourseFinder({ kind, persona, onBack, onCamera, onUpload }: CourseFinderProps) {
+export function CourseFinder({
+  kind,
+  persona,
+  isSignedIn,
+  loginHref,
+  onBack,
+  onCamera,
+  onUpload,
+}: CourseFinderProps) {
   const t = useTranslations('coursePage.hub.finder')
 
   return (
     <section className="finder" aria-labelledby="finder-title">
       <button type="button" className="back-button" onClick={onBack}>
+        <svg viewBox="0 0 24 24" className="pl-icon" aria-hidden="true">
+          <path d="M5 12h14M13 6l6 6-6 6" />
+        </svg>
         {t('back')}
       </button>
 
-      {kind === 'homework' ? (
+      {kind === 'exams' ? (
+        <div className="exam-hub">
+          <h2 id="finder-title">{t('examHubTitle')}</h2>
+          <p className="finder-sub">{t('examHubSub')}</p>
+          <ExamPrepPlan isSignedIn={isSignedIn} loginHref={loginHref} />
+        </div>
+      ) : kind === 'homework' ? (
         <div className="homework-picker">
           <h2 id="finder-title">{t('homeworkTitle')}</h2>
           <p>{t('homeworkSub')}</p>
@@ -43,16 +64,12 @@ export function CourseFinder({ kind, persona, onBack, onCamera, onUpload }: Cour
         <>
           <div className="finder-teacher-question">
             <span className="pl-avatar" data-teacher={persona} aria-hidden="true" />
-            <h2 id="finder-title">{t(kind === 'exams' ? 'examTitle' : 'topicTitle')}</h2>
+            <h2 id="finder-title">{t('topicTitle')}</h2>
           </div>
-          {kind === 'exams' ? (
-            <p className="finder-sub">{t('examSub')}</p>
-          ) : (
-            <div className="finder-instruction">
-              <strong>{t('topicInstruction')}</strong>
-              <span>{t('topicHint')}</span>
-            </div>
-          )}
+          <div className="finder-instruction">
+            <strong>{t('topicInstruction')}</strong>
+            <span>{t('topicHint')}</span>
+          </div>
           <UploadActions t={t} onCamera={onCamera} onUpload={onUpload} />
         </>
       )}

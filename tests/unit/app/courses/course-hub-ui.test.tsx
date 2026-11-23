@@ -29,6 +29,12 @@ vi.mock('@/infra/loading/components/SystemLink', () => ({
   ),
 }))
 
+vi.mock('@/app/(frontend)/study-plan/_components/StudyPlanPanel', () => ({
+  StudyPlanPanel: ({ stacked }: { stacked?: boolean }) => (
+    <div data-testid="study-plan" data-stacked={String(Boolean(stacked))} />
+  ),
+}))
+
 const he = (ui: React.ReactNode) =>
   render(
     <I18nProvider locale="he" messages={heMessages}>
@@ -112,9 +118,17 @@ describe('CourseWelcome', () => {
 })
 
 describe('CourseFinder', () => {
-  const renderFinder = (kind: 'learn' | 'homework' | 'exams') => {
+  const renderFinder = (kind: 'learn' | 'homework' | 'exams', isSignedIn = true) => {
     const handlers = { onBack: vi.fn(), onCamera: vi.fn(), onUpload: vi.fn() }
-    he(<CourseFinder kind={kind} persona="detailed" {...handlers} />)
+    he(
+      <CourseFinder
+        kind={kind}
+        persona="detailed"
+        isSignedIn={isSignedIn}
+        loginHref="/login?returnTo=%2Fcourses%2Fc"
+        {...handlers}
+      />,
+    )
     return handlers
   }
 
@@ -130,9 +144,23 @@ describe('CourseFinder', () => {
     expect(handlers.onBack).toHaveBeenCalled()
   })
 
-  it('asks what the exam covers', () => {
+  it('opens the exam hub with the study plan inside "my prep plan"', () => {
     renderFinder('exams')
-    expect(screen.getByRole('heading', { name: 'מה יהיה בבחינה?' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'מתכוננים לבחינה' })).toBeTruthy()
+    // The plan only loads once the row is opened.
+    expect(screen.queryByTestId('study-plan')).toBeNull()
+    const details = screen.getByText('תוכנית ההכנה שלי').closest('details')!
+    details.open = true
+    fireEvent(details, new Event('toggle'))
+    expect(screen.getByTestId('study-plan').dataset.stacked).toBe('true')
+  })
+
+  it('asks a signed-out student to log in before building a plan', () => {
+    renderFinder('exams', false)
+    expect(
+      screen.getByRole('link', { name: 'התחברו כדי לבנות תוכנית הכנה' }).getAttribute('href'),
+    ).toBe('/login?returnTo=%2Fcourses%2Fc')
+    expect(screen.queryByTestId('study-plan')).toBeNull()
   })
 
   it('asks for the homework exercise itself', () => {
