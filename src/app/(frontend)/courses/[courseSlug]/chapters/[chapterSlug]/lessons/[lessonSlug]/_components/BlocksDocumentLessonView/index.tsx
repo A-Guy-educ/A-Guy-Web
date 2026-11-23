@@ -33,6 +33,7 @@ import { computeQuestionLabels } from '@/lib/exercises/computeSectionLabels'
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { clampToLearningExerciseGate, getUserTierSlug } from '@/lib/tiers'
 import { LessonNotebookPane } from '@/ui/web/notebook/LessonNotebookPane'
+import { CUT_BLOCK_ATTR, CopyBlockButton } from '@/ui/web/notebook/RegionCut/CopyBlockButton'
 import { useMediaQuery } from '@/client/hooks/useMediaQuery'
 import { ChatInterface } from '@/ui/web/chat'
 import { InlineLessonMenu, LessonViewerBar } from '@/ui/web/lesson-menu'
@@ -269,7 +270,7 @@ export function BlocksDocumentLessonView({
 
   const worksheet = (
     <div className="flex-1 overflow-auto max-w-full bg-muted py-section-sm px-1 sm:px-2 lg:px-6 print:bg-background print:overflow-visible print:p-0">
-      {/* data-cut-surface: the worksheet card is what students cut exercises from. */}
+      {/* data-cut-surface: the worksheet card students copy exercises from. */}
       <div
         data-cut-surface=""
         className="mx-auto max-w-5xl rounded-xl border border-border bg-card shadow-elevation-1 overflow-hidden print:shadow-none print:border-0 print:rounded-none print:max-w-full"
@@ -301,15 +302,18 @@ export function BlocksDocumentLessonView({
             {renderable.map(({ exercise, groups }, idx) => (
               <section
                 key={exercise.id}
-                {...{ [SCROLL_EXERCISE_ATTR]: exercise.id }}
+                {...{ [SCROLL_EXERCISE_ATTR]: exercise.id, [CUT_BLOCK_ATTR]: '' }}
                 className={cn(
                   'flex flex-col gap-content-gap',
                   idx > 0 && 'mt-section-lg border-t-2 border-border pt-section-md',
                 )}
               >
-                {exercise.title && (
-                  <h2 className="text-heading-lg font-bold text-foreground">{exercise.title}</h2>
-                )}
+                <div className="flex items-start gap-content-gap empty:hidden">
+                  {exercise.title && (
+                    <h2 className="text-heading-lg font-bold text-foreground">{exercise.title}</h2>
+                  )}
+                  <CopyBlockButton className="ms-auto" />
+                </div>
                 <ExerciseWorksheet groups={groups} mediaMap={mediaMap} hideLatexBlocks={false} />
               </section>
             ))}

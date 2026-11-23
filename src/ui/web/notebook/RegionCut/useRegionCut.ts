@@ -43,7 +43,8 @@ function nextPaint(): Promise<void> {
 }
 
 /**
- * Turns a selection on the lesson material into an uploaded image, then
+ * Turns a selection on the lesson material (or, via `cutWith`, any captured
+ * region such as a whole worksheet block) into an uploaded image, then
  * either a new notebook page or a chat attachment. Upload happens once,
  * before the branch, so both targets reference the same stored cut.
  */
@@ -57,12 +58,13 @@ export function useRegionCut({
   const t = useTranslations('courses.lessonNotebook')
   const [busy, setBusy] = useState(false)
 
-  const cut = useCallback(
-    async (target: CutTarget, selection: ViewportBox) => {
+  /** Runs `read` and sends what it captured to `target`. */
+  const cutWith = useCallback(
+    async (target: CutTarget, read: () => Promise<CapturedRegion | null>) => {
       setBusy(true)
       try {
         await nextPaint()
-        const region = await capture(selection)
+        const region = await read()
         if (!region) {
           toast.error(t('cutUnavailable'))
           return
@@ -99,8 +101,13 @@ export function useRegionCut({
         setBusy(false)
       }
     },
-    [capture, source, addPage, onAddedToNotebook, onSentToChat, t],
+    [source, addPage, onAddedToNotebook, onSentToChat, t],
   )
 
-  return { busy, cut }
+  const cut = useCallback(
+    (target: CutTarget, selection: ViewportBox) => cutWith(target, () => capture(selection)),
+    [capture, cutWith],
+  )
+
+  return { busy, cut, cutWith }
 }
