@@ -67,6 +67,11 @@ interface ChatQuestionSelectBubbleProps {
   /** Label shown on the retry hint CTA. Provided by the parent from i18n. */
   retryHintLabel?: string
   /**
+   * Fire `onHintRequest` on the first wrong pick itself instead of offering
+   * the CTA (the landing demo, where the hint is the written one).
+   */
+  autoRetryHint?: boolean
+  /**
    * Mobile chat layout: render the attachment sketch between the prompt and
    * the answer area instead of the authored side-by-side / stacked layout.
    */
@@ -118,6 +123,7 @@ function SingleSelectBubble({
   onSubmit,
   onHintRequest,
   retryHintLabel,
+  autoRetryHint,
   attachmentAfterPrompt,
 }: ChatQuestionSelectBubbleProps) {
   const choices = useMemo(() => getChoices(block), [block])
@@ -176,6 +182,7 @@ function SingleSelectBubble({
           wrongOptionIds: Array.from(nextWrong),
         })
       }
+      if (autoRetryHint) requestHint(choice)
       return
     }
 
@@ -203,12 +210,16 @@ function SingleSelectBubble({
   }
 
   const handleHintRequest = () => {
-    if (!onHintRequest || hintShown || disabled) return
     const firstWrongId = Array.from(wrongOptionIds)[0]
     const wrongChoice = choices.find((c) => c.id === firstWrongId)
+    if (wrongChoice) requestHint(wrongChoice)
+  }
+
+  function requestHint(wrongChoice: Choice) {
+    if (!onHintRequest || hintShown || disabled) return
     const correctId = Array.from(correctIds)[0]
     const correctChoice = choices.find((c) => c.id === correctId)
-    if (!wrongChoice || !correctChoice) return
+    if (!correctChoice) return
     setHintShown(true)
     reportQuestionAttempt({ lessonId, exerciseId }, block.id, 'hint')
     if (exerciseId) {
@@ -221,6 +232,7 @@ function SingleSelectBubble({
   // attempt" window: at least one wrong attempt recorded, no final pick yet,
   // hint hasn't fired yet, and the parent wired an onHintRequest + label.
   const showRetryHintCta =
+    !autoRetryHint &&
     isRetryEligible &&
     pickedId === null &&
     wrongOptionIds.size > 0 &&

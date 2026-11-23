@@ -76,11 +76,18 @@ describe('LandingDemoExercise (chat view)', () => {
     expect(screen.queryByRole('button', { name: 'רמז' })).toBeNull()
   })
 
-  it('offers the written hint after a first wrong pick on a three-option question', () => {
-    renderDemo(groups(['עשיריות', 'יחידות', 'מאיות'], { hint: 'רמז כתוב' }))
+  it('gives the written hint on a first wrong pick, then the explanation on a second', () => {
+    renderDemo(
+      groups(['עשיריות', 'יחידות', 'מאיות'], { hint: 'רמז כתוב', fullSolution: 'הסבר כתוב' }),
+    )
     fireEvent.click(screen.getByRole('button', { name: /מאיות/ }))
-    fireEvent.click(screen.getByRole('button', { name: 'תן לי רמז' }))
     expect(screen.getByText('רמז כתוב')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'תן לי רמז' })).toBeNull()
+    expect(screen.queryByText('הסבר כתוב')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: /יחידות/ }))
+    expect(screen.getByText('הסבר ותיקון')).toBeTruthy()
+    expect(screen.getByText('הסבר כתוב')).toBeTruthy()
   })
 
   it('cheers a correct pick', () => {
