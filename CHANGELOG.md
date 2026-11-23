@@ -5253,6 +5253,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- fix: Let the landing demo exercise come from any lesson ([#1649](https://github.com/A-Guy-educ/A-Guy-Web/pull/1649)) — @aguyshayb
 - fix: Let the landing demo exercise come from sign-up lessons ([#1648](https://github.com/A-Guy-educ/A-Guy-Web/pull/1648)) — @aguyshayb
 - feat: Copy scroll exercises to the notebook with a button ([#1647](https://github.com/A-Guy-educ/A-Guy-Web/pull/1647)) — @aguyshayb
 - feat: Add the prep plan to the course exam hub and a clearer back button ([#1646](https://github.com/A-Guy-educ/A-Guy-Web/pull/1646)) — @aguyshayb
