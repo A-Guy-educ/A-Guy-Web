@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { TIER_PRICE_ILS } from '@/lib/tiers'
 import { PrivateLessonLanding } from '@/ui/web/homepage/PrivateLessonLanding'
@@ -9,10 +9,13 @@ import { I18nProvider } from '@/ui/web/providers/I18n'
 
 import heMessages from '../../../src/i18n/he.json'
 
-function renderLanding() {
+const refresh = vi.fn()
+vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }))
+
+function renderLanding(props: Parameters<typeof PrivateLessonLanding>[0] = {}) {
   return render(
     <I18nProvider locale="he" messages={heMessages}>
-      <PrivateLessonLanding />
+      <PrivateLessonLanding {...props} />
     </I18nProvider>,
   )
 }
@@ -71,6 +74,38 @@ describe('PrivateLessonLanding', () => {
     expect(screen.getByRole('link', { name: 'נכנסים לשיעור הפרטי שלי' }).getAttribute('href')).toBe(
       '/start',
     )
+  })
+})
+
+describe('PrivateLessonLanding header', () => {
+  afterEach(cleanup)
+
+  it('offers a sign-in for returning students and no footer lesson link', () => {
+    renderLanding()
+    expect(screen.getByRole('link', { name: /כבר איתנו\? התחברות/ }).getAttribute('href')).toBe(
+      '/login',
+    )
+    expect(screen.queryByRole('link', { name: 'כניסה לשיעור' })).toBeNull()
+  })
+
+  it('switches to English through the locale cookie', () => {
+    renderLanding()
+    const group = screen.getByRole('group', { name: 'שפה' })
+    const he = within(group).getByRole('button', { name: 'עב' })
+    const en = within(group).getByRole('button', { name: 'EN' })
+    expect(he.getAttribute('aria-pressed')).toBe('true')
+    fireEvent.click(en)
+    expect(document.cookie).toContain('en')
+    expect(refresh).toHaveBeenCalled()
+  })
+})
+
+describe('PrivateLessonLanding exercise slot', () => {
+  afterEach(cleanup)
+
+  it("keeps the demo's placeholder when no exercise was found", () => {
+    renderLanding()
+    expect(screen.getByText('כאן מתנסים בתרגיל מתוך המערכת')).toBeTruthy()
   })
 })
 

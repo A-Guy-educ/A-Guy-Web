@@ -19,8 +19,12 @@ interface LanguageSwitcherProps {
   portalContainer?: HTMLElement | null
 }
 
-export function LanguageSwitcher({ portalContainer }: LanguageSwitcherProps = {}) {
-  const t = useTranslations('common.languageSwitcher')
+/**
+ * Switches the site language: instant `lang`/`dir` feedback, the locale cookie
+ * (the source of truth for middleware), then a soft refresh. Shared by the
+ * dropdown below and the landing page's compact toggle.
+ */
+export function useLocaleSwitch() {
   const serverLocale = useLocale()
   const router = useRouter()
 
@@ -62,12 +66,16 @@ export function LanguageSwitcher({ portalContainer }: LanguageSwitcherProps = {}
     router.refresh()
   }
 
-  // Use client locale for display (immediate updates), but sync with server
-  const displayLocale = clientLocale
-
   // Check if we're on a forced locale subdomain
   const isOnForcedDomain =
     typeof window !== 'undefined' && isForcedLocaleDomain(window.location.host)
+
+  return { locale: clientLocale, switchTo: handleLocaleChange, disabled: isOnForcedDomain }
+}
+
+export function LanguageSwitcher({ portalContainer }: LanguageSwitcherProps = {}) {
+  const t = useTranslations('common.languageSwitcher')
+  const { locale: displayLocale, switchTo, disabled: isOnForcedDomain } = useLocaleSwitch()
 
   const nativeLocaleLabels: Record<Locale, string> = {
     en: 'English',
@@ -76,7 +84,7 @@ export function LanguageSwitcher({ portalContainer }: LanguageSwitcherProps = {}
 
   return (
     <div className="flex items-center gap-content-gap-xs">
-      <Select value={displayLocale} onValueChange={handleLocaleChange} disabled={isOnForcedDomain}>
+      <Select value={displayLocale} onValueChange={switchTo} disabled={isOnForcedDomain}>
         <SelectTrigger className="w-[150px] min-h-[44px]">
           <Globe className="h-4 w-4 shrink-0 opacity-70" />
           <SelectValue placeholder={t('label')} />

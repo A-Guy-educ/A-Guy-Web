@@ -1,0 +1,212 @@
+/*
+ * The course page's finder, from the private-lesson demo: what a starting point
+ * opens (the lesson picker, or the homework screen). Scoped under .pl-hub; colors
+ * are the `--pl-*` tokens in src/app/(frontend)/privatelesson-tokens.css.
+ */
+
+/* Finder: what a starting point opens (the demo's lesson picker / homework screen) */
+.pl-hub .finder {
+  max-width: 650px;
+  margin: 0 auto;
+  padding: 18px 20px 8px;
+}
+.pl-hub .back-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  border-radius: 18px;
+  padding: 7px 12px;
+  min-height: 38px;
+  color: hsl(var(--pl-finder-back));
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+.pl-hub .back-button:hover {
+  color: hsl(var(--pl-action));
+  background: hsl(var(--pl-finder-back-hover));
+}
+.pl-hub .back-button:active {
+  background: hsl(var(--pl-finder-back-active));
+}
+.pl-hub .finder-teacher-question {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-bottom: 14px;
+  text-align: start;
+}
+.pl-hub .finder-teacher-question .pl-avatar {
+  width: 52px;
+  height: 52px;
+  border: 1px solid hsl(var(--pl-finder-avatar-line));
+  background-color: hsl(var(--pl-finder-avatar));
+}
+.pl-hub .finder-teacher-question h2 {
+  margin: 0;
+  font-size: 29px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: hsl(var(--pl-ink-soft));
+}
+.pl-hub .finder-instruction {
+  padding: 13px 16px;
+  margin: 0 0 20px;
+  border-inline-start: 3px solid hsl(var(--pl-pink));
+  border-radius: 12px;
+  background: hsl(var(--pl-finder-instruction));
+  text-align: start;
+}
+.pl-hub .finder-instruction strong {
+  display: block;
+  color: hsl(var(--pl-finder-instruction-ink));
+  font-size: 18px;
+  font-weight: 650;
+  line-height: 1.5;
+}
+.pl-hub .finder-instruction span {
+  display: block;
+  margin-top: 4px;
+  color: hsl(var(--pl-finder-instruction-hint));
+  font-size: 15px;
+  line-height: 1.6;
+}
+.pl-hub .finder-sub {
+  font-size: 17px;
+  color: hsl(var(--pl-finder-sub));
+  line-height: 1.65;
+  text-align: start;
+  white-space: pre-line;
+  margin: 0 0 20px;
+}
+.pl-hub .homework-picker {
+  min-height: calc(100dvh - 430px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 22px 0;
+}
+.pl-hub .homework-picker h2 {
+  font-size: 25px;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0 0 10px;
+}
+.pl-hub .homework-picker p {
+  font-size: 16px;
+  color: hsl(var(--pl-homework-sub));
+  margin: 0;
+}
+.pl-hub .homework-picker .homework-hint {
+  font-size: 14px;
+  color: hsl(var(--pl-homework-hint));
+}
+.pl-hub .upload-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  max-width: 390px;
+  width: 100%;
+  margin: 27px auto 21px;
+  border-radius: 18px;
+  animation: pl-finder-action-cue 1.4s ease-out 2;
+}
+.pl-hub .finder .upload-actions {
+  margin: 0 auto 16px;
+}
+.pl-hub .upload-actions:focus-within,
+.pl-hub .upload-actions:hover {
+  animation: none;
+}
+.pl-hub .upload-button {
+  background: hsl(var(--pl-paper));
+  border: 1px solid hsl(var(--pl-upload-line));
+  border-radius: 18px;
+  padding: 22px 15px;
+  min-height: 124px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  font-size: 16px;
+  transition:
+    background 0.16s,
+    border-color 0.16s;
+}
+.pl-hub .upload-button svg {
+  width: 29px;
+  height: 29px;
+  color: hsl(var(--pl-action));
+  stroke-width: 1.6;
+}
+.pl-hub .upload-button:hover {
+  background: hsl(var(--pl-upload-hover));
+  border-color: hsl(var(--pl-upload-line-hover));
+}
+.pl-hub .upload-button:focus-visible {
+  outline: 2px solid hsl(var(--pl-action));
+  outline-offset: 3px;
+}
+.pl-hub .finder-lessons {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 10px 24px 80px;
+}
+.pl-hub .finder-list-heading {
+  font-size: 17px;
+  margin: 0 0 13px;
+  font-weight: 600;
+  color: hsl(var(--pl-finder-list-heading));
+}
+@keyframes pl-finder-action-cue {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 hsl(var(--pl-pink) / 0);
+  }
+  45% {
+    box-shadow: 0 0 0 6px hsl(var(--pl-pink) / 0.086);
+  }
+}
+
+@media (max-width: 600px) {
+  .pl-hub .finder {
+    padding: 12px 21px 8px;
+  }
+  .pl-hub .finder-teacher-question h2 {
+    font-size: 27px;
+  }
+  .pl-hub .finder-sub {
+    font-size: 16px;
+    margin-bottom: 16px;
+  }
+  .pl-hub .homework-picker {
+    min-height: calc(100dvh - 400px);
+  }
+  .pl-hub .homework-picker h2 {
+    font-size: 23px;
+  }
+  .pl-hub .upload-actions {
+    gap: 11px;
+    margin-top: 24px;
+    max-width: 350px;
+  }
+  .pl-hub .upload-button {
+    font-size: 15px;
+    min-height: 122px;
+    padding: 20px 10px;
+  }
+  .pl-hub .finder-lessons {
+    padding: 10px 21px 55px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pl-hub .upload-actions {
+    animation: none;
+  }
+}

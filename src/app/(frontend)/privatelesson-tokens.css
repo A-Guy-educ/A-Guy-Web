@@ -107,5 +107,20 @@
     --pl-hub-muted: 240 2% 53%; /* #85858A */
     --pl-hub-link: 240 4% 60%; /* #94949C */
     --pl-hub-link-line: 240 9% 94%; /* #EDEDF0 */
+    --pl-finder-back: 280 4% 46%; /* #77717A */
+    --pl-finder-back-hover: 326 41% 97%; /* #FAF3F7 */
+    --pl-finder-back-active: 328 39% 94%; /* #F5E8EF */
+    --pl-finder-avatar-line: 318 18% 89%; /* #E8DEE5 */
+    --pl-finder-avatar: 315 22% 96%; /* #F8F4F7 */
+    --pl-finder-instruction: 327 60% 97%; /* #FCF3F8 */
+    --pl-finder-instruction-ink: 330 62% 33%; /* #872053 */
+    --pl-finder-instruction-hint: 317 8% 35%; /* #5F515B */
+    --pl-finder-sub: 293 6% 30%; /* #514952 */
+    --pl-homework-sub: 240 3% 53%; /* #84848C */
+    --pl-homework-hint: 240 3% 60%; /* #96969C */
+    --pl-upload-line: 310 11% 89%; /* #E7E1E6 */
+    --pl-upload-hover: 330 50% 98%; /* #FCF6F9 */
+    --pl-upload-line-hover: 328 33% 78%; /* #D9B4C8 */
+    --pl-finder-list-heading: 315 8% 19%; /* #352D33 */
   }
 }

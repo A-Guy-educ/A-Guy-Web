@@ -1,3 +1,6 @@
+import { getSystemLocale } from '@/i18n/server-locale'
+import { isValidContentLocale } from '@/infra/types/content'
+import { getLandingDemoExercise } from '@/server/services/landing-demo-exercise'
 import { PrivateLessonLanding } from '@/ui/web/homepage/PrivateLessonLanding'
 import { resolveLandingRedirect } from '@/infra/onboarding/homeRedirect'
 import { getMeUser } from '@/infra/utils/getMeUser'
@@ -13,7 +16,12 @@ export default async function HomepagePage() {
     redirect(destination)
   }
 
-  return <PrivateLessonLanding />
+  const locale = await getSystemLocale()
+  const demoExercise = await getLandingDemoExercise(
+    isValidContentLocale(locale) ? locale : undefined,
+  )
+
+  return <PrivateLessonLanding demoExerciseGroups={demoExercise?.groups ?? null} />
 }
 
 // Title shown in the browser tab and in WhatsApp / Facebook link previews.

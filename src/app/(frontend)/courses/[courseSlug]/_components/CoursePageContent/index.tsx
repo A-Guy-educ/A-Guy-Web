@@ -5,7 +5,8 @@
  * in `@/ui/web/privateLesson/private-lesson-hub.css`): the course name, the
  * teacher's welcome with four starting points, the composer, then the last
  * lesson and all content — learning / practice / exams, each as chapters of
- * our lesson cards.
+ * our lesson cards. A starting point swaps the welcome for its finder (see
+ * CourseFinder), as the demo does; "חזרה" brings the welcome back.
  */
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
 import { useExamCountdown } from '@/client/hooks/useExamCountdown'
@@ -18,6 +19,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { CourseAnalytics } from '../CourseAnalytics'
 import { CourseComposer, type CourseComposerHandle } from '../CourseComposer'
 import { buildLessonHref } from '../CourseComposer/courseComposerLinks'
+import { CourseFinder } from '../CourseHub/CourseFinder'
 import { CourseLastLesson } from '../CourseHub/CourseLastLesson'
 import { CourseWelcome, type CourseHubAction } from '../CourseHub/CourseWelcome'
 import { pickContinueLesson } from '../CourseHub/pickContinueLesson'
@@ -27,9 +29,11 @@ import { buildLessonSearchNodes } from '../LessonListTab/buildLessonSearchNodes'
 import { LocaleFallbackBanner } from '../../../_components/LocaleFallbackBanner'
 import { ShareButton } from '@/ui/web/shared/ShareButton'
 import { useTeacherProfileLabel } from '@/ui/web/chat/hooks/useTeacherProfileLabel'
+import { personaForSlug } from '@/ui/web/privateLesson/teacherPersonas'
 
 import '@/ui/web/privateLesson/private-lesson.css'
 import '@/ui/web/privateLesson/private-lesson-hub.css'
+import '@/ui/web/privateLesson/private-lesson-finder.css'
 
 interface CoursePageContentProps {
   course: Course
@@ -92,22 +96,37 @@ export function CoursePageContent({
   )
   const continueHref = continueLesson ? buildLessonHref(continueLesson, courseSlug) : null
 
-  // Each starting point opens the content it belongs to and hands the student
-  // to the composer. Homework opens the photo picker straight from the click
-  // (browsers only allow that inside the user gesture).
-  const handleAction = (action: CourseHubAction) => {
-    if (action === 'homework') {
-      composerRef.current?.openPhotoPicker()
-      return
-    }
-    setActiveTab(action)
-    composerRef.current?.focus()
+  // A starting point opens its finder; the lesson ones also switch the list
+  // below to their kind of content, so the matching chapters are right there.
+  const [finder, setFinder] = useState<CourseHubAction | null>(null)
+  const openFinder = (action: CourseHubAction) => {
+    setFinder(action)
+    if (action !== 'homework') setActiveTab(action)
+    window.scrollTo({ top: 0 })
   }
+  const lessonFinder = finder && finder !== 'homework' ? finder : null
+  const finderNodes = useMemo(
+    () =>
+      lessonFinder
+        ? searchNodes.filter((n) => n.lessonType === LESSON_TYPE_BY_TAB[lessonFinder])
+        : searchNodes,
+    [lessonFinder, searchNodes],
+  )
 
-  const openExams = () => {
-    setActiveTab('exams')
-    allContentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
+  const lessonList = (
+    <LessonListTab
+      key={activeTab}
+      lessons={lessons}
+      chapters={chapters}
+      courseSlug={courseSlug}
+      courseId={course.id}
+      courseAccessType={course.accessType}
+      gradeLevel={course.courseLabel || ''}
+      lessonProgressMap={lessonProgressMap}
+      lessonType={LESSON_TYPE_BY_TAB[activeTab]}
+      purchaseHref={purchaseHref}
+    />
+  )
 
   return (
     <div className="pl-hub" dir={locale === 'he' ? 'rtl' : 'ltr'}>
@@ -124,85 +143,101 @@ export function CoursePageContent({
         <ShareButton title={course.title} ariaLabel={tCourses('shareCourse')} />
       </h1>
 
+      {searchNodes.length > 0 && finder && (
+        <CourseFinder
+          kind={finder}
+          persona={personaForSlug(teacherSlug)}
+          onBack={() => setFinder(null)}
+          onCamera={() => composerRef.current?.openCamera()}
+          onUpload={() => composerRef.current?.openFilePicker()}
+        />
+      )}
+      {searchNodes.length > 0 && !finder && (
+        <CourseWelcome
+          teacherSlug={teacherSlug}
+          teacherLabel={teacherLabel}
+          continueLesson={
+            continueLesson && continueHref
+              ? { title: continueLesson.lesson.title, href: continueHref }
+              : null
+          }
+          examDaysUntil={hasUpcomingExam ? daysUntil : null}
+          onAction={openFinder}
+        />
+      )}
       {searchNodes.length > 0 && (
-        <>
-          <CourseWelcome
-            teacherSlug={teacherSlug}
-            teacherLabel={teacherLabel}
-            continueLesson={
-              continueLesson && continueHref
-                ? { title: continueLesson.lesson.title, href: continueHref }
-                : null
-            }
-            examDaysUntil={hasUpcomingExam ? daysUntil : null}
-            onAction={handleAction}
-          />
-          <CourseComposer
-            ref={composerRef}
-            nodes={searchNodes}
-            courseId={course.id}
-            courseSlug={courseSlug}
-            courseTitle={course.title}
-            onOpenExams={openExams}
-            isSignedIn={Boolean(user)}
-          />
-        </>
+        <CourseComposer
+          key={finder ?? 'welcome'}
+          ref={composerRef}
+          nodes={finderNodes}
+          courseId={course.id}
+          courseSlug={courseSlug}
+          courseTitle={course.title}
+          onOpenExams={() => openFinder('exams')}
+          isSignedIn={Boolean(user)}
+          mode={finder === 'homework' ? 'homework' : 'lessons'}
+          placeholder={
+            finder === 'homework'
+              ? t('hub.finder.homeworkPlaceholder')
+              : lessonFinder
+                ? t('hub.finder.topicPlaceholder')
+                : undefined
+          }
+        />
       )}
 
-      <section className="browse">
-        <button
-          type="button"
-          className="browse-cue"
-          onClick={() =>
-            (lastLessonRef.current ?? allContentRef.current)?.scrollIntoView({
-              behavior: 'smooth',
-              block: 'start',
-            })
-          }
-        >
-          {t('hub.browseCue')}
-          <svg viewBox="0 0 24 24" className="pl-icon" aria-hidden="true">
-            <path d="m6 9 6 6 6-6" />
-          </svg>
-        </button>
+      {lessonFinder && finderNodes.length > 0 && (
+        <section className="finder-lessons">
+          <h3 className="finder-list-heading">{t('hub.finder.chooseTopic')}</h3>
+          {lessonList}
+        </section>
+      )}
 
-        {continueLesson && continueHref && (
-          <>
-            <h2 ref={lastLessonRef}>{t('hub.lastHeading')}</h2>
-            <CourseLastLesson
-              node={continueLesson}
-              href={continueHref}
-              percent={lessonProgressMap[continueLesson.lesson.id]?.percent ?? 0}
-            />
-          </>
-        )}
+      {!finder && (
+        <section className="browse">
+          <button
+            type="button"
+            className="browse-cue"
+            onClick={() =>
+              (lastLessonRef.current ?? allContentRef.current)?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+              })
+            }
+          >
+            {t('hub.browseCue')}
+            <svg viewBox="0 0 24 24" className="pl-icon" aria-hidden="true">
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </button>
 
-        <h2 ref={allContentRef}>{t('hub.allContent')}</h2>
-        <CourseTabs activeTab={activeTab} onTabChange={setActiveTab} />
-        <LessonListTab
-          key={activeTab}
-          lessons={lessons}
-          chapters={chapters}
-          courseSlug={courseSlug}
-          courseId={course.id}
-          courseAccessType={course.accessType}
-          gradeLevel={course.courseLabel || ''}
-          lessonProgressMap={lessonProgressMap}
-          lessonType={LESSON_TYPE_BY_TAB[activeTab]}
-          purchaseHref={purchaseHref}
-        />
+          {continueLesson && continueHref && (
+            <>
+              <h2 ref={lastLessonRef}>{t('hub.lastHeading')}</h2>
+              <CourseLastLesson
+                node={continueLesson}
+                href={continueHref}
+                percent={lessonProgressMap[continueLesson.lesson.id]?.percent ?? 0}
+              />
+            </>
+          )}
 
-        <div className="hub-links">
-          <SystemLink href={`/stats?courseId=${course.id}`} className="demo-view">
-            <BarChart3 className="w-3.5 h-3.5" aria-hidden="true" />
-            {t('statsAndPerformance')}
-          </SystemLink>
-          <SystemLink href="/study-plan" className="demo-view">
-            <GraduationCap className="w-3.5 h-3.5" aria-hidden="true" />
-            {t('upcomingExam')}
-          </SystemLink>
-        </div>
-      </section>
+          <h2 ref={allContentRef}>{t('hub.allContent')}</h2>
+          <CourseTabs activeTab={activeTab} onTabChange={setActiveTab} />
+          {lessonList}
+
+          <div className="hub-links">
+            <SystemLink href={`/stats?courseId=${course.id}`} className="demo-view">
+              <BarChart3 className="w-3.5 h-3.5" aria-hidden="true" />
+              {t('statsAndPerformance')}
+            </SystemLink>
+            <SystemLink href="/study-plan" className="demo-view">
+              <GraduationCap className="w-3.5 h-3.5" aria-hidden="true" />
+              {t('upcomingExam')}
+            </SystemLink>
+          </div>
+        </section>
+      )}
     </div>
   )
 }

@@ -1,10 +1,23 @@
+'use client'
+
+import type { ExerciseBlockGroup } from '@/infra/types/exercise'
+
+import { LandingDemoExercise } from './LandingDemoExercise'
 import { SectionHeading, type Translate } from './landingShared'
 
 /**
- * The objection ("my child won't learn like this"), then the slot the demo
- * keeps for a real exercise from the system.
+ * The objection ("my child won't learn like this"), then a real exercise from
+ * the system in the slot the demo keeps for one — the lesson player itself, with
+ * its feedback and hint / guiding / solution buttons. Without one (nothing
+ * suitable found) the demo's placeholder stays.
  */
-export function LandingConfidence({ t }: { t: Translate }) {
+export function LandingConfidence({
+  t,
+  demoExerciseGroups,
+}: {
+  t: Translate
+  demoExerciseGroups: ExerciseBlockGroup[] | null
+}) {
   return (
     <>
       <section className="confidence-section" aria-labelledby="confidence-title">
@@ -36,16 +49,20 @@ export function LandingConfidence({ t }: { t: Translate }) {
           title={t('example.title')}
           description={t('example.description')}
         />
-        <div className="system-example-mount">
-          <span className="example-mark" aria-hidden="true">
-            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1.6">
-              <rect x="6" y="7" width="36" height="27" rx="4" />
-              <path d="M16 41h16M24 34v7M19 16l-5 5 5 5m10-10 5 5-5 5" />
-            </svg>
-          </span>
-          <strong>{t('example.slotTitle')}</strong>
-          <p>{t('example.slotText')}</p>
-        </div>
+        {demoExerciseGroups ? (
+          <LandingDemoExercise groups={demoExerciseGroups} />
+        ) : (
+          <div className="system-example-mount">
+            <span className="example-mark" aria-hidden="true">
+              <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1.6">
+                <rect x="6" y="7" width="36" height="27" rx="4" />
+                <path d="M16 41h16M24 34v7M19 16l-5 5 5 5m10-10 5 5-5 5" />
+              </svg>
+            </span>
+            <strong>{t('example.slotTitle')}</strong>
+            <p>{t('example.slotText')}</p>
+          </div>
+        )}
       </section>
     </>
   )

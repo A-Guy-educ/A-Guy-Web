@@ -23,6 +23,25 @@ interface HelpSystemProps {
   hintLabel: string
   guidingLabel: string
   solutionLabel: string
+  /** Also show the guiding question and the explanation inline (no lesson chat). */
+  inlineAll?: boolean
+}
+
+function writtenContent(
+  question: QuestionBlock,
+  type: 'hint' | 'guiding' | 'solution' | null,
+  inlineAll: boolean,
+): string | null {
+  const q = question as QuestionBlock & {
+    hint?: { value?: string }
+    solution?: { value?: string }
+    fullSolution?: { value?: string }
+  }
+  if (type === 'hint') return q.hint?.value || null
+  if (!inlineAll) return null
+  if (type === 'guiding') return q.solution?.value || null
+  if (type === 'solution') return q.fullSolution?.value || null
+  return null
 }
 
 export function HelpSystem({
@@ -35,9 +54,11 @@ export function HelpSystem({
   hintLabel,
   guidingLabel,
   solutionLabel,
+  inlineAll = false,
 }: HelpSystemProps) {
-  // Determine which content to show inline (hint only when backend content exists)
-  const inlineContent = activeHelp === 'hint' && question.hint?.value ? question.hint.value : null
+  // Inline content: the hint when it's written; with `inlineAll`, the guiding
+  // question and explanation too (otherwise those go to the lesson chat).
+  const inlineContent = writtenContent(question, activeHelp, inlineAll)
 
   return (
     <div className="mt-4 border-t border-border pt-3">
@@ -56,7 +77,8 @@ export function HelpSystem({
         {inlineContent && (
           <div className="mt-3">
             <HelpSystemContent
-              type="hint"
+              key={activeHelp}
+              type={activeHelp ?? 'hint'}
               content={inlineContent}
               hintLabel={hintLabel}
               guidingLabel={guidingLabel}
