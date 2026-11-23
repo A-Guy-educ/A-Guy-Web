@@ -7,7 +7,7 @@
  *   .pl-avatar      teacher photos and the animated tutor portrait
  * The course page (.pl-hub) is in private-lesson-hub.css.
  * Colors are the `--pl-*` tokens in src/app/(frontend)/privatelesson-tokens.css.
- * The demo is light-only, so is this.
+ * The demo is light-only; the tokens carry a dark version that matches our dark theme.
  */
 
 /* ---------- Teacher photos and the animated portrait ---------- */
@@ -322,7 +322,7 @@
   border: 1px solid hsl(var(--pl-action));
   border-radius: 24px;
   background: hsl(var(--pl-action));
-  color: hsl(var(--pl-paper));
+  color: hsl(var(--pl-on-accent));
   padding: 10px 17px;
   font-size: 15px;
 }
@@ -461,7 +461,7 @@
 .pl-landing .btn.primary {
   background: hsl(var(--pl-pink));
   border-color: hsl(var(--pl-pink));
-  color: hsl(var(--pl-paper));
+  color: hsl(var(--pl-on-accent));
   box-shadow: 0 8px 24px hsl(var(--pl-pink) / 0.094);
 }
 .pl-landing .btn.primary:hover {
@@ -554,7 +554,7 @@
 }
 .pl-landing .lang-toggle button[aria-pressed='true'] {
   background: hsl(var(--pl-pink));
-  color: hsl(var(--pl-paper));
+  color: hsl(var(--pl-on-accent));
 }
 .pl-landing .pl-footer {
   display: flex;

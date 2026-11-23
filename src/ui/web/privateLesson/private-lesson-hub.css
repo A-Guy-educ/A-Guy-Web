@@ -1,7 +1,7 @@
 /*
  * The course page in the private-lesson demo's look (the demo's lesson hub),
  * ported value for value and scoped under .pl-hub. Colors are the `--pl-*`
- * tokens in src/app/(frontend)/privatelesson-tokens.css; light-only like the demo.
+ * tokens in src/app/(frontend)/privatelesson-tokens.css, which also carry the dark theme.
  */
 
 .pl-hub {
@@ -54,12 +54,12 @@
 }
 .pl-hub .primary-pill {
   background: hsl(var(--pl-action));
-  color: hsl(var(--pl-paper));
+  color: hsl(var(--pl-on-accent));
   border-color: hsl(var(--pl-action));
 }
 .pl-hub .primary-pill:hover {
   background: hsl(var(--pl-action-hover));
-  color: hsl(var(--pl-paper));
+  color: hsl(var(--pl-on-accent));
 }
 .pl-hub .icon {
   width: 38px;
@@ -349,7 +349,7 @@
 }
 .pl-hub .send {
   background: hsl(var(--pl-action));
-  color: hsl(var(--pl-paper));
+  color: hsl(var(--pl-on-accent));
 }
 .pl-hub .send:hover {
   background: hsl(var(--pl-action-hover));

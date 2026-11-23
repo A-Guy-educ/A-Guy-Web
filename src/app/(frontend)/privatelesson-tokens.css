@@ -1,10 +1,13 @@
 /* Private-lesson palette: the boss's demo (aguy-private-lesson-demo), used by
    the landing page at /, the /start onboarding card, the course page and the
    teacher portraits.
-   Light-only by design, like the demo, so these tokens have no dark overrides.
+   The demo is light-only; the dark values below are derived from it to match our
+   dark theme (warm near-black surfaces, light text, brighter pink).
    Consumed by src/ui/web/privateLesson/private-lesson*.css. */
 @layer base {
   :root {
+    /* Text on the pink buttons: white in both themes. */
+    --pl-on-accent: 0 0% 100%;
     --pl-paper: 0 0% 100%; /* #FFFFFF */
     --pl-shadow: 0 0% 0%; /* #000000 */
     --pl-whatsapp: 145 57% 33%; /* #24834B */
@@ -122,5 +125,127 @@
     --pl-upload-hover: 330 50% 98%; /* #FCF6F9 */
     --pl-upload-line-hover: 328 33% 78%; /* #D9B4C8 */
     --pl-finder-list-heading: 315 8% 19%; /* #352D33 */
+  }
+
+  /* Dark: neutrals take our warm grey (hue 30) with surfaces and lines dark and text
+     light; tints become dark washes of their hue; accents get brighter. */
+  [data-theme='dark'] {
+    --pl-paper: 30 6% 10%; /* #FFFFFF */
+    --pl-shadow: 0 0% 0%; /* #000000 */
+    --pl-whatsapp: 145 57% 55%; /* #24834B */
+    --pl-whatsapp-line: 30 8% 54%; /* #95B69E */
+    --pl-whatsapp-hover: 132 33% 12%; /* #F5FAF6 */
+    --pl-ink: 30 8% 88%; /* #252432 */
+    --pl-ink-soft: 30 8% 91%; /* #252529 */
+    --pl-muted: 30 8% 60%; /* #646272 */
+    --pl-price-ink: 30 8% 75%; /* #474351 */
+    --pl-pink: 327 82% 58%; /* #B5126B */
+    --pl-pink-hover: 327 80% 55%; /* #98115B */
+    --pl-pink-deep: 327 84% 55%; /* #9D0E5C */
+    --pl-action: 328 81% 57%; /* #AD1265 */
+    --pl-action-hover: 328 84% 54%; /* #930D55 */
+    --pl-action-wash: 330 40% 13%; /* #FAF0F5 */
+    --pl-line: 30 8% 21%; /* #E6E3ED */
+    --pl-header-line: 30 8% 17%; /* #EEEDF2 */
+    --pl-btn-line: 30 8% 30%; /* #D3CEDD */
+    --pl-btn-hover: 30 8% 14%; /* #F4F1F8 */
+    --pl-portrait: 30 8% 14%; /* #F1EFF9 */
+    --pl-portrait-ring: 30 8% 27%; /* #D7D1E8 */
+    --pl-scribble: 30 8% 53%; /* #797086 */
+    --pl-tag-shadow: 30 8% 79%; /* #44344C */
+    --pl-tag-line: 30 8% 21%; /* #E9E5ED */
+    --pl-speech: 82 40% 19%; /* #E7EFD9 */
+    --pl-speech-line: 85 26% 25%; /* #D3DDC5 */
+    --pl-speech-shadow: 81 62% 46%; /* #384D12 */
+    --pl-quote-mark: 30 8% 64%; /* #9BAA80 */
+    --pl-confidence: 30 8% 14%; /* #F5F3F9 */
+    --pl-slot-line: 30 8% 36%; /* #C9BFD4 */
+    --pl-slot: 30 8% 12%; /* #FBFAFC */
+    --pl-mentor-active: 323 40% 12%; /* #FCF4F9 */
+    --pl-intent-hover: 312 38% 12%; /* #FBF6FA */
+    --pl-intent-line-hover: 320 29% 81%; /* #D3AFC7 */
+    --pl-comparison: 30 8% 12%; /* #FAF9FC */
+    --pl-table-line: 30 8% 22%; /* #E5E0E9 */
+    --pl-table-head-line: 30 8% 27%; /* #DCD3E2 */
+    --pl-table-row-line: 30 8% 26%; /* #DED8E4 */
+    --pl-table-divider: 30 8% 25%; /* #E4DBE7 */
+    --pl-highlight: 322 40% 14%; /* #F8EDF4 */
+    --pl-consult-line: 30 8% 27%; /* #DCD5E3 */
+    --pl-card-line: 30 8% 21%; /* #EEE4EC */
+    --pl-progress: 30 8% 65%; /* #9C8997 */
+    --pl-footnote: 30 8% 60%; /* #A1959F */
+    --pl-onboarding-sub: 30 8% 55%; /* #7C6F79 */
+    --pl-option-line: 30 8% 23%; /* #E9DEE6 */
+    --pl-option-line-active: 329 34% 72%; /* #BF7C9F */
+    --pl-option-active: 330 40% 12%; /* #FCF4F8 */
+    --pl-teacher-ink: 30 8% 79%; /* #4D3444 */
+    --pl-teacher-sub: 30 8% 73%; /* #8A7C86 */
+    --pl-group-ink: 30 8% 85%; /* #392C37 */
+    --pl-track-line: 30 8% 25%; /* #E5DBE3 */
+    --pl-track-ink: 30 8% 90%; /* #30232D */
+    --pl-track-line-hover: 326 36% 73%; /* #C483A8 */
+    --pl-track-selected: 326 40% 14%; /* #FAEAF3 */
+    --pl-track-selected-ink: 327 82% 56%; /* #A11060 */
+    --pl-track-focus: 326 51% 77%; /* #D98AB7 */
+    --pl-hub-pink: 327 81% 58%; /* #B5136B */
+    --pl-hub-pill-line: 30 8% 21%; /* #E7E7EA */
+    --pl-hub-pill-hover: 324 40% 11%; /* #FDF8FB */
+    --pl-hub-icon-hover: 30 8% 14%; /* #F4F4F5 */
+    --pl-hub-course: 30 8% 68%; /* #61545E */
+    --pl-hub-portrait: 327 40% 14%; /* #F8EDF3 */
+    --pl-hub-portrait-line: 323 30% 16%; /* #F0E3EB */
+    --pl-hub-portrait-shadow: 336 56% 56%; /* #8C2850 */
+    --pl-hub-teacher-name: 30 8% 56%; /* #846477 */
+    --pl-hub-continue-label: 30 8% 69%; /* #53535B */
+    --pl-hub-continue-hover: 326 40% 12%; /* #FCF5F9 */
+    --pl-hub-continue-ink: 328 81% 54%; /* #8D0F53 */
+    --pl-hub-entry-line: 30 8% 21%; /* #E9E5E9 */
+    --pl-hub-entry-hover: 330 40% 11%; /* #FDF9FB */
+    --pl-hub-entry-line-hover: 325 32% 82%; /* #D8B4C9 */
+    --pl-hub-entry-shadow: 326 57% 54%; /* #7B2255 */
+    --pl-hub-entry-active: 326 40% 14%; /* #F8EAF2 */
+    --pl-hub-entry-icon: 330 40% 12%; /* #FBF3F7 */
+    --pl-hub-spotlight-line: 328 39% 82%; /* #DFB6CC */
+    --pl-hub-spotlight-line-peak: 327 43% 68%; /* #BD5A90 */
+    --pl-hub-spotlight: 324 40% 10%; /* #FFFAFD */
+    --pl-hub-composer-line: 30 8% 21%; /* #E6E6E9 */
+    --pl-hub-composer: 30 8% 13%; /* #F7F7F8 */
+    --pl-hub-placeholder: 30 8% 60%; /* #99999F */
+    --pl-hub-talking: 328 40% 14%; /* #FAEDF4 */
+    --pl-hub-attachment-ink: 30 8% 55%; /* #73737A */
+    --pl-hub-count: 30 8% 60%; /* #9999A0 */
+    --pl-hub-info: 30 8% 66%; /* #8A8A92 */
+    --pl-hub-card-line: 30 8% 18%; /* #ECECEE */
+    --pl-hub-track: 30 8% 17%; /* #F0EDF0 */
+    --pl-hub-tab-line: 323 26% 21%; /* #E6D4DF */
+    --pl-hub-tab: 324 38% 12%; /* #FBF6F9 */
+    --pl-hub-filter: 328 40% 14%; /* #F7EAF1 */
+    --pl-hub-filter-line: 327 42% 77%; /* #D393B6 */
+    --pl-hub-chapter-line: 30 8% 25%; /* #E1DFE3 */
+    --pl-hub-chapter: 30 8% 12%; /* #FAFAFB */
+    --pl-hub-chapter-ring: 30 8% 26%; /* #DCDCE0 */
+    --pl-hub-chapter-icon: 30 8% 70%; /* #83818B */
+    --pl-hub-chapter-meta: 30 8% 70%; /* #86818B */
+    --pl-hub-chapter-count: 30 8% 71%; /* #85808A */
+    --pl-hub-chapter-track: 30 8% 17%; /* #EEEEF1 */
+    --pl-hub-chapter-divider: 30 8% 25%; /* #E4DFE3 */
+    --pl-hub-muted: 30 8% 70%; /* #85858A */
+    --pl-hub-link: 30 8% 61%; /* #94949C */
+    --pl-hub-link-line: 30 8% 17%; /* #EDEDF0 */
+    --pl-finder-back: 30 8% 55%; /* #77717A */
+    --pl-finder-back-hover: 326 40% 12%; /* #FAF3F7 */
+    --pl-finder-back-active: 328 39% 14%; /* #F5E8EF */
+    --pl-finder-avatar-line: 30 8% 23%; /* #E8DEE5 */
+    --pl-finder-avatar: 30 8% 14%; /* #F8F4F7 */
+    --pl-finder-instruction: 327 40% 12%; /* #FCF3F8 */
+    --pl-finder-instruction-ink: 330 62% 55%; /* #872053 */
+    --pl-finder-instruction-hint: 30 8% 68%; /* #5F515B */
+    --pl-finder-sub: 30 8% 74%; /* #514952 */
+    --pl-homework-sub: 30 8% 70%; /* #84848C */
+    --pl-homework-hint: 30 8% 61%; /* #96969C */
+    --pl-upload-line: 30 8% 23%; /* #E7E1E6 */
+    --pl-upload-hover: 330 40% 11%; /* #FCF6F9 */
+    --pl-upload-line-hover: 328 33% 82%; /* #D9B4C8 */
+    --pl-finder-list-heading: 30 8% 86%; /* #352D33 */
   }
 }
