@@ -1,6 +1,6 @@
 /**
- * Picks the real exercise the landing page lets visitors try: any lesson
- * exercise whose only question is a single-answer multiple choice, ranked by
+ * Picks the real question the landing page lets visitors try: a single-answer
+ * multiple choice from any lesson exercise, shown on its own and ranked by
  * how much written help it has — hint, guiding question (`solution`) and
  * explanation (`fullSolution`) — since the landing has no lesson chat to fill
  * the gaps. Looks in 7th grade math first, then the other published courses,
@@ -57,23 +57,56 @@ function usesMedia(value: unknown): boolean {
   return Object.values(record).some(usesMedia)
 }
 
+const isQuestion = (block: LooseBlock) =>
+  typeof block.type === 'string' && block.type.startsWith('question')
+
 /**
- * How good a landing demo the exercise makes: 0 = unusable; otherwise its only
- * question is a single-answer MCQ without images, and the score counts the
- * written help — 1 hint, 2 hint + guiding question, 3 all three.
+ * How good a landing demo the question makes: 0 = unusable (not a single-answer
+ * MCQ, no hint, or images); otherwise the written help — 1 hint, 2 hint +
+ * guiding question, 3 all three.
  */
-export function rankLandingDemoCandidate(groups: ExerciseBlockGroup[]): number {
-  const blocks = groups.flatMap((group) => group.blocks) as unknown as LooseBlock[]
-  const questions = blocks.filter(
-    (b) => typeof b.type === 'string' && b.type.startsWith('question'),
-  )
-  if (questions.length !== 1) return 0
-  const [question] = questions
+function rankQuestion(question: LooseBlock, stem: LooseBlock[]): number {
   if (question.type !== 'question_select' || question.variant !== 'mcq') return 0
   if (question.selectionMode === 'multiple' || question.attachment) return 0
-  if (!hasText(question.hint) || usesMedia(blocks)) return 0
+  if (!hasText(question.hint) || usesMedia([stem, question])) return 0
   if (!hasText(question.solution)) return 1
   return hasText(question.fullSolution) ? 3 : 2
+}
+
+/** "**א.** …" / "1. …" — the sub-question label, meaningless once it stands alone. */
+const SUB_QUESTION_LABEL = /^\s*(\*\*)?\(?[א-ת0-9]{1,2}[.)](\*\*)?\s+/
+
+function withoutLabel(question: LooseBlock): LooseBlock {
+  const prompt = question.prompt as { value?: unknown } | undefined
+  if (typeof prompt?.value !== 'string') return question
+  return { ...question, prompt: { ...prompt, value: prompt.value.replace(SUB_QUESTION_LABEL, '') } }
+}
+
+/**
+ * The exercise's best question for the landing, alone: exercises usually hold
+ * several sub-questions, so each single-answer MCQ is ranked on its own and
+ * shown with the text that opens its group (the shared stem), label dropped.
+ */
+export function pickLandingDemoQuestion(
+  groups: ExerciseBlockGroup[],
+): { groups: ExerciseBlockGroup[]; rank: number } | null {
+  let best: { groups: ExerciseBlockGroup[]; rank: number } | null = null
+  for (const group of groups) {
+    const blocks = group.blocks as unknown as LooseBlock[]
+    const firstQuestion = blocks.findIndex(isQuestion)
+    if (firstQuestion < 0) continue
+    const stem = blocks.slice(0, firstQuestion)
+    for (const question of blocks.slice(firstQuestion).filter(isQuestion)) {
+      const rank = rankQuestion(question, stem)
+      if (rank <= (best?.rank ?? 0)) continue
+      const demoBlocks = [
+        ...stem,
+        withoutLabel(question),
+      ] as unknown as ExerciseBlockGroup['blocks']
+      best = { groups: [{ ...group, blocks: demoBlocks }], rank }
+    }
+  }
+  return best
 }
 
 const BEST_RANK = 3
@@ -101,12 +134,11 @@ async function findLandingDemoExercise(
 
     for (const lesson of lessons) {
       for (const exercise of await queryExercisesByLesson({ lessonId: lesson.id })) {
-        const groups = getExerciseBlockGroups(exercise)
-        const rank = rankLandingDemoCandidate(groups)
-        if (rank <= bestRank) continue
-        best = { lessonId: lesson.id, exerciseId: exercise.id, groups }
-        bestRank = rank
-        if (rank === BEST_RANK) return best
+        const pick = pickLandingDemoQuestion(getExerciseBlockGroups(exercise))
+        if (!pick || pick.rank <= bestRank) continue
+        best = { lessonId: lesson.id, exerciseId: exercise.id, groups: pick.groups }
+        bestRank = pick.rank
+        if (bestRank === BEST_RANK) return best
       }
     }
     if (budget <= 0) break
@@ -120,7 +152,7 @@ export async function getLandingDemoExercise(
   try {
     return await unstable_cache(
       () => findLandingDemoExercise(locale),
-      ['landing-demo-exercise-v4', locale ?? 'default'],
+      ['landing-demo-exercise-v5', locale ?? 'default'],
       { revalidate: CACHE_SECONDS },
     )()
   } catch (error) {
