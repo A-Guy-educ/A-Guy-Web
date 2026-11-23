@@ -123,7 +123,6 @@ export function ExerciseRenderer({
   showNotebook = false,
   questionLabelsOverride,
   hideHelpSystem = false,
-  inlineHelp = false,
   highlightQuestionLabels = false,
   attachmentAfterPrompt = false,
 }: ExerciseRendererProps) {
@@ -795,7 +794,6 @@ export function ExerciseRenderer({
           hintLabel={t('helpHint')}
           guidingLabel={t('helpGuidingQuestion')}
           solutionLabel={t('helpSolution')}
-          inlineAll={inlineHelp}
         />
       )
 
