@@ -341,6 +341,13 @@ export interface ExerciseRendererProps {
    */
   hideHelpSystem?: boolean
   /**
+   * Show the guiding question (`solution`) and the explanation (`fullSolution`)
+   * inline like the hint, instead of posting them to the lesson chat. For
+   * callers with no chat, e.g. the landing page's demo exercise. Defaults to
+   * `false`.
+   */
+  inlineHelp?: boolean
+  /**
    * When true, question label badges render filled with the accent color
    * (`--primary`) instead of the soft tint. The chat view sets it on the
    * walker's current section so the student can see which one is active.

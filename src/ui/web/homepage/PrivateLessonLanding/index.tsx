@@ -11,6 +11,7 @@
  * @fileType component
  * @domain frontend
  */
+import type { ExerciseBlockGroup } from '@/infra/types/exercise'
 import { TIER_PRICE_ILS } from '@/lib/tiers'
 import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 
@@ -23,7 +24,12 @@ import { LandingTeachers } from './LandingTeachers'
 
 import '@/ui/web/privateLesson/private-lesson.css'
 
-export function PrivateLessonLanding() {
+interface PrivateLessonLandingProps {
+  /** A real exercise for the "try it here" slot; null keeps the demo's placeholder. */
+  demoExerciseGroups?: ExerciseBlockGroup[] | null
+}
+
+export function PrivateLessonLanding({ demoExerciseGroups = null }: PrivateLessonLandingProps) {
   const t = useTranslations('privateLessonLanding')
   const tp = useTranslations('teacherPersonas')
   const locale = useLocale()
@@ -33,7 +39,7 @@ export function PrivateLessonLanding() {
       <LandingHeader t={t} />
       <main>
         <LandingIntro t={t} price={TIER_PRICE_ILS.basic} />
-        <LandingConfidence t={t} />
+        <LandingConfidence t={t} demoExerciseGroups={demoExerciseGroups} />
         <LandingTeachers t={t} tp={tp} />
         <LandingNeeds t={t} />
         <LandingComparison t={t} />

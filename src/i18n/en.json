@@ -894,7 +894,23 @@
       "chapterMeta": "Chapter {num} · {count} lessons",
       "chapterMetaOne": "Chapter {num} · one lesson",
       "chapterDone": "{done}/{total} done",
-      "noStarted": "You haven't started any lessons in this track yet."
+      "noStarted": "You haven't started any lessons in this track yet.",
+      "finder": {
+        "back": "Back",
+        "topicTitle": "Which topic?",
+        "topicInstruction": "Snap an exercise or write the topic name",
+        "topicHint": "Even something you remember from class is enough.",
+        "examTitle": "What's on the exam?",
+        "examSub": "Write the exam topics or whatever you remember.\nYou can also snap or upload the review sheet.",
+        "camera": "Take a photo",
+        "upload": "Upload a document",
+        "chooseTopic": "Or pick a topic",
+        "homeworkTitle": "Let's tackle the homework",
+        "homeworkSub": "Snap the exercise or upload a file.",
+        "homeworkHint": "You can also type the exercise in the box below.",
+        "topicPlaceholder": "You can also type a topic…",
+        "homeworkPlaceholder": "Type the exercise or attach a file…"
+      }
     }
   },
   "stats": {
@@ -1515,7 +1531,10 @@
       "example": "How it works",
       "teachers": "Meet the teachers",
       "comparison": "Comparison & price",
-      "cta": "Start for free"
+      "cta": "Start for free",
+      "language": "Language",
+      "loginLead": "Already with us?",
+      "login": "Log in"
     },
     "intro": {
       "eyebrow": "Built on the experience of 50,000 private lessons",
@@ -1639,8 +1658,7 @@
       "note": "Pick a teacher and a class, and start."
     },
     "footer": {
-      "tagline": "The world is changing. So is the way we learn.",
-      "enter": "Enter a lesson"
+      "tagline": "The world is changing. So is the way we learn."
     }
   },
   "teacherPersonas": {

@@ -1,10 +1,11 @@
 /**
- * The demo's composer under the welcome cards. Live-filters lessons on every
- * keystroke; a sentence-like request or a homework photo goes to Gemini,
- * which answers with linked lessons and a next step (Ask for homework, the
- * exams tab for test prep). PDFs go straight to Ask as before; signed-out
- * visitors are sent to log in before anything is uploaded. The mic dictates
- * into the box, as in the demo.
+ * The demo's composer under the welcome cards. In `lessons` mode it
+ * live-filters lessons on every keystroke; a sentence-like request or a photo
+ * goes to Gemini, which answers with linked lessons and a next step. In
+ * `homework` mode nothing is suggested: what the student writes or uploads
+ * opens Ask with it. PDFs always go straight to Ask; signed-out visitors are
+ * sent to log in before anything is uploaded. The mic dictates into the box,
+ * as in the demo.
  *
  * @fileType component
  * @domain frontend
@@ -35,13 +36,17 @@ interface CourseComposerProps {
   /** The suggestion's "all exams" step opens the exams list below. */
   onOpenExams: () => void
   isSignedIn: boolean
+  /** `homework` sends everything to Ask; `lessons` (default) suggests lessons. */
+  mode?: 'lessons' | 'homework'
+  placeholder?: string
   ref?: Ref<CourseComposerHandle>
 }
 
-/** Lets the course guide's starting points drive the composer. */
+/** Lets the finder's camera / upload buttons drive the composer. */
 export interface CourseComposerHandle {
   focus: () => void
-  openPhotoPicker: () => void
+  openCamera: () => void
+  openFilePicker: () => void
 }
 
 /** The demo's pink, for the AI reply's accents. */
@@ -54,6 +59,8 @@ export function CourseComposer({
   courseTitle,
   onOpenExams,
   isSignedIn,
+  mode = 'lessons',
+  placeholder,
   ref,
 }: CourseComposerProps) {
   const t = useTranslations('coursePage.composer')
@@ -62,20 +69,28 @@ export function CourseComposer({
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const itemRefs = useRef<Array<HTMLAnchorElement | null>>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
+  const isHomework = mode === 'homework'
 
   const router = useRouter()
   const pathname = usePathname()
-  const composer = useCourseComposerState({ nodes, courseTitle, locale })
+  const composer = useCourseComposerState({
+    nodes,
+    courseTitle,
+    locale,
+    suggest: !isHomework,
+  })
   const { query, setQuery, filtered, attachment, selectedIdx, setSelectedIdx } = composer
 
   // Uploads and Ask rooms belong to an account, so a signed-out student signs
   // in first and comes back here.
   const goToLogin = () => router.push(`/login?returnTo=${encodeURIComponent(pathname)}`)
 
-  // Photos get lesson suggestions first; PDFs go straight to Ask.
+  // Photos get lesson suggestions first; PDFs, and anything for homework,
+  // go straight to Ask (with whatever the student already typed).
   const handleFile = (file: File) => {
     if (!isSignedIn) goToLogin()
-    else if (isSuggestableImage(file)) composer.attachPhoto(file)
+    else if (!isHomework && isSuggestableImage(file)) composer.attachPhoto(file)
     else void uploadFile(file, query)
   }
 
@@ -107,6 +122,10 @@ export function CourseComposer({
   // anything else (a sentence, a photo, no local match) asks the model now.
   const submit = () => {
     if (!canSend) return
+    if (isHomework) {
+      solveInAsk()
+      return
+    }
     if (!attachment && filtered.length > 0 && !looksLikeSentence(query)) {
       itemRefs.current[selectedIdx]?.click()
     } else {
@@ -116,7 +135,8 @@ export function CourseComposer({
 
   useImperativeHandle(ref, () => ({
     focus: () => textareaRef.current?.focus(),
-    openPhotoPicker: () => (isSignedIn ? fileInputRef.current?.click() : goToLogin()),
+    openCamera: () => (isSignedIn ? cameraInputRef.current?.click() : goToLogin()),
+    openFilePicker: () => (isSignedIn ? fileInputRef.current?.click() : goToLogin()),
   }))
 
   const dictation = useDictation({
@@ -153,8 +173,10 @@ export function CourseComposer({
     }
   }
 
-  const showResults = filtered.length > 0 && !attachment
-  const showSuggestion = composer.aiLoading || composer.suggestion || composer.aiError
+  const showResults = !isHomework && filtered.length > 0 && !attachment
+  const showSuggestion =
+    !isHomework && (composer.aiLoading || composer.suggestion || composer.aiError)
+  const placeholderText = placeholder ?? t('placeholder')
 
   return (
     <div className="composer-wrap" {...dropHandlers}>
@@ -201,8 +223,8 @@ export function CourseComposer({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={onKeyDown}
-          aria-label={t('placeholder')}
-          placeholder={t('placeholder')}
+          aria-label={placeholderText}
+          placeholder={placeholderText}
         />
         {/* Hidden file input behind the `+` button; mirrors the drop target (see handleFile). */}
         <input
@@ -210,6 +232,18 @@ export function CourseComposer({
           type="file"
           className="hidden"
           accept="image/*,application/pdf,.pdf"
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) handleFile(file)
+            e.target.value = ''
+          }}
+        />
+        <input
+          ref={cameraInputRef}
+          type="file"
+          className="hidden"
+          accept="image/*"
+          capture="environment"
           onChange={(e) => {
             const file = e.target.files?.[0]
             if (file) handleFile(file)

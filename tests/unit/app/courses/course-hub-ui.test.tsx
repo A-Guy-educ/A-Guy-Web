@@ -4,6 +4,7 @@ import * as AccordionPrimitive from '@radix-ui/react-accordion'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useDictation } from '@/app/(frontend)/courses/[courseSlug]/_components/CourseComposer/useDictation'
+import { CourseFinder } from '@/app/(frontend)/courses/[courseSlug]/_components/CourseHub/CourseFinder'
 import { CourseWelcome } from '@/app/(frontend)/courses/[courseSlug]/_components/CourseHub/CourseWelcome'
 import { CourseTabs } from '@/app/(frontend)/courses/[courseSlug]/_components/CourseTabs'
 import { ChapterAccordion } from '@/app/(frontend)/courses/[courseSlug]/_components/LessonListTab/ChapterAccordion'
@@ -107,6 +108,37 @@ describe('CourseWelcome', () => {
       vi.advanceTimersByTime(4800)
     })
     expect(title.className).not.toContain('show-teacher-line')
+  })
+})
+
+describe('CourseFinder', () => {
+  const renderFinder = (kind: 'learn' | 'homework' | 'exams') => {
+    const handlers = { onBack: vi.fn(), onCamera: vi.fn(), onUpload: vi.fn() }
+    he(<CourseFinder kind={kind} persona="detailed" {...handlers} />)
+    return handlers
+  }
+
+  it('asks for the topic, with camera and upload, for learning', () => {
+    const handlers = renderFinder('learn')
+    expect(screen.getByRole('heading', { name: 'איזה נושא?' })).toBeTruthy()
+    expect(screen.getByText('צלמו תרגיל או כתבו את שם הנושא')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'צילום במצלמה' }))
+    fireEvent.click(screen.getByRole('button', { name: 'העלאת מסמך' }))
+    fireEvent.click(screen.getByRole('button', { name: 'חזרה' }))
+    expect(handlers.onCamera).toHaveBeenCalled()
+    expect(handlers.onUpload).toHaveBeenCalled()
+    expect(handlers.onBack).toHaveBeenCalled()
+  })
+
+  it('asks what the exam covers', () => {
+    renderFinder('exams')
+    expect(screen.getByRole('heading', { name: 'מה יהיה בבחינה?' })).toBeTruthy()
+  })
+
+  it('asks for the homework exercise itself', () => {
+    renderFinder('homework')
+    expect(screen.getByRole('heading', { name: 'ניגשים לשיעורי הבית' })).toBeTruthy()
+    expect(screen.getByText('אפשר גם להקליד את התרגיל בשורה למטה.')).toBeTruthy()
   })
 })
 

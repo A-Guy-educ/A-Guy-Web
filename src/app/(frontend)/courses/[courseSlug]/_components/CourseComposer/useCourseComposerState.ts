@@ -25,6 +25,8 @@ interface Options {
   nodes: LessonSearchNode[]
   courseTitle: string
   locale: 'en' | 'he'
+  /** Off for homework, which goes straight to Ask: no lesson suggestions while typing. */
+  suggest?: boolean
 }
 
 export interface ComposerAttachment {
@@ -54,7 +56,7 @@ function scoreMatch(node: LessonSearchNode, q: string): number {
   return 0
 }
 
-export function useCourseComposerState({ nodes, courseTitle, locale }: Options) {
+export function useCourseComposerState({ nodes, courseTitle, locale, suggest = true }: Options) {
   const [query, setQuery] = useState('')
   const [attachment, setAttachment] = useState<ComposerAttachment | null>(null)
   const [suggestion, setSuggestion] = useState<ComposerSuggestion | null>(null)
@@ -125,11 +127,11 @@ export function useCourseComposerState({ nodes, courseTitle, locale }: Options) 
   // explicitly, so typing a caption doesn't re-upload the image per keystroke.
   useEffect(() => {
     const q = query.trim()
-    if (!q || attachment || nodes.length === 0) return
+    if (!suggest || !q || attachment || nodes.length === 0) return
     if (filtered.length > 0 && !looksLikeSentence(q)) return
     const timer = setTimeout(() => void requestSuggestion(q, null), AI_DEBOUNCE_MS)
     return () => clearTimeout(timer)
-  }, [query, attachment, filtered.length, nodes.length, requestSuggestion])
+  }, [suggest, query, attachment, filtered.length, nodes.length, requestSuggestion])
 
   const attachPhoto = useCallback(
     (file: File) => {
