@@ -1,6 +1,6 @@
 /**
- * Picks the real exercise the landing page lets visitors try: a free lesson
- * exercise whose only question is a single-answer multiple choice, ranked by
+ * Picks the real exercise the landing page lets visitors try: an exercise
+ * from a lesson that costs nothing (free, or free after sign-up) whose only question is a single-answer multiple choice, ranked by
  * how much written help it has — hint, guiding question (`solution`) and
  * explanation (`fullSolution`) — since the landing has no lesson chat to fill
  * the gaps. Looks in 7th grade math first, then the other published courses. Exercises with images are skipped
@@ -12,7 +12,7 @@
  */
 import { unstable_cache } from 'next/cache'
 
-import { resolveAccessType } from '@/infra/auth/access-types'
+import { resolveAccessType, type AccessType } from '@/infra/auth/access-types'
 import type { ExerciseBlockGroup } from '@/infra/types/exercise'
 import type { ContentLocale, Course } from '@/infra/types/content'
 import { getExerciseBlockGroups } from '@/lib/exercises/getExerciseBlocks'
@@ -29,6 +29,8 @@ const PREFERRED_COURSE_SLUG = '7th_grade_math'
 /** Lessons read in total across all courses, so a sparse catalog can't make the scan run long. */
 const MAX_LESSONS_SCANNED = 40
 const CACHE_SECONDS = 3600
+/** Content that costs nothing — `mandatory` is free after sign-up; gated / paid stay out. */
+const DEMO_ACCESS_TYPES: ReadonlySet<AccessType> = new Set(['free', 'mandatory'])
 
 export interface LandingDemoExercise {
   lessonId: string
@@ -98,7 +100,9 @@ async function findLandingDemoExercise(
 
   for (const course of await candidateCourses(locale)) {
     const lessons = (await queryLessonsByCourse({ courseId: course.id }))
-      .filter((lesson) => resolveAccessType(lesson.accessType, course.accessType) === 'free')
+      .filter((lesson) =>
+        DEMO_ACCESS_TYPES.has(resolveAccessType(lesson.accessType, course.accessType)),
+      )
       .filter((lesson) => getEffectiveLessonType(lesson.type) !== 'exam')
       .slice(0, budget)
     budget -= lessons.length
@@ -124,7 +128,7 @@ export async function getLandingDemoExercise(
   try {
     return await unstable_cache(
       () => findLandingDemoExercise(locale),
-      ['landing-demo-exercise-v2', locale ?? 'default'],
+      ['landing-demo-exercise-v3', locale ?? 'default'],
       { revalidate: CACHE_SECONDS },
     )()
   } catch (error) {
