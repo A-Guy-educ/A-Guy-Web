@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
-import { TIER_RANK } from '@/lib/tiers/constants'
+import { TIER_RANK, type TierSlug } from '@/lib/tiers/constants'
 import { getUserTierRank } from '@/lib/tiers/user-tier'
 
 /**
@@ -13,13 +13,30 @@ import { getUserTierRank } from '@/lib/tiers/user-tier'
  */
 export type ClientPaywallGate = 'exercise' | 'ai_quota'
 
-export async function postPaywallShown(gate: ClientPaywallGate, path: string): Promise<void> {
+type FunnelBeacon =
+  | { type: 'paywall_shown'; gate: ClientPaywallGate; path: string }
+  | { type: 'paywall_dismissed'; gate: ClientPaywallGate }
+  | { type: 'plan_selected'; tier: TierSlug; gate: ClientPaywallGate | null }
+
+async function postFunnelEvent(event: FunnelBeacon): Promise<void> {
   await fetch('/api/funnel-events', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ gate, path: path.slice(0, 300) }),
+    body: JSON.stringify(event),
     keepalive: true,
   })
+}
+
+/**
+ * Fire-and-forget funnel beacon: a lost analytics ping must never surface to
+ * the student.
+ */
+export function sendFunnelEvent(event: FunnelBeacon): void {
+  postFunnelEvent(event).catch(() => {})
+}
+
+export async function postPaywallShown(gate: ClientPaywallGate, path: string): Promise<void> {
+  await postFunnelEvent({ type: 'paywall_shown', gate, path: path.slice(0, 300) })
 }
 
 /**

@@ -10,9 +10,11 @@ import { describe, expect, it } from 'vitest'
 import { computeDateBuckets } from '@/server/services/dashboard/date-buckets'
 import {
   aggregateFunnel,
+  buildGateStatsPipeline,
   buildPaymentFunnelPipeline,
   buildSignupFunnelPipeline,
   buildVisitorFunnelPipeline,
+  emptyGateStats,
   emptySignupFunnel,
   toActiveDaysHistogram,
   toFunnelMetrics,
@@ -109,6 +111,30 @@ describe('buildPaymentFunnelPipeline', () => {
   })
 })
 
+describe('buildGateStatsPipeline', () => {
+  const pipeline = buildGateStatsPipeline(SINCE, ADMINS, B2C)
+
+  it('reads wall, skip and plan events plus first purchases for the cohort', () => {
+    expect(firstMatch(pipeline)).toEqual({
+      createdAt: { $gte: SINCE },
+      user: { $nin: ['admin-1', 'school-1'], $ne: null },
+      type: { $in: ['paywall_shown', 'paywall_dismissed', 'plan_selected'] },
+    })
+    const union = pipeline.find((stage) => stage.$unionWith)?.$unionWith as Document
+    expect(union.pipeline[0].$match).toMatchObject({
+      status: 'succeeded',
+      isRenewal: { $ne: true },
+    })
+  })
+
+  it("orders each student's events by time before crediting the last wall", () => {
+    const sortAt = pipeline.findIndex((stage) => stage.$sort)
+    const groupAt = pipeline.findIndex((stage) => stage.$group)
+    expect(pipeline[sortAt]).toEqual({ $sort: { at: 1 } })
+    expect(sortAt).toBeLessThan(groupAt)
+  })
+})
+
 describe('toFunnelMetrics', () => {
   it('sums visitors across landing types and folds unknown types into other', () => {
     const metrics = toFunnelMetrics({
@@ -175,11 +201,21 @@ describe('toFunnelMetrics', () => {
         { _id: 'paywall:ai_quota', users: 2 },
         { _id: 'paywall:exercise', users: 1 },
         { _id: 'pricing_viewed', users: 1 },
+        { _id: 'plan_selected', users: 2 },
+        { _id: 'paywall_dismissed', users: 1 },
       ],
+      gateRows: [{ _id: 'exercise', students: 1, hits: 4, repeatStudents: 1, decidedPaid: 1 }],
     })
     expect(metrics.payments).toEqual({
       paywallShown: 3,
       paywallByGate: { lesson: 0, exercise: 1, ai_quota: 2 },
+      byGate: {
+        lesson: emptyGateStats(),
+        exercise: { ...emptyGateStats(), students: 1, hits: 4, repeatStudents: 1, decidedPaid: 1 },
+        ai_quota: emptyGateStats(),
+      },
+      planSelected: 2,
+      paywallDismissed: 1,
       pricingViewed: 1,
       checkoutStarted: 0,
       paid: 0,
