@@ -13,6 +13,7 @@ import { createHash, randomBytes } from 'crypto'
 
 import { ObjectId, type Collection, type Document } from 'mongodb'
 
+import type { GuestDevice } from '@/infra/analytics/guest-device'
 import type { GuestLanding } from '@/infra/analytics/guest-landing'
 import { getContentDb } from '@/infra/db/content-db'
 import { logger } from '@/infra/utils/logger/logger'
@@ -39,6 +40,8 @@ const GUEST_SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000
  * reported as "unconfirmed", not as certain bots.
  */
 export interface GuestSessionOptions {
+  /** UA-derived platform and in-app browser of the first page load. */
+  device?: GuestDevice | null
   /** Browser had an account before (known-student cookie): a returning student. */
   returningBrowser?: boolean
 }
@@ -67,6 +70,7 @@ export function buildGuestSessionDoc(
     updatedAt: now,
     suspectedBot: true,
     ...(landing ?? {}),
+    ...(options.device ? { device: options.device } : {}),
     ...(options.returningBrowser ? { returningBrowser: true } : {}),
   }
 }

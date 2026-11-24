@@ -6,6 +6,12 @@ import {
 } from '@/server/services/guest-sessions/guest-session-writer'
 
 describe('buildGuestSessionDoc', () => {
+  it('stores the device when one was recorded', () => {
+    const device = { platform: 'android', inApp: 'facebook' } as const
+    expect(buildGuestSessionDoc('s1', null, { device }).device).toEqual(device)
+    expect(buildGuestSessionDoc('s1', null, { device: null })).not.toHaveProperty('device')
+  })
+
   it('flags a returning browser only when told to', () => {
     expect(buildGuestSessionDoc('s1', null, { returningBrowser: true }).returningBrowser).toBe(true)
     expect(buildGuestSessionDoc('s1', null)).not.toHaveProperty('returningBrowser')

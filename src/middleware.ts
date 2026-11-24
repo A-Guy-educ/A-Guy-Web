@@ -12,6 +12,7 @@ import {
   isBotUserAgent,
 } from './infra/analytics/bot-user-agent'
 import { buildGuestLanding, type GuestLanding } from './infra/analytics/guest-landing'
+import { classifyGuestDevice, type GuestDevice } from './infra/analytics/guest-device'
 import {
   GUEST_SESSION_COOKIE,
   KNOWN_STUDENT_COOKIE,
@@ -140,7 +141,13 @@ function resolveLocaleCookieDomain(host: string): string | undefined {
 // This avoids Edge middleware env var availability issues.
 
 type AnonymousTouch =
-  | { kind: 'guest'; sessionId: string; landing: GuestLanding; returningBrowser: boolean }
+  | {
+      kind: 'guest'
+      sessionId: string
+      landing: GuestLanding
+      device: GuestDevice
+      returningBrowser: boolean
+    }
   | { kind: 'bot'; category: BotCategory }
 
 /**
@@ -168,6 +175,7 @@ function classifyAnonymousTouch(request: NextRequest, pathname: string): Anonymo
     kind: 'guest',
     sessionId: crypto.randomUUID(),
     landing: buildGuestLanding(request.nextUrl, request.headers.get('referer'), host),
+    device: classifyGuestDevice(userAgent),
     returningBrowser: request.cookies.get(KNOWN_STUDENT_COOKIE) !== undefined,
   }
 }
@@ -295,10 +303,11 @@ export function middleware(request: NextRequest) {
   const guestCookie = newGuestSessionId ? buildGuestSessionCookieAttrs(request) : null
   if (anonymousTouch?.kind === 'guest' && guestCookie) {
     response.cookies.set(GUEST_SESSION_COOKIE, anonymousTouch.sessionId, guestCookie)
-    const { sessionId, landing, returningBrowser } = anonymousTouch
+    const { sessionId, landing, device, returningBrowser } = anonymousTouch
     scheduleLoopback(request, '/api/internal/guest-session/create', {
       sessionId,
       landing,
+      device,
       ...(returningBrowser ? { returningBrowser: true } : {}),
     })
   } else if (anonymousTouch?.kind === 'bot') {

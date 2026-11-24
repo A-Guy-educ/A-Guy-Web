@@ -16,6 +16,7 @@ import {
   buildVisitorFunnelPipeline,
   emptyGateStats,
   emptySignupFunnel,
+  emptyVisitorFunnel,
   toActiveDaysHistogram,
   toFunnelMetrics,
 } from '@/server/services/dashboard/funnel-metrics'
@@ -36,6 +37,14 @@ describe('buildVisitorFunnelPipeline', () => {
     expect(match.createdAt).toEqual({ $gte: SINCE })
     expect(match.landingType).toBeDefined()
     expect(match.$or).toEqual(cohortMatch.$or)
+  })
+
+  it('groups by landing type by default, or by the given key', () => {
+    expect(buildVisitorFunnelPipeline(SINCE, ADMINS)[1]?.$group._id).toBe('$landingType')
+    const byDevice = { $cond: ['x', 'in_app', 'y'] }
+    expect(buildVisitorFunnelPipeline(SINCE, ADMINS, {}, {}, byDevice)[1]?.$group._id).toBe(
+      byDevice,
+    )
   })
 
   it('applies the existing-student exclusion to the opening $match', () => {
@@ -188,6 +197,25 @@ describe('toFunnelMetrics', () => {
     expect(metrics.googleOutcomesSince).toBe('2026-11-25')
     expect(metrics.visitorsByLandingType.other.visitors).toBe(4)
     expect(metrics.visitorsByLandingType.home.visitors).toBe(0)
+  })
+
+  it('maps the device split, with visits from before tracking under unknown', () => {
+    const row = (visitors: number) => ({ ...emptyVisitorFunnel(), visitors })
+    const metrics = toFunnelMetrics({
+      visitorRows: [],
+      signupFacet: undefined,
+      paymentRows: undefined,
+      deviceRows: [
+        { _id: 'in_app', ...row(3) },
+        { _id: 'ios', ...row(5) },
+        { _id: 'unknown', ...row(40) },
+        { _id: 'other', ...row(1) },
+      ],
+    })
+    expect(metrics.visitorsByDevice.in_app.visitors).toBe(3)
+    expect(metrics.visitorsByDevice.ios.visitors).toBe(5)
+    expect(metrics.visitorsByDevice.unknown.visitors).toBe(41)
+    expect(metrics.visitorsByDevice.android).toEqual(emptyVisitorFunnel())
   })
 
   it('maps the signup funnel overall, by source and by landing type', () => {
