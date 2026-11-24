@@ -2,7 +2,7 @@
  * @fileType component
  * @domain frontend
  * @pattern footer-client
- * @ai-summary Static footer: brand logo, Terms + Privacy links, version, theme
+ * @ai-summary Static footer: brand logo, Team + Terms + Privacy links, version, theme
  * selector, copyright. The admin-driven nav / meta / legal-modal flow was
  * removed — authored footer content in the Payload "Footer" global is no
  * longer rendered. Keep this file lean; any new footer item should be a
@@ -36,6 +36,14 @@ export const FooterClient: React.FC<FooterClientProps> = ({ version, showExtras 
         </SystemLink>
 
         <div className="flex flex-wrap justify-center min-w-0 items-center gap-content-gap-xs text-body-xs">
+          <SystemLink
+            href="/team"
+            data-testid="footer-team"
+            className="text-card-foreground hover:text-primary transition-all duration-normal text-body-xs whitespace-nowrap"
+          >
+            {tFooter('team')}
+          </SystemLink>
+
           <SystemLink
             href="/terms-of-service"
             data-testid="footer-terms-of-service"

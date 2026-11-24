@@ -3,7 +3,7 @@
  * @fileType test
  * @domain frontend
  * @pattern footer-static
- * @ai-summary Smoke tests for the static FooterClient — Terms + Privacy links
+ * @ai-summary Smoke tests for the static FooterClient — Team + Terms + Privacy links
  *   land on the expected routes, version renders when showExtras is on, and
  *   the version row is hidden when showExtras is off.
  */
@@ -19,7 +19,7 @@ const FOOTER_MESSAGES = {
     termsOfService: 'FOOTER_TERMS_LINK',
     privacyPolicy: 'FOOTER_PRIVACY_LINK',
   },
-  footer: { copyright: 'FOOTER_COPYRIGHT_TEXT' },
+  footer: { team: 'FOOTER_TEAM_LINK', copyright: 'FOOTER_COPYRIGHT_TEXT' },
 }
 
 function renderWithI18n(ui: ReactElement) {
@@ -35,6 +35,13 @@ afterEach(() => {
 })
 
 describe('FooterClient', () => {
+  it('renders the Team link pointing at /team', () => {
+    renderWithI18n(<FooterClient version="1.2.3" showExtras={false} />)
+    const link = screen.getByTestId('footer-team')
+    expect(link.getAttribute('href')).toBe('/team')
+    expect(link.textContent).toBe('FOOTER_TEAM_LINK')
+  })
+
   it('renders the Terms of Service link pointing at /terms-of-service', () => {
     renderWithI18n(<FooterClient version="1.2.3" showExtras={false} />)
     const link = screen.getByTestId('footer-terms-of-service')
