@@ -5253,6 +5253,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Copy a single exercise section to the notebook ([#1653](https://github.com/A-Guy-educ/A-Guy-Web/pull/1653)) — @aguyshayb
 - feat: Give the landing demo's hint on the first wrong pick ([#1652](https://github.com/A-Guy-educ/A-Guy-Web/pull/1652)) — @aguyshayb
 - feat: Show the landing demo exercise in the lesson chat view ([#1651](https://github.com/A-Guy-educ/A-Guy-Web/pull/1651)) — @aguyshayb
 - fix: Show a single sub-question as the landing demo exercise ([#1650](https://github.com/A-Guy-educ/A-Guy-Web/pull/1650)) — @aguyshayb
