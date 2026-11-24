@@ -299,6 +299,7 @@
       "touchCut": "Cut",
       "touchCutOn": "Drag over an exercise",
       "copyToNotebook": "Copy to notebook",
+      "copySectionToNotebook": "Copy this section to the notebook",
       "sendToChat": "Send to chat",
       "cancelCut": "Cancel",
       "cutUnavailable": "Couldn't read that part of the page. Wait for it to finish loading and try again.",

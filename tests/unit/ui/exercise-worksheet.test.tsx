@@ -13,6 +13,7 @@ import enMessages from '../../../src/i18n/en.json'
 import heMessages from '../../../src/i18n/he.json'
 import { I18nProvider } from '@/ui/web/providers/I18n'
 import { ExerciseWorksheet } from '@/ui/web/exerciserenderer/ExerciseWorksheet'
+import { BlockCopyContext } from '@/ui/web/notebook/RegionCut/CopyBlockButton'
 import type { ContentBlock, ExerciseBlockGroup } from '@/infra/types/exercise'
 
 vi.mock('@/ui/web/exerciserenderer/blocks/RichTextRenderer', () => ({
@@ -290,5 +291,59 @@ describe('ExerciseWorksheet', () => {
     // Wide table → stacked → no sm:flex-row side-by-side container
     const sideBySideContainer = document.querySelector('[dir="ltr"]')
     expect(sideBySideContainer).not.toBeInTheDocument()
+  })
+})
+
+describe('ExerciseWorksheet section copy buttons', () => {
+  afterEach(() => cleanup())
+
+  const freeResponse = (id: string, value: string) => ({
+    id,
+    type: 'question_free_response',
+    prompt: { type: 'rich_text', format: 'md-math-v1', value, mediaIds: [] },
+    answer: { acceptedAnswers: ['anything'] },
+  })
+  // Two sections; the second holds two questions under one badge.
+  const groups: ExerciseBlockGroup[] = [
+    {
+      sectionIndex: 0,
+      blocks: [freeResponse('q-a', 'First')] as unknown as ContentBlock[],
+    },
+    {
+      sectionIndex: 1,
+      blocks: [
+        freeResponse('q-b1', 'Second'),
+        freeResponse('q-b2', 'Second follow-up'),
+      ] as unknown as ContentBlock[],
+    },
+  ]
+  const sectionLabel = enMessages.courses.lessonNotebook.copySectionToNotebook
+
+  it('gives each section one copy button that copies the whole section', () => {
+    const copyBlock = vi.fn().mockResolvedValue(undefined)
+    render(
+      <I18nProvider locale="en" messages={enMessages}>
+        <BlockCopyContext.Provider value={{ busy: false, copyBlock }}>
+          <ExerciseWorksheet groups={groups} />
+        </BlockCopyContext.Provider>
+      </I18nProvider>,
+    )
+
+    const buttons = screen.getAllByRole('button', { name: sectionLabel })
+    expect(buttons).toHaveLength(2)
+    buttons[1].click()
+    const copied = copyBlock.mock.calls[0][0] as HTMLElement
+    expect(copied).toHaveTextContent('Second')
+    expect(copied).toHaveTextContent('Second follow-up')
+    expect(copied).not.toHaveTextContent('First')
+  })
+
+  it('renders no copy buttons outside the notebook pane', () => {
+    render(
+      <I18nProvider locale="en" messages={enMessages}>
+        <ExerciseWorksheet groups={groups} />
+      </I18nProvider>,
+    )
+    expect(screen.queryByRole('button', { name: sectionLabel })).not.toBeInTheDocument()
   })
 })

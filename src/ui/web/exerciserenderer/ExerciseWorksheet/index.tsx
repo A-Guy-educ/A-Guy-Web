@@ -49,6 +49,7 @@ import { LatexBlockRenderer } from '../blocks/LatexBlockRenderer'
 import { QuestionWithAttachment } from '../blocks/QuestionWithAttachment'
 import { renderQuestionAttachment } from '../blocks/renderQuestionAttachment'
 import { WorksheetProof } from './WorksheetProof'
+import { CUT_BLOCK_ATTR, CopyBlockButton } from '@/ui/web/notebook/RegionCut/CopyBlockButton'
 import { getMediaUrl } from '@/infra/utils/getMediaUrl'
 import { computeQuestionLabels } from '@/lib/exercises/computeSectionLabels'
 import type { Media } from '@/infra/types/content'
@@ -140,7 +141,17 @@ export function ExerciseWorksheet({
               <React.Fragment key={getBlockKey(block, blockIdx)}>{renderedBlock}</React.Fragment>,
             )
           })
-          return <React.Fragment key={`group-${groupIdx}`}>{groupNodes}</React.Fragment>
+          // A group is one section (its first question carries the badge), so
+          // it is what the section's "copy to notebook" button copies.
+          return (
+            <div
+              key={`group-${groupIdx}`}
+              {...{ [CUT_BLOCK_ATTR]: '' }}
+              className="flex flex-col gap-content-gap-lg"
+            >
+              {groupNodes}
+            </div>
+          )
         })}
       </div>
     </MediaMapProvider>
@@ -383,6 +394,8 @@ function WorksheetQuestionLabel({ label, dir, children }: WorksheetQuestionLabel
   // dir is intentionally NOT set on the wrapper — that lets the document's
   // inherited dir drive visual reversal, and avoids shadowing inner
   // GraphWithPrompt containers that downstream tests query by [dir="ltr"].
+  // The badge marks a section, so its copy button sits here; it copies the
+  // whole group around it and only renders inside the lesson notebook pane.
   return (
     <div
       className={cn(
@@ -397,6 +410,7 @@ function WorksheetQuestionLabel({ label, dir, children }: WorksheetQuestionLabel
           inner GraphWithPrompt 50/50 split lands on real pixels instead of
           collapsing to natural content width. */}
       <div className="flex-1 min-w-0">{children}</div>
+      <CopyBlockButton compact />
     </div>
   )
 }
