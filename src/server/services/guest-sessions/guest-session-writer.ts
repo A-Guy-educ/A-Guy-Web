@@ -135,3 +135,31 @@ export async function claimGuestSession(sessionId: string, userId: string): Prom
     logger.warn({ err, sessionId, userId }, 'guest-sessions: claim failed')
   }
 }
+
+/**
+ * How a Google sign-in started from this guest session ended, when it did
+ * not create an account (new accounts are recorded as `claimedByUser`):
+ * - `existing_login` an existing student logged back in — not a new visitor,
+ *                    so the dashboard drops the session from the funnel;
+ * - `cancelled`      the student backed out on Google's screen;
+ * - `failed`         the callback couldn't finish (bad state, token error…).
+ */
+export const GOOGLE_OUTCOMES = ['existing_login', 'cancelled', 'failed'] as const
+export type GoogleOutcome = (typeof GOOGLE_OUTCOMES)[number]
+
+/** Last write wins: a cancel followed by a successful retry ends as the retry. */
+export function buildGoogleOutcomeUpdate(outcome: GoogleOutcome, now: Date): Document {
+  return { $set: { 'onboarding.googleOutcome': outcome, 'onboarding.googleOutcomeAt': now } }
+}
+
+export async function recordGoogleOutcome(
+  sessionId: string,
+  outcome: GoogleOutcome,
+): Promise<void> {
+  try {
+    const col = await guestSessionsCollection()
+    await col.updateOne({ sessionId }, buildGoogleOutcomeUpdate(outcome, new Date()))
+  } catch (err) {
+    logger.warn({ err, sessionId, outcome }, 'guest-sessions: google outcome write failed')
+  }
+}

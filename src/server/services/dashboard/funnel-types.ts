@@ -39,6 +39,10 @@ export interface VisitorFunnel {
   humans: number
   signupPromptShown: number
   googleClicked: number
+  /** Backed out on Google's own screen (recorded from `googleOutcomesSince`). */
+  googleCancelled: number
+  /** Google sign-in errored on our side (recorded from `googleOutcomesSince`). */
+  googleFailed: number
   /** Sessions claimed by a new (non-admin) signup. */
   signedUp: number
 }
@@ -111,6 +115,14 @@ export type FunnelLandingKey = LandingType | 'unknown'
 export interface FunnelMetrics {
   /** Steps from `funnel-events` are only complete for signups on/after this day. */
   eventsTrackedSince: string
+  /**
+   * Every visitor step excludes existing students who logged back in through
+   * the signup prompt (recorded, or estimated for older sessions — see
+   * existing-student-visits.ts). This is how many sessions were dropped.
+   */
+  existingStudentVisits: number
+  /** Day cancelled / failed Google sign-ins started being recorded; null = not yet. */
+  googleOutcomesSince: string | null
   visitors: VisitorFunnel
   signups: SignupFunnel
   /**

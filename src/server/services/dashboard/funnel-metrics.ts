@@ -38,6 +38,11 @@ import {
   type SignupFunnel,
   type VisitorFunnel,
 } from './funnel-types'
+import {
+  countRecordedExistingStudents,
+  estimateExistingStudentSessions,
+  excludeExistingStudents,
+} from './existing-student-visits'
 import { TRACKED_SESSION } from './guest-insights-pipelines'
 import { SIGNUP_SOURCE_KEYS, type SignupSourceBreakdown } from './metrics-types'
 import {
@@ -68,6 +73,8 @@ const VISITOR_STEPS = [
   'humans',
   'signupPromptShown',
   'googleClicked',
+  'googleCancelled',
+  'googleFailed',
   'signedUp',
 ] as const satisfies readonly (keyof VisitorFunnel)[]
 
@@ -88,9 +95,15 @@ export function buildVisitorFunnelPipeline(
   since: Date,
   adminRefs: unknown[],
   cohortMatch: Document = {},
+  excludeMatch: Document = {},
 ): Document[] {
+  const unclaimedOutcome = (outcome: string): Document => ({
+    $and: [{ $eq: ['$onboarding.googleOutcome', outcome] }, { $not: [exists('claimedByUser')] }],
+  })
   return [
-    { $match: { createdAt: { $gte: since }, ...TRACKED_SESSION, ...cohortMatch } },
+    {
+      $match: { createdAt: { $gte: since }, ...TRACKED_SESSION, ...cohortMatch, ...excludeMatch },
+    },
     {
       $group: {
         _id: '$landingType',
@@ -98,6 +111,8 @@ export function buildVisitorFunnelPipeline(
         humans: countIf(exists('jsConfirmedAt')),
         signupPromptShown: countIf(exists('onboarding.signupPromptShownAt')),
         googleClicked: countIf(exists('onboarding.googleClickedAt')),
+        googleCancelled: countIf(unclaimedOutcome('cancelled')),
+        googleFailed: countIf(unclaimedOutcome('failed')),
         signedUp: countIf({
           $and: [exists('claimedByUser'), { $not: [{ $in: ['$claimedByUser', adminRefs] }] }],
         }),
@@ -528,6 +543,8 @@ export function toFunnelMetrics(input: {
   signupFacet: SignupFacet | undefined
   paymentRows: PaymentStepRow[] | undefined
   gateRows?: GateStatsRow[]
+  existingStudentVisits?: number
+  googleOutcomesSince?: Date | null
 }): FunnelMetrics {
   const { visitorRows, signupFacet, paymentRows, gateRows } = input
   const visitorsByLandingType = bucketRows<LandingType, VisitorFunnel>(
@@ -544,6 +561,8 @@ export function toFunnelMetrics(input: {
   const total = signupFacet?.total[0]
   return {
     eventsTrackedSince: FUNNEL_EVENTS_TRACKED_SINCE,
+    existingStudentVisits: input.existingStudentVisits ?? 0,
+    googleOutcomesSince: input.googleOutcomesSince?.toISOString().slice(0, 10) ?? null,
     visitors,
     signups: total ? addRow(emptySignupFunnel(), total, SIGNUP_STEPS) : emptySignupFunnel(),
     firstWeekActiveDays: toActiveDaysHistogram(signupFacet?.activeDays),
@@ -570,6 +589,40 @@ export function toFunnelMetrics(input: {
 // Runner
 // ---------------------------------------------------------------------------
 
+/** Visitor funnel with existing students who logged back in dropped from every step. */
+async function aggregateVisitors(
+  db: Db,
+  buckets: DateBuckets,
+  adminUserRefs: AdminUserRefs,
+  cohort: UserCohort | null | undefined,
+): Promise<{
+  visitorRows: VisitorRow[]
+  existingStudentVisits: number
+  googleOutcomesSince: Date | null
+}> {
+  const since = buckets.periodStart
+  const estimate = await estimateExistingStudentSessions(db, since, buckets.now)
+  const [visitorRows, recorded] = await Promise.all([
+    db
+      .collection('guest-sessions')
+      .aggregate<VisitorRow>(
+        buildVisitorFunnelPipeline(
+          since,
+          adminUserRefs.refs,
+          guestCohortMatch(cohort),
+          excludeExistingStudents(estimate.ids),
+        ),
+      )
+      .toArray(),
+    countRecordedExistingStudents(db, since),
+  ])
+  return {
+    visitorRows,
+    existingStudentVisits: recorded + estimate.ids.length,
+    googleOutcomesSince: estimate.outcomesSince,
+  }
+}
+
 export async function aggregateFunnel(
   db: Db,
   buckets: DateBuckets,
@@ -579,13 +632,8 @@ export async function aggregateFunnel(
   try {
     const since = buckets.periodStart
     const events = db.collection(FUNNEL_EVENTS_COLLECTION)
-    const [visitorRows, [signupFacet], paymentRows, gateRows] = await Promise.all([
-      db
-        .collection('guest-sessions')
-        .aggregate<VisitorRow>(
-          buildVisitorFunnelPipeline(since, adminUserRefs.refs, guestCohortMatch(cohort)),
-        )
-        .toArray(),
+    const [visitors, [signupFacet], paymentRows, gateRows] = await Promise.all([
+      aggregateVisitors(db, buckets, adminUserRefs, cohort),
       db
         .collection('users')
         .aggregate<SignupFacet>(buildSignupFunnelPipeline(since, buckets.now, cohort))
@@ -597,7 +645,7 @@ export async function aggregateFunnel(
         .aggregate<GateStatsRow>(buildGateStatsPipeline(since, adminUserRefs.refs, cohort))
         .toArray(),
     ])
-    return toFunnelMetrics({ visitorRows, signupFacet, paymentRows, gateRows })
+    return toFunnelMetrics({ ...visitors, signupFacet, paymentRows, gateRows })
   } catch (err) {
     logger.warn({ err }, 'dashboard-metrics: funnel slice failed — returning empty')
     return toFunnelMetrics({
