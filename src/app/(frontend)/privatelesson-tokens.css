@@ -129,6 +129,9 @@
     --pl-exam-plan-mark: 325 14% 59%; /* #A48999 */
     --pl-exam-plan-title: 325 10% 37%; /* #67545F */
     --pl-exam-plan-sub: 323 9% 55%; /* #96828E */
+    --pl-exam-date-label: 300 5% 40%; /* #6D626D */
+    --pl-exam-date-line: 322 18% 85%; /* #DED3DA */
+    --pl-exam-date-ink: 306 10% 19%; /* #352B34 */
   }
 
   /* Dark: neutrals take our warm grey (hue 30) with surfaces and lines dark and text
@@ -255,5 +258,8 @@
     --pl-exam-plan-mark: 30 8% 48%; /* #A48999 */
     --pl-exam-plan-title: 30 8% 66%; /* #67545F */
     --pl-exam-plan-sub: 30 8% 50%; /* #96828E */
+    --pl-exam-date-label: 30 8% 62%; /* #6D626D */
+    --pl-exam-date-line: 30 8% 28%; /* #DED3DA */
+    --pl-exam-date-ink: 30 8% 86%; /* #352B34 */
   }
 }

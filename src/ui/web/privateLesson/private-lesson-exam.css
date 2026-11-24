@@ -1,0 +1,41 @@
+/*
+ * The onboarding card's exam step, from the private-lesson demo ("מתי הבחינה
+ * הקרובה?"), ported value for value and scoped under .pl-onboarding. Colors are
+ * the `--pl-*` tokens in src/app/(frontend)/privatelesson-tokens.css.
+ */
+
+.pl-onboarding .onboarding-sub {
+  color: hsl(var(--pl-onboarding-sub));
+  font-size: 15px;
+  line-height: 1.7;
+  margin: 0;
+}
+.pl-onboarding .exam-date-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-width: 320px;
+  margin: 20px auto 10px;
+}
+.pl-onboarding .exam-date-form label {
+  text-align: start;
+  font-size: 15px;
+  color: hsl(var(--pl-exam-date-label));
+}
+.pl-onboarding .exam-date-form input {
+  font: inherit;
+  border: 1px solid hsl(var(--pl-exam-date-line));
+  border-radius: 15px;
+  padding: 14px;
+  width: 100%;
+  background: hsl(var(--pl-paper));
+  color: hsl(var(--pl-exam-date-ink));
+  min-height: 53px;
+}
+.pl-onboarding .exam-date-form input:focus-visible {
+  outline: 2px solid hsl(var(--pl-action));
+  outline-offset: 2px;
+}
+[data-theme='dark'] .pl-onboarding .exam-date-form input {
+  color-scheme: dark;
+}
