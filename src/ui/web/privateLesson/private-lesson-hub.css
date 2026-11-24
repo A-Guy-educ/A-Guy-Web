@@ -109,6 +109,14 @@
   border: 1px solid hsl(var(--pl-hub-portrait-line));
   box-shadow: 0 3px 14px hsl(var(--pl-hub-portrait-shadow) / 0.039);
 }
+/* Until the student's teacher is known the portrait and name stay invisible,
+   so the default teacher never flashes before the real one. */
+.pl-hub .welcome :is(.pl-portrait, .teacher-name) {
+  transition: opacity 0.2s ease-out;
+}
+.pl-hub .welcome.teacher-pending :is(.pl-portrait, .teacher-name) {
+  opacity: 0;
+}
 .pl-hub .teacher-name {
   text-align: center;
   font-size: 14px;
