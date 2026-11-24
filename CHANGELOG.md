@@ -5253,6 +5253,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Upload the exam topic list and link plan days by level ([#1656](https://github.com/A-Guy-educ/A-Guy-Web/pull/1656)) — @aguyshayb
 - feat: Ask for the next exam date in onboarding ([#1655](https://github.com/A-Guy-educ/A-Guy-Web/pull/1655)) — @aguyshayb
 - feat: Add a team page linked from the footer ([#1654](https://github.com/A-Guy-educ/A-Guy-Web/pull/1654)) — @aguyshayb
 - feat: Copy a single exercise section to the notebook ([#1653](https://github.com/A-Guy-educ/A-Guy-Web/pull/1653)) — @aguyshayb
