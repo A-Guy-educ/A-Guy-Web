@@ -212,12 +212,16 @@ export function StudyPlanPanel({ stacked = false, course }: StudyPlanPanelProps)
           </div>
           <input
             type="date"
+            // iOS writes the value as "30 Nov 2026": in an RTL box it reorders to
+            // "Nov 2026 30", and its built-in min width pushes the box out of the
+            // card. LTR text kept right-aligned, and no native look / min width.
+            dir="ltr"
             value={examDate}
             onChange={(e) => {
               pendingRegeneration.current = true
               setExamDate(e.target.value)
             }}
-            className="w-full px-4 py-2.5 border border-border rounded-lg text-foreground bg-card focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+            className="block w-full min-w-0 min-h-11 appearance-none rtl:text-right [&::-webkit-date-and-time-value]:[text-align:inherit] px-4 py-2.5 border border-border rounded-lg text-foreground bg-card focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
           />
         </div>
 

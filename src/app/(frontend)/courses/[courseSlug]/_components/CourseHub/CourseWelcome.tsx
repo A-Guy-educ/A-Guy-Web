@@ -53,6 +53,8 @@ const ACTIONS: Array<{ action: CourseHubAction; icon: ReactNode }> = [
 interface CourseWelcomeProps {
   teacherSlug: string | null
   teacherLabel: string | null
+  /** The teacher isn't known yet: the portrait and name wait rather than show the default one. */
+  teacherPending?: boolean
   /** The lesson to go back to; a student who has one gets the returning greeting. */
   continueLesson: { title: string; href: string } | null
   examDaysUntil: number | null
@@ -62,6 +64,7 @@ interface CourseWelcomeProps {
 export function CourseWelcome({
   teacherSlug,
   teacherLabel,
+  teacherPending = false,
   continueLesson,
   examDaysUntil,
   onAction,
@@ -76,7 +79,11 @@ export function CourseWelcome({
   const { entryRef, entering, onEntryAnimationEnd } = useCardMotion()
 
   return (
-    <section className={continueLesson ? 'welcome returning' : 'welcome'}>
+    <section
+      className={['welcome', continueLesson && 'returning', teacherPending && 'teacher-pending']
+        .filter(Boolean)
+        .join(' ')}
+    >
       <div className="welcome-inner">
         <TutorPortrait
           persona={persona}

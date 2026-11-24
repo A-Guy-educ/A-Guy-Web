@@ -1,8 +1,10 @@
 /**
- * The lesson behind the guide's "ממשיכים:" link: the learning lesson the
- * student is part-way through, else the next one after what they finished.
- * A student with no progress gets null — the four starting points are the
- * guide's whole job for them.
+ * The lesson behind the guide's "ממשיכים:" link: the lesson the student
+ * opened most recently and hasn't finished — opening it is enough, nothing
+ * needs answering. Without one (progress from before lessons recorded being
+ * opened), the learning lesson part-way through, else the next one after what
+ * they finished. A student with no progress gets null — the four starting
+ * points are the guide's whole job for them.
  *
  * @fileType utility
  * @domain frontend
@@ -14,8 +16,18 @@ export function pickContinueLesson(
   nodes: LessonSearchNode[],
   progressMap: Record<string, LessonProgress>,
 ): LessonSearchNode | null {
-  const learning = nodes.filter((n) => n.lessonType === 'learning' && n.chapterSlug)
   const percentOf = (n: LessonSearchNode) => progressMap[n.lesson.id]?.percent ?? 0
+  const openedAt = (n: LessonSearchNode) => progressMap[n.lesson.id]?.lastOpenedAt ?? ''
+
+  const lastOpened = nodes
+    .filter((n) => n.chapterSlug && openedAt(n) && percentOf(n) < 100)
+    .reduce<LessonSearchNode | null>(
+      (latest, n) => (!latest || openedAt(n) > openedAt(latest) ? n : latest),
+      null,
+    )
+  if (lastOpened) return lastOpened
+
+  const learning = nodes.filter((n) => n.lessonType === 'learning' && n.chapterSlug)
 
   const inProgress = learning.find((n) => percentOf(n) > 0 && percentOf(n) < 100)
   if (inProgress) return inProgress

@@ -24,6 +24,7 @@ import { CourseLastLesson } from '../CourseHub/CourseLastLesson'
 import { CourseWelcome, type CourseHubAction } from '../CourseHub/CourseWelcome'
 import { pickContinueLesson } from '../CourseHub/pickContinueLesson'
 import { toPlanCourse } from '../CourseHub/planCourse'
+import { useContinueProgress } from '../CourseHub/useContinueProgress'
 import { CONTENT_TABS, CourseTabs, type ContentTab } from '../CourseTabs'
 import { LessonListTab } from '../LessonListTab'
 import { buildLessonSearchNodes } from '../LessonListTab/buildLessonSearchNodes'
@@ -90,14 +91,19 @@ export function CoursePageContent({
     [course, courseSlug, searchNodes],
   )
 
-  const { user } = useCurrentUser()
-  const { label: teacherLabel, slug: teacherSlug } = useTeacherProfileLabel(Boolean(user))
+  const { user, isLoading: isAuthLoading } = useCurrentUser()
+  const {
+    label: teacherLabel,
+    slug: teacherSlug,
+    resolved: teacherResolved,
+  } = useTeacherProfileLabel(Boolean(user), isAuthLoading)
   const composerRef = useRef<CourseComposerHandle>(null)
   const allContentRef = useRef<HTMLHeadingElement>(null)
   const lastLessonRef = useRef<HTMLHeadingElement>(null)
+  const continueProgress = useContinueProgress(lessons, course.courseLabel || '', lessonProgressMap)
   const continueLesson = useMemo(
-    () => pickContinueLesson(searchNodes, lessonProgressMap),
-    [searchNodes, lessonProgressMap],
+    () => pickContinueLesson(searchNodes, continueProgress),
+    [searchNodes, continueProgress],
   )
   const continueHref = continueLesson ? buildLessonHref(continueLesson, courseSlug) : null
 
@@ -164,6 +170,7 @@ export function CoursePageContent({
         <CourseWelcome
           teacherSlug={teacherSlug}
           teacherLabel={teacherLabel}
+          teacherPending={!teacherResolved}
           continueLesson={
             continueLesson && continueHref
               ? { title: continueLesson.lesson.title, href: continueHref }
