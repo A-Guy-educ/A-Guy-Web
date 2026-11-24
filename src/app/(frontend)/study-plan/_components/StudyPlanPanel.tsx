@@ -3,12 +3,16 @@
 /**
  * The study plan itself — exam date, topics with self-rated mastery, and the
  * generated days — without page chrome. `/study-plan` wraps it in its page;
- * the course page's exam hub shows it `stacked` inside "my prep plan".
+ * the course page's exam hub shows it `stacked` inside "my prep plan", with
+ * its `course`: there the exam date starts from the course's, the teacher's
+ * topic list can be uploaded, and every topic (uploaded or typed) is matched
+ * to the course's lessons, which the days then link to by the student's
+ * rating (see planLessons).
  */
 import { cn } from '@/infra/utils/ui'
-import { useTranslations } from '@/ui/web/providers/I18n'
-import { Calendar, ChevronDown, ChevronRight, Plus, Trash2, Zap } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
+import { Calendar, ChevronDown, ChevronRight, Loader2, Plus, Zap } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { addExamDate, getExamDates, setExamDates } from '@/client/state/localStorage/examDates'
 import { getUserProfile } from '@/client/state/localStorage/userProfile'
@@ -17,66 +21,37 @@ import { Button } from '@/ui/web/components/button'
 import { DayCard } from './DayCard'
 import { EmptyPlanState } from './EmptyPlanState'
 import { LessonSelector } from './LessonSelector'
+import { firstDayByTopic, type PlanCourse } from './planLessons'
+import { TopicRow } from './TopicRow'
+import { TopicUpload } from './TopicUpload'
+import { TopicMatchFailure, useExamTopicMatching } from './useExamTopicMatching'
 import { useStudyPlan } from './useStudyPlan'
-
-const MASTERY_COLORS = {
-  weak: 'bg-error/10 text-error border-error/20',
-  medium: 'bg-warning/10 text-warning border-warning/20',
-  strong: 'bg-success/10 text-success border-success/20',
-}
-
-interface TopicRowProps {
-  topic: TopicInput
-  onMasteryChange: (mastery: MasteryLevel) => void
-  onDelete: () => void
-}
-
-function TopicRow({ topic, onMasteryChange, onDelete }: TopicRowProps) {
-  const t = useTranslations('studyPlan')
-
-  return (
-    <div className="flex items-center gap-content-gap-xs p-3 bg-card rounded-lg border border-border transition-colors duration-normal">
-      <div className="flex-1 min-w-0">
-        <span className="text-body-sm font-medium text-foreground truncate block">
-          {topic.topicLabel}
-        </span>
-      </div>
-      <div className="flex items-center gap-1">
-        {(['weak', 'medium', 'strong'] as MasteryLevel[]).map((level) => (
-          <button
-            key={level}
-            onClick={() => onMasteryChange(level)}
-            className={cn(
-              'px-2 py-1 text-body-xs font-medium rounded-md border transition-colors duration-normal',
-              topic.mastery === level
-                ? MASTERY_COLORS[level]
-                : 'bg-muted/50 text-muted-foreground border-border hover:bg-muted',
-            )}
-          >
-            {t(`mastery.${level}`)}
-          </button>
-        ))}
-        <button
-          type="button"
-          onClick={onDelete}
-          aria-label={t('removeTopic')}
-          className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-muted-foreground transition-all duration-normal hover:bg-destructive/10 hover:text-destructive"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </div>
-    </div>
-  )
-}
 
 interface StudyPlanPanelProps {
   /** One column whatever the viewport (for narrow containers). */
   stacked?: boolean
+  /** The course the plan is built in: enables the upload and lesson matching. */
+  course?: PlanCourse
 }
 
-export function StudyPlanPanel({ stacked = false }: StudyPlanPanelProps) {
+/** The nearest exam date still ahead, from the saved exam dates. */
+function upcomingExamDate(key: string): string {
+  const today = new Date().toISOString().slice(0, 10)
+  return (
+    getExamDates(key)
+      .map((exam) => exam.date)
+      .filter((date) => date >= today)
+      .sort()[0] ?? ''
+  )
+}
+
+export function StudyPlanPanel({ stacked = false, course }: StudyPlanPanelProps) {
   const t = useTranslations('studyPlan')
+  const locale = useLocale() === 'en' ? 'en' : 'he'
   const { plan, isLoading, generatePlan, toggleDayStatus, editDay } = useStudyPlan()
+  const { match, isMatching } = useExamTopicMatching(course, locale)
+  // The course page counts down to the course's exam; /study-plan keeps its own.
+  const examDatesKey = course?.id ?? 'default-course'
 
   const gradeLevel = getUserProfile()?.gradeLevel || 'default'
 
@@ -86,6 +61,7 @@ export function StudyPlanPanel({ stacked = false }: StudyPlanPanelProps) {
   const [newTopic, setNewTopic] = useState('')
   const [hasGenerated, setHasGenerated] = useState(false)
   const [showCourseSelector, setShowCourseSelector] = useState(false)
+  const [matchNote, setMatchNote] = useState<{ tone: 'info' | 'error'; text: string } | null>(null)
 
   // Load sidebar fields from saved plan and show schedule if plan was loaded from DB
   useEffect(() => {
@@ -96,19 +72,65 @@ export function StudyPlanPanel({ stacked = false }: StudyPlanPanelProps) {
     }
   }, [plan])
 
-  const handleAddTopic = useCallback(() => {
-    if (!newTopic.trim()) return
+  // No plan yet: start from the exam date onboarding (or the countdown) saved.
+  useEffect(() => {
+    if (!isLoading && !plan) setExamDate((current) => current || upcomingExamDate(examDatesKey))
+  }, [isLoading, plan, examDatesKey])
+
+  const addTopics = useCallback((added: TopicInput[]) => {
     pendingRegeneration.current = true
+    setTopics((prev) => {
+      const labels = new Set(prev.map((topic) => topic.topicLabel))
+      return [...prev, ...added.filter((topic) => !labels.has(topic.topicLabel))]
+    })
+  }, [])
 
-    const topic: TopicInput = {
-      topicId: `topic-${Date.now()}`,
-      topicLabel: newTopic.trim(),
-      mastery: 'weak',
-    }
-
-    setTopics((prev) => [...prev, topic])
+  // In a course, a typed topic is matched to its lessons too; if that fails
+  // it is still added, just without links.
+  const handleAddTopic = useCallback(async () => {
+    const label = newTopic.trim()
+    if (!label || isMatching) return
     setNewTopic('')
-  }, [newTopic])
+    const plain: TopicInput = {
+      topicId: `topic-${Date.now()}`,
+      topicLabel: label,
+      mastery: course ? 'medium' : 'weak',
+    }
+    if (!course) {
+      addTopics([plain])
+      return
+    }
+    const matched = await match({ text: label }).catch(() => [])
+    addTopics(matched.length > 0 ? matched : [plain])
+  }, [newTopic, isMatching, course, match, addTopics])
+
+  const handleUploadFile = useCallback(
+    async (file: File) => {
+      setMatchNote(null)
+      try {
+        const matched = await match({ file })
+        if (matched.length === 0) {
+          setMatchNote({ tone: 'error', text: t('uploadNone') })
+          return
+        }
+        addTopics(matched)
+        setMatchNote({
+          tone: 'info',
+          text: t('uploadAdded').replace('{count}', String(matched.length)),
+        })
+      } catch (error) {
+        const reason = error instanceof TopicMatchFailure ? error.reason : 'failed'
+        const key =
+          reason === 'tooLarge'
+            ? 'uploadTooLarge'
+            : reason === 'unsupported'
+              ? 'uploadUnsupported'
+              : 'uploadFailed'
+        setMatchNote({ tone: 'error', text: t(key) })
+      }
+    },
+    [match, addTopics, t],
+  )
 
   const handleRemoveTopic = useCallback((topicId: string) => {
     pendingRegeneration.current = true
@@ -142,17 +164,15 @@ export function StudyPlanPanel({ stacked = false }: StudyPlanPanelProps) {
     if (!examDate || topics.length === 0) return
     await generatePlan(examDate, topics, 'default-course')
     // Persist exam date to localStorage so the /study countdown can read it
-    const existing = getExamDates('default-course')
+    const existing = getExamDates(examDatesKey)
     if (!existing.some((e) => e.date === examDate)) {
-      addExamDate('default-course', { id: `exam-${Date.now()}`, date: examDate })
+      addExamDate(examDatesKey, { id: `exam-${Date.now()}`, date: examDate })
     } else {
       // Update: keep only the latest exam date
-      setExamDates('default-course', [
-        { id: existing[0]?.id ?? `exam-${Date.now()}`, date: examDate },
-      ])
+      setExamDates(examDatesKey, [{ id: existing[0]?.id ?? `exam-${Date.now()}`, date: examDate }])
     }
     setHasGenerated(true)
-  }, [examDate, topics, generatePlan])
+  }, [examDate, topics, generatePlan, examDatesKey])
 
   // Auto-regenerate plan only after initial explicit generation
   useEffect(() => {
@@ -166,6 +186,8 @@ export function StudyPlanPanel({ stacked = false }: StudyPlanPanelProps) {
       return () => clearTimeout(timer)
     }
   }, [examDate, topics, generatePlan, hasGenerated])
+
+  const firstDays = useMemo(() => firstDayByTopic(plan?.days ?? []), [plan])
 
   if (isLoading && !hasGenerated) {
     return (
@@ -203,28 +225,44 @@ export function StudyPlanPanel({ stacked = false }: StudyPlanPanelProps) {
         <div className="bg-card rounded-2xl border border-border p-card-padding shadow-elevation-1">
           <h2 className="text-heading-lg font-semibold text-foreground mb-4">{t('topicsTitle')}</h2>
 
-          {/* Select from Course toggle */}
-          <button
-            type="button"
-            onClick={() => setShowCourseSelector((prev) => !prev)}
-            className="w-full flex items-center gap-content-gap-xs px-3 py-2 mb-3 text-body-sm font-medium text-primary bg-primary/5 hover:bg-primary/10 rounded-lg border border-primary/20 transition-colors duration-normal"
-          >
-            {showCourseSelector ? (
-              <ChevronDown className="w-4 h-4" />
-            ) : (
-              <ChevronRight className="w-4 h-4" />
-            )}
-            {t('selectFromCourse')}
-          </button>
+          {course && <TopicUpload busy={isMatching} onFile={handleUploadFile} />}
+          {matchNote && (
+            // Plain classes: cn() would drop the custom text-body-xs as clashing with the color.
+            <p
+              role="status"
+              className={`text-body-xs mb-3 ${matchNote.tone === 'error' ? 'text-error' : 'text-muted-foreground'}`}
+            >
+              {matchNote.text}
+            </p>
+          )}
+
+          {/* Select from Course toggle — in a course, topics are matched to it instead */}
+          {!course && (
+            <button
+              type="button"
+              onClick={() => setShowCourseSelector((prev) => !prev)}
+              className="w-full flex items-center gap-content-gap-xs px-3 py-2 mb-3 text-body-sm font-medium text-primary bg-primary/5 hover:bg-primary/10 rounded-lg border border-primary/20 transition-colors duration-normal"
+            >
+              {showCourseSelector ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
+              {t('selectFromCourse')}
+            </button>
+          )}
 
           {/* Course lesson selector */}
-          {showCourseSelector && (
+          {!course && showCourseSelector && (
             <div className="mb-4">
               <p className="text-body-xs text-muted-foreground mb-2">{t('selectLessonsHint')}</p>
               <LessonSelector gradeLevel={gradeLevel} onAddLessons={handleAddLessonsFromCourse} />
             </div>
           )}
 
+          {course && topics.length > 0 && (
+            <p className="text-body-xs text-muted-foreground mb-2">{t('levelHint')}</p>
+          )}
           <div className="space-y-2 mb-4">
             {topics.map((topic) => (
               <TopicRow
@@ -241,17 +279,22 @@ export function StudyPlanPanel({ stacked = false }: StudyPlanPanelProps) {
               type="text"
               value={newTopic}
               onChange={(e) => setNewTopic(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAddTopic()}
+              onKeyDown={(e) => e.key === 'Enter' && void handleAddTopic()}
               placeholder={t('addTopicPlaceholder')}
               className="flex-1 px-3 py-2 border border-border rounded-lg text-foreground bg-card text-body-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
             />
             <button
               type="button"
-              onClick={handleAddTopic}
+              onClick={() => void handleAddTopic()}
+              disabled={isMatching}
               aria-label={t('addTopic')}
-              className="flex min-h-11 min-w-11 items-center justify-center rounded-lg bg-foreground text-background transition-all duration-normal hover:bg-foreground/90"
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-lg bg-foreground text-background transition-all duration-normal hover:bg-foreground/90 disabled:opacity-60"
             >
-              <Plus className="w-5 h-5" />
+              {isMatching ? (
+                <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" />
+              ) : (
+                <Plus className="w-5 h-5" />
+              )}
             </button>
           </div>
         </div>
@@ -290,6 +333,7 @@ export function StudyPlanPanel({ stacked = false }: StudyPlanPanelProps) {
                   key={day.dayId}
                   day={day}
                   topics={topics}
+                  firstDayByTopic={firstDays}
                   onToggleStatus={() => handleMarkComplete(day.dayId)}
                   onEdit={(edits) => editDay(day.dayId, edits)}
                 />

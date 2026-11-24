@@ -11,6 +11,7 @@
  */
 'use client'
 
+import type { PlanCourse } from '@/app/(frontend)/study-plan/_components/planLessons'
 import type { TeacherPersona } from '@/ui/web/privateLesson/teacherPersonas'
 import { useTranslations } from '@/ui/web/providers/I18n'
 
@@ -20,6 +21,8 @@ import { ExamPrepPlan } from './ExamPrepPlan'
 interface CourseFinderProps {
   kind: CourseHubAction
   persona: TeacherPersona
+  /** The course, for the exam hub's prep plan to match topics to its lessons. */
+  planCourse: PlanCourse
   isSignedIn: boolean
   loginHref: string
   onBack: () => void
@@ -30,6 +33,7 @@ interface CourseFinderProps {
 export function CourseFinder({
   kind,
   persona,
+  planCourse,
   isSignedIn,
   loginHref,
   onBack,
@@ -51,7 +55,7 @@ export function CourseFinder({
         <div className="exam-hub">
           <h2 id="finder-title">{t('examHubTitle')}</h2>
           <p className="finder-sub">{t('examHubSub')}</p>
-          <ExamPrepPlan isSignedIn={isSignedIn} loginHref={loginHref} />
+          <ExamPrepPlan course={planCourse} isSignedIn={isSignedIn} loginHref={loginHref} />
         </div>
       ) : kind === 'homework' ? (
         <div className="homework-picker">
