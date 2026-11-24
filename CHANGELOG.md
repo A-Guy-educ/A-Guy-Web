@@ -1,5 +1,39 @@
 # Changelog
 
+## v0.69.0 — 2026-11-24
+
+### Features
+- Upload the exam topic list and link plan days by level (#1656)
+- Ask for the next exam date in onboarding (#1655)
+- Add a team page linked from the footer (#1654)
+- Copy a single exercise section to the notebook (#1653)
+- Give the landing demo's hint on the first wrong pick (#1652)
+- Show the landing demo exercise in the lesson chat view (#1651)
+- Copy scroll exercises to the notebook with a button (#1647)
+- Add the prep plan to the course exam hub and a clearer back button (#1646)
+- Add a dark version of the private-lesson look (#1642)
+- Track plan picks and per-wall conversion in the funnel (#1641)
+- Add the demo's finder, a live exercise and a language toggle (#1640)
+- Measure first-week engagement depth in the funnel (#1639)
+- Add formulas section to the lesson intro page (#1638)
+- Match the private-lesson demo on the course page (#1637)
+- Match the private-lesson demo on the landing and start pages (#1636)
+- Replace the home page with the private-lesson landing (#1635)
+- Add the 'what are we doing today' guide to the course page (#1634)
+- Link AI lesson suggestions and route homework photos (#1633)
+- Add visitor-to-paid funnel to dashboard metrics (#1631)
+
+### Bug Fixes
+- Exam date on iOS, continue any opened lesson, no teacher flash (#1657)
+- Show a single sub-question as the landing demo exercise (#1650)
+- Let the landing demo exercise come from any lesson (#1649)
+- Let the landing demo exercise come from sign-up lessons (#1648)
+- Find a landing demo exercise beyond 7th grade math (#1643)
+- Lesson explanation bullets and chat link wrapping (#1630)
+
+### Maintenance
+- Remove the password signup page (#1632)
+
 ## v0.68.0 — 2026-11-18
 
 ### Features
