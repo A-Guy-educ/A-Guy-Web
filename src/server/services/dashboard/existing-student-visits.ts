@@ -2,7 +2,11 @@
  * Guest sessions that turned out to be an existing student logging back in,
  * not a new visitor. The funnel drops them from every visitor step.
  *
- * Two sources:
+ * Three sources:
+ * - Returning browser: the session was opened by a browser carrying the
+ *   known-student cookie (it had an account before), whether or not the
+ *   student logs in this time. On a shared computer this also drops a new
+ *   student who never signs up — accepted; it is mostly school traffic.
  * - Recorded: the Google callback stamps `onboarding.googleOutcome:
  *   'existing_login'` on the session (from the first stamped outcome on).
  * - Estimated, for sessions from before outcomes were recorded: a Google
@@ -23,6 +27,12 @@ export const EXISTING_LOGIN_WINDOW_MS = 2 * 60 * 1000
 export const EXISTING_ACCOUNT_MIN_AGE_MS = 5 * 60 * 1000
 
 const UNCLAIMED = { claimedByUser: { $exists: false } }
+
+/** Unclaimed sessions known to be existing students. */
+const KNOWN_EXISTING: Document[] = [
+  { returningBrowser: true, ...UNCLAIMED },
+  { 'onboarding.googleOutcome': 'existing_login', ...UNCLAIMED },
+]
 
 export interface GoogleClick {
   id: ObjectId
@@ -111,6 +121,7 @@ export async function estimateExistingStudentSessions(
         createdAt: { $gte: since },
         ...TRACKED_SESSION,
         ...UNCLAIMED,
+        returningBrowser: { $exists: false },
         'onboarding.googleOutcome': { $exists: false },
         'onboarding.googleClickedAt': { $lt: cutover },
       },
@@ -132,7 +143,7 @@ export async function estimateExistingStudentSessions(
 /** guest-sessions $match clause dropping recorded and estimated existing students. */
 export function excludeExistingStudents(estimatedIds: readonly ObjectId[]): Document {
   return {
-    $nor: [{ 'onboarding.googleOutcome': 'existing_login', ...UNCLAIMED }],
+    $nor: KNOWN_EXISTING,
     ...(estimatedIds.length > 0 ? { _id: { $nin: [...estimatedIds] } } : {}),
   }
 }
@@ -142,7 +153,6 @@ export function countRecordedExistingStudents(db: Db, since: Date): Promise<numb
   return db.collection('guest-sessions').countDocuments({
     createdAt: { $gte: since },
     ...TRACKED_SESSION,
-    ...UNCLAIMED,
-    'onboarding.googleOutcome': 'existing_login',
+    $or: KNOWN_EXISTING,
   })
 }

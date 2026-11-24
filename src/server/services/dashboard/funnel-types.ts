@@ -112,12 +112,20 @@ export interface PaymentFunnel {
 
 export type FunnelLandingKey = LandingType | 'unknown'
 
+/**
+ * Device of a visit: `in_app` (Instagram/Facebook/TikTok/Snapchat or another
+ * app's built-in browser) wins over the platform; `unknown` = no device
+ * recorded (visits from before tracking started).
+ */
+export type FunnelDeviceKey = 'in_app' | 'ios' | 'android' | 'computer' | 'unknown'
+
 export interface FunnelMetrics {
   /** Steps from `funnel-events` are only complete for signups on/after this day. */
   eventsTrackedSince: string
   /**
-   * Every visitor step excludes existing students who logged back in through
-   * the signup prompt (recorded, or estimated for older sessions — see
+   * Every visitor step excludes existing students: browsers that had an
+   * account before, and students who logged back in through the signup
+   * prompt (recorded, or estimated for older sessions — see
    * existing-student-visits.ts). This is how many sessions were dropped.
    */
   existingStudentVisits: number
@@ -140,4 +148,9 @@ export interface FunnelMetrics {
   byLandingType: Record<FunnelLandingKey, SignupFunnel>
   /** Visitor funnel split by landing page type. */
   visitorsByLandingType: Record<LandingType, VisitorFunnel>
+  /**
+   * Visitor funnel split by device. Visits from before devices were recorded
+   * are `unknown`, so its share shows how much of the period is covered.
+   */
+  visitorsByDevice: Record<FunnelDeviceKey, VisitorFunnel>
 }

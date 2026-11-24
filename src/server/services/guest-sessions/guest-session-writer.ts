@@ -13,6 +13,7 @@ import { createHash, randomBytes } from 'crypto'
 
 import { ObjectId, type Collection, type Document } from 'mongodb'
 
+import type { GuestDevice } from '@/infra/analytics/guest-device'
 import type { GuestLanding } from '@/infra/analytics/guest-landing'
 import { getContentDb } from '@/infra/db/content-db'
 import { logger } from '@/infra/utils/logger/logger'
@@ -38,7 +39,18 @@ const GUEST_SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000
  * lands (`confirmGuestSessionJs`). Sessions that never run JS keep the flag —
  * reported as "unconfirmed", not as certain bots.
  */
-export function buildGuestSessionDoc(sessionId: string, landing: GuestLanding | null): Document {
+export interface GuestSessionOptions {
+  /** UA-derived platform and in-app browser of the first page load. */
+  device?: GuestDevice | null
+  /** Browser had an account before (known-student cookie): a returning student. */
+  returningBrowser?: boolean
+}
+
+export function buildGuestSessionDoc(
+  sessionId: string,
+  landing: GuestLanding | null,
+  options: GuestSessionOptions = {},
+): Document {
   const now = new Date()
   const expiresAt = new Date(now.getTime() + GUEST_SESSION_TTL_MS)
   // tokenHash is a UNIQUE index in Admin's collection, so it has to differ
@@ -58,6 +70,8 @@ export function buildGuestSessionDoc(sessionId: string, landing: GuestLanding | 
     updatedAt: now,
     suspectedBot: true,
     ...(landing ?? {}),
+    ...(options.device ? { device: options.device } : {}),
+    ...(options.returningBrowser ? { returningBrowser: true } : {}),
   }
 }
 
@@ -103,11 +117,12 @@ async function ensureSessionIdIndex(): Promise<void> {
 export async function recordGuestSession(
   sessionId: string,
   landing: GuestLanding | null,
+  options: GuestSessionOptions = {},
 ): Promise<void> {
   try {
     await ensureSessionIdIndex()
     const col = await guestSessionsCollection()
-    await col.insertOne(buildGuestSessionDoc(sessionId, landing))
+    await col.insertOne(buildGuestSessionDoc(sessionId, landing, options))
   } catch (err) {
     if ((err as { code?: number })?.code === DUPLICATE_KEY_ERROR) return
     logger.warn({ err, sessionId }, 'guest-sessions: insert failed')

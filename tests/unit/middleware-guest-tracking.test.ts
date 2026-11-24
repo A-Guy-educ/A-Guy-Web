@@ -73,6 +73,7 @@ describe('middleware guest tracking', () => {
         utmMedium: null,
         utmCampaign: null,
       },
+      device: { platform: 'computer', inApp: null },
     })
     expect(call?.signature).toBe(await signGuestPayload(call!.body, SECRET))
     expect(call!.body).not.toContain('secret=1')
@@ -86,6 +87,42 @@ describe('middleware guest tracking', () => {
     expect(calls).toHaveLength(1)
     expect(calls[0]?.path).toBe('/api/internal/bot-hits/record')
     expect(JSON.parse(calls[0]!.body)).toEqual({ category: 'ai-crawler' })
+  })
+
+  it('marks a signed-in browser as known, once', () => {
+    const fresh = middleware(request('/', { 'user-agent': CHROME, cookie: 'payload-token=abc' }))
+    expect(fresh.cookies.get('known_student')?.value).toBe('1')
+    expect(fresh.cookies.get('known_student')?.maxAge).toBe(365 * 24 * 60 * 60)
+
+    const marked = middleware(
+      request('/', { 'user-agent': CHROME, cookie: 'payload-token=abc; known_student=1' }),
+    )
+    expect(marked.cookies.get('known_student')).toBeUndefined()
+
+    const asset = middleware(
+      request('/logo.png', { 'user-agent': CHROME, cookie: 'payload-token=abc' }),
+    )
+    expect(asset.cookies.get('known_student')).toBeUndefined()
+  })
+
+  it('records the device of the first page load, in-app browser included', async () => {
+    middleware(
+      request('/', {
+        'user-agent':
+          'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 312.0.0.32.112',
+      }),
+    )
+    const [call] = await flushLoopbacks(fetchMock)
+    expect(JSON.parse(call!.body).device).toEqual({ platform: 'ios', inApp: 'instagram' })
+  })
+
+  it('flags a logged-out visit from a known browser as returning', async () => {
+    const response = middleware(request('/', { 'user-agent': CHROME, cookie: 'known_student=1' }))
+    expect(response.cookies.get('guest_session_id')?.value).toBeTruthy()
+
+    const [call] = await flushLoopbacks(fetchMock)
+    expect(call?.path).toBe('/api/internal/guest-session/create')
+    expect(JSON.parse(call!.body).returningBrowser).toBe(true)
   })
 
   it('tracks nothing for signed-in visitors or returning guests', async () => {

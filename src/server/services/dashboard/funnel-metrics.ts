@@ -31,6 +31,7 @@ import {
   ENGAGED_DWELL_SECONDS,
   FIRST_WEEK_DAYS,
   FUNNEL_EVENTS_TRACKED_SINCE,
+  type FunnelDeviceKey,
   type FunnelLandingKey,
   type FunnelMetrics,
   type GateStats,
@@ -44,6 +45,7 @@ import {
   excludeExistingStudents,
 } from './existing-student-visits'
 import { TRACKED_SESSION } from './guest-insights-pipelines'
+import { DEVICE_GROUP, FUNNEL_DEVICE_KEYS } from './visitor-devices'
 import { SIGNUP_SOURCE_KEYS, type SignupSourceBreakdown } from './metrics-types'
 import {
   guestCohortMatch,
@@ -96,6 +98,7 @@ export function buildVisitorFunnelPipeline(
   adminRefs: unknown[],
   cohortMatch: Document = {},
   excludeMatch: Document = {},
+  groupBy: Document | string = '$landingType',
 ): Document[] {
   const unclaimedOutcome = (outcome: string): Document => ({
     $and: [{ $eq: ['$onboarding.googleOutcome', outcome] }, { $not: [exists('claimedByUser')] }],
@@ -106,7 +109,7 @@ export function buildVisitorFunnelPipeline(
     },
     {
       $group: {
-        _id: '$landingType',
+        _id: groupBy,
         visitors: { $sum: 1 },
         humans: countIf(exists('jsConfirmedAt')),
         signupPromptShown: countIf(exists('onboarding.signupPromptShownAt')),
@@ -545,6 +548,7 @@ export function toFunnelMetrics(input: {
   gateRows?: GateStatsRow[]
   existingStudentVisits?: number
   googleOutcomesSince?: Date | null
+  deviceRows?: VisitorRow[]
 }): FunnelMetrics {
   const { visitorRows, signupFacet, paymentRows, gateRows } = input
   const visitorsByLandingType = bucketRows<LandingType, VisitorFunnel>(
@@ -582,6 +586,13 @@ export function toFunnelMetrics(input: {
       SIGNUP_STEPS,
     ),
     visitorsByLandingType,
+    visitorsByDevice: bucketRows<FunnelDeviceKey, VisitorFunnel>(
+      input.deviceRows,
+      FUNNEL_DEVICE_KEYS,
+      'unknown',
+      emptyVisitorFunnel,
+      VISITOR_STEPS,
+    ),
   }
 }
 
@@ -597,12 +608,13 @@ async function aggregateVisitors(
   cohort: UserCohort | null | undefined,
 ): Promise<{
   visitorRows: VisitorRow[]
+  deviceRows: VisitorRow[]
   existingStudentVisits: number
   googleOutcomesSince: Date | null
 }> {
   const since = buckets.periodStart
   const estimate = await estimateExistingStudentSessions(db, since, buckets.now)
-  const [visitorRows, recorded] = await Promise.all([
+  const visitorsBy = (groupBy: Document | string) =>
     db
       .collection('guest-sessions')
       .aggregate<VisitorRow>(
@@ -611,13 +623,18 @@ async function aggregateVisitors(
           adminUserRefs.refs,
           guestCohortMatch(cohort),
           excludeExistingStudents(estimate.ids),
+          groupBy,
         ),
       )
-      .toArray(),
+      .toArray()
+  const [visitorRows, deviceRows, recorded] = await Promise.all([
+    visitorsBy('$landingType'),
+    visitorsBy(DEVICE_GROUP),
     countRecordedExistingStudents(db, since),
   ])
   return {
     visitorRows,
+    deviceRows,
     existingStudentVisits: recorded + estimate.ids.length,
     googleOutcomesSince: estimate.outcomesSince,
   }

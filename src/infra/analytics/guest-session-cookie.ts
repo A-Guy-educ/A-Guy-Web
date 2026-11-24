@@ -13,6 +13,15 @@ export const GUEST_SESSION_COOKIE = 'guest_session_id'
 export const GUEST_SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60
 
 /**
+ * "This browser has had an account": set by middleware on signed-in page
+ * loads and kept after logout. A later anonymous visit from the browser is a
+ * returning student, not a new visitor, so the guest session is flagged
+ * `returningBrowser` and the dashboard funnel drops it. Holds no user id.
+ */
+export const KNOWN_STUDENT_COOKIE = 'known_student'
+export const KNOWN_STUDENT_MAX_AGE_SECONDS = 365 * 24 * 60 * 60
+
+/**
  * Request header the middleware attaches when it decides to open a new
  * guest session. Consumed by the root layout to fire the fire-and-forget DB
  * insert on the same request.
