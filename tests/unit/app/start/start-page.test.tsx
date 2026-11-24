@@ -3,6 +3,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { groupCourses } from '@/app/(frontend)/start/groupCourses'
+import { getExamDates } from '@/client/state/localStorage/examDates'
 import { StartPageClient } from '@/app/(frontend)/start/StartPageClient'
 import type { Course } from '@/infra/types/content'
 import { I18nProvider } from '@/ui/web/providers/I18n'
@@ -77,6 +78,7 @@ describe('StartPageClient', () => {
   afterEach(() => {
     cleanup()
     vi.unstubAllGlobals()
+    window.localStorage.clear()
   })
 
   const renderStart = (initialTeacherSlug?: string) =>
@@ -121,6 +123,51 @@ describe('StartPageClient', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'חזרה' }))
     expect(screen.getByRole('heading', { name: 'איזה מורה תרצו?' })).toBeTruthy()
+  })
+
+  describe('the exam step', () => {
+    const assign = vi.fn()
+    const originalLocation = window.location
+
+    beforeEach(() => {
+      assign.mockReset()
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: { ...originalLocation, assign },
+      })
+    })
+    afterEach(() => {
+      Object.defineProperty(window, 'location', { configurable: true, value: originalLocation })
+    })
+
+    const reachExamStep = async () => {
+      renderStart('teacher_focused')
+      fireEvent.click(await screen.findByRole('button', { name: "כיתה ח' · בסיס" }))
+      fireEvent.click(screen.getByRole('button', { name: 'ממשיכים' }))
+    }
+
+    it('asks for the next exam after the class, as step 3 of 3', async () => {
+      await reachExamStep()
+      expect(screen.getByRole('heading', { name: 'מתי הבחינה הקרובה?' })).toBeTruthy()
+      expect(screen.getByText('נעים להכיר · 3 מתוך 3')).toBeTruthy()
+      fireEvent.click(screen.getByRole('button', { name: 'חזרה' }))
+      expect(screen.getByRole('heading', { name: 'באיזו כיתה וברמה לומדים?' })).toBeTruthy()
+    })
+
+    it("saves the date as the course's exam and opens the course", async () => {
+      await reachExamStep()
+      fireEvent.change(screen.getByLabelText('תאריך הבחינה'), { target: { value: '2099-06-01' } })
+      fireEvent.click(screen.getByRole('button', { name: 'מתחילים' }))
+      expect(getExamDates('g8-basic').map((e) => e.date)).toEqual(['2099-06-01'])
+      expect(assign).toHaveBeenCalledWith('/courses/g8-basic')
+    })
+
+    it('goes on without a date', async () => {
+      await reachExamStep()
+      fireEvent.click(screen.getByRole('button', { name: 'עדיין אין תאריך' }))
+      expect(getExamDates('g8-basic')).toEqual([])
+      expect(assign).toHaveBeenCalledWith('/courses/g8-basic')
+    })
   })
 
   it('opens on the class step when the landing page already picked a teacher', async () => {

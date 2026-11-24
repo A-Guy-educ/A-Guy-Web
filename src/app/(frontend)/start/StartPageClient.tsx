@@ -2,8 +2,11 @@
 
 /**
  * /start — the demo's "נעים להכיר" card: pick a teacher, then a class and
- * level, then sign in (guests) or go straight to the course. A teacher picked
- * on the landing page (`?teacher=<slug>`) opens the card on the class step.
+ * level, then the next exam's date (or "no date yet"), then sign in (guests)
+ * or go straight to the course. The date is saved as that course's exam date,
+ * which the course page counts down to and the prep plan starts from. A
+ * teacher picked on the landing page (`?teacher=<slug>`) opens the card on
+ * the class step.
  *
  * @fileType component
  * @domain frontend
@@ -11,8 +14,10 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
 
 import { useCurrentUser } from '@/client/hooks/useCurrentUser'
+import { addExamDate, getExamDates } from '@/client/state/localStorage/examDates'
 import { selectCourse, setUserProfile } from '@/client/state/localStorage/userProfile'
 import { trackOnboardingStep } from '@/client/utils/guest-session-beacon'
+import { formatYmd, startOfDay } from '@/lib/dates'
 import type { Course } from '@/infra/types/content'
 import { OnboardingCompleteLoginModal } from '@/ui/web/auth/OnboardingCompleteLoginModal'
 import {
@@ -26,9 +31,10 @@ import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
 import { groupCourses } from './groupCourses'
 
 import '@/ui/web/privateLesson/private-lesson.css'
+import '@/ui/web/privateLesson/private-lesson-exam.css'
 
 type Direction = 'ltr' | 'rtl'
-type Step = 'teacher' | 'course' | 'redirecting'
+type Step = 'teacher' | 'course' | 'exam' | 'redirecting'
 
 interface TeacherProfile {
   slug: string
@@ -46,9 +52,14 @@ interface StartPageClientProps {
 
 const START_COPY = {
   he: {
-    progress: 'נעים להכיר · {step} מתוך 2',
+    progress: 'נעים להכיר · {step} מתוך 3',
     teacherQuestion: 'איזה מורה תרצו?',
     courseQuestion: 'באיזו כיתה וברמה לומדים?',
+    examQuestion: 'מתי הבחינה הקרובה?',
+    examSub: 'נשמור את התאריך. את תוכנית ההכנה נבנה כשתרצו.',
+    examDateLabel: 'תאריך הבחינה',
+    examStart: 'מתחילים',
+    noExamDate: 'עדיין אין תאריך',
     courseListLabel: 'מסלולי הלימוד',
     continue: 'ממשיכים',
     back: 'חזרה',
@@ -59,9 +70,14 @@ const START_COPY = {
     openingCourse: 'פותחים את הקורס…',
   },
   en: {
-    progress: 'Nice to meet you · {step} of 2',
+    progress: 'Nice to meet you · {step} of 3',
     teacherQuestion: 'Which teacher would you like?',
     courseQuestion: 'Which class and level are you in?',
+    examQuestion: "When's your next exam?",
+    examSub: "We'll save the date. We'll build the prep plan whenever you want.",
+    examDateLabel: 'Exam date',
+    examStart: "Let's start",
+    noExamDate: 'No date yet',
     courseListLabel: 'Study tracks',
     continue: 'Continue',
     back: 'Back',
@@ -158,9 +174,12 @@ export function StartPageClient({ courses, direction, initialTeacherSlug }: Star
     setStep('course')
   }
 
-  const finish = () => {
+  const finish = (examDate: string | null) => {
     const course = selectedCourse
     if (!course) return
+    if (examDate && !getExamDates(course.id).some((exam) => exam.date === examDate)) {
+      addExamDate(course.id, { id: `exam-${Date.now()}`, date: examDate })
+    }
     selectCourse({
       gradeLevel: course.courseLabel || course.title,
       courseId: course.id,
@@ -176,7 +195,6 @@ export function StartPageClient({ courses, direction, initialTeacherSlug }: Star
     setStep('redirecting')
 
     if (isAnonymous) {
-      trackOnboardingStep('gradeSelected')
       trackOnboardingStep('signupPromptShown')
       setShowLoginModal(true)
       return
@@ -202,9 +220,15 @@ export function StartPageClient({ courses, direction, initialTeacherSlug }: Star
           courses={courses}
           selected={selectedCourse}
           onSelect={setSelectedCourse}
-          onContinue={finish}
+          onContinue={() => {
+            if (isAnonymous) trackOnboardingStep('gradeSelected')
+            setStep('exam')
+          }}
           onBack={() => setStep('teacher')}
         />
+      )}
+      {step === 'exam' && (
+        <ExamStep copy={copy} onFinish={finish} onBack={() => setStep('course')} />
       )}
       {step === 'redirecting' && (
         <div className="pl-onboarding" role="status">
@@ -220,7 +244,7 @@ export function StartPageClient({ courses, direction, initialTeacherSlug }: Star
   )
 }
 
-function Progress({ copy, step }: { copy: StartCopy; step: 1 | 2 }) {
+function Progress({ copy, step }: { copy: StartCopy; step: 1 | 2 | 3 }) {
   return <div className="onboarding-progress">{copy.progress.replace('{step}', String(step))}</div>
 }
 
@@ -347,6 +371,55 @@ function CourseStep({
           {copy.back}
         </button>
       </div>
+    </section>
+  )
+}
+
+function ExamStep({
+  copy,
+  onFinish,
+  onBack,
+}: {
+  copy: StartCopy
+  /** The picked date, or null for "no date yet". */
+  onFinish: (examDate: string | null) => void
+  onBack: () => void
+}) {
+  const [date, setDate] = useState('')
+  const today = formatYmd(startOfDay(new Date()))
+
+  return (
+    <section className="pl-onboarding" aria-labelledby="onboarding-title">
+      <Progress copy={copy} step={3} />
+      <h2 id="onboarding-title">{copy.examQuestion}</h2>
+      <p className="onboarding-sub">{copy.examSub}</p>
+      <form
+        className="exam-date-form"
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (e.currentTarget.reportValidity()) onFinish(date)
+        }}
+      >
+        <label htmlFor="onboarding-exam-date">{copy.examDateLabel}</label>
+        <input
+          id="onboarding-exam-date"
+          type="date"
+          min={today}
+          required
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+        />
+        <button type="submit" className="primary-pill">
+          {copy.examStart}
+        </button>
+      </form>
+      <button type="button" className="text-button" onClick={() => onFinish(null)}>
+        {copy.noExamDate}
+      </button>
+      <button type="button" className="text-button" onClick={onBack}>
+        {copy.back}
+      </button>
+      <p className="onboarding-footnote">{copy.footnote}</p>
     </section>
   )
 }
