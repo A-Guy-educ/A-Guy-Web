@@ -38,6 +38,19 @@ describe('buildVisitorFunnelPipeline', () => {
     expect(match.$or).toEqual(cohortMatch.$or)
   })
 
+  it('applies the existing-student exclusion to the opening $match', () => {
+    const exclude = { $nor: [{ 'onboarding.googleOutcome': 'existing_login' }] }
+    const match = firstMatch(buildVisitorFunnelPipeline(SINCE, ADMINS, {}, exclude))
+    expect(match.$nor).toEqual(exclude.$nor)
+  })
+
+  it('counts cancelled and failed Google sign-ins only on unclaimed sessions', () => {
+    const group = buildVisitorFunnelPipeline(SINCE, ADMINS)[1]?.$group as Document
+    expect(JSON.stringify(group.googleCancelled)).toContain('cancelled')
+    expect(JSON.stringify(group.googleFailed)).toContain('failed')
+    expect(JSON.stringify(group.googleCancelled)).toContain('claimedByUser')
+  })
+
   it('does not count sessions claimed by admins as signups', () => {
     const group = buildVisitorFunnelPipeline(SINCE, ADMINS)[1]?.$group as Document
     expect(JSON.stringify(group.signedUp)).toContain('admin-1')
@@ -145,6 +158,7 @@ describe('toFunnelMetrics', () => {
           humans: 8,
           signupPromptShown: 5,
           googleClicked: 3,
+          googleCancelled: 1,
           signedUp: 2,
         },
         {
@@ -158,14 +172,20 @@ describe('toFunnelMetrics', () => {
       ],
       signupFacet: undefined,
       paymentRows: undefined,
+      existingStudentVisits: 7,
+      googleOutcomesSince: new Date('2026-11-25T08:00:00Z'),
     })
     expect(metrics.visitors).toEqual({
       visitors: 14,
       humans: 9,
       signupPromptShown: 5,
       googleClicked: 3,
+      googleCancelled: 1,
+      googleFailed: 0,
       signedUp: 2,
     })
+    expect(metrics.existingStudentVisits).toBe(7)
+    expect(metrics.googleOutcomesSince).toBe('2026-11-25')
     expect(metrics.visitorsByLandingType.other.visitors).toBe(4)
     expect(metrics.visitorsByLandingType.home.visitors).toBe(0)
   })

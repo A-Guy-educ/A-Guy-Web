@@ -22,7 +22,11 @@ import {
 import { sanitizeReturnTo } from '@/infra/auth/oauth_sanitize'
 import { getSharedLoginPolicy } from '@/infra/auth/shared-login/policy.env'
 import { getOnboardingRedirect, START_WIZARD_COMPLETED_COOKIE } from '@/infra/onboarding/redirect'
-import { claimGuestSession } from '@/server/services/guest-sessions/guest-session-writer'
+import {
+  claimGuestSession,
+  recordGoogleOutcome,
+  type GoogleOutcome,
+} from '@/server/services/guest-sessions/guest-session-writer'
 
 const googleUserSchema = z.object({
   sub: z.string().min(1),
@@ -47,6 +51,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const wizardCompleted = req.cookies.get(START_WIZARD_COMPLETED_COOKIE)?.value === '1'
 
   if (!valid || !code) {
+    // Google sends `error=access_denied` when the student backs out on its screen.
+    const googleError = req.nextUrl.searchParams.get('error')
+    await recordGuestGoogleOutcome(req, googleError === 'access_denied' ? 'cancelled' : 'failed')
     res.headers.set('Location', new URL('/login?error=auth_error', req.url).toString())
     return res
   }
@@ -84,6 +91,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     if (isNewUser) {
       clearSignupSourceCookie(res)
       await claimGuestSessionForNewUser(req, res, String(user._id))
+    } else {
+      await markExistingStudentVisit(req, res)
     }
 
     const { token } = await createSession(user)
@@ -105,6 +114,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     return res
   } catch (error) {
     logOAuthError('callback_failed', error, correlationId)
+    await recordGuestGoogleOutcome(req, 'failed')
     res.headers.set('Location', new URL('/login?error=auth_error', req.url).toString())
     return res
   }
@@ -140,4 +150,30 @@ async function claimGuestSessionForNewUser(
   if (!isValidGuestSessionId(sessionId)) return
   await claimGuestSession(sessionId, userId)
   res.cookies.set(GUEST_SESSION_COOKIE, '', { path: '/', maxAge: 0 })
+}
+
+/**
+ * Stamp how a Google sign-in that created no account ended on this visitor's
+ * guest session, for the dashboard funnel. Returns whether a session was found.
+ */
+async function recordGuestGoogleOutcome(
+  req: NextRequest,
+  outcome: GoogleOutcome,
+): Promise<boolean> {
+  const sessionId = req.cookies.get(GUEST_SESSION_COOKIE)?.value
+  if (!isValidGuestSessionId(sessionId)) return false
+  await recordGoogleOutcome(sessionId, outcome)
+  return true
+}
+
+/**
+ * An existing student logged back in from a guest session. Mark it so the
+ * funnel stops counting it as a new visitor, and clear the cookie so the next
+ * logged-out visit on this browser (a shared computer's next student) starts
+ * a fresh session.
+ */
+async function markExistingStudentVisit(req: NextRequest, res: NextResponse): Promise<void> {
+  if (await recordGuestGoogleOutcome(req, 'existing_login')) {
+    res.cookies.set(GUEST_SESSION_COOKIE, '', { path: '/', maxAge: 0 })
+  }
 }
