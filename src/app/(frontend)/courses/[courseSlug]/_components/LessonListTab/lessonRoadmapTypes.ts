@@ -31,6 +31,8 @@ export interface LessonRoadmapNode {
 export interface LessonSearchNode {
   lesson: Lesson
   chapterSlug: string
+  /** Sent to the AI suggester as context next to the lesson title. */
+  chapterTitle?: string
   displayIndex: number
   lessonType: LessonType
 }

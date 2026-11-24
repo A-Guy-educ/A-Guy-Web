@@ -2,24 +2,27 @@
 
 import { Sparkles } from 'lucide-react'
 
+import { splitExplanationBullets } from '@/lib/lessons/splitExplanationBullets'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { MathMarkdown } from '@/ui/web/shared/MathMarkdown'
 
+import { LessonLandingBulletList } from './LessonLandingBulletList'
 import { LessonLandingSection } from './LessonLandingSection'
 
 interface LessonLandingExplanationProps {
   explanation?: string | null
-  formulas?: string | null
   commonMistakes?: string | null
 }
 
 export function LessonLandingExplanation({
   explanation,
-  formulas,
   commonMistakes,
 }: LessonLandingExplanationProps) {
   const t = useTranslations('courses')
-  if (!explanation && !formulas && !commonMistakes) return null
+  // One bullet per line / sentence — admin line breaks would otherwise be
+  // collapsed by markdown into a single run-on paragraph.
+  const bullets = splitExplanationBullets(explanation)
+  if (bullets.length === 0 && !commonMistakes) return null
 
   return (
     <LessonLandingSection
@@ -28,19 +31,9 @@ export function LessonLandingExplanation({
       subtitle={t('lessonLandingExplainSubtitle')}
     >
       <div className="grid gap-content-gap-sm md:grid-cols-[minmax(0,1.5fr)_minmax(0,0.8fr)]">
-        {explanation || formulas ? (
-          <div className="space-y-content-gap-sm rounded-xl border border-border bg-card p-card-padding">
-            {explanation ? (
-              <MathMarkdown
-                content={explanation}
-                className="text-body-md leading-relaxed text-foreground"
-              />
-            ) : null}
-            {formulas ? (
-              <div className="rounded-lg border border-secondary/30 bg-secondary/10 p-card-padding-sm text-center">
-                <MathMarkdown content={formulas} className="text-body-lg text-foreground" />
-              </div>
-            ) : null}
+        {bullets.length > 0 ? (
+          <div className="rounded-xl border border-border bg-card p-card-padding">
+            <LessonLandingBulletList bullets={bullets} />
           </div>
         ) : null}
         {commonMistakes ? (

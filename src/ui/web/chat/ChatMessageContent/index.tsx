@@ -65,7 +65,12 @@ const chatMarkdownComponents: Components = {
   strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
   em: ({ children }) => <em className="not-italic font-medium">{children}</em>,
   a: ({ href, children }) => (
-    <a href={href} className="text-primary underline underline-offset-2 hover:text-primary/80">
+    // Long URLs have no break points (e.g. percent-encoded Hebrew paths) and
+    // would otherwise run out of the chat bubble.
+    <a
+      href={href}
+      className="text-primary underline underline-offset-2 hover:text-primary/80 break-words [overflow-wrap:anywhere]"
+    >
       {children}
     </a>
   ),

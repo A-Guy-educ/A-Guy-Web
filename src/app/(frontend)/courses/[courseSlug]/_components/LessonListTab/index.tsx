@@ -2,14 +2,13 @@
  * @fileType component
  * @domain frontend
  * @pattern lesson-roadmap-tab
- * @ai-summary Container for the redesigned course-lessons view. Filters lessons by lessonType (learning/practice/exam), resolves progress + entitlement, groups by chapter, then orchestrates CourseLessonsHero + CourseLessonsFilterBar + a controlled Radix accordion of ChapterAccordion items. Timeline track sits behind the accordion list. Auto-expands the chapter containing the featured next-up lesson.
+ * @ai-summary Container for the course-lessons view. Filters lessons by lessonType (learning/practice/exam), resolves progress + entitlement, groups by chapter, then renders the demo's lesson filters and a controlled Radix accordion of ChapterAccordion items. Auto-expands the chapter containing the featured next-up lesson.
  */
 
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
 import * as AccordionPrimitive from '@radix-ui/react-accordion'
-import { toast } from 'sonner'
 import type { Chapter, Lesson } from '@/infra/types/content'
 import { getEffectiveLessonType, type LessonType } from '@/server/constants/lesson-types'
 import { useTranslations } from '@/ui/web/providers/I18n'
@@ -20,14 +19,7 @@ import { useOpenedLessons } from '@/client/hooks/useOpenedLessons'
 import { getUserTierSlug } from '@/lib/tiers'
 import { ChapterAccordion } from './ChapterAccordion'
 import { CourseLessonsFilterBar } from './CourseLessonsFilterBar'
-import { CourseLessonsHero } from './CourseLessonsHero'
-import { formatMessage } from './formatMessage'
-import {
-  countTotals,
-  findFeaturedNode,
-  findNextSuggestionNode,
-  useLessonGrouping,
-} from './useLessonGrouping'
+import { findFeaturedNode, useLessonGrouping } from './useLessonGrouping'
 import type { FilterMode, LessonRoadmapNode } from './lessonRoadmapTypes'
 import type { LessonProgress } from '../types'
 
@@ -43,7 +35,6 @@ interface LessonListTabProps {
   hasPaidAccess?: boolean
   /** Grade bucket of the course — used to scope progress reads to the correct grade. */
   gradeLevel: string
-  tabColor?: { text: string; stroke: string }
   lessonProgressMap?: Record<string, LessonProgress>
   lessonType: LessonType
   /**
@@ -62,7 +53,6 @@ export function LessonListTab({
   courseAccessType,
   hasPaidAccess: hasPaidAccessProp,
   gradeLevel,
-  tabColor,
   lessonProgressMap = {},
   lessonType,
   purchaseHref,
@@ -137,9 +127,6 @@ export function LessonListTab({
   })
 
   const featured = findFeaturedNode(groups)
-  const nextSuggestion = findNextSuggestionNode(groups, featured)
-  const { total, completed } = countTotals(groups)
-  const accentColor = tabColor?.stroke ?? 'hsl(var(--primary))'
 
   const [filterMode, setFilterMode] = useState<FilterMode>('all')
   const [openChapters, setOpenChapters] = useState<string[]>([])
@@ -175,66 +162,19 @@ export function LessonListTab({
     )
   }, [filterMode, groups])
 
-  const handleFocusNext = () => {
-    if (!featured) return
-    const group = groups.find((g) => g.lessons.some((n) => n.isFeatured))
-    if (!group) return
-    setOpenChapters((prev) =>
-      prev.includes(group.chapter.id) ? prev : [...prev, group.chapter.id],
-    )
-    // Wait a frame so the accordion is open before we scroll.
-    requestAnimationFrame(() => {
-      const el = document.getElementById(`chapter-container-${group.chapter.id}`)
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      toast.info(formatMessage(t('roadmapFocused'), { chapter: group.chapter.title }))
-    })
-  }
-
-  const handleFocusSuggestion = () => {
-    if (!nextSuggestion) return
-    const group = groups.find((g) => g.lessons.some((n) => n === nextSuggestion))
-    if (!group) return
-    setOpenChapters((prev) =>
-      prev.includes(group.chapter.id) ? prev : [...prev, group.chapter.id],
-    )
-    requestAnimationFrame(() => {
-      const el = document.querySelector<HTMLElement>(
-        `[data-lesson-id="${nextSuggestion.lesson.id}"]`,
-      )
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    })
-  }
-
   if (filteredLessons.length === 0) return null
-
-  const timelineFill = total > 0 ? Math.max(5, Math.round((completed / total) * 100)) : 5
 
   return (
     <>
-      <CourseLessonsHero
-        completed={completed}
-        total={total}
-        featured={featured}
-        suggestion={nextSuggestion}
-        accentColor={accentColor}
-        onFocusNext={handleFocusNext}
-        onFocusSuggestion={handleFocusSuggestion}
-      />
-
       <CourseLessonsFilterBar mode={filterMode} onChange={setFilterMode} />
 
-      <div className="relative">
-        <div className="absolute start-[15px] top-8 bottom-16 w-px bg-border rounded-full z-0">
-          <div
-            className="w-full bg-gradient-to-b from-success/60 via-primary/60 to-transparent rounded-full transition-[height] duration-slower"
-            style={{ height: `${timelineFill}%` }}
-          />
-        </div>
+      {visibleGroups.length === 0 ? (
+        <p className="notice">{t('hub.noStarted')}</p>
+      ) : (
         <AccordionPrimitive.Root
           type="multiple"
           value={openChapters}
           onValueChange={setOpenChapters}
-          className="space-y-content-gap-sm relative z-10"
         >
           {visibleGroups.map((group) => (
             <ChapterAccordion
@@ -246,7 +186,7 @@ export function LessonListTab({
             />
           ))}
         </AccordionPrimitive.Root>
-      </div>
+      )}
     </>
   )
 }

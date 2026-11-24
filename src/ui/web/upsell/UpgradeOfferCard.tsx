@@ -2,7 +2,11 @@
 
 import { useState } from 'react'
 
-import { usePaywallBeacon, type ClientPaywallGate } from '@/client/hooks/usePaywallBeacon'
+import {
+  sendFunnelEvent,
+  usePaywallBeacon,
+  type ClientPaywallGate,
+} from '@/client/hooks/usePaywallBeacon'
 import { cn } from '@/infra/utils/ui'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { TIER_PRICE_ILS, type TierSlug } from '@/lib/tiers'
@@ -125,7 +129,10 @@ export function UpgradeOfferCard({
                 <button
                   key={tier}
                   type="button"
-                  onClick={() => setSelectedTier(tier)}
+                  onClick={() => {
+                    sendFunnelEvent({ type: 'plan_selected', tier, gate: paywallGate })
+                    setSelectedTier(tier)
+                  }}
                   className={[
                     'relative flex flex-col items-start gap-1 rounded-xl border p-3 text-start transition-all',
                     'hover:-translate-y-0.5 hover:shadow-elevation-2',
@@ -162,6 +169,7 @@ export function UpgradeOfferCard({
           <button
             type="button"
             onClick={() => {
+              sendFunnelEvent({ type: 'paywall_dismissed', gate: paywallGate })
               setSkipped(true)
               onContinue?.()
             }}

@@ -1,5 +1,39 @@
 # Changelog
 
+## v0.69.0 — 2026-11-24
+
+### Features
+- Upload the exam topic list and link plan days by level (#1656)
+- Ask for the next exam date in onboarding (#1655)
+- Add a team page linked from the footer (#1654)
+- Copy a single exercise section to the notebook (#1653)
+- Give the landing demo's hint on the first wrong pick (#1652)
+- Show the landing demo exercise in the lesson chat view (#1651)
+- Copy scroll exercises to the notebook with a button (#1647)
+- Add the prep plan to the course exam hub and a clearer back button (#1646)
+- Add a dark version of the private-lesson look (#1642)
+- Track plan picks and per-wall conversion in the funnel (#1641)
+- Add the demo's finder, a live exercise and a language toggle (#1640)
+- Measure first-week engagement depth in the funnel (#1639)
+- Add formulas section to the lesson intro page (#1638)
+- Match the private-lesson demo on the course page (#1637)
+- Match the private-lesson demo on the landing and start pages (#1636)
+- Replace the home page with the private-lesson landing (#1635)
+- Add the 'what are we doing today' guide to the course page (#1634)
+- Link AI lesson suggestions and route homework photos (#1633)
+- Add visitor-to-paid funnel to dashboard metrics (#1631)
+
+### Bug Fixes
+- Exam date on iOS, continue any opened lesson, no teacher flash (#1657)
+- Show a single sub-question as the landing demo exercise (#1650)
+- Let the landing demo exercise come from any lesson (#1649)
+- Let the landing demo exercise come from sign-up lessons (#1648)
+- Find a landing demo exercise beyond 7th grade math (#1643)
+- Lesson explanation bullets and chat link wrapping (#1630)
+
+### Maintenance
+- Remove the password signup page (#1632)
+
 ## v0.68.0 — 2026-11-18
 
 ### Features
@@ -5253,6 +5287,36 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.69.0 ([#1658](https://github.com/A-Guy-educ/A-Guy-Web/pull/1658)) — @aguyshayb
+- fix: Exam date on iOS, continue any opened lesson, no teacher flash ([#1657](https://github.com/A-Guy-educ/A-Guy-Web/pull/1657)) — @aguyshayb
+- feat: Upload the exam topic list and link plan days by level ([#1656](https://github.com/A-Guy-educ/A-Guy-Web/pull/1656)) — @aguyshayb
+- feat: Ask for the next exam date in onboarding ([#1655](https://github.com/A-Guy-educ/A-Guy-Web/pull/1655)) — @aguyshayb
+- feat: Add a team page linked from the footer ([#1654](https://github.com/A-Guy-educ/A-Guy-Web/pull/1654)) — @aguyshayb
+- feat: Copy a single exercise section to the notebook ([#1653](https://github.com/A-Guy-educ/A-Guy-Web/pull/1653)) — @aguyshayb
+- feat: Give the landing demo's hint on the first wrong pick ([#1652](https://github.com/A-Guy-educ/A-Guy-Web/pull/1652)) — @aguyshayb
+- feat: Show the landing demo exercise in the lesson chat view ([#1651](https://github.com/A-Guy-educ/A-Guy-Web/pull/1651)) — @aguyshayb
+- fix: Show a single sub-question as the landing demo exercise ([#1650](https://github.com/A-Guy-educ/A-Guy-Web/pull/1650)) — @aguyshayb
+- fix: Let the landing demo exercise come from any lesson ([#1649](https://github.com/A-Guy-educ/A-Guy-Web/pull/1649)) — @aguyshayb
+- fix: Let the landing demo exercise come from sign-up lessons ([#1648](https://github.com/A-Guy-educ/A-Guy-Web/pull/1648)) — @aguyshayb
+- feat: Copy scroll exercises to the notebook with a button ([#1647](https://github.com/A-Guy-educ/A-Guy-Web/pull/1647)) — @aguyshayb
+- feat: Add the prep plan to the course exam hub and a clearer back button ([#1646](https://github.com/A-Guy-educ/A-Guy-Web/pull/1646)) — @aguyshayb
+- fix: Find a landing demo exercise beyond 7th grade math ([#1643](https://github.com/A-Guy-educ/A-Guy-Web/pull/1643)) — @aguyshayb
+- feat: Add a dark version of the private-lesson look ([#1642](https://github.com/A-Guy-educ/A-Guy-Web/pull/1642)) — @aguyshayb
+- feat(dashboard): Track plan picks and per-wall conversion in the funnel ([#1641](https://github.com/A-Guy-educ/A-Guy-Web/pull/1641)) — @aguyshayb
+- feat: Add the demo's finder, a live exercise and a language toggle ([#1640](https://github.com/A-Guy-educ/A-Guy-Web/pull/1640)) — @aguyshayb
+- feat(dashboard): Measure first-week engagement depth in the funnel ([#1639](https://github.com/A-Guy-educ/A-Guy-Web/pull/1639)) — @aguyshayb
+- feat: Add formulas section to the lesson intro page ([#1638](https://github.com/A-Guy-educ/A-Guy-Web/pull/1638)) — @aguyshayb
+- feat: Match the private-lesson demo on the course page ([#1637](https://github.com/A-Guy-educ/A-Guy-Web/pull/1637)) — @aguyshayb
+- feat: Match the private-lesson demo on the landing and start pages ([#1636](https://github.com/A-Guy-educ/A-Guy-Web/pull/1636)) — @aguyshayb
+- feat(landing): Replace the home page with the private-lesson landing ([#1635](https://github.com/A-Guy-educ/A-Guy-Web/pull/1635)) — @aguyshayb
+- feat(courses): Add the 'what are we doing today' guide to the course page ([#1634](https://github.com/A-Guy-educ/A-Guy-Web/pull/1634)) — @aguyshayb
+- feat(courses): Link AI lesson suggestions and route homework photos ([#1633](https://github.com/A-Guy-educ/A-Guy-Web/pull/1633)) — @aguyshayb
+- chore: Remove the password signup page ([#1632](https://github.com/A-Guy-educ/A-Guy-Web/pull/1632)) — @aguyshayb
+- feat(dashboard): Add visitor-to-paid funnel to dashboard metrics ([#1631](https://github.com/A-Guy-educ/A-Guy-Web/pull/1631)) — @aguyshayb
+- fix: Lesson explanation bullets and chat link wrapping ([#1630](https://github.com/A-Guy-educ/A-Guy-Web/pull/1630)) — @aguyshayb
+## [v0.68.0] - 2026-11-18
+
+- promote: dev -> main (v0.68.0) ([#1629](https://github.com/A-Guy-educ/A-Guy-Web/pull/1629)) — @aguyshayb
 - chore: Release v0.68.0 ([#1628](https://github.com/A-Guy-educ/A-Guy-Web/pull/1628)) — @aguyshayb
 - feat(newclass): Apply second round of boss corrections ([#1627](https://github.com/A-Guy-educ/A-Guy-Web/pull/1627)) — @aguyshayb
 - fix(auth): Always show Google account chooser on sign-in ([#1626](https://github.com/A-Guy-educ/A-Guy-Web/pull/1626)) — @aguyshayb

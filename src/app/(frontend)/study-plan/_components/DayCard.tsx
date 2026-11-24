@@ -8,6 +8,8 @@ import { useTranslations } from '@/ui/web/providers/I18n'
 import { CheckCircle2, Edit2 } from 'lucide-react'
 import Link from 'next/link'
 
+import { lessonForTopicDay } from './planLessons'
+
 const ACTIVITY_COLORS = {
   practice: 'bg-primary/10 text-primary border-primary/20',
   hybrid: 'bg-accent/10 text-accent border-accent/20',
@@ -19,11 +21,13 @@ const ACTIVITY_COLORS = {
 interface DayCardProps {
   day: StudyPlanDay
   topics: TopicInput[]
+  /** Each topic's first day in the plan: a weak topic opens its learning lesson there. */
+  firstDayByTopic?: ReadonlyMap<string, string>
   onToggleStatus: () => void
   onEdit?: (edits: { userTopicIds?: string[] }) => void
 }
 
-export function DayCard({ day, topics, onToggleStatus, onEdit }: DayCardProps) {
+export function DayCard({ day, topics, firstDayByTopic, onToggleStatus, onEdit }: DayCardProps) {
   const t = useTranslations('studyPlan')
   const [isEditing, setIsEditing] = useState(false)
   const [selectedTopics, setSelectedTopics] = useState<string[]>(day.userTopicIds || day.topicIds)
@@ -96,7 +100,7 @@ export function DayCard({ day, topics, onToggleStatus, onEdit }: DayCardProps) {
         </div>
 
         {/* Action buttons */}
-        <div className="flex gap-2">
+        <div className="flex gap-content-gap-xs">
           <button
             onClick={handleSaveEdit}
             className="flex-1 px-4 py-2 text-body-sm font-medium text-background bg-foreground rounded-lg hover:bg-foreground/90 transition-colors duration-normal"
@@ -170,14 +174,22 @@ export function DayCard({ day, topics, onToggleStatus, onEdit }: DayCardProps) {
             const topic = topics.find((t) => t.topicId === id)
             if (!topic) return null
 
-            if (topic.lessonRef) {
+            const lesson = lessonForTopicDay(topic, firstDayByTopic?.get(id) === day.dayId)
+            if (lesson) {
               return (
                 <Link
                   key={idx}
-                  href={topic.lessonRef.lessonUrl}
+                  href={lesson.ref.lessonUrl}
+                  title={lesson.ref.lessonTitle}
                   className="px-2 py-0.5 text-body-xs font-medium bg-muted text-foreground rounded-md transition-all duration-normal hover:bg-primary/10 hover:text-primary"
                 >
                   {topic.topicLabel}
+                  {lesson.kind && (
+                    <span className="text-muted-foreground">
+                      {' '}
+                      · {t(`lessonKind.${lesson.kind}`)}
+                    </span>
+                  )}
                 </Link>
               )
             }

@@ -11,7 +11,6 @@ import { Button } from '@/ui/web/components/button'
 import { logoutUser } from '@/client/auth/logout'
 import { releaseUserStorage } from '@/client/state/localStorage/userScopedStorage'
 import { analytics } from '@/infra/analytics'
-import { usePasswordLogin } from '@/ui/web/providers/PasswordLoginProvider'
 import { useTranslations } from '@/ui/web/providers/I18n'
 
 interface MobileMenuAuthSectionProps {
@@ -27,7 +26,6 @@ export function MobileMenuAuthSection({
 }: MobileMenuAuthSectionProps) {
   const router = useRouter()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
-  const passwordLogin = usePasswordLogin()
   const tCommon = useTranslations('common.header')
 
   if (isAuthLoading) {
@@ -76,13 +74,6 @@ export function MobileMenuAuthSection({
           {tCommon('login')}
         </SystemLink>
       </Button>
-      {passwordLogin && (
-        <Button variant="outline" asChild className="justify-start">
-          <SystemLink href="/signup" onClick={onClose}>
-            {tCommon('signup')}
-          </SystemLink>
-        </Button>
-      )}
     </div>
   )
 }

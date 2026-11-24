@@ -26,6 +26,8 @@ const TopicInputSchema = z.object({
   topicLabel: z.string().min(1),
   mastery: z.enum(['weak', 'medium', 'strong']),
   lessonRef: LessonRefSchema.optional(),
+  learningRef: LessonRefSchema.optional(),
+  practiceRef: LessonRefSchema.optional(),
 })
 
 const GenerateSchema = z.object({

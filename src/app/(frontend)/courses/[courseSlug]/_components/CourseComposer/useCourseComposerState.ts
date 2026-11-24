@@ -1,18 +1,22 @@
 /**
- * Owns the composer's query, debounced AI-suggestion fetch, and derived
- * search/AI-fallback flags. Local title-substring/index match runs on every
- * keystroke; the Gemini fallback only fires when the debounced query has
- * zero local matches, so most typing produces no network traffic.
+ * Owns the composer's query, attached homework photo, and AI suggestion.
+ * Local title-substring/index match runs on every keystroke. The model is
+ * asked (debounced) when the local match finds nothing or the query reads
+ * like a sentence, and immediately on send or when a photo is attached.
  *
  * @fileType hook
  * @domain frontend
  */
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
-import type { CourseTab } from '../CourseTabs'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { LessonSearchNode } from '../LessonListTab/lessonRoadmapTypes'
-import type { LessonSuggestInputLesson } from '@/server/services/lesson-suggest/generateLessonSuggestion'
+import { downscaleImageForSuggest } from './courseComposerImage'
+import {
+  type ComposerSuggestion,
+  fetchLessonSuggestion,
+  looksLikeSentence,
+} from './courseComposerSuggest'
 
 const AI_DEBOUNCE_MS = 400
 const MAX_RESULTS = 5
@@ -20,21 +24,14 @@ const MAX_RESULTS = 5
 interface Options {
   nodes: LessonSearchNode[]
   courseTitle: string
-  lessonsForSuggest: LessonSuggestInputLesson[]
   locale: 'en' | 'he'
-  activeTab: CourseTab
+  /** Off for homework, which goes straight to Ask: no lesson suggestions while typing. */
+  suggest?: boolean
 }
 
-interface CourseComposerState {
-  query: string
-  setQuery: (value: string) => void
-  filtered: LessonSearchNode[]
-  aiMessage: string | null
-  aiLoading: boolean
-  aiError: string | null
-  selectedIdx: number
-  setSelectedIdx: (updater: number | ((prev: number) => number)) => void
-  clear: () => void
+export interface ComposerAttachment {
+  file: File
+  previewUrl: string
 }
 
 // Higher score = better match. 0 means no match.
@@ -59,17 +56,12 @@ function scoreMatch(node: LessonSearchNode, q: string): number {
   return 0
 }
 
-export function useCourseComposerState({
-  nodes,
-  courseTitle,
-  lessonsForSuggest,
-  locale,
-  activeTab,
-}: Options): CourseComposerState {
+export function useCourseComposerState({ nodes, courseTitle, locale, suggest = true }: Options) {
   const [query, setQuery] = useState('')
-  const [aiMessage, setAiMessage] = useState<string | null>(null)
+  const [attachment, setAttachment] = useState<ComposerAttachment | null>(null)
+  const [suggestion, setSuggestion] = useState<ComposerSuggestion | null>(null)
   const [aiLoading, setAiLoading] = useState(false)
-  const [aiError, setAiError] = useState<string | null>(null)
+  const [aiError, setAiError] = useState(false)
   const [selectedIdx, setSelectedIdx] = useState(0)
   const abortRef = useRef<AbortController | null>(null)
 
@@ -85,91 +77,93 @@ export function useCourseComposerState({
     return scored.slice(0, MAX_RESULTS).map((entry) => entry.node)
   }, [nodes, query])
 
+  const resetAi = useCallback(() => {
+    abortRef.current?.abort()
+    setSuggestion(null)
+    setAiError(false)
+    setAiLoading(false)
+  }, [])
+
+  const requestSuggestion = useCallback(
+    async (text: string, photo: ComposerAttachment | null) => {
+      if (!text.trim() && !photo) return
+      const controller = new AbortController()
+      abortRef.current?.abort()
+      abortRef.current = controller
+      setAiLoading(true)
+      setAiError(false)
+      try {
+        const image = photo ? await downscaleImageForSuggest(photo.file) : undefined
+        const result = await fetchLessonSuggestion({
+          query: text.trim(),
+          locale,
+          courseTitle,
+          nodes,
+          image,
+          signal: controller.signal,
+        })
+        if (!controller.signal.aborted) setSuggestion(result)
+      } catch (err) {
+        if (controller.signal.aborted) return
+        if (err instanceof Error && err.name === 'AbortError') return
+        setAiError(true)
+      } finally {
+        if (!controller.signal.aborted) setAiLoading(false)
+      }
+    },
+    [courseTitle, locale, nodes],
+  )
+
   useEffect(() => {
     setSelectedIdx(0)
   }, [query, filtered.length])
 
-  // Clear AI state when the user empties the composer.
+  // Clear AI state when the composer is emptied.
   useEffect(() => {
-    if (!query.trim()) {
-      setAiMessage(null)
-      setAiError(null)
-      abortRef.current?.abort()
-    }
-  }, [query])
+    if (!query.trim() && !attachment) resetAi()
+  }, [query, attachment, resetAi])
 
-  // Reset AI state when the active tab changes — a new context, so a stale
-  // suggestion from a different tab would be misleading.
-  useEffect(() => {
-    setAiMessage(null)
-    setAiError(null)
-    setQuery('')
-    abortRef.current?.abort()
-  }, [activeTab])
-
-  // Debounced AI fallback: only when local search returns nothing.
+  // Debounced text suggestion. With a photo attached the student sends
+  // explicitly, so typing a caption doesn't re-upload the image per keystroke.
   useEffect(() => {
     const q = query.trim()
-    if (!q) return
-    if (filtered.length > 0) return
-    if (lessonsForSuggest.length === 0) return
+    if (!suggest || !q || attachment || nodes.length === 0) return
+    if (filtered.length > 0 && !looksLikeSentence(q)) return
+    const timer = setTimeout(() => void requestSuggestion(q, null), AI_DEBOUNCE_MS)
+    return () => clearTimeout(timer)
+  }, [suggest, query, attachment, filtered.length, nodes.length, requestSuggestion])
 
-    const controller = new AbortController()
-    abortRef.current?.abort()
-    abortRef.current = controller
-
-    const timer = setTimeout(() => {
-      setAiLoading(true)
-      setAiError(null)
-
-      fetch('/api/agent/lesson-suggest', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal,
-        body: JSON.stringify({
-          query: q,
-          locale,
-          courseTitle,
-          lessons: lessonsForSuggest.slice(0, 100),
-        }),
+  const attachPhoto = useCallback(
+    (file: File) => {
+      setAttachment((prev) => {
+        if (prev) URL.revokeObjectURL(prev.previewUrl)
+        return { file, previewUrl: URL.createObjectURL(file) }
       })
-        .then(async (res) => {
-          if (!res.ok) throw new Error(`HTTP ${res.status}`)
-          const data = (await res.json()) as { message?: string }
-          if (controller.signal.aborted) return
-          setAiMessage(data.message?.trim() ?? null)
-        })
-        .catch((err: unknown) => {
-          if (controller.signal.aborted) return
-          if (err instanceof Error && err.name === 'AbortError') return
-          setAiError('suggestError')
-        })
-        .finally(() => {
-          if (!controller.signal.aborted) setAiLoading(false)
-        })
-    }, AI_DEBOUNCE_MS)
+      void requestSuggestion(query, { file, previewUrl: '' })
+    },
+    [query, requestSuggestion],
+  )
 
-    return () => {
-      clearTimeout(timer)
-      controller.abort()
-    }
-  }, [query, filtered.length, locale, courseTitle, lessonsForSuggest])
-
-  const clear = () => {
-    setQuery('')
-    setAiMessage(null)
-    setAiError(null)
-  }
+  const removePhoto = useCallback(() => {
+    setAttachment((prev) => {
+      if (prev) URL.revokeObjectURL(prev.previewUrl)
+      return null
+    })
+    resetAi()
+  }, [resetAi])
 
   return {
     query,
     setQuery,
     filtered,
-    aiMessage,
+    attachment,
+    attachPhoto,
+    removePhoto,
+    suggestion,
     aiLoading,
     aiError,
+    send: () => requestSuggestion(query, attachment),
     selectedIdx,
     setSelectedIdx,
-    clear,
   }
 }

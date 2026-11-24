@@ -24,6 +24,13 @@ export interface TopicInput {
   mastery: MasteryLevel
   /** Present when topic was selected from course syllabus */
   lessonRef?: LessonRef
+  /**
+   * Present when the topic was matched to the course (typed or read from the
+   * exam's topic list): its closest learning and practice lessons. The day's
+   * link picks between them by mastery — see the plan's `lessonForTopicDay`.
+   */
+  learningRef?: LessonRef
+  practiceRef?: LessonRef
 }
 
 export interface StudyPlanDay {

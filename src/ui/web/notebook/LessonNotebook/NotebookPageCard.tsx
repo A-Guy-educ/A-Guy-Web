@@ -1,6 +1,6 @@
 'use client'
 
-import { CheckCheck, Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2 } from 'lucide-react'
 
 import { NOTEBOOK_PAGE_WIDTH, type NotebookPage, type NotebookStroke } from '@/infra/types/notebook'
 import { cn } from '@/infra/utils/ui'
@@ -48,7 +48,6 @@ interface NotebookPageCardProps {
   onActivate: () => void
   onExtend: () => void
   onDelete: () => void
-  onCheck: () => void
 }
 
 export function NotebookPageCard({
@@ -67,7 +66,6 @@ export function NotebookPageCard({
   onActivate,
   onExtend,
   onDelete,
-  onCheck,
 }: NotebookPageCardProps) {
   const t = useTranslations('courses.lessonNotebook')
   const { cut } = page
@@ -91,14 +89,6 @@ export function NotebookPageCard({
         </strong>
         <span className="truncate text-muted-foreground">{sourceLabel}</span>
         <div className="ms-auto flex items-center gap-1">
-          <button
-            type="button"
-            onClick={onCheck}
-            className="flex items-center gap-1 px-2 py-1 rounded-md bg-success/10 text-success hover:bg-success/20 transition-colors duration-normal"
-          >
-            <CheckCheck className="w-3.5 h-3.5" />
-            {t('checkPage')}
-          </button>
           <button
             type="button"
             onClick={onDelete}

@@ -22,7 +22,7 @@ export const SUBSCRIPTIONS_PATH = '/subscriptions'
 export const RETURN_TO_PARAM = 'returnTo'
 
 const MAX_RETURN_TO_LENGTH = 512
-const FUNNEL_PREFIXES = ['/subscriptions', '/checkout', '/login', '/signup', '/onboarding']
+const FUNNEL_PREFIXES = ['/subscriptions', '/checkout', '/login', '/onboarding']
 
 function isFunnelPath(path: string): boolean {
   return FUNNEL_PREFIXES.some(

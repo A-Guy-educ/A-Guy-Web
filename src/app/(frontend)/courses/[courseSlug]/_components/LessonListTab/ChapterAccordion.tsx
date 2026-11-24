@@ -2,14 +2,12 @@
  * @fileType component
  * @domain frontend
  * @pattern lesson-roadmap-chapter
- * @ai-summary Renders one chapter as a Radix accordion item — header with chapter name, unlocked-count progress bar, and chevron; expandable body with the chapter description and a list of LessonRow entries connected by a subtle timeline track. Header tone (completed / featured / neutral) is derived from the group's aggregate status.
+ * @ai-summary One chapter as a Radix accordion item in the demo's shell — bookmark mark, "פרק N · X שיעורים" over the chapter title, a done-count progress track, and a round chevron; the expandable body holds the chapter description and the grid of LessonRow cards (unchanged).
  */
 
 'use client'
 
-import { BookmarkIcon, CheckIcon, ChevronDown } from 'lucide-react'
 import * as AccordionPrimitive from '@radix-ui/react-accordion'
-import { cn } from '@/infra/utils/ui'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { formatMessage } from './formatMessage'
 import { LessonRow } from './LessonRow'
@@ -31,99 +29,56 @@ export function ChapterAccordion({
   const t = useTranslations('coursePage')
   const { chapter, chapterIndex, completedCount, totalCount } = group
   const percent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
-  const isChapterCompleted = totalCount > 0 && completedCount === totalCount
-  const hasFeatured = group.hasFeatured
-
-  const headerIconTone = isChapterCompleted
-    ? 'bg-success/10 border-success/30 text-success'
-    : hasFeatured
-      ? 'bg-primary/10 border-primary/30 text-primary'
-      : 'bg-muted border-border text-muted-foreground'
-
-  const containerBorder = isChapterCompleted
-    ? 'border-success/10 hover:border-success/20'
-    : hasFeatured
-      ? 'border-primary/20 hover:border-primary/30'
-      : 'border-border/60'
+  const meta = formatMessage(t(totalCount === 1 ? 'hub.chapterMetaOne' : 'hub.chapterMeta'), {
+    num: chapterIndex + 1,
+    count: totalCount,
+  })
 
   return (
     <AccordionPrimitive.Item
       value={chapter.id}
-      className={cn(
-        'relative rounded-2xl border bg-card transition-colors duration-normal overflow-hidden',
-        containerBorder,
-      )}
+      className="lesson-chapter"
       id={`chapter-container-${chapter.id}`}
     >
-      <AccordionPrimitive.Header className="flex">
-        <AccordionPrimitive.Trigger
-          className={cn(
-            'group flex flex-1 flex-col md:flex-row justify-between items-start md:items-center gap-content-gap p-card-padding-sm sm:p-card-padding cursor-pointer select-none bg-muted/30 hover:bg-muted/50 transition-colors duration-normal',
-          )}
-        >
-          <div className="flex items-center gap-content-gap-sm">
-            <div
-              className={cn(
-                'w-8 h-8 rounded-xl border flex items-center justify-center text-body-xs',
-                headerIconTone,
-              )}
-            >
-              {isChapterCompleted ? (
-                <CheckIcon className="w-3.5 h-3.5" />
-              ) : (
-                <BookmarkIcon className="w-3.5 h-3.5" />
-              )}
-            </div>
-            <div className="text-start">
-              <div className="flex items-center gap-content-gap-xs flex-wrap">
-                <span className="text-body-2xs uppercase tracking-tracking-sm font-semibold text-muted-foreground">
-                  {formatMessage(t('roadmapChapterLabel'), { num: chapterIndex + 1 })}
-                </span>
-                <span className="text-body-2xs text-muted-foreground font-mono">
-                  ({formatMessage(t('roadmapChapterCount'), { count: totalCount })})
-                </span>
-              </div>
-              <h3 className="text-body-md font-bold text-foreground tracking-tight">
-                {chapter.title}
-              </h3>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-content-gap-sm w-full md:w-auto self-stretch justify-between md:justify-end">
-            <div className="flex items-center gap-content-gap-xs">
-              <div className="w-20 bg-muted rounded-full h-[3px] overflow-hidden">
-                <div
-                  className={cn(
-                    'h-full rounded-full transition-[width] duration-slower',
-                    isChapterCompleted ? 'bg-success' : 'bg-primary',
-                  )}
-                  style={{ width: `${percent}%` }}
-                />
-              </div>
-              <span className="text-body-2xs font-semibold text-muted-foreground font-mono tabular-nums">
-                {formatMessage(t('roadmapChapterUnlocked'), {
-                  done: completedCount,
-                  total: totalCount,
-                })}
+      <AccordionPrimitive.Header asChild>
+        <div>
+          <AccordionPrimitive.Trigger className="lesson-chapter-summary">
+            <span className="chapter-mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" className="pl-icon">
+                <path d="M7 3h10v18l-5-4-5 4z" />
+              </svg>
+            </span>
+            <span className="chapter-heading">
+              <small>{meta}</small>
+              <strong>{chapter.title}</strong>
+            </span>
+            <span className="chapter-progress">
+              <span className="chapter-track" aria-hidden="true">
+                <span style={{ width: `${percent}%` }} />
               </span>
-            </div>
-            <div className="w-6 h-6 rounded-lg bg-muted border border-border flex items-center justify-center text-muted-foreground group-hover:text-foreground transition-transform duration-normal group-data-[state=open]:rotate-180">
-              <ChevronDown className="w-3 h-3" />
-            </div>
-          </div>
-        </AccordionPrimitive.Trigger>
+              <small>
+                {formatMessage(t('hub.chapterDone'), { done: completedCount, total: totalCount })}
+              </small>
+            </span>
+            <span className="chapter-toggle" aria-hidden="true">
+              <svg viewBox="0 0 24 24" className="pl-icon">
+                <path d="m7 10 5 5 5-5" />
+              </svg>
+            </span>
+          </AccordionPrimitive.Trigger>
+        </div>
       </AccordionPrimitive.Header>
 
       <AccordionPrimitive.Content className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
-        <div className="border-t border-border p-2 sm:p-card-padding relative">
+        <div className="chapter-lessons">
           {chapter.description && (
-            <p className="text-body-xs text-muted-foreground mb-content-gap-sm ms-2 sm:ms-12">
+            <p className="text-body-xs text-muted-foreground mb-content-gap-sm ms-2">
               {chapter.description}
             </p>
           )}
 
           {visibleLessons.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-content-gap-xs items-stretch">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-content-gap-xs items-stretch">
               {visibleLessons.map((node) => (
                 <LessonRow
                   key={node.lesson.id}

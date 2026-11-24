@@ -19,6 +19,7 @@ import {
   withoutHiddenLessons,
 } from '@/server/services/classroom/class-lesson-visibility'
 import { CoursePageContent } from './_components/CoursePageContent'
+import type { LessonProgress } from './_components/types'
 import { mergeOpenGraph } from '@/infra/utils/mergeOpenGraph'
 
 export const dynamic = 'force-dynamic'
@@ -96,14 +97,14 @@ export default async function CoursePage({ params }: CoursePageProps) {
 }
 
 /**
- * Build a map of lessonId → { completed, total, percent } based on
- * exercise counts and user-progress records.
+ * Build a map of lessonId → { completed, total, percent, lastOpenedAt } based
+ * on exercise counts and user-progress records.
  */
 async function buildLessonProgressMap(
   lessonIds: string[],
   gradeLevel: string,
-): Promise<Record<string, { completed: number; total: number; percent: number }>> {
-  const result: Record<string, { completed: number; total: number; percent: number }> = {}
+): Promise<Record<string, LessonProgress>> {
+  const result: Record<string, LessonProgress> = {}
   for (const lessonId of lessonIds) {
     result[lessonId] = { completed: 0, total: 0, percent: 0 }
   }
@@ -132,6 +133,11 @@ async function buildLessonProgressMap(
       .filter((record) => record.recordType === 'exercise' && record.status === 'completed')
       .map((record) => record.recordId),
   )
+  const lastOpenedAt = new Map(
+    records
+      .filter((record) => record.recordType === 'lesson' && record.lastAccessedAt)
+      .map((record) => [record.recordId, record.lastAccessedAt as string]),
+  )
 
   // Chat-view lessons record progress in learning state, not exercise records.
   const chatPercents = await findLessonChatPercents(user.id, lessonIds).catch(
@@ -147,6 +153,7 @@ async function buildLessonProgressMap(
       completed,
       total,
       percent: Math.max(exercisePercent, chatPercents[lessonId] ?? 0),
+      ...(lastOpenedAt.has(lessonId) ? { lastOpenedAt: lastOpenedAt.get(lessonId) } : {}),
     }
   }
 

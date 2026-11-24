@@ -39,15 +39,19 @@ describe('POST /api/funnel-events', () => {
     expect(mockRecordFunnelEvent).not.toHaveBeenCalled()
   })
 
-  it.each([{ gate: 'checkout' }, { gate: 'exercise', path: 'x'.repeat(301) }, null])(
-    'rejects an invalid body %#',
-    async (body) => {
-      mockGetWebUser.mockResolvedValue({ id: 'u1' })
-      const response = await post(body)
-      expect(response.status).toBe(400)
-      expect(mockRecordFunnelEvent).not.toHaveBeenCalled()
-    },
-  )
+  it.each([
+    { gate: 'checkout' },
+    { gate: 'exercise', path: 'x'.repeat(301) },
+    { type: 'plan_selected', tier: 'gold' },
+    { type: 'paywall_dismissed' },
+    { type: 'checkout_started', tier: 'basic' },
+    null,
+  ])('rejects an invalid body %#', async (body) => {
+    mockGetWebUser.mockResolvedValue({ id: 'u1' })
+    const response = await post(body)
+    expect(response.status).toBe(400)
+    expect(mockRecordFunnelEvent).not.toHaveBeenCalled()
+  })
 
   it('records a paywall_shown event for the signed-in user', async () => {
     mockGetWebUser.mockResolvedValue({ id: 'u1' })
@@ -58,6 +62,35 @@ describe('POST /api/funnel-events', () => {
       userId: 'u1',
       gate: 'ai_quota',
       path: '/courses/a/chapters/b/lessons/c',
+    })
+  })
+
+  it('records a skipped wall', async () => {
+    mockGetWebUser.mockResolvedValue({ id: 'u1' })
+    const response = await post({ type: 'paywall_dismissed', gate: 'ai_quota' })
+    expect(response.status).toBe(200)
+    expect(mockRecordFunnelEvent).toHaveBeenCalledWith({
+      type: 'paywall_dismissed',
+      userId: 'u1',
+      gate: 'ai_quota',
+    })
+  })
+
+  it('records a plan pick, from a wall or from the plans page', async () => {
+    mockGetWebUser.mockResolvedValue({ id: 'u1' })
+    await post({ type: 'plan_selected', tier: 'advanced', gate: 'exercise' })
+    await post({ type: 'plan_selected', tier: 'basic', gate: null })
+    expect(mockRecordFunnelEvent).toHaveBeenNthCalledWith(1, {
+      type: 'plan_selected',
+      userId: 'u1',
+      tier: 'advanced',
+      gate: 'exercise',
+    })
+    expect(mockRecordFunnelEvent).toHaveBeenNthCalledWith(2, {
+      type: 'plan_selected',
+      userId: 'u1',
+      tier: 'basic',
+      gate: null,
     })
   })
 })

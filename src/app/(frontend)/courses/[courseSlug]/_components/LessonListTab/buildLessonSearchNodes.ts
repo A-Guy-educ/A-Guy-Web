@@ -62,6 +62,7 @@ function collectNodesForType(
       nodes.push({
         lesson,
         chapterSlug: chapter.slug ?? '',
+        chapterTitle: chapter.title ?? undefined,
         displayIndex,
         lessonType: type,
       })

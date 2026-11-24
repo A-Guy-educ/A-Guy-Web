@@ -2,12 +2,11 @@
  * @fileType component
  * @domain frontend
  * @pattern lesson-roadmap-filter
- * @ai-summary Single toggle button above the chapter accordions. Flips between `all` (show every lesson) and `uncompleted` (hide completed lessons). Purely presentational — parent owns the state.
+ * @ai-summary The demo's two filter pills above the chapters: all lessons, or only the ones the student started. Purely presentational — parent owns the state.
  */
 
 'use client'
 
-import { cn } from '@/infra/utils/ui'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import type { FilterMode } from './lessonRoadmapTypes'
 
@@ -29,31 +28,18 @@ export function CourseLessonsFilterBar({ mode, onChange }: CourseLessonsFilterBa
   ]
 
   return (
-    <div
-      className="flex flex-wrap justify-end gap-content-gap-xs mb-content-gap px-2"
-      role="group"
-      aria-label={t('roadmapFilterGroupLabel')}
-    >
-      {chips.map((chip) => {
-        const isActive = chip.key === mode
-        return (
-          <button
-            key={chip.key}
-            type="button"
-            onClick={() => onChange(chip.key)}
-            aria-pressed={isActive}
-            className={cn(
-              'inline-flex items-center rounded-xl border px-3.5 py-1.5',
-              'text-body-xs font-semibold transition-all duration-normal',
-              isActive
-                ? 'bg-primary/10 text-primary border-primary/40 shadow-elevation-1'
-                : 'bg-card text-muted-foreground border-border hover:text-foreground',
-            )}
-          >
-            {chip.label}
-          </button>
-        )
-      })}
+    <div className="lesson-filters" role="group" aria-label={t('roadmapFilterGroupLabel')}>
+      {chips.map((chip) => (
+        <button
+          key={chip.key}
+          type="button"
+          className="pill"
+          onClick={() => onChange(chip.key)}
+          aria-pressed={chip.key === mode}
+        >
+          {chip.label}
+        </button>
+      ))}
     </div>
   )
 }

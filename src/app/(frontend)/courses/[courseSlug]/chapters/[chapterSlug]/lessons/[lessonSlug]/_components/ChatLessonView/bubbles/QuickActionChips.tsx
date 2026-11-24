@@ -18,8 +18,9 @@ interface QuickActionChipsProps {
   explainDisabled?: boolean
   hintLabel: string
   explainLabel: string
-  skipLabel: string
-  skipExerciseLabel: string
+  /** Omit (with `skipExerciseLabel`) where there's nothing to skip to, e.g. the landing demo. */
+  skipLabel?: string
+  skipExerciseLabel?: string
   onAction: (action: QuickAction) => void
 }
 
@@ -61,19 +62,23 @@ export function QuickActionChips({
         disabled={disabled || explainDisabled}
         onClick={() => onAction('explain')}
       />
-      <Chip
-        icon={<SkipForward className="w-3.5 h-3.5" aria-hidden="true" />}
-        label={skipLabel}
-        disabled={disabled}
-        onClick={() => onAction('skip')}
-        variant="ghost"
-      />
-      <Chip
-        label={skipExerciseLabel}
-        disabled={disabled}
-        onClick={() => onAction('skipExercise')}
-        variant="ghostlink"
-      />
+      {skipLabel && (
+        <Chip
+          icon={<SkipForward className="w-3.5 h-3.5" aria-hidden="true" />}
+          label={skipLabel}
+          disabled={disabled}
+          onClick={() => onAction('skip')}
+          variant="ghost"
+        />
+      )}
+      {skipExerciseLabel && (
+        <Chip
+          label={skipExerciseLabel}
+          disabled={disabled}
+          onClick={() => onAction('skipExercise')}
+          variant="ghostlink"
+        />
+      )}
     </div>
   )
 }

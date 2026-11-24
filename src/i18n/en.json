@@ -1,96 +1,4 @@
 {
-  "landingPage": {
-    "hero": {
-      "headline": "The world changes faster than any curriculum",
-      "subheadline": "That's why learning has to adapt too",
-      "brand": "Meet Aguy",
-      "role": "A private AI math tutor for elementary, middle, high school, and Bagrut prep",
-      "pitch": "Learn any topic from scratch with a unique pedagogical method, personalized practice, mock exams, and homework help.",
-      "trialCta": "Start learning",
-      "trialCtaNote": "(free)",
-      "loginCta": "Already registered? Sign in"
-    },
-    "value": {
-      "title": "Effective learning that saves time and money",
-      "paragraph1Prefix": "We took tens of thousands of teaching hours, hundreds of thousands of original exercises, and thousands of lesson plans — ",
-      "paragraph1Bold": "and built a professional, patient tutor.",
-      "paragraph2": "Everything is grounded in a unique pedagogy that builds strong learning habits, deep understanding, and the ability to keep learning independently."
-    },
-    "comparison": {
-      "title": "Everything good about a private tutor. Only better.",
-      "description": "We took personal attention, understanding of difficulties, and close guidance, then turned them into accessible smart technology.",
-      "aguy": "Aguy",
-      "tutor": "Regular private tutor",
-      "rows": {
-        "personal": {
-          "label": "Personalized learning",
-          "aguy": "Dynamic diagnosis, monitoring, and feedback.",
-          "tutor": "Mostly available during the private lesson."
-        },
-        "plan": {
-          "label": "Learning plan",
-          "aguy": "Structured and focused around the official curriculum.",
-          "tutor": "Manual, usually built around a weekly hour."
-        },
-        "experience": {
-          "label": "Professional experience",
-          "aguy": "Based on 20+ years of teaching experience.",
-          "tutor": "Depends heavily on the teacher you find."
-        },
-        "emotional": {
-          "label": "Emotional support",
-          "aguy": "Detects frustration and encourages in real time.",
-          "tutor": "Can be excellent, but depends on chemistry and availability."
-        },
-        "cost": {
-          "label": "Cost",
-          "aguy": "Far more affordable than a single private lesson.",
-          "tutor": "Hundreds of shekels per hour."
-        },
-        "availability": {
-          "label": "Question availability",
-          "aguy": "Available 24/7 exactly when students get stuck.",
-          "tutor": "Usually only at scheduled times."
-        }
-      }
-    },
-    "features": {
-      "title": "What's included?",
-      "items": {
-        "lessons": {
-          "title": "1,000 lessons",
-          "description": "Learn any topic from scratch in a short time."
-        },
-        "exercises": {
-          "title": "500 practice sets",
-          "description": "Original exercises for every level, from basics to challenge."
-        },
-        "exams": {
-          "title": "500 exams",
-          "description": "Simulations for the school year and Bagrut prep."
-        },
-        "teacher": {
-          "title": "Math tutor",
-          "description": "Ask questions and get your answers checked instantly."
-        },
-        "plan": {
-          "title": "Learning plan",
-          "description": "Build a focused plan for an upcoming exam."
-        },
-        "emotional": {
-          "title": "Special features",
-          "description": "Extra tools that support the learning journey."
-        }
-      }
-    },
-    "cta": {
-      "title": "Anyone can learn math on their own.",
-      "description": "Start with a system that guides, explains, and encourages at every step.",
-      "trial": "Start learning",
-      "trialNote": "(free)",
-      "loginCta": "Already registered? Click here to sign in"
-    }
-  },
   "landing": {
     "hero": {
       "badge": "Your digital math teacher",
@@ -167,7 +75,6 @@
     "header": {
       "welcome": "Welcome,",
       "login": "Log in",
-      "signup": "Sign up",
       "myAccount": "My Account",
       "home": "Home",
       "myPlan": "My plan",
@@ -310,29 +217,6 @@
       "errorLoading": "Failed to load transaction",
       "notFound": "Transaction not found",
       "viewProduct": "View Product"
-    },
-    "signup": {
-      "title": "Create Account",
-      "subtitle": "Sign up to start learning",
-      "name": "Name",
-      "namePlaceholder": "John Doe",
-      "email": "Email",
-      "emailPlaceholder": "you@example.com",
-      "password": "Password",
-      "passwordPlaceholder": "••••••••",
-      "confirmPassword": "Confirm Password",
-      "createAccount": "Create Account",
-      "creatingAccount": "Creating account...",
-      "alreadyHaveAccount": "Already have an account?",
-      "login": "Log in",
-      "errors": {
-        "nameRequired": "Name is required",
-        "invalidEmail": "Valid email is required",
-        "passwordTooShort": "Password must be at least 8 characters",
-        "passwordMismatch": "Passwords do not match",
-        "emailExists": "This email is already registered",
-        "duplicateEmailMessage": "An account with this email already exists. Would you like to log in instead?"
-      }
     }
   },
   "roles": {
@@ -415,6 +299,7 @@
       "touchCut": "Cut",
       "touchCutOn": "Drag over an exercise",
       "copyToNotebook": "Copy to notebook",
+      "copySectionToNotebook": "Copy this section to the notebook",
       "sendToChat": "Send to chat",
       "cancelCut": "Cancel",
       "cutUnavailable": "Couldn't read that part of the page. Wait for it to finish loading and try again.",
@@ -428,6 +313,7 @@
       "hideLatestCut": "Hide cut",
       "latestCutTitle": "Original exercise cut",
       "checkPage": "Check",
+      "checkPageHint": "Check the page you're on",
       "nothingToCheck": "Write your solution on the page first.",
       "deletePage": "Delete page",
       "deleteConfirm": "Delete this page? Your writing on it will be lost.",
@@ -751,6 +637,8 @@
     "lessonLandingVisualCaption": "From the lesson",
     "lessonLandingExplainTitle": "Quick explanation",
     "lessonLandingExplainSubtitle": "A clear answer to the question that brought you here.",
+    "lessonLandingFormulasTitle": "Formulas",
+    "lessonLandingFormulasSubtitle": "The formulas and rules worth remembering from this lesson.",
     "lessonLandingMistakeTitle": "A mistake worth knowing",
     "lessonLandingWorkedTitle": "Worked example",
     "lessonLandingWorkedSubtitle": "An exercise from the lesson, solved step by step.",
@@ -956,21 +844,23 @@
       "exam": "Exam"
     },
     "composer": {
-      "placeholder": {
-        "learn": "What do you want to study? Try a topic, or pick a lesson below",
-        "practice": "What do you want to practice?",
-        "exams": "What are you preparing for?",
-        "ask": "Ask about anything in this course"
-      },
       "send": "Send",
       "thinking": "Thinking…",
       "noLessonsFallback": "Sorry, no lessons seem to fit in this course.",
       "suggestError": "Couldn’t reach the assistant. Please try again.",
-      "dropHint": "Drop an image or PDF to open it in Ask",
+      "dropHint": "Drop a homework photo or PDF",
       "dropUploading": "Uploading your file…",
       "dropInvalidType": "Only images and PDFs can be dropped here",
       "dropFailed": "Upload failed. Please try again.",
-      "attachFile": "Attach an image or PDF"
+      "attachFile": "Add a photo or file",
+      "solveInAsk": "Solve it together in Ask",
+      "openExams": "See all exams",
+      "removePhoto": "Remove photo",
+      "photoAttached": "Homework photo",
+      "placeholder": "Type or attach a photo…",
+      "mic": "Answer by voice",
+      "micUnavailable": "Voice dictation isn't available in this browser. You can use your phone keyboard's microphone.",
+      "micFailed": "I couldn't catch that recording. You can type your answer instead."
     },
     "moreCourses": "More courses",
     "loading": "Loading...",
@@ -980,6 +870,53 @@
       "title": "Your teacher hasn’t opened this lesson yet",
       "message": "It will appear here as soon as your teacher opens it for your class.",
       "back": "Back to the course"
+    },
+    "hub": {
+      "greeting": "What are we doing today?",
+      "greetingReturning": "Hey there, what are we doing today?",
+      "continue": "Continue:",
+      "actions": {
+        "homework": "Homework",
+        "learn": "Learn from scratch",
+        "practice": "Practice a topic",
+        "exams": "Prepare for an exam"
+      },
+      "examBadge": "Exam in {days} days",
+      "browseCue": "Last lesson and all content",
+      "lastHeading": "Last lesson",
+      "lastDescription": "Pick up where we left off",
+      "resume": "Continue",
+      "allContent": "All content",
+      "contentTabsLabel": "Content type",
+      "lessonTypes": {
+        "learning": "Learning",
+        "practice": "Practice",
+        "exam": "Exam"
+      },
+      "chapterMeta": "Chapter {num} · {count} lessons",
+      "chapterMetaOne": "Chapter {num} · one lesson",
+      "chapterDone": "{done}/{total} done",
+      "noStarted": "You haven't started any lessons in this track yet.",
+      "finder": {
+        "back": "Back",
+        "topicTitle": "Which topic?",
+        "topicInstruction": "Snap an exercise or write the topic name",
+        "topicHint": "Even something you remember from class is enough.",
+        "examHubTitle": "Getting ready for an exam",
+        "examHubSub": "Tests and finals — pick one and start.",
+        "planTitle": "My prep plan",
+        "planSub": "Build a plan around your exam date",
+        "planLogin": "Log in to build a prep plan",
+        "camera": "Take a photo",
+        "upload": "Upload a document",
+        "chooseTopic": "Or pick a topic",
+        "homeworkTitle": "Let's tackle the homework",
+        "homeworkSub": "Snap the exercise or upload a file.",
+        "homeworkHint": "You can also type the exercise in the box below.",
+        "topicPlaceholder": "You can also type a topic…",
+        "homeworkPlaceholder": "Type the exercise or attach a file…",
+        "planSubDate": "Exam on {date}"
+      }
     }
   },
   "stats": {
@@ -1184,6 +1121,19 @@
       "learning": "Learning",
       "practice": "Practice",
       "exam": "Exam"
+    },
+    "uploadList": "Snap the list or upload a document",
+    "uploadReading": "Reading the list…",
+    "uploadHint": "Your teacher's topic list — a photo or PDF. We'll match each topic to lessons in the course.",
+    "uploadAdded": "Added {count} topics, each with its matching lessons in the course.",
+    "uploadNone": "We didn't find topics in the file. You can type them below.",
+    "uploadFailed": "We couldn't read the file. Try again or type the topics.",
+    "uploadTooLarge": "The file is too large. You can snap the list instead.",
+    "uploadUnsupported": "You can upload a photo or a PDF.",
+    "levelHint": "Rate how well you know each: weak starts with a learning lesson; medium or strong goes straight to practice.",
+    "lessonKind": {
+      "learning": "Learning",
+      "practice": "Practice"
     }
   },
   "learningAgent": {
@@ -1523,6 +1473,7 @@
     "requiredToast": "Please confirm the Terms of Service and Privacy Policy before continuing to payment."
   },
   "footer": {
+    "team": "Our Team",
     "copyright": "2026 A-Guy | גיא קורן – מתמטיקה ופיזיקה. כל הזכויות שמורות."
   },
   "prep7": {
@@ -1593,5 +1544,163 @@
     "footer": {
       "copyright": "© 2024 Aguy. All rights reserved."
     }
+  },
+  "privateLessonLanding": {
+    "header": {
+      "home": "Aguy home page",
+      "example": "How it works",
+      "teachers": "Meet the teachers",
+      "comparison": "Comparison & price",
+      "cta": "Start for free",
+      "language": "Language",
+      "loginLead": "Already with us?",
+      "login": "Log in"
+    },
+    "intro": {
+      "eyebrow": "Built on the experience of 50,000 private lessons",
+      "title": "7 hours of math a week.",
+      "question": "So why does your child still need a tutor?",
+      "prepBefore": "15 minutes of prep with",
+      "prepAfter": "before class.",
+      "benefit": "More understanding in class. Less catching up at home.",
+      "imageAlt": "A student solving an exercise on her own in a notebook, next to Aguy on a laptop",
+      "caption": "Learning to learn alone. Saving on private lessons."
+    },
+    "offer": {
+      "headline": "A month with",
+      "price": "for ₪{price}",
+      "guarantee": "Didn't work for you? Money back.",
+      "cta": "Start a month for ₪{price}",
+      "free": "Or start for free",
+      "whatsapp": "Book a fit call with a teacher",
+      "whatsappMessage": "Hi, I'd like a short call to get to know Aguy and see if it fits my child."
+    },
+    "confidence": {
+      "titleLine1": "“There's no way my child",
+      "titleLine2": "will learn like this.”",
+      "proofLine1": "Many students using ",
+      "proofLine2": "today said exactly that.",
+      "message": "You don't need to know how to learn alone to start —",
+      "messageStrong": "that's exactly what you learn here.",
+      "detail": "We start at your child's level, even from the very basics, with guiding questions, hints when stuck and encouragement along the way."
+    },
+    "example": {
+      "title": "See how learning works here.",
+      "description": "Try alone, get guidance when needed, and work your way to the solution.",
+      "slotTitle": "Try an exercise from the system here",
+      "slotText": "The real Aguy segment will be embedded here."
+    },
+    "teachers": {
+      "title": "Which teacher suits you?",
+      "description": "Same goal. Each in their own way.",
+      "pickLabel": "Choose a teacher",
+      "continue": "Continue with the teacher you chose",
+      "hello": "Nice to meet you :)",
+      "portraitLabel": "{name}, your private teacher"
+    },
+    "learn": {
+      "title": "What do you learn with the teacher?",
+      "description": "From homework to exam prep — in one place.",
+      "items": {
+        "homework": {
+          "title": "Homework",
+          "description": "Snap. Attach. Start."
+        },
+        "fromScratch": {
+          "title": "Learn from scratch",
+          "description": "Understand the basics, arrive ready for class."
+        },
+        "practice": {
+          "title": "Practice a topic",
+          "description": "Strengthen what needs it."
+        },
+        "exam": {
+          "title": "Prepare for an exam",
+          "description": "A plan, exams and matriculation."
+        }
+      },
+      "adaptive": "Learning that adapts itself to you.",
+      "adaptiveDetail": "Fits 16 types of students, and gets sharper with every question."
+    },
+    "comparison": {
+      "title": "And what about the price?",
+      "description": "Aguy's private teacher vs. a regular private tutor.",
+      "caption": "Comparing Aguy's digital private teacher with a regular private tutor",
+      "compareLabel": "What are we comparing?",
+      "aguy": "Aguy",
+      "aguySub": "Digital private teacher",
+      "tutor": "Private tutor",
+      "tutorSub": "Regular",
+      "rows": {
+        "learning": {
+          "label": "Learning style",
+          "aguy": "Active",
+          "tutor": "Mostly passive"
+        },
+        "independence": {
+          "label": "Independence",
+          "aguy": "Encourages independence",
+          "tutor": "Can create dependence"
+        },
+        "cost": {
+          "label": "Monthly cost",
+          "aguy": "From ₪{price}",
+          "tutor": "₪400–1,000"
+        },
+        "time": {
+          "label": "Time saved",
+          "aguy": "Ready for class, less studying at home",
+          "tutor": "Extra learning after class"
+        },
+        "availability": {
+          "label": "Availability",
+          "aguy": "Anytime, anywhere, even on mobile",
+          "tutor": "Depends on the tutor"
+        },
+        "expertise": {
+          "label": "Expertise",
+          "aguy": "Experience from 50,000 lessons",
+          "tutor": "Depends on the tutor's experience"
+        },
+        "fit": {
+          "label": "Personalization",
+          "aguy": "Diagnosis and feedback on every question",
+          "tutor": "Depends on the tutor's skill"
+        },
+        "content": {
+          "label": "Content",
+          "aguy": "All the material plus mock exams",
+          "tutor": "The tutor's own materials"
+        }
+      },
+      "plans": "You can start for free. Paid plans: ₪{basic}, ₪{advanced} or ₪{premium} a month.",
+      "cta": "Enter my private lesson",
+      "note": "Pick a teacher and a class, and start."
+    },
+    "footer": {
+      "tagline": "The world is changing. So is the way we learn."
+    }
+  },
+  "teacherPersonas": {
+    "detailed": {
+      "name": "The Digger",
+      "tagline": "In a good way",
+      "quote": "My goal?\nThat you succeed without me.",
+      "intro": "To really understand, we'll get into the small details."
+    },
+    "focused": {
+      "name": "The Focused One",
+      "tagline": "Only what's needed",
+      "quote": "No time to waste. We'll do exactly what's needed.",
+      "intro": "No time to waste. We'll do exactly what's needed."
+    },
+    "attentive": {
+      "name": "The Attentive One",
+      "tagline": "Notices every detail",
+      "quote": "Your way to success starts with trying.",
+      "intro": "Your way to success starts with trying."
+    },
+    "portraitLabel": "Your teacher — {name}",
+    "wink": "Click for a wink"
   }
 }

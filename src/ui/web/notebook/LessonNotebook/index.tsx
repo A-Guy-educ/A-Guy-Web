@@ -114,6 +114,7 @@ export function LessonNotebook({
         canUndo={Boolean(activePage?.strokes.length)}
         canCopy={editing.selection !== null}
         canPaste={editing.canPaste && activePage !== null}
+        canCheck={activePage !== null}
         status={status}
         onTool={changeTool}
         onFingerDraws={setFingerDraws}
@@ -121,6 +122,7 @@ export function LessonNotebook({
         onCopy={editing.copySelection}
         onPaste={paste}
         onBlankPage={addBlank}
+        onCheck={() => activePage && onCheckPage(activePage, paperInks)}
       />
 
       {status !== 'loading' && pages.length === 0 && (
@@ -171,7 +173,6 @@ export function LessonNotebook({
                 onActivate={() => setActiveId(page.id)}
                 onExtend={() => extendPage(page.id)}
                 onDelete={() => remove(page)}
-                onCheck={() => onCheckPage(page, paperInks)}
               />
             </div>
           ))}
