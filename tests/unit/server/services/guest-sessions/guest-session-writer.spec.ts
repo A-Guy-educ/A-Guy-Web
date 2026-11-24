@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildGoogleOutcomeUpdate } from '@/server/services/guest-sessions/guest-session-writer'
+import {
+  buildGoogleOutcomeUpdate,
+  buildGuestSessionDoc,
+} from '@/server/services/guest-sessions/guest-session-writer'
+
+describe('buildGuestSessionDoc', () => {
+  it('flags a returning browser only when told to', () => {
+    expect(buildGuestSessionDoc('s1', null, { returningBrowser: true }).returningBrowser).toBe(true)
+    expect(buildGuestSessionDoc('s1', null)).not.toHaveProperty('returningBrowser')
+  })
+})
 
 describe('buildGoogleOutcomeUpdate', () => {
   it('stamps the outcome and its time under onboarding, last write wins', () => {

@@ -14,6 +14,8 @@ import {
 import { buildGuestLanding, type GuestLanding } from './infra/analytics/guest-landing'
 import {
   GUEST_SESSION_COOKIE,
+  KNOWN_STUDENT_COOKIE,
+  KNOWN_STUDENT_MAX_AGE_SECONDS,
   GUEST_SESSION_MAX_AGE_SECONDS,
   NEW_GUEST_SESSION_HEADER,
 } from './infra/analytics/guest-session-cookie'
@@ -138,7 +140,7 @@ function resolveLocaleCookieDomain(host: string): string | undefined {
 // This avoids Edge middleware env var availability issues.
 
 type AnonymousTouch =
-  | { kind: 'guest'; sessionId: string; landing: GuestLanding }
+  | { kind: 'guest'; sessionId: string; landing: GuestLanding; returningBrowser: boolean }
   | { kind: 'bot'; category: BotCategory }
 
 /**
@@ -148,10 +150,15 @@ type AnonymousTouch =
  * Returns null when the caller is signed in, already has a guest cookie, or
  * is on a non-page path.
  */
-function classifyAnonymousTouch(request: NextRequest, pathname: string): AnonymousTouch | null {
+/** Page loads only — not API, assets, admin or files. */
+function isTrackedPagePath(pathname: string): boolean {
   if (pathname.startsWith('/api') || pathname.startsWith('/_next') || pathname.startsWith('/admin'))
-    return null
-  if (pathname.includes('.')) return null
+    return false
+  return !pathname.includes('.')
+}
+
+function classifyAnonymousTouch(request: NextRequest, pathname: string): AnonymousTouch | null {
+  if (!isTrackedPagePath(pathname)) return null
   if (request.cookies.get(AUTH_COOKIE_NAME)) return null
   const userAgent = request.headers.get('user-agent')
   if (isBotUserAgent(userAgent)) return { kind: 'bot', category: categorizeBotUserAgent(userAgent) }
@@ -161,7 +168,17 @@ function classifyAnonymousTouch(request: NextRequest, pathname: string): Anonymo
     kind: 'guest',
     sessionId: crypto.randomUUID(),
     landing: buildGuestLanding(request.nextUrl, request.headers.get('referer'), host),
+    returningBrowser: request.cookies.get(KNOWN_STUDENT_COOKIE) !== undefined,
   }
+}
+
+/** Signed in on a page load and not yet marked: remember this browser has had an account. */
+function shouldMarkKnownStudent(request: NextRequest, pathname: string): boolean {
+  return (
+    isTrackedPagePath(pathname) &&
+    hasAuthToken(request) &&
+    request.cookies.get(KNOWN_STUDENT_COOKIE) === undefined
+  )
 }
 
 interface GuestCookieAttrs {
@@ -278,11 +295,21 @@ export function middleware(request: NextRequest) {
   const guestCookie = newGuestSessionId ? buildGuestSessionCookieAttrs(request) : null
   if (anonymousTouch?.kind === 'guest' && guestCookie) {
     response.cookies.set(GUEST_SESSION_COOKIE, anonymousTouch.sessionId, guestCookie)
-    const { sessionId, landing } = anonymousTouch
-    scheduleLoopback(request, '/api/internal/guest-session/create', { sessionId, landing })
+    const { sessionId, landing, returningBrowser } = anonymousTouch
+    scheduleLoopback(request, '/api/internal/guest-session/create', {
+      sessionId,
+      landing,
+      ...(returningBrowser ? { returningBrowser: true } : {}),
+    })
   } else if (anonymousTouch?.kind === 'bot') {
     scheduleLoopback(request, '/api/internal/bot-hits/record', {
       category: anonymousTouch.category,
+    })
+  }
+  if (trackingHost && shouldMarkKnownStudent(request, pathname)) {
+    response.cookies.set(KNOWN_STUDENT_COOKIE, '1', {
+      ...buildGuestSessionCookieAttrs(request),
+      maxAge: KNOWN_STUDENT_MAX_AGE_SECONDS,
     })
   }
 

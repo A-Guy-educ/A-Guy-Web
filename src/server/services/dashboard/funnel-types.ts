@@ -116,8 +116,9 @@ export interface FunnelMetrics {
   /** Steps from `funnel-events` are only complete for signups on/after this day. */
   eventsTrackedSince: string
   /**
-   * Every visitor step excludes existing students who logged back in through
-   * the signup prompt (recorded, or estimated for older sessions — see
+   * Every visitor step excludes existing students: browsers that had an
+   * account before, and students who logged back in through the signup
+   * prompt (recorded, or estimated for older sessions — see
    * existing-student-visits.ts). This is how many sessions were dropped.
    */
   existingStudentVisits: number

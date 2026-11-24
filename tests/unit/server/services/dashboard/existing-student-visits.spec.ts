@@ -59,9 +59,12 @@ describe('existingAccountLoginTimes', () => {
 })
 
 describe('excludeExistingStudents', () => {
-  it('drops recorded existing-student logins unless the session was claimed by a new account', () => {
+  it('drops returning browsers and recorded logins unless claimed by a new account', () => {
     expect(excludeExistingStudents([])).toEqual({
-      $nor: [{ 'onboarding.googleOutcome': 'existing_login', claimedByUser: { $exists: false } }],
+      $nor: [
+        { returningBrowser: true, claimedByUser: { $exists: false } },
+        { 'onboarding.googleOutcome': 'existing_login', claimedByUser: { $exists: false } },
+      ],
     })
   })
 
