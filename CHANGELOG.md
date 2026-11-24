@@ -5287,6 +5287,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- promote: dev -> main (v0.69.0) ([#1659](https://github.com/A-Guy-educ/A-Guy-Web/pull/1659)) — @aguyshayb
 - chore: Release v0.69.0 ([#1658](https://github.com/A-Guy-educ/A-Guy-Web/pull/1658)) — @aguyshayb
 - fix: Exam date on iOS, continue any opened lesson, no teacher flash ([#1657](https://github.com/A-Guy-educ/A-Guy-Web/pull/1657)) — @aguyshayb
 - feat: Upload the exam topic list and link plan days by level ([#1656](https://github.com/A-Guy-educ/A-Guy-Web/pull/1656)) — @aguyshayb
