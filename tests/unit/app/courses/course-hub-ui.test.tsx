@@ -9,6 +9,7 @@ import { CourseWelcome } from '@/app/(frontend)/courses/[courseSlug]/_components
 import { CourseTabs } from '@/app/(frontend)/courses/[courseSlug]/_components/CourseTabs'
 import { ChapterAccordion } from '@/app/(frontend)/courses/[courseSlug]/_components/LessonListTab/ChapterAccordion'
 import type { ChapterRoadmapGroup } from '@/app/(frontend)/courses/[courseSlug]/_components/LessonListTab/lessonRoadmapTypes'
+import { setExamDates } from '@/client/state/localStorage/examDates'
 import { I18nProvider } from '@/ui/web/providers/I18n'
 
 import heMessages from '../../../../src/i18n/he.json'
@@ -30,8 +31,12 @@ vi.mock('@/infra/loading/components/SystemLink', () => ({
 }))
 
 vi.mock('@/app/(frontend)/study-plan/_components/StudyPlanPanel', () => ({
-  StudyPlanPanel: ({ stacked }: { stacked?: boolean }) => (
-    <div data-testid="study-plan" data-stacked={String(Boolean(stacked))} />
+  StudyPlanPanel: ({ stacked, course }: { stacked?: boolean; course?: { id: string } }) => (
+    <div
+      data-testid="study-plan"
+      data-stacked={String(Boolean(stacked))}
+      data-course={course?.id}
+    />
   ),
 }))
 
@@ -124,6 +129,7 @@ describe('CourseFinder', () => {
       <CourseFinder
         kind={kind}
         persona="detailed"
+        planCourse={{ id: 'course-1', slug: 'c', title: 'קורס', lessons: [] }}
         isSignedIn={isSignedIn}
         loginHref="/login?returnTo=%2Fcourses%2Fc"
         {...handlers}
@@ -153,6 +159,15 @@ describe('CourseFinder', () => {
     details.open = true
     fireEvent(details, new Event('toggle'))
     expect(screen.getByTestId('study-plan').dataset.stacked).toBe('true')
+    // With the course, so its topics match the course's lessons.
+    expect(screen.getByTestId('study-plan').dataset.course).toBe('course-1')
+  })
+
+  it("shows the course's exam date on the plan row, as the demo does", () => {
+    setExamDates('course-1', [{ id: 'e1', date: '2099-12-05' }])
+    renderFinder('exams')
+    expect(screen.getByText('הבחינה ב־5.12')).toBeTruthy()
+    window.localStorage.clear()
   })
 
   it('asks a signed-out student to log in before building a plan', () => {

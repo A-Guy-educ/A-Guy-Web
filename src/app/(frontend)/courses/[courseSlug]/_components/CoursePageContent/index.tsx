@@ -23,6 +23,7 @@ import { CourseFinder } from '../CourseHub/CourseFinder'
 import { CourseLastLesson } from '../CourseHub/CourseLastLesson'
 import { CourseWelcome, type CourseHubAction } from '../CourseHub/CourseWelcome'
 import { pickContinueLesson } from '../CourseHub/pickContinueLesson'
+import { toPlanCourse } from '../CourseHub/planCourse'
 import { CONTENT_TABS, CourseTabs, type ContentTab } from '../CourseTabs'
 import { LessonListTab } from '../LessonListTab'
 import { buildLessonSearchNodes } from '../LessonListTab/buildLessonSearchNodes'
@@ -83,6 +84,10 @@ export function CoursePageContent({
   const searchNodes = useMemo(
     () => buildLessonSearchNodes({ chapters, lessons }),
     [chapters, lessons],
+  )
+  const planCourse = useMemo(
+    () => toPlanCourse(course, courseSlug, searchNodes),
+    [course, courseSlug, searchNodes],
   )
 
   const { user } = useCurrentUser()
@@ -147,6 +152,7 @@ export function CoursePageContent({
         <CourseFinder
           kind={finder}
           persona={personaForSlug(teacherSlug)}
+          planCourse={planCourse}
           isSignedIn={Boolean(user)}
           loginHref={`/login?returnTo=${encodeURIComponent(`/courses/${courseSlug}`)}`}
           onBack={() => setFinder(null)}

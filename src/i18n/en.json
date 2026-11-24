@@ -914,7 +914,8 @@
         "homeworkSub": "Snap the exercise or upload a file.",
         "homeworkHint": "You can also type the exercise in the box below.",
         "topicPlaceholder": "You can also type a topic…",
-        "homeworkPlaceholder": "Type the exercise or attach a file…"
+        "homeworkPlaceholder": "Type the exercise or attach a file…",
+        "planSubDate": "Exam on {date}"
       }
     }
   },
@@ -1120,6 +1121,19 @@
       "learning": "Learning",
       "practice": "Practice",
       "exam": "Exam"
+    },
+    "uploadList": "Snap the list or upload a document",
+    "uploadReading": "Reading the list…",
+    "uploadHint": "Your teacher's topic list — a photo or PDF. We'll match each topic to lessons in the course.",
+    "uploadAdded": "Added {count} topics, each with its matching lessons in the course.",
+    "uploadNone": "We didn't find topics in the file. You can type them below.",
+    "uploadFailed": "We couldn't read the file. Try again or type the topics.",
+    "uploadTooLarge": "The file is too large. You can snap the list instead.",
+    "uploadUnsupported": "You can upload a photo or a PDF.",
+    "levelHint": "Rate how well you know each: weak starts with a learning lesson; medium or strong goes straight to practice.",
+    "lessonKind": {
+      "learning": "Learning",
+      "practice": "Practice"
     }
   },
   "learningAgent": {
