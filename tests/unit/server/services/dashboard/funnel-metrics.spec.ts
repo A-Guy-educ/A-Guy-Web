@@ -16,6 +16,7 @@ import {
   buildVisitorFunnelPipeline,
   emptyGateStats,
   emptySignupFunnel,
+  emptyVisitorFunnel,
   toActiveDaysHistogram,
   toFunnelMetrics,
 } from '@/server/services/dashboard/funnel-metrics'
@@ -36,6 +37,27 @@ describe('buildVisitorFunnelPipeline', () => {
     expect(match.createdAt).toEqual({ $gte: SINCE })
     expect(match.landingType).toBeDefined()
     expect(match.$or).toEqual(cohortMatch.$or)
+  })
+
+  it('groups by landing type by default, or by the given key', () => {
+    expect(buildVisitorFunnelPipeline(SINCE, ADMINS)[1]?.$group._id).toBe('$landingType')
+    const byDevice = { $cond: ['x', 'in_app', 'y'] }
+    expect(buildVisitorFunnelPipeline(SINCE, ADMINS, {}, {}, byDevice)[1]?.$group._id).toBe(
+      byDevice,
+    )
+  })
+
+  it('applies the existing-student exclusion to the opening $match', () => {
+    const exclude = { $nor: [{ 'onboarding.googleOutcome': 'existing_login' }] }
+    const match = firstMatch(buildVisitorFunnelPipeline(SINCE, ADMINS, {}, exclude))
+    expect(match.$nor).toEqual(exclude.$nor)
+  })
+
+  it('counts cancelled and failed Google sign-ins only on unclaimed sessions', () => {
+    const group = buildVisitorFunnelPipeline(SINCE, ADMINS)[1]?.$group as Document
+    expect(JSON.stringify(group.googleCancelled)).toContain('cancelled')
+    expect(JSON.stringify(group.googleFailed)).toContain('failed')
+    expect(JSON.stringify(group.googleCancelled)).toContain('claimedByUser')
   })
 
   it('does not count sessions claimed by admins as signups', () => {
@@ -145,6 +167,7 @@ describe('toFunnelMetrics', () => {
           humans: 8,
           signupPromptShown: 5,
           googleClicked: 3,
+          googleCancelled: 1,
           signedUp: 2,
         },
         {
@@ -158,16 +181,41 @@ describe('toFunnelMetrics', () => {
       ],
       signupFacet: undefined,
       paymentRows: undefined,
+      existingStudentVisits: 7,
+      googleOutcomesSince: new Date('2026-11-25T08:00:00Z'),
     })
     expect(metrics.visitors).toEqual({
       visitors: 14,
       humans: 9,
       signupPromptShown: 5,
       googleClicked: 3,
+      googleCancelled: 1,
+      googleFailed: 0,
       signedUp: 2,
     })
+    expect(metrics.existingStudentVisits).toBe(7)
+    expect(metrics.googleOutcomesSince).toBe('2026-11-25')
     expect(metrics.visitorsByLandingType.other.visitors).toBe(4)
     expect(metrics.visitorsByLandingType.home.visitors).toBe(0)
+  })
+
+  it('maps the device split, with visits from before tracking under unknown', () => {
+    const row = (visitors: number) => ({ ...emptyVisitorFunnel(), visitors })
+    const metrics = toFunnelMetrics({
+      visitorRows: [],
+      signupFacet: undefined,
+      paymentRows: undefined,
+      deviceRows: [
+        { _id: 'in_app', ...row(3) },
+        { _id: 'ios', ...row(5) },
+        { _id: 'unknown', ...row(40) },
+        { _id: 'other', ...row(1) },
+      ],
+    })
+    expect(metrics.visitorsByDevice.in_app.visitors).toBe(3)
+    expect(metrics.visitorsByDevice.ios.visitors).toBe(5)
+    expect(metrics.visitorsByDevice.unknown.visitors).toBe(41)
+    expect(metrics.visitorsByDevice.android).toEqual(emptyVisitorFunnel())
   })
 
   it('maps the signup funnel overall, by source and by landing type', () => {

@@ -12,13 +12,21 @@ import { usePasswordLogin } from '@/ui/web/providers/PasswordLoginProvider'
 import { useI18n, useTranslations } from '@/ui/web/providers/I18n'
 import type { SafeDestination } from '@/infra/auth/oauth_sanitize'
 import { loginAction } from './login_authenticate-action'
+import { WhatsAppLoginForm } from './WhatsAppLoginForm'
 
 /**
  * `returnTo` arrives already sanitized from the server component: deciding
  * which sibling apps are trustworthy needs deployment configuration the
  * browser cannot see.
  */
-export function LoginForm({ returnTo }: { returnTo: SafeDestination }) {
+export function LoginForm({
+  returnTo,
+  whatsAppEnabled = false,
+}: {
+  returnTo: SafeDestination
+  /** Decided on the server: the WhatsApp env vars are not visible here. */
+  whatsAppEnabled?: boolean
+}) {
   const { t: tBrand } = useI18n()
   const t = useTranslations('auth.login')
   const tOauth = useTranslations('auth.oauth')
@@ -91,6 +99,13 @@ export function LoginForm({ returnTo }: { returnTo: SafeDestination }) {
           returnTo={returnTo}
           className="w-full h-14 rounded-xl text-body-md font-semibold"
         />
+
+        {whatsAppEnabled && (
+          <WhatsAppLoginForm
+            returnTo={returnTo}
+            className="w-full h-14 rounded-xl text-body-md font-semibold"
+          />
+        )}
 
         {/* Subtitle - appears below Google button when password is disabled */}
         {!passwordEnabled && (

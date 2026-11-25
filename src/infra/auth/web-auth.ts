@@ -17,6 +17,7 @@ import { getContentDb, objectIdFromString, relationId, serializeDoc } from '@/in
 import type { User } from '@/infra/types/content'
 import { TIER_LLM_TOKEN_CAP_MONTHLY } from '@/lib/tiers'
 import { reconcileUserLlmLimit } from '@/lib/tiers/llm-cost-cap'
+import { whatsAppPlaceholderEmail } from '@/infra/whatsapp/phone'
 import { encrypt, generateSecret } from './oauth_crypto'
 import {
   AUTH_COOKIE_MAX_AGE_SECONDS,
@@ -388,6 +389,86 @@ export async function createGoogleUser(
     updatedAt: now,
   })
   return (await users()).findOne({ _id: result.insertedId })
+}
+
+let verifiedPhoneIndexEnsured: Promise<void> | null = null
+
+/**
+ * Unique on `verifiedPhone` so two concurrent first logins from the same
+ * number cannot create two accounts. Partial, because most users have none.
+ */
+async function ensureVerifiedPhoneIndex(): Promise<void> {
+  if (!verifiedPhoneIndexEnsured) {
+    verifiedPhoneIndexEnsured = (await users())
+      .createIndex(
+        { verifiedPhone: 1 },
+        {
+          unique: true,
+          name: 'users_verified_phone_unique',
+          partialFilterExpression: { verifiedPhone: { $type: 'string' } },
+        },
+      )
+      .then(() => undefined)
+      .catch((error: unknown) => {
+        verifiedPhoneIndexEnsured = null
+        throw error
+      })
+  }
+  return verifiedPhoneIndexEnsured
+}
+
+/**
+ * Look up by the phone number a WhatsApp code was delivered to. Deliberately
+ * not the `/join` form's `phone`, which nobody verified — matching on it
+ * would hand an account to whoever owns a number someone typed in.
+ */
+export async function findUserByVerifiedPhone(phone: string) {
+  return (await users()).findOne({ verifiedPhone: phone })
+}
+
+/** `phone` must already be verified (a code sent to it was entered). */
+export async function createWhatsAppUser(
+  phone: string,
+  attribution?: GoogleUserAttribution,
+): Promise<{ user: UserDoc; created: boolean }> {
+  await ensureVerifiedPhoneIndex()
+  const now = new Date()
+  const tenantId = await resolveDefaultTenantId()
+  const collection = await users()
+  try {
+    const result = await collection.insertOne({
+      email: whatsAppPlaceholderEmail(phone),
+      name: '',
+      role: 'student',
+      verifiedPhone: phone,
+      registrationMethod: 'whatsapp',
+      registeredAt: now,
+      // See createPasswordUser: raw inserts skip Payload's defaultValue.
+      llmTokensLimit: TIER_LLM_TOKEN_CAP_MONTHLY.free,
+      ...(tenantId ? { tenant: tenantId } : {}),
+      ...(attribution
+        ? {
+            signupSource: attribution.signupSource,
+            utmSource: attribution.utmSource,
+            utmMedium: attribution.utmMedium,
+            utmCampaign: attribution.utmCampaign,
+          }
+        : {}),
+      sessions: [],
+      createdAt: now,
+      updatedAt: now,
+    })
+    const user = await collection.findOne({ _id: result.insertedId })
+    if (!user) throw new Error('Created user was not found')
+    return { user, created: true }
+  } catch (error) {
+    // Lost the race to a parallel first login from the same number.
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 11000) {
+      const existing = await findUserByVerifiedPhone(phone)
+      if (existing) return { user: existing, created: false }
+    }
+    throw error
+  }
 }
 
 export function setAuthCookie(

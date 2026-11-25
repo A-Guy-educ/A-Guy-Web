@@ -4,8 +4,11 @@
  * Internal endpoint the middleware calls (via `after()`) to record an
  * anonymous first-touch. Runs on Node so it can touch Mongo directly.
  *
- * Body: `{ sessionId, landing }` — `landing` is the first-touch attribution
- * middleware derived from the request URL + Referer (see guest-landing.ts).
+ * Body: `{ sessionId, landing, device, returningBrowser? }` — `landing` is the
+ * first-touch attribution middleware derived from the request URL + Referer
+ * (see guest-landing.ts); `device` is the UA-derived platform / in-app
+ * browser (see guest-device.ts); `returningBrowser` is set when the browser
+ * carries the known-student cookie (see guest-session-cookie.ts).
  *
  * Auth: HMAC over the raw body with PAYLOAD_SECRET, sent as `x-signature`.
  * The route is on the public /api surface so signature verification is the
@@ -15,6 +18,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 
+import { parseGuestDevice } from '@/infra/analytics/guest-device'
 import { parseGuestLanding } from '@/infra/analytics/guest-landing'
 import { isValidGuestSessionId } from '@/infra/analytics/guest-session-cookie'
 import { verifySignedLoopbackWebhook } from '@/infra/analytics/guest-session-loopback'
@@ -34,12 +38,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const result = await verifySignedLoopbackWebhook(request, secret)
   if (!result.ok) return new NextResponse(null, { status: result.status })
 
-  const body = result.body as { sessionId?: unknown; landing?: unknown } | null
+  const body = result.body as {
+    sessionId?: unknown
+    landing?: unknown
+    device?: unknown
+    returningBrowser?: unknown
+  } | null
   const sessionId = body?.sessionId
   if (typeof sessionId !== 'string' || !isValidGuestSessionId(sessionId)) {
     return new NextResponse(null, { status: 400 })
   }
 
-  await recordGuestSession(sessionId, parseGuestLanding(body?.landing))
+  await recordGuestSession(sessionId, parseGuestLanding(body?.landing), {
+    device: parseGuestDevice(body?.device),
+    returningBrowser: body?.returningBrowser === true,
+  })
   return new NextResponse(null, { status: 204 })
 }

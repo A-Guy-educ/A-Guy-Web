@@ -116,6 +116,27 @@
         "collision": "כבר קיים חשבון עם כתובת אימייל זו. אנא התחבר עם הסיסמה שלך או פנה לתמיכה."
       }
     },
+    "whatsapp": {
+      "continueWithWhatsApp": "המשך עם WhatsApp",
+      "phoneLabel": "מספר נייד",
+      "sendCode": "שלחו לי קוד ב-WhatsApp",
+      "sending": "שולח...",
+      "codeSentTo": "שלחנו קוד בן 6 ספרות ב-WhatsApp למספר {phone}",
+      "codeLabel": "קוד",
+      "verify": "כניסה",
+      "verifying": "בודק...",
+      "resend": "שלחו קוד חדש",
+      "resendIn": "קוד חדש בעוד {seconds} שניות",
+      "changeNumber": "שינוי מספר",
+      "errors": {
+        "invalidPhone": "יש להזין מספר נייד ישראלי, למשל 050-123-4567",
+        "rateLimited": "יותר מדי ניסיונות. נסו שוב בעוד כמה דקות.",
+        "sendFailed": "לא הצלחנו לשלוח את הקוד. בדקו את המספר ונסו שוב.",
+        "invalidCode": "הקוד שגוי.",
+        "expiredCode": "תוקף הקוד פג. בקשו קוד חדש.",
+        "unexpected": "משהו השתבש. נסו שוב."
+      }
+    },
     "onboardingComplete": {
       "title": "מעולה, אנחנו מוכנים!",
       "descriptionRest": "כדי לשמור את ההתקדמות שלך ולהתחיל ללמוד, נשאר רק להתחבר.",

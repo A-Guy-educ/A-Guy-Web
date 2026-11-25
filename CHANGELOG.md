@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.70.0 — 2026-11-25
+
+### Features
+- Add WhatsApp login with one-time codes (#1663)
+- New flow follows the system color, and widens on desktop (#1662)
+- Split the visitor funnel by device (#1661)
+- Drop returning browsers from the visitor funnel (#1661)
+- Drop existing students from the visitor funnel (#1660)
+
 ## v0.69.0 — 2026-11-24
 
 ### Features
@@ -5287,6 +5296,12 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore: Release v0.70.0 ([#1665](https://github.com/A-Guy-educ/A-Guy-Web/pull/1665)) — @aguyshayb
+- feat: Add WhatsApp login with one-time codes ([#1663](https://github.com/A-Guy-educ/A-Guy-Web/pull/1663)) — @aguyshayb
+- feat: New flow follows the system color, and widens on desktop ([#1662](https://github.com/A-Guy-educ/A-Guy-Web/pull/1662)) — @aguyshayb
+- feat(dashboard): Drop returning browsers and split visitors by device ([#1661](https://github.com/A-Guy-educ/A-Guy-Web/pull/1661)) — @aguyshayb
+- feat(dashboard): Drop existing students from the visitor funnel ([#1660](https://github.com/A-Guy-educ/A-Guy-Web/pull/1660)) — @aguyshayb
+- promote: dev -> main (v0.69.0) ([#1659](https://github.com/A-Guy-educ/A-Guy-Web/pull/1659)) — @aguyshayb
 - chore: Release v0.69.0 ([#1658](https://github.com/A-Guy-educ/A-Guy-Web/pull/1658)) — @aguyshayb
 - fix: Exam date on iOS, continue any opened lesson, no teacher flash ([#1657](https://github.com/A-Guy-educ/A-Guy-Web/pull/1657)) — @aguyshayb
 - feat: Upload the exam topic list and link plan days by level ([#1656](https://github.com/A-Guy-educ/A-Guy-Web/pull/1656)) — @aguyshayb

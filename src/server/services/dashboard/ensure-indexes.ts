@@ -52,6 +52,15 @@ async function createIndexes(db: Db): Promise<void> {
         partialFilterExpression: { 'onboarding.startedAt': { $exists: true } },
       },
     ),
+    // Funnel: finds when Google outcomes started being recorded (the cutover
+    // for estimating existing-student logins). Partial — only stamped rows.
+    db.collection('guest-sessions').createIndex(
+      { 'onboarding.googleOutcomeAt': 1 },
+      {
+        name: 'guest_sessions_google_outcome_at',
+        partialFilterExpression: { 'onboarding.googleOutcomeAt': { $exists: true } },
+      },
+    ),
     // Backs aggregateUsersPerCurrentCourse — partial so it only indexes
     // users who have picked a course, matching the pipeline's $match
     // predicate exactly. Keeps the index small while `currentCourse`
