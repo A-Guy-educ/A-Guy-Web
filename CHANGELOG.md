@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.70.0 — 2026-11-25
+
+### Features
+- Add WhatsApp login with one-time codes (#1663)
+- New flow follows the system color, and widens on desktop (#1662)
+- Split the visitor funnel by device (#1661)
+- Drop returning browsers from the visitor funnel (#1661)
+- Drop existing students from the visitor funnel (#1660)
+
 ## v0.69.0 — 2026-11-24
 
 ### Features
