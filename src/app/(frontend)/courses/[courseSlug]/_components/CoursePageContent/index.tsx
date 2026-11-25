@@ -36,6 +36,7 @@ import { personaForSlug } from '@/ui/web/privateLesson/teacherPersonas'
 import '@/ui/web/privateLesson/private-lesson.css'
 import '@/ui/web/privateLesson/private-lesson-hub.css'
 import '@/ui/web/privateLesson/private-lesson-finder.css'
+import '@/ui/web/privateLesson/private-lesson-hub-desktop.css'
 
 interface CoursePageContentProps {
   course: Course
@@ -140,7 +141,7 @@ export function CoursePageContent({
   )
 
   return (
-    <div className="pl-hub" dir={locale === 'he' ? 'rtl' : 'ltr'}>
+    <div className={finder ? 'pl-hub finding' : 'pl-hub'} dir={locale === 'he' ? 'rtl' : 'ltr'}>
       <CourseAnalytics courseId={course.id} courseTitle={course.title} />
 
       {isLocaleFallback && (

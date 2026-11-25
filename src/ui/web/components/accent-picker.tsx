@@ -3,10 +3,13 @@
 import { useState, useEffect } from 'react'
 import { cn } from '@/infra/utils/ui'
 import { Check } from 'lucide-react'
+import { ACCENT_STORAGE_KEY } from '@/client/state/localStorage/accentColor'
 
 // Theme values for each preset live in `src/app/(frontend)/accents.css`,
 // keyed by `id`. `swatch` is only the circle shown in the picker.
-// Order matters: the saved preference is the preset's index.
+// Order matters: the saved preference is the preset's index, and the
+// pre-paint script (`accentInitScript`) reads the same order from
+// ACCENT_PRESET_IDS.
 export const ACCENT_PRESETS = [
   { id: 'burgundy', name: 'Burgundy', swatch: 'hsl(353 73% 29%)' }, // default
   { id: 'ocean', name: 'Ocean', swatch: 'hsl(217 91% 40%)' },
@@ -16,7 +19,7 @@ export const ACCENT_PRESETS = [
   { id: 'rose', name: 'Rose', swatch: 'hsl(330 81% 40%)' },
 ] as const
 
-const STORAGE_KEY = 'aguy-accent-color'
+const STORAGE_KEY = ACCENT_STORAGE_KEY
 
 function getStoredAccent(): number {
   if (typeof window === 'undefined') return 0

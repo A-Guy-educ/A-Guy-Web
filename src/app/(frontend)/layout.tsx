@@ -14,6 +14,7 @@ import { Header } from '@/ui/web/header/Component'
 import { Providers } from '@/ui/web/providers'
 import { PasswordLoginProvider } from '@/ui/web/providers/PasswordLoginProvider'
 import { InitTheme } from '@/ui/web/providers/Theme/InitTheme'
+import { accentInitScript } from '@/client/state/localStorage/accentColor'
 import { RouteLoadingIndicator } from '@/infra/loading/components/RouteLoadingIndicator'
 
 import { defaultLocale, getDirection } from '@/i18n/config'
@@ -70,6 +71,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     >
       <head>
         <InitTheme />
+        {/* The system color, before the first paint (the picker only applies it while open). */}
+        <script dangerouslySetInnerHTML={{ __html: accentInitScript() }} />
         {/* Brand theme colors injected as CSS variables */}
         <style>{`:root {
           --brand-primary-light: ${getBrand().config.themeColor.light};
