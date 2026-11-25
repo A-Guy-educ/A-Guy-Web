@@ -81,3 +81,36 @@ describe('WhatsApp Cloud API client', () => {
     await expect(sendWhatsAppAuthCode('972501234567', '000000')).rejects.toThrow(/not configured/)
   })
 })
+
+describe('WHATSAPP_DEV_FAKE_SEND', () => {
+  function unconfigured() {
+    vi.stubEnv('WHATSAPP_ACCESS_TOKEN', '')
+    vi.stubEnv('WHATSAPP_PHONE_NUMBER_ID', '')
+    vi.stubEnv('WHATSAPP_AUTH_TEMPLATE_NAME', '')
+    vi.stubEnv('WHATSAPP_DEV_FAKE_SEND', '1')
+  }
+
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    vi.unstubAllGlobals()
+  })
+
+  it('under pnpm dev, enables login without Meta and never calls it', async () => {
+    unconfigured()
+    vi.stubEnv('NODE_ENV', 'development')
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+
+    expect(isWhatsAppLoginConfigured()).toBe(true)
+    await sendWhatsAppAuthCode('972501234567', '123456')
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it.each(['production', 'test'])('is ignored when NODE_ENV=%s', async (nodeEnv) => {
+    unconfigured()
+    vi.stubEnv('NODE_ENV', nodeEnv)
+
+    expect(isWhatsAppLoginConfigured()).toBe(false)
+    await expect(sendWhatsAppAuthCode('972501234567', '123456')).rejects.toThrow(/not configured/)
+  })
+})

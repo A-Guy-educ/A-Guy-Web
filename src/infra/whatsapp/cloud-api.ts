@@ -38,7 +38,17 @@ function readConfig(): WhatsAppConfig | null {
  * Meta setup is safe.
  */
 export function isWhatsAppLoginConfigured(): boolean {
-  return readConfig() !== null
+  return isDevFakeSendEnabled() || readConfig() !== null
+}
+
+/**
+ * Local stand-in for Meta: log the code instead of sending it, so the whole
+ * login flow can be exercised before a template is approved. Also requires
+ * `pnpm dev` (deployments, previews included, run with NODE_ENV=production),
+ * so a stray env var cannot let anyone log in as any number.
+ */
+function isDevFakeSendEnabled(): boolean {
+  return process.env.NODE_ENV === 'development' && process.env.WHATSAPP_DEV_FAKE_SEND === '1'
 }
 
 /**
@@ -76,6 +86,11 @@ export function buildAuthCodeMessage(
  * configured or Meta rejects the message; the error never carries the token.
  */
 export async function sendWhatsAppAuthCode(to: string, code: string): Promise<void> {
+  if (isDevFakeSendEnabled()) {
+    logger.warn({ to, code }, 'WHATSAPP_DEV_FAKE_SEND: not sent to WhatsApp, use this code')
+    return
+  }
+
   const config = readConfig()
   if (!config) throw new Error('WhatsApp login is not configured')
 
