@@ -5296,6 +5296,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- promote: dev -> main (v0.70.0) ([#1666](https://github.com/A-Guy-educ/A-Guy-Web/pull/1666)) — @aguyshayb
 - chore: Release v0.70.0 ([#1665](https://github.com/A-Guy-educ/A-Guy-Web/pull/1665)) — @aguyshayb
 - feat: Add WhatsApp login with one-time codes ([#1663](https://github.com/A-Guy-educ/A-Guy-Web/pull/1663)) — @aguyshayb
 - feat: New flow follows the system color, and widens on desktop ([#1662](https://github.com/A-Guy-educ/A-Guy-Web/pull/1662)) — @aguyshayb
