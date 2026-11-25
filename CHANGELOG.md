@@ -5287,6 +5287,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: New flow follows the system color, and widens on desktop ([#1662](https://github.com/A-Guy-educ/A-Guy-Web/pull/1662)) — @aguyshayb
 - feat(dashboard): Drop returning browsers and split visitors by device ([#1661](https://github.com/A-Guy-educ/A-Guy-Web/pull/1661)) — @aguyshayb
 - feat(dashboard): Drop existing students from the visitor funnel ([#1660](https://github.com/A-Guy-educ/A-Guy-Web/pull/1660)) — @aguyshayb
 - promote: dev -> main (v0.69.0) ([#1659](https://github.com/A-Guy-educ/A-Guy-Web/pull/1659)) — @aguyshayb
