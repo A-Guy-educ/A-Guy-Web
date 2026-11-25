@@ -366,6 +366,8 @@ export interface User {
   firstName?: string | null
   lastName?: string | null
   phone?: string | null
+  /** Digits-only E.164 number a WhatsApp login code was delivered to. */
+  verifiedPhone?: string | null
   email?: string | null
   role?: string | null
   roles?: string[] | null

@@ -2,6 +2,7 @@
 
 import { detectBrowserLocale } from '@/i18n/config'
 import { SYSTEM_EVENTS, systemEventBus } from '@/infra/system-events'
+import { isWhatsAppPlaceholderEmail } from '@/infra/whatsapp/phone'
 import { useEffect } from 'react'
 import { alias, identify } from '../core/tracker'
 import { getOrCreateAnonymousId } from '../utils/anonymous-id'
@@ -70,7 +71,7 @@ export function UserIdentificationTracker() {
               }
 
               // Add user email (using Mixpanel reserved property)
-              if (user.email) {
+              if (user.email && !isWhatsAppPlaceholderEmail(user.email)) {
                 userProperties.$email = user.email
               }
 

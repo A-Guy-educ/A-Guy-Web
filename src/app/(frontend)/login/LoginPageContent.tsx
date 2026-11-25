@@ -8,7 +8,13 @@ import { useTranslations } from '@/ui/web/providers/I18n'
 import type { SafeDestination } from '@/infra/auth/oauth_sanitize'
 import { LoginForm } from './LoginForm'
 
-export function LoginPageContent({ returnTo }: { returnTo: SafeDestination }) {
+export function LoginPageContent({
+  returnTo,
+  whatsAppEnabled = false,
+}: {
+  returnTo: SafeDestination
+  whatsAppEnabled?: boolean
+}) {
   const t = useTranslations('auth.login')
 
   return (
@@ -35,7 +41,7 @@ export function LoginPageContent({ returnTo }: { returnTo: SafeDestination }) {
         transition={{ duration: 0.5, delay: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
         className="relative w-full max-w-md px-4"
       >
-        <LoginForm returnTo={returnTo} />
+        <LoginForm returnTo={returnTo} whatsAppEnabled={whatsAppEnabled} />
       </motion.div>
 
       {/* Help Link */}
