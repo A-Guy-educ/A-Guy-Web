@@ -116,6 +116,27 @@
         "collision": "An account with this email already exists. Please log in with your password or contact support."
       }
     },
+    "whatsapp": {
+      "continueWithWhatsApp": "Continue with WhatsApp",
+      "phoneLabel": "Mobile number",
+      "sendCode": "Send me a code on WhatsApp",
+      "sending": "Sending...",
+      "codeSentTo": "We sent a 6-digit code on WhatsApp to {phone}",
+      "codeLabel": "Code",
+      "verify": "Log in",
+      "verifying": "Checking...",
+      "resend": "Send a new code",
+      "resendIn": "New code in {seconds}s",
+      "changeNumber": "Change number",
+      "errors": {
+        "invalidPhone": "Enter an Israeli mobile number, e.g. 050-123-4567",
+        "rateLimited": "Too many attempts. Please wait a few minutes and try again.",
+        "sendFailed": "We couldn't send the code. Check the number and try again.",
+        "invalidCode": "That code is incorrect.",
+        "expiredCode": "This code has expired. Request a new one.",
+        "unexpected": "Something went wrong. Please try again."
+      }
+    },
     "onboardingComplete": {
       "title": "Awesome, we're ready!",
       "descriptionRest": "To save your progress and start learning, just sign in.",

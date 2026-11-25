@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getMeUser } from '@/infra/utils/getMeUser'
+import { formatIsraeliPhone, isWhatsAppPlaceholderEmail } from '@/infra/whatsapp/phone'
 import { getUserClassPlacement } from '@/server/services/classroom/user-class-placement'
 import { MePageContent } from './MePageContent'
 
@@ -22,8 +23,8 @@ export default async function MePage() {
         lastName: user.lastName,
         className,
         school: schoolName,
-        phone: user.phone,
-        email: user.email,
+        phone: user.phone ?? (user.verifiedPhone ? formatIsraeliPhone(user.verifiedPhone) : null),
+        email: isWhatsAppPlaceholderEmail(user.email) ? null : user.email,
       }}
     />
   )

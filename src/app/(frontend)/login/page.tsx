@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { sanitizeReturnTo } from '@/infra/auth/oauth_sanitize'
 import { getSharedLoginPolicy } from '@/infra/auth/shared-login/policy.env'
 import { getMeUser } from '@/infra/utils/getMeUser'
+import { isWhatsAppLoginConfigured } from '@/infra/whatsapp/cloud-api'
 import { LoginPageContent } from './LoginPageContent'
 
 export const metadata = { title: 'Log In' }
@@ -23,5 +24,5 @@ export default async function LoginPage({
   const { returnTo } = await searchParams
   const destination = sanitizeReturnTo(returnTo, getSharedLoginPolicy())
 
-  return <LoginPageContent returnTo={destination} />
+  return <LoginPageContent returnTo={destination} whatsAppEnabled={isWhatsAppLoginConfigured()} />
 }

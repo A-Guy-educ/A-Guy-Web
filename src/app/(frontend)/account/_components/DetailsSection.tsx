@@ -1,6 +1,7 @@
 'use client'
 
 import type { User } from '@/infra/types/content'
+import { formatIsraeliPhone, isWhatsAppPlaceholderEmail } from '@/infra/whatsapp/phone'
 import { useTranslations } from '@/ui/web/providers/I18n'
 import { Avatar, AvatarFallback } from '@/ui/web/components/avatar'
 
@@ -33,10 +34,20 @@ export function DetailsSection({ user }: DetailsSectionProps) {
           </div>
         </div>
       </div>
-      <div>
-        <p className="text-body-sm text-muted-foreground">{t('email')}</p>
-        <p className="text-body-md font-medium">{user.email}</p>
-      </div>
+      {user.verifiedPhone && (
+        <div>
+          <p className="text-body-sm text-muted-foreground">{t('me.phone')}</p>
+          <p className="text-body-md font-medium" dir="ltr">
+            {formatIsraeliPhone(user.verifiedPhone)}
+          </p>
+        </div>
+      )}
+      {!isWhatsAppPlaceholderEmail(user.email) && (
+        <div>
+          <p className="text-body-sm text-muted-foreground">{t('email')}</p>
+          <p className="text-body-md font-medium">{user.email}</p>
+        </div>
+      )}
     </div>
   )
 }
