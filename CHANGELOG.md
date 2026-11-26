@@ -5296,6 +5296,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- feat: Show lesson formulas and solutions in chat tools, add them to mobile ([#1667](https://github.com/A-Guy-educ/A-Guy-Web/pull/1667)) — @aguyshayb
 ## [v0.70.0] - 2026-11-25
 
 - promote: dev -> main (v0.70.0) ([#1666](https://github.com/A-Guy-educ/A-Guy-Web/pull/1666)) — @aguyshayb
