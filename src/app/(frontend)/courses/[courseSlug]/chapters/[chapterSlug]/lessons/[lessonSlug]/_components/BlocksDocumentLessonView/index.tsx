@@ -7,7 +7,7 @@
  * the Interactive tab, just non-interactive and styled as a clean card.
  *
  * Solutions (fullSolution/solution) from question blocks are collected into
- * a single "Solutions" section rendered AFTER all exercises.
+ * the chat's answers tool (the desktop rail, or the "+" menu on mobile).
  *
  * Text alignment is locale-aware: right-aligned for Hebrew (RTL), left-aligned
  * for English (LTR).
@@ -23,7 +23,7 @@ import {
   WORKSHEET_LINE_HEIGHT,
 } from '@/ui/web/exerciserenderer/ExerciseWorksheet'
 import { RichTextRenderer } from '@/ui/web/exerciserenderer/blocks/RichTextRenderer'
-import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
+import { useLocale } from '@/ui/web/providers/I18n'
 import type { Exercise, FormulaSheet, Media as MediaType } from '@/infra/types/content'
 import type { ContentBlock } from '@/infra/types/exercise'
 import type { QuestionBlock, InlineRichText, RichTextBlock } from '@/ui/web/exerciserenderer/types'
@@ -61,6 +61,8 @@ interface BlocksDocumentLessonViewProps {
   /** Conversation scope for the chat; defaults to `lessonId`. */
   chatLessonId?: string
   formulaSheet?: FormulaSheet | null
+  /** The lesson's own formulas text; the chat's formulas tool shows it when there is no sheet. */
+  formulas?: string | null
   /**
    * 1-based position in the user's opened learning lessons — same free-tier
    * exercise gate as the chat view. Exercises past the gate (and their
@@ -167,52 +169,39 @@ function getSolutionsByExercise(
   return entries
 }
 
-/** Renders the collected solutions section */
-function SolutionsSection({
-  entries,
-  dir,
-}: {
-  entries: ExerciseSolutionEntry[]
-  dir: 'ltr' | 'rtl'
-}) {
-  const t = useTranslations()
-
-  if (entries.length === 0) return null
-
+/** The collected solutions, shown in the chat's answers tool. */
+function SolutionsList({ entries, dir }: { entries: ExerciseSolutionEntry[]; dir: 'ltr' | 'rtl' }) {
   return (
-    <section className="mt-section-md border-t border-border/60 pt-section-md">
-      <h2 className="mb-6 text-heading-md font-bold text-foreground">{t('solutionsHeading')}</h2>
-      <ol className="flex flex-col gap-content-gap-lg list-none ps-0" dir={dir}>
-        {entries.map((entry) => (
-          <li key={entry.exerciseId} className="flex flex-col gap-content-gap-xs">
-            <span className="font-bold text-primary">{entry.exerciseLabel}</span>
-            <div className="flex flex-col gap-content-gap-xs ps-4">
-              {entry.solutions.map((sol) => {
-                const block: RichTextBlock = {
-                  id: `sol-${sol.blockId}`,
-                  type: 'rich_text',
-                  format: sol.content.format,
-                  value: sol.content.value,
-                  mediaIds: sol.content.mediaIds ?? [],
-                }
-                return (
-                  <div key={sol.blockId} className="flex gap-content-gap-xs">
-                    {sol.subLabel && (
-                      <span className="font-semibold text-foreground/80 shrink-0">
-                        {sol.subLabel}
-                      </span>
-                    )}
-                    <div className="prose prose-slate dark:prose-invert max-w-none text-foreground leading-relaxed flex-1">
-                      <RichTextRenderer block={block} lineHeightClassName={WORKSHEET_LINE_HEIGHT} />
-                    </div>
+    <ol className="flex flex-col gap-content-gap-lg list-none p-card-padding-sm" dir={dir}>
+      {entries.map((entry) => (
+        <li key={entry.exerciseId} className="flex flex-col gap-content-gap-xs">
+          <span className="font-bold text-primary">{entry.exerciseLabel}</span>
+          <div className="flex flex-col gap-content-gap-xs ps-4">
+            {entry.solutions.map((sol) => {
+              const block: RichTextBlock = {
+                id: `sol-${sol.blockId}`,
+                type: 'rich_text',
+                format: sol.content.format,
+                value: sol.content.value,
+                mediaIds: sol.content.mediaIds ?? [],
+              }
+              return (
+                <div key={sol.blockId} className="flex gap-content-gap-xs">
+                  {sol.subLabel && (
+                    <span className="font-semibold text-foreground/80 shrink-0">
+                      {sol.subLabel}
+                    </span>
+                  )}
+                  <div className="prose prose-slate dark:prose-invert max-w-none text-foreground leading-relaxed flex-1">
+                    <RichTextRenderer block={block} lineHeightClassName={WORKSHEET_LINE_HEIGHT} />
                   </div>
-                )
-              })}
-            </div>
-          </li>
-        ))}
-      </ol>
-    </section>
+                </div>
+              )
+            })}
+          </div>
+        </li>
+      ))}
+    </ol>
   )
 }
 
@@ -226,6 +215,7 @@ export function BlocksDocumentLessonView({
   showChat = false,
   chatLessonId,
   formulaSheet,
+  formulas,
   lessonLearningIndex = null,
   lessonContentBlocks = [],
 }: BlocksDocumentLessonViewProps) {
@@ -324,9 +314,6 @@ export function BlocksDocumentLessonView({
               <TierLockBubble />
             </div>
           )}
-
-          {/* Solutions section — rendered AFTER all exercises */}
-          <SolutionsSection entries={solutionEntries} dir={dir} />
         </div>
       </div>
     </div>
@@ -344,6 +331,11 @@ export function BlocksDocumentLessonView({
       menuPlacement="inline"
       chatTools={{
         formulaSheet,
+        formulas,
+        answers:
+          solutionEntries.length > 0 ? (
+            <SolutionsList entries={solutionEntries} dir={dir} />
+          ) : undefined,
         sheetPreview:
           renderable.length > 0 ? (
             <ScrollSheetPreview entries={renderable} mediaMap={mediaMap} dir={dir} />
@@ -374,8 +366,6 @@ export function BlocksDocumentLessonView({
             lessonId={chatLesson}
             translationNamespace="courses"
             showMathTools={true}
-            // Desktop opens the formula sheet from the chat tool rail.
-            formulaSheet={isDesktop ? undefined : formulaSheet}
           />
         ) : null
       }

@@ -4,11 +4,10 @@ import type { ReactNode } from 'react'
 
 import { cn } from '@/infra/utils/ui'
 import { useTranslations } from '@/ui/web/providers/I18n'
-import { FormulaSheetContent } from '@/ui/web/shared/FormulaSheetViewer/FormulaSheetContent'
-import { CalculatorPanel } from './calculator/CalculatorPanel'
 import { ChatCollapseButton, ChatToolRail } from './ChatToolRail'
-import { FinalAnswersPanel } from './FinalAnswersPanel'
-import type { ChatToolId, ChatToolsOptions } from './types'
+import { ChatToolPanel } from './ChatToolPanel'
+import { getChatTools } from './getChatTools'
+import type { ChatToolsOptions } from './types'
 import type { ChatToolsState } from './useChatTools'
 
 interface ChatToolsColumnProps {
@@ -28,39 +27,10 @@ export function ChatToolsColumn({ options, state, rtl, children }: ChatToolsColu
   const t = useTranslations('courses.chatTools')
   const { activeTool, collapsed, selectTool, toggleCollapsed } = state
 
-  const tools: ChatToolId[] = [
-    'chat',
-    'answers',
-    ...(options.formulaSheet ? (['formulas'] as const) : []),
-    'calculator',
-    ...(options.sheetPreview ? (['sheet'] as const) : []),
-  ]
+  const tools = getChatTools(options)
   // A tool can disappear (e.g. switching to a video file drops the sheet).
   const shownTool = tools.includes(activeTool) ? activeTool : 'chat'
   const showChat = !collapsed && shownTool === 'chat'
-
-  const panel = (() => {
-    if (collapsed) return null
-    switch (shownTool) {
-      case 'answers':
-        return <FinalAnswersPanel onBackToChat={() => selectTool('chat')} />
-      case 'formulas':
-        return options.formulaSheet ? (
-          <div className="p-card-padding-sm">
-            <p className="mb-3 text-body-sm font-semibold text-foreground">
-              {options.formulaSheet.title}
-            </p>
-            <FormulaSheetContent sheet={options.formulaSheet} />
-          </div>
-        ) : null
-      case 'calculator':
-        return <CalculatorPanel />
-      case 'sheet':
-        return options.sheetPreview
-      default:
-        return null
-    }
-  })()
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-background">
@@ -90,17 +60,8 @@ export function ChatToolsColumn({ options, state, rtl, children }: ChatToolsColu
 
       <div className={cn('min-h-0 flex-1 flex-col', showChat ? 'flex' : 'hidden')}>{children}</div>
 
-      {panel && (
-        <div
-          className={cn(
-            'min-h-0 flex-1 bg-card',
-            shownTool === 'sheet'
-              ? 'flex flex-col overflow-hidden'
-              : 'overflow-y-auto overscroll-contain',
-          )}
-        >
-          {panel}
-        </div>
+      {!collapsed && (
+        <ChatToolPanel tool={shownTool} options={options} onBackToChat={() => selectTool('chat')} />
       )}
     </div>
   )

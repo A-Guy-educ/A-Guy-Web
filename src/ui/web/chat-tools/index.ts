@@ -1,4 +1,7 @@
 export { ChatToolsColumn } from './ChatToolsColumn'
+export { ChatToolPanel } from './ChatToolPanel'
+export { ChatToolsMenuProvider } from './ChatToolsMenuContext'
+export { getChatTools } from './getChatTools'
 export { SheetPreviewPanel, type SheetPreviewContent } from './SheetPreviewPanel'
 export { useChatTools, type ChatToolsState } from './useChatTools'
 export type { ChatToolId, ChatToolsOptions } from './types'

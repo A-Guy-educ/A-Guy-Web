@@ -1,74 +1,14 @@
 'use client'
 
 import { isRTL } from '@/i18n/config'
-import { cn } from '@/infra/utils/ui'
 import type { FormulaSheet } from '@/infra/types/content'
 import { type MobileExerciseViewMode, SplitPaneLayout } from '@/ui/web/components/split-pane-layout'
 import { LessonMenu, useLessonMenuConfig } from '@/ui/web/lesson-menu'
 import { ChatToolsColumn, useChatTools, type ChatToolsOptions } from '@/ui/web/chat-tools'
 import { useMediaQuery } from '@/client/hooks/useMediaQuery'
-import { X } from 'lucide-react'
-import React, { useCallback, useState, type ReactElement } from 'react'
-import { useLocale, useTranslations } from '@/ui/web/providers/I18n'
-
-interface MobileChatPanelProps {
-  chatContent: ReactElement
-  displayMode?: 'full' | 'input-only'
-  isMobile?: boolean
-  viewMode?: 'PDF' | 'Chat'
-  onModeToggle?: () => void
-  onChatInteraction?: () => void
-  onBackToExercise: () => void
-}
-
-function MobileChatPanel({
-  chatContent,
-  displayMode,
-  isMobile,
-  viewMode,
-  onModeToggle,
-  onChatInteraction,
-  onBackToExercise,
-}: MobileChatPanelProps) {
-  const t = useTranslations('courses')
-  const locale = useLocale()
-  const rtl = isRTL(locale as 'en' | 'he')
-
-  return (
-    <div className="relative h-full flex flex-col">
-      <button
-        type="button"
-        onClick={onBackToExercise}
-        aria-label={t('backToExercise')}
-        style={{ top: 'calc(0.75rem + env(safe-area-inset-top))' }}
-        className={cn(
-          'lg:hidden absolute z-20 flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card/90 text-foreground shadow-elevation-2 backdrop-blur transition-colors duration-normal hover:bg-muted',
-          rtl ? 'left-3' : 'right-3',
-        )}
-      >
-        <X className="w-5 h-5" />
-      </button>
-      <div className="flex-1 min-h-0 pt-[calc(3.5rem+env(safe-area-inset-top))] lg:pt-0">
-        {React.cloneElement(
-          chatContent as React.ReactElement<{
-            displayMode?: 'full' | 'input-only'
-            isMobile?: boolean
-            viewMode?: 'PDF' | 'Chat'
-            onModeToggle?: () => void
-            onChatInteraction?: () => void
-          }>,
-          {
-            displayMode,
-            isMobile,
-            viewMode,
-            onModeToggle,
-            onChatInteraction,
-          },
-        )}
-      </div>
-    </div>
-  )
-}
+import React, { useCallback, useState } from 'react'
+import { useLocale } from '@/ui/web/providers/I18n'
+import { MobileChatPanel } from './MobileChatPanel'
 
 interface ExerciseWorkspaceProps {
   exerciseTitle: string
@@ -99,7 +39,7 @@ interface ExerciseWorkspaceProps {
   /**
    * Desktop: wrap the chat in a column with a tool rail (formula sheet,
    * calculator, material miniature…) that can collapse to a vertical strip.
-   * Mobile keeps the plain chat panel.
+   * Mobile offers the same tools from the chat's "+" menu.
    */
   chatTools?: ChatToolsOptions
   // Accepted for API compatibility with existing callers. The mobile "Help"
@@ -166,6 +106,8 @@ export function ExerciseWorkspace({
             <MobileChatPanel
               chatContent={chatContent}
               onBackToExercise={() => handleMobileModeChange('exercise')}
+              chatTools={chatTools}
+              chatToolsState={chatToolsState}
             />
           ) : (
             chatContent

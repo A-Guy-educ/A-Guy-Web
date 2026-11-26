@@ -2,8 +2,8 @@
 
 import { splitExplanationBullets } from '@/lib/lessons/splitExplanationBullets'
 import { useTranslations } from '@/ui/web/providers/I18n'
+import { MathBulletList } from '@/ui/web/shared/MathBulletList'
 
-import { LessonLandingBulletList } from './LessonLandingBulletList'
 import { LessonLandingSection } from './LessonLandingSection'
 
 interface LessonLandingFormulasProps {
@@ -23,7 +23,7 @@ export function LessonLandingFormulas({ formulas }: LessonLandingFormulasProps) 
       subtitle={t('lessonLandingFormulasSubtitle')}
     >
       <div className="rounded-xl border border-secondary/30 bg-secondary/10 p-card-padding">
-        <LessonLandingBulletList bullets={bullets} />
+        <MathBulletList bullets={bullets} />
       </div>
     </LessonLandingSection>
   )
