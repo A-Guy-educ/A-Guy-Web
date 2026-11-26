@@ -5296,6 +5296,7 @@
 - start interactive session interactive-1778075175838-vd0im6 (1b6229b27)
 ## [Unreleased]
 
+- chore(deps-dev): Bump the dev-dependencies group across 1 directory with 9 updates ([#1644](https://github.com/A-Guy-educ/A-Guy-Web/pull/1644)) — @dependabot[bot]
 - feat: Show lesson formulas and solutions in chat tools, add them to mobile ([#1667](https://github.com/A-Guy-educ/A-Guy-Web/pull/1667)) — @aguyshayb
 ## [v0.70.0] - 2026-11-25
 
