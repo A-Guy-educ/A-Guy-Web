@@ -10,6 +10,13 @@ describe('ExerciseWorkspace mobile controls contract', () => {
     ),
     'utf8',
   )
+  const mobileChatPanelSource = readFileSync(
+    path.join(
+      process.cwd(),
+      'src/app/(frontend)/courses/[courseSlug]/chapters/[chapterSlug]/lessons/[lessonSlug]/exercises/[exerciseSlug]/_components/ExerciseWorkspace/MobileChatPanel.tsx',
+    ),
+    'utf8',
+  )
   const pagerSource = readFileSync(
     path.join(
       process.cwd(),
@@ -56,7 +63,7 @@ describe('ExerciseWorkspace mobile controls contract', () => {
 
     // MobileChatPanel still hosts an X button that flips mobileMode back
     // to 'exercise' — that's how the student escapes the mobile chat pane.
-    expect(workspaceSource).toContain("t('backToExercise')")
+    expect(mobileChatPanelSource).toContain("t('backToExercise')")
     expect(workspaceSource).toContain("onBackToExercise={() => handleMobileModeChange('exercise')}")
   })
 

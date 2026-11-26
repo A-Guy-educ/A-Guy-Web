@@ -54,6 +54,8 @@ interface DualModeLessonViewProps {
   chatLessonId?: string
   showChat?: boolean
   formulaSheet?: FormulaSheet | null
+  /** The lesson's own formulas text (`lesson.formulas`), for the chat's formulas tool. */
+  lessonFormulas?: string | null
   /** Renderer modes enabled by the admin for this lesson. Defaults to all four. */
   visibleRenderers?: LessonMode[]
   initialExerciseIndex?: number
@@ -128,6 +130,7 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
     chatLessonId,
     showChat,
     formulaSheet,
+    lessonFormulas,
     visibleRenderers,
     initialExerciseIndex,
     initialMode,
@@ -197,6 +200,7 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
           courseSlug={courseSlug}
           chatLessonId={chatLessonId}
           formulaSheet={formulaSheet}
+          formulas={lessonFormulas}
         />
       )
     }
@@ -213,6 +217,7 @@ export function DualModeLessonView(props: DualModeLessonViewProps) {
           showChat={showChat}
           chatLessonId={chatLessonId}
           formulaSheet={formulaSheet}
+          formulas={lessonFormulas}
         />
       )
     }

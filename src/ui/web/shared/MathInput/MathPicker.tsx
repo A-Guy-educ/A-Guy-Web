@@ -11,7 +11,8 @@
  *
  * Image + Notebook entries are gated on the `onImageUpload` / `onNotebook`
  * props so chat (image only) and open-answer (notebook only) each get the
- * right subset without a parallel component tree.
+ * right subset without a parallel component tree. `extraEntries` lists more
+ * actions under a divider (the chat tools on mobile).
  *
  * On Insert the composed LaTeX is handed to `onInsert(latex)` which the
  * caller forwards to the TipTap-chip insert API.
@@ -25,6 +26,14 @@ import { cn } from '@/infra/utils/ui'
 import { ArrowRight, Image as ImageIcon, NotebookPen, Plus, X } from 'lucide-react'
 import { MATH_CATEGORIES, MATH_TOOLS, type MathTool, type ToolCategory } from './mathTools'
 
+/** A root-menu entry. */
+export interface MathPickerEntry {
+  key: string
+  label: string
+  symbol?: React.ReactNode
+  onClick: () => void
+}
+
 export interface MathPickerProps {
   onInsert: (latex: string) => void
   onClose?: () => void
@@ -34,6 +43,8 @@ export interface MathPickerProps {
   /** Shows a Notebook entry in the root menu when provided; clicking it fires
    *  this callback (the caller reveals the drawing notebook UI). */
   onNotebook?: () => void
+  /** Listed under the root menu's own entries; picking one also closes the menu. */
+  extraEntries?: MathPickerEntry[]
   className?: string
 }
 
@@ -48,6 +59,7 @@ export function MathPicker({
   onClose,
   onImageUpload,
   onNotebook,
+  extraEntries,
   className,
 }: MathPickerProps) {
   const [view, setView] = useState<View>({ kind: 'root' })
@@ -70,6 +82,7 @@ export function MathPicker({
           onPickPoint={() => setView({ kind: 'point' })}
           onImageUpload={onImageUpload}
           onNotebook={onNotebook}
+          extraEntries={extraEntries}
           onClose={onClose}
         />
       )}
@@ -165,20 +178,17 @@ function RootView({
   onPickPoint,
   onImageUpload,
   onNotebook,
+  extraEntries = [],
   onClose,
 }: {
   onPickCategory: (c: ToolCategory) => void
   onPickPoint: () => void
   onImageUpload?: () => void
   onNotebook?: () => void
+  extraEntries?: MathPickerEntry[]
   onClose?: () => void
 }) {
-  const entries: Array<{
-    key: string
-    label: string
-    onClick: () => void
-    symbol?: React.ReactNode
-  }> = [
+  const entries: MathPickerEntry[] = [
     { key: 'point', label: 'נקודה / נקודות', symbol: '(x,y)', onClick: onPickPoint },
     ...MATH_CATEGORIES.map((c) => ({
       key: c.category,
@@ -209,21 +219,35 @@ function RootView({
       },
     })
   }
+  const renderEntry = (e: MathPickerEntry) => (
+    <button
+      key={e.key}
+      type="button"
+      onClick={e.onClick}
+      className="flex items-center gap-content-gap-xs px-3 py-2.5 rounded-lg border border-border bg-background hover:bg-muted transition-colors text-body-md text-foreground text-start"
+    >
+      <span className="w-10 flex items-center justify-center text-muted-foreground">
+        {e.symbol}
+      </span>
+      <span className="flex-1">{e.label}</span>
+    </button>
+  )
   return (
     <div className="flex flex-col gap-content-gap-xs">
-      {entries.map((e) => (
-        <button
-          key={e.key}
-          type="button"
-          onClick={e.onClick}
-          className="flex items-center gap-content-gap-xs px-3 py-2.5 rounded-lg border border-border bg-background hover:bg-muted transition-colors text-body-md text-foreground text-start"
-        >
-          <span className="w-10 flex items-center justify-center text-muted-foreground">
-            {e.symbol}
-          </span>
-          <span className="flex-1">{e.label}</span>
-        </button>
-      ))}
+      {entries.map(renderEntry)}
+      {extraEntries.length > 0 && (
+        <div className="flex flex-col gap-content-gap-xs border-t border-border pt-content-gap-xs">
+          {extraEntries.map((e) =>
+            renderEntry({
+              ...e,
+              onClick: () => {
+                e.onClick()
+                onClose?.()
+              },
+            }),
+          )}
+        </div>
+      )}
     </div>
   )
 }

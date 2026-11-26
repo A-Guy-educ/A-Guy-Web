@@ -37,6 +37,7 @@ import { useTTS } from '../hooks/useTTS'
 import { formatMessageTime } from '../utils/formatMessageTime'
 import { formatAuthoredChatContent } from '@/infra/utils/formatAuthoredChatContent'
 import { MathPicker } from '@/ui/web/shared/MathInput/MathPicker'
+import { useChatToolsMenuEntries } from '@/ui/web/chat-tools/ChatToolsMenuContext'
 import { MixedMathInput, type MixedMathInputRef } from '@/ui/web/shared/MathInput/MixedMathInput'
 import { FormulaSheetButton } from '@/ui/web/shared/FormulaSheetViewer/FormulaSheetButton'
 import { FormulaSheetContent } from '@/ui/web/shared/FormulaSheetViewer/FormulaSheetContent'
@@ -497,6 +498,7 @@ export function ChatInterface({
 
   const [toolbarOpen, setToolbarOpen] = useState(false)
   const [formulaSheetOpen, setFormulaSheetOpen] = useState(false)
+  const toolMenuEntries = useChatToolsMenuEntries()
   const mathInputRef = useRef<MixedMathInputRef>(null)
   const formRef = useRef<HTMLFormElement>(null)
 
@@ -777,6 +779,7 @@ export function ChatInterface({
               onInsert={handleInsertMath}
               onClose={() => setToolbarOpen(false)}
               onImageUpload={openFilePicker}
+              extraEntries={toolMenuEntries}
             />
           </div>
         )}

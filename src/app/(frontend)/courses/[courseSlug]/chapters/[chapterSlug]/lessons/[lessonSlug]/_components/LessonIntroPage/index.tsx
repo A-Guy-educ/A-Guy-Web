@@ -344,6 +344,7 @@ export function LessonIntroPage({
         chatLessonId={lesson.id}
         showChat={showChat}
         formulaSheet={formulaSheet}
+        lessonFormulas={lesson.formulas}
         visibleRenderers={visibleRenderers}
         initialExerciseIndex={pageState.initialExerciseIndex}
         initialMode={

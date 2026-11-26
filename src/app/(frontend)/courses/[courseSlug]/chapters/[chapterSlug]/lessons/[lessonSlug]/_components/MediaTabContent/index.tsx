@@ -48,6 +48,8 @@ interface MediaTabContentProps {
   headerSlot?: React.ReactNode
   chatLessonId?: string
   formulaSheet?: FormulaSheet | null
+  /** The lesson's own formulas text; the chat's formulas tool shows it when there is no sheet. */
+  formulas?: string | null
 }
 
 export function MediaTabContent({
@@ -59,6 +61,7 @@ export function MediaTabContent({
   headerSlot,
   chatLessonId,
   formulaSheet,
+  formulas,
 }: MediaTabContentProps) {
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   // Notebook is for tablet/desktop only — too cramped on phones
@@ -267,6 +270,7 @@ export function MediaTabContent({
       menuPlacement="inline"
       chatTools={{
         formulaSheet,
+        formulas,
         sheetPreview:
           currentFile && sheetKind ? (
             <MediaSheetPreview
@@ -312,8 +316,6 @@ export function MediaTabContent({
           lessonId={chatLessonId ?? lessonId}
           translationNamespace="courses"
           showMathTools={true}
-          // Desktop opens the formula sheet from the chat tool rail.
-          formulaSheet={isDesktop ? undefined : formulaSheet}
         />
       }
     />
